@@ -1,0 +1,20 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/schoolp-update-check.mjs --hook",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "node scripts/schoolp-issue-check.mjs --hook",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

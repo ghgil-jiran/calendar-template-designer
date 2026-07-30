@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "description": "ACDL sample vector library for v29 demo",
+  "categories": {
+    "school": "학교·교육",
+    "season": "계절·자연",
+    "event": "학교 행사",
+    "decoration": "장식"
+  },
+  "assetCount": 32,
+  "management": {
+    "current": "embedded JSON/SVG",
+    "next": "administrator upload, validation, preview, publish"
+  }
+}

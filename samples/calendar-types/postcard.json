@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "1.0.0-draft",
+  "id": "postcard",
+  "name": "엽서형",
+  "duplex": false,
+  "sizes": [
+    {
+      "id": "postcard-landscape",
+      "name": "가로형 148×100",
+      "width": 148,
+      "height": 100,
+      "unit": "mm",
+      "recommended": true
+    },
+    {
+      "id": "postcard-portrait",
+      "name": "세로형 100×148",
+      "width": 100,
+      "height": 148,
+      "unit": "mm",
+      "recommended": false
+    }
+  ],
+  "pageStructure": {
+    "cover": {
+      "enabled": true
+    },
+    "monthlyPages": {
+      "count": 12,
+      "front": true,
+      "back": false
+    },
+    "inserts": {
+      "enabled": true,
+      "min": 0
+    },
+    "backCover": {
+      "enabled": true
+    }
+  },
+  "allowedObjects": [
+    "text",
+    "image",
+    "calendar",
+    "schoolLogo",
+    "schoolName",
+    "monthlyImage"
+  ],
+  "starterTemplates": [
+    "school-basic",
+    "minimal",
+    "blank"
+  ]
+}

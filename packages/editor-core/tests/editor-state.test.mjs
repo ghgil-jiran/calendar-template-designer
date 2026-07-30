@@ -1,0 +1,2 @@
+import assert from "node:assert/strict"; import {createEditorState,commit,undo,redo,setSelection} from "../dist/index.js";
+let s=createEditorState({title:"A"}); s=setSelection(s,["x","x"]); assert.deepEqual(s.selection.ids,["x"]); s=commit(s,d=>{d.document.title="B"}); assert.equal(s.document.title,"B"); s=undo(s); assert.equal(s.document.title,"A"); s=redo(s); assert.equal(s.document.title,"B"); console.log("editor-core ok");

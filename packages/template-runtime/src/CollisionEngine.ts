@@ -1,0 +1,3 @@
+import type { RenderNode, RuntimeDiagnostic } from "./types.js";
+const overlaps=(a:RenderNode,b:RenderNode)=>a.visible&&b.visible&&a.frame.x<b.frame.x+b.frame.width&&a.frame.x+a.frame.width>b.frame.x&&a.frame.y<b.frame.y+b.frame.height&&a.frame.y+a.frame.height>b.frame.y;
+export class CollisionEngine { inspect(nodes:RenderNode[],pageId:string):RuntimeDiagnostic[]{const out:RuntimeDiagnostic[]=[];for(let i=0;i<nodes.length;i++){const a=nodes[i];if(!a)continue;for(let j=i+1;j<nodes.length;j++){const b=nodes[j];if(!b)continue;if(overlaps(a,b)&&a.style.allowOverlap!==true&&b.style.allowOverlap!==true)out.push({severity:"info",code:"OBJECT_COLLISION",message:`${a.id}와 ${b.id}가 겹칩니다.`,pageId,objectId:b.id})}}return out} }

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://calendar-platform.example/schemas/runtime/dataset-contract.schema.json",
+  "title": "Dataset Contract v1.0",
+  "type": "object",
+  "required": ["schemaVersion"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "locale": { "type": "string" },
+    "timezone": { "type": "string" },
+    "school": { "type": "object" },
+    "calendar": { "type": "object" },
+    "monthlyImages": { "oneOf": [{"type":"object"},{"type":"array"}] },
+    "variables": { "type": "object" }
+  },
+  "additionalProperties": true
+}

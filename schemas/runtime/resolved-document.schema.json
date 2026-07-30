@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://calendar-platform.example/schemas/runtime/resolved-document.schema.json",
+  "title": "ResolvedDocument v1.1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "runtimeVersion",
+    "templateId",
+    "templateRevision",
+    "generatedAt",
+    "target",
+    "pages",
+    "diagnostics"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.1"
+    },
+    "runtimeVersion": {
+      "type": "string"
+    },
+    "templateId": {
+      "type": "string"
+    },
+    "templateRevision": {
+      "type": "integer"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "target": {
+      "enum": [
+        "screen",
+        "print",
+        "thumbnail"
+      ]
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "size",
+          "objects"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "size": {
+            "type": "object"
+          },
+          "objects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "type",
+                "frame",
+                "rotation",
+                "opacity",
+                "style",
+                "payload",
+                "fingerprint"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "frame": {
+                  "type": "object"
+                },
+                "rotation": {
+                  "type": "number"
+                },
+                "opacity": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "style": {
+                  "type": "object"
+                },
+                "payload": {},
+                "fingerprint": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "array"
+    }
+  }
+}

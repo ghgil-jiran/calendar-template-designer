@@ -1,0 +1,1 @@
+import assert from"node:assert/strict";import{assertCalendarDocument}from"../dist/index.js";const d={contractVersion:"1.0",id:"x",revision:1,pages:[]};assert.doesNotThrow(()=>assertCalendarDocument(d));assert.throws(()=>assertCalendarDocument({contractVersion:"0"}));console.log("contracts ok");

@@ -1,0 +1,4 @@
+insert into public.application_drafts (title, note, status)
+values
+  ('샘플 신청', '검토용 seed data입니다.', 'draft')
+on conflict do nothing;

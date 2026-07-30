@@ -1,0 +1,1 @@
+import assert from"node:assert/strict";import{RendererRegistry}from"../dist/index.js";const r=new RendererRegistry();r.register({id:"test",supports:t=>t==="screen",async render(){return{mimeType:"image/svg+xml",content:"<svg/>",pageCount:1,diagnostics:[]}}});assert.equal(r.find("screen").length,1);assert.equal(r.find("print").length,0);console.log("renderer-core ok");

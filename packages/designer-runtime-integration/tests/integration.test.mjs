@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { DesignerRuntimeBridge } from "../dist/DesignerRuntimeBridge.js";
+import { ScreenRenderer } from "../dist/ScreenRenderer.js";
+const project=JSON.parse(fs.readFileSync(new URL("../fixtures/legacy-project.json",import.meta.url),"utf8"));
+const snapshot=new DesignerRuntimeBridge().resolve(project);
+assert.equal(snapshot.document.pages.length,1);
+assert.equal(snapshot.document.pages[0].objects.find(x=>x.id==='master.title')?.value,'테스트 학교');
+assert.ok(snapshot.document.pages[0].objects.some(x=>x.type==='calendar'));
+assert.equal(new ScreenRenderer().renderModel(snapshot.document,'page.march').length,3);
+console.log('RC4 integration tests passed');

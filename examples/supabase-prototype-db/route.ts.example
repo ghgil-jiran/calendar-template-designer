@@ -1,0 +1,70 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const createDraftSchema = z.object({
+  title: z.string().trim().min(1).max(100),
+  note: z.string().trim().max(500).optional()
+});
+
+function requireSupabaseEnv() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !serviceRoleKey) {
+    throw new Error("Missing Supabase server env");
+  }
+
+  return { url, serviceRoleKey };
+}
+
+export async function GET() {
+  const { url, serviceRoleKey } = requireSupabaseEnv();
+  const response = await fetch(`${url}/rest/v1/application_drafts?select=*&order=created_at.desc&limit=20`, {
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    return NextResponse.json({ error: "SUPABASE_READ_FAILED" }, { status: 502 });
+  }
+
+  const drafts = await response.json();
+  return NextResponse.json({ drafts });
+}
+
+export async function POST(request: Request) {
+  const body = await request.json().catch(() => null);
+  const result = createDraftSchema.safeParse(body);
+
+  if (!result.success) {
+    return NextResponse.json(
+      { error: "INVALID_REQUEST", issues: result.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
+
+  const { url, serviceRoleKey } = requireSupabaseEnv();
+  const response = await fetch(`${url}/rest/v1/application_drafts`, {
+    method: "POST",
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify({
+      title: result.data.title,
+      note: result.data.note ?? null
+    })
+  });
+
+  if (!response.ok) {
+    return NextResponse.json({ error: "SUPABASE_WRITE_FAILED" }, { status: 502 });
+  }
+
+  const [draft] = await response.json();
+  return NextResponse.json({ draft }, { status: 201 });
+}

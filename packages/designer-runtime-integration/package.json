@@ -1,0 +1,13 @@
+{
+  "name": "@calendar-publishing/designer-runtime-integration",
+  "version": "1.0.0-beta.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "cd ../template-runtime && npm run build && cd ../designer-runtime-integration && tsc -p tsconfig.json",
+    "test": "npm run build && node tests/integration.test.mjs && node tests/rc5.test.mjs"
+  },
+  "dependencies": {
+    "@calendar-publishing/template-runtime": "file:../template-runtime"
+  }
+}

@@ -1,0 +1,3 @@
+import type { ResolvedPage } from "../../template-runtime/dist/src/index.js";
+export interface ParityReport { pageId:string; legacyCount:number; runtimeCount:number; missingInRuntime:string[]; extraInRuntime:string[]; parity:number; }
+export class ParityComparator { compare(page:ResolvedPage,legacyIds:string[]):ParityReport{const runtime=page.objects.filter(x=>x.visible).map(x=>x.sourceObjectId),a=new Set(legacyIds),b=new Set(runtime),missing=[...a].filter(x=>!b.has(x)),extra=[...b].filter(x=>!a.has(x)),union=new Set([...a,...b]).size,common=[...a].filter(x=>b.has(x)).length;return{pageId:page.id,legacyCount:a.size,runtimeCount:b.size,missingInRuntime:missing,extraInRuntime:extra,parity:union?common/union:1}} }

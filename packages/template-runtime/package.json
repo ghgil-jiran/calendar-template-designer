@@ -1,0 +1,10 @@
+{
+  "name": "@calendar-publishing/template-runtime",
+  "version": "1.0.0-beta.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node dist/tests/runtime.test.js && node dist/tests/rc5.test.js"
+  }
+}

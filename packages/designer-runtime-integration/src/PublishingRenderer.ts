@@ -1,0 +1,8 @@
+import type { RenderNode, ResolvedDocument, ResolvedPage } from "../../template-runtime/dist/src/index.js";
+const esc=(v:unknown)=>String(v??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]!));
+export class PublishingRenderer {
+ toSvg(document:ResolvedDocument,pageId:string):string{const p=document.pages.find(x=>x.id===pageId);if(!p)throw new Error(`페이지를 찾을 수 없습니다: ${pageId}`);return this.page(p)}
+ toSvgPages(document:ResolvedDocument):string[]{return document.pages.map(p=>this.page(p))}
+ private page(p:ResolvedPage):string{const nodes=p.objects.filter(n=>n.visible).map(n=>this.node(n)).join("");return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${p.size.width} ${p.size.height}" width="${p.size.width}${p.size.unit}" height="${p.size.height}${p.size.unit}"><rect width="100%" height="100%" fill="${esc(p.background.fill??"white")}"/>${nodes}</svg>`}
+ private node(n:RenderNode):string{const f=n.frame,t=`translate(${f.x} ${f.y}) rotate(${n.rotation} ${f.width/2} ${f.height/2})`,opacity=n.opacity;if(n.type==="text")return `<text transform="${t}" opacity="${opacity}" x="0" y="${Number(n.style.fontSize??12)}" font-size="${Number(n.style.fontSize??12)}" font-family="${esc(n.style.fontFamily??"sans-serif")}">${esc(n.payload)}</text>`;if(n.type==="image"&&typeof n.payload==="string")return `<image transform="${t}" opacity="${opacity}" href="${esc(n.payload)}" width="${f.width}" height="${f.height}" preserveAspectRatio="xMidYMid slice"/>`;return `<rect transform="${t}" opacity="${opacity}" width="${f.width}" height="${f.height}" fill="${esc(n.style.fill??"none")}" stroke="${esc(n.style.stroke??"none")}"/>`}
+}
