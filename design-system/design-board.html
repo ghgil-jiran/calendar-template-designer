@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ACDS Design Board</title>
+  <link rel="stylesheet" href="./09-css-tokens.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--acds-font-sans); background: var(--acds-canvas); color: var(--acds-text); }
+    .page { max-width: 1180px; margin: 0 auto; padding: 56px 32px 96px; }
+    .eyebrow { color: var(--acds-primary); font-size: var(--acds-font-size-sm); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { margin: 10px 0 12px; font-size: var(--acds-font-size-3xl); line-height: 1.25; color: var(--acds-text-strong); }
+    .intro { max-width: 720px; margin: 0; font-size: var(--acds-font-size-md); line-height: 1.7; color: var(--acds-text-muted); }
+    section { margin-top: 56px; }
+    h2 { margin: 0 0 20px; font-size: var(--acds-font-size-2xl); color: var(--acds-text-strong); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .card { background: var(--acds-surface); border: 1px solid var(--acds-border); border-radius: var(--acds-radius-lg); padding: 20px; box-shadow: var(--acds-shadow-card); }
+    .swatch { height: 96px; border-radius: 12px; margin-bottom: 16px; border: 1px solid rgb(15 23 42 / .06); }
+    .name { font-weight: 700; color: var(--acds-text-strong); }
+    .meta { margin-top: 4px; font-size: var(--acds-font-size-sm); color: var(--acds-text-muted); }
+    .stack { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    button { height: var(--acds-control-height-md); padding: 0 16px; border-radius: var(--acds-radius-md); font: 600 13px/1 var(--acds-font-sans); cursor: pointer; transition: all var(--acds-motion-fast) var(--acds-ease); }
+    .primary { color: white; background: var(--acds-primary); border: 1px solid var(--acds-primary); }
+    .primary:hover { background: var(--acds-primary-hover); }
+    .secondary { color: var(--acds-text-strong); background: var(--acds-surface); border: 1px solid var(--acds-border-strong); }
+    .ghost { color: var(--acds-text); background: transparent; border: 1px solid transparent; }
+    .danger { color: white; background: var(--acds-error); border: 1px solid var(--acds-error); }
+    label { display: grid; gap: 8px; font-size: var(--acds-font-size-sm); font-weight: 600; color: var(--acds-text-strong); }
+    input, select { width: 100%; height: var(--acds-control-height-md); padding: 0 12px; border: 1px solid var(--acds-border-strong); border-radius: var(--acds-radius-sm); background: var(--acds-surface); color: var(--acds-text-strong); font: 400 14px/1 var(--acds-font-sans); outline: none; }
+    input:focus, select:focus { border-color: var(--acds-primary); box-shadow: 0 0 0 3px var(--acds-primary-soft); }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px; background: var(--acds-surface); border: 1px solid var(--acds-border); border-radius: var(--acds-radius-lg); }
+    .toolbar-group { display: flex; gap: 8px; align-items: center; }
+    .dialog { max-width: 480px; background: var(--acds-surface); border: 1px solid var(--acds-border); border-radius: var(--acds-radius-xl); padding: 24px; box-shadow: var(--acds-shadow-popup); }
+    .dialog h3 { margin: 0 0 8px; color: var(--acds-text-strong); }
+    .dialog p { margin: 0 0 24px; color: var(--acds-text-muted); line-height: 1.6; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .type-sample { padding: 24px 0; border-bottom: 1px solid var(--acds-border); }
+    .type-sample:last-child { border-bottom: 0; }
+    @media (max-width: 640px) { .page { padding: 36px 20px 72px; } .toolbar { align-items: flex-start; flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="eyebrow">Academic Calendar Design System v0.1</div>
+    <h1>학교 출판을 위한 차분한 디자인 언어</h1>
+    <p class="intro">Professional Editorial을 중심으로 신뢰감, 명확성, 친근함을 균형 있게 표현합니다. 이 보드는 서비스에 적용할 최소 디자인 기준만 포함합니다.</p>
+
+    <section>
+      <h2>Colors</h2>
+      <div class="grid">
+        <div class="card"><div class="swatch" style="background:var(--acds-primary)"></div><div class="name">Primary Blue</div><div class="meta">#2563EB</div></div>
+        <div class="card"><div class="swatch" style="background:var(--acds-accent)"></div><div class="name">Accent Teal</div><div class="meta">#0F9F8F</div></div>
+        <div class="card"><div class="swatch" style="background:var(--acds-canvas)"></div><div class="name">Canvas</div><div class="meta">#F6F8FB</div></div>
+        <div class="card"><div class="swatch" style="background:var(--acds-text-strong)"></div><div class="name">Text Strong</div><div class="meta">#0F172A</div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Typography</h2>
+      <div class="card">
+        <div class="type-sample" style="font-size:32px;font-weight:700;color:var(--acds-text-strong)">2027학년도 학사달력</div>
+        <div class="type-sample" style="font-size:24px;font-weight:700;color:var(--acds-text-strong)">템플릿 선택</div>
+        <div class="type-sample" style="font-size:15px;line-height:1.6">학교 정보와 학사일정을 반영해 인쇄 가능한 달력을 제작합니다.</div>
+        <div class="type-sample" style="font-size:12px;color:var(--acds-text-muted)">마지막 저장: 방금 전</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Buttons</h2>
+      <div class="card stack">
+        <button class="primary">새 달력 만들기</button>
+        <button class="secondary">미리보기</button>
+        <button class="ghost">취소</button>
+        <button class="danger">삭제</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Inputs</h2>
+      <div class="grid">
+        <div class="card"><label>학교명<input value="지란지교테크고등학교" /></label></div>
+        <div class="card"><label>달력 유형<select><option>탁상형</option><option>벽걸이형</option></select></label></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Toolbar</h2>
+      <div class="toolbar">
+        <div class="toolbar-group"><button class="secondary">실행 취소</button><button class="secondary">다시 실행</button></div>
+        <div class="toolbar-group"><button class="secondary">미리보기</button><button class="primary">저장</button></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Dialog</h2>
+      <div class="dialog">
+        <h3>템플릿을 적용할까요?</h3>
+        <p>현재 입력한 일부 스타일이 선택한 템플릿 기준으로 변경될 수 있습니다.</p>
+        <div class="dialog-actions"><button class="ghost">취소</button><button class="primary">적용</button></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

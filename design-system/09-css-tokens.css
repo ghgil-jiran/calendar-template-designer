@@ -1,0 +1,77 @@
+:root {
+  /* Color */
+  --acds-primary: #2563eb;
+  --acds-primary-hover: #1d4ed8;
+  --acds-primary-soft: #eff6ff;
+  --acds-accent: #0f9f8f;
+  --acds-warning: #d97706;
+  --acds-error: #dc2626;
+  --acds-success: #027a48;
+  --acds-danger-soft: #fef3f2;
+  --acds-focus-ring: 0 0 0 3px rgb(37 99 235 / 0.14);
+
+  --acds-canvas: #f6f8fb;
+  --acds-surface: #ffffff;
+  --acds-surface-subtle: #f8fafc;
+  --acds-workspace: #e3e7ed;
+  --acds-paper-border: #c3ccd8;
+  --acds-border: #e2e8f0;
+  --acds-border-strong: #cbd5e1;
+  --acds-text-strong: #0f172a;
+  --acds-text: #334155;
+  --acds-text-muted: #64748b;
+  --acds-text-disabled: #94a3b8;
+
+  /* Typography */
+  --acds-font-sans: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --acds-font-size-xs: 12px;
+  --acds-font-size-sm: 13px;
+  --acds-font-size-md: 15px;
+  --acds-font-size-lg: 16px;
+  --acds-font-size-xl: 18px;
+  --acds-font-size-2xl: 24px;
+  --acds-font-size-3xl: 32px;
+  --acds-font-weight-regular: 400;
+  --acds-font-weight-medium: 500;
+  --acds-font-weight-semibold: 600;
+  --acds-font-weight-bold: 700;
+  --acds-line-height-tight: 1.2;
+  --acds-line-height-normal: 1.45;
+  --acds-line-height-relaxed: 1.6;
+
+  /* Spacing */
+  --acds-space-1: 4px;
+  --acds-space-2: 8px;
+  --acds-space-3: 12px;
+  --acds-space-4: 16px;
+  --acds-space-5: 20px;
+  --acds-space-6: 24px;
+  --acds-space-8: 32px;
+  --acds-space-10: 40px;
+  --acds-space-12: 48px;
+
+  /* Radius */
+  --acds-radius-sm: 8px;
+  --acds-radius-md: 10px;
+  --acds-radius-lg: 16px;
+  --acds-radius-xl: 20px;
+  --acds-radius-pill: 999px;
+
+  /* Shadow */
+  --acds-shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px rgb(15 23 42 / 0.06);
+  --acds-shadow-popup: 0 16px 40px rgb(15 23 42 / 0.14);
+  --acds-shadow-paper: 0 10px 28px rgb(15 23 42 / 0.13), 0 2px 6px rgb(15 23 42 / 0.08);
+
+  /* Motion */
+  --acds-motion-fast: 150ms;
+  --acds-motion-normal: 250ms;
+  --acds-motion-modal: 300ms;
+  --acds-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Layout */
+  --acds-control-height-sm: 32px;
+  --acds-control-height-md: 40px;
+  --acds-control-height-lg: 48px;
+  --acds-panel-width: 280px;
+  --acds-control-radius: var(--acds-radius-sm);
+}
