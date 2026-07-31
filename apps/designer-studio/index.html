@@ -1230,7 +1230,7 @@ function renderFreeElements(pageNode){
  let layer=document.createElement("div");layer.className="free-layer";
  allVisibleElements().forEach(view=>{
   const box=document.createElement("div");box.className=`free-element ${view._scope==="master"?"master-element":""} ${view.id===selectedElementId&&view._scope===selectedElementScope?"active":""}`;
-  box.dataset.elementId=view.id;box.dataset.scope=view._scope;box.dataset.elementType=view.type;box.dataset.themeRole=["year","school-name"].includes(view.role)?"title":view.role==="slogan"?"secondary":"body";box.style.left=view.x+"%";box.style.top=view.y+"%";box.style.width=view.width+"%";box.style.height=view.height+"%";box.style.zIndex=view.zIndex||1;
+  box.dataset.elementId=view.id;box.dataset.scope=view._scope;box.dataset.elementType=view.type;box.dataset.themeRole=["year","school-name"].includes(view.role)?"title":view.role==="slogan"?"secondary":"body";box.style.left=view.x+"%";box.style.top=view.y+"%";box.style.width=view.width+"%";box.style.height=view.height+"%";box.style.zIndex=view.zIndex||1;box.style.transform=`rotate(${view.rotation||0}deg)`;
   if(view.role){
    const badge=document.createElement("span");badge.className="cover-role-badge";badge.textContent={"school-image":"학교 전경","year":"연도","school-name":"학교명","slogan":"슬로건"}[view.role]||view.role;box.appendChild(badge)
   }
@@ -3508,6 +3508,87 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  function show(){const doc=window.ACDLRuntimeBridge?.execute?.()||window.ACDLRuntimeBridge?.lastDocument;if(!doc)return alert('Runtime 결과가 없습니다.');const id=typeof selectedPageId==='undefined'?doc.pages[0]?.id:selectedPageId,page=doc.pages.find(p=>p.id===id)||doc.pages[0];if(!page)return;const canvas=document.getElementById('rc5RuntimeCanvas');canvas.innerHTML='';canvas.style.aspectRatio=`${page.size.width}/${page.size.height}`;for(const n of page.objects.filter(x=>x.visible!==false))canvas.appendChild(renderNode(n,page));document.getElementById('rc5ParityMeta').textContent=`${page.id} · ${page.objects.length} nodes · ${doc.diagnostics.length} diagnostics`;panel.classList.add('open')}
  btn.onclick=show;document.getElementById('rc5ParityClose').onclick=()=>panel.classList.remove('open');panel.addEventListener('click',e=>{if(e.target===panel)panel.classList.remove('open')});
  window.ACDLRuntimePreview={open:show,close:()=>panel.classList.remove('open')};
+})();
+</script>
+
+
+<style id="sprint2-product-integration-styles">
+.s2-selection-toolbar{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:500;display:flex;align-items:center;gap:5px;padding:6px;border:1px solid #cbd5e1;border-radius:10px;background:rgba(255,255,255,.96);box-shadow:0 8px 24px rgba(15,23,42,.16);font-size:10px}
+.s2-selection-toolbar button{height:28px;border:1px solid #d7dce5;border-radius:6px;background:#fff;padding:0 8px;color:#344054}.s2-selection-toolbar button:hover{border-color:#315e9e;color:#315e9e}.s2-selection-toolbar .s2-count{font-weight:800;color:#315e9e;padding:0 5px}.s2-selection-toolbar .danger{color:#b42318;background:#fff4f3}
+.free-element.s2-selected{border-color:var(--accent);box-shadow:0 0 0 1px #fff inset}.free-element.s2-secondary{border-style:dashed}.free-element.s2-locked{cursor:not-allowed;opacity:.82}
+.elem-handle.n{top:-5px;left:50%;transform:translate(-50%,-50%);cursor:ns-resize}.elem-handle.w{left:-5px;top:50%;transform:translate(-50%,-50%);cursor:ew-resize}.elem-handle.nw{left:-5px;top:-5px;transform:translate(-50%,-50%);cursor:nwse-resize}.elem-handle.ne{right:-5px;top:-5px;transform:translate(50%,-50%);cursor:nesw-resize}.elem-handle.sw{left:-5px;bottom:-5px;transform:translate(-50%,50%);cursor:nesw-resize}
+.elem-rotate-handle{position:absolute;left:50%;top:-30px;width:14px;height:14px;border:2px solid #fff;border-radius:50%;background:#315e9e;transform:translateX(-50%);cursor:grab;z-index:12;box-shadow:0 1px 4px rgba(0,0,0,.25)}.elem-rotate-handle:after{content:"";position:absolute;left:5px;top:12px;width:2px;height:12px;background:#315e9e}
+.s2-snap-line{position:absolute;z-index:450;pointer-events:none;background:#e11d48;display:none}.s2-snap-line.v{top:0;bottom:0;width:1px}.s2-snap-line.h{left:0;right:0;height:1px}
+.s2-key-hint{position:absolute;right:10px;bottom:10px;z-index:450;padding:5px 8px;border-radius:7px;background:rgba(23,32,46,.78);color:#fff;font-size:8px;pointer-events:none}
+</style>
+<script id="sprint2-product-integration">
+(()=>{
+ const selection=new Set();
+ let gesture=null;
+ const key=(id,scope)=>`${scope}:${id}`;
+ const selectedViews=()=>[...selection].map(k=>{const [scope,...rest]=k.split(':');const id=rest.join(':');const arr=scope==='master'?masterElements():pageElements();const item=arr.find(x=>x.id===id);return item?{item,scope,id}:null}).filter(Boolean);
+ const syncPrimary=()=>{if(selectedElementId&&selectedElementScope)selection.add(key(selectedElementId,selectedElementScope));else selection.clear()};
+ const setPrimary=(id,scope)=>{selectedElementId=id;selectedElementScope=scope};
+ function selectOnly(id,scope){selection.clear();selection.add(key(id,scope));setPrimary(id,scope)}
+ function toggleSelection(id,scope){const k=key(id,scope);if(selection.has(k)){selection.delete(k);if(selectedElementId===id&&selectedElementScope===scope){const next=[...selection][0];if(next){const [s,...r]=next.split(':');setPrimary(r.join(':'),s)}else setPrimary(null,null)}}else{selection.add(k);setPrimary(id,scope)}}
+ function clearSelection(){selection.clear();setPrimary(null,null);inspectorDirty=false}
+ function snap(value,step){return Math.round(value/step)*step}
+ function pageStep(rect){return {x:1000/Math.max(1,rect.width),y:1000/Math.max(1,rect.height)}}
+ function getItem(id,scope){const arr=scope==='master'?masterElements():pageElements();return arr.find(x=>x.id===id)}
+ function ensureOverlay(pageNode){
+  let v=pageNode.querySelector('.s2-snap-line.v');if(!v){v=document.createElement('div');v.className='s2-snap-line v';pageNode.appendChild(v)}
+  let h=pageNode.querySelector('.s2-snap-line.h');if(!h){h=document.createElement('div');h.className='s2-snap-line h';pageNode.appendChild(h)}
+  const hint=document.createElement('div');hint.className='s2-key-hint';hint.textContent='Shift 다중 선택 · 방향키 이동 · Delete 삭제 · Ctrl+Z 실행 취소';pageNode.appendChild(hint)
+ }
+ function renderToolbar(pageNode){
+  const views=selectedViews();if(!views.length||preview)return;
+  const bar=document.createElement('div');bar.className='s2-selection-toolbar';bar.innerHTML=`<span class="s2-count">${views.length}개 선택</span><button data-s2="front">맨 앞으로</button><button data-s2="back">맨 뒤로</button><button data-s2="duplicate">복제</button><button data-s2="lock">잠금</button><button data-s2="hide">숨김</button><button data-s2="delete" class="danger">삭제</button>`;
+  bar.addEventListener('pointerdown',e=>e.stopPropagation());
+  bar.addEventListener('click',e=>{const action=e.target.closest('button')?.dataset.s2;if(!action)return;e.stopPropagation();const list=selectedViews();if(!list.length)return;snapshot();
+   if(action==='front')list.forEach(v=>v.item.zIndex=maxZ(v.scope)+1);
+   if(action==='back')list.forEach(v=>v.item.zIndex=0);
+   if(action==='duplicate'){const newSel=[];list.forEach(v=>{const arr=v.scope==='master'?masterElements():pageElements();const copy=structuredClone(v.item);copy.id=`${v.item.id}.copy.${Date.now()}.${Math.random().toString(36).slice(2,6)}`;copy.x=Math.min(100-copy.width,copy.x+2);copy.y=Math.min(100-copy.height,copy.y+2);copy.zIndex=maxZ(v.scope)+1;arr.push(copy);newSel.push(key(copy.id,v.scope))});selection.clear();newSel.forEach(k=>selection.add(k));const [s,...r]=newSel.at(-1).split(':');setPrimary(r.join(':'),s)}
+   if(action==='lock')list.forEach(v=>v.item.locked=!v.item.locked);
+   if(action==='hide')list.forEach(v=>v.item.visible=false);
+   if(action==='delete'){list.forEach(v=>{const arr=v.scope==='master'?masterElements():pageElements();const i=arr.findIndex(x=>x.id===v.id);if(i>=0)arr.splice(i,1)});clearSelection()}
+   markDirty();render();
+  });pageNode.appendChild(bar)
+ }
+ const baseRenderFreeElements=renderFreeElements;
+ renderFreeElements=function(pageNode){
+  syncPrimary();baseRenderFreeElements(pageNode);ensureOverlay(pageNode);
+  pageNode.querySelectorAll('.free-element').forEach(box=>{
+   const k=key(box.dataset.elementId,box.dataset.scope),isSel=selection.has(k);box.classList.toggle('s2-selected',isSel);box.classList.toggle('s2-secondary',isSel&&!(box.dataset.elementId===selectedElementId&&box.dataset.scope===selectedElementScope));
+   const item=getItem(box.dataset.elementId,box.dataset.scope);box.classList.toggle('s2-locked',!!item?.locked);if(item?.visible===false)box.style.display='none';
+   if(isSel&&box.dataset.elementId===selectedElementId&&box.dataset.scope===selectedElementScope&&!preview){['n','w','nw','ne','sw'].forEach(pos=>{if(!box.querySelector(`.elem-handle.${pos}`)){const h=document.createElement('span');h.className=`elem-handle ${pos}`;h.dataset.handle=pos;box.appendChild(h)}});if(!box.querySelector('.elem-rotate-handle')){const r=document.createElement('span');r.className='elem-rotate-handle';r.dataset.handle='rotate';box.appendChild(r)}}
+  });renderToolbar(pageNode)
+ };
+ startElementPointer=function(e){
+  const box=e.currentTarget,id=box.dataset.elementId,scope=box.dataset.scope,item=getItem(id,scope);if(!item||item.locked)return;
+  e.preventDefault();e.stopPropagation();if((id!==selectedElementId||scope!==selectedElementScope)&&!confirmDiscardInspectorChanges())return;
+  const multi=e.shiftKey||e.ctrlKey||e.metaKey;if(multi)toggleSelection(id,scope);else if(!selection.has(key(id,scope)))selectOnly(id,scope);else setPrimary(id,scope);
+  inspectorDirty=false;inspectorNotice={type:'ready',message:'선택한 개체를 Canvas에서 직접 편집할 수 있습니다.'};
+  const rect=el('page').getBoundingClientRect(),handle=e.target.dataset.handle||'move';snapshot();
+  const originals=selectedViews().map(v=>({id:v.id,scope:v.scope,item:v.item,original:structuredClone(v.item)}));
+  const center={x:rect.left+(item.x+item.width/2)/100*rect.width,y:rect.top+(item.y+item.height/2)/100*rect.height};
+  gesture={pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,handle,rect,originals,primary:{id,scope,item,original:structuredClone(item)},startAngle:Math.atan2(e.clientY-center.y,e.clientX-center.x),center,changed:false,node:box};
+  box.setPointerCapture(e.pointerId);box.addEventListener('pointermove',moveElementPointer);box.addEventListener('pointerup',endElementPointer,{once:true});box.addEventListener('pointercancel',endElementPointer,{once:true});box.classList.add('s2-selected');
+ };
+ moveElementPointer=function(e){
+  if(!gesture)return;const dx=(e.clientX-gesture.startX)/gesture.rect.width*100,dy=(e.clientY-gesture.startY)/gesture.rect.height*100;if(Math.abs(dx)>.05||Math.abs(dy)>.05)gesture.changed=true;const grid=pageStep(gesture.rect),handle=gesture.handle;
+  if(handle==='move')gesture.originals.forEach(v=>{let x=v.original.x+dx,y=v.original.y+dy;if(e.altKey===false){x=snap(x,grid.x);y=snap(y,grid.y)}v.item.x=Math.max(0,Math.min(x,100-v.item.width));v.item.y=Math.max(0,Math.min(y,100-v.item.height))});
+  else if(handle==='rotate'){const a=Math.atan2(e.clientY-gesture.center.y,e.clientX-gesture.center.x);let deg=(gesture.primary.original.rotation||0)+(a-gesture.startAngle)*180/Math.PI;if(!e.shiftKey)deg=Math.round(deg/5)*5;gesture.primary.item.rotation=((deg%360)+360)%360}
+  else{const p=gesture.primary,o=p.original;let x=o.x,y=o.y,w=o.width,h=o.height;if(handle.includes('e'))w=o.width+dx;if(handle.includes('s'))h=o.height+dy;if(handle.includes('w')){x=o.x+dx;w=o.width-dx}if(handle.includes('n')){y=o.y+dy;h=o.height-dy}w=Math.max(3,w);h=Math.max(3,h);x=Math.max(0,Math.min(x,100-w));y=Math.max(0,Math.min(y,100-h));p.item.x=x;p.item.y=y;p.item.width=Math.min(100-x,w);p.item.height=Math.min(100-y,h)}
+  const p=gesture.primary.item,n=gesture.node;n.style.left=p.x+'%';n.style.top=p.y+'%';n.style.width=p.width+'%';n.style.height=p.height+'%';n.style.transform=`rotate(${p.rotation||0}deg)`;
+ };
+ endElementPointer=function(e){if(!gesture)return;const g=gesture;try{g.node.releasePointerCapture(e.pointerId)}catch{}g.node.removeEventListener('pointermove',moveElementPointer);if(!g.changed){history.pop();el('undoBtn').disabled=!history.length}gesture=null;markDirty();inspectorNotice={type:'success',message:g.changed?'Canvas에서 개체 편집 결과를 반영했습니다.':'개체를 선택했습니다.'};render()};
+ document.addEventListener('pointerdown',e=>{if(!project||preview)return;const page=e.target.closest('#page');if(page&&!e.target.closest('.free-element')&&!e.target.closest('.s2-selection-toolbar')&&!e.target.closest('.calendar-region')){clearSelection();render()}},true);
+ document.addEventListener('keydown',e=>{if(!project||preview||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;const views=selectedViews();if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'){e.preventDefault();selection.clear();allVisibleElements().forEach(v=>selection.add(key(v.id,v._scope)));const last=allVisibleElements().at(-1);if(last)setPrimary(last.id,last._scope);render();return}if(!views.length)return;
+  if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();snapshot();views.filter(v=>!v.item.locked).forEach(v=>{const arr=v.scope==='master'?masterElements():pageElements();const i=arr.findIndex(x=>x.id===v.id);if(i>=0)arr.splice(i,1)});clearSelection();markDirty();render();return}
+  const arrows={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};if(arrows[e.key]){e.preventDefault();snapshot();const scale=e.shiftKey?5:1,[mx,my]=arrows[e.key];views.filter(v=>!v.item.locked).forEach(v=>{v.item.x=Math.max(0,Math.min(100-v.item.width,v.item.x+mx*scale*.2));v.item.y=Math.max(0,Math.min(100-v.item.height,v.item.y+my*scale*.2))});markDirty();render()}
+ },true);
+ const oldReset=resetEditorViewState;resetEditorViewState=function(){selection.clear();oldReset()};
+ window.ACDLSprint2Editor={version:'2.0-product',getSelection:()=>selectedViews().map(v=>({id:v.id,scope:v.scope})),clearSelection};
 })();
 </script>
 

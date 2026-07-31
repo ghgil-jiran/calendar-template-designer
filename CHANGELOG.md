@@ -1,5 +1,12 @@
 # Changelog
 
+## Documentation & sharing update — 2026-07-31
+
+- GitHub 공유용 README를 제품 소개 및 실행 중심으로 개편
+- 제품 비전과 현재 범위 문서 추가
+- Developer Preview 릴리스 노트와 GitHub 공개 절차 추가
+- `npm run verify` 전체 통과 확인
+
 ## 1.0.0-beta.1 — 2026-07-30
 
 첫 공개 베타 릴리스.

@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+const html=fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url),'utf8');
+const start=html.lastIndexOf('startElementPointer=function(e)');
+const move=html.indexOf('moveElementPointer=function(e)', start);
+if(start<0||move<0) throw new Error('Sprint 2 pointer handlers missing');
+const body=html.slice(start,move);
+if(body.includes('render();')) throw new Error('Regression: render() destroys pointer capture during pointerdown');
+if(!body.includes("setPointerCapture(e.pointerId)")) throw new Error('Pointer capture missing');
+if(!html.includes('box.style.transform=`rotate(${view.rotation||0}deg)`')) throw new Error('Rotation persistence missing');
+console.log('Sprint 2 product interaction regression checks: PASS');

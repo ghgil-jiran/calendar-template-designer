@@ -7,7 +7,7 @@
     "test:runtime": "cd packages/template-runtime && npm test",
     "test:integration": "cd packages/designer-runtime-integration && npm test",
     "check:studio": "node tools/check-studio.mjs",
-    "verify": "npm run test:runtime && npm run test:integration && npm run test:sprint1 && npm run check:studio",
+    "verify": "npm run test:runtime && npm run test:integration && npm run test:sprint1 && npm run test:sprint2 && npm run test:sprint2-product && npm run check:studio",
     "style:check": "node scripts/check-project-style.mjs",
     "build": "npm run style:check && npm run verify",
     "cache:clean": "node scripts/clean-next-cache.mjs",
@@ -18,6 +18,14 @@
     "test:editor-core": "cd packages/editor-core && npm test",
     "test:calendar-domain": "cd packages/calendar-domain && npm test",
     "test:renderer-core": "cd packages/renderer-core && npm test",
-    "test:sprint1": "npm run test:contracts && npm run test:editor-core && npm run test:calendar-domain && npm run test:renderer-core"
+    "test:sprint1": "npm run test:contracts && npm run test:editor-core && npm run test:calendar-domain && npm run test:renderer-core",
+    "test:sprint2": "npm run test:editor-core",
+    "demo:sprint2": "npm run verify && node tools/serve-designer-studio.mjs",
+    "dev": "node tools/serve-designer-studio.mjs",
+    "test:sprint2-product": "node tools/check-sprint2-product.mjs"
+  },
+  "dev": "",
+  "devDependencies": {
+    "typescript": "^5.9.2"
   }
 }

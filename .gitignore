@@ -23,3 +23,5 @@ schoolp-nextjs-app/
 legacy/
 backup/
 old/
+node_modules/
+**/dist/
