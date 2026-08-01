@@ -351,7 +351,15 @@ body:has(#entryScreen:not(.hidden)) #rc5ParityPanel,
 body:has(#entryScreen:not(.hidden)) #editorToast,
 body:has(#entryScreen:not(.hidden)) .s2-selection-toolbar,
 body:has(#entryScreen:not(.hidden)) .s2-key-hint{display:none!important}
+body:has(#designerHome:not(.hidden)) #editorToast{display:none!important}
 body:has(#entryScreen:not(.hidden)){overflow-x:hidden}
+body #v361MemoryMonitor,body #v361Badge,body #rc4RuntimeStatus,body #rc5ParityBtn,body #rc5ParityPanel,body .s2-key-hint{display:none!important}
+body.user-mode .editor-toast{display:none!important}
+body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
+.home-btn{order:-1;flex:0 0 auto;background:rgb(255 255 255 / .08);border-color:rgb(255 255 255 / .18);font-weight:var(--acds-font-weight-semibold)}.home-btn:hover:not(:disabled){background:rgb(255 255 255 / .16);border-color:rgb(255 255 255 / .32)}
+.library-toolbar{display:flex;align-items:center;gap:var(--acds-space-2);flex-wrap:wrap}.library-toolbar>button,.library-toolbar>select{min-width:72px;height:var(--acds-control-height-sm);flex:0 0 auto;white-space:nowrap}.library-toolbar>select{min-width:132px;padding-inline:var(--acds-space-2)}.library-toolbar [data-library-filter]{border:1px solid var(--acds-border);border-radius:var(--acds-radius-sm);background:var(--acds-surface);color:var(--acds-text);font-weight:var(--acds-font-weight-medium)}.library-toolbar [data-library-filter]:hover{border-color:var(--acds-primary);color:var(--acds-primary)}.library-toolbar [data-library-filter].active{background:var(--acds-primary);border-color:var(--acds-primary);color:var(--acds-surface);box-shadow:0 2px 6px rgb(37 99 235 / .2)}
+.library-card-actions{display:flex;align-items:center;gap:var(--acds-space-1)}.library-card-actions button{min-height:var(--acds-control-height-sm);white-space:nowrap}.library-card-actions button[data-library-use]{min-width:100%}
+@media(max-width:720px){.app-header{flex-wrap:wrap;height:auto;min-height:52px;padding-block:var(--acds-space-2)}.home-btn{order:0}.brand-block{min-width:0}.library-toolbar{align-items:stretch;overflow-x:auto;flex-wrap:nowrap;padding-bottom:var(--acds-space-1)}.library-toolbar>button,.library-toolbar>select{min-width:max-content}.library-type-filters{flex-wrap:nowrap;flex:0 0 auto}}
 </style></head><body>
 <div id="entryScreen" class="entry-shell">
  <div class="entry-card"><h1>학사달력 제작 플랫폼</h1><p>하려는 작업을 선택하세요. 템플릿을 설계하는 과정과 실제 학교 달력을 만드는 과정을 분리했습니다.</p>
@@ -424,7 +432,7 @@ body:has(#entryScreen:not(.hidden)){overflow-x:hidden}
  <div class="wizard-actions"><button id="userCancelBtn">처음으로</button><button id="userPrevBtn" class="hidden">이전</button><span class="spacer"></span><button id="userNextBtn" class="primary">다음</button><button id="userCreateBtn" class="primary hidden">달력 만들기</button></div>
 </div></div>
 <div id="pagePreviewToolbar" class="preview-toolbar"><strong>현재 페이지 미리보기</strong><span id="pagePreviewName"></span><span class="preview-spacer"></span><button id="previewPrevPageBtn">이전 페이지</button><button id="previewNextPageBtn">다음 페이지</button><button id="returnToEditBtn" class="primary">편집으로 돌아가기</button></div>
-<header class="app-header"><div class="brand-block"><div id="appBrand" class="brand">ACDL 템플릿 에디터 <span class="framework-badge">v1.0 Beta RC1</span></div><span id="currentTemplateTitle" class="current-template-title">새 템플릿</span></div><div id="roleIndicator" class="role-indicator"><span class="role-dot"></span><span id="roleIndicatorText">Designer Studio · 디자이너 편집기</span></div>
+<header class="app-header"><button id="returnHomeBtn" class="toolbar-btn home-btn" type="button">처음으로</button><div class="brand-block"><div id="appBrand" class="brand">ACDL 템플릿 에디터 <span class="framework-badge">v1.0 Beta RC1</span></div><span id="currentTemplateTitle" class="current-template-title">새 템플릿</span></div><div id="roleIndicator" class="role-indicator"><span class="role-dot"></span><span id="roleIndicatorText">Designer Studio · 디자이너 편집기</span></div>
 <div class="header-group template-menu-wrap"><button id="templateMenuBtn" class="toolbar-btn">템플릿 ▾</button><div id="templateMenuDropdown" class="template-menu-dropdown hidden"><button id="newBtn">새 템플릿</button><button id="libraryBtn">템플릿 라이브러리</button><button id="loadBtn">템플릿 열기</button><button id="saveBtn">템플릿 저장</button></div></div><span class="header-separator"></span>
 <div class="header-group"><button id="templateSettingsBtn" class="toolbar-btn">템플릿 설정</button><button id="fullPreviewBtn" class="toolbar-btn">전체 미리보기</button></div><span id="saveStatus" class="status">새 문서</span><input id="fileInput" class="hidden" type="file" accept=".json,.acdlpkg,application/json,application/zip">
 </header>
@@ -1104,6 +1112,9 @@ function semanticBindingLabel(item){
 
 let toastTimer=null;
 function showEditorToast(message){
+ if(document.querySelector('#entryScreen:not(.hidden), #designerHome:not(.hidden)'))return;
+ const developerToast=/Shift 다중 선택|방향키 이동|Ctrl\+Z|개체를 드래그|크기 조절점|Inspector에서|Runtime|메모리|진단|디버그|현재 템플릿 설계 모드|월력을 선택했|Canvas에서 직접|Master를 선택|Binding|고정 콘텐츠 개체|페이지 .*개체|개발자/i.test(String(message||""));
+ if(developerToast)return;
  const node=el("editorToast");if(!node)return;
  node.textContent=message;node.classList.add("show");
  clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.classList.remove("show"),2600)
@@ -3676,4 +3687,18 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 @media(max-width:900px){.library-type-filters{width:100%;margin-right:0}.library-toolbar{flex-wrap:wrap}.library-type-filter{flex:1 1 auto}.library-thumb{height:120px}}
 </style>
 <script src="./template-library-runtime.js"></script>
+<script id="service-shell-runtime">
+(()=>{
+ const home=el('returnHomeBtn');if(!home)return;
+ home.addEventListener('click',()=>{
+  const changed=!!project&&((el('saveStatus')?.textContent||'').includes('변경')||(savedHash&&savedHash!==JSON.stringify(project)));
+  if(changed&&!confirm('저장하지 않은 변경 사항이 있습니다. 처음 화면으로 돌아갈까요?'))return;
+  el('templateLibraryModal')?.classList.add('hidden');el('templateMenuDropdown')?.classList.add('hidden');el('templateSaveDialog')?.classList.add('hidden');el('resourceModal')?.classList.add('hidden');el('objectDrawer')?.classList.add('hidden');el('workflowModal')?.classList.add('hidden');
+  document.body.classList.remove('user-mode');
+  showEntry();
+  el('designerHome')?.classList.add('hidden');
+  updateRoleIndicator?.();
+ });
+})();
+</script>
 </body></html>
