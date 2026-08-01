@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/apps/designer-studio/index.html" },
+    { "source": "/template-catalog.js", "destination": "/apps/designer-studio/template-catalog.js" },
+    { "source": "/template-library-runtime.js", "destination": "/apps/designer-studio/template-library-runtime.js" },
+    { "source": "/editor-core-demo", "destination": "/apps/designer-studio/index.html" },
+    { "source": "/editor-core-demo/", "destination": "/apps/designer-studio/index.html" },
+    { "source": "/apps/editor-core-demo", "destination": "/apps/designer-studio/index.html" },
+    { "source": "/apps/editor-core-demo/", "destination": "/apps/designer-studio/index.html" },
+    { "source": "/apps/editor-core-demo/index.html", "destination": "/apps/designer-studio/index.html" },
+    { "source": "/preview-workspace", "destination": "/apps/designer-studio/index.html" },
+    { "source": "/preview-workspace/", "destination": "/apps/designer-studio/index.html" },
+    { "source": "/apps/preview-workspace", "destination": "/apps/designer-studio/index.html" },
+    { "source": "/apps/preview-workspace/", "destination": "/apps/designer-studio/index.html" }
+  ]
+}

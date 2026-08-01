@@ -61,9 +61,9 @@ npm run verify
 npm run dev
 ```
 
-명령 실행 후 터미널에 표시되는 로컬 주소를 Chrome 또는 Edge에서 엽니다.
+명령 실행 후 터미널에 표시되는 로컬 주소를 Chrome 또는 Edge에서 엽니다. 서비스 루트는 `http://localhost:3000/`이며 Designer Studio가 열립니다.
 
-정적 파일을 직접 확인하려면 `apps/designer-studio/index.html`을 브라우저에서 열어도 됩니다.
+정적 파일을 직접 확인하려면 `apps/designer-studio/index.html`을 브라우저에서 열어도 됩니다. `apps/editor-core-demo/`는 서비스 화면이 아니라 Editor Core 회귀 확인용 소스 fixture입니다.
 
 ## 저장소 구성
 
@@ -99,7 +99,8 @@ tools/                           실행 및 회귀 검사 도구
 - 버전: **1.0.0-beta.1**
 - 이름: **Foundation Developer Preview**
 - 검증 명령: `npm run verify`
-- 주요 진입점: `apps/designer-studio/index.html`
+- 유일한 서비스 진입점: `apps/designer-studio/index.html`
+- Vercel 루트 라우팅: `vercel.json`에서 `/`를 Designer Studio로 연결
 - 다음 목표: Calendar Workspace를 Runtime Contract에 연결
 
 ## 공개 시 유의사항

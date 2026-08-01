@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Calendar Template Designer v1.0 Beta RC1</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css">
+<title>Calendar Template Designer v1.0 Beta RC1</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><script src="./template-catalog.js"></script>
 <style>
 :root{--bg:var(--acds-canvas);--panel:var(--acds-surface);--line:var(--acds-border);--text:var(--acds-text-strong);--muted:var(--acds-text-muted);--accent:var(--acds-primary);--soft:var(--acds-primary-soft);--danger:var(--acds-error);--ok:var(--acds-success);--warn:var(--acds-warning)}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans KR",sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer}
@@ -478,7 +478,7 @@ body{font-family:var(--acds-font-sans);font-size:var(--acds-font-size-md);line-h
 <div id="workflowModal" class="workflow-modal hidden"><div class="workflow-shell"><div class="workflow-head"><div><h2 id="workflowTitle">제작 정보</h2><p id="workflowDesc"></p></div><button id="closeWorkflowBtn" type="button">×</button></div><div id="workflowBody" class="workflow-body"></div><div class="workflow-footer"><button id="workflowCancelBtn">닫기</button><button id="workflowSaveBtn" class="primary">저장하고 적용</button></div></div></div>
 <div id="previewFocusModal" class="preview-focus-modal hidden"><div class="preview-focus-head"><strong id="previewFocusTitle">페이지 원본 보기</strong><button id="closePreviewFocusBtn">전체 미리보기로 돌아가기</button></div><div id="previewFocusBody" class="preview-focus-body"></div></div>
 
-<div id="templateLibraryModal" class="template-library-modal hidden"><div class="library-card-shell"><div class="library-head"><div><h2>템플릿 라이브러리</h2><p>연도별 Edition과 배포 상태를 확인하고 기존 템플릿을 편집하거나 복제합니다.</p></div><span class="spacer"></span><button id="newLibraryTemplateBtn">＋ 새 템플릿</button><button id="closeTemplateLibraryBtn">닫기</button></div><div class="library-body"><div class="library-toolbar"><button class="active" data-library-filter="all">전체</button><button data-library-filter="draft">초안</button><button data-library-filter="ready">검토 완료</button><button data-library-filter="published">배포중</button><button data-library-filter="archived">종료</button><select id="libraryEditionFilter"><option value="all">모든 Edition</option><option value="2027">2027 Edition</option><option value="2026">2026 Edition</option></select></div><div id="templateLibraryGrid" class="library-grid"></div></div></div></div>
+<div id="templateLibraryModal" class="template-library-modal hidden"><div class="library-card-shell"><div class="library-head"><div><h2>템플릿 라이브러리</h2><p>연도별 Edition과 배포 상태를 확인하고 기존 템플릿을 편집하거나 복제합니다.</p></div><span class="spacer"></span><button id="newLibraryTemplateBtn">＋ 새 템플릿</button><button id="closeTemplateLibraryBtn">닫기</button></div><div class="library-body"><div class="library-toolbar"><div id="libraryTypeFilters" class="library-type-filters"></div><button class="active" data-library-filter="all">전체</button><button data-library-filter="draft">초안</button><button data-library-filter="published">게시됨</button><button data-library-filter="archived">보관됨</button><select id="libraryEditionFilter"><option value="all">모든 Edition</option><option value="2027">2027 Edition</option><option value="2026">2026 Edition</option></select></div><div id="templateLibraryGrid" class="library-grid"></div></div></div></div>
 <div id="templateSaveDialog" class="template-save-dialog hidden"><div class="template-save-card"><h2>템플릿 라이브러리에 저장</h2><p>사용자가 템플릿을 쉽게 이해할 수 있도록 이름과 설명, 배포 상태를 정합니다. 이미지가 많은 템플릿은 브라우저 대용량 데이터베이스에 저장됩니다.</p><label>템플릿 이름<input id="saveTemplateName" placeholder="예: 학교 기본형"></label><label>설명<textarea id="saveTemplateDescription" rows="3" placeholder="템플릿의 특징과 추천 사용 상황"></textarea></label><label>Edition<input id="saveTemplateEdition" type="number" value="2027"></label><label>상태<select id="saveTemplateState"><option value="draft">초안</option><option value="ready">검토 완료</option><option value="published">배포중</option><option value="archived">종료</option></select></label><div id="templateSaveFeedback" class="save-feedback hidden"></div><div class="template-save-actions"><button id="cancelTemplateSaveBtn">취소</button><button id="confirmTemplateSaveBtn" class="primary">라이브러리에 저장</button></div></div></div>
 <div id="editorToast" class="editor-toast editor-chrome" role="status" aria-live="polite"></div>
 <aside id="objectDrawer" class="object-drawer hidden editor-chrome" aria-label="개체 추가">
@@ -1987,13 +1987,7 @@ el("userCreateBtn").addEventListener("click",createUserCalendar);
 el("newBtn").addEventListener("click",()=>{if(appMode==="user"){resetEditorViewState();el("setup").classList.add("hidden");el("userSetup").classList.remove("hidden");setUserWizardStep(1)}});
 
 // v22: role indicator, streamlined page preview, type-first wizard and template library
-const v22DefaultLibrary=[
- {id:"tpl-2027-basic-desk",name:"학교 기본형",description:"학교 전경과 교표, 월별 학사일정을 균형 있게 보여주는 표준 탁상형 템플릿입니다.",edition:2027,state:"published",type:"desk",template:"school-basic",updatedAt:"2026-07-27"},
- {id:"tpl-2027-minimal-desk",name:"사진 미니멀형",description:"월별 대표 사진과 월력을 간결하게 배치한 현대적인 탁상형 템플릿입니다.",edition:2027,state:"published",type:"desk",template:"minimal",updatedAt:"2026-07-26"},
- {id:"tpl-2027-wall",name:"학교 이미지형",description:"상단 학교 이미지와 넓은 월력을 사용하는 벽걸이형 기본 템플릿입니다.",edition:2027,state:"published",type:"wall",template:"school-basic",updatedAt:"2026-07-25"},
- {id:"tpl-2027-poster",name:"연간 일정 포스터",description:"연간 학사일정을 한눈에 확인하도록 구성한 포스터형 템플릿입니다.",edition:2027,state:"published",type:"poster",template:"school-basic",updatedAt:"2026-07-24"},
- {id:"tpl-2026-basic",name:"학교 기본형",description:"이전 연도 운영 기록을 위해 보관된 2026 Edition입니다.",edition:2026,state:"archived",type:"desk",template:"school-basic",updatedAt:"2025-11-30"}
-];
+const v22DefaultLibrary=[];
 function normalizeLibraryRecord(t){
  const type=typeof t?.type==="string"?t.type:(t?.type?.category||"desk");
  return {...t,type,edition:Number(t?.edition)||2027,state:t?.state||"draft",template:t?.template||"school-basic"};
@@ -2051,9 +2045,25 @@ function renderTemplateLibrary(filter="all"){
  el("templateLibraryGrid").innerHTML=list.map(t=>`<article class="library-template-card" data-template-id="${t.id}" data-library-state="${t.state}"><div class="library-thumb"></div><div class="library-card-body"><div class="library-meta-line"><h3>${v21Escape(t.name)}</h3><span class="edition-badge">${t.edition} Edition</span></div><span class="state-badge state-${t.state}">${v22StateLabel(t.state)}</span><p>${v21Escape(t.description||"")}</p><small>${t.type==="desk"?"탁상형":t.type==="wall"?"벽걸이형":"포스터형"} · 수정 ${t.updatedAt||"-"}</small><div class="library-card-actions"><button class="primary" data-library-edit="${t.id}">편집</button><button data-library-copy="${t.id}">복제</button><button data-library-state-change="${t.id}">상태 변경</button></div></div></article>`).join("")||`<p>조건에 맞는 템플릿이 없습니다.</p>`;
  el("templateLibraryGrid").querySelectorAll("[data-library-edit]").forEach(b=>b.addEventListener("click",()=>openDesignerProjectFromRecord(v22Library().find(x=>x.id===b.dataset.libraryEdit))));
  el("templateLibraryGrid").querySelectorAll("[data-library-copy]").forEach(b=>b.addEventListener("click",()=>{const list=v22Library(),src=list.find(x=>x.id===b.dataset.libraryCopy);if(!src)return;list.unshift({...src,id:"tpl-"+Date.now(),name:src.name+" 복사본",state:"draft",updatedAt:new Date().toISOString().slice(0,10)});v22SaveLibrary(list);renderTemplateLibrary(filter)}));
- el("templateLibraryGrid").querySelectorAll("[data-library-state-change]").forEach(b=>b.addEventListener("click",()=>{const list=v22Library(),t=list.find(x=>x.id===b.dataset.libraryStateChange);if(!t)return;const seq=["draft","ready","published","archived"];t.state=seq[(seq.indexOf(t.state)+1)%seq.length];t.updatedAt=new Date().toISOString().slice(0,10);v22SaveLibrary(list);renderTemplateLibrary(filter);renderUserTemplateChoices()}));
+ el("templateLibraryGrid").querySelectorAll("[data-library-state-change]").forEach(b=>b.addEventListener("click",()=>{const list=v22Library(),t=list.find(x=>x.id===b.dataset.libraryStateChange);if(!t)return;const seq=["draft","published","archived"];t.state=seq[(seq.indexOf(t.state)+1)%seq.length];t.updatedAt=new Date().toISOString().slice(0,10);v22SaveLibrary(list);renderTemplateLibrary(filter);renderUserTemplateChoices()}));
 }
-let activeLibraryFilter="all";el("libraryBtn")?.addEventListener("click",()=>{if(appMode!=="designer")return;el("templateLibraryModal").classList.remove("hidden");renderTemplateLibrary(activeLibraryFilter)});el("closeTemplateLibraryBtn")?.addEventListener("click",()=>el("templateLibraryModal").classList.add("hidden"));el("newLibraryTemplateBtn")?.addEventListener("click",()=>{el("templateLibraryModal").classList.add("hidden");enterDesigner()});document.querySelectorAll("[data-library-filter]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-library-filter]").forEach(x=>x.classList.remove("active"));b.classList.add("active");activeLibraryFilter=b.dataset.libraryFilter;renderTemplateLibrary(activeLibraryFilter)}));el("libraryEditionFilter")?.addEventListener("change",()=>renderTemplateLibrary(activeLibraryFilter));
+function closeTemplateLibrary(){
+ el("templateLibraryModal")?.classList.add("hidden");
+ if(appMode!=="designer")return;
+ el("entryScreen")?.classList.add("hidden");
+ el("userSetup")?.classList.add("hidden");
+ if(project){
+  el("designerHome")?.classList.add("hidden");
+  el("setup")?.classList.add("hidden");
+  updateRoleIndicator();
+  render();
+ }else if(!el("setup")?.classList.contains("hidden")){
+  el("designerHome")?.classList.add("hidden");
+ }else{
+  el("designerHome")?.classList.remove("hidden");
+ }
+}
+let activeLibraryFilter="all";el("libraryBtn")?.addEventListener("click",()=>{if(appMode!=="designer")return;el("templateLibraryModal").classList.remove("hidden");renderTemplateLibrary(activeLibraryFilter)});el("closeTemplateLibraryBtn")?.addEventListener("click",closeTemplateLibrary);el("newLibraryTemplateBtn")?.addEventListener("click",()=>{el("templateLibraryModal").classList.add("hidden");enterDesigner()});document.querySelectorAll("[data-library-filter]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-library-filter]").forEach(x=>x.classList.remove("active"));b.classList.add("active");activeLibraryFilter=b.dataset.libraryFilter;renderTemplateLibrary(activeLibraryFilter)}));el("libraryEditionFilter")?.addEventListener("change",()=>renderTemplateLibrary(activeLibraryFilter));
 // Designer save now opens metadata/state dialog; user save keeps original file save behavior.
 el("saveBtn").addEventListener("click",e=>{if(appMode!=="designer")return;e.stopImmediatePropagation();normalizeElementData();const m=project?.template?.metadata||{};el("saveTemplateName").value=m.name||"학교 기본형";el("saveTemplateDescription").value=m.description||"";el("saveTemplateEdition").value=project?.settings?.year||2027;el("saveTemplateState").value=m.state||"draft";el("templateSaveDialog").classList.remove("hidden")},true);
 el("cancelTemplateSaveBtn")?.addEventListener("click",()=>el("templateSaveDialog").classList.add("hidden"));
@@ -3119,7 +3129,7 @@ body.user-mode #templateSettingsBtn{display:inline-flex!important}
  };
 
  // Make text color authoritative for every text role.
- function applyTextColors(){document.querySelectorAll('.free-element[data-element-type="text"]').forEach(box=>{const arr=box.dataset.scope==='master'?masterElements():pageElements(),item=arr.find(x=>x.id===box.dataset.elementId),text=box.querySelector('.free-text');if(item&&text)text.style.setProperty('color',item.style?.color||'#17202e','important')})}
+ function applyTextColors(){if(!project)return;document.querySelectorAll('.free-element[data-element-type="text"]').forEach(box=>{const arr=box.dataset.scope==='master'?masterElements():pageElements(),item=arr.find(x=>x.id===box.dataset.elementId),text=box.querySelector('.free-text');if(item&&text)text.style.setProperty('color',item.style?.color||'#17202e','important')})}
  const previousRender=window.render;window.render=function(){const r=previousRender.apply(this,arguments);applyTextColors();return r};const previousRenderPage=window.renderPage;window.renderPage=function(){const r=previousRenderPage.apply(this,arguments);applyTextColors();return r};
 
  // Frame bindings resolve school profile and monthly image data instead of only storing a path.
@@ -3226,9 +3236,6 @@ body.user-mode .menu-root[data-workspace-hidden="false"]:focus-within .editor-me
     const label=$('selectedTypeLabel');if(label)label.textContent=typeLabels[type]||type;
     renderUserSizeOptions();
   };
-
-  const postcardRecord={id:'tpl-2027-postcard',name:'월별 사진 엽서형',description:'표지와 12개월 월력을 한 장씩 구성하고 각 월의 사진과 월력을 자유롭게 편집하는 엽서형 템플릿입니다.',edition:2027,state:'published',type:'postcard',template:'minimal',updatedAt:'2026-07-28'};
-  v22DefaultLibrary.push(postcardRecord);
 
   function typeName(type){return typeLabels[type]||type}
   const oldRenderTemplateLibrary=renderTemplateLibrary;
@@ -3650,5 +3657,13 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  window.ACDLSprint2Editor={version:'2.0-product',getSelection:()=>selectedViews().map(v=>({id:v.id,scope:v.scope})),clearSelection};
 })();
 </script>
-
+<style id="catalog-library-styles">
+.catalog-type-count{display:block;margin-top:8px;color:var(--acds-text-muted);font-size:10px;font-weight:600}
+.library-type-filters{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-right:auto}.library-type-filter{height:30px;border:1px solid var(--acds-border);border-radius:var(--acds-radius-pill);background:var(--acds-surface);color:var(--acds-text-muted);padding:0 10px;font-size:10px}.library-type-filter span{font-variant-numeric:tabular-nums}.library-type-filter:hover{border-color:var(--acds-primary);color:var(--acds-primary)}.library-type-filter.active{background:var(--acds-primary-soft);border-color:var(--acds-primary);color:var(--acds-primary);font-weight:700}
+.library-thumb,.template-preview{position:relative;overflow:hidden;background:var(--acds-surface-subtle)}.library-thumb{height:150px;display:flex;align-items:center;justify-content:center}.template-preview{height:150px}.thumbnail-placeholder{font-size:10px;color:var(--acds-text-muted);padding:8px;text-align:center}.library-thumb-render{position:absolute!important;inset:8px!important;width:auto!important;height:auto!important;max-width:calc(100% - 16px);max-height:calc(100% - 16px);aspect-ratio:auto!important;box-shadow:0 3px 10px rgb(15 23 42 / .12)!important;pointer-events:none}.template-preview .library-thumb-render{inset:6px!important;max-width:calc(100% - 12px);max-height:calc(100% - 12px)}
+.catalog-card-features{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}.catalog-card-features span{font-size:9px;padding:3px 6px;border-radius:var(--acds-radius-pill);background:var(--acds-primary-soft);color:var(--acds-primary)}.library-empty-state{grid-column:1/-1;min-height:180px;border:1px dashed var(--acds-border-strong);border-radius:var(--acds-radius-md);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--acds-text-muted);padding:24px}.library-empty-state strong{color:var(--acds-text-strong);font-size:14px}.library-empty-state p{margin:6px 0 0;font-size:11px}.user-empty{min-height:150px}
+.library-card-actions{flex-wrap:wrap}.library-card-actions button[data-library-use]{flex-basis:100%}
+@media(max-width:900px){.library-type-filters{width:100%;margin-right:0}.library-toolbar{flex-wrap:wrap}.library-type-filter{flex:1 1 auto}.library-thumb{height:120px}}
+</style>
+<script src="./template-library-runtime.js"></script>
 </body></html>

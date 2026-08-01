@@ -1,4 +1,4 @@
-export type CalendarType="desk"|"wall"; export type WeekStart="sunday"|"monday"; export type GridRows=5|6;
+export type CalendarType="desk"|"wall"|"poster"|"postcard"; export type WeekStart="sunday"|"monday"; export type GridRows=5|6;
 export interface SchoolProfile{id:string;name:string;logoAssetId?:string;flower?:string;tree?:string;song?:string;}
 export interface AcademicEvent{id:string;title:string;start:string;end?:string;category?:string;allDay?:boolean;}
 export interface CalendarProjectSettings{year:number;startMonth:number;calendarType:CalendarType;weekStart:WeekStart;gridRows:GridRows;frontDividerCount:number;backDividerCount:number;}
