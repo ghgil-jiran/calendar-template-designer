@@ -342,6 +342,16 @@ body{font-family:var(--acds-font-sans);font-size:var(--acds-font-size-md);line-h
 .page-btn.active,.inspector-tab.active,.left-mode-tab.active,.seg button.active{background:var(--acds-primary);border-color:var(--acds-primary-hover);color:var(--acds-surface);box-shadow:0 2px 6px rgb(37 99 235 / .22)}
 .page-btn:hover:not(.active),.inspector-tab:hover:not(.active),.left-mode-tab:hover:not(.active),.seg button:hover:not(.active){background:var(--acds-surface-subtle);border-color:var(--acds-border-strong);color:var(--acds-text-strong)}
 @media(max-width:720px){.canvas-wrap{padding:var(--acds-space-2)}.icon-toolbar{min-height:46px}.icon-tool{height:36px;min-width:36px}.tool-icon{height:16px;font-size:15px}}
+/* Keep the service entry screen free of editor-only diagnostics and overlays. */
+body:has(#entryScreen:not(.hidden)) #v361MemoryMonitor,
+body:has(#entryScreen:not(.hidden)) #v361Badge,
+body:has(#entryScreen:not(.hidden)) #rc4RuntimeStatus,
+body:has(#entryScreen:not(.hidden)) #rc5ParityBtn,
+body:has(#entryScreen:not(.hidden)) #rc5ParityPanel,
+body:has(#entryScreen:not(.hidden)) #editorToast,
+body:has(#entryScreen:not(.hidden)) .s2-selection-toolbar,
+body:has(#entryScreen:not(.hidden)) .s2-key-hint{display:none!important}
+body:has(#entryScreen:not(.hidden)){overflow-x:hidden}
 </style></head><body>
 <div id="entryScreen" class="entry-shell">
  <div class="entry-card"><h1>학사달력 제작 플랫폼</h1><p>하려는 작업을 선택하세요. 템플릿을 설계하는 과정과 실제 학교 달력을 만드는 과정을 분리했습니다.</p>
