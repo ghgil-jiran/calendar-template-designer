@@ -2,11 +2,11 @@
  const catalog=window.ACDL_TEMPLATE_CATALOG||{types:[],templates:[]};
  const typeKey='acdl.calendarTypeDefinitions.v37';
  const validStates=new Set(['draft','ready','published','archived']);
- const oldLibrary=window.v22Library||v22Library;
- const oldSaveLibrary=window.v22SaveLibrary||v22SaveLibrary;
- const oldRenderLibrary=window.renderTemplateLibrary||renderTemplateLibrary;
- const oldRenderUserChoices=window.renderUserTemplateChoices||renderUserTemplateChoices;
- const oldApplyType=window.applyCalendarType||applyCalendarType;
+ const oldLibrary=typeof window.v22Library==='function'?window.v22Library:()=>[];
+ const oldSaveLibrary=typeof window.v22SaveLibrary==='function'?window.v22SaveLibrary:()=>undefined;
+ const oldRenderLibrary=typeof window.renderTemplateLibrary==='function'?window.renderTemplateLibrary:()=>{};
+ const oldRenderUserChoices=typeof window.renderUserTemplateChoices==='function'?window.renderUserTemplateChoices:()=>{};
+ const oldApplyType=typeof window.applyCalendarType==='function'?window.applyCalendarType:()=>undefined;
  let activeLibraryScope='base';
  let activeTypeFilter='all';
  let activeLibraryState='all';
@@ -145,12 +145,17 @@
   activeLibraryState=filter||activeLibraryState;
   const list=records().filter(filterActive);
   const grid=el('templateLibraryGrid');if(!grid)return;
-  grid.innerHTML=list.length?list.map(cardMarkup).join(''):`<div class="library-empty-state"><strong>${activeTypeFilter==='all'?'등록된 템플릿이 없습니다.':`${escape(label(activeTypeFilter))}에 등록된 템플릿이 없습니다.`}</strong><p>새 템플릿을 만들어 보세요.</p></div>`;
+  if(!list.length && activeLibraryScope==='custom'){
+    grid.innerHTML=`<div class="library-empty-state user-empty"><strong>등록된 템플릿이 없습니다.</strong><p>새 템플릿을 만들어 이 영역에 저장하세요.</p><button class="primary" id="createCustomTemplateBtn">새 템플릿 만들기</button></div>`;
+    const button=el('createCustomTemplateBtn');if(button)button.addEventListener('click',()=>{closeTemplateLibrary();enterDesigner();});
+  } else {
+    grid.innerHTML=list.length?list.map(cardMarkup).join(''):`<div class="library-empty-state"><strong>${activeTypeFilter==='all'?'등록된 템플릿이 없습니다.':`${escape(label(activeTypeFilter))}에 등록된 템플릿이 없습니다.`}</strong><p>새 템플릿을 만들어 보세요.</p></div>`;
+    grid.querySelectorAll('[data-library-edit],[data-library-use]').forEach(button=>button.addEventListener('click',()=>openDesignerProjectFromRecord(records().find(record=>record.id===button.dataset.libraryEdit||record.id===button.dataset.libraryUse))));
+    grid.querySelectorAll('[data-library-copy]').forEach(button=>button.addEventListener('click',()=>{const source=records().find(record=>record.id===button.dataset.libraryCopy);if(!source)return;saveRecords([...records(),{...source,id:`tpl-${Date.now()}`,name:`${source.name} 복사본`,state:'draft',status:'draft',updatedAt:new Date().toISOString()}]);renderLibrary(filter)}));
+    grid.querySelectorAll('[data-library-state-change]').forEach(button=>button.addEventListener('click',()=>{const list=records(),record=list.find(item=>item.id===button.dataset.libraryStateChange);if(!record)return;const seq=['draft','ready','published','archived'];record.state=seq[(seq.indexOf(record.state)+1)%seq.length];record.status=record.state;record.updatedAt=new Date().toISOString();saveRecords(list);renderLibrary(filter);renderUserTemplateChoices()}));
+    hydrateThumbnails(list);
+  }
   updateLibrarySummary(list.length);
-  grid.querySelectorAll('[data-library-edit],[data-library-use]').forEach(button=>button.addEventListener('click',()=>openDesignerProjectFromRecord(records().find(record=>record.id===button.dataset.libraryEdit||record.id===button.dataset.libraryUse))));
-  grid.querySelectorAll('[data-library-copy]').forEach(button=>button.addEventListener('click',()=>{const source=records().find(record=>record.id===button.dataset.libraryCopy);if(!source)return;saveRecords([...records(),{...source,id:`tpl-${Date.now()}`,name:`${source.name} 복사본`,state:'draft',status:'draft',updatedAt:new Date().toISOString()}]);renderLibrary(filter)}));
-  grid.querySelectorAll('[data-library-state-change]').forEach(button=>button.addEventListener('click',()=>{const list=records(),record=list.find(item=>item.id===button.dataset.libraryStateChange);if(!record)return;const seq=['draft','ready','published','archived'];record.state=seq[(seq.indexOf(record.state)+1)%seq.length];record.status=record.state;record.updatedAt=new Date().toISOString();saveRecords(list);renderLibrary(filter);renderUserTemplateChoices()}));
-  hydrateThumbnails(list);
  }
  function renderUserChoices(){
   const grid=el('userTemplateChoiceGrid');if(!grid)return;const selectedType=selectedCalendarType;const list=records().filter(record=>record.type===selectedType&&record.state==='published').sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
