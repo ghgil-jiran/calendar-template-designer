@@ -6,8 +6,8 @@
   }
 
   function normalizeState(state, fallbackType = 'desk') {
-    const selectedType = typeof state?.selectedType === 'string' && state.selectedType ? state.selectedType : fallbackType;
-    const template = typeof state?.template === 'string' && state.template ? state.template : 'school-basic';
+    const selectedType = typeof state?.selectedType === 'string' && state.selectedType !== undefined ? state.selectedType : fallbackType;
+    const template = typeof state?.template === 'string' && state.template !== undefined ? state.template : 'school-basic';
     const step = Math.max(1, Math.min(5, Number(state?.step) || 1));
     return { selectedType, template, step };
   }
@@ -22,6 +22,14 @@
     } catch (_) {
       return normalizeState(null, 'desk');
     }
+  }
+
+  function resetWizardState(storageKey = STORAGE_KEY) {
+    const storage = safeStorage();
+    if (!storage) return { selectedType: '', template: '', step: 1 };
+    const payload = { selectedType: '', template: '', step: 1 };
+    storage.setItem(storageKey, JSON.stringify(payload));
+    return payload;
   }
 
   function persistWizardState(state, storageKey = STORAGE_KEY) {
@@ -87,6 +95,7 @@
   root.ACDLDesignerStudioWizard = {
     STORAGE_KEY,
     restoreWizardState,
+    resetWizardState,
     persistWizardState,
     applyTypeSelection,
     syncWizardUi
