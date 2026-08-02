@@ -3130,6 +3130,46 @@ body.user-mode #templateSettingsBtn{display:inline-flex!important}
 .full-preview-card-title{min-height:42px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'title button' 'sub button';align-items:center;gap:1px 10px}.full-preview-card-title>span{grid-area:title;font-size:11px;font-weight:800}.full-preview-card-title>small{grid-area:sub}.full-preview-card-title>button{grid-area:button}
 @media(max-width:760px){.preview-quality-controls{margin-left:0;width:100%}.full-preview-head{align-items:flex-start}}
 </style>
+
+<style id="editor-chrome-stability-fix">
+/* Keep the editor header usable even when the shared design-token stylesheet is delayed or missing. */
+:root{
+ --acds-primary:#2563eb;--acds-primary-hover:#1d4ed8;--acds-primary-soft:#eff6ff;
+ --acds-canvas:#f6f8fb;--acds-surface:#fff;--acds-surface-subtle:#f8fafc;--acds-workspace:#e3e7ed;
+ --acds-border:#e2e8f0;--acds-border-strong:#cbd5e1;--acds-text-strong:#0f172a;--acds-text:#334155;--acds-text-muted:#64748b;
+ --acds-font-sans:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+ --acds-radius-sm:8px;--acds-shadow-card:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.06);
+}
+.app-header{
+ min-height:56px;height:56px;padding:0 16px;gap:10px;background:#172033;color:#fff;
+ display:flex;align-items:center;overflow:visible;position:relative;z-index:80;
+}
+.app-header .home-btn{flex:0 0 auto}.app-header .brand-block{min-width:190px;max-width:320px;margin-right:auto;gap:2px}
+.app-header .brand{font-size:15px;line-height:1.2;color:#fff;white-space:nowrap}.app-header .current-template-title{font-size:11px;color:#cbd5e1}
+.app-header .framework-badge{font-size:9px}.app-header .header-group{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.app-header .toolbar-btn{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 12px;border:1px solid rgba(255,255,255,.16);border-radius:7px;background:rgba(255,255,255,.1);color:#fff;font-size:11px;font-weight:700;line-height:1;white-space:nowrap}
+.app-header .toolbar-btn:hover:not(:disabled){background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.28)}
+.app-header .role-indicator{flex:0 0 auto;min-height:34px;padding:0 10px;font-size:10px}.app-header .status{flex:0 0 auto;font-size:10px;white-space:nowrap}
+.editor-menubar{
+ min-height:36px;height:36px;padding:0 12px;gap:2px;background:#fff;border-bottom:1px solid #e2e8f0;
+ display:flex;align-items:center;position:relative;z-index:70;box-shadow:0 1px 2px rgba(15,23,42,.03);
+}
+.editor-menubar .menu-root{height:100%;display:flex;align-items:center;position:relative}.editor-menubar .menu-root>button{height:28px;padding:0 11px;border:0;border-radius:6px;background:transparent;color:#334155;font-size:11px;font-weight:700;line-height:1}
+.editor-menubar .menu-root>button:hover,.editor-menubar .menu-root>button.active{background:#eef2f7;color:#0f172a}
+.editor-menu-popover{top:32px;z-index:90}.workspace{height:calc(100vh - 92px);min-height:0}
+.icon-toolbar{
+ min-height:58px;height:58px;padding:5px 10px;gap:6px;background:#fff;border-bottom:1px solid #e2e8f0;
+ display:flex;align-items:center;overflow-x:auto;overflow-y:hidden;
+}
+.icon-toolbar .tool-group{height:46px;display:flex;align-items:center;gap:2px}.icon-toolbar .tool-divider{height:34px;margin:0 2px}
+.icon-toolbar .icon-tool{min-width:48px;height:44px;padding:3px 6px;gap:2px;border:1px solid transparent;border-radius:7px;background:#fff;color:#334155;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.icon-toolbar .icon-tool:hover:not(:disabled){background:#f1f5f9;border-color:#cbd5e1}.icon-toolbar .icon-tool.emphasized{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8}
+.icon-toolbar .tool-icon{height:19px;font-size:17px;line-height:19px}.icon-toolbar .tool-label{font-size:10px;line-height:1;white-space:nowrap}
+.icon-toolbar .toolbar-scope{height:44px;padding-left:4px}.icon-toolbar .toolbar-scope label{font-size:10px}.icon-toolbar .toolbar-scope select{height:32px;font-size:10px}
+body.user-mode .editor-menubar:before{display:inline-flex;align-items:center;height:24px;margin-right:5px;padding:0 9px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:800;white-space:nowrap}
+@media(max-width:1280px){.app-header .role-indicator{display:none}.app-header .brand-block{min-width:170px}.icon-toolbar .tool-label{display:none}.icon-toolbar .icon-tool{min-width:36px;width:36px}.toolbar-scope label{display:none}}
+@media(max-width:980px){.app-header .current-template-title,.app-header .header-separator{display:none}.app-header .brand-block{min-width:0}.app-header .brand{font-size:13px}.app-header{padding-inline:10px}.workspace{height:auto;min-height:calc(100vh - 92px)}}
+</style>
 <script id="v35-final-fixes">
 (()=>{
   // Workspace users can add objects whenever the template/page permits editing.
