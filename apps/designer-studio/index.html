@@ -6,7 +6,7 @@
 :root{--bg:var(--acds-canvas);--panel:var(--acds-surface);--line:var(--acds-border);--text:var(--acds-text-strong);--muted:var(--acds-text-muted);--accent:var(--acds-primary, #2563eb);--soft:var(--acds-primary-soft);--danger:var(--acds-error);--ok:var(--acds-success);--warn:var(--acds-warning)}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans KR",sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer}
 .app-header{height:60px;background:#172033;color:white;display:flex;align-items:center;padding:0 14px;gap:10px}.brand-block{display:flex;flex-direction:column;min-width:245px;margin-right:auto}.brand{font-weight:800;line-height:1.15}.current-template-title{font-size:10px;color:#bac4d4;margin-top:3px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.status{font-size:10px;padding:5px 8px;border-radius:999px;background:#2e3b52}.header-group{display:flex;align-items:center;gap:6px}.header-separator{width:1px;height:26px;background:rgba(255,255,255,.2);margin:0 2px}.toolbar-btn{height:34px;border:0;border-radius:7px;padding:0 10px;background:#2e3b52;color:white;white-space:nowrap}.toolbar-btn:disabled{opacity:.4}.toolbar-btn.primary{background:#4777bd}
-.wizard-actions button.primary{background:#2563eb!important;color:#fff!important;border:1px solid #2563eb!important}.wizard-actions button.primary:hover:not(:disabled){background:#1d4ed8!important;border-color:#1d4ed8!important}.wizard-actions button.primary:focus-visible{outline:3px solid rgba(37,99,235,.28);outline-offset:2px}.wizard-actions button.primary:disabled{background:#cbd5e1!important;color:#f8fafc!important;border-color:#cbd5e1!important;cursor:not-allowed;opacity:1}
+.wizard-actions{display:flex;align-items:center;gap:8px;padding:14px 24px;border-top:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:blur(8px);position:sticky;bottom:0;z-index:6}.wizard-actions .spacer{flex:1}.wizard-actions button{height:38px;border:1px solid var(--line);border-radius:8px;padding:0 13px;background:#fff;color:var(--text)}.wizard-actions button.secondary{background:#fff;color:var(--text)}.wizard-actions button.primary{background:#2563eb!important;color:#fff!important;border:1px solid #2563eb!important}.wizard-actions button.primary:hover:not(:disabled){background:#1d4ed8!important;border-color:#1d4ed8!important}.wizard-actions button.primary:focus-visible{outline:3px solid rgba(37,99,235,.28);outline-offset:2px}.wizard-actions button.primary:disabled{background:#cbd5e1!important;color:#f8fafc!important;border-color:#cbd5e1!important;cursor:not-allowed;opacity:1}.wizard-actions button:disabled{opacity:.56}
 .workspace{display:grid;grid-template-columns:245px minmax(570px,1fr) 320px;gap:10px;padding:10px;min-height:calc(100vh - 56px)}.panel{background:white;border:1px solid var(--line);border-radius:10px;overflow:hidden}.panel h2{margin:0;padding:10px 12px;font-size:13px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.panel-body{padding:9px}
 .nav{max-height:calc(100vh - 130px);overflow:auto}.sheet{border:1px solid var(--line);border-radius:8px;margin:5px 0;overflow:hidden}.sheet-head{padding:7px 9px;background:#f7f8fa;font-size:11px;font-weight:700}.page-btn{width:100%;height:auto;border:0;border-top:1px solid #edf0f4;background:white;text-align:left;padding:7px 9px;display:flex;justify-content:space-between;gap:6px;font-size:12px}.page-btn.active{background:var(--soft);color:var(--accent);font-weight:700}.page-btn small{color:var(--muted)}
 .center{display:flex;flex-direction:column}.modebar{padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}.modebar-actions{display:flex;gap:6px;align-items:center;margin-left:auto}.modebar .toolbar-btn{background:#fff;color:#344054;border:1px solid var(--line)}.modebar .toolbar-btn:hover{border-color:var(--accent)}.modebar .toolbar-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}.seg button{height:32px;border:1px solid var(--line);background:white;padding:0 10px}.seg button:first-child{border-radius:7px 0 0 7px}.seg button:last-child{border-radius:0 7px 7px 0}.seg button.active{background:var(--accent);color:white;border-color:var(--accent)}.mode-help{margin-left:auto;font-size:11px;color:var(--muted)}
@@ -230,7 +230,7 @@
 .inspector-tab-panel.active{display:block}
 .inspector-tab-empty{margin:10px;padding:16px 12px;border:1px dashed var(--line);border-radius:9px;color:var(--muted);font-size:10px;line-height:1.5;text-align:center;background:#fafbfc}
 
-.setup-field.hidden-by-type{display:none!important}.setup-field.full{grid-column:1/-1}.setup-checkbox-field{display:flex!important;flex-direction:column;justify-content:center;gap:5px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fafbfc}.setup-checkbox-field>span{display:flex;align-items:center;gap:8px;font-weight:700}.setup-checkbox-field input[type=checkbox]{width:16px!important;height:16px!important;margin:0;flex:0 0 auto}.setup-checkbox-field small{padding-left:24px;color:var(--muted);font-size:9px;line-height:1.45}.setup-type-note{grid-column:1/-1;padding:10px 12px;border:1px solid #d9e3f0;border-radius:9px;background:#f7faff;color:#526175;font-size:10px;line-height:1.5}
+.setup-field.hidden-by-type{display:none!important}.setup-field.full{grid-column:1/-1}.setup-checkbox-field{display:flex!important;flex-direction:column;justify-content:center;gap:5px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fafbfc;cursor:pointer}.setup-checkbox-field>span{display:flex;align-items:center;gap:8px;font-weight:700}.setup-checkbox-field input[type=checkbox]{width:18px!important;height:18px!important;margin:0;flex:0 0 auto}.setup-checkbox-field small{padding-left:24px;color:var(--muted);font-size:9px;line-height:1.45}.setup-type-note{grid-column:1/-1;padding:10px 12px;border:1px solid #d9e3f0;border-radius:9px;background:#f7faff;color:#526175;font-size:10px;line-height:1.5}.option-check-grid label{cursor:pointer}.option-check-grid input[type=checkbox]{width:18px!important;height:18px!important;margin:0;flex:0 0 auto}
 .month-date-strip{width:100%;height:100%;display:grid;grid-template-columns:repeat(var(--date-count,31),minmax(0,1fr));align-items:stretch;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:6px;overflow:hidden}.month-date-cell{min-width:0;display:grid;grid-template-rows:1fr 1.15fr;align-items:center;text-align:center;border-right:1px solid rgba(23,32,46,.09);font-variant-numeric:tabular-nums}.month-date-cell:last-child{border-right:0}.month-date-cell .dow{font-size:clamp(5px,1.05vw,10px);font-weight:800;color:#6b7280;line-height:1}.month-date-cell .date{font-size:clamp(6px,1.35vw,13px);font-weight:750;line-height:1}.month-date-cell.sun .dow,.month-date-cell.sun .date{color:#d04444}.month-date-cell.sat .dow,.month-date-cell.sat .date{color:#3569b8}
 .asset-library-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.asset-card{appearance:none;border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px;text-align:left;cursor:pointer}.asset-card:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(25,63,110,.12)}.asset-thumb{height:64px;border-radius:6px;overflow:hidden;background:#eef2f7;margin-bottom:6px;display:flex;align-items:center;justify-content:center}.asset-thumb img{width:100%;height:100%;object-fit:cover}.asset-card strong{display:block;font-size:10px}.asset-card span{display:block;font-size:8px;color:var(--muted);margin-top:2px}.asset-upload-row{display:flex;gap:6px;margin-top:8px}.asset-upload-row button{flex:1}.resource-badge{display:inline-flex;padding:2px 6px;border-radius:999px;background:#eaf2ff;color:#285f9f;font-size:8px;font-weight:800}
 
@@ -430,7 +430,7 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
   <section class="wizard-page" data-user-step="5"><h2>5. 만들기 전 확인</h2><p class="desc">선택한 템플릿과 입력 정보를 확인한 후 사용자 편집 화면으로 이동합니다.</p><div id="userWizardSummary" class="wizard-summary"></div></section>
  </div>
  <div id="wizardSelectionHelp" class="wizard-help hidden" role="status" aria-live="polite"></div>
- <div class="wizard-actions"><button id="userCancelBtn">처음으로</button><button id="userPrevBtn" class="hidden">이전</button><span class="spacer"></span><button id="userNextBtn" class="primary" disabled>다음</button><button id="userCreateBtn" class="primary hidden">달력 만들기</button></div>
+ <div class="wizard-actions"><button id="userCancelBtn" class="secondary">처음으로</button><button id="userPrevBtn" class="secondary hidden">이전</button><span class="spacer"></span><button id="userNextBtn" class="primary" disabled>다음</button><button id="userCreateBtn" class="primary hidden" disabled>달력 만들기</button></div>
 </div></div>
 <div id="pagePreviewToolbar" class="preview-toolbar"><strong>현재 페이지 미리보기</strong><span id="pagePreviewName"></span><span class="preview-spacer"></span><button id="previewPrevPageBtn">이전 페이지</button><button id="previewNextPageBtn">다음 페이지</button><button id="returnToEditBtn" class="primary">편집으로 돌아가기</button></div>
 <header class="app-header"><button id="returnHomeBtn" class="toolbar-btn home-btn" type="button">처음으로</button><div class="brand-block"><div id="appBrand" class="brand">ACDL 템플릿 에디터 <span class="framework-badge">v1.0 Beta RC1</span></div><span id="currentTemplateTitle" class="current-template-title">새 템플릿</span></div><div id="roleIndicator" class="role-indicator"><span class="role-dot"></span><span id="roleIndicatorText">Designer Studio · 디자이너 편집기</span></div>
@@ -1987,7 +1987,7 @@ el("elementImageInput").addEventListener("change",e=>{
 // v21 role entry and user calendar creation flow
 function v21Escape(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]))}
 function v21FileToDataURL(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||""));reader.onerror=()=>reject(reader.error||new Error("이미지를 읽지 못했습니다."));reader.readAsDataURL(file)})}
-let appMode="designer", userWizardStep=1, selectedUserTemplate={template:"school-basic",type:"desk"};
+let appMode="designer", userWizardStep=1, selectedUserTemplate={template:"",type:""};
 const wizardStateApi=window.ACDLDesignerStudioWizard;
 const userImages={building:"",logo:"",flower:"",tree:""};
 function showEntry(){resetEditorViewState();el("entryScreen").classList.remove("hidden");el("setup").classList.add("hidden");el("userSetup").classList.add("hidden")}
@@ -1997,28 +1997,56 @@ el("enterDesignerFlow").addEventListener("click",()=>openDesignerStudio({mode:"d
 for(let m=1;m<=12;m++)el("userStartMonth").innerHTML+=`<option value="${m}" ${m===3?"selected":""}>${m}월</option>`;
 for(let n=0;n<=5;n++){el("userFrontInserts").innerHTML+=`<option value="${n}" ${n===1?"selected":""}>${n}장</option>`;el("userRearInserts").innerHTML+=`<option value="${n}">${n}장</option>`}
 function renderUserSizeOptions(){const list=SIZE_PRESETS[selectedUserTemplate.type]||SIZE_PRESETS.desk;el("userSize").innerHTML=list.map(x=>`<option value="${x.id}" ${x.recommended?"selected":""}>${x.label}${x.recommended?" · 추천":""}</option>`).join("");el("userRearInsertField").classList.toggle("hidden",selectedUserTemplate.type!=="desk")}
-document.querySelectorAll("[data-user-template]").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll("[data-user-template]").forEach(x=>x.classList.remove("selected"));btn.classList.add("selected");selectedUserTemplate={template:btn.dataset.userTemplate,type:btn.dataset.userType};syncWizardSelectionUi();renderUserSizeOptions();updateWizardGuidance();if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({selectedType:selectedCalendarType||selectedUserTemplate.type,template:selectedUserTemplate.template,step:userWizardStep});}));
+function selectWizardTemplate(btn){
+ const templateId=btn?.dataset?.userTemplate||"";
+ const type=btn?.dataset?.userType||selectedCalendarType||selectedUserTemplate.type||"";
+ selectedUserTemplate={template:templateId,type};
+ syncWizardSelectionUi();
+ renderUserSizeOptions();
+ updateWizardGuidance();
+ if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({calendarType:selectedCalendarType||type||null,templateId:templateId||null,step:userWizardStep});
+}
+document.querySelectorAll("[data-user-template]").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll("[data-user-template]").forEach(x=>x.classList.remove("selected"));btn.classList.add("selected");selectWizardTemplate(btn);}));
 function syncWizardSelectionUi(){
  const activeType=selectedCalendarType||selectedUserTemplate.type||"";
  document.querySelectorAll("[data-calendar-type]").forEach(btn=>{const active=btn.dataset.calendarType===activeType;btn.classList.toggle("selected",active);btn.setAttribute("aria-pressed",active?"true":"false");});
  document.querySelectorAll("[data-user-template]").forEach(btn=>{const matches=btn.dataset.userType===activeType;btn.classList.toggle("hidden-by-type",!matches);const active=Boolean(btn.dataset.userTemplate)&&btn.dataset.userTemplate===selectedUserTemplate.template&&btn.dataset.userType===selectedUserTemplate.type;btn.classList.toggle("selected",active);btn.setAttribute("aria-pressed",active?"true":"false");if(!matches){btn.classList.remove("selected");btn.setAttribute("aria-pressed","false");}});
 }
+function isWizardStepValid(step=userWizardStep){
+ if(step===1)return Boolean(selectedCalendarType);
+ if(step===2)return Boolean(selectedUserTemplate.template && (selectedUserTemplate.type||selectedCalendarType));
+ if(step===3){const year=String(el("userYear")?.value||"").trim();const month=String(el("userStartMonth")?.value||"").trim();const size=String(el("userSize")?.value||"").trim();return Boolean(year&&month&&size);}
+ if(step===4)return Boolean(String(el("userSchoolName")?.value||"").trim());
+ if(step===5)return isWizardStepValid(4)&&isWizardStepValid(3)&&isWizardStepValid(2)&&isWizardStepValid(1);
+ return true;
+}
 function updateWizardGuidance(){
  const help=el("wizardSelectionHelp");
  const nextBtn=el("userNextBtn");
+ const createBtn=el("userCreateBtn");
+ const state=wizardStateApi?.validateWizardStep?.({calendarType:selectedCalendarType||selectedUserTemplate.type||null,templateId:selectedUserTemplate.template||null,step:userWizardStep})||{validationMessage:""};
+ const isValid=isWizardStepValid(userWizardStep);
  if(userWizardStep===1){
-  if(!selectedCalendarType){help?.classList.remove("hidden");help?.classList.add("is-error");help.textContent="달력 유형을 선택해 주세요.";nextBtn.disabled=true;return;}
-  help?.classList.add("hidden");help.textContent="";nextBtn.disabled=false;return;
+  if(!selectedCalendarType){help?.classList.remove("hidden");help?.classList.add("is-error");help.textContent="달력 유형을 선택해 주세요.";nextBtn.disabled=true;createBtn.disabled=true;return;}
+  help?.classList.add("hidden");help.textContent="";nextBtn.disabled=false;createBtn.disabled=!isValid;return;
  }
  if(userWizardStep===2){
   const visibleTemplates=[...document.querySelectorAll("#userTemplateChoiceGrid [data-user-template]")].filter(btn=>!btn.classList.contains("hidden-by-type")&&!btn.classList.contains("hidden"));
   const hasTemplates=visibleTemplates.length>0;
-  if(!selectedCalendarType){help?.classList.remove("hidden");help?.classList.add("is-error");help.textContent="달력 유형을 선택해 주세요.";nextBtn.disabled=true;return;}
-  if(!hasTemplates){help?.classList.remove("hidden");help?.classList.add("is-info");help.textContent="현재 사용할 수 있는 템플릿이 없습니다. 준비 중입니다.";nextBtn.disabled=true;return;}
-  if(!selectedUserTemplate.template){help?.classList.remove("hidden");help?.classList.add("is-error");help.textContent="사용할 템플릿을 선택해 주세요.";nextBtn.disabled=true;return;}
-  help?.classList.add("hidden");help.textContent="";nextBtn.disabled=false;return;
+  if(!selectedCalendarType){help?.classList.remove("hidden");help?.classList.add("is-error");help.textContent="달력 유형을 선택해 주세요.";nextBtn.disabled=true;createBtn.disabled=true;return;}
+  if(!hasTemplates){help?.classList.remove("hidden");help?.classList.add("is-info");help.textContent="현재 사용할 수 있는 템플릿이 없습니다. 준비 중입니다.";nextBtn.disabled=true;createBtn.disabled=true;return;}
+  if(!selectedUserTemplate.template){help?.classList.remove("hidden");help?.classList.add("is-error");help.textContent=state.validationMessage||"사용할 템플릿을 선택해 주세요.";nextBtn.disabled=true;createBtn.disabled=true;return;}
+  help?.classList.add("hidden");help.textContent="";nextBtn.disabled=false;createBtn.disabled=!isValid;return;
  }
- help?.classList.add("hidden");help.textContent="";nextBtn.disabled=false;
+ if(userWizardStep===3){
+  if(!isValid){help?.classList.remove("hidden");help?.classList.add("is-error");help.textContent="제작 연도와 기본 옵션을 확인해 주세요.";nextBtn.disabled=true;createBtn.disabled=true;return;}
+  help?.classList.add("hidden");help.textContent="";nextBtn.disabled=false;createBtn.disabled=!isValid;return;
+ }
+ if(userWizardStep===4){
+  if(!isValid){help?.classList.remove("hidden");help?.classList.add("is-error");help.textContent="학교명을 입력해 주세요.";nextBtn.disabled=true;createBtn.disabled=true;return;}
+  help?.classList.add("hidden");help.textContent="";nextBtn.disabled=false;createBtn.disabled=!isValid;return;
+ }
+ help?.classList.add("hidden");help.textContent="";nextBtn.disabled=false;createBtn.disabled=!isValid;
 }
 function setUserWizardStep(step){
  userWizardStep=Math.max(1,Math.min(5,step));
@@ -2030,9 +2058,18 @@ function setUserWizardStep(step){
  syncWizardSelectionUi();
  updateWizardGuidance();
  if(userWizardStep===5)renderUserSummary();
- const wizardState=wizardStateApi?.persistWizardState?.({selectedType:selectedCalendarType||selectedUserTemplate.type,template:selectedUserTemplate.template,step:userWizardStep});
- if(wizardState)selectedUserTemplate={...selectedUserTemplate,template:wizardState.template||selectedUserTemplate.template};
+ if(wizardStateApi?.persistWizardState){
+  const wizardState=wizardStateApi.persistWizardState({calendarType:selectedCalendarType||selectedUserTemplate.type||null,templateId:selectedUserTemplate.template||null,step:userWizardStep});
+  if(wizardState)selectedUserTemplate={...selectedUserTemplate,template:wizardState.templateId||selectedUserTemplate.template};
+ }
 }
+
+["userYear","userStartMonth","userCalendarRows","userWeekStart","userSize","userFrontInserts","userRearInserts","userAdjacentMini","userSchoolName","userSchoolMotto","userSchoolSlogan","userSchoolAddress","userSchoolWebsite","userSchoolSong"].forEach(id=>{
+  const node=el(id);
+  if(node){node.addEventListener("input",()=>updateWizardGuidance());node.addEventListener("change",()=>updateWizardGuidance());}
+});
+
+[...document.querySelectorAll(".setup-checkbox-field, .option-check-grid label")].forEach(node=>node.addEventListener("click",()=>setTimeout(updateWizardGuidance,0)));
 el("userNextBtn").addEventListener("click",()=>{if(userWizardStep===1&&!selectedCalendarType)return;if(userWizardStep===2&&!selectedUserTemplate.template)return;setUserWizardStep(userWizardStep+1);});el("userPrevBtn").addEventListener("click",()=>{setUserWizardStep(userWizardStep-1);});
 function renderUserSummary(){const tpl=document.querySelector("[data-user-template].selected strong")?.textContent||"템플릿";el("userWizardSummary").innerHTML=`<div class="summary-card"><h3>달력 구성</h3><div class="summary-row"><span>템플릿</span><strong>${v21Escape(tpl)}</strong></div><div class="summary-row"><span>연도·시작월</span><strong>${el("userYear").value}년 · ${el("userStartMonth").value}월</strong></div><div class="summary-row"><span>월력</span><strong>${el("userCalendarRows").value}×7 · ${el("userWeekStart").value==="monday"?"월요일":"일요일"} 시작</strong></div></div><div class="summary-card"><h3>학교 정보</h3><div class="summary-row"><span>학교명</span><strong>${v21Escape(el("userSchoolName").value||"미입력")}</strong></div><div class="summary-row"><span>학교 전경</span><strong>${userImages.building?"등록":"미등록"}</strong></div><div class="summary-row"><span>교표·교화</span><strong>${userImages.logo?"교표 등록":"교표 미등록"} · ${userImages.flower?"교화 등록":"교화 미등록"}</strong></div></div>`}
 function bindUserImage(kind){const cap=kind[0].toUpperCase()+kind.slice(1),input=el(`user${cap}Input`),preview=el(`user${cap}Preview`);document.querySelector(`[data-user-upload="${kind}"]`).addEventListener("click",()=>input.click());input.addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;userImages[kind]=await v21FileToDataURL(f);preview.innerHTML=`<img src="${userImages[kind]}" alt="">`})}
@@ -2072,13 +2109,14 @@ el("returnToEditBtn")?.addEventListener("click",()=>{exitPreviewMode();render()}
 const oldPreviewClick=el("previewBtn").onclick;el("previewBtn").addEventListener("click",()=>{setTimeout(()=>{if(previewType==="page"){const p=project?.book?.pageInstances?.find(x=>x.id===selectedPageId);el("pagePreviewName").textContent=p?.label||p?.role||""}},0)});
 let selectedCalendarType="";
 function applyCalendarType(type){
- selectedCalendarType=type;
- selectedUserTemplate={template:"",type:type};
+ const normalizedType=typeof type==="string"&&type.trim()?type.trim():"";
+ selectedCalendarType=normalizedType;
+ selectedUserTemplate={template:"",type:normalizedType};
  syncWizardSelectionUi();
- el("selectedTypeLabel").textContent={desk:"탁상형",wall:"벽걸이형",poster:"연간 포스터형",postcard:"엽서형"}[type]||type;
+ el("selectedTypeLabel").textContent={desk:"탁상형",wall:"벽걸이형",poster:"연간 포스터형",postcard:"엽서형"}[normalizedType]||normalizedType;
  renderUserSizeOptions();
  updateWizardGuidance();
- if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({selectedType:type,template:"",step:userWizardStep});
+ if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({calendarType:normalizedType||null,templateId:null,step:userWizardStep});
 }
 document.querySelectorAll("[data-calendar-type]").forEach(btn=>btn.addEventListener("click",()=>applyCalendarType(btn.dataset.calendarType)));
 setUserWizardStep=function(step){
@@ -2091,7 +2129,7 @@ setUserWizardStep=function(step){
  syncWizardSelectionUi();
  updateWizardGuidance();
  if(userWizardStep===5)renderUserSummary();
- if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({selectedType:selectedCalendarType||selectedUserTemplate.type,template:selectedUserTemplate.template,step:userWizardStep});
+ if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({calendarType:selectedCalendarType||selectedUserTemplate.type||null,templateId:selectedUserTemplate.template||null,step:userWizardStep});
 };
 async function openDesignerProjectFromRecord(t){
  if(!t)return;
@@ -2176,7 +2214,7 @@ function renderUserTemplateChoices(){
  const grid=el("userTemplateChoiceGrid");if(!grid)return;
  const published=v22Library().filter(t=>t.state==="published").sort((a,b)=>Number(b.edition)-Number(a.edition));
  grid.innerHTML=published.map((t)=>`<button class="template-choice ${t.type!==selectedCalendarType?"hidden-by-type":""}" data-user-library-id="${t.id}" data-user-template="${t.template}" data-user-type="${t.type}" data-state="${t.state}" aria-pressed="false"><div class="template-preview"></div><div class="template-card-topline"><strong>${v21Escape(t.name)}</strong><span class="edition-badge">${t.edition} Edition</span></div><small class="template-description">${v21Escape(t.description||"")}</small><div class="template-tags"><span>${t.type==="desk"?"탁상형":t.type==="wall"?"벽걸이형":"포스터형"}</span><span>배포중</span></div></button>`).join("")||`<p>현재 배포중인 템플릿이 없습니다.</p>`;
- grid.querySelectorAll("[data-user-template]").forEach(btn=>btn.addEventListener("click",()=>{grid.querySelectorAll("[data-user-template]").forEach(x=>x.classList.remove("selected"));btn.classList.add("selected");selectedUserTemplate={template:btn.dataset.userTemplate,type:btn.dataset.userType,libraryId:btn.dataset.userLibraryId};syncWizardSelectionUi();renderUserSizeOptions();updateWizardGuidance();if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({selectedType:selectedCalendarType||selectedUserTemplate.type,template:selectedUserTemplate.template,step:userWizardStep});}));
+ grid.querySelectorAll("[data-user-template]").forEach(btn=>btn.addEventListener("click",()=>{grid.querySelectorAll("[data-user-template]").forEach(x=>x.classList.remove("selected"));btn.classList.add("selected");selectedUserTemplate={template:btn.dataset.userTemplate,type:btn.dataset.userType,libraryId:btn.dataset.userLibraryId};syncWizardSelectionUi();renderUserSizeOptions();updateWizardGuidance();if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({calendarType:selectedCalendarType||selectedUserTemplate.type||null,templateId:selectedUserTemplate.template||null,step:userWizardStep});}));
  syncWizardSelectionUi();
  updateWizardGuidance();
 }
@@ -2228,7 +2266,7 @@ function openDesignerStudio(options){
  if(isUser){
   const wizard=window.ACDLDesignerStudioWizard;
   const restored=wizard?.restoreWizardState?.();
-  if(restored?.selectedType){selectedCalendarType=restored.selectedType;selectedUserTemplate={template:restored.template||selectedUserTemplate.template,type:restored.selectedType};}
+  if(restored?.calendarType){selectedCalendarType=restored.calendarType;selectedUserTemplate={template:restored.templateId||'',type:restored.calendarType};}
   el('userSetup').classList.remove('hidden');
   if(typeof setUserWizardStep==='function')setUserWizardStep(restored.step||1);
   renderUserSizeOptions();
@@ -2402,7 +2440,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     oldRenderChoices();
     const visible=[...document.querySelectorAll('#userTemplateChoiceGrid [data-user-template]')].filter(x=>!x.classList.contains('hidden-by-type'));
     const current=visible.find(x=>x.classList.contains('selected'))||visible[0];
-    if(current){visible.forEach(x=>x.classList.toggle('selected',x===current));selectedUserTemplate={template:current.dataset.userTemplate,type:current.dataset.userType,libraryId:current.dataset.userLibraryId};renderUserSizeOptions()}
+    if(current){visible.forEach(x=>x.classList.toggle('selected',x===current));selectedUserTemplate={template:current.dataset.userTemplate,type:current.dataset.userType,libraryId:current.dataset.userLibraryId};renderUserSizeOptions();updateWizardGuidance()}
   };
   renderUserTemplateChoices();
 })();
@@ -2533,15 +2571,20 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
 
   // Keep the library id whenever calendar type filtering chooses a card.
   applyCalendarType=function(type){
-    selectedCalendarType=type;
-    document.querySelectorAll('[data-calendar-type]').forEach(x=>x.classList.toggle('selected',x.dataset.calendarType===type));
+    const normalizedType=typeof type==='string'&&type.trim()?type.trim():'';
+    selectedCalendarType=normalizedType;
+    selectedUserTemplate={template:'',type:normalizedType};
+    document.querySelectorAll('[data-calendar-type]').forEach(x=>x.classList.toggle('selected',x.dataset.calendarType===normalizedType));
     const cards=[...document.querySelectorAll('#userTemplateChoiceGrid [data-user-template]')];
-    cards.forEach(x=>x.classList.toggle('hidden-by-type',x.dataset.userType!==type));
-    let current=cards.find(x=>x.dataset.userType===type&&x.classList.contains('selected'))||cards.find(x=>x.dataset.userType===type&&x.dataset.state==='published')||cards.find(x=>x.dataset.userType===type);
+    cards.forEach(x=>x.classList.toggle('hidden-by-type',x.dataset.userType!==normalizedType));
+    let current=cards.find(x=>x.dataset.userType===normalizedType&&x.classList.contains('selected'))||cards.find(x=>x.dataset.userType===normalizedType&&x.dataset.state==='published')||cards.find(x=>x.dataset.userType===normalizedType);
     cards.forEach(x=>x.classList.toggle('selected',x===current));
     if(current)selectedUserTemplate={template:current.dataset.userTemplate,type:current.dataset.userType,libraryId:current.dataset.userLibraryId||null};
-    el('selectedTypeLabel').textContent={desk:'탁상형',wall:'벽걸이형',poster:'연간 포스터형'}[type]||type;
+    syncWizardSelectionUi();
+    el('selectedTypeLabel').textContent={desk:'탁상형',wall:'벽걸이형',poster:'연간 포스터형',postcard:'엽서형'}[normalizedType]||normalizedType;
     renderUserSizeOptions();
+    updateWizardGuidance();
+    if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({calendarType:normalizedType||null,templateId:selectedUserTemplate.template||null,step:userWizardStep});
   };
 
   function syncDates(prj,year,startMonth){
@@ -3284,7 +3327,7 @@ body.user-mode #templateSettingsBtn{display:inline-flex!important}
 </script>
 
 <style id="v362-type-styles">
-.page.postcard{width:min(100%,760px);aspect-ratio:148/100}
+.page.postcard{width:min(100%,560px);max-width:min(100%,560px);max-height:min(100%,760px);aspect-ratio:148/100;margin:0 auto}.canvas-wrap{align-items:center;justify-content:center}
 body.user-mode .menu-root[data-workspace-hidden="false"],
 body.user-mode .menu-root[data-workspace-hidden="false"] [data-open-library],
 body.user-mode .editor-menubar [data-open-library]{display:block!important}
@@ -3338,9 +3381,14 @@ body.user-mode .menu-root[data-workspace-hidden="false"]:focus-within .editor-me
   const oldApplyCalendarType=typeof applyCalendarType==='function'?applyCalendarType:()=>{};
   applyCalendarType=function(type){
     oldApplyCalendarType(type);
-    selectedCalendarType=type;
-    const label=$('selectedTypeLabel');if(label)label.textContent=typeLabels[type]||type;
+    const normalizedType=typeof type==='string'&&type.trim()?type.trim():'';
+    selectedCalendarType=normalizedType;
+    selectedUserTemplate={template:'',type:normalizedType};
+    const label=$('selectedTypeLabel');if(label)label.textContent=typeLabels[normalizedType]||normalizedType;
+    syncWizardSelectionUi();
     renderUserSizeOptions();
+    updateWizardGuidance();
+    if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({calendarType:normalizedType||null,templateId:null,step:userWizardStep});
   };
 
   function typeName(type){return typeLabels[type]||type}
