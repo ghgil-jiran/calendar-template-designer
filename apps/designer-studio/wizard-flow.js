@@ -5,125 +5,49 @@
     try { return root.localStorage || null; } catch (_) { return null; }
   }
 
-  function isNonEmptyString(value) {
-    return typeof value === 'string' && value.trim() !== '';
-  }
-
-  function normalizeState(state, fallbackType = null) {
+  function normalizeState(state, fallbackType = '') {
+    const selectedType = typeof state?.selectedType === 'string' && state.selectedType ? state.selectedType : fallbackType;
+    const template = typeof state?.template === 'string' && state.template ? state.template : '';
     const step = Math.max(1, Math.min(5, Number(state?.step) || 1));
-    const calendarType = isNonEmptyString(state?.calendarType)
-      ? state.calendarType
-      : isNonEmptyString(state?.selectedType)
-        ? state.selectedType
-        : null;
-    const templateId = isNonEmptyString(state?.templateId)
-      ? state.templateId
-      : isNonEmptyString(state?.template)
-        ? state.template
-        : null;
-    return {
-      step,
-      calendarType,
-      templateId,
-      validationMessage: ''
-    };
+    return { selectedType, template, step };
   }
 
-  function createFreshWizardState() {
-    return {
-      step: 1,
-      calendarType: null,
-      templateId: null,
-      validationMessage: '달력 유형을 선택해 주세요.'
-    };
-  }
-
-  function buildValidationMessage(state) {
-    const payload = normalizeState(state);
-    if (!payload.calendarType) return '달력 유형을 선택해 주세요.';
-    if (payload.step === 2 && !payload.templateId) return '사용할 템플릿을 선택해 주세요.';
-    return '';
-  }
-
-  function selectCalendarType(state, type) {
-    const payload = normalizeState(state);
-    const nextType = isNonEmptyString(type) ? type : payload.calendarType;
-    return {
-      ...payload,
-      calendarType: nextType,
-      templateId: null,
-      validationMessage: buildValidationMessage({ ...payload, calendarType: nextType, templateId: null })
-    };
-  }
-
-  function selectTemplate(state, templateId) {
-    const payload = normalizeState(state);
-    const nextTemplate = isNonEmptyString(templateId) ? templateId : payload.templateId;
-    return {
-      ...payload,
-      templateId: nextTemplate,
-      validationMessage: buildValidationMessage({ ...payload, templateId: nextTemplate })
-    };
-  }
-
-  function validateWizardStep(state) {
-    const payload = normalizeState(state);
-    payload.validationMessage = buildValidationMessage(payload);
-    return payload;
-  }
-
-  function moveWizardStep(state, direction) {
-    const payload = normalizeState(state);
-    const delta = direction === 'prev' ? -1 : direction === 'next' ? 1 : Number(direction) || 0;
-    const nextStep = Math.max(1, Math.min(5, payload.step + delta));
-    return {
-      ...payload,
-      step: nextStep,
-      validationMessage: buildValidationMessage({ ...payload, step: nextStep })
-    };
-  }
-
-  function restoreWizardState(storageKey = STORAGE_KEY, options = {}) {
+  function restoreWizardState(storageKey = STORAGE_KEY) {
     const storage = safeStorage();
-    if (!storage || options.allowStored === false) return createFreshWizardState();
+    if (!storage) return normalizeState(null);
     try {
       const raw = storage.getItem(storageKey);
-      if (!raw) return createFreshWizardState();
-      return validateWizardStep(JSON.parse(raw));
+      if (!raw) return normalizeState(null);
+      return normalizeState(JSON.parse(raw));
     } catch (_) {
-      return createFreshWizardState();
+      return normalizeState(null);
     }
-  }
-
-  function resetWizardState(storageKey = STORAGE_KEY) {
-    const storage = safeStorage();
-    if (!storage) return createFreshWizardState();
-    const payload = createFreshWizardState();
-    storage.setItem(storageKey, JSON.stringify(payload));
-    return payload;
   }
 
   function persistWizardState(state, storageKey = STORAGE_KEY) {
     const storage = safeStorage();
     if (!storage) return null;
-    const payload = validateWizardStep(state);
+    const payload = normalizeState(state);
     storage.setItem(storageKey, JSON.stringify(payload));
     return payload;
   }
 
   function applyTypeSelection(state, type, template) {
-    const payload = selectCalendarType(state, type);
-    const nextTemplate = isNonEmptyString(template) ? template : payload.templateId;
-    return selectTemplate(payload, nextTemplate);
+    const payload = normalizeState(state, type || '');
+    const nextType = typeof type === 'string' && type ? type : payload.selectedType;
+    const typeChanged = nextType !== payload.selectedType;
+    const nextTemplate = typeof template === 'string' ? template : (typeChanged ? '' : payload.template);
+    return { ...payload, selectedType: nextType, template: nextTemplate, step: payload.step };
   }
 
   function syncWizardUi(state, doc = root.document) {
-    const payload = validateWizardStep(state);
+    const payload = normalizeState(state);
     const userWizardStep = Number(payload.step) || 1;
     const buttons = {
       prev: doc?.getElementById?.('userPrevBtn'),
       next: doc?.getElementById?.('userNextBtn'),
-      create: doc?.getElementById?.('userCreateBtn')
+      create: doc?.getElementById?.('userCreateBtn'),
+      summary: doc?.getElementById?.('userWizardSummary')
     };
 
     doc?.querySelectorAll?.('[data-user-step]').forEach((node) => {
@@ -138,26 +62,27 @@
     buttons.create?.classList?.toggle('hidden', userWizardStep !== 5);
 
     doc?.querySelectorAll?.('[data-calendar-type]').forEach((node) => {
-      node.classList.toggle('selected', node.dataset.calendarType === payload.calendarType);
-      node.setAttribute('aria-pressed', node.dataset.calendarType === payload.calendarType ? 'true' : 'false');
+      node.classList.toggle('selected', node.dataset.calendarType === payload.selectedType);
+      node.setAttribute?.('aria-pressed', String(node.dataset.calendarType === payload.selectedType));
     });
 
     doc?.querySelectorAll?.('[data-user-template]').forEach((node) => {
-      const matches = node.dataset.userType === payload.calendarType;
+      const matches = node.dataset.userType === payload.selectedType;
       node.classList.toggle('hidden-by-type', !matches);
-      if (!matches) {
-        node.classList.remove('selected');
-        node.setAttribute('aria-pressed', 'false');
-        return;
-      }
-      const active = Boolean(node.dataset.userTemplate) && node.dataset.userTemplate === payload.templateId && node.dataset.userType === payload.calendarType;
-      node.classList.toggle('selected', active);
-      node.setAttribute('aria-pressed', active ? 'true' : 'false');
+      if (!matches) node.classList.remove('selected');
     });
+
+    const selectedCard = payload.template
+      ? doc?.querySelector?.(`[data-user-template="${payload.template}"][data-user-type="${payload.selectedType}"]`)
+      : null;
+    if (selectedCard) {
+      doc?.querySelectorAll?.('[data-user-template]').forEach((node) => node.classList.remove('selected'));
+      selectedCard.classList.add('selected');
+    }
 
     const typeLabel = doc?.getElementById?.('selectedTypeLabel');
     if (typeLabel) {
-      typeLabel.textContent = { desk: '탁상형', wall: '벽걸이형', poster: '연간 포스터형', postcard: '엽서형' }[payload.calendarType] || (payload.calendarType || '달력 유형을 선택해 주세요.');
+      typeLabel.textContent = { desk: '탁상형', wall: '벽걸이형', poster: '연간 포스터형', postcard: '엽서형' }[payload.selectedType] || payload.selectedType;
     }
 
     return payload;
@@ -165,14 +90,7 @@
 
   root.ACDLDesignerStudioWizard = {
     STORAGE_KEY,
-    createFreshWizardState,
-    normalizeState,
-    selectCalendarType,
-    selectTemplate,
-    validateWizardStep,
-    moveWizardStep,
     restoreWizardState,
-    resetWizardState,
     persistWizardState,
     applyTypeSelection,
     syncWizardUi

@@ -7,7 +7,7 @@
     "test:runtime": "cd packages/template-runtime && npm test",
     "test:integration": "cd packages/designer-runtime-integration && npm test",
     "check:studio": "node tools/check-studio.mjs",
-    "verify": "npm run test:runtime && npm run test:integration && npm run test:sprint1 && npm run test:sprint2 && npm run test:sprint2-product && npm run check:studio",
+    "verify": "npm run test:runtime && npm run test:integration && npm run test:sprint1 && npm run test:sprint2 && npm run test:sprint2-product && npm run test:wizard && npm run check:studio",
     "style:check": "node scripts/check-project-style.mjs",
     "build": "npm run style:check && npm run verify",
     "cache:clean": "node scripts/clean-next-cache.mjs",
@@ -22,7 +22,8 @@
     "test:sprint2": "npm run test:editor-core",
     "demo:sprint2": "npm run verify && node tools/serve-designer-studio.mjs",
     "dev": "node tools/serve-designer-studio.mjs",
-    "test:sprint2-product": "node tools/check-sprint2-product.mjs"
+    "test:sprint2-product": "node tools/check-sprint2-product.mjs",
+    "test:wizard": "node --test tests/wizard-flow.test.mjs"
   },
   "dev": "",
   "devDependencies": {
