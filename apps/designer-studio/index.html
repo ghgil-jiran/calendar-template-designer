@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Calendar Template Designer v1.0 Beta RC1</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><script src="./template-catalog.js"></script>
+<script src="./wizard-flow.js"></script>
 <style>
 :root{--bg:var(--acds-canvas);--panel:var(--acds-surface);--line:var(--acds-border);--text:var(--acds-text-strong);--muted:var(--acds-text-muted);--accent:var(--acds-primary);--soft:var(--acds-primary-soft);--danger:var(--acds-error);--ok:var(--acds-success);--warn:var(--acds-warning)}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans KR",sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer}
@@ -367,7 +368,7 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
   </div>
  </div>
 </div>
-<div id="designerHome" class="designer-home-overlay hidden"><div class="designer-home-card"><span class="designer-home-kicker">Academic Calendar Designer · Developer Preview</span><h2>Designer Studio에 오신 것을 환영합니다</h2><p>학교 학사달력 템플릿을 설계하고, 샘플 데이터로 검증한 뒤 사용자 워크스페이스에 배포할 수 있습니다.</p><div class="designer-home-meta"><span>Template Designer</span><span>Calendar Runtime</span><span>Publishing Preview</span><span>v1.0.0-beta.1</span></div><div class="designer-home-actions"><button id="designerHomeNew" class="primary-home-action"><strong>＋ 새 템플릿 만들기</strong><span>달력 유형, 크기, 월력 구조를 선택하고 새 설계를 시작합니다.</span></button><button id="designerHomeSample"><strong>샘플 프로젝트 열기</strong><span>지란지교테크고등학교 2027 샘플로 주요 편집 기능을 바로 확인합니다.</span></button><button id="designerHomeLibrary"><strong>템플릿 라이브러리</strong><span>초안·검토 완료·배포중·종료 상태의 템플릿을 관리합니다.</span></button><button id="designerHomeOpen"><strong>기존 템플릿 열기</strong><span>저장한 JSON 또는 템플릿 파일을 불러와 계속 편집합니다.</span></button></div><div class="designer-home-footer"><span>학교 출판물을 위한 도메인 기반 편집기</span><span>Foundation Developer Preview</span></div></div></div>
+<div id="designerHome" class="designer-home-overlay hidden"><div class="designer-home-card"><span class="designer-home-kicker">Academic Calendar Designer · Developer Preview</span><h2>Designer Studio에 오신 것을 환영합니다</h2><p>학교 학사달력 템플릿을 설계하고 사용자 워크스페이스에 배포할 수 있습니다.</p><div class="designer-home-meta"><span>Template Designer</span><span>Calendar Runtime</span><span>Publishing Preview</span><span>v1.0.0-beta.1</span></div><div class="designer-home-actions"><button id="designerHomeNew" class="primary-home-action"><strong>＋ 새 템플릿 만들기</strong><span>달력 유형, 크기, 월력 구조를 선택하고 새 설계를 시작합니다.</span></button><button id="designerHomeLibrary"><strong>템플릿 라이브러리</strong><span>초안·검토 완료·배포중·종료 상태의 템플릿을 관리합니다.</span></button><button id="designerHomeOpen"><strong>기존 템플릿 열기</strong><span>저장한 JSON 또는 템플릿 파일을 불러와 계속 편집합니다.</span></button></div><div class="designer-home-footer"><span>학교 출판물을 위한 도메인 기반 편집기</span><span>Foundation Developer Preview</span></div></div></div>
 <div id="setup" class="setup hidden"><div class="setup-card"><h1>새 달력 템플릿 만들기</h1><p>사용자에게 배포할 템플릿의 제품 유형, 페이지 구조와 지원 옵션을 설정합니다.</p>
 <div class="setup-grid">
 <label class="setup-field" data-types="desk wall poster postcard">달력 유형<select id="setupType"><option value="desk">탁상형</option><option value="wall">벽걸이형</option><option value="poster">벽보형 · 연간 한 면</option><option value="postcard">엽서형 · 표지 + 월력 12장</option></select></label>
@@ -1985,25 +1986,36 @@ el("elementImageInput").addEventListener("change",e=>{
 function v21Escape(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]))}
 function v21FileToDataURL(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||""));reader.onerror=()=>reject(reader.error||new Error("이미지를 읽지 못했습니다."));reader.readAsDataURL(file)})}
 let appMode="designer", userWizardStep=1, selectedUserTemplate={template:"school-basic",type:"desk"};
+const wizardStateApi=window.ACDLDesignerStudioWizard;
 const userImages={building:"",logo:"",flower:"",tree:""};
 function showEntry(){resetEditorViewState();el("entryScreen").classList.remove("hidden");el("setup").classList.add("hidden");el("userSetup").classList.add("hidden")}
-function enterDesigner(){appMode="designer";document.body.classList.remove("user-mode");el("entryScreen").classList.add("hidden");el("setup").classList.remove("hidden");el("appBrand").childNodes[0].nodeValue="ACDL 템플릿 에디터 ";el("newBtn").textContent="새 템플릿";el("saveBtn").textContent="템플릿 저장";el("templateMode").textContent="템플릿 설계";el("modeHelp").textContent="샘플 콘텐츠, 데이터 연결, 위치와 스타일을 한 화면에서 설계합니다."}
-function enterUser(){appMode="user";document.body.classList.add("user-mode");el("entryScreen").classList.add("hidden");el("userSetup").classList.remove("hidden");setUserWizardStep(1);renderUserSizeOptions()}
-el("enterDesignerFlow").addEventListener("click",enterDesigner);el("enterUserFlow").addEventListener("click",enterUser);el("designerBackBtn").addEventListener("click",showEntry);el("userCancelBtn").addEventListener("click",showEntry);
+function enterDesigner(){openDesignerStudio({mode:"designer",source:"entry"});}
+function enterUser(){openDesignerStudio({mode:"user",source:"entry"});}
+el("enterDesignerFlow").addEventListener("click",()=>openDesignerStudio({mode:"designer",source:"entry"}));el("enterUserFlow").addEventListener("click",()=>openDesignerStudio({mode:"user",source:"entry"}));el("designerBackBtn").addEventListener("click",showEntry);el("userCancelBtn").addEventListener("click",showEntry);
 for(let m=1;m<=12;m++)el("userStartMonth").innerHTML+=`<option value="${m}" ${m===3?"selected":""}>${m}월</option>`;
 for(let n=0;n<=5;n++){el("userFrontInserts").innerHTML+=`<option value="${n}" ${n===1?"selected":""}>${n}장</option>`;el("userRearInserts").innerHTML+=`<option value="${n}">${n}장</option>`}
 function renderUserSizeOptions(){const list=SIZE_PRESETS[selectedUserTemplate.type]||SIZE_PRESETS.desk;el("userSize").innerHTML=list.map(x=>`<option value="${x.id}" ${x.recommended?"selected":""}>${x.label}${x.recommended?" · 추천":""}</option>`).join("");el("userRearInsertField").classList.toggle("hidden",selectedUserTemplate.type!=="desk")}
-document.querySelectorAll("[data-user-template]").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll("[data-user-template]").forEach(x=>x.classList.remove("selected"));btn.classList.add("selected");selectedUserTemplate={template:btn.dataset.userTemplate,type:btn.dataset.userType};renderUserSizeOptions()}));
-function setUserWizardStep(step){userWizardStep=Math.max(1,Math.min(4,step));document.querySelectorAll("[data-user-step]").forEach(x=>x.classList.toggle("active",Number(x.dataset.userStep)===userWizardStep));document.querySelectorAll(".wizard-step-dot").forEach((x,i)=>x.classList.toggle("active",i<userWizardStep));el("userPrevBtn").classList.toggle("hidden",userWizardStep===1);el("userNextBtn").classList.toggle("hidden",userWizardStep===4);el("userCreateBtn").classList.toggle("hidden",userWizardStep!==4);if(userWizardStep===4)renderUserSummary()}
-el("userNextBtn").addEventListener("click",()=>setUserWizardStep(userWizardStep+1));el("userPrevBtn").addEventListener("click",()=>setUserWizardStep(userWizardStep-1));
+document.querySelectorAll("[data-user-template]").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll("[data-user-template]").forEach(x=>x.classList.remove("selected"));btn.classList.add("selected");selectedUserTemplate={template:btn.dataset.userTemplate,type:btn.dataset.userType};renderUserSizeOptions();if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({selectedType:selectedCalendarType||selectedUserTemplate.type,template:selectedUserTemplate.template,step:userWizardStep});}));
+function setUserWizardStep(step){
+ userWizardStep=Math.max(1,Math.min(5,step));
+ document.querySelectorAll("[data-user-step]").forEach(x=>x.classList.toggle("active",Number(x.dataset.userStep)===userWizardStep));
+ document.querySelectorAll(".wizard-step-dot").forEach((x,i)=>x.classList.toggle("active",i<userWizardStep));
+ el("userPrevBtn").classList.toggle("hidden",userWizardStep===1);
+ el("userNextBtn").classList.toggle("hidden",userWizardStep===5);
+ el("userCreateBtn").classList.toggle("hidden",userWizardStep!==5);
+ if(userWizardStep===5)renderUserSummary();
+ const wizardState=wizardStateApi?.persistWizardState?.({selectedType:selectedCalendarType||selectedUserTemplate.type,template:selectedUserTemplate.template,step:userWizardStep});
+ if(wizardState)selectedUserTemplate={...selectedUserTemplate,template:wizardState.template||selectedUserTemplate.template};
+}
+el("userNextBtn").addEventListener("click",()=>{setUserWizardStep(userWizardStep+1);});el("userPrevBtn").addEventListener("click",()=>{setUserWizardStep(userWizardStep-1);});
 function renderUserSummary(){const tpl=document.querySelector("[data-user-template].selected strong")?.textContent||"템플릿";el("userWizardSummary").innerHTML=`<div class="summary-card"><h3>달력 구성</h3><div class="summary-row"><span>템플릿</span><strong>${v21Escape(tpl)}</strong></div><div class="summary-row"><span>연도·시작월</span><strong>${el("userYear").value}년 · ${el("userStartMonth").value}월</strong></div><div class="summary-row"><span>월력</span><strong>${el("userCalendarRows").value}×7 · ${el("userWeekStart").value==="monday"?"월요일":"일요일"} 시작</strong></div></div><div class="summary-card"><h3>학교 정보</h3><div class="summary-row"><span>학교명</span><strong>${v21Escape(el("userSchoolName").value||"미입력")}</strong></div><div class="summary-row"><span>학교 전경</span><strong>${userImages.building?"등록":"미등록"}</strong></div><div class="summary-row"><span>교표·교화</span><strong>${userImages.logo?"교표 등록":"교표 미등록"} · ${userImages.flower?"교화 등록":"교화 미등록"}</strong></div></div>`}
 function bindUserImage(kind){const cap=kind[0].toUpperCase()+kind.slice(1),input=el(`user${cap}Input`),preview=el(`user${cap}Preview`);document.querySelector(`[data-user-upload="${kind}"]`).addEventListener("click",()=>input.click());input.addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;userImages[kind]=await v21FileToDataURL(f);preview.innerHTML=`<img src="${userImages[kind]}" alt="">`})}
 ["building","logo","flower","tree"].forEach(bindUserImage);
 function applyUserSchoolData(){normalizeElementData();ensureSchoolProfile();const school=project.book.school;school.name=el("userSchoolName").value.trim()||"학교명 미입력";school.englishName=el("userSchoolEnglishName").value.trim();school.slogan=el("userSchoolSlogan").value.trim();school.address=el("userSchoolAddress").value.trim();school.phone=el("userSchoolPhone").value.trim();school.fax=el("userSchoolFax").value.trim();school.website=el("userSchoolWebsite").value.trim();school.profile.motto.description=el("userSchoolMotto").value.trim();school.profile.song.description=el("userSchoolSong").value.trim();school.profile.building.name=school.name;school.profile.building.image=userImages.building;school.profile.logo.image=userImages.logo;school.profile.flower.image=userImages.flower;school.profile.tree.image=userImages.tree;project.settings.calendarData={includeHolidays:el("userIncludeHolidays").checked,includeSolarTerms:el("userIncludeSolarTerms").checked,includeLunar:el("userIncludeLunar").checked,lunarDisplayRule:"1,5,10,15,20,25"};project.book.scheduleImport=window.userScheduleImport||null;if(window.userScheduleImport?.events?.length)project.book.events=[...(project.book.events||[]).filter(e=>e.source!=="user-import"),...window.userScheduleImport.events];project.book.pageInstances.filter(p=>p.role==="cover-front").forEach(p=>(project.book.elementsByPage[p.id]||[]).forEach(item=>{if(item.role==="school-name")item.binding="school.name";if(item.role==="slogan")item.content=school.slogan;if(item.role==="school-image"&&userImages.building)item.src=userImages.building}))}
-function createUserCalendar(){resetEditorViewState();const opts={type:selectedUserTemplate.type,year:Number(el("userYear").value),startMonth:Number(el("userStartMonth").value),template:selectedUserTemplate.template,frontInsertCount:Number(el("userFrontInserts").value),rearInsertCount:Number(el("userRearInserts").value),calendarRows:Number(el("userCalendarRows").value),weekStart:el("userWeekStart").value,showAdjacentMiniCalendars:el("userAdjacentMini").checked,posterColumns:4,sizePresetId:el("userSize").value};project=makeProject(opts);project.mode="calendar-workspace";applyUserSchoolData();selectedPageId=project.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];el("userSetup").classList.add("hidden");el("appBrand").childNodes[0].nodeValue="ACDL 사용자 달력 에디터 ";el("currentTemplateTitle").textContent=`${project.book.school.name} ${project.settings.year} 달력`;el("newBtn").textContent="새 달력";el("saveBtn").textContent="달력 저장";el("templateMode").textContent="달력 편집";el("modeHelp").textContent="학교 정보와 월별 콘텐츠를 입력하고, 템플릿이 허용한 영역을 편집합니다.";stable();render();showEditorToast("학교 정보가 적용된 새 달력을 만들었습니다.")}
+function createUserCalendar(){resetEditorViewState();const opts={type:selectedUserTemplate.type,year:Number(el("userYear").value),startMonth:Number(el("userStartMonth").value),template:selectedUserTemplate.template,frontInsertCount:Number(el("userFrontInserts").value),rearInsertCount:Number(el("userRearInserts").value),calendarRows:Number(el("userCalendarRows").value),weekStart:el("userWeekStart").value,showAdjacentMiniCalendars:el("userAdjacentMini").checked,posterColumns:4,sizePresetId:el("userSize").value};project=makeProject(opts);project.mode="calendar-workspace";applyUserSchoolData();selectedPageId=project.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];el("userSetup").classList.add("hidden");el("setup").classList.add("hidden");el("appBrand").childNodes[0].nodeValue="ACDL 사용자 달력 에디터 ";el("currentTemplateTitle").textContent=`${project.book.school.name} ${project.settings.year} 달력`;el("newBtn").textContent="새 달력";el("saveBtn").textContent="달력 저장";el("templateMode").textContent="달력 편집";el("modeHelp").textContent="학교 정보와 월별 콘텐츠를 입력하고, 템플릿이 허용한 영역을 편집합니다.";stable();render();updateRoleIndicator();showEditorToast("학교 정보가 적용된 새 달력을 만들었습니다.")}
 el("userCreateBtn").addEventListener("click",createUserCalendar);
 // The New button follows the current workspace role.
-el("newBtn").addEventListener("click",()=>{if(appMode==="user"){resetEditorViewState();el("setup").classList.add("hidden");el("userSetup").classList.remove("hidden");setUserWizardStep(1)}});
+el("newBtn").addEventListener("click",()=>{if(appMode==="user"){openDesignerStudio({mode:"user",source:"entry"});}else{openDesignerStudio({mode:"designer",source:"entry"});}});
 
 // v22: role indicator, streamlined page preview, type-first wizard and template library
 const v22DefaultLibrary=[];
@@ -2033,9 +2045,29 @@ function goPreviewPage(delta){if(!project)return;const pages=project.book.pageIn
 el("returnToEditBtn")?.addEventListener("click",()=>{exitPreviewMode();render()});el("previewPrevPageBtn")?.addEventListener("click",()=>goPreviewPage(-1));el("previewNextPageBtn")?.addEventListener("click",()=>goPreviewPage(1));
 const oldPreviewClick=el("previewBtn").onclick;el("previewBtn").addEventListener("click",()=>{setTimeout(()=>{if(previewType==="page"){const p=project?.book?.pageInstances?.find(x=>x.id===selectedPageId);el("pagePreviewName").textContent=p?.label||p?.role||""}},0)});
 let selectedCalendarType="desk";
-function applyCalendarType(type){selectedCalendarType=type;document.querySelectorAll("[data-calendar-type]").forEach(x=>x.classList.toggle("selected",x.dataset.calendarType===type));document.querySelectorAll("[data-user-template]").forEach(x=>x.classList.toggle("hidden-by-type",x.dataset.userType!==type));const first=[...document.querySelectorAll(`[data-user-template][data-user-type="${type}"][data-state="published"]`)][0]||document.querySelector(`[data-user-template][data-user-type="${type}"]`);document.querySelectorAll("[data-user-template]").forEach(x=>x.classList.remove("selected"));if(first){first.classList.add("selected");selectedUserTemplate={template:first.dataset.userTemplate,type:first.dataset.userType}}el("selectedTypeLabel").textContent={desk:"탁상형",wall:"벽걸이형",poster:"연간 포스터형"}[type]||type;renderUserSizeOptions()}
+function applyCalendarType(type){
+ selectedCalendarType=type;
+ document.querySelectorAll("[data-calendar-type]").forEach(x=>x.classList.toggle("selected",x.dataset.calendarType===type));
+ document.querySelectorAll("[data-user-template]").forEach(x=>x.classList.toggle("hidden-by-type",x.dataset.userType!==type));
+ const first=[...document.querySelectorAll(`[data-user-template][data-user-type="${type}"][data-state="published"]`)][0]||document.querySelector(`[data-user-template][data-user-type="${type}"]`);
+ document.querySelectorAll("[data-user-template]").forEach(x=>x.classList.remove("selected"));
+ if(first){first.classList.add("selected");selectedUserTemplate={template:first.dataset.userTemplate,type:first.dataset.userType}}
+ el("selectedTypeLabel").textContent={desk:"탁상형",wall:"벽걸이형",poster:"연간 포스터형",postcard:"엽서형"}[type]||type;
+ renderUserSizeOptions();
+ if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({selectedType:type,template:selectedUserTemplate.template,step:userWizardStep});
+}
 document.querySelectorAll("[data-calendar-type]").forEach(btn=>btn.addEventListener("click",()=>applyCalendarType(btn.dataset.calendarType)));
-setUserWizardStep=function(step){userWizardStep=Math.max(1,Math.min(5,step));document.querySelectorAll("[data-user-step]").forEach(x=>x.classList.toggle("active",Number(x.dataset.userStep)===userWizardStep));document.querySelectorAll(".wizard-step-dot").forEach((x,i)=>x.classList.toggle("active",i<userWizardStep));el("userPrevBtn").classList.toggle("hidden",userWizardStep===1);el("userNextBtn").classList.toggle("hidden",userWizardStep===5);el("userCreateBtn").classList.toggle("hidden",userWizardStep!==5);if(userWizardStep===2)applyCalendarType(selectedCalendarType);if(userWizardStep===5)renderUserSummary()};
+setUserWizardStep=function(step){
+ userWizardStep=Math.max(1,Math.min(5,step));
+ document.querySelectorAll("[data-user-step]").forEach(x=>x.classList.toggle("active",Number(x.dataset.userStep)===userWizardStep));
+ document.querySelectorAll(".wizard-step-dot").forEach((x,i)=>x.classList.toggle("active",i<userWizardStep));
+ el("userPrevBtn").classList.toggle("hidden",userWizardStep===1);
+ el("userNextBtn").classList.toggle("hidden",userWizardStep===5);
+ el("userCreateBtn").classList.toggle("hidden",userWizardStep!==5);
+ if(userWizardStep===2)applyCalendarType(selectedCalendarType || selectedUserTemplate.type);
+ if(userWizardStep===5)renderUserSummary();
+ if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({selectedType:selectedCalendarType||selectedUserTemplate.type,template:selectedUserTemplate.template,step:userWizardStep});
+};
 async function openDesignerProjectFromRecord(t){
  if(!t)return;
  resetEditorViewState();
@@ -2150,22 +2182,59 @@ el("userScheduleInput")?.addEventListener("change",async e=>{const f=e.target.fi
 el("resourceScheduleUploadBtn")?.addEventListener("click",()=>el("resourceScheduleInput").click());
 el("resourceScheduleInput")?.addEventListener("change",async e=>{const f=e.target.files[0];if(f)await registerScheduleFile(f,"resource")});
 
-// Designer Studio opens at a focused home instead of the setup wizard.
-enterDesigner=function(){appMode="designer";document.body.classList.remove("user-mode");el("entryScreen").classList.add("hidden");el("setup").classList.add("hidden");el("userSetup").classList.add("hidden");el("designerHome").classList.remove("hidden");el("appBrand").childNodes[0].nodeValue="ACDL 템플릿 에디터 ";el("templateMode").textContent="템플릿 설계";el("modeHelp").textContent="샘플 콘텐츠, 데이터 연결, 위치와 스타일을 한 화면에서 설계합니다.";updateRoleIndicator()};
-el("enterDesignerFlow").onclick=enterDesigner;
-el("designerHomeNew")?.addEventListener("click",()=>{el("designerHome").classList.add("hidden");el("setup").classList.remove("hidden")});
-el("designerHomeLibrary")?.addEventListener("click",()=>{el("designerHome").classList.add("hidden");el("templateLibraryModal").classList.remove("hidden");renderTemplateLibrary(activeLibraryFilter)});
-el("designerHomeOpen")?.addEventListener("click",()=>el("fileInput").click());
-el("designerHomeSample")?.addEventListener("click",()=>{
+function openDesignerStudio(options){
+ const mode=options?.mode||'designer';
+ const source=options?.source||'entry';
  resetEditorViewState();
- const opts={type:"desk",year:2027,startMonth:3,template:"school-basic",frontInsertCount:1,rearInsertCount:0,calendarRows:6,weekStart:"sunday",showAdjacentMiniCalendars:true,posterColumns:4,sizePresetId:(SIZE_PRESETS.desk.find(x=>x.recommended)||SIZE_PRESETS.desk[0]).id};
- project=makeProject(opts);
- project.template.metadata={name:"지란지교테크고등학교 2027 샘플",description:"Developer Preview 기능 확인용 샘플 템플릿",edition:2027,state:"draft"};
- project.book.school.name="지란지교테크고등학교";
- selectedPageId=project.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];
- el("designerHome").classList.add("hidden");stable();render();showEditorToast("샘플 프로젝트를 열었습니다.");
-});
-const oldShowEntry=showEntry;showEntry=function(){el("designerHome")?.classList.add("hidden");oldShowEntry()};
+ appMode=mode;
+ document.body.classList.toggle('user-mode', mode==='user');
+ el('entryScreen').classList.add('hidden');
+ el('setup').classList.add('hidden');
+ el('userSetup').classList.add('hidden');
+ el('designerHome').classList.add('hidden');
+ el('templateLibraryModal').classList.add('hidden');
+ const isUser=mode==='user';
+ el('appBrand').childNodes[0].nodeValue=isUser?'ACDL 사용자 달력 에디터 ':'ACDL 템플릿 에디터 ';
+ el('newBtn').textContent=isUser?'새 달력':'새 템플릿';
+ el('saveBtn').textContent=isUser?'달력 저장':'템플릿 저장';
+ el('templateMode').textContent=isUser?'달력 편집':'템플릿 설계';
+ el('modeHelp').textContent=isUser?'학교 정보와 월별 콘텐츠를 입력하고, 템플릿이 허용한 영역을 편집합니다.':'샘플 콘텐츠, 데이터 연결, 위치와 스타일을 한 화면에서 설계합니다.';
+ if(isUser){
+  const wizard=window.ACDLDesignerStudioWizard;
+  const restored=wizard?.restoreWizardState?.();
+  if(restored?.selectedType){selectedCalendarType=restored.selectedType;selectedUserTemplate={template:restored.template||selectedUserTemplate.template,type:restored.selectedType};}
+  el('userSetup').classList.remove('hidden');
+  if(typeof setUserWizardStep==='function')setUserWizardStep(restored.step||1);
+  renderUserSizeOptions();
+  window.scrollTo?.(0,0);
+  const label=el('selectedTypeLabel');if(label)label.textContent={desk:'탁상형',wall:'벽걸이형',poster:'연간 포스터형',postcard:'엽서형'}[selectedCalendarType]||selectedCalendarType;
+  showEditorToast('새 달력 생성 흐름을 다시 시작합니다.');
+  updateRoleIndicator();
+  return;
+ }
+ if(options?.templateId){
+  const record=window.TemplateLibraryRepository?.get?.(options.templateId) || null;
+  if(record)openDesignerProjectFromRecord(record).catch(()=>{});
+  return;
+ }
+ if(options?.projectId){
+  const stored=window.TemplateLibraryRepository?.loadProject?.(options.projectId);
+  if(stored)Promise.resolve(stored).then(data=>{if(data){project=structuredClone(data);selectedPageId=project.book?.pageInstances?.[0]?.id||null;selectedElementId=null;selectedElementScope=null;history=[];future=[];stable();render();updateRoleIndicator();}});
+  return;
+ }
+ if(options?.source==='setup'){el('setup').classList.remove('hidden');return;}
+ if(source==='designer-home' || source==='library'){el('setup').classList.remove('hidden');return;}
+ if(source==='entry'){el('setup').classList.remove('hidden');return;}
+ stable();render();updateRoleIndicator();
+}
+function startDesignerWorkspace(){openDesignerStudio({mode:'designer',source:'entry'});} 
+function startUserWorkspace(){openDesignerStudio({mode:'user',source:'entry'});} 
+enterDesigner=function(){openDesignerStudio({mode:'designer',source:'entry'});} 
+el('enterDesignerFlow').onclick=enterDesigner;
+el('designerHomeNew')?.addEventListener('click',()=>openDesignerStudio({mode:'designer',source:'designer-home'}));
+el('designerHomeLibrary')?.addEventListener('click',()=>{el('designerHome').classList.add('hidden');el('templateLibraryModal').classList.remove('hidden');renderTemplateLibrary(activeLibraryFilter)});
+el('designerHomeOpen')?.addEventListener('click',()=>el('fileInput').click());
+const oldShowEntry=showEntry;showEntry=function(){el('designerHome')?.classList.add('hidden');oldShowEntry()};
 
 // Header template dropdown
 el("templateMenuBtn")?.addEventListener("click",e=>{e.stopPropagation();el("templateMenuDropdown").classList.toggle("hidden")});
