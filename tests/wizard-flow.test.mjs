@@ -62,3 +62,35 @@ test('library thumbnails cannot restore an earlier editor state', () => {
   assert.match(runtime, /if\(!host\.isConnected\|\|\(navigation&&!navigation\.isCurrent\(transitionId\)\)\)return;/);
   assert.match(runtime, /original&&\(!navigation\|\|navigation\.isCurrent\(transitionId\)\)/);
 });
+
+test('entry screen explains both validation and template management flows', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /새 달력 만들기를 통해서 기존 템플릿에서 달력 만들기가 제대로 되는지 확인할 수 있습니다/);
+  assert.match(html, /달력 템플릿 만들기에서는 달력 유형을 설정하고 템플릿 만들기와 관리가 가능합니다/);
+});
+
+test('calendar type rules disable unsupported insert controls', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /setRule\('userFrontInsertField','userFrontInserts',d\.frontInsert!==false/);
+  assert.match(html, /setRule\('userRearInsertField','userRearInserts',d\.rearInsert!==false/);
+  assert.match(html, /if\(!enabled\)input\.value='0'/);
+});
+
+test('template settings persist against the current template id', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /const id=project\.template\?\.id/);
+  assert.match(html, /saveTemplateProjectData\(id,JSON\.parse\(JSON\.stringify\(project\)\)\)/);
+  assert.match(html, /persistAfter\('saveSchoolInfoBtn','학교 정보 및 에셋'\)/);
+  assert.match(html, /persistCurrentTemplateSettings\('샘플 일정 파일'\)/);
+});
+
+test('system template edits preserve their library source', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /project\.template\.librarySource=t\.source\|\|project\.template\.librarySource\|\|"local"/);
+  assert.match(html, /source:project\.template\.librarySource\|\|"local"/);
+});
+
+test('sample schedule registration uses the same primary action style', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /id="resourceScheduleUploadBtn" class="save"/);
+});
