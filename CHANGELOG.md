@@ -1,5 +1,14 @@
 # Changelog
 
+## Build and verification stabilization — 2026-08-04
+
+- GitHub `main` 기준의 깨끗한 작업 환경에서 `npm ci` 후 전체 빌드 검증
+- 누락되어 있던 Template Runtime 기본 동작·계약 버전 검사 추가
+- 흩어진 패키지 검사와 Designer Studio 회귀 검사를 `npm run verify`로 통합
+- 실행되지 않던 Designer Studio 회귀 검사의 잘못된 정규식 수정
+- 새 달력 만들기 마법사의 초기화 함수 보완
+- TypeScript 컴파일을 포함한 `npm run build` 전체 통과
+
 ## Documentation & sharing update — 2026-07-31
 
 - GitHub 공유용 README를 제품 소개 및 실행 중심으로 개편

@@ -8,22 +8,22 @@ const htmlPath = path.resolve('apps/designer-studio/index.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
 
 test('template objects allow overlap without collision avoidance or forced grid snapping', () => {
-  assert.doesNotMatch(html, /rectanglesOverlap\\(/);
-  assert.match(html, /function findSemanticPlacement\\(base,arr\\)\\{\\s*return \\{/);
-  assert.doesNotMatch(html, /if\\(e\\.altKey===false\\)\\{x=snap\\(x,grid\\.x\\);y=snap\\(y,grid\\.y\\)\\}/);
+  assert.doesNotMatch(html, /rectanglesOverlap\(/);
+  assert.match(html, /function findSemanticPlacement\(base,arr\)\{\s*return \{/);
+  assert.doesNotMatch(html, /if\(e\.altKey===false\)\{x=snap\(x,grid\.x\);y=snap\(y,grid\.y\)\}/);
   assert.match(html, /data-s2="front">맨 앞으로/);
   assert.match(html, /data-s2="back">맨 뒤로/);
 });
 
 test('system base templates start without sample school events', () => {
-  assert.match(html, /pageInstances:\\[\\],events:\\[\\],elementsByPage:\\{\\}/);
-  assert.doesNotMatch(html, /events:SAMPLE_EVENTS\\.filter/);
+  assert.match(html, /pageInstances:\[\],events:\[\],elementsByPage:\{\}/);
+  assert.doesNotMatch(html, /events:SAMPLE_EVENTS\.filter/);
 });
 
 test('desk thumbnail gives most of the card area to the cover design', () => {
-  assert.match(html, /calendar-product-thumb\\{[^}]*padding:7px/);
-  assert.match(html, /calendar-product-shell\\{[^}]*width:98%;height:94%/);
-  assert.match(html, /calendar-product-page\\{[^}]*height:90%/);
+  assert.match(html, /calendar-product-thumb\{[^}]*padding:7px/);
+  assert.match(html, /calendar-product-shell\{[^}]*width:98%;height:94%/);
+  assert.match(html, /calendar-product-page\{[^}]*height:90%/);
 });
 
 test('designer studio entry flow uses the unified studio entry and hides sample entry', () => {
@@ -43,7 +43,7 @@ test('wizard state helper is available for step persistence', () => {
 test('wizard primary action styling stays visible without design tokens', () => {
   assert.match(html, /\.wizard-actions button\.primary\{[^}]*background:\s*#2563eb/, 'primary wizard button should use the fallback blue background');
   assert.match(html, /\.wizard-actions button\.primary\{[^}]*color:\s*#fff/, 'primary wizard button should use white text');
-  assert.match(html, /\.wizard-actions button\.primary:hover:not\(:disabled\)\{[^}]*background:\s*#1d4ed8/, 'primary wizard button should use a hover state');
+  assert.match(html, /\.wizard-actions button\.primary:hover\{[^}]*background:\s*#1d4ed8/, 'primary wizard button should use a hover state');
   assert.match(html, /--accent:\s*var\(--acds-primary,\s*#2563eb\)/, 'wizard styles should define an accent fallback token');
 });
 

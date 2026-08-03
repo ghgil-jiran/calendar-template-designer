@@ -1,5 +1,16 @@
 # Work Log
 
+## 2026-08-04 — 전체 소스 안정화
+
+- 원격 `main` 커밋 `e714321`을 기준으로 기존 로컬 변경과 분리된 작업본 생성
+- `npm ci`로 잠금 파일 기준 TypeScript 의존성 설치
+- Template Runtime에 실제 테스트가 없는데 존재하지 않는 테스트 파일을 실행하던 오류 수정
+- Runtime 바인딩 및 계약 버전 검사 2개 추가
+- 루트의 모든 Designer Studio 회귀 검사가 표준 검증에서 실행되도록 통합
+- 기존 회귀 검사 정규식 오류와 마법사 초기화 함수 누락 수정
+- 패키지 TypeScript 컴파일, 패키지 검사, Studio 회귀 검사 45개, 인라인 스크립트 17개 검사 통과
+- 화면 구성과 기존 편집 기능은 변경하지 않음
+
 ## 2026-07-30 — schoolp r015 안전 적용
 
 - 정본 ZIP의 AI_START_HERE.md, STARTER_VERSION.md, CHANGELOG.md, AI_COMMANDS.md, docs/UPDATE_APPLY_GUIDE.md, starter-manifest.json 확인

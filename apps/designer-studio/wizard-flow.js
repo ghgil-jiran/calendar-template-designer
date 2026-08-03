@@ -32,6 +32,12 @@
     return payload;
   }
 
+  function resetWizardState(storageKey = STORAGE_KEY) {
+    const storage = safeStorage();
+    storage?.removeItem(storageKey);
+    return normalizeState(null);
+  }
+
   function applyTypeSelection(state, type, template) {
     const payload = normalizeState(state, type || '');
     const nextType = typeof type === 'string' && type ? type : payload.selectedType;
@@ -92,6 +98,7 @@
     STORAGE_KEY,
     restoreWizardState,
     persistWizardState,
+    resetWizardState,
     applyTypeSelection,
     syncWizardUi
   };
