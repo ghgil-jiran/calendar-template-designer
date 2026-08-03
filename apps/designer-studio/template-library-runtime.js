@@ -10,6 +10,7 @@
  let activeLibraryScope='base';
  let activeTypeFilter='all';
  let activeLibraryState='all';
+ let thumbnailQueue=Promise.resolve();
 
  function escape(value){return typeof v21Escape==='function'?v21Escape(value):String(value??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]))}
  function readCustomTypes(){try{const value=JSON.parse(localStorage.getItem(typeKey)||'null');return Array.isArray(value)?value:[]}catch{return[]}}
@@ -100,18 +101,22 @@
   const kindClass=record.source==='local'?'custom-template':'base-template';
   return `<article class="library-template-card ${kindClass}" data-template-id="${escape(record.id)}" data-library-state="${record.state}" data-library-type="${escape(record.type)}"><div class="library-thumb" data-library-thumbnail="${escape(record.id)}"><span class="thumbnail-placeholder">템플릿 미리보기</span></div><div class="library-card-body"><div class="library-meta-line"><h3>${escape(record.name)}</h3><span class="edition-badge">${record.edition} Edition</span>${record.version>1?`<span class="version-badge">v${escape(String(record.version))}</span>`:''}</div><div class="library-card-meta"><span class="badge-base">${escape(kindLabel)}</span><span>${escape(meta.label)}</span><span>${escape(record.size?.label||`${record.size?.width||'-'} × ${record.size?.height||'-'} ${record.size?.unit||'mm'}`)}</span></div><span class="state-badge state-${record.state}">${record.state==='published'?'게시됨':record.state==='archived'?'보관됨':record.state==='ready'?'검토 완료':'초안'}</span><p>${escape(record.description)}</p><small>${escape(record.pageSummary)} · 수정 ${escape(String(record.updatedAt).slice(0,10))}</small><div class="template-tags catalog-card-features">${features}</div><div class="library-card-actions"><button class="primary" data-library-use="${escape(record.id)}">이 템플릿 사용하기</button><button data-library-edit="${escape(record.id)}">편집</button><button data-library-copy="${escape(record.id)}">복제</button><button data-library-state-change="${escape(record.id)}">상태 변경</button></div></div></article>`;
  }
- async function renderActualThumbnail(record,host){
+ async function renderActualThumbnailNow(record,host){
   if(!host||host.dataset.rendered==='true')return;
+  const navigation=window.ACDLProjectNavigation;
+  const transitionId=navigation?.current?.();
   let original=null;
   try{
    original={project,selectedPageId,selectedElementId,selectedElementScope,calendarEditing,history,future};
    let source=await loadTemplateProjectData(record.id);
+   if(!host.isConnected||(navigation&&!navigation.isCurrent(transitionId)))return;
    if(!source){const preset=(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[]).find(item=>item.recommended)||(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[])[0];source=makeProject({type:record.type,year:record.edition,startMonth:3,template:record.template,frontInsertCount:1,rearInsertCount:0,calendarRows:6,weekStart:'sunday',showAdjacentMiniCalendars:true,posterColumns:4,sizePresetId:preset?.id})}
    project=structuredClone(source);selectedPageId=project.book.pageInstances[0]?.id||null;selectedElementId=null;selectedElementScope=null;calendarEditing=false;history=[];future=[];render();
    const page=el('page');if(!page)return;const clone=page.cloneNode(true);clone.removeAttribute('id');clone.classList.add('library-thumb-render');clone.querySelectorAll('.editor-only,.non-output,.s2-selection-toolbar,.s2-key-hint').forEach(node=>node.remove());host.innerHTML='';host.appendChild(clone);host.dataset.rendered='true';
   }catch(error){host.innerHTML='<span class="thumbnail-placeholder">미리보기를 만들 수 없습니다.</span>';console.warn('Template thumbnail failed',record.id,error)}
-  finally{if(original){project=original.project;selectedPageId=original.selectedPageId;selectedElementId=original.selectedElementId;selectedElementScope=original.selectedElementScope;calendarEditing=original.calendarEditing;history=original.history;future=original.future;if(project)render()}}
+  finally{if(original&&(!navigation||navigation.isCurrent(transitionId))){project=original.project;selectedPageId=original.selectedPageId;selectedElementId=original.selectedElementId;selectedElementScope=original.selectedElementScope;calendarEditing=original.calendarEditing;history=original.history;future=original.future;if(project)render()}}
  }
+ function renderActualThumbnail(record,host){thumbnailQueue=thumbnailQueue.then(()=>renderActualThumbnailNow(record,host)).catch(error=>console.warn('Template thumbnail queue failed',record.id,error));return thumbnailQueue}
  function hydrateThumbnails(list){list.forEach(record=>{const host=document.querySelector(`[data-library-thumbnail="${CSS.escape(record.id)}"]`);renderActualThumbnail(record,host)})}
  function editionOptions(){
   return [...new Set(records().map(record=>Number(record.edition)))].filter(Number).sort((a,b)=>b-a);

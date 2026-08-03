@@ -43,3 +43,22 @@ test('template click persists the choice before refreshing wizard actions', () =
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(runtime, /persistWizardState\?\.\(\{selectedType:selectedCalendarType,template:selectedUserTemplate\.template,step:userWizardStep\}\);updateWizardActions\(\)/);
 });
+
+test('returning home clears the previous editor project', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /function showEntry\(\)\{beginProjectTransition\(\{clearProject:true\}\)/);
+  assert.match(html, /function beginProjectTransition\(\{clearProject=false\}=\{\}\)/);
+});
+
+test('template switching ignores stale async loads', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /const transitionId=beginProjectTransition\(\{clearProject:true\}\)/);
+  assert.match(html, /if\(!isCurrentProjectTransition\(transitionId\)\)return;/);
+});
+
+test('library thumbnails cannot restore an earlier editor state', () => {
+  const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
+  assert.match(runtime, /let thumbnailQueue=Promise\.resolve\(\)/);
+  assert.match(runtime, /if\(!host\.isConnected\|\|\(navigation&&!navigation\.isCurrent\(transitionId\)\)\)return;/);
+  assert.match(runtime, /original&&\(!navigation\|\|navigation\.isCurrent\(transitionId\)\)/);
+});

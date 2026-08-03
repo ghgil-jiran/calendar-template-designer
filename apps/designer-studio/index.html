@@ -1807,7 +1807,7 @@ function exitPreviewMode({clearFull=true}={}){
  if(clearFull&&el("fullPreviewGrid"))el("fullPreviewGrid").innerHTML="";
 }
 function resetEditorViewState(){exitPreviewMode();selectedElementId=null;selectedElementScope=null;calendarEditing=false;el("objectDrawer")?.classList.add("hidden");}
-function createFromSetup(){resetEditorViewState();const opts={type:el("setupType").value,year:Number(el("setupYear").value),startMonth:Number(el("setupMonth").value),template:el("setupTemplate").value,frontInsertCount:Number(el("setupFrontInserts").value),rearInsertCount:Number(el("setupRearInserts").value),calendarRows:Number(el("setupCalendarRows").value),weekStart:el("setupWeekStart").value,showAdjacentMiniCalendars:el("setupAdjacentMiniCalendars").checked,posterColumns:Number(el("setupPosterColumns").value||4),sizePresetId:el("setupSize").value};project=makeProject(opts);project.template.metadata={name:"새 템플릿",description:"",edition:opts.year,state:"draft"};project.template.preset=opts.template;selectedPageId=project.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];el("setup").classList.add("hidden");stable();render()}
+function createFromSetup(){beginProjectTransition({clearProject:true});const opts={type:el("setupType").value,year:Number(el("setupYear").value),startMonth:Number(el("setupMonth").value),template:el("setupTemplate").value,frontInsertCount:Number(el("setupFrontInserts").value),rearInsertCount:Number(el("setupRearInserts").value),calendarRows:Number(el("setupCalendarRows").value),weekStart:el("setupWeekStart").value,showAdjacentMiniCalendars:el("setupAdjacentMiniCalendars").checked,posterColumns:Number(el("setupPosterColumns").value||4),sizePresetId:el("setupSize").value};project=makeProject(opts);project.template.metadata={name:"새 템플릿",description:"",edition:opts.year,state:"draft"};project.template.preset=opts.template;selectedPageId=project.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];el("setup").classList.add("hidden");stable();render()}
 el("createBtn").addEventListener("click",createFromSetup);el("newBtn").addEventListener("click",()=>{resetEditorViewState();el("setup").classList.remove("hidden")});
 el("templateMode").addEventListener("click",()=>showEditorToast("현재 템플릿 설계 모드입니다."));
 el("previewBtn").addEventListener("click",()=>{
@@ -1895,7 +1895,7 @@ el("redoBtn").addEventListener("click",()=>{if(!future.length)return;history.pus
 el("publishBtn")?.addEventListener("click",exportTemplatePackage);
 el("saveBtn").addEventListener("click",()=>{const blob=new Blob([JSON.stringify(project,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=project.book.id+".acdl.json";a.click();URL.revokeObjectURL(url);stable()});
 function loadClick(){resetEditorViewState();el("fileInput").click()}el("loadBtn").addEventListener("click",loadClick);el("setupLoadBtn").addEventListener("click",loadClick);
-el("fileInput").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;try{let p;if(f.name.toLowerCase().endsWith(".acdlpkg"))p=await importTemplatePackage(f);else p=JSON.parse(await f.text());if(p.format!=="acdl-project"||!p.book||!p.settings)throw new Error("올바른 ACDL 템플릿이 아닙니다.");project=p;resetEditorViewState();normalizeElementData();selectedPageId=p.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];inspectorNotice={type:"info",message:f.name.toLowerCase().endsWith(".acdlpkg")?"배포 패키지를 불러왔습니다. 분리된 이미지 자산도 복원했습니다.":"프로젝트 원본을 불러왔습니다."};el("setup").classList.add("hidden");stable();render()}catch(err){alert(err.message||"올바른 ACDL 템플릿 파일이 아닙니다.")}e.target.value=""});
+el("fileInput").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;const transitionId=beginProjectTransition({clearProject:true});try{let p;if(f.name.toLowerCase().endsWith(".acdlpkg"))p=await importTemplatePackage(f);else p=JSON.parse(await f.text());if(!isCurrentProjectTransition(transitionId))return;if(p.format!=="acdl-project"||!p.book||!p.settings)throw new Error("올바른 ACDL 템플릿이 아닙니다.");project=p;normalizeElementData();selectedPageId=p.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];inspectorNotice={type:"info",message:f.name.toLowerCase().endsWith(".acdlpkg")?"배포 패키지를 불러왔습니다. 분리된 이미지 자산도 복원했습니다.":"프로젝트 원본을 불러왔습니다."};el("setup").classList.add("hidden");stable();render()}catch(err){if(isCurrentProjectTransition(transitionId))alert(err.message||"올바른 ACDL 템플릿 파일이 아닙니다.")}e.target.value=""});
 
 
 
@@ -1986,9 +1986,18 @@ el("elementImageInput").addEventListener("change",e=>{
 function v21Escape(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]))}
 function v21FileToDataURL(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||""));reader.onerror=()=>reject(reader.error||new Error("이미지를 읽지 못했습니다."));reader.readAsDataURL(file)})}
 let appMode="designer", userWizardStep=1, selectedUserTemplate={template:"",type:"",libraryId:null};
+let projectTransitionId=0;
+function beginProjectTransition({clearProject=false}={}){
+ projectTransitionId+=1;
+ if(clearProject){project=null;selectedPageId=null;history=[];future=[];savedHash="";}
+ resetEditorViewState();
+ return projectTransitionId;
+}
+function isCurrentProjectTransition(id){return id===projectTransitionId}
+window.ACDLProjectNavigation={begin:beginProjectTransition,current:()=>projectTransitionId,isCurrent:isCurrentProjectTransition};
 const wizardStateApi=window.ACDLDesignerStudioWizard;
 const userImages={building:"",logo:"",flower:"",tree:""};
-function showEntry(){resetEditorViewState();el("entryScreen").classList.remove("hidden");el("setup").classList.add("hidden");el("userSetup").classList.add("hidden")}
+function showEntry(){beginProjectTransition({clearProject:true});el("entryScreen").classList.remove("hidden");el("setup").classList.add("hidden");el("userSetup").classList.add("hidden")}
 function enterDesigner(){openDesignerStudio({mode:"designer",source:"entry"});}
 function enterUser(){openDesignerStudio({mode:"user",source:"entry"});}
 el("enterDesignerFlow").addEventListener("click",()=>openDesignerStudio({mode:"designer",source:"entry"}));el("enterUserFlow").addEventListener("click",()=>openDesignerStudio({mode:"user",source:"entry"}));el("designerBackBtn").addEventListener("click",showEntry);el("userCancelBtn").addEventListener("click",showEntry);
@@ -2077,14 +2086,17 @@ setUserWizardStep=function(step){
 };
 async function openDesignerProjectFromRecord(t){
  if(!t)return;
- resetEditorViewState();
+ const transitionId=beginProjectTransition({clearProject:true});
  appMode="designer";
  document.body.classList.remove("user-mode");
  el("entryScreen").classList.add("hidden");
  el("setup").classList.add("hidden");
  el("userSetup").classList.add("hidden");
  el("templateLibraryModal").classList.add("hidden");
- try{const stored=await loadTemplateProjectData(t.id);if(stored)project=structuredClone(stored);else if(t.projectData)project=typeof t.projectData==="string"?JSON.parse(t.projectData):structuredClone(t.projectData)}catch(_){project=null}
+ let nextProject=null;
+ try{const stored=await loadTemplateProjectData(t.id);if(stored)nextProject=structuredClone(stored);else if(t.projectData)nextProject=typeof t.projectData==="string"?JSON.parse(t.projectData):structuredClone(t.projectData)}catch(_){nextProject=null}
+ if(!isCurrentProjectTransition(transitionId))return;
+ project=nextProject;
  if(!project){
   const type=t.type||"desk",preset=(SIZE_PRESETS[type]||SIZE_PRESETS.desk).find(x=>x.recommended)||(SIZE_PRESETS[type]||SIZE_PRESETS.desk)[0];
   project=makeProject({type,year:Number(t.edition)||2027,startMonth:3,template:t.template||"school-basic",frontInsertCount:1,rearInsertCount:type==="desk"?0:0,calendarRows:6,weekStart:"sunday",showAdjacentMiniCalendars:true,posterColumns:4,sizePresetId:preset.id});
@@ -2192,7 +2204,7 @@ el("resourceScheduleInput")?.addEventListener("change",async e=>{const f=e.targe
 function openDesignerStudio(options){
  const mode=options?.mode||'designer';
  const source=options?.source||'entry';
- resetEditorViewState();
+ beginProjectTransition({clearProject:true});
  appMode=mode;
  document.body.classList.toggle('user-mode', mode==='user');
  el('entryScreen').classList.add('hidden');
