@@ -134,6 +134,10 @@ test('template thumbnails support uploaded artwork and page fallbacks', () => {
   assert.match(html, /권장 크기는 1200×900px, 최소 크기는 800×600px/);
   assert.match(runtime, /uploaded\?\.dataUrl/);
   assert.match(runtime, /record\.type==='poster'\?pages\.find\(page=>page\.role==='poster-annual'\):pages\.find\(page=>page\.role==='cover-front'\)/);
+  assert.match(runtime, /function mountCoverSnapshot\(host,page\)/);
+  assert.match(runtime, /transform',`scale\(\$\{scale\}\)`,'important'/);
+  assert.match(runtime, /sourceWidth=Math\.max\(1,Math\.round\(rect\.width\|\|page\.offsetWidth\|\|850\)\)/);
+  assert.doesNotMatch(html, /\.calendar-product-page \.library-thumb-render\{[^}]*transform:none!important/);
 });
 
 test('template library uses unified controls and calendar product thumbnails', () => {
