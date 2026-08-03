@@ -135,3 +135,15 @@ test('template thumbnails support uploaded artwork and page fallbacks', () => {
   assert.match(runtime, /uploaded\?\.dataUrl/);
   assert.match(runtime, /record\.type==='poster'\?pages\.find\(page=>page\.role==='poster-annual'\):pages\.find\(page=>page\.role==='cover-front'\)/);
 });
+
+test('template library uses unified controls and calendar product thumbnails', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
+  assert.match(html, /grid-template-columns:repeat\(auto-fill,minmax\(268px,300px\)\)/);
+  assert.match(html, /\.library-tab,\.library-type-filter,\.library-state-group \[data-library-state\],\.library-edition-group select/);
+  assert.match(html, /\.calendar-product-binding/);
+  assert.match(html, /\.calendar-product-stand/);
+  assert.match(html, /\.calendar-product-wall \.calendar-product-shell/);
+  assert.match(runtime, /calendar-product-thumb calendar-product-\$\{escape\(record\.type\)\}/);
+  assert.match(runtime, /calendar-product-page.*data-library-thumbnail/);
+});
