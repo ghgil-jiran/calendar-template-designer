@@ -27,6 +27,12 @@ test('page editor heading and preview menu do not compete with blue page selecti
   assert.doesNotMatch(html, /id="fullPreviewBtn" class="workspace-menu primary"/);
   assert.match(html, /\.workspace-menu\.preview-menu\{[^}]*background:#fff/);
   assert.match(html, /\.page-panel-title\{[^}]*background:#f8fafc/);
+  assert.match(html, /\.page-panel-title\{[^}]*justify-content:center!important/);
+});
+
+test('successful validation does not leave a stale message in the inspector', () => {
+  assert.doesNotMatch(html, /Validation 통과/);
+  assert.match(html, /if\(validationMessages\.length\)content\+=`<div class="section validation warn">/);
 });
 
 test('persistent save state, inspector heading and page-count summary are removed', () => {
