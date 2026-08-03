@@ -21,6 +21,14 @@ test('workspace navigation contains global actions and edit menus stay separate'
   for (const label of ['편집', '삽입', '정렬', '보기']) assert.match(editorNav, new RegExp(`>${label}<`));
 });
 
+test('page editor heading and preview menu do not compete with blue page selection', () => {
+  assert.match(html, /<h2 class="page-panel-title">페이지 편집<\/h2>/);
+  assert.match(html, /id="fullPreviewBtn" class="workspace-menu preview-menu"/);
+  assert.doesNotMatch(html, /id="fullPreviewBtn" class="workspace-menu primary"/);
+  assert.match(html, /\.workspace-menu\.preview-menu\{[^}]*background:#fff/);
+  assert.match(html, /\.page-panel-title\{[^}]*background:#f8fafc/);
+});
+
 test('persistent save state, inspector heading and page-count summary are removed', () => {
   assert.doesNotMatch(html, /id="saveStatus"/);
   assert.doesNotMatch(html, /<h2>Inspector<\/h2>/);
