@@ -110,8 +110,10 @@
    original={project,selectedPageId,selectedElementId,selectedElementScope,calendarEditing,history,future};
    let source=await loadTemplateProjectData(record.id);
    if(!host.isConnected||(navigation&&!navigation.isCurrent(transitionId)))return;
+   const uploaded=source?.template?.thumbnail?.kind==='upload'?source.template.thumbnail:record.thumbnail?.kind==='upload'?record.thumbnail:null;
+   if(uploaded?.dataUrl){host.innerHTML=`<img class="library-uploaded-thumbnail" src="${uploaded.dataUrl}" alt="${escape(record.name)} 대표 이미지">`;host.dataset.rendered='true';return}
    if(!source){const preset=(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[]).find(item=>item.recommended)||(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[])[0];source=makeProject({type:record.type,year:record.edition,startMonth:3,template:record.template,frontInsertCount:1,rearInsertCount:0,calendarRows:6,weekStart:'sunday',showAdjacentMiniCalendars:true,posterColumns:4,sizePresetId:preset?.id})}
-   project=structuredClone(source);selectedPageId=project.book.pageInstances[0]?.id||null;selectedElementId=null;selectedElementScope=null;calendarEditing=false;history=[];future=[];render();
+   project=structuredClone(source);const pages=project.book.pageInstances||[],preferred=record.type==='poster'?pages.find(page=>page.role==='poster-annual'):pages.find(page=>page.role==='cover-front');selectedPageId=preferred?.id||pages[0]?.id||null;selectedElementId=null;selectedElementScope=null;calendarEditing=false;history=[];future=[];render();
    const page=el('page');if(!page)return;const clone=page.cloneNode(true);clone.removeAttribute('id');clone.classList.add('library-thumb-render');clone.querySelectorAll('.editor-only,.non-output,.s2-selection-toolbar,.s2-key-hint').forEach(node=>node.remove());host.innerHTML='';host.appendChild(clone);host.dataset.rendered='true';
   }catch(error){host.innerHTML='<span class="thumbnail-placeholder">미리보기를 만들 수 없습니다.</span>';console.warn('Template thumbnail failed',record.id,error)}
   finally{if(original&&(!navigation||navigation.isCurrent(transitionId))){project=original.project;selectedPageId=original.selectedPageId;selectedElementId=original.selectedElementId;selectedElementScope=original.selectedElementScope;calendarEditing=original.calendarEditing;history=original.history;future=original.future;if(project)render()}}
