@@ -94,3 +94,27 @@ test('sample schedule registration uses the same primary action style', () => {
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
   assert.match(html, /id="resourceScheduleUploadBtn" class="save"/);
 });
+
+test('system templates expose editable calendar structure defaults', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /id="resourceCalendarYear" type="number" min="2020" max="2100"/);
+  assert.match(html, /id="resourceStartMonth"><\/select>/);
+  assert.match(html, /id="resourceFrontInserts"><\/select>/);
+  assert.match(html, /id="resourceRearInserts"><\/select>/);
+  assert.match(html, /id="resourceAdjacentMini" type="checkbox"/);
+  assert.match(html, /function rebuildProjectFromBasicSettings\(next\)/);
+});
+
+test('insert defaults follow calendar type capability instead of template contents', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /d\.frontInsert!==false/);
+  assert.match(html, /d\.rearInsert!==false/);
+  assert.match(html, /사용자는 달력을 만들 때 앞·뒤 간지 수, 5×7·6×7 월력/);
+});
+
+test('mini calendar wording applies to both five and six row calendars', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.doesNotMatch(html, /5×7 빈 셀에 (?:전달·다음 달 )?미니 월력/);
+  assert.match(html, /빈 날짜 셀에 이전·다음 달 미니 월력 표시/);
+  assert.match(html, /월력 그리드의 빈 날짜 셀에 이전 달과 다음 달의 미니 월력을 표시합니다/);
+});
