@@ -7,6 +7,25 @@ import vm from 'node:vm';
 const htmlPath = path.resolve('apps/designer-studio/index.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
 
+test('template objects allow overlap without collision avoidance or forced grid snapping', () => {
+  assert.doesNotMatch(html, /rectanglesOverlap\\(/);
+  assert.match(html, /function findSemanticPlacement\\(base,arr\\)\\{\\s*return \\{/);
+  assert.doesNotMatch(html, /if\\(e\\.altKey===false\\)\\{x=snap\\(x,grid\\.x\\);y=snap\\(y,grid\\.y\\)\\}/);
+  assert.match(html, /data-s2="front">맨 앞으로/);
+  assert.match(html, /data-s2="back">맨 뒤로/);
+});
+
+test('system base templates start without sample school events', () => {
+  assert.match(html, /pageInstances:\\[\\],events:\\[\\],elementsByPage:\\{\\}/);
+  assert.doesNotMatch(html, /events:SAMPLE_EVENTS\\.filter/);
+});
+
+test('desk thumbnail gives most of the card area to the cover design', () => {
+  assert.match(html, /calendar-product-thumb\\{[^}]*padding:7px/);
+  assert.match(html, /calendar-product-shell\\{[^}]*width:98%;height:94%/);
+  assert.match(html, /calendar-product-page\\{[^}]*height:90%/);
+});
+
 test('designer studio entry flow uses the unified studio entry and hides sample entry', () => {
   assert.match(html, /<script src="\.\/wizard-flow\.js"><\/script>/, 'wizard-flow script should be loaded');
   assert.match(html, /function openDesignerStudio\(/, 'the studio entry flow should expose openDesignerStudio');
