@@ -5,7 +5,7 @@
 <style>
 :root{--bg:var(--acds-canvas,#f6f8fb);--panel:var(--acds-surface,#fff);--line:var(--acds-border,#e2e8f0);--text:var(--acds-text-strong,#0f172a);--muted:var(--acds-text-muted,#64748b);--accent:var(--acds-primary,#2563eb);--soft:var(--acds-primary-soft,#eff6ff);--danger:var(--acds-error,#dc2626);--ok:var(--acds-success,#027a48);--warn:var(--acds-warning,#d97706)}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans KR",sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer}
-.app-header{height:60px;background:#172033;color:white;display:flex;align-items:center;padding:0 14px;gap:10px}.brand-block{display:flex;flex-direction:column;min-width:245px;margin-right:auto}.brand{font-weight:800;line-height:1.15}.current-template-title{font-size:10px;color:#bac4d4;margin-top:3px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.status{font-size:10px;padding:5px 8px;border-radius:999px;background:#2e3b52}.header-group{display:flex;align-items:center;gap:6px}.header-separator{width:1px;height:26px;background:rgba(255,255,255,.2);margin:0 2px}.toolbar-btn{height:34px;border:0;border-radius:7px;padding:0 10px;background:#2e3b52;color:white;white-space:nowrap}.toolbar-btn:disabled{opacity:.4}.toolbar-btn.primary{background:#4777bd}
+.app-header{height:60px;background:#172033;color:white;display:flex;align-items:center;padding:0 14px;gap:10px}.brand-block{display:flex;align-items:center;min-width:245px;margin-right:auto;gap:12px}.brand{font-weight:800;line-height:1.15}.editor-context{display:flex;align-items:center;min-width:0;gap:8px;font-size:11px;color:#bac4d4}.context-divider{color:#718096}.current-workflow-menu,.current-template-title{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.current-template-title{color:#fff;font-weight:700}.header-group{display:flex;align-items:center;gap:6px}.toolbar-btn{height:34px;border:0;border-radius:7px;padding:0 10px;background:#2e3b52;color:white;white-space:nowrap}.toolbar-btn:disabled{opacity:.4}.toolbar-btn.primary{background:#4777bd}
 .workspace{display:grid;grid-template-columns:245px minmax(570px,1fr) 320px;gap:10px;padding:10px;min-height:calc(100vh - 56px)}.panel{background:white;border:1px solid var(--line);border-radius:10px;overflow:hidden}.panel h2{margin:0;padding:10px 12px;font-size:13px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.panel-body{padding:9px}
 .nav{max-height:calc(100vh - 130px);overflow:auto}.sheet{border:1px solid var(--line);border-radius:8px;margin:5px 0;overflow:hidden}.sheet-head{padding:7px 9px;background:#f7f8fa;font-size:11px;font-weight:700}.page-btn{width:100%;height:auto;border:0;border-top:1px solid #edf0f4;background:white;text-align:left;padding:7px 9px;display:flex;justify-content:space-between;gap:6px;font-size:12px}.page-btn.active{background:var(--soft);color:var(--accent);font-weight:700}.page-btn small{color:var(--muted)}
 .center{display:flex;flex-direction:column}.modebar{padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}.modebar-actions{display:flex;gap:6px;align-items:center;margin-left:auto}.modebar .toolbar-btn{background:#fff;color:#344054;border:1px solid var(--line)}.modebar .toolbar-btn:hover{border-color:var(--accent)}.modebar .toolbar-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}.seg button{height:32px;border:1px solid var(--line);background:white;padding:0 10px}.seg button:first-child{border-radius:7px 0 0 7px}.seg button:last-child{border-radius:0 7px 7px 0}.seg button.active{background:var(--accent);color:white;border-color:var(--accent)}.mode-help{margin-left:auto;font-size:11px;color:var(--muted)}
@@ -440,10 +440,12 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
  <div class="wizard-actions"><button id="userCancelBtn">처음으로</button><button id="userPrevBtn" class="hidden">이전</button><span class="spacer"></span><button id="userNextBtn" class="primary">다음</button><button id="userCreateBtn" class="primary hidden">달력 만들기</button></div>
 </div></div>
 <div id="pagePreviewToolbar" class="preview-toolbar"><strong>현재 페이지 미리보기</strong><span id="pagePreviewName"></span><span class="preview-spacer"></span><button id="previewPrevPageBtn">이전 페이지</button><button id="previewNextPageBtn">다음 페이지</button><button id="returnToEditBtn" class="primary">편집으로 돌아가기</button></div>
-<header class="app-header"><button id="returnHomeBtn" class="toolbar-btn home-btn" type="button">처음으로</button><div class="brand-block"><div id="appBrand" class="brand">ACDL 템플릿 에디터 <span class="framework-badge">v1.0 Beta RC1</span></div><span id="currentTemplateTitle" class="current-template-title">새 템플릿</span></div><div id="roleIndicator" class="role-indicator"><span class="role-dot"></span><span id="roleIndicatorText">Designer Studio · 디자이너 편집기</span></div>
-<div class="header-group template-menu-wrap"><button id="templateMenuBtn" class="toolbar-btn">템플릿 ▾</button><div id="templateMenuDropdown" class="template-menu-dropdown hidden"><button id="newBtn">새 템플릿</button><button id="libraryBtn">템플릿 라이브러리</button><button id="loadBtn">템플릿 열기</button><button id="saveBtn">템플릿 저장</button></div></div><span class="header-separator"></span>
-<div class="header-group"><button id="templateSettingsBtn" class="toolbar-btn">템플릿 설정</button><button id="fullPreviewBtn" class="toolbar-btn">전체 미리보기</button></div><span id="saveStatus" class="status">새 문서</span><input id="fileInput" class="hidden" type="file" accept=".json,.acdlpkg,application/json,application/zip">
-</header>
+<header class="app-header"><div class="brand-block"><div id="appBrand" class="brand">ACDL 템플릿 에디터 <span class="framework-badge">v1.0 Beta RC1</span></div><div class="editor-context" aria-label="현재 작업 위치"><span id="currentWorkflowMenu" class="current-workflow-menu">새 템플릿 만들기</span><span class="context-divider">/</span><span id="currentTemplateTitle" class="current-template-title">새 템플릿</span></div></div><input id="fileInput" class="hidden" type="file" accept=".json,.acdlpkg,application/json,application/zip"></header>
+<nav id="workspaceMenubar" class="workspace-menubar editor-chrome" aria-label="서비스 및 템플릿 메뉴">
+ <button id="returnHomeBtn" class="workspace-menu home-btn" type="button">처음으로</button>
+ <div class="header-group template-menu-wrap"><button id="templateMenuBtn" class="workspace-menu">템플릿 ▾</button><div id="templateMenuDropdown" class="template-menu-dropdown hidden"><button id="newBtn">새 템플릿</button><button id="libraryBtn">템플릿 라이브러리</button><button id="loadBtn">템플릿 열기</button><button id="saveBtn">템플릿 저장</button></div></div>
+ <button id="templateSettingsBtn" class="workspace-menu">템플릿 설정</button><span class="menubar-spacer"></span><button id="fullPreviewBtn" class="workspace-menu primary">전체 미리보기</button>
+</nav>
 <nav id="editorMenubar" class="editor-menubar editor-chrome" aria-label="편집기 메뉴">
  <div class="menu-root"><button type="button">편집</button><div class="editor-menu-popover"><button data-menu-action="undo">실행 취소　Ctrl+Z</button><button data-menu-action="redo">다시 실행　Ctrl+Shift+Z</button><div class="menu-divider"></div><button data-menu-action="duplicate">복제　Ctrl+D</button><button data-menu-action="delete">삭제　Delete</button></div></div>
  <div class="menu-root"><button type="button">삽입</button><div class="editor-menu-popover"><button data-open-library="basic">텍스트·이미지</button><button data-open-library="shapes">도형</button><button data-open-library="frames">사진 프레임</button><button data-open-library="vectors">벡터 일러스트</button><button data-open-library="calendar">달력 개체</button></div></div>
@@ -453,7 +455,7 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
 </nav>
 
 <main class="workspace">
-<aside class="panel editor-chrome"><h2>페이지 <span id="bookSummary"></span></h2><div class="panel-body nav" id="navigator"></div></aside>
+<aside class="panel editor-chrome"><h2>페이지</h2><div class="panel-body nav" id="navigator"></div></aside>
 <section class="panel center">
 <div class="icon-toolbar editor-chrome" role="toolbar" aria-label="편집 도구">
  <div class="tool-group" aria-label="작업 기록">
@@ -490,7 +492,7 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
  <div class="hidden" aria-hidden="true"><button id="contentMode">이전 콘텐츠 모드</button><button id="templateMode">템플릿 설계</button><span id="modeHelp"></span><button id="previewBtn">현재 페이지 미리보기</button></div>
 </div>
 <div class="canvas-wrap"><div id="page" class="page desk"></div></div></section>
-<aside class="panel right editor-chrome"><h2>Inspector</h2><div id="inspector"></div></aside>
+<aside class="panel right editor-chrome" aria-label="개체 속성"><div id="inspector"></div></aside>
 </main>
 
 <div id="fullPreviewOverlay" class="full-preview-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="fullPreviewTitle">
@@ -620,8 +622,9 @@ function allSampleAssets(){const merged=[...BUILTIN_SAMPLE_ASSETS,...projectSamp
 function preferredAssetForRole(role){const profileKey=semanticProfileKey(role),profile=project?.book?.school?.profile?.[profileKey];if(profile?.assetId){const hit=allSampleAssets().find(a=>a.id===profile.assetId);if(hit)return hit}return projectSampleAssets().find(a=>a.role===role)||allSampleAssets().find(a=>a.role===role)||null}
 function compressImageFile(file,maxSide=1600,quality=.86){return new Promise((resolve,reject)=>{if(!file.type.startsWith("image/")){reject(new Error("이미지 파일만 등록할 수 있습니다."));return}const reader=new FileReader();reader.onerror=()=>reject(new Error("이미지 파일을 읽지 못했습니다."));reader.onload=()=>{const img=new Image();img.onerror=()=>reject(new Error("지원하지 않는 이미지 형식입니다."));img.onload=()=>{const scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight));const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);const type=file.type==="image/png"?"image/png":"image/jpeg";resolve(canvas.toDataURL(type,type==="image/jpeg"?quality:undefined))};img.src=reader.result};reader.readAsDataURL(file)})}
 let activeExplorer="pages",activeResourcePage="basic";
-let project=null,selectedPageId=null,selectedDate=null,selectedElementId=null,selectedElementScope=null,pendingImageElementId=null,pendingImageElementScope=null,pendingSemanticRole=null,semanticImageDraft=null,semanticImageDraftElementId=null,calendarEditing=false,editMode="template",preview=false,previewType=null,history=[],inspectorActiveTab="content",future=[],savedHash="",elementDrag=null,calendarDrag=null,inspectorDirty=false,inspectorNotice={type:"ready",message:"설정을 변경하면 저장 버튼이 활성화됩니다."};
+let project=null,selectedPageId=null,selectedDate=null,selectedElementId=null,selectedElementScope=null,pendingImageElementId=null,pendingImageElementScope=null,pendingSemanticRole=null,semanticImageDraft=null,semanticImageDraftElementId=null,calendarEditing=false,editMode="template",preview=false,previewType=null,history=[],inspectorActiveTab="content",future=[],savedHash="",elementDrag=null,calendarDrag=null,inspectorDirty=false,inspectorNotice={type:"ready",message:"설정을 변경하면 저장 버튼이 활성화됩니다."},currentWorkflowLabel="새 템플릿 만들기";
 const el=id=>document.getElementById(id);
+function setEditorContext(label){currentWorkflowLabel=label||currentWorkflowLabel;const node=el("currentWorkflowMenu");if(node)node.textContent=currentWorkflowLabel}
 for(let m=1;m<=12;m++)el("setupMonth").innerHTML+=`<option value="${m}" ${m===3?"selected":""}>${m}월</option>`;
 for(let n=0;n<=5;n++){el("setupFrontInserts").innerHTML+=`<option value="${n}" ${n===1?"selected":""}>${n}장</option>`;el("setupRearInserts").innerHTML+=`<option value="${n}">${n}장</option>`}
 const SIZE_PRESETS={
@@ -690,8 +693,8 @@ function __restoreHistoryValue(value){
 function __historyString(value){return JSON.stringify(__compactHistoryValue(value))}
 function __historyParse(text){return __restoreHistoryValue(JSON.parse(text))}
 function snapshot(){history.push(__historyString(project));if(history.length>12)history.shift();future=[];markDirty();window.__acdlUpdateMemoryMonitor?.()}
-function markDirty(){el("saveStatus").textContent="변경 사항 있음";el("undoBtn").disabled=!history.length;el("redoBtn").disabled=!future.length}
-function stable(){savedHash=JSON.stringify(project);el("saveStatus").textContent="저장됨"}
+function markDirty(){el("undoBtn").disabled=!history.length;el("redoBtn").disabled=!future.length}
+function stable(){savedHash=JSON.stringify(project)}
 function selectedPage(){return project.book.pageInstances.find(p=>p.id===selectedPageId)}
 function isInsertPage(p){return p.role.includes("front-insert")||p.role.includes("rear-insert")}
 function pageDesignType(p){
@@ -706,7 +709,6 @@ function renderNavigator(){
  const nav=el("navigator");nav.innerHTML="";const isDesk=project.productType.category==="desk";
  const size=project.productType.pageSize;const calendarScheme=`${project.settings.calendarRows||6}×7 · ${project.settings.weekStart==="monday"?"월요일":"일요일"} 시작`;
  el("currentTemplateTitle").textContent=project.template?.metadata?.name||`${project.settings.year} 달력 템플릿`;
- el("bookSummary").textContent=(isDesk?`${project.book.sheets.length}장 / ${project.book.pageInstances.length}면 · ${size.width}×${size.height}mm`:`${project.book.pageInstances.length}페이지 · ${size.width}×${size.height}mm`)+` · ${calendarScheme}`;
  if(isDesk){project.book.sheets.forEach(sh=>{const box=document.createElement("div");box.className="sheet";box.innerHTML=`<div class="sheet-head">Sheet ${sh.sheetNumber} · ${sh.calendar?`${sh.calendar.year}.${String(sh.calendar.month).padStart(2,"0")}`:sh.role}</div>`;sh.surfaces.forEach(p=>box.appendChild(pageButton(p)));nav.appendChild(box)})}
  else project.book.pageInstances.forEach(p=>nav.appendChild(pageButton(p)));
 }
@@ -1625,6 +1627,7 @@ function setupInspectorFeedback(){
    }
    inspectorDirty=false;
    inspectorNotice={type:"success",message:INSPECTOR_SAVE_MESSAGES[id]};
+   setTimeout(()=>showEditorToast("저장되었습니다."),0);
   },true)
  })
 }
@@ -1657,7 +1660,7 @@ function renderInspector(){
  if(canPromoteSelectedToMonthlyMaster())layout+=`<div class="section master-apply-card"><strong>선택 개체를 Master로 전환</strong><p>현재 페이지의 개체를 제거하고 같은 면을 사용하는 12개월 전체에 공통으로 표시합니다.</p><button id="promoteToMonthlyMaster" class="action">선택 개체를 ${monthlyMasterLabel(p)}에 적용</button><div class="master-scope-note">적용 대상: ${canonicalMasterIdForPage(p)} · ${monthlyPagesForRole(p.role).length}개 면</div></div>`;
  else if(sourceElement()&&selectedElementScope==="master"&&(p.role==="monthly-front"||p.role==="monthly-back"))layout+=`<div class="section hint"><strong style="display:block;color:var(--text);margin-bottom:4px">Master 공통 개체</strong>이 개체는 ${monthlyMasterLabel(p)} ${monthlyPagesForRole(p.role).length}개 면에 표시됩니다. Master ID: ${canonicalMasterIdForPage(p)}. 샘플 콘텐츠·Binding·배치 변경도 전체 해당 월에 반영됩니다.</div>`;
  const empty=tab=>`<div class="inspector-tab-empty">${tab==="content"?"선택한 개체의 콘텐츠 설정이 없습니다.":tab==="design"?"선택한 개체의 디자인 설정이 없습니다.":"선택한 개체의 배치 설정이 없습니다."}</div>`;
- ins.innerHTML=`<div id="inspectorFeedback" class="inspector-feedback ${inspectorNotice.type}"><span>${inspectorNotice.message}</span></div>${inspectorTabsHTML()}<div class="inspector-tab-panel ${inspectorActiveTab==="content"?"active":""}" data-panel="content">${content||empty("content")}</div><div class="inspector-tab-panel ${inspectorActiveTab==="design"?"active":""}" data-panel="design">${design||empty("design")}</div><div class="inspector-tab-panel ${inspectorActiveTab==="layout"?"active":""}" data-panel="layout">${layout||empty("layout")}</div>`;
+ ins.innerHTML=`${inspectorTabsHTML()}<div class="inspector-tab-panel ${inspectorActiveTab==="content"?"active":""}" data-panel="content">${content||empty("content")}</div><div class="inspector-tab-panel ${inspectorActiveTab==="design"?"active":""}" data-panel="design">${design||empty("design")}</div><div class="inspector-tab-panel ${inspectorActiveTab==="layout"?"active":""}" data-panel="layout">${layout||empty("layout")}</div>`;
  setupInspectorTabs();bindInspector();setupInspectorFeedback();
 }
 
@@ -1811,7 +1814,7 @@ function exitPreviewMode({clearFull=true}={}){
  if(clearFull&&el("fullPreviewGrid"))el("fullPreviewGrid").innerHTML="";
 }
 function resetEditorViewState(){exitPreviewMode();selectedElementId=null;selectedElementScope=null;calendarEditing=false;el("objectDrawer")?.classList.add("hidden");}
-function createFromSetup(){beginProjectTransition({clearProject:true});const opts={type:el("setupType").value,year:Number(el("setupYear").value),startMonth:Number(el("setupMonth").value),template:el("setupTemplate").value,frontInsertCount:Number(el("setupFrontInserts").value),rearInsertCount:Number(el("setupRearInserts").value),calendarRows:Number(el("setupCalendarRows").value),weekStart:el("setupWeekStart").value,showAdjacentMiniCalendars:el("setupAdjacentMiniCalendars").checked,posterColumns:Number(el("setupPosterColumns").value||4),sizePresetId:el("setupSize").value};project=makeProject(opts);project.template.metadata={name:"새 템플릿",description:"",edition:opts.year,state:"draft"};project.template.preset=opts.template;selectedPageId=project.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];el("setup").classList.add("hidden");stable();render()}
+function createFromSetup(){beginProjectTransition({clearProject:true});const opts={type:el("setupType").value,year:Number(el("setupYear").value),startMonth:Number(el("setupMonth").value),template:el("setupTemplate").value,frontInsertCount:Number(el("setupFrontInserts").value),rearInsertCount:Number(el("setupRearInserts").value),calendarRows:Number(el("setupCalendarRows").value),weekStart:el("setupWeekStart").value,showAdjacentMiniCalendars:el("setupAdjacentMiniCalendars").checked,posterColumns:Number(el("setupPosterColumns").value||4),sizePresetId:el("setupSize").value};project=makeProject(opts);project.template.metadata={name:"새 템플릿",description:"",edition:opts.year,state:"draft"};project.template.preset=opts.template;selectedPageId=project.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];el("setup").classList.add("hidden");setEditorContext("새 템플릿 만들기");stable();render()}
 el("createBtn").addEventListener("click",createFromSetup);el("newBtn").addEventListener("click",()=>{resetEditorViewState();el("setup").classList.remove("hidden")});
 el("templateMode").addEventListener("click",()=>showEditorToast("현재 템플릿 설계 모드입니다."));
 el("previewBtn").addEventListener("click",()=>{
@@ -1898,7 +1901,7 @@ el("undoBtn").addEventListener("click",()=>{if(!history.length)return;future.pus
 el("redoBtn").addEventListener("click",()=>{if(!future.length)return;history.push(__historyString(project));project=__historyParse(future.pop());markDirty();render();window.__acdlUpdateMemoryMonitor?.()});
 el("publishBtn")?.addEventListener("click",exportTemplatePackage);
 el("saveBtn").addEventListener("click",()=>{const blob=new Blob([JSON.stringify(project,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=project.book.id+".acdl.json";a.click();URL.revokeObjectURL(url);stable()});
-function loadClick(){resetEditorViewState();el("fileInput").click()}el("loadBtn").addEventListener("click",loadClick);el("setupLoadBtn").addEventListener("click",loadClick);
+function loadClick(){resetEditorViewState();setEditorContext(appMode==="user"?"기존 달력 열기":"기존 템플릿 열기");el("fileInput").click()}el("loadBtn").addEventListener("click",loadClick);el("setupLoadBtn").addEventListener("click",loadClick);
 el("fileInput").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;const transitionId=beginProjectTransition({clearProject:true});try{let p;if(f.name.toLowerCase().endsWith(".acdlpkg"))p=await importTemplatePackage(f);else p=JSON.parse(await f.text());if(!isCurrentProjectTransition(transitionId))return;if(p.format!=="acdl-project"||!p.book||!p.settings)throw new Error("올바른 ACDL 템플릿이 아닙니다.");project=p;normalizeElementData();selectedPageId=p.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];inspectorNotice={type:"info",message:f.name.toLowerCase().endsWith(".acdlpkg")?"배포 패키지를 불러왔습니다. 분리된 이미지 자산도 복원했습니다.":"프로젝트 원본을 불러왔습니다."};el("setup").classList.add("hidden");stable();render()}catch(err){if(isCurrentProjectTransition(transitionId))alert(err.message||"올바른 ACDL 템플릿 파일이 아닙니다.")}e.target.value=""});
 
 
@@ -2035,7 +2038,7 @@ function renderUserSummary(){const tpl=document.querySelector("[data-user-templa
 function bindUserImage(kind){const cap=kind[0].toUpperCase()+kind.slice(1),input=el(`user${cap}Input`),preview=el(`user${cap}Preview`);document.querySelector(`[data-user-upload="${kind}"]`).addEventListener("click",()=>input.click());input.addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;userImages[kind]=await v21FileToDataURL(f);preview.innerHTML=`<img src="${userImages[kind]}" alt="">`})}
 ["building","logo","flower","tree"].forEach(bindUserImage);
 function applyUserSchoolData(){normalizeElementData();ensureSchoolProfile();const school=project.book.school;school.name=el("userSchoolName").value.trim()||"학교명 미입력";school.englishName=el("userSchoolEnglishName").value.trim();school.slogan=el("userSchoolSlogan").value.trim();school.address=el("userSchoolAddress").value.trim();school.phone=el("userSchoolPhone").value.trim();school.fax=el("userSchoolFax").value.trim();school.website=el("userSchoolWebsite").value.trim();school.profile.motto.description=el("userSchoolMotto").value.trim();school.profile.song.description=el("userSchoolSong").value.trim();school.profile.building.name=school.name;school.profile.building.image=userImages.building;school.profile.logo.image=userImages.logo;school.profile.flower.image=userImages.flower;school.profile.tree.image=userImages.tree;project.settings.calendarData={includeHolidays:el("userIncludeHolidays").checked,includeSolarTerms:el("userIncludeSolarTerms").checked,includeLunar:el("userIncludeLunar").checked,lunarDisplayRule:"1,5,10,15,20,25"};project.book.scheduleImport=window.userScheduleImport||null;if(window.userScheduleImport?.events?.length)project.book.events=[...(project.book.events||[]).filter(e=>e.source!=="user-import"),...window.userScheduleImport.events];project.book.pageInstances.filter(p=>p.role==="cover-front").forEach(p=>(project.book.elementsByPage[p.id]||[]).forEach(item=>{if(item.role==="school-name")item.binding="school.name";if(item.role==="slogan")item.content=school.slogan;if(item.role==="school-image"&&userImages.building)item.src=userImages.building}))}
-function createUserCalendar(){resetEditorViewState();const opts={type:selectedUserTemplate.type,year:Number(el("userYear").value),startMonth:Number(el("userStartMonth").value),template:selectedUserTemplate.template,frontInsertCount:Number(el("userFrontInserts").value),rearInsertCount:Number(el("userRearInserts").value),calendarRows:Number(el("userCalendarRows").value),weekStart:el("userWeekStart").value,showAdjacentMiniCalendars:el("userAdjacentMini").checked,posterColumns:4,sizePresetId:el("userSize").value};project=makeProject(opts);project.mode="calendar-workspace";applyUserSchoolData();selectedPageId=project.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];el("userSetup").classList.add("hidden");el("setup").classList.add("hidden");el("appBrand").childNodes[0].nodeValue="ACDL 사용자 달력 에디터 ";el("currentTemplateTitle").textContent=`${project.book.school.name} ${project.settings.year} 달력`;el("newBtn").textContent="새 달력";el("saveBtn").textContent="달력 저장";el("templateMode").textContent="달력 편집";el("modeHelp").textContent="학교 정보와 월별 콘텐츠를 입력하고, 템플릿이 허용한 영역을 편집합니다.";stable();render();updateRoleIndicator();showEditorToast("학교 정보가 적용된 새 달력을 만들었습니다.")}
+function createUserCalendar(){resetEditorViewState();const opts={type:selectedUserTemplate.type,year:Number(el("userYear").value),startMonth:Number(el("userStartMonth").value),template:selectedUserTemplate.template,frontInsertCount:Number(el("userFrontInserts").value),rearInsertCount:Number(el("userRearInserts").value),calendarRows:Number(el("userCalendarRows").value),weekStart:el("userWeekStart").value,showAdjacentMiniCalendars:el("userAdjacentMini").checked,posterColumns:4,sizePresetId:el("userSize").value};project=makeProject(opts);project.mode="calendar-workspace";applyUserSchoolData();selectedPageId=project.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];el("userSetup").classList.add("hidden");el("setup").classList.add("hidden");el("appBrand").childNodes[0].nodeValue="ACDL 사용자 달력 에디터 ";el("currentTemplateTitle").textContent=`${project.book.school.name} ${project.settings.year} 달력`;el("newBtn").textContent="새 달력";el("saveBtn").textContent="달력 저장";el("templateMode").textContent="달력 편집";el("modeHelp").textContent="학교 정보와 월별 콘텐츠를 입력하고, 템플릿이 허용한 영역을 편집합니다.";setEditorContext("새 달력 만들기");stable();render();updateRoleIndicator();showEditorToast("학교 정보가 적용된 새 달력을 만들었습니다.")}
 el("userCreateBtn").addEventListener("click",createUserCalendar);
 // The New button follows the current workspace role.
 el("newBtn").addEventListener("click",()=>{if(appMode==="user"){openDesignerStudio({mode:"user",source:"entry"});}else{openDesignerStudio({mode:"designer",source:"entry"});}});
@@ -2121,7 +2124,7 @@ async function openDesignerProjectFromRecord(t){
  project.template.metadata={...(project.template.metadata||{}),name:t.name,description:t.description||"",edition:Number(t.edition)||2027,state:t.state||"draft"};
  selectedPageId=project.book.pageInstances[0]?.id||null;selectedElementId=null;selectedElementScope=null;history=[];future=[];
  el("appBrand").childNodes[0].nodeValue="ACDL 템플릿 에디터 ";el("newBtn").textContent="새 템플릿";el("saveBtn").textContent="템플릿 저장";el("templateMode").textContent="템플릿 설계";el("modeHelp").textContent="샘플 콘텐츠, 데이터 연결, 위치와 스타일을 한 화면에서 설계합니다.";
- stable();render();updateRoleIndicator();showEditorToast(`${t.name} ${t.edition} Edition 편집을 시작했습니다.`);
+ setEditorContext("템플릿 라이브러리");stable();render();updateRoleIndicator();showEditorToast(`${t.name} ${t.edition} Edition 편집을 시작했습니다.`);
 }
 function closeTemplateLibrary(){
  el("templateLibraryModal")?.classList.add("hidden");
@@ -2228,6 +2231,7 @@ function openDesignerStudio(options){
  el('templateLibraryModal').classList.add('hidden');
  const isUser=mode==='user';
  el('appBrand').childNodes[0].nodeValue=isUser?'ACDL 사용자 달력 에디터 ':'ACDL 템플릿 에디터 ';
+ setEditorContext(isUser?'새 달력 만들기':'새 템플릿 만들기');
  el('newBtn').textContent=isUser?'새 달력':'새 템플릿';
  el('saveBtn').textContent=isUser?'달력 저장':'템플릿 저장';
  el('templateMode').textContent=isUser?'달력 편집':'템플릿 설계';
@@ -2267,7 +2271,7 @@ enterDesigner=function(){openDesignerStudio({mode:'designer',source:'entry'});}
 el('enterDesignerFlow').onclick=enterDesigner;
 el('designerHomeNew')?.addEventListener('click',()=>openDesignerStudio({mode:'designer',source:'designer-home'}));
 el('designerHomeLibrary')?.addEventListener('click',()=>{el('designerHome').classList.add('hidden');el('templateLibraryModal').classList.remove('hidden');renderTemplateLibrary(activeLibraryFilter)});
-el('designerHomeOpen')?.addEventListener('click',()=>el('fileInput').click());
+el('designerHomeOpen')?.addEventListener('click',()=>{setEditorContext('기존 템플릿 열기');el('fileInput').click()});
 el('designerHomeBackBtn')?.addEventListener('click',()=>showEntry());
 const oldShowEntry=showEntry;showEntry=function(){el('designerHome')?.classList.add('hidden');oldShowEntry()};
 
@@ -3171,19 +3175,20 @@ body.user-mode #templateSettingsBtn{display:inline-flex!important}
  min-height:56px;height:56px;padding:0 16px;gap:10px;background:#172033;color:#fff;
  display:flex;align-items:center;overflow:visible;position:relative;z-index:80;
 }
-.app-header .home-btn{flex:0 0 auto}.app-header .brand-block{min-width:190px;max-width:320px;margin-right:auto;gap:2px}
-.app-header .brand{font-size:15px;line-height:1.2;color:#fff;white-space:nowrap}.app-header .current-template-title{font-size:11px;color:#cbd5e1}
+.app-header .brand-block{width:100%;max-width:none;min-width:0;margin-right:0;display:flex;flex-direction:row;align-items:center;gap:14px}
+.app-header .brand{font-size:15px;line-height:1.2;color:#fff;white-space:nowrap}.app-header .editor-context{font-size:11px;color:#aebacd;min-width:0}.app-header .current-workflow-menu{color:#cbd5e1}.app-header .current-template-title{font-size:11px;color:#fff;font-weight:800}
 .app-header .framework-badge{font-size:9px}.app-header .header-group{display:flex;align-items:center;gap:6px;flex:0 0 auto}
 .app-header .toolbar-btn{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 12px;border:1px solid rgba(255,255,255,.16);border-radius:7px;background:rgba(255,255,255,.1);color:#fff;font-size:11px;font-weight:700;line-height:1;white-space:nowrap}
 .app-header .toolbar-btn:hover:not(:disabled){background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.28)}
 .app-header .role-indicator{flex:0 0 auto;min-height:34px;padding:0 10px;font-size:10px}.app-header .status{flex:0 0 auto;font-size:10px;white-space:nowrap}
-.editor-menubar{
+.workspace-menubar,.editor-menubar{
  min-height:36px;height:36px;padding:0 12px;gap:2px;background:#fff;border-bottom:1px solid #e2e8f0;
  display:flex;align-items:center;position:relative;z-index:70;box-shadow:0 1px 2px rgba(15,23,42,.03);
 }
+.workspace-menubar{z-index:75;padding-inline:16px;gap:4px;background:#f8fafc}.workspace-menu{height:28px;padding:0 11px;border:0;border-radius:6px;background:transparent;color:#334155;font-size:11px;font-weight:700}.workspace-menu:hover{background:#e9eef6}.workspace-menu.primary{background:#2563eb;color:#fff;padding-inline:14px}.workspace-menu.primary:hover{background:#1d4ed8}.workspace-menubar .template-menu-wrap{position:relative}.workspace-menubar .template-menu-dropdown{top:32px;left:0}
 .editor-menubar .menu-root{height:100%;display:flex;align-items:center;position:relative}.editor-menubar .menu-root>button{height:28px;padding:0 11px;border:0;border-radius:6px;background:transparent;color:#334155;font-size:11px;font-weight:700;line-height:1}
 .editor-menubar .menu-root>button:hover,.editor-menubar .menu-root>button.active{background:#eef2f7;color:#0f172a}
-.editor-menu-popover{top:32px;z-index:90}.workspace{height:calc(100vh - 92px);min-height:0}
+.editor-menu-popover{top:32px;z-index:90}.workspace{height:calc(100vh - 128px);min-height:0}
 .icon-toolbar{
  min-height:58px;height:58px;padding:5px 10px;gap:6px;background:#fff;border-bottom:1px solid #e2e8f0;
  display:flex;align-items:center;overflow-x:auto;overflow-y:hidden;
@@ -3193,9 +3198,9 @@ body.user-mode #templateSettingsBtn{display:inline-flex!important}
 .icon-toolbar .icon-tool:hover:not(:disabled){background:#f1f5f9;border-color:#cbd5e1}.icon-toolbar .icon-tool.emphasized{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8}
 .icon-toolbar .tool-icon{height:19px;font-size:17px;line-height:19px}.icon-toolbar .tool-label{font-size:10px;line-height:1;white-space:nowrap}
 .icon-toolbar .toolbar-scope{height:44px;padding-left:4px}.icon-toolbar .toolbar-scope label{font-size:10px}.icon-toolbar .toolbar-scope select{height:32px;font-size:10px}
-body.user-mode .editor-menubar:before{display:inline-flex;align-items:center;height:24px;margin-right:5px;padding:0 9px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:800;white-space:nowrap}
-@media(max-width:1280px){.app-header .role-indicator{display:none}.app-header .brand-block{min-width:170px}.icon-toolbar .tool-label{display:none}.icon-toolbar .icon-tool{min-width:36px;width:36px}.toolbar-scope label{display:none}}
-@media(max-width:980px){.app-header .current-template-title,.app-header .header-separator{display:none}.app-header .brand-block{min-width:0}.app-header .brand{font-size:13px}.app-header{padding-inline:10px}.workspace{height:auto;min-height:calc(100vh - 92px)}}
+body.user-mode .editor-menubar:before{display:inline-flex;align-items:center;height:24px;margin-right:5px;padding:0 9px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:800;white-space:nowrap}body.user-mode .editor-toast{display:block!important}
+@media(max-width:1280px){.icon-toolbar .tool-label{display:none}.icon-toolbar .icon-tool{min-width:36px;width:36px}.toolbar-scope label{display:none}}
+@media(max-width:980px){.app-header .editor-context{gap:5px}.app-header .current-workflow-menu{max-width:160px}.app-header .current-template-title{max-width:180px}.app-header .brand{font-size:13px}.app-header{padding-inline:10px}.workspace{height:auto;min-height:calc(100vh - 128px)}}
 </style>
 <script id="v35-final-fixes">
 (()=>{
@@ -3449,7 +3454,7 @@ body.user-mode .menu-root[data-workspace-hidden="false"]:focus-within .editor-me
   };
 
   const oldRenderNavigator=renderNavigator;
-  renderNavigator=function(){oldRenderNavigator();if(project?.productType?.category==='postcard')$('bookSummary').textContent=`${project.book.pageInstances.length}페이지 · ${project.productType.pageSize.width}×${project.productType.pageSize.height}mm · ${project.settings.calendarRows||6}×7 · 단면 편집`;};
+  renderNavigator=function(){oldRenderNavigator()};
 
   // Wall and postcard pages are fully editable single-sided surfaces in Workspace.
   function unlockSingleSurfaceInsert(){
