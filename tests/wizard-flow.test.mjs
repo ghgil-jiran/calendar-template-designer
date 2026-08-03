@@ -118,3 +118,20 @@ test('mini calendar wording applies to both five and six row calendars', () => {
   assert.match(html, /빈 날짜 셀에 이전·다음 달 미니 월력 표시/);
   assert.match(html, /월력 그리드의 빈 날짜 셀에 이전 달과 다음 달의 미니 월력을 표시합니다/);
 });
+
+test('image-based school asset slots do not render fixed role captions', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /\["image","image-text"\]\.includes\(SEMANTIC_DEFS\[item\.role\]\?\.kind\)\)item\.showCaption=false/);
+  assert.match(html, /item\.showCaption===true\?/);
+  assert.match(html, /semantic-empty-visual non-output editor-only/);
+});
+
+test('template thumbnails support uploaded artwork and page fallbacks', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
+  assert.match(html, /id="resourceThumbnailInput"/);
+  assert.match(html, /project\.template\.thumbnail=\{kind:'upload'/);
+  assert.match(html, /권장 크기는 1200×900px, 최소 크기는 800×600px/);
+  assert.match(runtime, /uploaded\?\.dataUrl/);
+  assert.match(runtime, /record\.type==='poster'\?pages\.find\(page=>page\.role==='poster-annual'\):pages\.find\(page=>page\.role==='cover-front'\)/);
+});
