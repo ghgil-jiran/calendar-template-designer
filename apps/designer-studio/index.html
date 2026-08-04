@@ -923,10 +923,12 @@ function addBackWidget(type){
   "monthly-schedule":{x:8,y:56,width:35,height:28},
   "event-list":{x:68,y:12,width:27,height:76},
   "month-date-strip":{x:5,y:82,width:90,height:10},
-  "monthly-quote":{x:10,y:18,width:80,height:54}
+  "monthly-quote":{x:7,y:18,width:38,height:32}
  }[type];
  if(!defaults)return;
- const elem={id:`element.${type}.${Date.now()}`,type,...defaults,zIndex:maxZ(scope)+1};
+ const placementItems=scope==="master"?[...arr,...pageElements()]:arr;
+ const placement=type==="monthly-quote"?findOpenWidgetPlacement(defaults,placementItems):defaults;
+ const elem={id:`element.${type}.${Date.now()}`,type,...placement,zIndex:maxZ(scope)+1};
  if(type==="memo")Object.assign(elem,{title:"메모",lineCount:8});
  if(type==="year-calendar")Object.assign(elem,{columns:4,startMonth:1,monthCount:12,showWeekdayHeader:true});
  if(type==="monthly-schedule")Object.assign(elem,{title:"이달의 일정",maxItems:10});
@@ -934,6 +936,22 @@ function addBackWidget(type){
  if(type==="month-date-strip")Object.assign(elem,{monthSource:"page",year:project.settings.year,month:project.settings.startMonth||1,showWeekday:true,showDate:true,equalCells:true,style:{weekdayColor:"#6b7280",dateColor:"#17202e",sundayColor:"#d04444",saturdayColor:"#3569b8",background:true}});
  if(type==="monthly-quote")Object.assign(elem,{title:"이 달의 명언",style:{titleSize:13,quoteKoSize:18,quoteEnSize:10,sourceSize:9,textAlign:"center",color:"#17202e",accentColor:"#315e9e",secondaryColor:"#667085",itemGap:7}});
  snapshot();arr.push(elem);selectedElementId=elem.id;selectedElementScope=scope;render()
+}
+
+function widgetOverlap(a,b,gap=1.5){
+ return a.x<b.x+b.width+gap&&a.x+a.width+gap>b.x&&a.y<b.y+b.height+gap&&a.y+a.height+gap>b.y
+}
+function findOpenWidgetPlacement(base,arr){
+ const candidates=[
+  base,
+  {...base,x:55,y:18},
+  {...base,x:7,y:52},
+  {...base,x:55,y:52},
+  {...base,x:31,y:34},
+  {...base,x:7,y:64,width:86,height:25}
+ ].map(c=>({...c,x:Math.max(3,Math.min(97-c.width,c.x)),y:Math.max(3,Math.min(97-c.height,c.y))}));
+ const occupied=(arr||[]).filter(item=>item.visible!==false&&Number(item.width)>0&&Number(item.height)>0);
+ return candidates.find(candidate=>occupied.every(item=>!widgetOverlap(candidate,item)))||base
 }
 function currentMonthEvents(p=selectedPage()){
  if(!p.calendarYear||!p.calendarMonth)return[];
