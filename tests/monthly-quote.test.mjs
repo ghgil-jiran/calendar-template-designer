@@ -11,12 +11,10 @@ test('monthly quote is available as a calendar domain object', () => {
   assert.match(html, /scope=type==="monthly-quote"\?"master"/);
 });
 
-test('monthly quote chooses a compact non-overlapping initial placement', () => {
+test('monthly quote uses a compact free-placement default and may overlap other objects', () => {
   assert.match(html, /"monthly-quote":\{x:7,y:18,width:38,height:32\}/);
-  assert.match(html, /placementItems=scope==="master"\?\[\.\.\.arr,\.\.\.pageElements\(\)\]:arr/);
-  assert.match(html, /type==="monthly-quote"\?findOpenWidgetPlacement\(defaults,placementItems\):defaults/);
-  assert.match(html, /function findOpenWidgetPlacement\(base,arr\)/);
-  assert.match(html, /occupied\.every\(item=>!widgetOverlap\(candidate,item\)\)/);
+  assert.match(html, /const elem=\{id:`element\.\$\{type\}\.\$\{Date\.now\(\)\}`,type,\.\.\.defaults,zIndex:maxZ\(scope\)\+1\}/);
+  assert.doesNotMatch(html, /findOpenWidgetPlacement|widgetOverlap|placementItems/);
 });
 
 test('monthly quote separates shared styling from YYYY-MM content', () => {

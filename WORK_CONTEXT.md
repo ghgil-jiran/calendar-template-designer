@@ -12,6 +12,7 @@ Calendar Template Designer / Calendar Publishing Platform Core Engine
 - schoolp 개발 기준 r015를 기존 화면과 기능을 보존한 상태로 적용
 - 우리학교인쇄 운영 서버에는 아직 배포하지 않음
 - 2026-08-04 기준 전체 빌드와 통합 검증 명령 정상화
+- 월력용 명언은 다른 개체와 자유롭게 겹쳐 배치할 수 있으며, 이동·크기 조절 시 선택한 개체만 변경됨
 - 새 작업은 GitHub `main`에서 깨끗하게 불러온 뒤 `npm ci`를 실행한 환경만 기준본으로 사용
 
 ## 표준 검증
@@ -44,3 +45,8 @@ Calendar Template Designer / Calendar Publishing Platform Core Engine
 - `apps/designer-studio/index.html`에 누적된 HTML·CSS·JavaScript를 기능별 파일로 단계적으로 분리한다.
 - 우선 분리 대상은 Preview, Wizard, Template Library, Editor Interaction이다.
 - 이 분리는 기능 추가와 섞지 않고 별도의 구조 개선 작업으로 진행한다.
+
+## 다음 확인 항목
+
+- 월력 뒷면에서 명언과 해당 월력·메모 개체를 겹쳐 배치해 보기
+- `맨 앞으로`·`맨 뒤로`로 원하는 앞뒤 순서가 유지되는지 확인하기
