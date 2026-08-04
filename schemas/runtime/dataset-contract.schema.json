@@ -11,6 +11,25 @@
     "school": { "type": "object" },
     "calendar": { "type": "object" },
     "monthlyImages": { "oneOf": [{"type":"object"},{"type":"array"}] },
+    "monthlyQuotes": {
+      "type": "object",
+      "patternProperties": {
+        "^[0-9]{4}-(0[1-9]|1[0-2])$": {
+          "type": "object",
+          "required": ["title", "quoteKo"],
+          "properties": {
+            "title": { "type": "string" },
+            "quoteKo": { "type": "string" },
+            "quoteEn": { "type": "string" },
+            "source": { "type": "string" },
+            "sourceStatus": { "enum": ["verified", "unverified", "original", "edited"] },
+            "translationType": { "enum": ["original", "official", "editorial"] }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "variables": { "type": "object" }
   },
   "additionalProperties": true
