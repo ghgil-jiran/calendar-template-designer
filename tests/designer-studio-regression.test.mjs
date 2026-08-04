@@ -20,10 +20,16 @@ test('monthly calendar rendering uses the active product type region', () => {
 
 test('template objects allow overlap without collision avoidance or forced grid snapping', () => {
   assert.doesNotMatch(html, /rectanglesOverlap\(/);
+  assert.doesNotMatch(html, /findOpenWidgetPlacement|widgetOverlap|placementItems/);
   assert.match(html, /function findSemanticPlacement\(base,arr\)\{\s*return \{/);
   assert.doesNotMatch(html, /if\(e\.altKey===false\)\{x=snap\(x,grid\.x\);y=snap\(y,grid\.y\)\}/);
   assert.match(html, /data-s2="front">맨 앞으로/);
   assert.match(html, /data-s2="back">맨 뒤로/);
+});
+
+test('dragging and resizing mutate only the selected element', () => {
+  assert.match(html, /function moveElementPointer\(e\)\{[\s\S]*?const item=sourceElement\(\);[\s\S]*?if\(elementDrag\.handle==="move"\)\{item\.x=o\.x\+dx;item\.y=o\.y\+dy\}/);
+  assert.doesNotMatch(html, /function moveElementPointer\(e\)\{[\s\S]*?(?:masterElements|pageElements)\(\)\.(?:forEach|map)/);
 });
 
 test('system base templates start without sample school events', () => {
