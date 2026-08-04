@@ -7,6 +7,17 @@ import vm from 'node:vm';
 const htmlPath = path.resolve('apps/designer-studio/index.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
 
+test('object drawer clears both editor menu rows and keeps calendar objects in Basic after template images', () => {
+  assert.match(html, /\.object-drawer\{position:fixed;top:128px;[^}]*height:calc\(100vh - 128px\)/);
+  assert.match(html, /id="calendarObjectSection" class="object-section" data-library-section="basic"/);
+  assert.match(html, /\(backgroundSection\|\|registered\)\?\.after\(calendarSection\)/);
+});
+
+test('monthly calendar rendering uses the active product type region', () => {
+  assert.match(html, /title=p\.overrides\.monthTitle\|\|[^,]+,cr=calendarRegion\(\),rows=/);
+  assert.doesNotMatch(html, /cr=project\.template\.masters\.calendar\.calendarRegion\|\|\{x:5,y:16,width:90,height:79\}/);
+});
+
 test('template objects allow overlap without collision avoidance or forced grid snapping', () => {
   assert.doesNotMatch(html, /rectanglesOverlap\(/);
   assert.match(html, /function findSemanticPlacement\(base,arr\)\{\s*return \{/);

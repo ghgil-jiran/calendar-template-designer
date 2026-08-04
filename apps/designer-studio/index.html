@@ -81,7 +81,7 @@
 .size-note{margin-top:-3px;margin-bottom:8px;font-size:10px;color:var(--muted)}
 @media print{.non-output,.editor-chrome,.app-header{display:none!important}.page{box-shadow:none!important}}
 
-.object-drawer{position:fixed;top:0;right:0;width:min(420px,94vw);height:100vh;background:white;border-left:1px solid var(--line);box-shadow:-14px 0 35px rgba(15,23,42,.16);z-index:70;display:flex;flex-direction:column}
+.object-drawer{position:fixed;top:128px;right:0;width:min(420px,94vw);height:calc(100vh - 128px);background:white;border-left:1px solid var(--line);box-shadow:-14px 0 35px rgba(15,23,42,.16);z-index:70;display:flex;flex-direction:column}
 .object-drawer.hidden{display:none}
 .drawer-head{display:flex;align-items:center;gap:8px;padding:15px;border-bottom:1px solid var(--line)}
 .drawer-head h2{font-size:16px;margin:0;flex:1}
@@ -530,7 +530,7 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
   <section class="object-section" data-library-section="shapes"><h3>도형 라이브러리</h3><p class="resource-description">색상과 테두리를 바꿀 수 있는 인쇄용 SVG 기본 도형입니다.</p><div id="shapeLibraryGrid" class="object-grid"></div></section>
   <section class="object-section" data-library-section="frames"><h3>사진 프레임</h3><p class="resource-description">학교 전경·교표·행사 사진을 도형 안에 채우고 내부 위치와 배율을 조절합니다.</p><div id="frameLibraryGrid" class="object-grid"></div></section>
   <section class="object-section" data-library-section="vectors"><h3>샘플 벡터 라이브러리</h3><div class="graphics-library-note">기능 검증용으로 학교·교육, 계절·자연, 행사, 장식 카테고리의 SVG를 내장했습니다. 각 자산은 ID와 색상 토큰을 유지하므로 향후 관리자 CMS로 옮길 수 있습니다.</div><div id="vectorCategoryRow" class="library-category-row"></div><div id="vectorLibraryGrid" class="object-grid"></div></section>
-  <section class="object-section" data-library-section="calendar"><h3>달력 개체</h3><div class="object-grid">
+  <section id="calendarObjectSection" class="object-section" data-library-section="basic"><h3>달력 개체</h3><div class="object-grid">
    <button class="object-card" data-widget-add="mini-calendar"><strong>해당 월력</strong><span>현재 월의 작은 달력</span></button><button class="object-card" data-widget-add="mini-calendar-prev"><strong>이전달 미니 월력</strong><span>현재 월 기준 이전 달</span></button><button class="object-card" data-widget-add="mini-calendar-next"><strong>다음달 미니 월력</strong><span>현재 월 기준 다음 달</span></button>
    <button class="object-card" data-widget-add="year-calendar"><strong>연간 월력</strong><span>한 개체 안에 12개월 표시</span></button>
    <button class="object-card" data-widget-add="monthly-schedule"><strong>해당 일정</strong><span>현재 월의 일정 목록</span></button>
@@ -1484,7 +1484,7 @@ function setupInspectorTabs(){
 function renderPage(){
  const p=selectedPage(),page=el("page"),ps=project.productType.pageSize;page.className=`page ${project.productType.category} ${isInsertPage(p)?"template-insert-page":""}`;page.style.aspectRatio=`${ps.width}/${ps.height}`;let html='<div class="binding"></div><div class="surface-content">';
  if(p.role==="monthly-front"){
-  const g=groupedEvents(),max=project.template.masters.calendar.eventMaxVisiblePerDay,title=p.overrides.monthTitle||`${p.calendarYear}년 ${p.calendarMonth}월`,cr=project.template.masters.calendar.calendarRegion||{x:5,y:16,width:90,height:79},rows=Number(project.settings.calendarRows||6),grid=calendarGrid(p.calendarYear,p.calendarMonth);
+  const g=groupedEvents(),max=project.template.masters.calendar.eventMaxVisiblePerDay,title=p.overrides.monthTitle||`${p.calendarYear}년 ${p.calendarMonth}월`,cr=calendarRegion(),rows=Number(project.settings.calendarRows||6),grid=calendarGrid(p.calendarYear,p.calendarMonth);
   html+=`<div id="calendarRegion" class="calendar-region ${calendarEditing?"editing":""}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%"><div class="month-title" style="font-size:${project.template.masters.calendar.monthTitleSize}px">${title}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
   weekDayHeaders().forEach(h=>html+=`<div class="cell head">${h}</div>`);
   const miniCells=rows===5&&project.settings.showAdjacentMiniCalendars?selectAdjacentMiniCells(grid,p.calendarMonth):[];
@@ -2619,7 +2619,9 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     el('backgroundAssetInput').onchange=async e=>{const files=[...e.target.files];e.target.value='';for(const file of files){const image=await compressImageFile(file);ensureBackgroundResources().push({id:`background.${Date.now()}.${Math.random().toString(36).slice(2)}`,name:el('backgroundAssetName').value.trim()||file.name,usage:el('backgroundAssetUsage').value.trim(),image,fileName:file.name,mimeType:file.type})}markDirty();renderBackgroundManager();renderBackgroundDrawer();showEditorToast(`${files.length}개의 배경 이미지를 등록했습니다.`)};
   }
   const registered=el('registeredAssetSection');
-  if(registered&&!el('templateBackgroundSection')){const sec=document.createElement('section');sec.id='templateBackgroundSection';sec.className='object-section template-background-section hidden';sec.innerHTML='<h3>템플릿 배경 이미지</h3><p class="resource-description">현재 페이지 또는 선택한 Master에 배경 개체로 추가합니다.</p><div id="templateBackgroundGrid" class="registered-asset-grid"></div>';registered.after(sec)}
+  if(registered&&!el('templateBackgroundSection')){const sec=document.createElement('section');sec.id='templateBackgroundSection';sec.className='object-section template-background-section hidden';sec.dataset.librarySection='basic';sec.innerHTML='<h3>템플릿 배경 이미지</h3><p class="resource-description">현재 페이지 또는 선택한 Master에 배경 개체로 추가합니다.</p><div id="templateBackgroundGrid" class="registered-asset-grid"></div>';registered.after(sec)}
+  const calendarSection=el('calendarObjectSection'),backgroundSection=el('templateBackgroundSection');
+  if(calendarSection){(backgroundSection||registered)?.after(calendarSection)}
   const oldOpen=el('openObjectDrawerBtn')?.onclick;
   el('openObjectDrawerBtn')?.addEventListener('click',()=>setTimeout(renderBackgroundDrawer,0));
   const oldSwitch=switchResourcePage;switchResourcePage=function(page){oldSwitch(page);if(page==='school')renderBackgroundManager()};
