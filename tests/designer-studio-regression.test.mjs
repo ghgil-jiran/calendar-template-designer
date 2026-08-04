@@ -20,6 +20,19 @@ test('system base templates start without sample school events', () => {
   assert.doesNotMatch(html, /events:SAMPLE_EVENTS\.filter/);
 });
 
+test('postcard calendar editing uses the single shared toggle handler', () => {
+  assert.match(
+    html,
+    /el\("editCalendarBtn"\)\.addEventListener\("click",\(\)=>\{\s*calendarEditing=!calendarEditing;/,
+    'the shared calendar edit button should toggle the selection once'
+  );
+  assert.doesNotMatch(
+    html,
+    /editCalendarBtn['"]\)\?\.addEventListener\(['"]click['"],[\s\S]{0,220}productType\?\.category===['"]postcard['"]/,
+    'postcard should not register a second capture-phase click handler'
+  );
+});
+
 test('desk thumbnail gives most of the card area to the cover design', () => {
   assert.match(html, /calendar-product-thumb\{[^}]*padding:7px/);
   assert.match(html, /calendar-product-shell\{[^}]*width:98%;height:94%/);

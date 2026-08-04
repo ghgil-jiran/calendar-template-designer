@@ -3528,8 +3528,6 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  }
  const prevRender=render;render=function(){const r=prevRender.apply(this,arguments);requestAnimationFrame(refreshTypeEditing);return r};
  $('openObjectDrawerBtn')?.addEventListener('click',()=>{refreshTypeEditing();$('objectDrawer')?.classList.remove('hidden');renderObjectRecommendations?.();renderRegisteredAssetLibrary?.()},true);
- const prevEdit=$('editCalendarBtn')?.onclick;
- $('editCalendarBtn')?.addEventListener('click',()=>{if(project?.productType?.category==='postcard'&&selectedPage()?.role==='monthly-front'){calendarEditing=true;selectedElementId=null;selectedElementScope=null;render()}},true);
  // Existing projects loaded from JSON also receive the full postcard model.
  const oldNormalize=normalizeElementData;normalizeElementData=function(){const r=oldNormalize.apply(this,arguments);ensurePostcardModel();return r};
  setTimeout(()=>{window.renderUserCustomAssets?.();refreshTypeEditing()},200);
