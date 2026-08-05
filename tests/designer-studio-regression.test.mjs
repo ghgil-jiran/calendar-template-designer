@@ -7,6 +7,11 @@ import vm from 'node:vm';
 const htmlPath = path.resolve('apps/designer-studio/index.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
 
+test('new template setup covers the editor chrome and remains scrollable on short screens', () => {
+  assert.match(html, /\.setup\{[^}]*z-index:200[^}]*overflow:auto/);
+  assert.match(html, /\.setup-card\{[^}]*max-height:calc\(100dvh - 36px\)[^}]*overflow:auto/);
+});
+
 test('object drawer clears both editor menu rows and keeps calendar objects in Basic after template images', () => {
   assert.match(html, /\.object-drawer\{position:fixed;top:128px;[^}]*height:calc\(100vh - 128px\)/);
   assert.match(html, /id="calendarObjectSection" class="object-section" data-library-section="basic"/);
