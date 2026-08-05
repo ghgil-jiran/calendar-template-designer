@@ -6,6 +6,24 @@ const project=JSON.parse(fs.readFileSync(new URL("../fixtures/legacy-project.jso
 const snapshot=new DesignerRuntimeBridge().resolve(project);
 assert.equal(snapshot.document.pages.length,1);
 assert.equal(snapshot.document.pages[0].objects.find(x=>x.id==='master.title')?.value,'테스트 학교');
+assert.equal(snapshot.dataset.schemaVersion,'1.0');
+assert.equal(snapshot.dataset.school.modelVersion,'2.0');
+assert.equal(snapshot.dataset.school.name,'테스트 학교');
+assert.equal(snapshot.dataset.academicYear.startDate,'2027-03-01');
+assert.equal(snapshot.dataset.academicYear.endDate,'2028-02-29');
+assert.deepEqual(snapshot.dataset.events,[]);
+assert.deepEqual(snapshot.dataset.school.contacts,[]);
 assert.ok(snapshot.document.pages[0].objects.some(x=>x.type==='calendar'));
 assert.equal(new ScreenRenderer().renderModel(snapshot.document,'page.march').length,3);
+
+const schoolProject=structuredClone(project);
+schoolProject.book.school={name:'호환 학교',englishName:'COMPATIBILITY SCHOOL',phone:'02-1234-5678',profile:{building:{assetId:'asset.exterior',image:'exterior.jpg'},logo:{image:'logo.png'}}};
+schoolProject.template.masterElements['master.monthly.front'].push({id:'legacy.english',type:'text',x:5,y:15,width:50,height:10,binding:'school.englishName',content:'SAMPLE',zIndex:3});
+const schoolSnapshot=new DesignerRuntimeBridge().resolve(schoolProject);
+assert.equal(schoolSnapshot.dataset.school.nameEn,'COMPATIBILITY SCHOOL');
+assert.equal(schoolSnapshot.dataset.school.englishName,'COMPATIBILITY SCHOOL');
+assert.equal(schoolSnapshot.dataset.school.exterior.assetId,'asset.exterior');
+assert.equal(schoolSnapshot.dataset.school.logo.src,'logo.png');
+assert.deepEqual(schoolSnapshot.dataset.school.contacts,[{label:'대표',phone:'02-1234-5678',fax:undefined}]);
+assert.equal(schoolSnapshot.document.pages[0].objects.find(x=>x.id==='legacy.english')?.value,'COMPATIBILITY SCHOOL');
 console.log('RC4 integration tests passed');

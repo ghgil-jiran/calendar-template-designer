@@ -1,5 +1,5 @@
 export type Unit = "mm" | "pt" | "px";
-export type ObjectKind = "text" | "image" | "shape" | "calendar" | "event-list" | "memo" | "group";
+export type ObjectKind = "text" | "image" | "image-frame" | "shape" | "calendar" | "calendar-grid" | "event-list" | "memo" | "group";
 export interface Size { width:number; height:number; unit:Unit; }
 export interface Rect { x:number; y:number; width:number; height:number; }
 export interface TemplateObject { id:string; type:ObjectKind|string; frame:Rect; binding?:string; value?:unknown; style?:Record<string,unknown>; children?:TemplateObject[]; visible?:boolean; zIndex?:number; rotation?:number; opacity?:number; }
@@ -15,3 +15,9 @@ export interface ResolvedPage { id:string; sourcePageId:string; role:string; siz
 export interface ResolvedDocument { schemaVersion:"1.1"; runtimeVersion:string; templateId:string; templateRevision:number; generatedAt:string; target:"screen"|"print"|"thumbnail"; pages:ResolvedPage[]; diagnostics:RuntimeDiagnostic[]; }
 export interface RuntimeResult { document:ResolvedDocument; hasErrors:boolean; }
 export interface RenderDiff { added:string[]; removed:string[]; changed:string[]; unchanged:string[]; }
+export interface TextOverflowPolicy{mode:"warn"|"shrink";minFontSize:number;lineHeight?:number;maxLines?:number;}
+export interface TextMeasurement{overflow:boolean;estimatedLines:number;appliedFontSize:number;capacity:number;}
+export type DeskPageRole="cover-front"|"yearly-calendar"|"school-symbols"|"month-back"|"month-calendar"|"back-cover";
+export interface DeskSequencePageSpec{pageRole:DeskPageRole;masterRef:string;side?:"front"|"back";}
+export interface DeskSequenceDefinition{type:"desk-sequence";sequence:Array<DeskSequencePageSpec|{repeat:"academicMonths";pair:[DeskSequencePageSpec,DeskSequencePageSpec]}>;}
+export interface DeskResolvedPageMetadata{pageRole:DeskPageRole;monthKey?:string;pairId?:string;side:"front"|"back";sequenceIndex:number;}

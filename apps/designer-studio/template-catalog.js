@@ -7,6 +7,8 @@ window.ACDL_TEMPLATE_CATALOG={
     {id:"postcard",label:"엽서형 달력",description:"표지와 12개월 월력을 카드처럼 구성하는 단면 달력입니다.",icon:"✉️",enabled:true,sortOrder:4,baseType:"postcard"}
   ],
   templates:[
+    {id:"tpl-2027-desk-sample-6",name:"탁상형 6번 · 월별 플래너형",description:"박스형 월력과 기간 일정, 월별 플래너, 학교 상징을 함께 검증하는 v2 대표 템플릿입니다.",type:"desk",status:"published",edition:2027,template:"desk-sample-6",features:["기간 일정","월별 플래너","28면 앞뒤 구성"],pageSummary:"표지·연력·학교 상징·월별 앞뒤 12쌍·뒷표지",updatedAt:"2026-08-05T00:00:00.000Z",version:2},
+    {id:"tpl-2027-desk-sample-2",name:"탁상형 2번 · 이미지 콜라주형",description:"월별 이미지 콜라주와 띠력, 사진 교체를 검증하는 v2 대표 템플릿입니다.",type:"desk",status:"published",edition:2027,template:"desk-sample-2",features:["이미지 콜라주","띠력","월별 사진 교체"],pageSummary:"표지·연력·학교 상징·월별 앞뒤 12쌍·뒷표지",updatedAt:"2026-08-05T00:00:00.000Z",version:2},
     {id:"tpl-2027-basic-desk",name:"학교 기본형",description:"학교 전경과 교표, 월별 학사일정을 균형 있게 보여주는 표준 탁상형 템플릿입니다.",type:"desk",status:"published",edition:2027,template:"school-basic",features:["학교 정보 강조","5×7·6×7"],pageSummary:"표지·월력 12장·뒷면",updatedAt:"2026-07-27T00:00:00.000Z",version:1},
     {id:"tpl-2027-minimal-desk",name:"사진 미니멀형",description:"월별 대표 사진과 월력을 간결하게 배치한 현대적인 탁상형 템플릿입니다.",type:"desk",status:"published",edition:2027,template:"minimal",features:["사진 중심","6×7"],pageSummary:"표지·월력 12장·뒷면",updatedAt:"2026-07-26T00:00:00.000Z",version:1},
     {id:"tpl-2027-wall",name:"학교 이미지형",description:"상단 학교 이미지와 넓은 월력을 사용하는 벽걸이형 기본 템플릿입니다.",type:"wall",status:"published",edition:2027,template:"school-basic",features:["큰 월력","전경 강조"],pageSummary:"표지·월력 12장",updatedAt:"2026-07-25T00:00:00.000Z",version:1},
