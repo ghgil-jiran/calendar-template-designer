@@ -588,6 +588,13 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
  </div>
 </div>
 
+<script id="entry-navigation-bootstrap">
+// Keep the first navigation screen usable even if a later editor initializer fails.
+document.getElementById("enterDesignerFlow")?.addEventListener("click",()=>{
+ document.getElementById("entryScreen")?.classList.add("hidden");
+ document.getElementById("designerHome")?.classList.remove("hidden");
+});
+</script>
 <script>
 const SAMPLE_EVENTS=[
 {id:"e1",title:"삼일절",startDate:"2027-03-01",endDate:"2027-03-01",category:"holiday",source:"template"},
