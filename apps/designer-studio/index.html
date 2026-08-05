@@ -3692,7 +3692,10 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   const sizes=(Array.isArray(d.sizes)&&d.sizes.length?d.sizes:builtinSizes[d.id]||[{id:`${d.id}-default`,name:`${d.name} 기본`,width:Number(d.width||148),height:Number(d.height||100),unit:'mm',recommended:true,note:'달력 유형 기본 크기'}]).map((s,i)=>({id:s.id||`${d.id}-size-${i+1}`,name:s.name||s.label||`크기 ${i+1}`,width:Number(s.width),height:Number(s.height),unit:s.unit||'mm',recommended:!!s.recommended,note:s.note||''}));
   if(!sizes.some(s=>s.recommended)&&sizes[0])sizes[0].recommended=true;
   const rec=sizes.find(s=>s.recommended)||sizes[0];
-  return {...d,width:rec?.width||d.width,height:rec?.height||d.height,sizes,starterTemplates:Array.isArray(d.starterTemplates)&&d.starterTemplates.length?d.starterTemplates:['school-basic','minimal','blank']};
+  const savedStarters=Array.isArray(d.starterTemplates)&&d.starterTemplates.length?d.starterTemplates:['school-basic','minimal','blank'];
+  const requiredStarters=d.id==='desk'?['desk-sample-6','desk-sample-2']:[];
+  const starterTemplates=[...requiredStarters,...savedStarters.filter(id=>!requiredStarters.includes(id))];
+  return {...d,width:rec?.width||d.width,height:rec?.height||d.height,sizes,starterTemplates};
  }
  function saveDefs(defs){localStorage.setItem(KEY,JSON.stringify(defs.map(normalizeDef)));window.ACDLCalendarTypeDefinitions=defs.map(normalizeDef);syncRuntimeFromDefinitions()}
  function migrate(){
@@ -3747,7 +3750,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   $('typeManagerOverlay')?.classList.add('hidden');$('designerHome')?.classList.remove('hidden');$('setup')?.classList.add('hidden');$('templateLibraryModal')?.classList.add('hidden')
  }
  function updateStarterTemplateOptions(typeId){
-  const select=$('setupTemplate');if(!select)return;const d=readDefs().map(normalizeDef).find(x=>x.id===typeId);const ids=d?.starterTemplates?.length?d.starterTemplates:['school-basic','minimal'];const current=select.value;select.innerHTML=starterCatalog.filter(x=>ids.includes(x.id)).map(x=>`<option value="${x.id}">${x.name}</option>`).join('');if([...select.options].some(o=>o.value===current))select.value=current
+  const select=$('setupTemplate');if(!select)return;const d=readDefs().map(normalizeDef).find(x=>x.id===typeId);const fallback=typeId==='desk'?['desk-sample-6','desk-sample-2','school-basic','minimal']:['school-basic','minimal'];const ids=d?.starterTemplates?.length?d.starterTemplates:fallback;const required=typeId==='desk'?['desk-sample-6','desk-sample-2']:[];const visibleIds=[...required,...ids.filter(id=>!required.includes(id))];const current=select.value;select.innerHTML=starterCatalog.filter(x=>visibleIds.includes(x.id)).map(x=>`<option value="${x.id}">${x.name}</option>`).join('');if([...select.options].some(o=>o.value===current))select.value=current
  }
  migrate();ensureManagerSections();syncRuntimeFromDefinitions();
  $('designerHomeTypes')?.addEventListener('click',()=>setTimeout(()=>fillEnhancements(activeDefinition()),0));
