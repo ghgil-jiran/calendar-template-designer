@@ -1,5 +1,15 @@
 # Work Log
 
+## 2026-08-12 — Designer Studio 손상 구간 복구
+
+- `apps/designer-studio/index.html`의 제어문자와 잘린 JavaScript 구간을 정상 이력 기준으로 복원
+- 기본 설정, 학교 정보, 색상·폰트, Master, 일정 분류, 출력 설정 저장 처리 복원
+- 월력 편집 버튼의 중복 없는 단일 전환 처리 복원
+- 표지 Master 글자 크기 일괄 적용과 처음 화면 복귀 시 이전 프로젝트 초기화 처리 복원
+- 인라인 JavaScript 19개 구문 검사 통과
+- Designer Studio 회귀검사 57개 전체 통과
+- 전체 `npm run build` 통과
+
 ## 2026-08-04 — 월력용 명언 자유 배치 수정
 
 - 명언 개체에만 적용되던 충돌 회피 자동 배치 제거

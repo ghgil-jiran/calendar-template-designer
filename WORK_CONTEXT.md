@@ -4,32 +4,32 @@
 
 Calendar Template Designer / Calendar Publishing Platform Core Engine
 
-## 현재 상태
+## 현재 기준
 
-- Designer Studio v1.0.0-beta.1 구현 완료
-- Template Runtime, ResolvedDocument, Screen/SVG Renderer, RenderDiff, Collision Diagnostics 포함
-- 기존 사용자용 Academic Calendar Workspace MVP는 별도 프로젝트로 존재
-- schoolp 개발 기준 r015를 기존 화면과 기능을 보존한 상태로 적용
+- 작업 브랜치: `v2-development`
+- 복구 전 기준 커밋: `a6c78e7`
+- 제품 버전: `2.0.0-alpha.1`
+- Template Runtime: `1.0.0-beta.1`
+- 주요 편집 화면: `apps/designer-studio/index.html`
 - 우리학교인쇄 운영 서버에는 아직 배포하지 않음
-- 2026-08-04 기준 전체 빌드와 통합 검증 명령 정상화
-- 월력용 명언은 다른 개체와 자유롭게 겹쳐 배치할 수 있으며, 이동·크기 조절 시 선택한 개체만 변경됨
-- 새 작업은 GitHub `main`에서 깨끗하게 불러온 뒤 `npm ci`를 실행한 환경만 기준본으로 사용
+
+## 2026-08-12 복구 결과
+
+- Designer Studio의 손상된 JavaScript 구간을 정상 이력 기준으로 복원
+- 기본 설정, 학교 정보, 색상·폰트, Master, 일정 분류, 출력 설정 저장 처리 복원
+- 월력 편집 버튼의 단일 전환 처리 복원
+- 처음 화면으로 돌아갈 때 이전 프로젝트를 초기화하는 처리 복원
+- 표지 Master 글자 크기를 모든 표지 학교명에 적용하는 처리 복원
+- 인라인 JavaScript 19개 구문 검사 통과
+- Designer Studio 회귀검사 57개 전체 통과
+- 전체 `npm run build` 통과
 
 ## 표준 검증
 
 1. `npm ci`
 2. `npm run build`
 
-`npm run build`는 스타일 보호 검사, 전체 패키지 TypeScript 컴파일·검사, Designer Studio 회귀 검사와 인라인 스크립트 검사를 모두 실행한다.
-
-## 제품 통합 순서
-
-1. 현재 저장소를 독립 환경에서 빌드·테스트·검증
-2. GitHub private 저장소에 문서와 소스, 로드맵을 함께 저장
-3. 기존 사용자 MVP를 Runtime Contract에 연결
-4. 가격 산정, 주문 데이터, 최종 인쇄 파일 전달 계약 검증
-5. 통합 QA와 실제 인쇄 파일 검수
-6. 검증 완료 후 우리학교인쇄 운영 서버 환경에 배포
+`npm run build`는 스타일 보호 검사, 전체 패키지 검사, Designer Studio 회귀검사와 인라인 스크립트 검사를 실행한다.
 
 ## 보존 원칙
 
@@ -37,16 +37,17 @@ Calendar Template Designer / Calendar Publishing Platform Core Engine
 - `apps/designer-studio/index.html`을 현재 제품 UI의 기준으로 유지한다.
 - schoolp 디자인 토큰은 별도 요청 전까지 적용하지 않는다.
 - 인증, 결제, 개인정보, 운영 DB, 주문 서버 연동은 자동 변경하지 않는다.
-- 이전 작업 폴더나 임시 작업본을 다음 수정의 기준으로 사용하지 않는다.
-- 기존 로컬 변경은 삭제하지 않고 GitHub `main` 기준 작업과 분리한다.
+- 복구 변경은 `v2-development` 브랜치에 저장하며, 이후 작업도 이 브랜치에서 이어간다.
+
+## 다음 할 일
+
+1. 노트북에서 `Fetch origin` 후 최신 복구 커밋을 Pull
+2. 로컬 브라우저에서 시작 화면 → 템플릿 선택 → 편집 화면 진입 확인
+3. 기본 설정과 Master 설정 저장 동작을 직접 확인
+4. 이후 기존 기능 개발 재개
 
 ## 후속 구조 개선
 
-- `apps/designer-studio/index.html`에 누적된 HTML·CSS·JavaScript를 기능별 파일로 단계적으로 분리한다.
+- 약 4천 줄 규모의 `apps/designer-studio/index.html`을 기능별로 단계적으로 분리한다.
 - 우선 분리 대상은 Preview, Wizard, Template Library, Editor Interaction이다.
-- 이 분리는 기능 추가와 섞지 않고 별도의 구조 개선 작업으로 진행한다.
-
-## 다음 확인 항목
-
-- 월력 뒷면에서 명언과 해당 월력·메모 개체를 겹쳐 배치해 보기
-- `맨 앞으로`·`맨 뒤로`로 원하는 앞뒤 순서가 유지되는지 확인하기
+- 구조 개선은 기능 추가와 섞지 않고 별도 작업으로 진행한다.
