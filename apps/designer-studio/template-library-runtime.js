@@ -1,4 +1,5 @@
 (()=>{
+ const el=id=>document.getElementById(id);
  const catalog=window.ACDL_TEMPLATE_CATALOG||{types:[],templates:[]};
  const typeKey='acdl.calendarTypeDefinitions.v37';
  const validStates=new Set(['draft','ready','published','archived']);

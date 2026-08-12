@@ -9,6 +9,7 @@ const mime = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; chars
 const studioEntry = 'apps/designer-studio/index.html';
 const studioAssetAliases = new Map([
   ['/template-catalog.js', 'apps/designer-studio/template-catalog.js'],
+  ['/wizard-flow.js', 'apps/designer-studio/wizard-flow.js'],
   ['/template-library-runtime.js', 'apps/designer-studio/template-library-runtime.js']
 ]);
 const legacyEntryPaths = new Set([
