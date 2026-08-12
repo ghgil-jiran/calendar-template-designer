@@ -3963,7 +3963,15 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  let gesture=null;
  const key=(id,scope)=>`${scope}:${id}`;
  const selectedViews=()=>[...selection].map(k=>{const [scope,...rest]=k.split(':');const id=rest.join(':');const arr=scope==='master'?masterElements():pageElements();const item=arr.find(x=>x.id===id);return item?{item,scope,id}:null}).filter(Boolean);
- const syncPrimary=()=>{if(selectedElementId&&selectedElementScope)selection.add(key(selectedElementId,selectedElementScope));else selection.clear()};
+ const syncPrimary=()=>{
+  if(!selectedElementId||!selectedElementScope){selection.clear();return}
+  const primaryKey=key(selectedElementId,selectedElementScope);
+  for(const selectedKey of selection){
+   const [scope,...rest]=selectedKey.split(':'),id=rest.join(':');
+   if(!getItem(id,scope))selection.delete(selectedKey)
+  }
+  if(!selection.has(primaryKey)){selection.clear();selection.add(primaryKey)}
+ };
  const setPrimary=(id,scope)=>{selectedElementId=id;selectedElementScope=scope};
  function selectOnly(id,scope){selection.clear();selection.add(key(id,scope));setPrimary(id,scope)}
  function toggleSelection(id,scope){const k=key(id,scope);if(selection.has(k)){selection.delete(k);if(selectedElementId===id&&selectedElementScope===scope){const next=[...selection][0];if(next){const [s,...r]=next.split(':');setPrimary(r.join(':'),s)}else setPrimary(null,null)}}else{selection.add(k);setPrimary(id,scope)}}
