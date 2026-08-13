@@ -10,8 +10,9 @@ export class PageResolver {
 
   resolve(source: TemplatePage, dataset: RuntimeDataset, options: RuntimeOptions): PageResolution {
     const diagnostics: RuntimeDiagnostic[] = [];
+    const month=Number(source.metadata?.calendarMonth);const year=Number(source.metadata?.calendarYear);const pageDataset=Number.isInteger(month)&&Number.isInteger(year)?{...dataset,calendar:{...(dataset.calendar??{}),year,month,monthKey:`${year}-${String(month).padStart(2,"0")}`}}:dataset;
     const objects = source.objects.map(item => {
-      const resolved = this.objects.resolve(item, dataset, source.id, options);
+      const resolved = this.objects.resolve(item, pageDataset, source.id, options);
       diagnostics.push(...resolved.diagnostics);
       const laidOut = this.layout.layout(resolved.object, source.size, source.id);
       diagnostics.push(...laidOut.diagnostics);

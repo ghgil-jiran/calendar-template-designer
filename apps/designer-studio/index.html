@@ -12,7 +12,7 @@
 .canvas-wrap{flex:1;min-height:650px;padding:22px;background:#e8ecf2;display:flex;justify-content:center;align-items:flex-start;overflow:auto}.page{position:relative;background:white;border:1px solid #a7b0bf;box-shadow:0 8px 25px rgba(30,42,60,.12);overflow:hidden}.page.desk{width:min(100%,850px);aspect-ratio:260/180}.page.wall{width:min(100%,520px);aspect-ratio:297/420}.page.poster{width:min(100%,720px);aspect-ratio:297/420}.binding{height:5%;background:repeating-linear-gradient(90deg,#687386 0 7px,transparent 7px 17px);opacity:.45}.surface-content{position:absolute;inset:7% 5% 5%;display:flex;flex-direction:column}.cover-art{flex:1;border-radius:12px;background:linear-gradient(135deg,#e8eef7,#f5f8fc);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.cover-art h3{font-size:34px;margin:0 0 10px}.cover-art p{margin:4px;color:var(--muted)}.backface{flex:1;border:1px dashed #9aa5b5;border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:20px}.month-title{font-size:22px;font-weight:800;margin-bottom:8px}.calendar{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:auto repeat(var(--calendar-rows,6),1fr);height:calc(100% - 38px);border-left:1px solid var(--line);border-top:1px solid var(--line)}.cell{min-width:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:3px;overflow:hidden}.head{text-align:center;background:#f2f4f7;font-size:10px;font-weight:700;padding:3px}.day{font-size:10px;font-weight:700}.adj{opacity:.35}.sun .day{color:#d92d20}.sat .day{color:#175cd3}.event{display:block;margin-top:2px;padding:1px 2px;border-radius:3px;background:#eff4ff;color:#175cd3;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.event.holiday{background:#fff1f3;color:#b42318}.range{border-left:3px solid currentColor}.more{font-size:8px;color:var(--muted);font-weight:700}.selected{outline:2px solid var(--accent);outline-offset:-2px}.photo-placeholder{flex:1;border-radius:10px;background:linear-gradient(135deg,#dfe8f5,#f7f9fc);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted)}.photo-placeholder strong{display:block;font-size:22px;color:var(--text)}
 .section{padding:10px;border-bottom:1px solid #edf0f4}label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--muted);margin-bottom:8px}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:7px;padding:8px;background:white}input,select{height:35px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}.action{width:100%;height:34px;border:0;border-radius:7px;background:var(--accent);color:white}.secondary{background:#edf0f5;color:var(--text)}.danger{background:#fef3f2;color:var(--danger)}.event-card{border:1px solid var(--line);border-radius:7px;padding:7px;margin:5px 0;font-size:11px}.event-card strong{display:block}.event-card div{color:var(--muted);font-size:10px}.event-actions{display:flex;gap:4px;margin-top:5px}.event-actions button{height:26px;border:0;border-radius:5px;padding:0 7px}.validation{font-size:11px}.validation.ok{color:var(--ok)}.validation.warn{color:var(--warn)}
 .preview-only .editor-chrome{display:none}.preview-only .workspace{grid-template-columns:1fr}.preview-only .center{max-width:1100px;margin:auto;width:100%}.preview-only .canvas-wrap{min-height:calc(100vh - 56px)}
-.setup{position:fixed;inset:0;background:rgba(17,24,39,.72);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}.setup-card{width:min(720px,100%);background:white;border-radius:14px;padding:22px}.setup-card h1{font-size:22px;margin:0 0 6px}.setup-card>p{color:var(--muted);font-size:13px;margin:0 0 18px}.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.setup-actions{display:flex;gap:8px;margin-top:12px}.setup-actions button{flex:1;height:42px;border:0;border-radius:8px}.hidden{display:none!important}
+.setup{position:fixed;inset:0;background:rgba(17,24,39,.72);display:flex;align-items:center;justify-content:center;z-index:200;padding:18px;overflow:auto}.setup-card{width:min(720px,100%);max-height:calc(100dvh - 36px);overflow:auto;background:white;border-radius:14px;padding:22px}.setup-card h1{font-size:22px;margin:0 0 6px}.setup-card>p{color:var(--muted);font-size:13px;margin:0 0 18px}.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.setup-actions{display:flex;gap:8px;margin-top:12px}.setup-actions button{flex:1;height:42px;border:0;border-radius:8px}.hidden{display:none!important}
 
 .framework-badge{font-size:9px;font-weight:700;margin-left:7px;padding:3px 6px;border-radius:999px;background:#355078;color:#dce8fa;vertical-align:middle}
 .left-mode-tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:8px;border-bottom:1px solid var(--line);background:#fafbfc}.left-mode-tab{height:32px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--muted);font-size:11px;font-weight:800}.left-mode-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}.left-panel-view{display:none}.left-panel-view.active{display:block}.resource-nav{padding:8px}.resource-nav button{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left;border:0;border-radius:7px;background:#fff;padding:9px;margin-bottom:4px;color:var(--text)}.resource-nav button:hover{background:#f4f7fb}.resource-nav button strong{font-size:11px}.resource-nav button span{font-size:9px;color:var(--muted)}.resource-nav .resource-primary{background:#eef4fc;color:var(--accent)}
@@ -396,7 +396,7 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
 <label class="setup-field" data-types="desk postcard">맨 뒤표지 앞 간지 기본 매수<select id="setupRearInserts"></select></label>
 <label class="setup-field" data-types="poster">연간 월력 배열<select id="setupPosterColumns"><option value="4">4열 × 3행</option><option value="3">3열 × 4행</option><option value="6">6열 × 2행</option></select></label>
 <label class="setup-field full" data-types="desk wall poster postcard">기본 달력 크기<select id="setupSize"></select><span id="setupSizeNote" class="size-note"></span></label>
-<label class="setup-field full" data-types="desk wall poster postcard">시작 템플릿<select id="setupTemplate"><option value="school-basic">학교 기본형 샘플</option><option value="minimal">미니멀형 샘플</option></select></label>
+<label class="setup-field full" data-types="desk wall poster postcard">시작 템플릿<select id="setupTemplate"><option value="desk-sample-6">탁상형 6번 · 월별 플래너형</option><option value="desk-sample-2">탁상형 2번 · 이미지 콜라주형</option><option value="school-basic">학교 기본형 샘플</option><option value="minimal">미니멀형 샘플</option></select></label>
 </div><div class="setup-actions"><button id="createBtn" class="primary">템플릿 설계 시작</button><button id="setupLoadBtn" class="secondary">기존 템플릿 열기</button><button id="designerBackBtn" class="secondary">처음으로</button></div></div></div>
 
 <div id="userSetup" class="setup user-setup hidden"><div class="setup-card user-wizard-card">
@@ -588,6 +588,38 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
  </div>
 </div>
 
+<script id="entry-navigation-bootstrap">
+// Keep the first navigation screen usable even if a later editor initializer fails.
+document.getElementById("enterDesignerFlow")?.addEventListener("click",()=>{
+ document.getElementById("entryScreen")?.classList.add("hidden");
+ document.getElementById("designerHome")?.classList.remove("hidden");
+});
+</script>
+<script id="designer-home-navigation-bootstrap">
+(()=>{
+ const $=id=>document.getElementById(id);
+ function showDesignerHome(){
+  $('entryScreen')?.classList.add('hidden');
+  $('setup')?.classList.add('hidden');
+  $('userSetup')?.classList.add('hidden');
+  $('designerHome')?.classList.remove('hidden');
+ }
+ function openDesignerSetup(){
+  $('designerHome')?.classList.add('hidden');
+  $('setup')?.classList.remove('hidden');
+  $('userSetup')?.classList.add('hidden');
+  if(typeof openDesignerStudio==='function'){
+   try{openDesignerStudio({mode:'designer',source:'designer-home'})}catch(error){console.warn('designer setup bootstrap fallback',error)}
+  }
+ }
+ function bind(id,handler){
+  const node=$(id);if(!node)return;
+  node.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();handler()},true);
+ }
+ bind('enterDesignerFlow',showDesignerHome);
+ bind('designerHomeNew',openDesignerSetup);
+})();
+</script>
 <script>
 const SAMPLE_EVENTS=[
 {id:"e1",title:"삼일절",startDate:"2027-03-01",endDate:"2027-03-01",category:"holiday",source:"template"},
@@ -658,6 +690,47 @@ el("setupType").addEventListener("change",updateSetupFields);el("setupSize").add
 function monthSequence(year,startMonth){
  const out=[];for(let i=0;i<12;i++){const d=new Date(year,startMonth-1+i,1);out.push({year:d.getFullYear(),month:d.getMonth()+1})}return out
 }
+function applyDeskRepresentativePreset(p,opts){
+ if(opts.type!=="desk"||!["desk-sample-6","desk-sample-2"].includes(opts.template))return p;
+ const isPlanner=opts.template==="desk-sample-6",months=p.book.pageInstances.filter(page=>page.role==="monthly-front");
+ p.template.metadata={name:isPlanner?"탁상형 6번 · 월별 플래너형":"탁상형 2번 · 이미지 콜라주형",sampleFamily:isPlanner?"desk-6":"desk-2",productRuntime:"desk-sequence"};
+ p.template.pageComposition={type:"desk-sequence",pageCount:28,monthPairCount:12};
+ p.template.masters.calendar.calendarRegion={x:5,y:13,width:90,height:82};
+ p.template.masters.calendar.eventMaxVisiblePerDay=3;
+ p.template.masterElements["master.monthly.back"]=isPlanner?[
+  {id:"master.planner.title",type:"text",role:"planner-title",x:6,y:8,width:88,height:10,zIndex:2,content:"이번 달의 계획",style:{fontSize:24,textAlign:"left",color:"#2457a7"}},
+  {id:"master.planner.goal",type:"memo",role:"monthly-goal",x:6,y:22,width:42,height:29,zIndex:2,title:"MONTHLY GOAL",lineCount:5,style:{}},
+  {id:"master.planner.weekly",type:"memo",role:"weekly-planner",x:52,y:22,width:42,height:66,zIndex:2,title:"WEEKLY PLANNER",lineCount:10,style:{}},
+  {id:"master.planner.todo",type:"memo",role:"monthly-todo",x:6,y:55,width:42,height:33,zIndex:2,title:"TO DO · MEMO",lineCount:6,style:{}}
+ ]:[
+  {id:"master.collage.large",type:"image-frame",role:"monthly-image",x:5,y:6,width:57,height:58,zIndex:1,image:{binding:"calendar.monthlyImages.current",fit:"cover",focalPoint:{x:.5,y:.5}},fit:"cover",style:{borderRadius:3}},
+  {id:"master.collage.small-a",type:"image-frame",role:"monthly-image-secondary",x:65,y:6,width:30,height:27,zIndex:1,image:{binding:"calendar.monthlyImages.current",fit:"cover",focalPoint:{x:.25,y:.5}},fit:"cover",style:{borderRadius:3}},
+  {id:"master.collage.small-b",type:"image-frame",role:"monthly-image-tertiary",x:65,y:37,width:30,height:27,zIndex:1,image:{binding:"calendar.monthlyImages.current",fit:"cover",focalPoint:{x:.75,y:.5}},fit:"cover",style:{borderRadius:3}},
+  {id:"master.collage.strip",type:"month-date-strip",role:"month-date-strip",x:5,y:72,width:90,height:20,zIndex:2,monthSource:"page",showWeekday:true,showDate:true,style:{background:true}}
+ ];
+ const coverBack=p.book.pageInstances.find(page=>page.role==="cover-back");
+ if(coverBack){coverBack.semanticPageRole="yearly-calendar";p.book.elementsByPage[coverBack.id]=[{id:"page.yearly",type:"year-calendar",role:"year-calendar",x:6,y:8,width:88,height:84,zIndex:1,startMonth:opts.startMonth,columns:4,style:{}}]}
+ const symbolPage=p.book.pageInstances.find(page=>page.role==="back-cover-front");
+ if(symbolPage){symbolPage.semanticPageRole="school-symbols";p.book.elementsByPage[symbolPage.id]=[
+  {id:"page.symbols.motto",type:"semantic-object",role:"school-motto",x:5,y:10,width:43,height:35,zIndex:1,binding:"school.profile.motto",bindingEnabled:true,fallbackToSample:true,sampleContent:{name:"교훈",description:"바르게 배우고 함께 성장합니다."},style:{}},
+  {id:"page.symbols.song",type:"semantic-object",role:"school-song",x:52,y:10,width:43,height:35,zIndex:1,binding:"school.profile.song",bindingEnabled:true,fallbackToSample:true,sampleContent:{name:"교가",description:"우리 학교 교가"},style:{}},
+  {id:"page.symbols.tree",type:"semantic-object",role:"school-tree",x:5,y:52,width:43,height:35,zIndex:1,binding:"school.profile.tree",bindingEnabled:true,fallbackToSample:true,showCaption:true,sampleContent:{name:"교목",description:"곧은 마음과 푸른 꿈"},style:{}},
+  {id:"page.symbols.flower",type:"semantic-object",role:"school-flower",x:52,y:52,width:43,height:35,zIndex:1,binding:"school.profile.flower",bindingEnabled:true,fallbackToSample:true,showCaption:true,sampleContent:{name:"교화",description:"아름다운 배움과 우정"},style:{}}
+ ]}
+ p.book.pageInstances.forEach((page,index)=>{
+  page.sequenceIndex=index;
+  if(page.role==="cover-front")page.semanticPageRole="cover-front";
+  if(page.role==="monthly-front"||page.role==="monthly-back"){
+   const monthKey=`${page.calendarYear}-${String(page.calendarMonth).padStart(2,"0")}`;
+   page.semanticPageRole=page.role==="monthly-front"?"month-calendar":"month-back";page.monthKey=monthKey;page.pairId=`month-pair.${monthKey}`;
+  }
+  if(page.role==="back-cover-back")page.semanticPageRole="back-cover";
+ });
+ const palette=["#315e9e","#4777bd","#2e8b72","#4c8f3a","#b57b23","#c05a4f","#a64f78","#7459a8","#3f769e","#50806b","#9a6a45","#526487"];
+ p.book.monthlyStyleOverrides=months.map((page,index)=>({monthKey:page.monthKey,tokens:{primary:palette[index],accent:palette[index],calendarHeader:palette[index]}}));
+ p.book.monthlyImages=Object.fromEntries(months.map(page=>[page.monthKey,""]));
+ return p
+}
 function makeProject(opts){
  const months=monthSequence(opts.year,opts.startMonth),isDesk=opts.type==="desk",isPoster=opts.type==="poster";
  const preset=SIZE_PRESETS[opts.type].find(x=>x.id===opts.sizePresetId);
@@ -681,7 +754,7 @@ function makeProject(opts){
   specs.push(["back-cover-front",null,null]);
   let n=1;specs.forEach(([role,cal,insertIndex])=>p.book.pageInstances.push({id:`page.${n}`,number:n++,side:"front",role,insertIndex,masterId:role==="monthly-front"?"master.monthly.front":`master.${role}`,calendarYear:cal?.year||null,calendarMonth:cal?.month||null,overrides:{}}))
  }
- return p
+ return applyDeskRepresentativePreset(p,opts)
 }
 const __historyBinaryPool=new Map();let __historyBinarySeq=0;
 function __compactHistoryValue(value){
@@ -1524,10 +1597,10 @@ function setupInspectorTabs(){
 }
 
 function renderPage(){
- const p=selectedPage(),page=el("page"),ps=project.productType.pageSize;page.className=`page ${project.productType.category} ${isInsertPage(p)?"template-insert-page":""}`;page.style.aspectRatio=`${ps.width}/${ps.height}`;let html='<div class="binding"></div><div class="surface-content">';
+ const p=selectedPage(),page=el("page"),ps=project.productType.pageSize;page.className=`page ${project.productType.category} ${isInsertPage(p)?"template-insert-page":""}`;page.style.aspectRatio=`${ps.width}/${ps.height}`;const monthStyle=(project.book.monthlyStyleOverrides||[]).find(item=>item.monthKey===p.monthKey);page.style.setProperty("--month-primary",monthStyle?.tokens?.primary||"var(--acdl-primary)");let html='<div class="binding"></div><div class="surface-content">';
  if(p.role==="monthly-front"){
   const g=groupedEvents(),max=project.template.masters.calendar.eventMaxVisiblePerDay,title=p.overrides.monthTitle||`${p.calendarYear}년 ${p.calendarMonth}월`,cr=calendarRegion(),rows=Number(project.settings.calendarRows||6),grid=calendarGrid(p.calendarYear,p.calendarMonth);
-  html+=`<div id="calendarRegion" class="calendar-region ${calendarEditing?"editing":""}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%"><div class="month-title" style="font-size:${project.template.masters.calendar.monthTitleSize}px">${title}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
+  html+=`<div id="calendarRegion" class="calendar-region ${calendarEditing?"editing":""}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%"><div class="month-title" style="font-size:${project.template.masters.calendar.monthTitleSize}px;color:var(--month-primary)">${title}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
   weekDayHeaders().forEach(h=>html+=`<div class="cell head">${h}</div>`);
   const miniCells=rows===5&&project.settings.showAdjacentMiniCalendars?selectAdjacentMiniCells(grid,p.calendarMonth):[];
   grid.forEach((c,cellIndex)=>{
@@ -2145,6 +2218,21 @@ setUserWizardStep=function(step){
  if(userWizardStep===5)renderUserSummary();
  if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({selectedType:selectedCalendarType||selectedUserTemplate.type,template:selectedUserTemplate.template,step:userWizardStep});
 };
+window.el=el;
+window.SIZE_PRESETS=SIZE_PRESETS;
+window.makeProject=makeProject;
+window.render=render;
+window.renderPage=renderPage;
+window.renderFreeElements=renderFreeElements;
+window.renderNavigator=renderNavigator;
+window.renderSizeOptions=renderSizeOptions;
+window.graphicMarkup=graphicMarkup;
+window.resolveTextContent=resolveTextContent;
+window.setUserWizardStep=setUserWizardStep;
+Object.defineProperty(window,'project',{get:()=>project,set:value=>{project=value},configurable:true});
+Object.defineProperty(window,'selectedCalendarType',{get:()=>selectedCalendarType,set:value=>{selectedCalendarType=value},configurable:true});
+Object.defineProperty(window,'selectedUserTemplate',{get:()=>selectedUserTemplate,set:value=>{selectedUserTemplate=value},configurable:true});
+Object.defineProperty(window,'userWizardStep',{get:()=>userWizardStep,set:value=>{userWizardStep=value},configurable:true});
 async function openDesignerProjectFromRecord(t){
  if(!t)return;
  const transitionId=beginProjectTransition({clearProject:true});
@@ -2348,7 +2436,7 @@ const v24OldApplyUser=applyUserSchoolData;applyUserSchoolData=function(){v24OldA
 el("saveSchoolInfoBtn")?.addEventListener("click",()=>{if(!project)return;const contacts=readContacts(el("resourceContactEditor"));project.book.school.contacts=contacts;project.book.school.phone=contacts[0]?.phone||"";project.book.school.fax=contacts.find(c=>c.fax)?.fax||"";markDirty()},true);
 const v24OldUserSummary=renderUserSummary;renderUserSummary=function(){v24OldUserSummary();const contacts=readContacts(el("userContactEditor"));const row=[...el("userWizardSummary").querySelectorAll(".summary-row")].find(r=>r.querySelector("span")?.textContent==="연락처");if(row)row.querySelector("strong").textContent=contacts.length?contacts.map(c=>`${c.label} ${c.phone||c.fax||"미입력"}`).join(" · "):"미입력"};
 function ensureContactBindings(){if(!project)return;project.book.school.contacts ||= [];project.template.dataSlots ||= {};project.template.dataSlots.school={name:"school.name",englishName:"school.englishName",address:"school.address",website:"school.website",contacts:"school.contacts[]",motto:"school.profile.motto",song:"school.profile.song",building:"school.profile.building",logo:"school.profile.logo",flower:"school.profile.flower",tree:"school.profile.tree",events:"calendar.events"}}
-const v24Render=render;render=function(){ensureContactBindings();v24Render()};
+const v24Render=typeof window.render==='function'?window.render:render; if(typeof v24Render==='function')render=function(){ensureContactBindings();v24Render()};
 fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실"}]);
 
 
@@ -2380,8 +2468,8 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     let cursor=0,last=null;
     (prj.book?.pageInstances||[]).forEach(page=>{
       if(page.role==='monthly-front'){
-        const d=new Date(year,startMonth-1+cursor,1);page.calendarYear=d.getFullYear();page.calendarMonth=d.getMonth()+1;last={year:page.calendarYear,month:page.calendarMonth};cursor++;
-      }else if(page.role==='monthly-back'&&last){page.calendarYear=last.year;page.calendarMonth=last.month}
+        const d=new Date(year,startMonth-1+cursor,1);page.calendarYear=d.getFullYear();page.calendarMonth=d.getMonth()+1;page.monthKey=`${page.calendarYear}-${String(page.calendarMonth).padStart(2,'0')}`;page.pairId=`month-pair.${page.monthKey}`;last={year:page.calendarYear,month:page.calendarMonth,monthKey:page.monthKey,pairId:page.pairId};cursor++;
+      }else if(page.role==='monthly-back'&&last){page.calendarYear=last.year;page.calendarMonth=last.month;page.monthKey=last.monthKey;page.pairId=last.pairId}
       else if(page.role==='poster-annual'){page.calendarYear=year;page.calendarMonth=1}
     });
   }
@@ -2607,8 +2695,8 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
   function syncDates(prj,year,startMonth){
     let cursor=0,last=null;
     (prj.book?.pageInstances||[]).forEach(page=>{
-      if(page.role==='monthly-front'){const d=new Date(year,startMonth-1+cursor,1);page.calendarYear=d.getFullYear();page.calendarMonth=d.getMonth()+1;last={year:page.calendarYear,month:page.calendarMonth};cursor++}
-      else if(page.role==='monthly-back'&&last){page.calendarYear=last.year;page.calendarMonth=last.month}
+      if(page.role==='monthly-front'){const d=new Date(year,startMonth-1+cursor,1);page.calendarYear=d.getFullYear();page.calendarMonth=d.getMonth()+1;page.monthKey=`${page.calendarYear}-${String(page.calendarMonth).padStart(2,'0')}`;page.pairId=`month-pair.${page.monthKey}`;last={year:page.calendarYear,month:page.calendarMonth,monthKey:page.monthKey,pairId:page.pairId};cursor++}
+      else if(page.role==='monthly-back'&&last){page.calendarYear=last.year;page.calendarMonth=last.month;page.monthKey=last.monthKey;page.pairId=last.pairId}
       else if(page.role==='poster-annual'){page.calendarYear=year;page.calendarMonth=1}
     });
   }
@@ -2669,7 +2757,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
   const oldOpen=el('openObjectDrawerBtn')?.onclick;
   el('openObjectDrawerBtn')?.addEventListener('click',()=>setTimeout(renderBackgroundDrawer,0));
   const oldSwitch=switchResourcePage;switchResourcePage=function(page){oldSwitch(page);if(page==='school')renderBackgroundManager()};
-  const oldRenderV28=render;render=function(){oldRenderV28();renderBackgroundDrawer()};
+  const oldRenderV28=typeof window.render==='function'?window.render:render; if(typeof oldRenderV28==='function')render=function(){oldRenderV28();renderBackgroundDrawer()};
   renderBackgroundManager();renderBackgroundDrawer();
 
   // Range segments are clipped to the visible calendar month, never to adjacent-month cells.
@@ -2810,7 +2898,7 @@ function openWorkflow(kind){if(!project)return;activeWorkflow=kind;const map={sc
 function saveWorkflow(){if(activeWorkflow==='school'){snapshot();ensureSchoolProfile();const s=project.book.school;s.name=el('wfSchoolName').value.trim()||'학교명 미입력';s.englishName=el('wfSchoolEnglish').value.trim();s.slogan=el('wfSchoolSlogan').value.trim();s.address=el('wfSchoolAddress').value.trim();s.phone=el('wfSchoolPhone').value.trim();s.fax=el('wfSchoolFax').value.trim();s.website=el('wfSchoolWebsite').value.trim();recalculateBoundAutoSizes?.();markDirty();render();updateWorkflowProgress();showEditorToast('학교 정보를 저장하고 연결 개체에 적용했습니다.')}el('workflowModal').classList.add('hidden')}
 document.querySelectorAll('[data-workflow]').forEach(b=>b.onclick=()=>{const k=b.dataset.workflow;if(k==='preview')openFullPreview();else openWorkflow(k)});el('closeWorkflowBtn').onclick=el('workflowCancelBtn').onclick=()=>el('workflowModal').classList.add('hidden');el('workflowSaveBtn').onclick=saveWorkflow;el('closePreviewFocusBtn').onclick=()=>el('previewFocusModal').classList.add('hidden');
 el('previewCardSize').onchange=()=>{el('fullPreviewGrid').style.setProperty('--preview-card-min',el('previewCardSize').value+'px');requestAnimationFrame(()=>document.querySelectorAll('.full-preview-card').forEach(c=>fitFullPreviewPage(c.querySelector('.preview-only-page'),c.querySelector('.full-preview-stage'),Number(el('previewZoom').value))))};el('previewZoom').onchange=()=>document.querySelectorAll('.full-preview-card').forEach(c=>fitFullPreviewPage(c.querySelector('.preview-only-page'),c.querySelector('.full-preview-stage'),Number(el('previewZoom').value)));
-const v33OldRender=render;render=function(){v33OldRender();if(project?.mode==='calendar-workspace'){document.querySelector('#editorMenubar .menu-root:nth-child(2)')?.classList.add('hidden');const align=document.querySelector('#editorMenubar .menu-root:nth-child(3)>button');if(align)align.textContent='배치'}};
+const v33OldRender=typeof window.render==='function'?window.render:render; if(typeof v33OldRender==='function')render=function(){v33OldRender();if(project?.mode==='calendar-workspace'){document.querySelector('#editorMenubar .menu-root:nth-child(2)')?.classList.add('hidden');const align=document.querySelector('#editorMenubar .menu-root:nth-child(3)>button');if(align)align.textContent='배치'}};
 
 
 // v33.2: resilient full preview and recovery after preview/render errors.
@@ -2885,6 +2973,21 @@ const v33OldRender=render;render=function(){v33OldRender();if(project?.mode==='c
       alert(`템플릿을 열지 못했습니다: ${err?.message||err}`);
     }
   };
+  window.el=el;
+  window.SIZE_PRESETS=SIZE_PRESETS;
+  window.makeProject=makeProject;
+  window.render=render;
+  window.renderPage=renderPage;
+  window.renderFreeElements=renderFreeElements;
+  window.renderNavigator=renderNavigator;
+  window.renderSizeOptions=renderSizeOptions;
+  window.graphicMarkup=graphicMarkup;
+  window.resolveTextContent=resolveTextContent;
+  window.setUserWizardStep=setUserWizardStep;
+  Object.defineProperty(window,'project',{get:()=>project,set:value=>{project=value},configurable:true});
+  Object.defineProperty(window,'selectedCalendarType',{get:()=>selectedCalendarType,set:value=>{selectedCalendarType=value},configurable:true});
+  Object.defineProperty(window,'selectedUserTemplate',{get:()=>selectedUserTemplate,set:value=>{selectedUserTemplate=value},configurable:true});
+  Object.defineProperty(window,'userWizardStep',{get:()=>userWizardStep,set:value=>{userWizardStep=value},configurable:true});
   window.addEventListener('error',()=>{if(previewType==='template')hardResetPreviewState()});
   window.addEventListener('unhandledrejection',()=>{if(previewType==='template')hardResetPreviewState()});
 })();
@@ -2912,7 +3015,7 @@ body.user-mode .toolbar-scope{display:none!important}
 <script>
 /* ================= v32 WORKSPACE PERMISSIONS & UX ================= */
 (function(){
- const oldRender=render;
+ const oldRender=typeof window.render==='function'?window.render:(typeof render==='function'?render:null);
  function isWorkspace(){return project?.mode==='calendar-workspace'}
  function itemPermissions(item){return {...{move:true,resize:true,rotate:true,color:true,replaceImage:true,delete:true,duplicate:true,layer:true,content:true},...(item?.permissions||{})}}
  function canEditAction(item,action){
@@ -2961,7 +3064,7 @@ body.user-mode .toolbar-scope{display:none!important}
    const item=sourceElement();
    const del=el('deleteElementBtn');if(del)del.classList.toggle('permission-hidden',workspace&&item&&!canEditAction(item,'delete'));
  }
- render=function(){oldRender();updateWorkspaceChrome();addWorkspaceDecorations()};
+ if(oldRender)render=function(){oldRender();updateWorkspaceChrome();addWorkspaceDecorations()};
 
  const oldGraphicMarkup=graphicMarkup;
  graphicMarkup=function(view){
@@ -3424,11 +3527,11 @@ body.user-mode .editor-menubar:before{display:inline-flex;align-items:center;hei
  window.ACDLAssetStore={storeImage,formatBytes,openDB};
  function roughSize(v){try{return new Blob([JSON.stringify(v)]).size}catch{return 0}}
  function ensureMonitor(){let m=document.getElementById('v361MemoryMonitor');if(m)return m;m=document.createElement('aside');m.id='v361MemoryMonitor';m.innerHTML='<strong><span>프로젝트 메모리</span><span id="v361Total">0 MB</span></strong><div class="bar"><span></span></div><small id="v361Detail">계산 중…</small>';document.body.appendChild(m);const status=document.getElementById('saveStatus');if(status&&!document.getElementById('v361Badge')){const b=document.createElement('span');b.id='v361Badge';b.className='v361-badge';b.textContent='v36.1 안정화';status.after(b)}return m}
- function update(){const m=ensureMonitor(),projectBytes=roughSize(window.project||project),historyBytes=(Array.isArray(history)?history:[]).reduce((a,x)=>a+(x?.length||0)*2,0),poolBytes=window.__historyBinaryPool?[...window.__historyBinaryPool.values()].reduce((a,x)=>a+(x?.length||0)*2,0):0,total=projectBytes+historyBytes+poolBytes;m.querySelector('#v361Total').textContent=formatBytes(total);m.querySelector('#v361Detail').textContent=`프로젝트 ${formatBytes(projectBytes)} · 실행 취소 ${formatBytes(historyBytes)} · 이미지 풀 ${formatBytes(poolBytes)}`;m.querySelector('.bar span').style.width=`${Math.min(100,total/(200*1024*1024)*100)}%`;m.classList.toggle('warn',total>160*1024*1024)}
+ function update(){const m=ensureMonitor(),currentProject=typeof window.project!=='undefined'&&window.project?window.project:(typeof project!=='undefined'?project:null),projectBytes=roughSize(currentProject),historyBytes=(Array.isArray(history)?history:[]).reduce((a,x)=>a+(x?.length||0)*2,0),poolBytes=window.__historyBinaryPool?[...window.__historyBinaryPool.values()].reduce((a,x)=>a+(x?.length||0)*2,0):0,total=projectBytes+historyBytes+poolBytes;m.querySelector('#v361Total').textContent=formatBytes(total);m.querySelector('#v361Detail').textContent=`프로젝트 ${formatBytes(projectBytes)} · 실행 취소 ${formatBytes(historyBytes)} · 이미지 풀 ${formatBytes(poolBytes)}`;m.querySelector('.bar span').style.width=`${Math.min(100,total/(200*1024*1024)*100)}%`;m.classList.toggle('warn',total>160*1024*1024)}
  window.__acdlUpdateMemoryMonitor=update;setTimeout(update,200);setInterval(update,5000);
- async function saveRecovery(){if(!window.project&&!project)return;try{const compact=typeof __compactHistoryValue==='function'?__compactHistoryValue(window.project||project):(window.project||project);await txPut('recovery',{id:'latest',project:compact,selectedPageId:window.selectedPageId||selectedPageId,updatedAt:new Date().toISOString()});const s=document.getElementById('saveStatus');if(s&&s.textContent.includes('변경'))s.title='자동 복구본이 저장되었습니다.'}catch(err){console.warn('자동 복구 저장 실패',err)}}
+ async function saveRecovery(){const currentProject=typeof window.project!=='undefined'&&window.project?window.project:(typeof project!=='undefined'?project:null);if(!currentProject)return;try{const compact=typeof __compactHistoryValue==='function'?__compactHistoryValue(currentProject):currentProject;await txPut('recovery',{id:'latest',project:compact,selectedPageId:window.selectedPageId||selectedPageId,updatedAt:new Date().toISOString()});const s=document.getElementById('saveStatus');if(s&&s.textContent.includes('변경'))s.title='자동 복구본이 저장되었습니다.'}catch(err){console.warn('자동 복구 저장 실패',err)}}
  setInterval(saveRecovery,30000);window.addEventListener('beforeunload',()=>{saveRecovery()});
- const oldRender=window.render;if(oldRender)window.render=function(){const r=oldRender.apply(this,arguments);requestAnimationFrame(update);return r};
+ const oldRender=typeof window.render==='function'?window.render:null;if(oldRender)window.render=function(){const r=oldRender.apply(this,arguments);requestAnimationFrame(update);return r};
  const closeBtn=document.getElementById('closeFullPreviewBtn');closeBtn?.addEventListener('click',()=>{document.getElementById('fullPreviewGrid')?.replaceChildren();document.getElementById('previewFocusBody')?.replaceChildren();update()});
 })();
 </script>
@@ -3546,8 +3649,8 @@ body.user-mode .menu-root[data-workspace-hidden="false"]:focus-within .editor-me
     document.querySelectorAll('.menu-root').forEach(root=>{if(root.querySelector(':scope>button')?.textContent?.trim()==='삽입')root.dataset.workspaceHidden='false'});
     document.querySelectorAll('[data-open-library]').forEach(btn=>{btn.style.removeProperty('display');btn.disabled=false});
   }
-  const oldRender=render;render=function(){const out=oldRender.apply(this,arguments);unlockSingleSurfaceInsert();return out};
-  const oldEnterUser=enterUser;enterUser=function(){const out=oldEnterUser.apply(this,arguments);setTimeout(unlockSingleSurfaceInsert,0);return out};
+  const oldRender=typeof window.render==='function'?window.render:render; if(typeof oldRender==='function')render=function(){const out=oldRender.apply(this,arguments);unlockSingleSurfaceInsert();return out};
+  const oldEnterUser=typeof enterUser==='function'?enterUser:null; if(oldEnterUser)enterUser=function(){const out=oldEnterUser.apply(this,arguments);setTimeout(unlockSingleSurfaceInsert,0);return out};
 
   renderUserTemplateChoices();
   updateSetupFields();
@@ -3603,7 +3706,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   ensurePostcardModel();
   const pageNode=$('page');if(pageNode)pageNode.dataset.productType=type||'';
  }
- const prevRender=render;render=function(){const r=prevRender.apply(this,arguments);requestAnimationFrame(refreshTypeEditing);return r};
+ const prevRender=typeof window.render==='function'?window.render:render; if(typeof prevRender==='function')render=function(){const r=prevRender.apply(this,arguments);requestAnimationFrame(refreshTypeEditing);return r};
  $('openObjectDrawerBtn')?.addEventListener('click',()=>{refreshTypeEditing();$('objectDrawer')?.classList.remove('hidden');renderObjectRecommendations?.();renderRegisteredAssetLibrary?.()},true);
  // Existing projects loaded from JSON also receive the full postcard model.
  const oldNormalize=normalizeElementData;normalizeElementData=function(){const r=oldNormalize.apply(this,arguments);ensurePostcardModel();return r};
@@ -3690,8 +3793,10 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 </style>
 <script id="v371-release-candidate-runtime">
 (()=>{
- const $=id=>document.getElementById(id),KEY='acdl.calendarTypeDefinitions.v37';
+ const $=id=>document.getElementById(id),KEY='acdl.calendarTypeDefinitions.v37',DESK_SAMPLE_MIGRATION_KEY='acdl.deskSamples.v2';
  const starterCatalog=[
+  {id:'desk-sample-6',name:'탁상형 6번 · 월별 플래너형'},
+  {id:'desk-sample-2',name:'탁상형 2번 · 이미지 콜라주형'},
   {id:'school-basic',name:'학교 기본형'},
   {id:'minimal',name:'미니멀형'},
   {id:'photo',name:'사진형'},
@@ -3732,12 +3837,23 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   const sizes=(Array.isArray(d.sizes)&&d.sizes.length?d.sizes:builtinSizes[d.id]||[{id:`${d.id}-default`,name:`${d.name} 기본`,width:Number(d.width||148),height:Number(d.height||100),unit:'mm',recommended:true,note:'달력 유형 기본 크기'}]).map((s,i)=>({id:s.id||`${d.id}-size-${i+1}`,name:s.name||s.label||`크기 ${i+1}`,width:Number(s.width),height:Number(s.height),unit:s.unit||'mm',recommended:!!s.recommended,note:s.note||''}));
   if(!sizes.some(s=>s.recommended)&&sizes[0])sizes[0].recommended=true;
   const rec=sizes.find(s=>s.recommended)||sizes[0];
-  return {...d,width:rec?.width||d.width,height:rec?.height||d.height,sizes,starterTemplates:Array.isArray(d.starterTemplates)&&d.starterTemplates.length?d.starterTemplates:['school-basic','minimal','blank']};
+  const savedStarters=Array.isArray(d.starterTemplates)&&d.starterTemplates.length?d.starterTemplates:['school-basic','minimal','blank'];
+  const requiredStarters=d.id==='desk'?['desk-sample-6','desk-sample-2']:[];
+  const starterTemplates=[...requiredStarters,...savedStarters.filter(id=>!requiredStarters.includes(id))];
+  return {...d,width:rec?.width||d.width,height:rec?.height||d.height,sizes,starterTemplates};
  }
  function saveDefs(defs){localStorage.setItem(KEY,JSON.stringify(defs.map(normalizeDef)));window.ACDLCalendarTypeDefinitions=defs.map(normalizeDef);syncRuntimeFromDefinitions()}
  function migrate(){
   const defs=readDefs();
   if(!defs.length)return;
+  if(!localStorage.getItem(DESK_SAMPLE_MIGRATION_KEY)){
+   const desk=defs.find(d=>d.id==='desk');
+   if(desk){
+    const current=Array.isArray(desk.starterTemplates)?desk.starterTemplates:[];
+    desk.starterTemplates=['desk-sample-6','desk-sample-2',...current.filter(id=>!['desk-sample-6','desk-sample-2'].includes(id))]
+   }
+   localStorage.setItem(DESK_SAMPLE_MIGRATION_KEY,'1')
+  }
   saveDefs(defs)
  }
  function activeDefinition(){return readDefs().map(normalizeDef).find(d=>d.id===$('tmId')?.value)||null}
@@ -3779,7 +3895,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   $('typeManagerOverlay')?.classList.add('hidden');$('designerHome')?.classList.remove('hidden');$('setup')?.classList.add('hidden');$('templateLibraryModal')?.classList.add('hidden')
  }
  function updateStarterTemplateOptions(typeId){
-  const select=$('setupTemplate');if(!select)return;const d=readDefs().map(normalizeDef).find(x=>x.id===typeId);const ids=d?.starterTemplates?.length?d.starterTemplates:['school-basic','minimal'];const current=select.value;select.innerHTML=starterCatalog.filter(x=>ids.includes(x.id)).map(x=>`<option value="${x.id}">${x.name}</option>`).join('');if([...select.options].some(o=>o.value===current))select.value=current
+  const select=$('setupTemplate');if(!select)return;const d=readDefs().map(normalizeDef).find(x=>x.id===typeId);const fallback=typeId==='desk'?['desk-sample-6','desk-sample-2','school-basic','minimal']:['school-basic','minimal'];const ids=d?.starterTemplates?.length?d.starterTemplates:fallback;const required=typeId==='desk'?['desk-sample-6','desk-sample-2']:[];const visibleIds=[...required,...ids.filter(id=>!required.includes(id))];const current=select.value;select.innerHTML=starterCatalog.filter(x=>visibleIds.includes(x.id)).map(x=>`<option value="${x.id}">${x.name}</option>`).join('');if([...select.options].some(o=>o.value===current))select.value=current
  }
  migrate();ensureManagerSections();syncRuntimeFromDefinitions();
  $('designerHomeTypes')?.addEventListener('click',()=>setTimeout(()=>fillEnhancements(activeDefinition()),0));
@@ -3847,7 +3963,15 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  let gesture=null;
  const key=(id,scope)=>`${scope}:${id}`;
  const selectedViews=()=>[...selection].map(k=>{const [scope,...rest]=k.split(':');const id=rest.join(':');const arr=scope==='master'?masterElements():pageElements();const item=arr.find(x=>x.id===id);return item?{item,scope,id}:null}).filter(Boolean);
- const syncPrimary=()=>{if(selectedElementId&&selectedElementScope)selection.add(key(selectedElementId,selectedElementScope));else selection.clear()};
+ const syncPrimary=()=>{
+  if(!selectedElementId||!selectedElementScope){selection.clear();return}
+  const primaryKey=key(selectedElementId,selectedElementScope);
+  for(const selectedKey of selection){
+   const [scope,...rest]=selectedKey.split(':'),id=rest.join(':');
+   if(!getItem(id,scope))selection.delete(selectedKey)
+  }
+  if(!selection.has(primaryKey)){selection.clear();selection.add(primaryKey)}
+ };
  const setPrimary=(id,scope)=>{selectedElementId=id;selectedElementScope=scope};
  function selectOnly(id,scope){selection.clear();selection.add(key(id,scope));setPrimary(id,scope)}
  function toggleSelection(id,scope){const k=key(id,scope);if(selection.has(k)){selection.delete(k);if(selectedElementId===id&&selectedElementScope===scope){const next=[...selection][0];if(next){const [s,...r]=next.split(':');setPrimary(r.join(':'),s)}else setPrimary(null,null)}}else{selection.add(k);setPrimary(id,scope)}}

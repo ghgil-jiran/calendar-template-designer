@@ -87,13 +87,15 @@ tools/                           실행 및 회귀 검사 도구
 ## 문서 읽기 순서
 
 1. [제품 비전](./docs/product/00-VISION.md)
-2. [현재 제품 범위](./docs/product/01-PRODUCT.md)
-3. [플랫폼 아키텍처](./docs/architecture/01-PLATFORM-ARCHITECTURE.md)
-4. [도메인 모델](./docs/domain/02-domain-model.md)
-5. [로드맵](./ROADMAP.md)
-6. [버전 관리 정책](./docs/release/VERSIONING-STRATEGY.md)
-7. [Beta 릴리스 노트](./docs/release/V1-BETA-RELEASE-NOTES.md)
-8. [알려진 제한](./docs/release/KNOWN-ISSUES.md)
+2. [전체 개발 방향](./docs/product/03-OVERALL-DEVELOPMENT-DIRECTION.md)
+3. [현재 제품 범위](./docs/product/01-PRODUCT.md)
+4. [탁상형·벽보형 샘플 기능 매트릭스](./docs/product/02-V2-SAMPLE-FEATURE-MATRIX.md)
+5. [v2 공통 Schema 및 Runtime 개편 명세](./docs/architecture/04-V2-SCHEMA-RUNTIME-SPEC.md)
+6. [플랫폼 아키텍처](./docs/architecture/01-PLATFORM-ARCHITECTURE.md)
+7. [도메인 모델](./docs/domain/02-domain-model.md)
+8. [로드맵](./ROADMAP.md)
+9. [Beta 릴리스 노트](./docs/release/V1-BETA-RELEASE-NOTES.md)
+10. [알려진 제한](./docs/release/KNOWN-ISSUES.md)
 
 ## 현재 릴리스
 

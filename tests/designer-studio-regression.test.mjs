@@ -7,6 +7,11 @@ import vm from 'node:vm';
 const htmlPath = path.resolve('apps/designer-studio/index.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
 
+test('new template setup covers the editor chrome and remains scrollable on short screens', () => {
+  assert.match(html, /\.setup\{[^}]*z-index:200[^}]*overflow:auto/);
+  assert.match(html, /\.setup-card\{[^}]*max-height:calc\(100dvh - 36px\)[^}]*overflow:auto/);
+});
+
 test('object drawer clears both editor menu rows and keeps calendar objects in Basic after template images', () => {
   assert.match(html, /\.object-drawer\{position:fixed;top:128px;[^}]*height:calc\(100vh - 128px\)/);
   assert.match(html, /id="calendarObjectSection" class="object-section" data-library-section="basic"/);
@@ -75,6 +80,15 @@ test('wizard primary action styling stays visible without design tokens', () => 
   assert.match(html, /\.wizard-actions button\.primary\{[^}]*color:\s*#fff/, 'primary wizard button should use white text');
   assert.match(html, /\.wizard-actions button\.primary:hover\{[^}]*background:\s*#1d4ed8/, 'primary wizard button should use a hover state');
   assert.match(html, /--accent:\s*var\(--acds-primary,\s*#2563eb\)/, 'wizard styles should define an accent fallback token');
+});
+
+test('desk sample templates remain visible after the type definition options are rebuilt', () => {
+  assert.match(html, /\{id:'desk-sample-6',name:'탁상형 6번 · 월별 플래너형'\}/);
+  assert.match(html, /\{id:'desk-sample-2',name:'탁상형 2번 · 이미지 콜라주형'\}/);
+  assert.match(html, /DESK_SAMPLE_MIGRATION_KEY='acdl\.deskSamples\.v2'/);
+  assert.match(html, /desk\.starterTemplates=\['desk-sample-6','desk-sample-2',\.\.\.current\.filter/);
+  assert.match(html, /requiredStarters=d\.id==='desk'\?\['desk-sample-6','desk-sample-2'\]:\[\]/);
+  assert.match(html, /required=typeId==='desk'\?\['desk-sample-6','desk-sample-2'\]:\[\]/);
 });
 
 test('wizard helper can reset step and selection state for a fresh flow', () => {
