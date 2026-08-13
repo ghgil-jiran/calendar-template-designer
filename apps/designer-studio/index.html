@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Calendar Template Designer v2.0 Alpha</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><script src="./template-catalog.js"></script>
+<title>Calendar Template Designer v2.0 Alpha</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><script src="./calendar-domain-bridge.js"></script><script src="./template-catalog.js"></script>
 <script src="./wizard-flow.js"></script>
 <style>
 :root{--bg:var(--acds-canvas,#f6f8fb);--panel:var(--acds-surface,#fff);--line:var(--acds-border,#e2e8f0);--text:var(--acds-text-strong,#0f172a);--muted:var(--acds-text-muted,#64748b);--accent:var(--acds-primary,#2563eb);--soft:var(--acds-primary-soft,#eff6ff);--danger:var(--acds-error,#dc2626);--ok:var(--acds-success,#027a48);--warn:var(--acds-warning,#d97706)}
@@ -688,7 +688,7 @@ function updateSetupFields(){const type=el("setupType").value;document.querySele
 el("setupType").addEventListener("change",updateSetupFields);el("setupSize").addEventListener("change",updateSizeNote);updateSetupFields();
 
 function monthSequence(year,startMonth){
- const out=[];for(let i=0;i<12;i++){const d=new Date(year,startMonth-1+i,1);out.push({year:d.getFullYear(),month:d.getMonth()+1})}return out
+ return window.ACDLCalendarDomain.buildTwelveMonths(year,startMonth)
 }
 function applyDeskRepresentativePreset(p,opts){
  if(opts.type!=="desk"||!["desk-sample-6","desk-sample-2"].includes(opts.template))return p;

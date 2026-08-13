@@ -8,6 +8,7 @@ const port = Number(process.env.PORT || 3000);
 const mime = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json; charset=utf-8', '.svg':'image/svg+xml', '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg' };
 const studioEntry = 'apps/designer-studio/index.html';
 const studioAssetAliases = new Map([
+  ['/calendar-domain-bridge.js', 'apps/designer-studio/calendar-domain-bridge.js'],
   ['/template-catalog.js', 'apps/designer-studio/template-catalog.js'],
   ['/wizard-flow.js', 'apps/designer-studio/wizard-flow.js'],
   ['/template-library-runtime.js', 'apps/designer-studio/template-library-runtime.js']

@@ -6,7 +6,10 @@
 [![Release](https://img.shields.io/badge/release-2.0.0--alpha.1-blue)](./docs/release/V1-BETA-RELEASE-NOTES.md)
 [![Status](https://img.shields.io/badge/status-v2%20alpha-orange)](./docs/release/KNOWN-ISSUES.md)
 
-이 저장소는 학교 학사달력의 **템플릿 제작, 사용자 데이터 적용, 화면 미리보기, 인쇄용 출력**을 하나의 계약과 Runtime으로 연결하기 위한 프로젝트입니다.
+이 저장소는 **달력 템플릿 에디터**의 템플릿 제작 기능과 **학사달력 에디터 서비스**의 사용자 데이터 적용, 화면 미리보기, 인쇄용 출력을 하나의 계약과 Runtime으로 연결하기 위한 프로젝트입니다.
+
+- 정식 명칭: **달력 템플릿 에디터** · 별칭: 템플릿 에디터 · 기존 코드명: Designer Studio
+- 정식 명칭: **학사달력 에디터 서비스** · 별칭: 학사달력 사용자 서비스, 사용자 서비스 · 기존 코드명: Calendar Workspace
 
 현재 브랜치는 실전 학사달력 샘플을 기준으로 공통 Schema·Runtime·Inspector·자산 관리 구조를 검증하는 **v2 Alpha**입니다. v2 구조 개선 전 기준 코드는 `release/v1.0.0-mvp` 브랜치에 보존합니다.
 
@@ -91,11 +94,12 @@ tools/                           실행 및 회귀 검사 도구
 3. [현재 제품 범위](./docs/product/01-PRODUCT.md)
 4. [탁상형·벽보형 샘플 기능 매트릭스](./docs/product/02-V2-SAMPLE-FEATURE-MATRIX.md)
 5. [v2 공통 Schema 및 Runtime 개편 명세](./docs/architecture/04-V2-SCHEMA-RUNTIME-SPEC.md)
-6. [플랫폼 아키텍처](./docs/architecture/01-PLATFORM-ARCHITECTURE.md)
-7. [도메인 모델](./docs/domain/02-domain-model.md)
-8. [로드맵](./ROADMAP.md)
-9. [Beta 릴리스 노트](./docs/release/V1-BETA-RELEASE-NOTES.md)
-10. [알려진 제한](./docs/release/KNOWN-ISSUES.md)
+6. [달력 템플릿 에디터 구조 분리 계획](./docs/architecture/05-DESIGNER-STUDIO-MODULARIZATION.md)
+7. [플랫폼 아키텍처](./docs/architecture/01-PLATFORM-ARCHITECTURE.md)
+8. [도메인 모델](./docs/domain/02-domain-model.md)
+9. [로드맵](./ROADMAP.md)
+10. [Beta 릴리스 노트](./docs/release/V1-BETA-RELEASE-NOTES.md)
+11. [알려진 제한](./docs/release/KNOWN-ISSUES.md)
 
 ## 현재 릴리스
 

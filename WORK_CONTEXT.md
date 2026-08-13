@@ -2,30 +2,29 @@
 
 ## 현재 프로젝트
 
-Calendar Template Designer / Calendar Publishing Platform Core Engine
+달력 템플릿 에디터 / 학사달력 에디터 서비스 통합 기반
 
 ## 현재 기준
 
-- 작업 브랜치: `v2-development`
-- 복구 전 기준 커밋: `a6c78e7`
+- 작업 브랜치: `refactor/designer-structure-phase1`
+- 시작 기준: GitHub `main`의 PR #5 병합 커밋 `d5784ae`
 - 제품 버전: `2.0.0-alpha.1`
 - Template Runtime: `1.0.0-beta.1`
 - 주요 편집 화면: `apps/designer-studio/index.html`
+- 기존 로컬 `v2-development`의 갈라진 작업은 별도 폴더에 보존
 - 우리학교인쇄 운영 서버에는 아직 배포하지 않음
 
-## 2026-08-12 작업 결과
+## 2026-08-13 작업 결과
 
-- Designer Studio의 손상된 JavaScript 구간을 정상 이력 기준으로 복원
-- 기본 설정, 학교 정보, 색상·폰트, Master, 일정 분류, 출력 설정 저장 처리 복원
-- 월력 편집 버튼의 단일 전환 처리 복원
-- 처음 화면으로 돌아갈 때 이전 프로젝트를 초기화하는 처리 복원
-- 표지 Master 글자 크기를 모든 표지 학교명에 적용하는 처리 복원
-- 새 개체를 선택할 때 이전 다중 선택이 남아 다른 개체까지 함께 이동하던 오류 수정
-- 유효하지 않은 선택값을 자동으로 정리하고, 정상적인 다중 선택은 유지
-- 선택 상태 오류 재발 방지 검사 추가
-- 인라인 JavaScript 19개 구문 검사 통과
-- Designer Studio 회귀검사 57개 전체 통과
-- 전체 `npm run build` 통과
+- 정식 명칭과 별칭을 README와 전체 개발 방향에 반영
+- `docs/architecture/05-DESIGNER-STUDIO-MODULARIZATION.md`에 구조 분리 기준 작성
+- Template, Dataset, 사용자 프로젝트, ResolvedDocument의 데이터 소유권 구분
+- `index.html`의 기능별 목표 위치와 단계별 이동 순서 기록
+- 사용자 서비스 v1.1 UI·인쇄 결과·음력·24절기·공휴일 처리 보존 원칙 기록
+- 학사연도 12개월 순서 계산을 `calendar-domain-bridge.js`로 처음 분리
+- 연도 전환과 잘못된 시작월 회귀 검사 추가
+- 기존 UI와 사용자 동작은 변경하지 않음
+- Designer Studio 회귀검사 58개, 인라인 JavaScript 19개, 전체 빌드 통과
 
 ## 표준 검증
 
@@ -36,21 +35,18 @@ Calendar Template Designer / Calendar Publishing Platform Core Engine
 
 ## 보존 원칙
 
-- 기존 Designer Studio 화면과 기능을 starter 예제로 교체하지 않는다.
+- 달력 템플릿 에디터 화면과 기능을 구조 개선 중 변경하지 않는다.
+- 학사달력 에디터 서비스 v1.1의 UI·사용 흐름·인쇄 결과를 기준선으로 보존한다.
 - `apps/designer-studio/index.html`을 현재 제품 UI의 기준으로 유지한다.
 - schoolp 디자인 토큰은 별도 요청 전까지 적용하지 않는다.
 - 인증, 결제, 개인정보, 운영 DB, 주문 서버 연동은 자동 변경하지 않는다.
-- 복구 변경은 `v2-development` 브랜치에 저장하며, 이후 작업도 이 브랜치에서 이어간다.
+- 구조 개선은 기능 추가와 섞지 않고 전용 브랜치에서 진행한다.
+- 대표 탁상형 통합이 검증될 때까지 다른 달력 유형 확장을 진행하지 않는다.
 
 ## 다음 할 일
 
-1. 노트북에서 `Fetch origin` 후 최신 작업을 Pull
-2. 로컬 브라우저에서 기존 개체 선택 → 새 개체 추가 → 새 개체 이동 순서로 확인
-3. 새 개체만 이동하고 기존 개체 위치가 유지되는지 확인
-4. 이후 기존 기능 개발 재개
-
-## 후속 구조 개선
-
-- 약 4천 줄 규모의 `apps/designer-studio/index.html`을 기능별로 단계적으로 분리한다.
-- 우선 분리 대상은 Preview, Wizard, Template Library, Editor Interaction이다.
-- 구조 개선은 기능 추가와 섞지 않고 별도 작업으로 진행한다.
+1. 월력 셀 계산의 현재 결과를 경계 사례 테스트로 고정
+2. 기간 일정의 주간 분할과 lane 계산 결과를 테스트로 고정
+3. 위 순수 계산을 `calendar-domain`으로 옮기고 화면 결과 비교
+4. 대표 탁상형 Template Package의 manifest·binding·print 계약 확정
+5. 이후 Project, Canvas, Inspector, Preview, Persistence 순서로 한 영역씩 분리
