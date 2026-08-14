@@ -1,6 +1,6 @@
 # 대표 탁상형 템플릿 기준 선택
 
-- 상태: v1.1 구조 기준 자동검사 통과, 브라우저 육안 승인·인쇄 Parity 전
+- 상태: v1.1 대표 3면 브라우저 육안 확인 완료, PDF/X-4 인쇄 Parity 전
 - Template Package: `desk-academic-standard@1.0.0`
 - 달력 템플릿 에디터 출발점: `desk-sample-2`
 - 사용자 서비스 비교 기준: `ghgil-jiran/-v1.1`의 `integration/runtime-v2`
@@ -90,7 +90,11 @@
 
 전용 QA 화면은 `apps/designer-studio/desk-academic-visual-parity.html`이다. `node tools/serve-designer-studio.mjs` 실행 후 해당 경로를 열면 대표 월력, 사진+메모, 끝지 연락처를 실제 mm 좌표와 비율로 확인할 수 있다.
 
-Package 상태는 `visual-review-ready`로 올렸지만 `publishable`은 계속 `false`다. 사용자 서비스 v1.1과의 브라우저 육안 비교 및 PDF/X-4 인쇄 비교가 끝나야 배포 가능 상태를 검토한다.
+제품 책임자의 대표 월력·사진+메모·끝지 연락처 확인은 `parity.json`에 별도 승인 기록으로 남긴다. 자동 구조검사와 승인 기록이 모두 있을 때만 `visuallyApproved`가 true가 되며, 화면 확인만으로 인쇄 승인까지 확장하지 않는다.
+
+`desk-academic-print-parity.js`는 v1.1 최종 인수 브리핑의 PDF/X-4, 제작 266×186mm, 재단 260×180mm, 도련 3mm, Japan Color 2011 Coated, 재단선 0.540pt, K100, 서체 아웃라인, TrimBox/BleedBox를 독립적으로 검사한다. 과거 문서와 스크립트 주석에 남은 PDF/X-3 표현은 최종 통합 기준으로 사용하지 않는다.
+
+Package 상태는 `print-review-ready`로 올렸지만 `publishable`은 계속 `false`다. 인쇄 계약은 일치하지만 실제 사용자 서비스 v1.1 PDF와 Runtime PDF, Preflight 결과가 아직 없으므로 `outputApproved`는 false다.
 
 ## 아직 하지 않는 일
 
@@ -104,7 +108,7 @@ Package 상태는 `visual-review-ready`로 올렸지만 `publishable`은 계속 
 
 현재 소스에서 표지·연간·학교 상징·월력·이미지 콜라주의 frame과 binding을 `template.json`에 추출했다. 이미지 Binding은 현재 소스 경로와 목표 Dataset 경로가 다르므로 둘을 함께 기록하고 자동 치환하지 않았다.
 
-1. 전용 QA 화면에서 대표 3면을 브라우저로 열어 사용자 서비스 v1.1과 육안 비교한다.
-2. 5행 병기 셀, 텍스트, 일정, 이미지 결과를 고정 기준 이미지로 채택할지 승인한다.
-3. 사용자 서비스의 PDF/X-4 파이프라인으로 샘플을 출력해 인쇄 Parity를 확인한다.
-4. 시각·인쇄 결과가 모두 일치한 뒤 `publishable` 상태를 검토한다.
+1. 사용자 서비스 v1.1에서 대표 PDF/X-4 샘플을 확보한다.
+2. 동일 데이터의 Shadow Runtime PDF 샘플을 생성한다.
+3. 양쪽 PDF의 페이지 크기·Box·ICC·재단선·K100·서체·메타를 Preflight로 대조한다.
+4. 인쇄 결과까지 일치한 뒤 `publishable` 상태를 검토한다.

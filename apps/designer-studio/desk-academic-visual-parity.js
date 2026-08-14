@@ -31,7 +31,7 @@
     return metrics;
   }
 
-  function compare(document) {
+  function compare(document, approval) {
     const pages = document?.pages || [];
     const metrics = pages.map(inspectPage);
     const issues = [];
@@ -49,7 +49,8 @@
       if (item.lines !== 7) issues.push({ code: 'VISUAL_MEMO_LINES', index, expected: 7, actual: item.lines });
       if (item.drawnLines !== 6) issues.push({ code: 'VISUAL_MEMO_DRAWN_LINES', index, expected: 6, actual: item.drawnLines });
     });
-    return { schemaVersion: 'desk-academic-visual-parity.v1', reference: REFERENCE, metrics, issues, structurallyReady: issues.length === 0, visuallyApproved: false };
+    const visuallyApproved = issues.length === 0 && approval?.visual?.status === 'approved';
+    return { schemaVersion: 'desk-academic-visual-parity.v1', reference: REFERENCE, metrics, issues, structurallyReady: issues.length === 0, visuallyApproved, approval: approval?.visual || null };
   }
 
   root.ACDLDeskAcademicVisualParity = Object.freeze({ REFERENCE, inspectPage, compare });

@@ -18,6 +18,8 @@ assert.equal(parity.REFERENCE.productionSize.height, 186);
 assert.equal(report.structurallyReady, true);
 assert.equal(report.visuallyApproved, false);
 assert.deepEqual(report.issues, []);
+const approved = parity.compare({ pageCount: 28, pages }, { visual: { status: 'approved' } });
+assert.equal(approved.visuallyApproved, true);
 
 const broken = parity.compare({ pages: pages.map((page, index) => index === 3 ? { ...page, html: page.html.replace('data-calendar-rows="5"', 'data-calendar-rows="6"') } : page) });
 assert.ok(broken.issues.some(issue => issue.code === 'VISUAL_CALENDAR_ROWS'));

@@ -85,6 +85,16 @@
 - 전용 QA 입력에 저장소와 무관한 내장 학교 전경 샘플, 끝지 학교명 영역을 추가해 다음 육안 비교를 보완
 - 실제 프로젝트에서 사진이 비어 있는 경우에는 화면 전용 안내만 보이고 인쇄에서는 숨는 정책을 CSS로 명시
 
+## 2026-08-14 — 시각 승인 기록과 PDF/X-4 계약 검사
+
+- 제품 책임자의 보완된 대표 3면 브라우저 확인을 `parity.json`의 시각 승인으로 기록
+- 자동 구조검사와 별도 승인 기록이 모두 있을 때만 `visuallyApproved`가 true가 되도록 변경
+- 사용자 서비스 v1.1 최종 인수 브리핑에서 PDF/X-4 인쇄 확정값을 다시 확인
+- 제작 266×186mm, 재단 260×180mm, 도련 3mm, Japan Color 2011 Coated, 재단선 0.540pt, K100, 서체 아웃라인, TrimBox/BleedBox 계약 검사 추가
+- 과거 OPERATIONS 및 생성 스크립트 주석의 PDF/X-3 표현보다 최종 인수 브리핑의 PDF/X-4를 우선하는 기준 명시
+- 인쇄 계약 자동검사는 통과했지만 기준 PDF, Runtime PDF, Preflight 증거가 없어 `outputApproved: false` 유지
+- Package 상태를 `print-review-ready`로 올리고 `publishable: false` 유지
+
 ## 2026-08-13 — 달력 템플릿 에디터 구조 개선 1단계
 
 - GitHub `main`의 PR #5 병합본 `d5784ae`를 기준으로 구조 개선 전용 브랜치 생성

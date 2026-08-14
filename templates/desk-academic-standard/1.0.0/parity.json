@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "desk-academic-parity-approval.v1",
+  "templateId": "desk-academic-standard",
+  "version": "1.0.0",
+  "visual": {
+    "status": "approved",
+    "approvedOn": "2026-08-14",
+    "scope": ["monthly-calendar", "monthly-photo-memo", "back-contact"],
+    "evidence": "제품 책임자가 독립 QA 화면의 대표 3면을 브라우저에서 확인",
+    "note": "기존 사용자 UI를 교체하는 승인이 아니라 Shadow Renderer 대표 구조의 육안 확인이다."
+  },
+  "print": {
+    "status": "pending",
+    "requiredEvidence": [
+      "사용자 서비스 v1.1 PDF/X-4 샘플",
+      "동일 데이터의 Shadow Runtime PDF 샘플",
+      "Acrobat Preflight 또는 동등 검증 결과"
+    ],
+    "blockers": ["REFERENCE_PDF_NOT_ATTACHED", "RUNTIME_PDF_NOT_GENERATED", "PREFLIGHT_NOT_VERIFIED"]
+  }
+}

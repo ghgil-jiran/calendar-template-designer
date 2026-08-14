@@ -60,11 +60,12 @@
 - 원본 페이지를 수정하지 않고 v1.1 순서의 28면 참조 페이지를 만드는 구성 Adapter 완료
 - Template Package manifest/template/bindings/print 로더와 ID·버전 검증 추가
 - Package Master를 28면 숨은 Runtime 문서로 변환하고 5행·사진·연락처 진단 연결
-- Package 상태는 `visual-review-ready`, 배포 가능 상태는 계속 false
+- Package 상태는 `print-review-ready`, 배포 가능 상태는 계속 false
 - 28면 Package를 화면과 분리된 HTML로 생성하는 숨은 Renderer 연결
 - 5행 35칸·30/31일 병기, 사진:메모 1.7:1, 메모 7칸/6선, 빈 연락처 숨김 회귀검사 추가
 - mm 좌표 스타일과 대표 월력·사진/메모·끝지 전용 QA 화면 추가
-- v1.1 독립 구조 기준 자동검사 통과, 육안 승인과 PDF/X-4 비교는 미완료
+- v1.1 독립 구조 기준 자동검사와 대표 3면 육안 확인 완료
+- PDF/X-4 인쇄 계약 자동검사 통과, 기준/Runtime PDF와 Preflight 증거는 미확보
 
 ## 표준 검증
 
@@ -93,7 +94,7 @@
 
 ## 다음 할 일
 
-1. 전용 QA 화면에서 사용자 서비스 v1.1과 대표 3면 육안 비교
-2. 브라우저에서 5행·6행 월력과 겹치는 기간 일정 화면 비교
-3. 사용자 서비스 PDF/X-4 파이프라인에서 동일 데이터 인쇄 결과 비교
+1. 사용자 서비스 v1.1의 대표 PDF/X-4 샘플 확보
+2. 동일 데이터 Shadow Runtime PDF 생성 경로 준비
+3. Acrobat Preflight 또는 동등 도구로 인쇄 결과 비교
 4. 이후 Project, Canvas, Inspector, Preview, Persistence 순서로 한 영역씩 분리

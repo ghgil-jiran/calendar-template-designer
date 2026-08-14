@@ -12,6 +12,6 @@
   "blackRule": "K100",
   "fontHandling": "outline",
   "boxes": ["TrimBox", "BleedBox"],
-  "status": "reference-only",
-  "note": "사용자 서비스 v1.1 출력과 실물 비교가 끝날 때까지 달력 템플릿 에디터의 출력기를 자동 교체하지 않는다."
+  "status": "contract-verified-output-pending",
+  "note": "사용자 서비스 v1.1의 PDF/X-4 샘플과 Acrobat Preflight 비교가 끝날 때까지 달력 템플릿 에디터의 출력기를 자동 교체하지 않는다."
 }
