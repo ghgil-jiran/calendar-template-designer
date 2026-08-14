@@ -1,5 +1,64 @@
 # Work Log
 
+## 2026-08-14 — 달력 계산 구조 개선 A2
+
+- 월력 셀 계산을 `calendar-domain-bridge.js`로 이동하고 기존 화면 함수는 위임 방식으로 유지
+- 6행 42칸과 5행 35칸을 모두 지원하며, 기존 5행 달력의 여섯째 주 `extra` 병합 규칙 보존
+- 기간 일정의 주별 segment 분할과 lane·overflow 계산을 DOM 독립 함수로 이동
+- 월 경계, 5행 병합, 여러 주 기간 일정, 우선순위 및 최대 lane 회귀검사 추가
+- 사용자 서비스 데이터, 기존 UI, 저장 형식, 인쇄 설정 변경 없음
+- Designer Studio 회귀검사 58개, 제품 상호작용 검사, 인라인 JavaScript 19개, 스타일 검사 통과
+- 현재 실행 환경의 TypeScript 의존성 부재로 전체 패키지 빌드는 후속 검증 대상으로 기록
+
+## 2026-08-14 — Dataset 경계와 대표 탁상형 패키지 기준선
+
+- 학교 profile 기본 구조 생성과 학사일정 날짜별 인덱스를 `dataset-domain-bridge.js`로 분리
+- 과거의 일부 profile을 자동 보완하지 않고 일정 객체 원본 참조를 유지하는 회귀검사 추가
+- `desk-academic-standard@1.0.0`의 manifest, template 참조, Binding, print, assets 구조 생성
+- 실제 페이지 구조 추출 전이므로 패키지를 배포 불가 기준선으로 명시
+- 현재 Binding과 공휴일·음력·24절기 Adapter 예정 Binding을 구분
+- 사용자 서비스 v1.1 인수인계의 인쇄 확정값을 참조 전용으로 기록하고 기존 출력기는 유지
+- Designer Studio 회귀검사 60개, 제품 상호작용 검사, 인라인 JavaScript 19개, 스타일 검사 통과
+
+## 2026-08-14 — 대표 탁상형 구조 정본 후보 선택
+
+- GitHub의 사용자 서비스 v1.1 `integration/runtime-v2` 소스에서 실제 14장 28면 순서 확인
+- 사용자 서비스의 월력 앞면+다음 달 사진·메모 뒷면 구조와 두 Designer Studio 샘플 비교
+- 월별 이미지 구조가 가까운 `desk-sample-2`를 통합 출발점으로 선택하고 `desk-sample-6`은 참조 후보로 유지
+- 사용자 서비스 페이지 순서를 Template Package의 `pageSequence`로 기록
+- 사용자 서비스 기준 5행 월력을 패키지 기본값으로 설정하고 기존 5·6행 지원은 보존
+- 사진+메모 및 연락처 Master는 v1.1 실물 비교 전 좌표를 추측하지 않도록 미완료 상태로 명시
+- 선택 근거와 후속 검증을 `docs/integration/DESK-TEMPLATE-BASELINE-SELECTION.md`에 기록
+- 전체 TypeScript 패키지 컴파일과 contracts·calendar-domain·editor-core·renderer-core·template-runtime·integration 검사 통과
+- Designer Studio 회귀검사 60개, 제품 상호작용 검사, 인라인 JavaScript 19개, 스타일 검사 재통과
+- `desk-sample-2`의 표지·연간·학교 상징·월력·이미지 콜라주 개체를 frame·binding 단위로 Template Package에 추출
+- 월별 이미지 Binding의 현재 경로와 목표 Dataset 경로를 함께 기록해 추후 Adapter에서 검증하도록 보호
+
+## 2026-08-14 — v1.1 사진·메모/끝지 계약 추출
+
+- 사용자 서비스 v1.1의 `MonthPhotoBackCanvas`, `BackContactCanvas`, `COVER_BACK_PARTS`를 대조
+- 월별 사진+메모 면을 고정 좌표 추측이 아닌 안전영역 `사진 1.7 : 메모 1` 복합 Master로 기록
+- PDF 괘선 품질 방어를 위해 메모 7칸·DOM 선 6개 규칙과 화면 전용 빈 슬롯 정책 기록
+- 끝지 교표·사진·연락처 카드의 실제 측정 좌표와 빈 연락처 숨김 정책을 Template Package에 반영
+- `school.contacts[]`를 v1.1 연락처 5필드로 투영하는 순수 Adapter와 회귀검사 추가
+- Runtime Dataset 생성 책임을 `dataset-domain-bridge.js`로 이동하고 월별 이미지·명언을 읽기 전용 복사본으로 포함
+- 월별 이미지 목표 Binding을 `monthlyImages.{YYYY-MM}` 패턴으로 명확화
+- Runtime 페이지 Adapter에서 기존 `calendar.monthlyImages.current`와 새 패턴을 실제 페이지 연월 경로로 치환
+- 이미지 개체의 중첩 `image.binding`도 Runtime 계약으로 읽도록 보완
+- 사용자 서비스 v1.1의 14장 28면 정본을 생성하는 `integration-parity-bridge.js` 추가
+- 현재 프로젝트와 정본의 면 개수·역할·연월을 순서대로 비교하는 숨은 Parity Report 연결
+- 같은 달 앞/뒷면인 현재 구조와 다음 달 사진이 뒷면인 v1.1 구조 차이를 회귀검사로 고정
+- 월별 사진 누락과 끝지 연락처 전체 누락을 별도 데이터 진단으로 기록
+- 기존 Runtime 상태 표시와 편집 UI에는 Parity 경고를 노출하지 않음
+- 원본 페이지와 개체를 수정하지 않고 v1.1 순서로 재참조하는 28면 페이지 구성 Adapter 추가
+- 구성 Adapter 결과를 기존 Runtime Adapter의 별도 입력으로 연결
+- Template Package 네 파일을 manifest 기준으로 불러오고 ID·버전을 검증하는 로더 추가
+- Package Master를 별도 28면 Runtime 문서로 해석하고 5행 월력·사진·연락처 진단 추가
+- 전체 28면 Package 문서에서 구조 오류 0건, 비어 있는 샘플 사진만 정보 진단으로 분리하는 검사 통과
+- Template Package 상태를 `runtime-contract-wired`로 갱신하고 `publishable: false` 유지
+- 커밋 전 전체 TypeScript 패키지 컴파일·검사, Studio 회귀검사 63건, 제품 상호작용, 인라인 스크립트 19개, 스타일 보호 검사 통과
+- 사용자 서비스 UI, 프로젝트 저장 형식, 기존 출력기에는 변경 없음
+
 ## 2026-08-13 — 달력 템플릿 에디터 구조 개선 1단계
 
 - GitHub `main`의 PR #5 병합본 `d5784ae`를 기준으로 구조 개선 전용 브랜치 생성

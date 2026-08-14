@@ -1,0 +1,61 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+
+const base = new URL('../templates/desk-academic-standard/1.0.0/', import.meta.url);
+const readJson = async name => JSON.parse(await readFile(new URL(name, base), 'utf8'));
+
+const manifest = await readJson('manifest.json');
+const template = await readJson(manifest.files.template);
+const bindings = await readJson(manifest.files.bindings);
+const print = await readJson(manifest.files.print);
+
+assert.equal(manifest.templateId, 'desk-academic-standard');
+assert.equal(manifest.version, '1.0.0');
+assert.equal(manifest.publishable, false);
+assert.equal(manifest.pageComposition.surfaceCount, 28);
+assert.equal(template.templateId, manifest.templateId);
+assert.equal(manifest.status, 'runtime-contract-wired');
+assert.equal(template.extractionStatus, 'runtime-contract-wired');
+assert.equal(template.source.canonicalPresetId, 'desk-sample-2');
+assert.equal(template.calendar.defaultRows, 5);
+assert.deepEqual(template.calendar.supportedRows, [5, 6]);
+assert.equal(template.pageSequence.length, 4);
+assert.equal(template.pageSequence.reduce((count, item) => count + Number(item.repeat || 1), 0), 14);
+assert.deepEqual(template.pageSequence[1].back, { role: 'monthly-photo-memo', monthOffset: 0 });
+assert.deepEqual(template.pageSequence.at(-1).front, { role: 'monthly-calendar', monthOffset: 11 });
+assert.equal(template.pageSequence.at(-1).back.role, 'back-contact');
+assert.equal(template.masterExtraction.filter(master => master.status === 'source-extracted').length, 4);
+assert.equal(template.masterExtraction.filter(master => master.status === 'v1.1-contract-extracted').length, 2);
+assert.equal(template.masterDefinitions['cover-front'].length, 4);
+assert.equal(template.masterDefinitions['annual-calendar'][0].columns, 4);
+assert.equal(template.masterDefinitions['school-symbols'].length, 4);
+assert.deepEqual(template.masterDefinitions['monthly-calendar'][0].framePct, { x: 5, y: 13, width: 90, height: 82 });
+assert.equal(template.masterDefinitions['monthly-image-collage-source'].length, 4);
+assert.equal(template.masterDefinitions['monthly-image-collage-source'][0].sourceBinding, 'calendar.monthlyImages.current');
+assert.equal(template.masterDefinitions['monthly-image-collage-source'][0].targetBindingPattern, 'monthlyImages.{YYYY-MM}');
+const photoMemo = template.masterDefinitions['monthly-photo-memo'][0];
+assert.equal(photoMemo.layout.model, 'safe-area-flex-column');
+assert.deepEqual(photoMemo.layout.children.map(child => child.flex), [1.7, 1]);
+assert.equal(photoMemo.layout.children[1].lineCount, 7);
+assert.equal(photoMemo.layout.children[1].drawnLineCount, 6);
+const backContact = template.masterDefinitions['back-contact'];
+assert.equal(backContact.length, 3);
+assert.deepEqual(backContact.find(item => item.id === 'back.photo').framePct, { x: 48, y: 13.5, width: 47.1, height: 55.1 });
+assert.deepEqual(backContact.find(item => item.id === 'back.contact-card').framePct, { x: 4.9, y: 74.2, width: 90.2, height: 18.8 });
+assert.equal(backContact.find(item => item.id === 'back.contact-card').hideEmptyFields, true);
+
+const paths = bindings.bindings.map(binding => binding.path);
+assert.equal(new Set(paths).size, paths.length);
+assert.ok(paths.includes('school.name'));
+assert.ok(paths.includes('calendar.events'));
+assert.ok(paths.includes('monthlyImages'));
+assert.ok(paths.includes('monthlyQuotes'));
+assert.ok(paths.includes('school.contact.telAcademic'));
+assert.ok(paths.includes('assets.endPhoto'));
+assert.equal(bindings.bindings.find(binding => binding.path === 'calendar.lunarDates').status, 'planned-v1.1-adapter');
+
+assert.deepEqual(print.trimSize, { width: 260, height: 180, unit: 'mm' });
+assert.deepEqual(print.productionSize, { width: 266, height: 186, unit: 'mm' });
+assert.equal(print.pdfStandard, 'PDF/X-4');
+assert.equal(print.colorProfile, 'Japan Color 2011 Coated');
+assert.equal(print.cropMarkWidth.value, 0.540);

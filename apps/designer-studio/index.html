@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Calendar Template Designer v2.0 Alpha</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><script src="./calendar-domain-bridge.js"></script><script src="./template-catalog.js"></script>
+<title>Calendar Template Designer v2.0 Alpha</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><script src="./calendar-domain-bridge.js"></script><script src="./dataset-domain-bridge.js"></script><script src="./desk-academic-page-adapter.js"></script><script src="./integration-parity-bridge.js"></script><script src="./template-package-loader.js"></script><script src="./desk-academic-package-runtime.js"></script><script src="./template-catalog.js"></script>
 <script src="./wizard-flow.js"></script>
 <style>
 :root{--bg:var(--acds-canvas,#f6f8fb);--panel:var(--acds-surface,#fff);--line:var(--acds-border,#e2e8f0);--text:var(--acds-text-strong,#0f172a);--muted:var(--acds-text-muted,#64748b);--accent:var(--acds-primary,#2563eb);--soft:var(--acds-primary-soft,#eff6ff);--danger:var(--acds-error,#dc2626);--ok:var(--acds-success,#027a48);--warn:var(--acds-warning,#d97706)}
@@ -792,7 +792,7 @@ function renderNavigator(){
  else project.book.pageInstances.forEach(p=>nav.appendChild(pageButton(p)));
 }
 function pageButton(p){const b=document.createElement("button"),type=pageDesignType(p);b.className="page-btn "+(p.id===selectedPageId?"active":"");b.innerHTML=`<span>${roleLabel(p)} <em class="page-nav-type ${type.key}">${type.label}</em></span><small>${p.overrides&&Object.keys(p.overrides).length?"●":p.number}</small>`;b.addEventListener("click",()=>{if(p.id!==selectedPageId&&!confirmDiscardInspectorChanges())return;inspectorDirty=false;inspectorNotice={type:"ready",message:"설정을 변경하면 저장 버튼이 활성화됩니다."};selectedPageId=p.id;selectedDate=null;selectedElementId=null;selectedElementScope=null;semanticImageDraft=null;semanticImageDraftElementId=null;calendarEditing=false;render()});return b}
-function groupedEvents(){const g={};project.book.events.forEach(ev=>{let d=new Date(ev.startDate+"T00:00:00"),last=new Date((ev.endDate||ev.startDate)+"T00:00:00");while(d<=last){const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;(g[k]||=[]).push(ev);d.setDate(d.getDate()+1)}});return g}
+function groupedEvents(){return window.ACDLDatasetDomain.groupEventsByDate(project.book.events)}
 function weekDayHeaders(){
  return project.settings.weekStart==="monday"?["월","화","수","목","금","토","일"]:["일","월","화","수","목","금","토"]
 }
@@ -800,16 +800,7 @@ function dateCell(d){
  return {date:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`,day:d.getDate(),month:d.getMonth()+1,dow:d.getDay()}
 }
 function calendarGridFor(y,m,rows=Number(project.settings.calendarRows||6)){
- const first=new Date(y,m-1,1),weekOffset=project.settings.weekStart==="monday"?(first.getDay()+6)%7:first.getDay();
- const start=new Date(y,m-1,1-weekOffset),all=[];
- for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);all.push(dateCell(d))}
- if(Number(rows)===6)return all;
- const compact=all.slice(0,35).map(c=>({...c}));
- const overflow=all.slice(35);
- overflow.forEach((c,i)=>{
-  if(c.month===m)compact[28+i].extra=c
- });
- return compact
+ return window.ACDLCalendarDomain.buildCalendarGrid(y,m,project.settings.weekStart,rows)
 }
 function calendarGrid(y,m){return calendarGridFor(y,m,Number(project.settings.calendarRows||6))}
 
@@ -838,40 +829,11 @@ function rangeEventsForGrid(grid){
   .sort((a,b)=>eventPriority(b)-eventPriority(a)||a.startDate.localeCompare(b.startDate)||a.title.localeCompare(b.title))
 }
 function buildRangeSegments(grid){
- const rows=Math.ceil(grid.length/7),byDate=new Map(grid.map((d,i)=>[d.date,i])),segments=[];
- rangeEventsForGrid(grid).forEach(ev=>{
-  const eventStart=dateFromISO(ev.startDate),eventEnd=dateFromISO(ev.endDate||ev.startDate);
-  for(let week=0;week<rows;week++){
-   const weekStart=dateFromISO(grid[week*7].date),weekEnd=dateFromISO(grid[Math.min(week*7+6,grid.length-1)].date);
-   const segmentStart=new Date(Math.max(eventStart,weekStart));
-   const segmentEnd=new Date(Math.min(eventEnd,weekEnd));
-   if(segmentStart>segmentEnd)continue;
-   const startIndex=byDate.get(isoDate(segmentStart)),endIndex=byDate.get(isoDate(segmentEnd));
-   if(startIndex===undefined||endIndex===undefined)continue;
-   segments.push({
-    event:ev,week,startColumn:startIndex%7,endColumn:endIndex%7,
-    continuesBefore:eventStart<segmentStart,
-    continuesAfter:eventEnd>segmentEnd,
-    isFirstVisible:isoDate(segmentStart)===ev.startDate,
-    segmentStart:isoDate(segmentStart)
-   })
-  }
- });
- return segments
+ return window.ACDLCalendarDomain.buildRangeSegments(project.book.events,grid,eventPriority)
 }
 function assignRangeLanes(grid){
- const style=project.template.masters.calendar.rangeEventStyle,segments=buildRangeSegments(grid),result=[],overflow=[];
- for(let week=0;week<Math.ceil(grid.length/7);week++){
-  const weekSegments=segments.filter(s=>s.week===week).sort((a,b)=>eventPriority(b.event)-eventPriority(a.event)||a.startColumn-b.startColumn||(b.endColumn-b.startColumn)-(a.endColumn-a.startColumn));
-  const lanes=[];
-  weekSegments.forEach(segment=>{
-   let lane=lanes.findIndex(items=>items.every(x=>segment.endColumn<x.startColumn||segment.startColumn>x.endColumn));
-   if(lane<0){lane=lanes.length;lanes.push([])}
-   if(lane<style.maxLanes){segment.lane=lane;lanes[lane].push(segment);result.push(segment)}
-   else overflow.push(segment)
-  })
- }
- return {segments:result,overflow}
+ const style=project.template.masters.calendar.rangeEventStyle,segments=buildRangeSegments(grid);
+ return window.ACDLCalendarDomain.assignRangeLanes(segments,Math.ceil(grid.length/7),style.maxLanes,eventPriority)
 }
 function rangeLabel(segment,style){
  if(style.labelMode==="none")return "";
@@ -1204,14 +1166,7 @@ const SEMANTIC_DEFS={
  "school-custom-image":{label:"사용자 지정 이미지",kind:"image-text",defaultName:"사용자 지정 이미지",defaultDescription:"학교에서 추가로 사용하는 이미지 자산"}
 };
 function ensureSchoolProfile(){
- project.book.school.profile ||= {
-  logo:{name:"교표",image:"",description:""},
-  building:{name:project.book.school.name,image:"",description:"학교 전경과 교육 환경을 소개합니다."},
-  flower:{name:"장미",image:"",description:"사랑과 열정을 상징합니다."},
-  tree:{name:"소나무",image:"",description:"굳센 의지와 푸른 꿈을 상징합니다."},
-  motto:{name:"교훈",image:"",description:"바르게 배우고 함께 성장하자"},
-  song:{name:"우리 학교 교가",image:"",description:"작사 미상 · 작곡 미상"}
- }
+ return window.ACDLDatasetDomain.ensureSchoolProfile(project.book.school)
 }
 function semanticProfileKey(role){return {"school-logo":"logo","school-building":"building","school-flower":"flower","school-tree":"tree","school-motto":"motto","school-song":"song"}[role]||null}
 function defaultBindingForRole(role){const key=semanticProfileKey(role);return key?`school.profile.${key}`:(role==="school-custom-image"?"school.customAssets[]":`school.assets.${role}`)}
@@ -3921,12 +3876,14 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  const VERSION='1.0.0-beta.1';
  const pct=(v,total)=>Number(v||0)/100*total;
  function readPath(source,path){if(!path)return undefined;return path.replace(/\[(\d+)\]/g,'.$1').split('.').filter(Boolean).reduce((v,k)=>v==null?undefined:v[k],source)}
- function legacyObject(e,w,h,index){let value=e.value!==undefined?e.value:e.content;if(value===undefined&&(e.type==='image'||e.type==='image-frame'))value=e.src||e.image||null;return{id:String(e.id||`legacy.object.${index}`),sourceObjectId:String(e.id||`legacy.object.${index}`),type:String(e.type||'shape'),frame:{x:pct(e.x,w),y:pct(e.y,h),width:pct(e.width==null?10:e.width,w),height:pct(e.height==null?10:e.height,h)},binding:typeof e.binding==='string'?e.binding:undefined,value,style:{...(e.style||{}),legacyRole:e.role},visible:e.visible!==false,zIndex:Number(e.zIndex==null?index:e.zIndex)}}
- function adapt(project){const size=project.productType.pageSize,dataset={schemaVersion:'1.0',locale:'ko-KR',school:project.book.school||{},calendar:{year:project.settings?.year,startMonth:project.settings?.startMonth,events:project.book.events||[]},monthlyQuotes:project.book.monthlyQuotes||{},variables:{settings:project.settings||{}}};const pages=(project.book.pageInstances||[]).map((p,i)=>{const master=project.template.masterElements?.[p.masterId]||[],local=project.book.elementsByPage?.[p.id]||[],objects=[...master,...local].map((e,j)=>legacyObject(e,size.width,size.height,j));if(String(p.role||'').startsWith('monthly-')){const region=project.template.masters?.calendar?.calendarRegionsByType?.[project.productType.category]||project.template.masters?.calendar?.calendarRegion||{x:5,y:16,width:90,height:79};objects.unshift(legacyObject({id:`${p.id}.calendar`,type:'calendar',...region,zIndex:0,value:{year:p.calendarYear,month:p.calendarMonth}},size.width,size.height,-1))}return{id:String(p.id||`page.${i+1}`),sourcePageId:String(p.id||`page.${i+1}`),role:String(p.role||'page'),size:{width:size.width,height:size.height,unit:size.unit||'mm'},background:{},objects:objects.map(o=>{const bound=o.binding?readPath(dataset,o.binding):undefined;return{...o,value:o.type==='monthly-quote'?dataset.monthlyQuotes[`${p.calendarYear}-${String(p.calendarMonth).padStart(2,'0')}`]:bound!==undefined?bound:o.value}}).sort((a,b)=>a.zIndex-b.zIndex),metadata:{number:p.number,side:p.side,calendarYear:p.calendarYear,calendarMonth:p.calendarMonth,masterId:p.masterId}}});return{template:{schemaVersion:'1.0',id:String(project.template.id||'legacy.template'),revision:Number(project.template.revision||1),pages},dataset}}
+ function legacyObject(e,w,h,index){let value=e.value!==undefined?e.value:e.content;if(value===undefined&&(e.type==='image'||e.type==='image-frame'))value=e.src||e.image||null;const binding=typeof e.binding==='string'?e.binding:typeof e.image?.binding==='string'?e.image.binding:undefined;return{id:String(e.id||`legacy.object.${index}`),sourceObjectId:String(e.id||`legacy.object.${index}`),type:String(e.type||'shape'),frame:{x:pct(e.x,w),y:pct(e.y,h),width:pct(e.width==null?10:e.width,w),height:pct(e.height==null?10:e.height,h)},binding,value,style:{...(e.style||{}),legacyRole:e.role},visible:e.visible!==false,zIndex:Number(e.zIndex==null?index:e.zIndex)}}
+ function adapt(project,pageInstances=project.book.pageInstances||[]){const size=project.productType.pageSize,dataset=window.ACDLDatasetDomain.buildRuntimeDataset(project);const pages=pageInstances.map((p,i)=>{const sourcePageId=p.sourcePageId||p.id,master=project.template.masterElements?.[p.masterId]||[],local=project.book.elementsByPage?.[sourcePageId]||[],objects=[...master,...local].map((e,j)=>legacyObject(e,size.width,size.height,j));if(String(p.role||'').includes('monthly-calendar')||String(p.role||'').startsWith('monthly-front')){const region=project.template.masters?.calendar?.calendarRegionsByType?.[project.productType.category]||project.template.masters?.calendar?.calendarRegion||{x:5,y:16,width:90,height:79};objects.unshift(legacyObject({id:`${p.id}.calendar`,type:'calendar',...region,zIndex:0,value:{year:p.calendarYear,month:p.calendarMonth}},size.width,size.height,-1))}return{id:String(p.id||`page.${i+1}`),sourcePageId:String(sourcePageId||p.id||`page.${i+1}`),role:String(p.role||'page'),size:{width:size.width,height:size.height,unit:size.unit||'mm'},background:{},objects:objects.map(o=>{const binding=window.ACDLDatasetDomain.resolvePageBinding(o.binding,p),bound=binding?readPath(dataset,binding):undefined;return{...o,binding,value:o.type==='monthly-quote'?dataset.monthlyQuotes[`${p.calendarYear}-${String(p.calendarMonth).padStart(2,'0')}`]:bound!==undefined?bound:o.value}}).sort((a,b)=>a.zIndex-b.zIndex),metadata:{number:p.number,side:p.side,calendarYear:p.calendarYear,calendarMonth:p.calendarMonth,masterId:p.masterId,integrationSourceRole:p.integrationSourceRole}}});return{template:{schemaVersion:'1.0',id:String(project.template.id||'legacy.template'),revision:Number(project.template.revision||1),pages},dataset}}
+ function adaptDeskAcademic(project){const plan=window.ACDLIntegrationParity.buildDeskAcademicSurfacePlan(project.settings?.year,project.settings?.startMonth||3),composition=window.ACDLDeskAcademicPageAdapter.compose(project,plan);return{...adapt(project,composition.pages),composition}}
  function resolve(project){const {template,dataset}=adapt(project),diagnostics=[];template.pages.forEach(page=>page.objects.forEach(o=>{if(o.binding&&readPath(dataset,o.binding)===undefined)diagnostics.push({severity:'warning',code:'BINDING_MISSING',message:`바인딩 값을 찾을 수 없습니다: ${o.binding}`,pageId:page.id,objectId:o.id,binding:o.binding});if(o.frame.x<0||o.frame.y<0||o.frame.x+o.frame.width>page.size.width||o.frame.y+o.frame.height>page.size.height)diagnostics.push({severity:'warning',code:'OBJECT_OUT_OF_BOUNDS',message:'개체가 페이지 경계를 벗어났습니다.',pageId:page.id,objectId:o.id})}));return{schemaVersion:'1.0',runtimeVersion:VERSION,templateId:template.id,templateRevision:template.revision,generatedAt:new Date().toISOString(),target:'screen',pages:template.pages,diagnostics}}
  function status(doc){let node=document.getElementById('rc4RuntimeStatus');if(!node){node=document.createElement('button');node.id='rc4RuntimeStatus';node.type='button';document.body.appendChild(node);node.onclick=()=>{const d=window.ACDLRuntimeBridge?.lastDocument;alert(d?`Runtime ${d.runtimeVersion}\n페이지 ${d.pages.length}개\n진단 ${d.diagnostics.length}건`:'Runtime 결과가 없습니다.')}}const errors=doc.diagnostics.filter(x=>x.severity==='error').length,warnings=doc.diagnostics.filter(x=>x.severity==='warning').length;node.className=errors?'error':warnings?'warn':'';node.textContent=`Runtime v1.0 Beta · ${doc.pages.length}p · ${errors?errors+' error':warnings?warnings+' warn':'ready'}`;node.title='클릭하면 Runtime 상태를 확인합니다.'}
- function execute(){try{if(typeof project==='undefined'||!project)return null;const doc=resolve(project);window.ACDLRuntimeBridge.lastDocument=doc;window.dispatchEvent(new CustomEvent('acdl:resolved-document',{detail:doc}));status(doc);return doc}catch(error){window.ACDLRuntimeBridge.lastError=error;let n=document.getElementById('rc4RuntimeStatus');if(n){n.className='error';n.textContent='Runtime v1.0 Beta · error'}console.error('[Template Runtime]',error);return null}}
- window.ACDLRuntimeBridge={version:VERSION,mode:'shadow',adapt,resolve,execute,lastDocument:null,lastError:null,getCurrentPage(){const d=this.lastDocument,id=typeof selectedPageId==='undefined'?null:selectedPageId;return d?.pages.find(p=>p.id===id)||null}};
+ function execute(){try{if(typeof project==='undefined'||!project)return null;const doc=resolve(project),parity=window.ACDLIntegrationParity?.compareProject(project)||null;window.ACDLRuntimeBridge.lastDocument=doc;window.ACDLRuntimeBridge.lastParityReport=parity;if(window.__ACDLDeskAcademicPackage){const packageDocument=window.ACDLDeskAcademicPackageRuntime.build(adaptDeskAcademic(project),window.__ACDLDeskAcademicPackage.template);window.ACDLRuntimeBridge.lastDeskAcademicPackageDocument=packageDocument;window.ACDLRuntimeBridge.lastDeskAcademicPackageDiagnostics=window.ACDLDeskAcademicPackageRuntime.validate(packageDocument)}window.dispatchEvent(new CustomEvent('acdl:resolved-document',{detail:doc}));if(parity)window.dispatchEvent(new CustomEvent('acdl:integration-parity',{detail:parity}));status(doc);return doc}catch(error){window.ACDLRuntimeBridge.lastError=error;let n=document.getElementById('rc4RuntimeStatus');if(n){n.className='error';n.textContent='Runtime v1.0 Beta · error'}console.error('[Template Runtime]',error);return null}}
+ window.ACDLRuntimeBridge={version:VERSION,mode:'shadow',adapt,adaptDeskAcademic,resolve,execute,lastDocument:null,lastParityReport:null,lastDeskAcademicPackageDocument:null,lastDeskAcademicPackageDiagnostics:[],lastError:null,getCurrentPage(){const d=this.lastDocument,id=typeof selectedPageId==='undefined'?null:selectedPageId;return d?.pages.find(p=>p.id===id)||null}};
+ window.ACDLTemplatePackageLoader.load().then(pkg=>{window.__ACDLDeskAcademicPackage=pkg;execute()}).catch(error=>{window.ACDLRuntimeBridge.packageLoadError=error;console.warn('[Template Package]',error.message)});
  const prior=window.render;if(typeof prior==='function')window.render=function(){const result=prior.apply(this,arguments);queueMicrotask(execute);return result};
  setTimeout(execute,80);
 })();

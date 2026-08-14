@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8');
+const datasetBridge = fs.readFileSync(path.resolve('apps/designer-studio/dataset-domain-bridge.js'), 'utf8');
 
 test('monthly quote is available as a calendar domain object', () => {
   assert.match(html, /data-widget-add="monthly-quote"><strong>월력용 명언 문구<\/strong>/);
@@ -29,6 +30,8 @@ test('monthly quote seed and runtime dataset preserve attribution metadata', () 
   assert.equal((html.match(/quoteKo:/g) || []).length >= 12, true);
   assert.match(html, /sourceStatus:"original"/);
   assert.match(html, /translationType:"editorial"/);
-  assert.match(html, /monthlyQuotes:project\.book\.monthlyQuotes\|\|\{\}/);
+  assert.match(html, /dataset=window\.ACDLDatasetDomain\.buildRuntimeDataset\(project\)/);
+  assert.match(html, /resolvePageBinding\(o\.binding,p\)/);
+  assert.match(datasetBridge, /monthlyQuotes: \{ \.\.\.\(book\.monthlyQuotes \|\| \{\}\) \}/);
   assert.match(html, /dataset\.monthlyQuotes\[`\$\{p\.calendarYear\}/);
 });

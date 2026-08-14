@@ -156,6 +156,21 @@ templates/
 - 기존 `monthSequence`는 화면 호환을 위해 이름을 유지하되 위 모듈에 계산을 위임한다.
 - 연도 경계와 잘못된 시작월을 브라우저 독립 테스트로 고정한다.
 
+두 번째 적용:
+
+- 월력 셀 계산을 `calendar-domain-bridge.js`로 옮기고 기존 `calendarGridFor`가 위임한다.
+- 6행 42칸과 5행 35칸 결과를 모두 고정한다. 5행에 들어가지 않는 해당 월 날짜는 기존 화면처럼 마지막 행의 `extra`로 합친다.
+- 기간 일정을 보이는 주별 구간으로 나누는 계산과, 우선순위·겹침에 따른 lane 및 overflow 계산을 DOM 밖으로 옮긴다.
+- 기존 `buildRangeSegments`, `assignRangeLanes` 함수 이름과 화면 호출 순서는 유지한다.
+- 사용자 서비스 데이터, UI, 저장 형식, 출력 설정은 이 적용에서 변경하지 않는다.
+
+세 번째 적용:
+
+- Runtime Dataset 스냅샷 생성을 `dataset-domain-bridge.js`로 옮긴다.
+- 템플릿 에디터의 가변 `school.contacts[]`는 저장 원본을 바꾸지 않고 사용자 서비스 v1.1의 고정 연락처 필드로 투영한다.
+- 월별 이미지와 명언을 Dataset에 포함하되 새 객체로 복사하여 Runtime 해석이 프로젝트 저장 상태를 직접 수정하지 못하게 한다.
+- 기존 RC4 `adapt` 함수는 페이지·개체 변환 순서를 유지하고 Dataset 생성만 위 모듈에 위임한다.
+
 ### Phase 3 — 템플릿 패키지화
 
 - 대표 탁상형을 `desk-academic-standard@1.0.0`으로 고정
@@ -163,6 +178,13 @@ templates/
 - 카탈로그가 manifest 정보와 불일치하지 않게 변경
 
 완료 조건: 템플릿을 저장·다시 불러와도 페이지·Binding·출력 규격이 같다.
+
+첫 기준선:
+
+- `templates/desk-academic-standard/1.0.0/`에 manifest, template 참조, bindings, print, assets 경계를 생성한다.
+- 아직 페이지·개체 구조를 완전히 추출하지 않았으므로 `publishable: false`, `extractionStatus: pending`으로 명시한다.
+- 현재 Runtime에서 확인된 Binding과 사용자 서비스 v1.1 Adapter에서 추가할 공휴일·음력·24절기 Binding을 상태로 구분한다.
+- 사용자 서비스 v1.1 인수인계의 인쇄 확정값은 참조 기준으로 기록하되, 화면·PDF 비교 전에는 기존 출력기를 교체하지 않는다.
 
 ### Phase 4 — 화면 기능 모듈화
 

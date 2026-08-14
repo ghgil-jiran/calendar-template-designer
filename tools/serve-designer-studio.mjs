@@ -9,6 +9,11 @@ const mime = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; chars
 const studioEntry = 'apps/designer-studio/index.html';
 const studioAssetAliases = new Map([
   ['/calendar-domain-bridge.js', 'apps/designer-studio/calendar-domain-bridge.js'],
+  ['/dataset-domain-bridge.js', 'apps/designer-studio/dataset-domain-bridge.js'],
+  ['/desk-academic-page-adapter.js', 'apps/designer-studio/desk-academic-page-adapter.js'],
+  ['/integration-parity-bridge.js', 'apps/designer-studio/integration-parity-bridge.js'],
+  ['/template-package-loader.js', 'apps/designer-studio/template-package-loader.js'],
+  ['/desk-academic-package-runtime.js', 'apps/designer-studio/desk-academic-package-runtime.js'],
   ['/template-catalog.js', 'apps/designer-studio/template-catalog.js'],
   ['/wizard-flow.js', 'apps/designer-studio/wizard-flow.js'],
   ['/template-library-runtime.js', 'apps/designer-studio/template-library-runtime.js']
