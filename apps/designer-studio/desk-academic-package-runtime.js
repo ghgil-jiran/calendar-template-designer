@@ -19,6 +19,9 @@
     let payload = definition.bindings
       ? Object.fromEntries(Object.entries(definition.bindings).map(([key, path]) => [key, readPath(dataset, path)]))
       : binding ? readPath(dataset, binding) : undefined;
+    if ((payload === undefined || payload === null || payload === '') && definition.fallbackBinding) {
+      payload = readPath(dataset, definition.fallbackBinding);
+    }
     let contract;
     if (definition.type === 'composite-master') {
       contract = {

@@ -53,7 +53,7 @@ const report = compareProject({
 });
 assert.equal(report.readyForComposition, true);
 assert.equal(report.readyForReplacement, false);
-assert.deepEqual(report.replacementBlockers, ['MONTHLY_PHOTO_MEMO_MASTER_NOT_RENDERED', 'BACK_CONTACT_MASTER_NOT_RENDERED']);
+assert.deepEqual(report.replacementBlockers, ['VISUAL_PARITY_NOT_VERIFIED', 'PRINT_PARITY_NOT_VERIFIED']);
 assert.equal(report.composition.complete, true);
 assert.equal(report.composition.surface.matches, true);
 assert.equal(report.dataIssues.filter(issue => issue.code === 'MONTHLY_IMAGE_MISSING').length, 11);

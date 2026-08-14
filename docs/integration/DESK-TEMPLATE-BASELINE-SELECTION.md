@@ -1,6 +1,6 @@
 # 대표 탁상형 템플릿 기준 선택
 
-- 상태: v1.1 28면·Master 계약을 숨은 Runtime 입력으로 연결 완료, 시각 Parity 전
+- 상태: v1.1 28면·Master 계약과 숨은 Runtime Renderer 연결 완료, 시각·인쇄 Parity 전
 - Template Package: `desk-academic-standard@1.0.0`
 - 달력 템플릿 에디터 출발점: `desk-sample-2`
 - 사용자 서비스 비교 기준: `ghgil-jiran/-v1.1`의 `integration/runtime-v2`
@@ -84,13 +84,15 @@
 - 28면, 빈 Master, 5행 위반은 오류로 진단한다.
 - 비어 있는 월별 사진과 연락처는 현재 테스트 입력 단계에서 정보 진단으로 남긴다.
 
-Package 상태는 `runtime-contract-wired`로 올렸지만 `publishable`은 계속 `false`다. 현재 Runtime Renderer가 복합 사진+메모 Master와 연락처 카드를 실제 v1.1 화면처럼 그린 뒤 시각 비교를 통과해야 배포 가능 상태를 검토한다.
+`desk-academic-shadow-renderer.js`는 Package 문서를 기존 화면과 분리된 HTML 결과로 변환한다. 5행 월력의 35칸과 30·31일 병기, 사진 `1.7` 대 메모 `1`, 메모 7칸·구분선 6개, 빈 연락처 필드 숨김을 자동 검사한다. 결과는 `ACDLRuntimeBridge.lastDeskAcademicShadowRender`에만 보관하므로 사용자 UI와 현재 인쇄 경로는 바뀌지 않는다.
+
+Package 상태는 `shadow-renderer-wired`로 올렸지만 `publishable`은 계속 `false`다. 현재 단계는 구조와 데이터 계약이 실제 HTML로 생성된다는 것까지 확인한 상태다. 사용자 서비스 v1.1과의 브라우저 시각 비교 및 PDF/X-4 인쇄 비교가 끝나야 배포 가능 상태를 검토한다.
 
 ## 아직 하지 않는 일
 
 - 기존 사용자 서비스 UI 변경
 - `desk-sample-2`의 현재 화면 자동 교체
-- 사진+메모 복합 Master를 기존 화면에 자동 적용
+- 숨은 Renderer 결과를 기존 화면에 자동 적용
 - 기존 프로젝트 저장 JSON 자동 migration
 - 인쇄 출력기 교체
 
@@ -98,6 +100,7 @@ Package 상태는 `runtime-contract-wired`로 올렸지만 `publishable`은 계�
 
 현재 소스에서 표지·연간·학교 상징·월력·이미지 콜라주의 frame과 binding을 `template.json`에 추출했다. 이미지 Binding은 현재 소스 경로와 목표 Dataset 경로가 다르므로 둘을 함께 기록하고 자동 치환하지 않았다.
 
-1. Runtime Renderer에 사진+메모 복합 Master와 연락처 카드의 숨은 렌더러를 추가한다.
-2. 같은 Dataset으로 기존 사용자 서비스와 새 28면 문서를 시각 비교한다.
-3. 5행 병기 셀, 텍스트, 일정, 이미지 결과가 일치한 뒤 `publishable` 상태를 검토한다.
+1. 같은 Dataset으로 기존 사용자 서비스와 새 28면 문서를 브라우저에서 시각 비교한다.
+2. 5행 병기 셀, 텍스트, 일정, 이미지 결과를 고정 기준 이미지와 대조한다.
+3. 사용자 서비스의 PDF/X-4 파이프라인으로 샘플을 출력해 인쇄 Parity를 확인한다.
+4. 시각·인쇄 결과가 모두 일치한 뒤 `publishable` 상태를 검토한다.

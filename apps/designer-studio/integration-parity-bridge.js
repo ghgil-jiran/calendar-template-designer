@@ -98,7 +98,7 @@
       dataIssues: missingDataIssues(project, expected),
       readyForComposition: composition.complete && composedSurface.matches,
       readyForReplacement: false,
-      replacementBlockers: ['MONTHLY_PHOTO_MEMO_MASTER_NOT_RENDERED', 'BACK_CONTACT_MASTER_NOT_RENDERED']
+      replacementBlockers: ['VISUAL_PARITY_NOT_VERIFIED', 'PRINT_PARITY_NOT_VERIFIED']
     };
   }
 

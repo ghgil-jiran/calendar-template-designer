@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises';
 await import('../apps/designer-studio/dataset-domain-bridge.js');
 await import('../apps/designer-studio/template-package-loader.js');
 await import('../apps/designer-studio/desk-academic-package-runtime.js');
+await import('../apps/designer-studio/calendar-domain-bridge.js');
+await import('../apps/designer-studio/desk-academic-shadow-renderer.js');
 
 const base = new URL('../templates/desk-academic-standard/1.0.0/', import.meta.url);
 const fetcher = async url => {
@@ -33,7 +35,7 @@ const roles = ['cover-front', 'annual-calendar', 'school-symbols', 'monthly-cale
 const adapted = {
   template: { pages: roles.map(role => page(role, role.startsWith('monthly-') ? 3 : null)) },
   dataset: {
-    school: { name: '테스트 학교', contact: { address: '서울', telAcademic: '02-1', telAdmin: '', fax: '', site: '' } },
+    school: { name: '테스트 학교', profile: { building: 'asset:school-building' }, contact: { address: '서울', telAcademic: '02-1', telAdmin: '', fax: '', site: '' } },
     calendar: { year: 2027, startMonth: 3 },
     monthlyImages: { '2027-03': 'asset:march' }
   },
@@ -53,6 +55,8 @@ const contact = document.template.pages[5].objects.find(object => object.id === 
 assert.equal(contact.payload.address, '서울');
 assert.equal(contact.payload.academicPhone, '02-1');
 assert.deepEqual(contact.frame, { x: 12.74, y: 133.56, width: 234.52, height: 33.84 });
+const backPhoto = document.template.pages[5].objects.find(object => object.id === 'back.photo');
+assert.equal(backPhoto.payload, 'asset:school-building');
 
 const diagnostics = globalThis.ACDLDeskAcademicPackageRuntime.validate(document);
 assert.ok(diagnostics.some(item => item.code === 'PACKAGE_SURFACE_COUNT'));
@@ -83,6 +87,16 @@ assert.equal(fullDiagnostics.filter(item => item.severity === 'error').length, 0
 assert.equal(fullDiagnostics.filter(item => item.code === 'PACKAGE_MONTHLY_IMAGE_EMPTY').length, 11);
 assert.equal(fullDiagnostics.some(item => item.code === 'PACKAGE_CONTACT_EMPTY'), false);
 
+const shadow = globalThis.ACDLDeskAcademicShadowRenderer.renderDocument(fullDocument);
+assert.equal(shadow.pageCount, 28);
+assert.equal(shadow.pages.filter(item => item.role === 'monthly-calendar').length, 12);
+assert.equal(shadow.pages.filter(item => item.role === 'monthly-photo-memo').length, 12);
+assert.equal(shadow.pages.at(-1).role, 'back-contact');
+assert.match(shadow.pages.find(item => item.role === 'monthly-calendar').html, /data-calendar-rows="5"/);
+assert.match(shadow.pages.find(item => item.role === 'monthly-photo-memo').html, /data-layout="photo-1\.7-memo-1"/);
+assert.match(shadow.pages.at(-1).html, /CONTACT INFORMATION/);
+
 const html = await readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
 assert.match(html, /lastDeskAcademicPackageDocument/);
+assert.match(html, /lastDeskAcademicShadowRender/);
 assert.match(html, /ACDLTemplatePackageLoader\.load\(\)/);

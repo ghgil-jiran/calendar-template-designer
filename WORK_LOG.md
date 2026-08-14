@@ -59,6 +59,18 @@
 - 커밋 전 전체 TypeScript 패키지 컴파일·검사, Studio 회귀검사 63건, 제품 상호작용, 인라인 스크립트 19개, 스타일 보호 검사 통과
 - 사용자 서비스 UI, 프로젝트 저장 형식, 기존 출력기에는 변경 없음
 
+## 2026-08-14 — 대표 탁상형 숨은 Renderer 연결
+
+- `desk-academic-standard@1.0.0`의 28면 Package 문서를 기존 화면과 분리된 HTML 결과로 생성
+- 5행 월력 35칸과 마지막 칸의 30·31일 병기 결과를 회귀검사로 고정
+- 월별 사진+메모의 `1.7:1` 배치, 메모 7칸·DOM 구분선 6개, 교훈·홈페이지 푸터 렌더링 추가
+- 끝지 연락처에서 빈 필드를 제외하고 전체가 비면 카드 자체를 숨기는 규칙 적용
+- 끝지 전용 사진이 없을 때 학교 전경으로 이어지는 fallback Binding을 Runtime에 연결
+- 결과를 `ACDLRuntimeBridge.lastDeskAcademicShadowRender`에만 보관해 기존 사용자 UI·저장·인쇄 경로를 변경하지 않음
+- 대체 차단 조건을 미구현 Master가 아닌 `VISUAL_PARITY_NOT_VERIFIED`, `PRINT_PARITY_NOT_VERIFIED`로 전환
+- Package 상태를 `shadow-renderer-wired`로 갱신하되 `publishable: false` 유지
+- 전체 TypeScript 패키지 컴파일·검사, Studio 회귀검사 64건, 제품 상호작용, 인라인 스크립트 19개, 스타일 보호 검사 통과
+
 ## 2026-08-13 — 달력 템플릿 에디터 구조 개선 1단계
 
 - GitHub `main`의 PR #5 병합본 `d5784ae`를 기준으로 구조 개선 전용 브랜치 생성
