@@ -73,9 +73,18 @@
     return `<div class="shadow-object shadow-${escapeHtml(object.type)}" data-role="${escapeHtml(object.role)}">${escapeHtml(value)}</div>`;
   }
 
+  function frameStyle(object) {
+    const frame = object.frame || {};
+    const values = [frame.x, frame.y, frame.width, frame.height];
+    if (!values.every(Number.isFinite)) return '';
+    return `left:${frame.x}mm;top:${frame.y}mm;width:${frame.width}mm;height:${frame.height}mm;z-index:${Number(object.zIndex || 0)}`;
+  }
+
   function renderPage(page) {
     const objects = (page.objects || []).filter(object => object.visible !== false).sort((a, b) => a.zIndex - b.zIndex);
-    return `<article class="shadow-package-page role-${escapeHtml(page.role)}" data-page-id="${escapeHtml(page.id)}" data-page-role="${escapeHtml(page.role)}">${objects.map(renderObject).join('')}</article>`;
+    const size = page.size || { width: 260, height: 180, unit: 'mm' };
+    const body = objects.map(object => `<div class="shadow-positioned-object" data-object-id="${escapeHtml(object.id)}" style="${frameStyle(object)}">${renderObject(object)}</div>`).join('');
+    return `<article class="shadow-package-page role-${escapeHtml(page.role)}" data-page-id="${escapeHtml(page.id)}" data-page-role="${escapeHtml(page.role)}" style="--page-width:${Number(size.width)};--page-height:${Number(size.height)}">${body}</article>`;
   }
 
   function renderDocument(document) {

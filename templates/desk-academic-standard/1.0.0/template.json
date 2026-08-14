@@ -3,7 +3,7 @@
   "templateId": "desk-academic-standard",
   "version": "1.0.0",
   "kind": "integration-template-draft",
-  "extractionStatus": "shadow-renderer-wired",
+  "extractionStatus": "visual-review-ready",
   "source": {
     "application": "apps/designer-studio/index.html",
     "canonicalPresetId": "desk-sample-2",

@@ -1,6 +1,6 @@
 # 대표 탁상형 템플릿 기준 선택
 
-- 상태: v1.1 28면·Master 계약과 숨은 Runtime Renderer 연결 완료, 시각·인쇄 Parity 전
+- 상태: v1.1 구조 기준 자동검사 통과, 브라우저 육안 승인·인쇄 Parity 전
 - Template Package: `desk-academic-standard@1.0.0`
 - 달력 템플릿 에디터 출발점: `desk-sample-2`
 - 사용자 서비스 비교 기준: `ghgil-jiran/-v1.1`의 `integration/runtime-v2`
@@ -86,7 +86,11 @@
 
 `desk-academic-shadow-renderer.js`는 Package 문서를 기존 화면과 분리된 HTML 결과로 변환한다. 5행 월력의 35칸과 30·31일 병기, 사진 `1.7` 대 메모 `1`, 메모 7칸·구분선 6개, 빈 연락처 필드 숨김을 자동 검사한다. 결과는 `ACDLRuntimeBridge.lastDeskAcademicShadowRender`에만 보관하므로 사용자 UI와 현재 인쇄 경로는 바뀌지 않는다.
 
-Package 상태는 `shadow-renderer-wired`로 올렸지만 `publishable`은 계속 `false`다. 현재 단계는 구조와 데이터 계약이 실제 HTML로 생성된다는 것까지 확인한 상태다. 사용자 서비스 v1.1과의 브라우저 시각 비교 및 PDF/X-4 인쇄 비교가 끝나야 배포 가능 상태를 검토한다.
+`desk-academic-visual-parity.js`는 사용자 서비스 v1.1 소스에서 다시 확인한 제작면 266×186mm, 5×7 월력, 사진·메모 비율, 메모 괘선, 연락처 숨김 규칙을 독립 기준으로 보관한다. 전체 28면 Shadow 결과를 검사하며 결과는 `ACDLRuntimeBridge.lastDeskAcademicVisualParity`에 남긴다. 자동검사 통과는 `structurallyReady: true`로만 표시하고 사람의 육안 승인을 뜻하는 `visuallyApproved`는 계속 false로 둔다.
+
+전용 QA 화면은 `apps/designer-studio/desk-academic-visual-parity.html`이다. `node tools/serve-designer-studio.mjs` 실행 후 해당 경로를 열면 대표 월력, 사진+메모, 끝지 연락처를 실제 mm 좌표와 비율로 확인할 수 있다.
+
+Package 상태는 `visual-review-ready`로 올렸지만 `publishable`은 계속 `false`다. 사용자 서비스 v1.1과의 브라우저 육안 비교 및 PDF/X-4 인쇄 비교가 끝나야 배포 가능 상태를 검토한다.
 
 ## 아직 하지 않는 일
 
@@ -100,7 +104,7 @@ Package 상태는 `shadow-renderer-wired`로 올렸지만 `publishable`은 계�
 
 현재 소스에서 표지·연간·학교 상징·월력·이미지 콜라주의 frame과 binding을 `template.json`에 추출했다. 이미지 Binding은 현재 소스 경로와 목표 Dataset 경로가 다르므로 둘을 함께 기록하고 자동 치환하지 않았다.
 
-1. 같은 Dataset으로 기존 사용자 서비스와 새 28면 문서를 브라우저에서 시각 비교한다.
-2. 5행 병기 셀, 텍스트, 일정, 이미지 결과를 고정 기준 이미지와 대조한다.
+1. 전용 QA 화면에서 대표 3면을 브라우저로 열어 사용자 서비스 v1.1과 육안 비교한다.
+2. 5행 병기 셀, 텍스트, 일정, 이미지 결과를 고정 기준 이미지로 채택할지 승인한다.
 3. 사용자 서비스의 PDF/X-4 파이프라인으로 샘플을 출력해 인쇄 Parity를 확인한다.
 4. 시각·인쇄 결과가 모두 일치한 뒤 `publishable` 상태를 검토한다.

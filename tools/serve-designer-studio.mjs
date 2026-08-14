@@ -15,6 +15,8 @@ const studioAssetAliases = new Map([
   ['/template-package-loader.js', 'apps/designer-studio/template-package-loader.js'],
   ['/desk-academic-package-runtime.js', 'apps/designer-studio/desk-academic-package-runtime.js'],
   ['/desk-academic-shadow-renderer.js', 'apps/designer-studio/desk-academic-shadow-renderer.js'],
+  ['/desk-academic-shadow-renderer.css', 'apps/designer-studio/desk-academic-shadow-renderer.css'],
+  ['/desk-academic-visual-parity.js', 'apps/designer-studio/desk-academic-visual-parity.js'],
   ['/template-catalog.js', 'apps/designer-studio/template-catalog.js'],
   ['/wizard-flow.js', 'apps/designer-studio/wizard-flow.js'],
   ['/template-library-runtime.js', 'apps/designer-studio/template-library-runtime.js']

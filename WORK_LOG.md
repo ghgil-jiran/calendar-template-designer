@@ -71,6 +71,16 @@
 - Package 상태를 `shadow-renderer-wired`로 갱신하되 `publishable: false` 유지
 - 전체 TypeScript 패키지 컴파일·검사, Studio 회귀검사 64건, 제품 상호작용, 인라인 스크립트 19개, 스타일 보호 검사 통과
 
+## 2026-08-14 — v1.1 시각 비교 준비
+
+- GitHub의 사용자 서비스 `integration/runtime-v2`에서 `sample-doc.ts`, `constants.ts`, `editor-pages.ts`, `canvas.tsx`를 다시 대조
+- 제작면 266×186mm, 5행×7열, 사진:메모 `1.7:1`, 메모 7칸·선 6개, 연락처 빈 필드 제거를 독립 시각 기준으로 고정
+- Shadow Renderer에 mm 기반 개체 frame 배치와 월력·사진/메모·연락처 전용 스타일 연결
+- 대표 월력, 사진+메모, 끝지 연락처를 검토하는 독립 QA 페이지 추가
+- 전체 28면 결과의 구조 기준을 자동 검사하고 `structurallyReady`와 사람의 `visuallyApproved`를 구분
+- 구조 자동검사는 통과했지만 육안 승인과 PDF/X-4 비교 전이므로 `publishable: false` 유지
+- Package 상태를 `visual-review-ready`로 갱신
+
 ## 2026-08-13 — 달력 템플릿 에디터 구조 개선 1단계
 
 - GitHub `main`의 PR #5 병합본 `d5784ae`를 기준으로 구조 개선 전용 브랜치 생성

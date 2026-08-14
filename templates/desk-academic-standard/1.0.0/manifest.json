@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "name": "학사달력 표준 탁상형",
   "productType": "desk",
-  "status": "shadow-renderer-wired",
+  "status": "visual-review-ready",
   "publishable": false,
   "pageComposition": {
     "sheetCount": 14,

@@ -6,6 +6,7 @@ await import('../apps/designer-studio/template-package-loader.js');
 await import('../apps/designer-studio/desk-academic-package-runtime.js');
 await import('../apps/designer-studio/calendar-domain-bridge.js');
 await import('../apps/designer-studio/desk-academic-shadow-renderer.js');
+await import('../apps/designer-studio/desk-academic-visual-parity.js');
 
 const base = new URL('../templates/desk-academic-standard/1.0.0/', import.meta.url);
 const fetcher = async url => {
@@ -95,8 +96,13 @@ assert.equal(shadow.pages.at(-1).role, 'back-contact');
 assert.match(shadow.pages.find(item => item.role === 'monthly-calendar').html, /data-calendar-rows="5"/);
 assert.match(shadow.pages.find(item => item.role === 'monthly-photo-memo').html, /data-layout="photo-1\.7-memo-1"/);
 assert.match(shadow.pages.at(-1).html, /CONTACT INFORMATION/);
+const visualParity = globalThis.ACDLDeskAcademicVisualParity.compare(shadow);
+assert.equal(visualParity.structurallyReady, true);
+assert.equal(visualParity.visuallyApproved, false);
+assert.deepEqual(visualParity.issues, []);
 
 const html = await readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
 assert.match(html, /lastDeskAcademicPackageDocument/);
 assert.match(html, /lastDeskAcademicShadowRender/);
+assert.match(html, /lastDeskAcademicVisualParity/);
 assert.match(html, /ACDLTemplatePackageLoader\.load\(\)/);

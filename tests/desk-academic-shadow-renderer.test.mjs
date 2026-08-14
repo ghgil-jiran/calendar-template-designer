@@ -42,7 +42,7 @@ assert.equal(renderer.renderObject({ type: 'contact-card', payload: {}, metadata
 const document = renderer.renderDocument({
   template: {
     pages: [
-      { id: 'p1', role: 'monthly-calendar', objects: [{ type: 'calendar', payload: { year: 2027, month: 3, gridRows: 5 }, visible: true, zIndex: 1 }] },
+      { id: 'p1', role: 'monthly-calendar', size: { width: 266, height: 186 }, objects: [{ id: 'calendar', type: 'calendar', frame: { x: 13, y: 18, width: 240, height: 150 }, payload: { year: 2027, month: 3, gridRows: 5 }, visible: true, zIndex: 1 }] },
       { id: 'p2', role: 'back-contact', objects: [], metadata: {} }
     ]
   }
@@ -50,3 +50,5 @@ const document = renderer.renderDocument({
 assert.equal(document.pageCount, 2);
 assert.equal(document.pages[0].role, 'monthly-calendar');
 assert.match(document.pages[0].html, /data-page-id="p1"/);
+assert.match(document.pages[0].html, /shadow-positioned-object/);
+assert.match(document.pages[0].html, /left:/);
