@@ -26,7 +26,10 @@ const css = await readFile(new URL('../apps/designer-studio/desk-academic-shadow
 assert.match(css, /grid-template-rows:auto repeat\(5/);
 assert.match(css, /flex:1\.7/);
 assert.match(css, /\[data-screen-only\]/);
+assert.match(css, /사진 미등록 · 화면 안내/);
 
 const qa = await readFile(new URL('../apps/designer-studio/desk-academic-visual-parity.html', import.meta.url), 'utf8');
 assert.match(qa, /학사달력 에디터 서비스 v1\.1 시각 비교/);
 assert.match(qa, /육안 승인 전/);
+assert.match(qa, /sampleImage/);
+assert.match(qa, /back\.badge/);
