@@ -82,6 +82,16 @@
 - Canvas 드래그 원본·중심점·회전 시작각·변경 여부를 `canvas-gesture.js`로 분리
 - 다중 개체 이동과 주 개체 크기 조절·회전 결과를 독립 검사로 고정
 - 드래그 종료의 변경 여부·임시 undo 폐기·안내 메시지 판정을 같은 모듈로 통합
+- pointer capture 등록·해제와 pointer listener 정리를 `canvas-input.js`로 분리
+- 전체 선택·삭제·방향키 이동의 입력 해석을 분리하고 실제 변경·undo·render 순서는 유지
+- Inspector 변경 서명과 숫자 범위 검증을 `inspector-form.js`로 분리
+- 그래픽 개체 스타일·배치·사진 프레임·권한 반영을 `inspector-graphic.js`로 분리
+- Inspector DOM 입력 읽기, undo·dirty·render·알림 순서는 유지
+- 텍스트 콘텐츠·스타일, 이미지 표시와 개체 배치 보정을 `inspector-element.js`로 분리
+- 월력·일정·의미 객체 Inspector는 도메인 모듈 경계가 정해질 때까지 기존 연결 유지
+- 미리보기 페이지 조회·선택 페이지 복구·편집 상태 저장과 복원을 `preview-state.js`로 분리
+- 미리보기 복제본의 ID·편집 핸들·선택·잠금·Binding 오류 표시 제거를 모듈화
+- 전체 미리보기 DOM 카드·오류 카드·확대·축소·modal 순서는 유지
 
 ## 표준 검증
 
@@ -110,8 +120,8 @@
 
 ## 다음 할 일
 
-1. Canvas pointer capture·종료 처리와 키보드 명령 연결 경계를 별도 모듈 후보로 정리
-2. 이벤트 연결을 한 묶음씩 분리하고 브라우저에서 선택·이동·크기 조절을 확인
-3. Canvas 완료 후 Inspector, Preview, Persistence 순서로 진행
+1. 브라우저에서 Canvas 선택·이동·크기 조절·회전·키보드 이동을 확인
+2. 브라우저에서 페이지·전체 미리보기 진입과 편집 복귀를 확인
+3. 로컬 저장·복구·프로젝트 직렬화 Persistence 경계를 정리
 4. 사용자 서비스 연결 전에 숨은 Runtime 비교 결과를 다시 확인
 5. PDF/X-4 실물 비교는 기능 구조 통합 뒤 별도 승인 단계에서 진행

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Calendar Template Designer v2.0 Alpha</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><link rel="stylesheet" href="./desk-academic-shadow-renderer.css"><script src="./calendar-domain-bridge.js"></script><script src="./project-document.js"></script><script src="./canvas-geometry.js"></script><script src="./canvas-selection.js"></script><script src="./canvas-gesture.js"></script><script src="./dataset-domain-bridge.js"></script><script src="./desk-academic-page-adapter.js"></script><script src="./integration-parity-bridge.js"></script><script src="./template-package-loader.js"></script><script src="./desk-academic-package-runtime.js"></script><script src="./desk-academic-shadow-renderer.js"></script><script src="./desk-academic-visual-parity.js"></script><script src="./desk-academic-print-parity.js"></script><script src="./template-catalog.js"></script>
+<title>Calendar Template Designer v2.0 Alpha</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><link rel="stylesheet" href="./desk-academic-shadow-renderer.css"><script src="./calendar-domain-bridge.js"></script><script src="./project-document.js"></script><script src="./canvas-geometry.js"></script><script src="./canvas-selection.js"></script><script src="./canvas-gesture.js"></script><script src="./canvas-input.js"></script><script src="./inspector-form.js"></script><script src="./inspector-graphic.js"></script><script src="./inspector-element.js"></script><script src="./preview-state.js"></script><script src="./dataset-domain-bridge.js"></script><script src="./desk-academic-page-adapter.js"></script><script src="./integration-parity-bridge.js"></script><script src="./template-package-loader.js"></script><script src="./desk-academic-package-runtime.js"></script><script src="./desk-academic-shadow-renderer.js"></script><script src="./desk-academic-visual-parity.js"></script><script src="./desk-academic-print-parity.js"></script><script src="./template-catalog.js"></script>
 <script src="./wizard-flow.js"></script>
 <style>
 :root{--bg:var(--acds-canvas,#f6f8fb);--panel:var(--acds-surface,#fff);--line:var(--acds-border,#e2e8f0);--text:var(--acds-text-strong,#0f172a);--muted:var(--acds-text-muted,#64748b);--accent:var(--acds-primary,#2563eb);--soft:var(--acds-primary-soft,#eff6ff);--danger:var(--acds-error,#dc2626);--ok:var(--acds-success,#027a48);--warn:var(--acds-warning,#d97706)}
@@ -1575,23 +1575,10 @@ function inspectorContainerFor(button){
  return button.closest(".inspector-group")||button.closest(".section")||el("inspector")
 }
 function inspectorSignature(container){
- return [...container.querySelectorAll("input,select,textarea")]
-  .filter(node=>node.type!=="file")
-  .map(node=>`${node.id}:${node.type==="checkbox"?node.checked:node.value}`)
-  .join("|")
+ return window.ACDLInspectorForm.signature(container)
 }
 function validateInspectorContainer(container){
- let valid=true,message="";
- container.querySelectorAll("input,select,textarea").forEach(node=>node.classList.remove("inspector-field-error"));
- for(const node of container.querySelectorAll('input[type="number"]')){
-  const value=Number(node.value),min=node.min===""?null:Number(node.min),max=node.max===""?null:Number(node.max);
-  if(node.value===""||!Number.isFinite(value)||(min!==null&&value<min)||(max!==null&&value>max)){
-   node.classList.add("inspector-field-error");valid=false;
-   message=`${node.closest("label")?.childNodes[0]?.textContent?.trim()||"숫자 입력값"}을 허용 범위 안에서 입력하세요.`;
-   break
-  }
- }
- return {valid,message}
+ return window.ACDLInspectorForm.validate(container)
 }
 function setupInspectorFeedback(){
  const feedback=el("inspectorFeedback");
@@ -1721,17 +1708,11 @@ function bindInspector(){
  bind("applyEventListLayout",()=>change(()=>{const i=sourceElement(),columns=el("eventListColumns").value;i.columns=columns==="auto"?"auto":Number(columns||1);i.fontSize=Number(el("eventListFontSize").value||8);i.minFontSize=Math.min(i.fontSize,Number(el("eventListMinFontSize").value||6));i.autoShrink=el("eventListAutoShrink").checked}));
  bind("applyDateStripContent",()=>change(()=>{const i=sourceElement();i.monthSource=el("dateStripMonthSource").value;i.year=Number(el("dateStripYear").value);i.month=Number(el("dateStripMonth").value);i.showWeekday=el("dateStripShowWeekday").checked;i.showDate=el("dateStripShowDate").checked}));
  bind("applyDateStripDesign",()=>change(()=>{const i=sourceElement();i.style||={};i.style.background=el("dateStripBackground").checked}));
- bind("applyTextContent",()=>change(()=>{const i=sourceElement();i.content=el("elemText").value;i.binding=el("elemTextBinding")?.value||null}));
- bind("applyElementStyle",()=>change(()=>{const i=sourceElement();i.style||={};i.style.fontSize=Number(el("elemFontSize").value);i.style.textAlign=el("elemAlign").value;i.style.color=el("elemColor").value;i.style.background=el("elemBackground").checked}));
- bind("applyImageStyle",()=>change(()=>{const i=sourceElement();i.fit=el("elemFit").value;i.alt=el("elemAlt").value}));
+ bind("applyTextContent",()=>change(()=>window.ACDLInspectorElement.apply(sourceElement(),"text-content",{content:el("elemText").value,binding:el("elemTextBinding")?.value})));
+ bind("applyElementStyle",()=>change(()=>window.ACDLInspectorElement.apply(sourceElement(),"text-style",{fontSize:el("elemFontSize").value,textAlign:el("elemAlign").value,color:el("elemColor").value,background:el("elemBackground").checked})));
+ bind("applyImageStyle",()=>change(()=>window.ACDLInspectorElement.apply(sourceElement(),"image-style",{fit:el("elemFit").value,alt:el("elemAlt").value})));
  bind("replaceImageBtn",()=>{pendingImageElementId=selectedElementId;pendingImageElementScope=selectedElementScope;el("elementImageInput").click()});
- bind("applyElementGeometry",()=>change(()=>{
-  const i=sourceElement();if(!i)return;
-  const numeric=(id,fallback)=>{const n=parseFloat(el(id).value);return Number.isFinite(n)?n:fallback};
-  i.x=numeric("elemX",i.x);i.y=numeric("elemY",i.y);i.width=numeric("elemW",i.width);i.height=numeric("elemH",i.height);
-  i.width=Math.max(3,Math.min(100,i.width));i.height=Math.max(3,Math.min(100,i.height));
-  i.x=Math.max(0,Math.min(i.x,100-i.width));i.y=Math.max(0,Math.min(i.y,100-i.height))
- }));
+ bind("applyElementGeometry",()=>change(()=>window.ACDLInspectorElement.apply(sourceElement(),"geometry",{x:el("elemX").value,y:el("elemY").value,width:el("elemW").value,height:el("elemH").value})));
  bind("bringForward",()=>change(()=>sourceElement().zIndex=(sourceElement().zIndex||0)+1));
  bind("sendBackward",()=>change(()=>sourceElement().zIndex=Math.max(0,(sourceElement().zIndex||0)-1)));
  bind("duplicateFromInspector",duplicateSelected);bind("deleteFromInspector",deleteSelected);
@@ -2766,7 +2747,7 @@ const v28InspectorTabsHTML=inspectorTabsHTML;
 inspectorTabsHTML=function(){return `<div class="inspector-tabs" role="tablist"><button type="button" class="inspector-tab ${inspectorActiveTab==="content"?"active":""}" data-tab="content">콘텐츠</button><button type="button" class="inspector-tab ${inspectorActiveTab==="design"?"active":""}" data-tab="design">스타일</button><button type="button" class="inspector-tab ${inspectorActiveTab==="layout"?"active":""}" data-tab="layout">배치</button><button type="button" class="inspector-tab ${inspectorActiveTab==="data"?"active":""}" data-tab="data">데이터</button><button type="button" class="inspector-tab ${inspectorActiveTab==="permission"?"active":""}" data-tab="permission">권한</button></div>`};
 const v28RenderInspector=renderInspector;
 renderInspector=function(){v28RenderInspector();const ins=el("inspector"),panels=elementInspectorPanels();if(!sourceElement()||!["shape","vector","image-frame"].includes(sourceElement().type))return;["data","permission"].forEach(tab=>{let panel=ins.querySelector(`[data-panel="${tab}"]`);if(!panel){panel=document.createElement("div");panel.className=`inspector-tab-panel ${inspectorActiveTab===tab?"active":""}`;panel.dataset.panel=tab;ins.appendChild(panel)}panel.innerHTML=panels[tab]||""});ins.querySelectorAll(".inspector-tab").forEach(button=>button.addEventListener("click",()=>{inspectorActiveTab=button.dataset.tab;ins.querySelectorAll(".inspector-tab").forEach(n=>n.classList.toggle("active",n.dataset.tab===inspectorActiveTab));ins.querySelectorAll(".inspector-tab-panel").forEach(n=>n.classList.toggle("active",n.dataset.panel===inspectorActiveTab))}))};
-function applyGraphicInspector(action){const item=sourceElement();if(!item)return;snapshot();if(action==="style"){if(item.type==="shape"){item.shapeType=el("graphicShapeType")?.value||item.shapeType;item.style={...(item.style||{}),fill:el("graphicFill")?.value||item.style?.fill,stroke:el("graphicStroke")?.value||item.style?.stroke,strokeWidth:Number(el("graphicStrokeWidth")?.value??item.style?.strokeWidth)} }if(item.type==="vector"){item.assetId=el("graphicVectorAsset")?.value||item.assetId;item.colors={primary:el("graphicPrimary")?.value||item.colors?.primary,secondary:el("graphicSecondary")?.value||item.colors?.secondary};item.flipX=el("graphicFlipX")?.value==="true";item.flipY=el("graphicFlipY")?.value==="true"}if(item.type==="image-frame"){item.frameType=el("graphicFrameType")?.value||item.frameType;item.style={...(item.style||{}),stroke:el("graphicStroke")?.value||item.style?.stroke,strokeWidth:Number(el("graphicStrokeWidth")?.value??item.style?.strokeWidth)}}}if(action==="layout"){item.x=Number(el("elemX").value);item.y=Number(el("elemY").value);item.width=Number(el("elemW").value);item.height=Number(el("elemH").value);item.rotation=Number(el("graphicRotation").value||0);item.opacity=Number(el("graphicOpacity").value??1)}if(action==="frame"){item.image||={};item.image.binding=el("frameBinding").value;item.image.fit=el("frameFit").value;item.image.scale=Number(el("frameScale").value||1);item.image.offsetX=Number(el("frameOffsetX").value||0);item.image.offsetY=Number(el("frameOffsetY").value||0)}if(action==="permission"){item.permissions||={};document.querySelectorAll("[data-permission]").forEach(n=>item.permissions[n.dataset.permission]=n.checked)}markDirty();render();showEditorToast("그래픽 개체 설정을 저장했습니다.")}
+function applyGraphicInspector(action){const item=sourceElement();if(!item)return;snapshot();const values=action==="style"?{shapeType:el("graphicShapeType")?.value,fill:el("graphicFill")?.value,stroke:el("graphicStroke")?.value,strokeWidth:el("graphicStrokeWidth")?.value,assetId:el("graphicVectorAsset")?.value,primary:el("graphicPrimary")?.value,secondary:el("graphicSecondary")?.value,flipX:el("graphicFlipX")?.value,flipY:el("graphicFlipY")?.value,frameType:el("graphicFrameType")?.value}:action==="layout"?{x:el("elemX").value,y:el("elemY").value,width:el("elemW").value,height:el("elemH").value,rotation:el("graphicRotation").value,opacity:el("graphicOpacity").value}:action==="frame"?{binding:el("frameBinding").value,fit:el("frameFit").value,scale:el("frameScale").value,offsetX:el("frameOffsetX").value,offsetY:el("frameOffsetY").value}:{permissions:Object.fromEntries([...document.querySelectorAll("[data-permission]")].map(n=>[n.dataset.permission,n.checked]))};window.ACDLInspectorGraphic.apply(item,action,values);markDirty();render();showEditorToast("그래픽 개체 설정을 저장했습니다.")}
 document.addEventListener("click",e=>{const t=e.target.closest("button");if(!t)return;if(t.id==="applyGraphicStyle")applyGraphicInspector("style");if(t.id==="applyGraphicLayout")applyGraphicInspector("layout");if(t.id==="applyFrameImage")applyGraphicInspector("frame");if(t.id==="applyGraphicPermissions")applyGraphicInspector("permission");if(t.id==="replaceFrameImageBtn"){pendingImageElementId=selectedElementId;pendingImageElementScope=selectedElementScope;el("frameImageInput").value="";el("frameImageInput").click()}});
 el("frameImageInput").addEventListener("change",async e=>{const file=e.target.files?.[0],targetId=pendingImageElementId||selectedElementId,targetScope=pendingImageElementScope||selectedElementScope;e.target.value="";if(!file||!targetId)return;const arr=targetScope==="master"?masterElements():pageElements(),item=arr.find(x=>x.id===targetId);if(item?.type!=="image-frame"){pendingImageElementId=null;pendingImageElementScope=null;return}try{showEditorToast("이미지를 최적화하고 있습니다…");const stored=await window.ACDLAssetStore.storeImage(file,{previewMax:900,previewQuality:.78});snapshot();item.image||={};item.image.assetId=stored.assetId;item.image.src=stored.preview;item.image.originalName=file.name;item.image.originalBytes=file.size;item.image.fit||="cover";item.image.scale||=1;item.image.offsetX??=0;item.image.offsetY??=0;selectedElementId=item.id;selectedElementScope=targetScope;markDirty();render();showEditorToast(`프레임 이미지를 최적화했습니다. ${window.ACDLAssetStore.formatBytes(file.size)} → ${window.ACDLAssetStore.formatBytes(stored.previewBytes)}`)}catch(err){showEditorToast(err?.message||"이미지를 읽지 못했습니다.")}finally{pendingImageElementId=null;pendingImageElementScope=null;window.__acdlUpdateMemoryMonitor?.()}});
 function alignSelected(action){const item=sourceElement();if(!item)return;snapshot();if(action==="align-left")item.x=0;if(action==="align-center")item.x=(100-item.width)/2;if(action==="align-right")item.x=100-item.width;if(action==="align-top")item.y=0;if(action==="align-middle")item.y=(100-item.height)/2;if(action==="align-bottom")item.y=100-item.height;if(action==="front")item.zIndex=maxZ(selectedElementScope)+1;if(action==="back")item.zIndex=0;markDirty();render()}
@@ -3165,12 +3146,11 @@ body.user-mode #templateSettingsBtn{display:inline-flex!important}
 
   // Dedicated, non-destructive preview path with explicit poster dimensions.
   function cleanPreviewClone(live,pageInfo){
-    const source=live.cloneNode(true);source.removeAttribute('id');source.classList.add('preview-only-page');source.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));source.querySelectorAll('.editor-only,.non-output,.resize-handle,.elem-handle,.elem-label,.semantic-role-badge,.binding-status-badge,.workspace-binding-badge').forEach(n=>n.remove());source.querySelectorAll('.selected,.element-selected,.workspace-locked,.binding-missing').forEach(n=>n.classList.remove('selected','element-selected','workspace-locked','binding-missing'));
-    const isPoster=pageInfo.role==='poster-annual';const w=isPoster?720:(live.offsetWidth||720),h=isPoster?1018:(live.offsetHeight||Math.round(w*1.414));source.dataset.previewWidth=String(w);source.dataset.previewHeight=String(h);source.style.width=w+'px';source.style.height=h+'px';return source;
+    return window.ACDLPreviewState.clonePage(live,pageInfo);
   }
   window.openFullPreview=function(){
     if(!project?.book?.pageInstances?.length){showEditorToast('미리보기할 페이지가 없습니다.');return}
-    const saved={page:selectedPageId,element:selectedElementId,scope:selectedElementScope,editing:calendarEditing,preview,previewType};
+    const saved=window.ACDLPreviewState.capture({pageId:selectedPageId,elementId:selectedElementId,scope:selectedElementScope,calendarEditing,preview,previewType});
     const grid=$('fullPreviewGrid');grid.innerHTML='';grid.style.setProperty('--preview-card-min',($('previewCardSize')?.value||410)+'px');selectedElementId=null;selectedElementScope=null;calendarEditing=false;preview=false;previewType=null;
     let failed=0;
     for(const pageInfo of project.book.pageInstances){
@@ -3178,7 +3158,7 @@ body.user-mode #templateSettingsBtn{display:inline-flex!important}
         selectedPageId=pageInfo.id;renderPage();applyThemeTokens();const live=$('page');if(!live)throw new Error('페이지 렌더링 결과가 없습니다.');const source=cleanPreviewClone(live,pageInfo);const card=document.createElement('section');card.className='full-preview-card';const title=document.createElement('div');title.className='full-preview-card-title';title.innerHTML=`<span>${roleLabel(pageInfo)}</span><small>${pageInfo.role==='poster-annual'?'연간 벽보 · 12개월':(pageInfo.calendarYear&&pageInfo.calendarMonth?`${pageInfo.calendarYear}.${String(pageInfo.calendarMonth).padStart(2,'0')}`:pageInfo.id)}</small><button type="button">원본 보기</button>`;const stage=document.createElement('div');stage.className='full-preview-stage'+(pageInfo.role==='poster-annual'?' poster-preview-stage':'');stage.appendChild(source);card.append(title,stage);grid.appendChild(card);title.querySelector('button').onclick=()=>openPreviewFocus(card);stage.ondblclick=()=>openPreviewFocus(card);
       }catch(err){failed++;console.error('preview failed',pageInfo.id,err);const card=document.createElement('section');card.className='full-preview-card preview-error-card';card.innerHTML=`<div class="full-preview-card-title"><span>${roleLabel(pageInfo)}</span><small>오류</small></div><div style="padding:24px">${v21Escape(err.message||String(err))}</div>`;grid.appendChild(card)}
     }
-    selectedPageId=project.book.pageInstances.some(p=>p.id===saved.page)?saved.page:project.book.pageInstances[0].id;selectedElementId=saved.element;selectedElementScope=saved.scope;calendarEditing=saved.editing;preview=false;previewType=null;try{render()}catch(err){console.error(err)}
+    const restored=window.ACDLPreviewState.restore(project,saved);selectedPageId=restored.pageId;selectedElementId=restored.elementId;selectedElementScope=restored.scope;calendarEditing=restored.calendarEditing;preview=restored.preview;previewType=restored.previewType;try{render()}catch(err){console.error(err)}
     preview=true;previewType='template';$('fullPreviewSummary').textContent=`${project.book.pageInstances.length}개 페이지${failed?` · ${failed}개 오류`:''} · 독립 렌더링 미리보기`;$('fullPreviewOverlay').classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>grid.querySelectorAll('.full-preview-card:not(.preview-error-card)').forEach(card=>fitFullPreviewPage(card.querySelector('.preview-only-page'),card.querySelector('.full-preview-stage'),Number($('previewZoom')?.value||100)))));
   };
   $('fullPreviewBtn')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();window.openFullPreview()},true);
@@ -3853,7 +3833,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 </style>
 <script id="sprint2-product-integration">
 (()=>{
- let gesture=null;
+ let gesture=null,releasePointer=null;
  const selection=window.ACDLCanvasSelection.createSelectionStore((id,scope)=>getItem(id,scope));
  const key=selection.key;
  const selectedViews=selection.views;
@@ -3901,16 +3881,17 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   inspectorDirty=false;inspectorNotice={type:'ready',message:'선택한 개체를 Canvas에서 직접 편집할 수 있습니다.'};
   const rect=el('page').getBoundingClientRect(),handle=e.target.dataset.handle||'move';snapshot();
   gesture=window.ACDLCanvasGesture.begin({pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,handle,rect,views:selectedViews(),primary:{id,scope,item},node:box});
-  box.setPointerCapture(e.pointerId);box.addEventListener('pointermove',moveElementPointer);box.addEventListener('pointerup',endElementPointer,{once:true});box.addEventListener('pointercancel',endElementPointer,{once:true});box.classList.add('s2-selected');
+  releasePointer=window.ACDLCanvasInput.capturePointer(box,e.pointerId,{move:moveElementPointer,end:endElementPointer});box.classList.add('s2-selected');
  };
  moveElementPointer=function(e){
   if(!gesture)return;const p=window.ACDLCanvasGesture.update(gesture,{clientX:e.clientX,clientY:e.clientY,shiftKey:e.shiftKey}),n=gesture.node;n.style.left=p.x+'%';n.style.top=p.y+'%';n.style.width=p.width+'%';n.style.height=p.height+'%';n.style.transform=`rotate(${p.rotation||0}deg)`;
  };
- endElementPointer=function(e){if(!gesture)return;const g=gesture,result=window.ACDLCanvasGesture.finish(g);try{g.node.releasePointerCapture(e.pointerId)}catch{}g.node.removeEventListener('pointermove',moveElementPointer);if(result.discardSnapshot){history.pop();el('undoBtn').disabled=!history.length}gesture=null;markDirty();inspectorNotice={type:'success',message:result.message};render()};
+ endElementPointer=function(e){if(!gesture)return;const g=gesture,result=window.ACDLCanvasGesture.finish(g);releasePointer?.(e.pointerId);releasePointer=null;if(result.discardSnapshot){history.pop();el('undoBtn').disabled=!history.length}gesture=null;markDirty();inspectorNotice={type:'success',message:result.message};render()};
  document.addEventListener('pointerdown',e=>{if(!project||preview)return;const page=e.target.closest('#page');if(page&&!e.target.closest('.free-element')&&!e.target.closest('.s2-selection-toolbar')&&!e.target.closest('.calendar-region')){clearSelection();render()}},true);
- document.addEventListener('keydown',e=>{if(!project||preview||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;const views=selectedViews();if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'){e.preventDefault();const last=selection.replace(allVisibleElements().map(v=>({id:v.id,scope:v._scope})));if(last)setPrimary(last.id,last.scope);render();return}if(!views.length)return;
-  if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();snapshot();views.filter(v=>!v.item.locked).forEach(v=>{const arr=v.scope==='master'?masterElements():pageElements();const i=arr.findIndex(x=>x.id===v.id);if(i>=0)arr.splice(i,1)});clearSelection();markDirty();render();return}
-  const arrows={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};if(arrows[e.key]){e.preventDefault();snapshot();const scale=e.shiftKey?5:1,[mx,my]=arrows[e.key];views.filter(v=>!v.item.locked).forEach(v=>Object.assign(v.item,window.ACDLCanvasGeometry.nudgeFrame(v.item,mx*scale*.2,my*scale*.2)));markDirty();render()}
+ document.addEventListener('keydown',e=>{if(!project||preview)return;const views=selectedViews(),command=window.ACDLCanvasInput.keyboardCommand(e,document.activeElement?.tagName,views.length>0);if(!command)return;e.preventDefault();
+  if(command.type==='select-all'){const last=selection.replace(allVisibleElements().map(v=>({id:v.id,scope:v._scope})));if(last)setPrimary(last.id,last.scope);render();return}
+  if(command.type==='delete'){snapshot();views.filter(v=>!v.item.locked).forEach(v=>{const arr=v.scope==='master'?masterElements():pageElements();const i=arr.findIndex(x=>x.id===v.id);if(i>=0)arr.splice(i,1)});clearSelection();markDirty();render();return}
+  if(command.type==='nudge'){snapshot();views.filter(v=>!v.item.locked).forEach(v=>Object.assign(v.item,window.ACDLCanvasGeometry.nudgeFrame(v.item,command.deltaX,command.deltaY)));markDirty();render()}
  },true);
  const oldReset=resetEditorViewState;resetEditorViewState=function(){selection.clear();oldReset()};
  window.ACDLSprint2Editor={version:'2.0-product',getSelection:()=>selectedViews().map(v=>({id:v.id,scope:v.scope})),clearSelection};
@@ -3985,13 +3966,11 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   clean.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();handler()});
   return clean;
  }
- function availablePreviewPages(){
-  return Array.isArray(project?.book?.pageInstances)?project.book.pageInstances:[];
- }
+ function availablePreviewPages(){return window.ACDLPreviewState.pages(project)}
  function enterPagePreview(){
   const pages=availablePreviewPages();
   if(!pages.length){showEditorToast('미리보기할 페이지가 없습니다.');return}
-  if(!pages.some(page=>page.id===selectedPageId))selectedPageId=pages[0].id;
+  selectedPageId=window.ACDLPreviewState.repairPageId(project,selectedPageId);
   exitPreviewMode();preview=true;previewType='page';document.body.classList.add('preview-only');
   const button=$('previewBtn');if(button){button.textContent='편집으로 돌아가기';button.classList.add('active')}
   render();
@@ -4005,7 +3984,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  function enterFullPreview(){
   const pages=availablePreviewPages();
   if(!pages.length){showEditorToast('미리보기할 페이지가 없습니다.');return}
-  if(!pages.some(page=>page.id===selectedPageId))selectedPageId=pages[0].id;
+  selectedPageId=window.ACDLPreviewState.repairPageId(project,selectedPageId);
   window.openFullPreview();
  }
 
