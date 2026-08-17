@@ -11,6 +11,8 @@ const studioAssetAliases = new Map([
   ['/calendar-domain-bridge.js', 'apps/designer-studio/calendar-domain-bridge.js'],
   ['/project-document.js', 'apps/designer-studio/project-document.js'],
   ['/canvas-geometry.js', 'apps/designer-studio/canvas-geometry.js'],
+  ['/canvas-selection.js', 'apps/designer-studio/canvas-selection.js'],
+  ['/canvas-gesture.js', 'apps/designer-studio/canvas-gesture.js'],
   ['/dataset-domain-bridge.js', 'apps/designer-studio/dataset-domain-bridge.js'],
   ['/desk-academic-page-adapter.js', 'apps/designer-studio/desk-academic-page-adapter.js'],
   ['/integration-parity-bridge.js', 'apps/designer-studio/integration-parity-bridge.js'],

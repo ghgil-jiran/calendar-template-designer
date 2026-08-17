@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Calendar Template Designer v2.0 Alpha</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><link rel="stylesheet" href="./desk-academic-shadow-renderer.css"><script src="./calendar-domain-bridge.js"></script><script src="./project-document.js"></script><script src="./canvas-geometry.js"></script><script src="./dataset-domain-bridge.js"></script><script src="./desk-academic-page-adapter.js"></script><script src="./integration-parity-bridge.js"></script><script src="./template-package-loader.js"></script><script src="./desk-academic-package-runtime.js"></script><script src="./desk-academic-shadow-renderer.js"></script><script src="./desk-academic-visual-parity.js"></script><script src="./desk-academic-print-parity.js"></script><script src="./template-catalog.js"></script>
+<title>Calendar Template Designer v2.0 Alpha</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><link rel="stylesheet" href="./desk-academic-shadow-renderer.css"><script src="./calendar-domain-bridge.js"></script><script src="./project-document.js"></script><script src="./canvas-geometry.js"></script><script src="./canvas-selection.js"></script><script src="./canvas-gesture.js"></script><script src="./dataset-domain-bridge.js"></script><script src="./desk-academic-page-adapter.js"></script><script src="./integration-parity-bridge.js"></script><script src="./template-package-loader.js"></script><script src="./desk-academic-package-runtime.js"></script><script src="./desk-academic-shadow-renderer.js"></script><script src="./desk-academic-visual-parity.js"></script><script src="./desk-academic-print-parity.js"></script><script src="./template-catalog.js"></script>
 <script src="./wizard-flow.js"></script>
 <style>
 :root{--bg:var(--acds-canvas,#f6f8fb);--panel:var(--acds-surface,#fff);--line:var(--acds-border,#e2e8f0);--text:var(--acds-text-strong,#0f172a);--muted:var(--acds-text-muted,#64748b);--accent:var(--acds-primary,#2563eb);--soft:var(--acds-primary-soft,#eff6ff);--danger:var(--acds-error,#dc2626);--ok:var(--acds-success,#027a48);--warn:var(--acds-warning,#d97706)}
@@ -3853,22 +3853,17 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 </style>
 <script id="sprint2-product-integration">
 (()=>{
- const selection=new Set();
  let gesture=null;
- const key=(id,scope)=>`${scope}:${id}`;
- const selectedViews=()=>[...selection].map(k=>{const [scope,...rest]=k.split(':');const id=rest.join(':');const arr=scope==='master'?masterElements():pageElements();const item=arr.find(x=>x.id===id);return item?{item,scope,id}:null}).filter(Boolean);
+ const selection=window.ACDLCanvasSelection.createSelectionStore((id,scope)=>getItem(id,scope));
+ const key=selection.key;
+ const selectedViews=selection.views;
  const syncPrimary=()=>{
-  if(!selectedElementId||!selectedElementScope){selection.clear();return}
-  const primaryKey=key(selectedElementId,selectedElementScope);
-  for(const selectedKey of selection){
-   const [scope,...rest]=selectedKey.split(':'),id=rest.join(':');
-   if(!getItem(id,scope))selection.delete(selectedKey)
-  }
-  if(!selection.has(primaryKey)){selection.clear();selection.add(primaryKey)}
+  const next=selection.sync(selectedElementId&&selectedElementScope?{id:selectedElementId,scope:selectedElementScope}:null);
+  if(!next)setPrimary(null,null)
  };
  const setPrimary=(id,scope)=>{selectedElementId=id;selectedElementScope=scope};
- function selectOnly(id,scope){selection.clear();selection.add(key(id,scope));setPrimary(id,scope)}
- function toggleSelection(id,scope){const k=key(id,scope);if(selection.has(k)){selection.delete(k);if(selectedElementId===id&&selectedElementScope===scope){const next=[...selection][0];if(next){const [s,...r]=next.split(':');setPrimary(r.join(':'),s)}else setPrimary(null,null)}}else{selection.add(k);setPrimary(id,scope)}}
+ function selectOnly(id,scope){const next=selection.selectOnly(id,scope);setPrimary(next.id,next.scope)}
+ function toggleSelection(id,scope){const next=selection.toggle(id,scope,selectedElementId&&selectedElementScope?{id:selectedElementId,scope:selectedElementScope}:null);setPrimary(next?.id||null,next?.scope||null)}
  function clearSelection(){selection.clear();setPrimary(null,null);inspectorDirty=false}
  function getItem(id,scope){const arr=scope==='master'?masterElements():pageElements();return arr.find(x=>x.id===id)}
  function ensureOverlay(pageNode){
@@ -3883,7 +3878,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   bar.addEventListener('click',e=>{const action=e.target.closest('button')?.dataset.s2;if(!action)return;e.stopPropagation();const list=selectedViews();if(!list.length)return;snapshot();
    if(action==='front')list.forEach(v=>v.item.zIndex=maxZ(v.scope)+1);
    if(action==='back')list.forEach(v=>v.item.zIndex=0);
-   if(action==='duplicate'){const newSel=[];list.forEach(v=>{const arr=v.scope==='master'?masterElements():pageElements();const copy=structuredClone(v.item);copy.id=`${v.item.id}.copy.${Date.now()}.${Math.random().toString(36).slice(2,6)}`;copy.x=Math.min(100-copy.width,copy.x+2);copy.y=Math.min(100-copy.height,copy.y+2);copy.zIndex=maxZ(v.scope)+1;arr.push(copy);newSel.push(key(copy.id,v.scope))});selection.clear();newSel.forEach(k=>selection.add(k));const [s,...r]=newSel.at(-1).split(':');setPrimary(r.join(':'),s)}
+   if(action==='duplicate'){const newSel=[];list.forEach(v=>{const arr=v.scope==='master'?masterElements():pageElements();const copy=structuredClone(v.item);copy.id=`${v.item.id}.copy.${Date.now()}.${Math.random().toString(36).slice(2,6)}`;copy.x=Math.min(100-copy.width,copy.x+2);copy.y=Math.min(100-copy.height,copy.y+2);copy.zIndex=maxZ(v.scope)+1;arr.push(copy);newSel.push({id:copy.id,scope:v.scope})});const next=selection.replace(newSel);setPrimary(next.id,next.scope)}
    if(action==='lock')list.forEach(v=>v.item.locked=!v.item.locked);
    if(action==='hide')list.forEach(v=>v.item.visible=false);
    if(action==='delete'){list.forEach(v=>{const arr=v.scope==='master'?masterElements():pageElements();const i=arr.findIndex(x=>x.id===v.id);if(i>=0)arr.splice(i,1)});clearSelection()}
@@ -3905,21 +3900,15 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   const multi=e.shiftKey||e.ctrlKey||e.metaKey;if(multi)toggleSelection(id,scope);else if(!selection.has(key(id,scope)))selectOnly(id,scope);else setPrimary(id,scope);
   inspectorDirty=false;inspectorNotice={type:'ready',message:'선택한 개체를 Canvas에서 직접 편집할 수 있습니다.'};
   const rect=el('page').getBoundingClientRect(),handle=e.target.dataset.handle||'move';snapshot();
-  const originals=selectedViews().map(v=>({id:v.id,scope:v.scope,item:v.item,original:structuredClone(v.item)}));
-  const center={x:rect.left+(item.x+item.width/2)/100*rect.width,y:rect.top+(item.y+item.height/2)/100*rect.height};
-  gesture={pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,handle,rect,originals,primary:{id,scope,item,original:structuredClone(item)},startAngle:Math.atan2(e.clientY-center.y,e.clientX-center.x),center,changed:false,node:box};
+  gesture=window.ACDLCanvasGesture.begin({pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,handle,rect,views:selectedViews(),primary:{id,scope,item},node:box});
   box.setPointerCapture(e.pointerId);box.addEventListener('pointermove',moveElementPointer);box.addEventListener('pointerup',endElementPointer,{once:true});box.addEventListener('pointercancel',endElementPointer,{once:true});box.classList.add('s2-selected');
  };
  moveElementPointer=function(e){
-  if(!gesture)return;const dx=(e.clientX-gesture.startX)/gesture.rect.width*100,dy=(e.clientY-gesture.startY)/gesture.rect.height*100;if(Math.abs(dx)>.05||Math.abs(dy)>.05)gesture.changed=true;const handle=gesture.handle;
-  if(handle==='move')gesture.originals.forEach(v=>Object.assign(v.item,window.ACDLCanvasGeometry.moveFrame(v.original,dx,dy)));
-  else if(handle==='rotate')gesture.primary.item.rotation=window.ACDLCanvasGeometry.rotateFrame(gesture.primary.original.rotation,e.clientX,e.clientY,gesture.center,gesture.startAngle,e.shiftKey);
-  else Object.assign(gesture.primary.item,window.ACDLCanvasGeometry.resizeFrame(gesture.primary.original,handle,dx,dy));
-  const p=gesture.primary.item,n=gesture.node;n.style.left=p.x+'%';n.style.top=p.y+'%';n.style.width=p.width+'%';n.style.height=p.height+'%';n.style.transform=`rotate(${p.rotation||0}deg)`;
+  if(!gesture)return;const p=window.ACDLCanvasGesture.update(gesture,{clientX:e.clientX,clientY:e.clientY,shiftKey:e.shiftKey}),n=gesture.node;n.style.left=p.x+'%';n.style.top=p.y+'%';n.style.width=p.width+'%';n.style.height=p.height+'%';n.style.transform=`rotate(${p.rotation||0}deg)`;
  };
- endElementPointer=function(e){if(!gesture)return;const g=gesture;try{g.node.releasePointerCapture(e.pointerId)}catch{}g.node.removeEventListener('pointermove',moveElementPointer);if(!g.changed){history.pop();el('undoBtn').disabled=!history.length}gesture=null;markDirty();inspectorNotice={type:'success',message:g.changed?'Canvas에서 개체 편집 결과를 반영했습니다.':'개체를 선택했습니다.'};render()};
+ endElementPointer=function(e){if(!gesture)return;const g=gesture,result=window.ACDLCanvasGesture.finish(g);try{g.node.releasePointerCapture(e.pointerId)}catch{}g.node.removeEventListener('pointermove',moveElementPointer);if(result.discardSnapshot){history.pop();el('undoBtn').disabled=!history.length}gesture=null;markDirty();inspectorNotice={type:'success',message:result.message};render()};
  document.addEventListener('pointerdown',e=>{if(!project||preview)return;const page=e.target.closest('#page');if(page&&!e.target.closest('.free-element')&&!e.target.closest('.s2-selection-toolbar')&&!e.target.closest('.calendar-region')){clearSelection();render()}},true);
- document.addEventListener('keydown',e=>{if(!project||preview||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;const views=selectedViews();if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'){e.preventDefault();selection.clear();allVisibleElements().forEach(v=>selection.add(key(v.id,v._scope)));const last=allVisibleElements().at(-1);if(last)setPrimary(last.id,last._scope);render();return}if(!views.length)return;
+ document.addEventListener('keydown',e=>{if(!project||preview||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;const views=selectedViews();if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'){e.preventDefault();const last=selection.replace(allVisibleElements().map(v=>({id:v.id,scope:v._scope})));if(last)setPrimary(last.id,last.scope);render();return}if(!views.length)return;
   if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();snapshot();views.filter(v=>!v.item.locked).forEach(v=>{const arr=v.scope==='master'?masterElements():pageElements();const i=arr.findIndex(x=>x.id===v.id);if(i>=0)arr.splice(i,1)});clearSelection();markDirty();render();return}
   const arrows={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};if(arrows[e.key]){e.preventDefault();snapshot();const scale=e.shiftKey?5:1,[mx,my]=arrows[e.key];views.filter(v=>!v.item.locked).forEach(v=>Object.assign(v.item,window.ACDLCanvasGeometry.nudgeFrame(v.item,mx*scale*.2,my*scale*.2)));markDirty();render()}
  },true);
