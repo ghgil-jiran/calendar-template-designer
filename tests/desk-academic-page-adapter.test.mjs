@@ -45,6 +45,7 @@ assert.deepEqual(missing.missing, [
 ]);
 
 const html = await import('node:fs/promises').then(fs => fs.readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8'));
-assert.match(html, /function adaptDeskAcademic\(project\)/);
-assert.match(html, /adapt\(project,composition\.pages\)/);
-assert.match(html, /sourcePageId=p\.sourcePageId\|\|p\.id/);
+const runtimeAdapter = await import('node:fs/promises').then(fs => fs.readFile(new URL('../apps/designer-studio/runtime-project-adapter.js', import.meta.url), 'utf8'));
+assert.match(html, /function adaptDeskAcademic\(project,datasetOverride\)/);
+assert.match(runtimeAdapter, /adapt\(project,composition\.pages,datasetOverride\)/);
+assert.match(runtimeAdapter, /sourcePageId=page\.sourcePageId\|\|page\.id/);

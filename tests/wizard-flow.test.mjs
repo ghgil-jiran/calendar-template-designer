@@ -79,7 +79,7 @@ test('calendar type rules disable unsupported insert controls', () => {
 test('template settings persist against the current template id', () => {
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
   assert.match(html, /const id=project\.template\?\.id/);
-  assert.match(html, /saveTemplateProjectData\(id,JSON\.parse\(JSON\.stringify\(project\)\)\)/);
+  assert.match(html, /saveTemplateProjectData\(id,window\.ACDLPersistenceProject\.clone\(project\)\)/);
   assert.match(html, /persistAfter\('saveSchoolInfoBtn','학교 정보 및 에셋'\)/);
   assert.match(html, /persistCurrentTemplateSettings\('샘플 일정 파일'\)/);
 });

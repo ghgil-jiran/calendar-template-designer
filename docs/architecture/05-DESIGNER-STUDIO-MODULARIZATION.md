@@ -250,6 +250,16 @@ templates/
 - DOM 카드 생성, 페이지별 오류 카드, 확대·축소와 modal 표시 순서는 기존 화면 코드에 유지한다.
 - 다음 묶음은 로컬 저장·복구·프로젝트 직렬화 등 Persistence 경계를 대상으로 한다.
 
+여덟 번째 적용 — Persistence 기록과 프로젝트 직렬화:
+
+- undo/redo 기록에서 긴 `data:` 이미지 문자열을 한 번만 보관하는 compact/restore codec을 `persistence-history.js`로 분리한다.
+- 순환 참조를 `null`로 처리하고 12개 이력만 유지하는 기존 메모리 방어 규칙과 저장 문자열 형식은 변경하지 않는다.
+- 프로젝트 clone·hash와 자동 복구 레코드 생성을 `persistence-project.js`로 분리한다.
+- 자동 복구의 `latest` 키, 선택 페이지 ID, ISO 시각과 IndexedDB 저장소 연결은 그대로 유지한다.
+- IndexedDB 열기·읽기·쓰기를 `persistence-indexeddb.js`로 분리하고 DB 이름, 버전, store와 keyPath를 설정 계약으로 고정한다.
+- 템플릿 DB `acdl-template-storage-v25/templates`와 자산 DB `acdl-v361-assets/assets·recovery`는 변경하지 않아 기존 저장 데이터를 그대로 읽는다.
+- Persistence 다음 묶음은 Runtime/Adapter 비교 결과를 재확인하고 사용자 서비스 Dataset 공급 경계로 진행한다.
+
 ### Phase 5 — 사용자 서비스 연결
 
 - 사용자 서비스 v1.1 Adapter가 만든 Dataset을 Runtime에 전달
@@ -258,6 +268,14 @@ templates/
 - 차이가 허용 범위에 들어온 뒤에만 사용자 화면의 데이터 공급 경로 변경
 
 완료 조건: 사용자 서비스 UI를 바꾸지 않고 대표 탁상형 템플릿을 교체할 수 있다.
+
+첫 적용 — Runtime Project Adapter와 Dataset 주입 경계:
+
+- Legacy Project의 페이지·개체를 Runtime Template으로 바꾸는 계산을 `runtime-project-adapter.js`로 분리한다.
+- 기본 동작은 기존 `dataset-domain-bridge.js`가 Dataset을 만들며, 외부 Adapter가 만든 Dataset을 인자로 주입할 수도 있게 한다.
+- 대표 탁상형 28면 재구성은 `desk-academic-page-adapter.js`에 유지하여 사용자 데이터 변환과 페이지 물리 순서를 섞지 않는다.
+- 외부 Dataset을 사용해도 원본 프로젝트를 수정하지 않는 회귀검사를 둔다.
+- 사용자 서비스 v1.1 실제 필드 Adapter는 비공개 원본 소스 또는 저장 JSON을 다시 확인한 뒤 구현하며 필드명을 추측하지 않는다.
 
 ## 9. 사용자 서비스 v1.1에서 가져올 기준
 

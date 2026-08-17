@@ -92,6 +92,15 @@
 - 미리보기 페이지 조회·선택 페이지 복구·편집 상태 저장과 복원을 `preview-state.js`로 분리
 - 미리보기 복제본의 ID·편집 핸들·선택·잠금·Binding 오류 표시 제거를 모듈화
 - 전체 미리보기 DOM 카드·오류 카드·확대·축소·modal 순서는 유지
+- undo/redo의 대용량 `data:` 이미지 중복 제거와 참조 복원을 `persistence-history.js`로 분리
+- 프로젝트 clone·변경 hash·자동 복구 레코드 생성을 `persistence-project.js`로 분리
+- 기존 JSON 저장 형식, 자동 복구 `latest` 키, 선택 페이지와 IndexedDB 연결은 유지
+- IndexedDB 공통 열기·읽기·쓰기를 `persistence-indexeddb.js`로 분리
+- 기존 `acdl-template-storage-v25/templates`, `acdl-v361-assets/assets·recovery` 계약을 테스트로 고정
+- Legacy Project→Runtime 페이지·개체 변환을 `runtime-project-adapter.js`로 분리
+- 기존 Designer Dataset과 외부 사용자 서비스 Dataset을 같은 Runtime 경로에 주입할 수 있는 인자 경계 추가
+- 외부 Dataset 주입 시 원본 프로젝트와 28면 페이지 구성 Adapter를 변경하지 않는 검사 추가
+- GitHub 앱에서 사용자 서비스 비공개 저장소 조회가 403으로 차단되어 실제 v1.1 필드 Adapter는 원본 재확인 전까지 보류
 
 ## 표준 검증
 
@@ -122,6 +131,6 @@
 
 1. 브라우저에서 Canvas 선택·이동·크기 조절·회전·키보드 이동을 확인
 2. 브라우저에서 페이지·전체 미리보기 진입과 편집 복귀를 확인
-3. 로컬 저장·복구·프로젝트 직렬화 Persistence 경계를 정리
-4. 사용자 서비스 연결 전에 숨은 Runtime 비교 결과를 다시 확인
+3. 사용자 서비스 v1.1 원본 또는 대표 저장 JSON에서 실제 학교·일정·월별 콘텐츠 필드 재확인
+4. 확인된 필드만 사용자 서비스 Dataset Adapter에 매핑하고 현재 주입 경로에 연결
 5. PDF/X-4 실물 비교는 기능 구조 통합 뒤 별도 승인 단계에서 진행

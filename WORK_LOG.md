@@ -213,3 +213,22 @@
 - 연간 벽보 720×1018 미리보기와 일반 페이지 실제 렌더 크기 보존 규칙을 회귀검사로 고정
 - DOM 카드 생성, 오류 카드, 확대·축소와 modal 표시 순서는 기존 화면 코드에 유지
 - Studio 회귀검사 75개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
+
+## 2026-08-17 — Persistence 기록과 프로젝트 직렬화 분리
+
+- undo/redo 기록의 긴 `data:` 이미지 dedup pool, 순환 참조 처리와 복원을 `persistence-history.js`로 이동
+- 프로젝트 clone·변경 hash와 자동 복구 레코드 생성을 `persistence-project.js`로 이동
+- 템플릿 저장과 설정 저장은 동일한 JSON clone 결과를 사용하고 기존 저장 스키마는 유지
+- 자동 복구의 `latest` 키, 선택 페이지 ID, ISO 시각과 IndexedDB 연결 순서는 변경하지 않음
+- IndexedDB 공통 열기·읽기·쓰기를 `persistence-indexeddb.js`로 이동
+- 기존 템플릿·자산 DB 이름, 버전, store와 `id` keyPath를 회귀검사로 고정
+- Studio 회귀검사 78개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
+
+## 2026-08-17 — Runtime Dataset 공급 경계 분리
+
+- Legacy Project의 페이지·개체·Binding 변환을 `runtime-project-adapter.js`로 이동
+- 기본 Designer Dataset 외에 외부 Adapter Dataset을 같은 Runtime 변환기에 주입할 수 있도록 경계 추가
+- 사용자 서비스 v1.1의 28면 구성은 기존 Page Adapter에 유지하여 데이터 변환과 물리 순서를 분리
+- 외부 Dataset 주입 결과와 원본 프로젝트 불변성을 회귀검사로 고정
+- GitHub 앱의 사용자 서비스 비공개 저장소 조회가 403으로 차단되어 실제 필드 매핑은 추측하지 않고 보류
+- Studio 회귀검사 80개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
