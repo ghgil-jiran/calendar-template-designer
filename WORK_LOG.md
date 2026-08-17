@@ -151,3 +151,10 @@
 - 기존 UI, 스타일, 기능, `apps/designer-studio/index.html` 보존
 - 우리학교인쇄 서비스 경계, 주문/파일 연동 초안, 배포 단계를 문서화
 - `npm run style:check`, `npm run build` 검증 예정
+## 2026-08-17 — Project 문서 생성 분리
+
+- Designer Studio의 프로젝트 기본 구조와 탁상형 대표 템플릿 보정을 `project-document.js`로 이동
+- 기존 `makeProject` 진입점은 유지하고 순수 생성 모듈에 위임하여 뒤쪽 달력 유형 확장 코드와 호환
+- 탁상형·벽걸이형·벽보형 페이지 생성, 빈 일정, 대표 탁상형 Master와 월별 스타일 회귀검사 추가
+- HTML에 하드코딩된 프로젝트 생성 책임을 줄였으며 화면 UI, 저장 형식, 출력 경로는 변경하지 않음
+- PDF 실물 비교는 사용자 확인에 따라 후속 승인 단계로 보류

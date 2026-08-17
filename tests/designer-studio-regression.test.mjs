@@ -6,6 +6,7 @@ import vm from 'node:vm';
 
 const htmlPath = path.resolve('apps/designer-studio/index.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
+const projectDocument = fs.readFileSync(path.resolve('apps/designer-studio/project-document.js'), 'utf8');
 
 test('new template setup covers the editor chrome and remains scrollable on short screens', () => {
   assert.match(html, /\.setup\{[^}]*z-index:200[^}]*overflow:auto/);
@@ -38,8 +39,8 @@ test('dragging and resizing mutate only the selected element', () => {
 });
 
 test('system base templates start without sample school events', () => {
-  assert.match(html, /pageInstances:\[\],events:\[\],elementsByPage:\{\}/);
-  assert.doesNotMatch(html, /events:SAMPLE_EVENTS\.filter/);
+  assert.match(projectDocument, /pageInstances: \[\], events: \[\], elementsByPage: \{\}/);
+  assert.doesNotMatch(projectDocument, /events:\s*SAMPLE_EVENTS\.filter/);
 });
 
 test('postcard calendar editing uses the single shared toggle handler', () => {

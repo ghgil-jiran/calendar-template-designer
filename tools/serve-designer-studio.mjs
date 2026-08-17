@@ -9,6 +9,7 @@ const mime = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; chars
 const studioEntry = 'apps/designer-studio/index.html';
 const studioAssetAliases = new Map([
   ['/calendar-domain-bridge.js', 'apps/designer-studio/calendar-domain-bridge.js'],
+  ['/project-document.js', 'apps/designer-studio/project-document.js'],
   ['/dataset-domain-bridge.js', 'apps/designer-studio/dataset-domain-bridge.js'],
   ['/desk-academic-page-adapter.js', 'apps/designer-studio/desk-academic-page-adapter.js'],
   ['/integration-parity-bridge.js', 'apps/designer-studio/integration-parity-bridge.js'],

@@ -67,6 +67,14 @@
 - v1.1 독립 구조 기준 자동검사와 대표 3면 육안 확인 완료
 - PDF/X-4 인쇄 계약 자동검사 통과, 기준/Runtime PDF와 Preflight 증거는 미확보
 
+## 2026-08-17 작업 결과
+
+- PDF 실물 비교는 후속으로 보류하고 Phase 4 화면 기능 모듈화를 시작
+- 프로젝트 기본 문서 생성과 탁상형 대표 템플릿 보정을 `project-document.js`로 분리
+- 기존 `makeProject` 함수 이름과 뒤쪽 달력 유형 확장 순서를 유지하여 화면 호출 구조를 보존
+- 탁상형·벽걸이형·벽보형 생성 결과, 빈 일정, `acdl-project@2.18.0` 저장 기준 회귀검사 추가
+- 사용자 서비스 UI, 템플릿 에디터 화면, 저장·불러오기, 출력 경로는 변경하지 않음
+
 ## 표준 검증
 
 1. `npm ci`
@@ -94,7 +102,7 @@
 
 ## 다음 할 일
 
-1. 사용자 서비스 v1.1의 대표 PDF/X-4 샘플 확보
-2. 동일 데이터 Shadow Runtime PDF 생성 경로 준비
-3. Acrobat Preflight 또는 동등 도구로 인쇄 결과 비교
-4. 이후 Project, Canvas, Inspector, Preview, Persistence 순서로 한 영역씩 분리
+1. Canvas 상호작용의 선택·이동·크기 변경 상태 경계를 목록화하고 특성 테스트 보강
+2. Canvas 책임을 한 묶음씩 분리한 뒤 Inspector, Preview, Persistence 순서로 진행
+3. 사용자 서비스 연결 전에 숨은 Runtime 비교 결과를 다시 확인
+4. PDF/X-4 실물 비교는 기능 구조 통합 뒤 별도 승인 단계에서 진행
