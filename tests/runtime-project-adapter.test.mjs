@@ -45,3 +45,14 @@ test('runtime project adapter composes the accepted user service Dataset in shad
  assert.equal(adapted.composition.complete,true);
  assert.equal(adapted.hasErrors,false);
 });
+
+test('runtime project adapter resolves user assets before shadow composition',async()=>{
+ const source={school:{name:'학교'},calendar:{},monthlyImages:{}};
+ const resolved={...source,monthlyImages:{'2027-03':{src:'/march.jpg'}}};
+ const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{resolvePageBinding:path=>path},userServiceDataset:{accept:result=>result},userServiceAssets:{resolveDataset:async dataset=>({dataset:resolved,diagnostics:[{severity:'warning',code:'ASSET_NOT_FOUND'}],hasErrors:false})},parity:{buildDeskAcademicSurfacePlan:()=>[]},pageAdapter:{compose:()=>({pages:[],complete:true})}});
+ const project={productType:{category:'desk',pageSize:{width:260,height:180}},settings:{year:2027,startMonth:3},template:{id:'desk',masterElements:{},masters:{}},book:{elementsByPage:{}}};
+ const result=await adapter.adaptUserServiceWithAssets(project,{dataset:source,diagnostics:[],hasErrors:false});
+ assert.equal(result.dataset,resolved);
+ assert.equal(result.diagnostics[0].code,'ASSET_NOT_FOUND');
+ assert.equal(result.composition.complete,true);
+});

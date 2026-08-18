@@ -155,12 +155,26 @@ ResolvedDocument
 | 업무 데이터 | MVP 원본 필드 | Runtime Dataset 경로 | 키 규칙 | 1차 처리 |
 |---|---|---|---|---|
 | 월별 대표 이미지 | `photo-assets-v1.pageSrc[pageN]` + `doc.spreads[].month` | `monthlyImages[YYYY-MM]` | 시작월부터 12개월의 실제 연·월 | 연결 월 없는 쪽은 경고·제외 |
-| 월별 이미지 파일 참조 | `{ref:'idb',id}` 또는 `{ref:'url',src}` | `monthlyImages[key].assetRef` | 사용자 서비스 `MvpAssetRef` | 후속 Asset Resolver 필요 |
+| 월별 이미지 파일 참조 | `{ref:'idb',id}` 또는 `{ref:'url',src}` | `monthlyImages[key].assetRef` | 사용자 서비스 `MvpAssetRef` | 읽기 전용 Resolver 연결 |
 | 월별 추가 문구 | 원본 확인 필요 | `monthlyTexts[YYYY-MM]` | 이미지와 같은 키 | Schema 보완 후 사용 |
 | 월력용 명언 문구 | MVP 보유 여부 확인 필요 | `monthlyQuotes[YYYY-MM]` | 제목·한글·영문·출처·출처 상태 | Template Editor에서 `monthlyQuote` 개체 구현 |
 | 월별 자유 개체 편집 | 기존 MVP 구조 확인 필요 | 프로젝트 override 또는 별도 사용자 편집 계약 | 페이지 ID와 연·월을 함께 보존 | 1차 범위에서는 최소화 |
 
 숫자 월(`3`)만 키로 사용하면 12개월이 연도를 넘을 때 충돌하므로 항상 `YYYY-MM`을 사용한다.
+
+### AssetRef 해석 규칙
+
+사용자 서비스 v1.1의 실제 구현을 기준으로 다음 순서를 유지한다.
+
+1. `{ref:'url',src}`는 `src`를 그대로 사용한다.
+2. `{ref:'idb',id}`는 IndexedDB `calendar-uploads`의 `assets` store에서 ID로 조회한다.
+3. 로컬 자산의 `UploadAsset.dataUrl`이 있으면 이를 사용한다.
+4. 로컬에 없으면 Supabase 공개 버킷 `print-assets/user/{id}`의 존재를 확인하고 공개 URL을 사용한다.
+5. 두 위치 모두 없으면 원본 참조는 보존하고 `ASSET_NOT_FOUND` 경고와 빈 슬롯을 반환한다.
+
+템플릿 에디터는 사용자 서비스 IndexedDB나 Supabase 클라이언트를 직접 소유하지 않는다. 사용자 서비스가 `getAsset`, `cloudAssetUrl`, `cloudAssetExists` 구현을 주입하며, Resolver는 Shadow Runtime용 복제 Dataset에만 렌더 가능한 `src`를 추가한다.
+
+현재 대표 Template Package는 연락처를 `school.contact.address/telAcademic/telAdmin/fax/site`로 읽는다. 사용자 서비스의 공식 출력인 `school.contacts[]`는 그대로 보존하고, Shadow Runtime 진입 시에만 위 5개 필드의 읽기 전용 호환 보기를 만든다. 이 투영은 사용자 서비스 저장 Schema 변경이 아니다.
 
 ## 템플릿·프로젝트·주문 데이터 경계
 

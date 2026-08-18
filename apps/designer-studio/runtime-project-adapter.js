@@ -10,6 +10,7 @@
  function create(options={}){
   const datasetDomain=options.datasetDomain||root.ACDLDatasetDomain;
   const userServiceDataset=options.userServiceDataset||root.ACDLUserServiceDatasetBridge;
+  const userServiceAssets=options.userServiceAssets||null;
   const parity=options.parity||root.ACDLIntegrationParity;
   const pageAdapter=options.pageAdapter||root.ACDLDeskAcademicPageAdapter;
   function adapt(project,pageInstances=project.book.pageInstances||[],datasetOverride){
@@ -29,10 +30,21 @@
    if(!userServiceDataset)throw new Error('User Service Dataset Bridge is not available');
    const accepted=userServiceDataset.accept(adapterResult);
    if(accepted.hasErrors)return {dataset:accepted.dataset,diagnostics:accepted.diagnostics,hasErrors:true,template:null,composition:null};
-   const runtime=adaptDeskAcademic(project,accepted.dataset);
+   const runtimeDataset=userServiceDataset.toRuntimeView?userServiceDataset.toRuntimeView(accepted.dataset):accepted.dataset;
+   const runtime=adaptDeskAcademic(project,runtimeDataset);
    return {...runtime,diagnostics:accepted.diagnostics,hasErrors:false};
   }
-  return Object.freeze({readPath,legacyObject,adapt,adaptDeskAcademic,adaptUserService})
+  async function adaptUserServiceWithAssets(project,adapterResult){
+   if(!userServiceDataset)throw new Error('User Service Dataset Bridge is not available');
+   if(!userServiceAssets)throw new Error('User Service Asset Resolver is not available');
+   const accepted=userServiceDataset.accept(adapterResult);
+   if(accepted.hasErrors)return {dataset:accepted.dataset,diagnostics:accepted.diagnostics,hasErrors:true,template:null,composition:null};
+   const runtimeDataset=userServiceDataset.toRuntimeView?userServiceDataset.toRuntimeView(accepted.dataset):accepted.dataset;
+   const resolved=await userServiceAssets.resolveDataset(runtimeDataset);
+   const runtime=adaptDeskAcademic(project,resolved.dataset);
+   return {...runtime,diagnostics:[...accepted.diagnostics,...resolved.diagnostics],hasErrors:false};
+  }
+  return Object.freeze({readPath,legacyObject,adapt,adaptDeskAcademic,adaptUserService,adaptUserServiceWithAssets})
  }
  root.ACDLRuntimeProjectAdapter=Object.freeze({readPath,legacyObject,create})
 })(typeof window!=='undefined'?window:globalThis);

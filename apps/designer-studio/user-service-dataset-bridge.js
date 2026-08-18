@@ -42,6 +42,23 @@
     return diagnostics;
   }
 
+  function buildContactView(school = {}) {
+    const contacts = Array.isArray(school.contacts) ? school.contacts : [];
+    const value = type => contacts.find(item => item?.type === type)?.value || '';
+    return {
+      address: school.address || '',
+      telAcademic: value('academic'),
+      telAdmin: value('admin'),
+      fax: value('fax'),
+      site: school.website || ''
+    };
+  }
+
+  function toRuntimeView(dataset) {
+    if (!dataset || typeof dataset !== 'object') throw new TypeError('dataset must be an object');
+    return { ...dataset, school: { ...(dataset.school || {}), contact: buildContactView(dataset.school) } };
+  }
+
   function accept(adapterResult) {
     if (!adapterResult || typeof adapterResult !== 'object') throw new TypeError('adapterResult must be an object');
     const upstream = Array.isArray(adapterResult.diagnostics) ? adapterResult.diagnostics : [];
@@ -53,5 +70,5 @@
     });
   }
 
-  root.ACDLUserServiceDatasetBridge = Object.freeze({ REQUIRED_SOURCE, isAssetRef, inspectDataset, accept });
+  root.ACDLUserServiceDatasetBridge = Object.freeze({ REQUIRED_SOURCE, isAssetRef, inspectDataset, buildContactView, toRuntimeView, accept });
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -36,3 +36,18 @@ test('recognizes only the two confirmed v1.1 asset reference forms', () => {
   assert.equal(bridge.isAssetRef({ ref: 'url', src: '/photo.jpg' }), true);
   assert.equal(bridge.isAssetRef({ assetId: 'guessed-shape' }), false);
 });
+
+test('projects contacts into the current Template Package read model without changing source', () => {
+  const source = dataset();
+  source.school.address = '서울시 중구';
+  source.school.website = 'school.example';
+  source.school.contacts = [
+    { type: 'academic', value: '02-1' },
+    { type: 'admin', value: '02-2' },
+    { type: 'fax', value: '02-3' }
+  ];
+  const view = bridge.toRuntimeView(source);
+  assert.notEqual(view, source);
+  assert.equal(source.school.contact, undefined);
+  assert.deepEqual(view.school.contact, { address: '서울시 중구', telAcademic: '02-1', telAdmin: '02-2', fax: '02-3', site: 'school.example' });
+});

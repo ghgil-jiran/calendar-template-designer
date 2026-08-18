@@ -241,3 +241,21 @@
 - Dataset 1.0, 한국 locale/timezone, 대표 탁상형 3월 시작·일요일 시작·5행과 원본 식별자를 검사
 - 사용자 서비스 Adapter 진단과 수용 경계 진단을 합쳐 오류 시 Runtime 페이지 구성을 차단
 - 기존 Designer Dataset과 사용자 화면·저장·PDF 기본 경로는 변경하지 않음
+
+## 2026-08-18 — 사용자 서비스 AssetRef Resolver
+
+- 사용자 서비스 v1.1의 `upload-store.ts`, `asset-cloud.ts`, `use-photo-assets.ts`를 GitHub 원본에서 확인
+- IndexedDB `calendar-uploads/assets`의 `UploadAsset.dataUrl`을 우선하고 공개 버킷 `print-assets/user/{id}`로 폴백하는 기존 규칙을 보존
+- 사용자 서비스의 저장소 조회 함수를 주입받는 브라우저 독립 `user-service-asset-resolver.js` 추가
+- URL 참조는 즉시 사용하고 IDB 참조는 로컬→클라우드 순으로 해석하며 동일 ID 결과를 캐시
+- 원본 Dataset을 변경하지 않고 학교 교표와 월별 이미지에 Shadow Runtime용 `src`만 추가
+- 누락 이미지는 빈 슬롯과 `ASSET_NOT_FOUND` 경고로 유지하고 기존 화면·저장·PDF 경로는 변경하지 않음
+
+## 2026-08-18 — 사용자 서비스 Shadow 실행 세션
+
+- Dataset 수용→Asset 해석→28면 구성→Template Package 적용→숨은 HTML 렌더→Parity 비교를 하나의 세션으로 연결
+- 잘못된 Dataset은 Package 로드 전에 중단하고, 구조 오류와 선택 이미지 누락 경고를 구분
+- 학교명, 일정, 월별 이미지 키·해석 수와 표지·연간·학교 상징·12개월 달력·사진/메모·끝지 역할 수를 자동 비교
+- 사용자 서비스 `school.contacts[]`를 대표 Package가 읽는 `school.contact`로 복제 투영하고 원본 Dataset은 변경하지 않음
+- 실제 `desk-academic-standard@1.0.0`과 12개월 이미지 Dataset으로 28면 HTML 생성 및 연락처·이미지 렌더 확인
+- 구조 검토가 통과해도 사용자 경로 교체 승인은 자동 부여하지 않고 `approvedForReplacement:false` 유지

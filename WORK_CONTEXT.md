@@ -106,6 +106,14 @@
 - 3월 시작·일요일 시작·5행, 학교명, 연락처 배열, 월별 AssetRef·원본 쪽수, 출처 ID를 Shadow mode 진입 전에 검증
 - 사용자 서비스 진단과 템플릿 경계 진단을 합치고 오류 Dataset은 28면 구성을 시작하지 않도록 차단
 - 기존 사용자 UI, Designer Dataset, 저장·미리보기·PDF 기본 경로는 변경하지 않음
+- 사용자 서비스의 실제 이미지 경로가 IndexedDB `calendar-uploads/assets`의 `dataUrl` 우선, Supabase `print-assets/user/{id}` 폴백임을 확인
+- 저장소 구현을 주입받는 `user-service-asset-resolver.js`를 추가하고 URL·로컬·클라우드·누락 경로를 회귀검사로 고정
+- 원본 AssetRef와 Dataset을 변경하지 않고 Shadow Runtime 전용 복제본에만 렌더 가능한 `src` 추가
+- 동일 ID 비동기 조회를 캐시하고 누락 이미지는 `ASSET_NOT_FOUND` 경고로 반환
+- Dataset→Asset→28면→Package→HTML 렌더→Parity를 한 번에 수행하는 숨은 `user-service-shadow-session.js` 추가
+- 학교명·일정·월별 이미지 키·이미지 해석 수와 28면 역할 구성을 원본과 Runtime 사이에서 자동 비교
+- 사용자 서비스 `school.contacts[]`를 Package의 `school.contact` 읽기 모델로만 투영하고 원본은 보존
+- 실제 Package와 12개월 URL 이미지를 사용하는 28면 통합 회귀검사 통과, 사용자 경로 교체 승인은 계속 false
 
 ## 표준 검증
 
@@ -136,7 +144,7 @@
 
 1. 브라우저에서 Canvas 선택·이동·크기 조절·회전·키보드 이동을 확인
 2. 브라우저에서 페이지·전체 미리보기 진입과 편집 복귀를 확인
-3. 사용자 서비스의 `AssetRef`를 브라우저 이미지 URL로 해석하는 읽기 전용 Resolver 계약 정의
-4. 사용자 서비스 측에서 Adapter 결과를 Template Runtime에 함께 전달하는 Shadow mode 호출 연결
-5. 동일 입력의 페이지·학교 정보·일정·이미지 Binding 차이를 자동 비교
+3. 사용자 서비스 측에 Shadow session 호출 Adapter를 연결해 실제 문서 1건의 진단 JSON 생성
+4. 실제 문서 진단에서 누락·불일치 항목을 확인하고 허용 기준 확정
+5. 진단 JSON을 사용자 UI 밖 개발 진단 화면에서 읽을 수 있도록 연결
 6. PDF/X-4 실물 비교는 기능 구조 통합 뒤 별도 승인 단계에서 진행

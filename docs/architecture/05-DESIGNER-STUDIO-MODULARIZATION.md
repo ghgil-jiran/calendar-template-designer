@@ -286,6 +286,24 @@ templates/
 - 사용자 서비스 Adapter 오류와 템플릿 경계 오류를 합쳐 반환하고 오류가 있으면 28면 구성을 시작하지 않는다.
 - 기존 Designer Dataset과 화면·저장·PDF 기본 경로는 변경하지 않는다.
 
+세 번째 적용 — 사용자 서비스 AssetRef 해석 경계:
+
+- 사용자 서비스 원본의 `calendar-uploads` IndexedDB, `assets` store, `UploadAsset.dataUrl` 규칙을 확인한다.
+- `{ref:'url',src}`는 저장소 접근 없이 사용하고 `{ref:'idb',id}`는 사용자 서비스가 주입한 `getAsset(id)`로 먼저 찾는다.
+- 로컬에 없으면 사용자 서비스의 기존 공개 버킷 `print-assets/user/{id}` URL을 존재 확인한 뒤 사용한다.
+- 같은 ID는 세션 캐시에 보관해 여러 페이지와 재렌더에서 반복 조회하지 않는다.
+- 원본 Dataset의 AssetRef는 변경하지 않고 Shadow Runtime 전용 Dataset에 `src`만 추가한다.
+- 찾지 못한 이미지는 `ASSET_NOT_FOUND` 경고로 남기고 빈 이미지 슬롯으로 렌더하며 기존 화면 흐름을 중단하지 않는다.
+
+네 번째 적용 — 숨은 Shadow 실행 세션:
+
+- `user-service-shadow-session.js`가 Dataset 수용, Asset 해석, 28면 구성, Package 적용, HTML 렌더와 비교를 순서대로 실행한다.
+- 잘못된 Dataset은 Package 다운로드 전에 중단하고, 유효한 Dataset만 `desk-academic-standard@1.0.0`에 전달한다.
+- 학교명·학사일정·월별 이미지 키와 해석 결과, 28면 역할 수를 원본 Dataset과 Runtime 문서 사이에서 비교한다.
+- 사용자 서비스의 `school.contacts[]`는 원본을 바꾸지 않고 현재 Package용 `school.contact` 읽기 모델로 투영한다.
+- 구조 오류는 Shadow 검토를 차단하고 이미지 누락은 경고로 남겨 데이터 손실과 선택 입력 누락을 구분한다.
+- 세션은 항상 `approvedForReplacement:false`를 반환하며 실제 사용자 경로 전환은 별도 승인 단계로 남긴다.
+
 ## 9. 사용자 서비스 v1.1에서 가져올 기준
 
 다음 기능은 템플릿 에디터의 `index.html`로 복사하지 않는다.
