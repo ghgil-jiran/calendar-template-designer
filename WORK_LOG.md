@@ -275,3 +275,11 @@
 - Package Master를 공통 문서로 변환하는 `DeskAcademicPackageRuntime`과 28면·5행·사진·연락처 진단 공개
 - 기존 Designer Studio 브라우저 Runtime과 공통 TypeScript Runtime의 문서·진단 동등성 회귀검사 추가
 - 사용자 서비스 UI·저장·미리보기·PDF 경로는 변경하지 않았으며 실제 저장소 설치는 다음 단계로 유지
+
+## 2026-08-18 — 사용자 Dataset 기반 28면 생성
+
+- 학사연도와 시작월에서 사용자 서비스 v1.1의 14장 28면 순서를 생성하는 `DeskAcademicSurfacePlan` 추가
+- 사용자 Dataset을 변경하지 않고 공통 Runtime 입력 28면을 만드는 API 추가
+- Dataset+Template Package만으로 공통 문서를 생성해 Legacy Designer Project 의존 제거
+- 3월~다음 해 2월, 월력 12면·사진/메모 12면·끝지와 기존 브라우저 Surface Plan 동등성 검사 통과
+- 사용자 서비스 화면·저장·미리보기·PDF 기본 경로는 변경하지 않음

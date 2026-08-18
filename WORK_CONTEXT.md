@@ -121,6 +121,9 @@
 - manifest 필수 파일과 ID·버전 불일치를 공통 모듈에서 차단
 - Package Master→공통 문서 변환과 28면·5행·사진·연락처 진단을 TypeScript Runtime으로 공개
 - 기존 브라우저 Runtime과 공통 TypeScript Runtime의 문서·진단 결과 동등성 검사 추가
+- 사용자 Dataset의 학사연도·시작월만으로 14장 28면을 만드는 공통 Surface Plan API 추가
+- Legacy Designer Project 없이 Dataset+Template Package로 공통 문서를 생성하는 API 추가
+- 3월~다음 해 2월, 월력 12면·사진/메모 12면·끝지 순서를 기존 브라우저 기준과 대조
 
 ## 표준 검증
 
@@ -152,7 +155,7 @@
 1. 브라우저에서 Canvas 선택·이동·크기 조절·회전·키보드 이동을 확인
 2. 브라우저에서 페이지·전체 미리보기 진입과 편집 복귀를 확인
 3. 사용자 서비스 작업 브랜치에 공통 패키지와 `desk-academic-standard@1.0.0`을 버전 고정해 공급
-4. 사용자 서비스 Adapter 결과를 공통 Package Runtime에 연결
+4. 사용자 서비스 Adapter 결과를 `composeDeskAcademicPackageDocument`에 연결
 5. 실제 문서 1건에서 `user-service-shadow-diagnostic.v1` JSON 생성
 6. 실제 문서 진단에서 누락·불일치 항목을 확인하고 허용 기준 확정
 7. 진단 JSON을 사용자 UI 밖 개발 진단 화면에서 읽을 수 있도록 연결

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "cd ../contracts && npm run build && cd ../template-runtime && npm run build && cd ../designer-runtime-integration && tsc -p tsconfig.json",
-    "test": "npm run build && node tests/integration.test.mjs && node tests/rc5.test.mjs && node tests/user-service-shadow-diagnostics.test.mjs && node tests/template-package-loader.test.mjs && node tests/desk-academic-package-runtime.test.mjs"
+    "test": "npm run build && node tests/integration.test.mjs && node tests/rc5.test.mjs && node tests/user-service-shadow-diagnostics.test.mjs && node tests/template-package-loader.test.mjs && node tests/desk-academic-package-runtime.test.mjs && node tests/desk-academic-surface-plan.test.mjs"
   },
   "dependencies": {
     "@calendar-publishing/contracts": "file:../contracts",

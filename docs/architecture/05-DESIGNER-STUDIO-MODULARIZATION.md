@@ -320,6 +320,14 @@ templates/
 - 기존 Designer Studio 브라우저 Runtime과 새 TypeScript Runtime의 문서·진단 결과가 완전히 같은지 회귀검사로 고정한다.
 - 이 단계는 소비 가능한 API 경계를 만드는 작업이며, 사용자 서비스 저장소에 패키지를 설치하거나 기존 화면을 교체하지 않는다.
 
+일곱 번째 적용 — 사용자 Dataset 기반 28면 생성:
+
+- `createDeskAcademicSurfacePlan`이 학사연도와 시작월에서 14장 28면의 역할·앞뒤·연월 순서를 계산한다.
+- `createDeskAcademicAdaptedDocument`는 사용자 Dataset을 변경하지 않고 공통 Runtime이 읽을 28면 뼈대를 만든다.
+- `composeDeskAcademicPackageDocument`는 위 28면과 Template Package를 결합해 Legacy Designer Project 없이 공통 문서를 생성한다.
+- 3월~다음 해 2월, 월력 12면, 사진/메모 12면과 끝지 순서를 검사하고 기존 브라우저 surface plan과 결과를 대조한다.
+- 이 경계로 사용자 서비스는 템플릿 에디터의 프로젝트 저장 형식이나 `index.html`을 가져오지 않고 공통 템플릿을 사용할 수 있다.
+
 ## 9. 사용자 서비스 v1.1에서 가져올 기준
 
 다음 기능은 템플릿 에디터의 `index.html`로 복사하지 않는다.

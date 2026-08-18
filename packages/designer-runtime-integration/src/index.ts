@@ -8,3 +8,4 @@ export * from "./ParityComparator.js";
 export * from "./UserServiceShadowDiagnostics.js";
 export * from "./TemplatePackageLoader.js";
 export * from "./DeskAcademicPackageRuntime.js";
+export * from "./DeskAcademicSurfacePlan.js";

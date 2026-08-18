@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createDeskAcademicSurfacePlan } from '../packages/designer-runtime-integration/dist/index.js';
 
 await import('../apps/designer-studio/dataset-domain-bridge.js');
 await import('../apps/designer-studio/desk-academic-page-adapter.js');
@@ -7,6 +8,7 @@ await import('../apps/designer-studio/integration-parity-bridge.js');
 const { buildDeskAcademicSurfacePlan, compareSurfacePlan, compareProject } = globalThis.ACDLIntegrationParity;
 
 const expected = buildDeskAcademicSurfacePlan(2027, 3);
+assert.deepEqual(createDeskAcademicSurfacePlan(2027, 3), expected);
 assert.equal(expected.length, 28);
 assert.deepEqual(expected.slice(0, 4), [
   { index: 0, sheet: 1, side: 'front', role: 'cover-front' },
