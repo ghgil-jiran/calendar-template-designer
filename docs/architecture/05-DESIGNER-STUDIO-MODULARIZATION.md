@@ -328,6 +328,14 @@ templates/
 - 3월~다음 해 2월, 월력 12면, 사진/메모 12면과 끝지 순서를 검사하고 기존 브라우저 surface plan과 결과를 대조한다.
 - 이 경계로 사용자 서비스는 템플릿 에디터의 프로젝트 저장 형식이나 `index.html`을 가져오지 않고 공통 템플릿을 사용할 수 있다.
 
+여덟 번째 적용 — 사용자 서비스용 독립 배포 패키지:
+
+- `build:user-service-runtime`이 사용자 서비스에 필요한 의존성 없는 ESM·타입 선언과 `desk-academic-standard@1.0.0`을 한 폴더로 생성한다.
+- 생성물은 `@calendar-publishing/user-service-runtime-bridge@0.1.0-alpha.1`로 고정하고 로컬 `file:` 의존성으로 설치할 수 있다.
+- JavaScript, 타입 선언과 Template Package JSON의 SHA-256을 `INTEGRITY.json`에 기록한다.
+- 임시 생성 폴더에서 패키지를 실제 import하고 사용자 Dataset으로 28면을 만드는 배포 회귀검사를 둔다.
+- 생성물은 빌드 산출물이며 소스 정본은 공통 모듈과 Template Package 원본이다.
+
 ## 9. 사용자 서비스 v1.1에서 가져올 기준
 
 다음 기능은 템플릿 에디터의 `index.html`로 복사하지 않는다.

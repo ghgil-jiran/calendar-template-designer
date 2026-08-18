@@ -283,3 +283,12 @@
 - Dataset+Template Package만으로 공통 문서를 생성해 Legacy Designer Project 의존 제거
 - 3월~다음 해 2월, 월력 12면·사진/메모 12면·끝지와 기존 브라우저 Surface Plan 동등성 검사 통과
 - 사용자 서비스 화면·저장·미리보기·PDF 기본 경로는 변경하지 않음
+
+## 2026-08-18 — 사용자 서비스 Runtime 독립 배포 패키지
+
+- 사용자 서비스 연결용 ESM·타입 선언과 대표 Template Package만 모으는 재현 가능한 빌드 도구 추가
+- 로컬 `file:` 의존성으로 설치 가능한 `@calendar-publishing/user-service-runtime-bridge@0.1.0-alpha.1` 생성
+- `desk-academic-standard@1.0.0`을 패키지에 고정하고 Template JSON export 경로 공개
+- JavaScript·타입 선언·Template Package JSON의 SHA-256 무결성 목록 생성
+- 임시 배포 폴더를 실제 import해 사용자 Dataset 28면 생성·진단 회귀검사 통과
+- 사용자 서비스 적용·업데이트 절차와 기존 UI·저장·PDF 교체 금지 경계를 별도 문서화
