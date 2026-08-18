@@ -267,3 +267,11 @@
 - 브라우저 진단 모듈과 함께 `@calendar-publishing/designer-runtime-integration`에서 가져다 쓸 수 있는 TypeScript API 공개
 - `approvedForReplacement:false`를 보고서에서도 강제해 진단 생성과 사용자 경로 교체 승인을 분리
 - 사용자 서비스 실제 문서 호출은 패키지 공급 방식과 사용자 서비스 작업 브랜치가 준비된 뒤 진행
+
+## 2026-08-18 — Template Package 공통 소비 경계
+
+- Template Package를 배포 URL에서 읽거나 JSON 직접 import로 조립할 수 있는 TypeScript 로더 추가
+- manifest 필수 파일과 manifest/template ID·버전 불일치를 공통 검사로 차단
+- Package Master를 공통 문서로 변환하는 `DeskAcademicPackageRuntime`과 28면·5행·사진·연락처 진단 공개
+- 기존 Designer Studio 브라우저 Runtime과 공통 TypeScript Runtime의 문서·진단 동등성 회귀검사 추가
+- 사용자 서비스 UI·저장·미리보기·PDF 경로는 변경하지 않았으며 실제 저장소 설치는 다음 단계로 유지

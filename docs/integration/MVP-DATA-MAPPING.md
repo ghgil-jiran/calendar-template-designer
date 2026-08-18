@@ -182,6 +182,12 @@ ResolvedDocument
 
 보고서에는 문서·템플릿 식별자, Dataset Schema 버전, 실행 상태, 페이지·일정·연락처·월별 이미지 건수와 허용된 진단 필드만 포함한다. `expected`/`actual`은 숫자·불리언만 허용한다. 학교 원본 Dataset, 생성 HTML, 이미지 본문, 저장소 자산, 문자열·객체 비교값, stack과 임의 확장 필드는 제외한다. 이 JSON은 비교 증거이며 사용자 서비스의 저장 Schema나 운영 PDF 입력이 아니다.
 
+## Template Package 공급 방식
+
+사용자 서비스는 `@calendar-publishing/designer-runtime-integration`의 공통 API를 사용한다. Template Package는 배포 URL에서 `loadTemplatePackage(fetcher, base)`로 불러오거나, 빌드 시 JSON을 직접 import한 뒤 `assembleTemplatePackage(files)`로 조립할 수 있다. 두 방식 모두 manifest의 필수 파일과 manifest/template의 ID·버전을 같은 규칙으로 검사한다.
+
+검증된 Package의 `template`과 사용자 서비스 Adapter 결과는 `buildDeskAcademicPackageDocument`에 전달한다. 이 함수는 기존 사용자 문서를 저장하거나 변경하지 않고 화면·비교용 공통 문서를 반환한다. 사용자 서비스에 어떤 방식으로 패키지 소스를 고정할지는 실제 작업 브랜치에서 정하되, 운영 중 임의 최신 버전을 자동 선택하지 않고 ID와 버전을 명시적으로 고정한다.
+
 ## 템플릿·프로젝트·주문 데이터 경계
 
 | 데이터 | 소유 시스템 | Runtime Dataset 포함 여부 |

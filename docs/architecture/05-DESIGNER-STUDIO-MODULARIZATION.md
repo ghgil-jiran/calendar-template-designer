@@ -312,6 +312,14 @@ templates/
 - 진단 보고서는 개발 검토용이며 `approvedForReplacement:false`를 강제한다. 보고서 생성만으로 사용자 미리보기나 PDF 경로를 교체하지 않는다.
 - 사용자 서비스 저장소에서 실제 문서 1건을 읽어 이 모듈을 호출하는 작업은 사용자 서비스 작업 브랜치에서 별도로 수행한다.
 
+여섯 번째 적용 — Template Package 공통 소비 모듈:
+
+- `@calendar-publishing/designer-runtime-integration`에 `TemplatePackageLoader`를 추가해 URL fetch와 JSON 직접 import를 모두 지원한다.
+- manifest의 필수 파일과 manifest/template의 ID·버전 일치를 공통 검사하여 두 앱이 서로 다른 로더 규칙을 갖지 않게 한다.
+- `DeskAcademicPackageRuntime`이 Package Master와 사용자 Dataset을 공통 28면 문서로 변환하고 페이지 수·5행 월력·사진·연락처를 진단한다.
+- 기존 Designer Studio 브라우저 Runtime과 새 TypeScript Runtime의 문서·진단 결과가 완전히 같은지 회귀검사로 고정한다.
+- 이 단계는 소비 가능한 API 경계를 만드는 작업이며, 사용자 서비스 저장소에 패키지를 설치하거나 기존 화면을 교체하지 않는다.
+
 ## 9. 사용자 서비스 v1.1에서 가져올 기준
 
 다음 기능은 템플릿 에디터의 `index.html`로 복사하지 않는다.

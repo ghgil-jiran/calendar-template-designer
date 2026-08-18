@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import {
+  assembleTemplatePackage,
+  buildDeskAcademicPackageDocument,
+  validateDeskAcademicPackageDocument
+} from '../packages/designer-runtime-integration/dist/index.js';
 
 await import('../apps/designer-studio/dataset-domain-bridge.js');
 await import('../apps/designer-studio/template-package-loader.js');
@@ -44,6 +49,9 @@ const adapted = {
   composition: { complete: true }
 };
 const document = globalThis.ACDLDeskAcademicPackageRuntime.build(adapted, pkg.template);
+const modulePackage = assembleTemplatePackage(pkg);
+const moduleDocument = buildDeskAcademicPackageDocument(adapted, modulePackage.template);
+assert.deepEqual(moduleDocument, document);
 assert.equal(document.template.id, 'desk-academic-standard');
 assert.equal(document.template.pages.length, 6);
 assert.equal(document.dataset.calendar.gridRows, 5);
@@ -61,6 +69,7 @@ const backPhoto = document.template.pages[5].objects.find(object => object.id ==
 assert.equal(backPhoto.payload, 'asset:school-building');
 
 const diagnostics = globalThis.ACDLDeskAcademicPackageRuntime.validate(document);
+assert.deepEqual(validateDeskAcademicPackageDocument(moduleDocument), diagnostics);
 assert.ok(diagnostics.some(item => item.code === 'PACKAGE_SURFACE_COUNT'));
 assert.equal(diagnostics.some(item => item.code === 'PACKAGE_CALENDAR_ROWS'), false);
 
