@@ -101,6 +101,11 @@
 - 기존 Designer Dataset과 외부 사용자 서비스 Dataset을 같은 Runtime 경로에 주입할 수 있는 인자 경계 추가
 - 외부 Dataset 주입 시 원본 프로젝트와 28면 페이지 구성 Adapter를 변경하지 않는 검사 추가
 - GitHub 앱에서 사용자 서비스 비공개 저장소 조회가 403으로 차단되어 실제 v1.1 필드 Adapter는 원본 재확인 전까지 보류
+- 이후 GitHub 연결로 사용자 서비스 `integration/runtime-v2`의 Dataset 계약·Adapter·테스트를 원본 확인
+- 변환 로직을 복제하지 않고 Adapter 결과를 검사하는 `user-service-dataset-bridge.js` 추가
+- 3월 시작·일요일 시작·5행, 학교명, 연락처 배열, 월별 AssetRef·원본 쪽수, 출처 ID를 Shadow mode 진입 전에 검증
+- 사용자 서비스 진단과 템플릿 경계 진단을 합치고 오류 Dataset은 28면 구성을 시작하지 않도록 차단
+- 기존 사용자 UI, Designer Dataset, 저장·미리보기·PDF 기본 경로는 변경하지 않음
 
 ## 표준 검증
 
@@ -131,6 +136,7 @@
 
 1. 브라우저에서 Canvas 선택·이동·크기 조절·회전·키보드 이동을 확인
 2. 브라우저에서 페이지·전체 미리보기 진입과 편집 복귀를 확인
-3. 사용자 서비스 v1.1 원본 또는 대표 저장 JSON에서 실제 학교·일정·월별 콘텐츠 필드 재확인
-4. 확인된 필드만 사용자 서비스 Dataset Adapter에 매핑하고 현재 주입 경로에 연결
-5. PDF/X-4 실물 비교는 기능 구조 통합 뒤 별도 승인 단계에서 진행
+3. 사용자 서비스의 `AssetRef`를 브라우저 이미지 URL로 해석하는 읽기 전용 Resolver 계약 정의
+4. 사용자 서비스 측에서 Adapter 결과를 Template Runtime에 함께 전달하는 Shadow mode 호출 연결
+5. 동일 입력의 페이지·학교 정보·일정·이미지 Binding 차이를 자동 비교
+6. PDF/X-4 실물 비교는 기능 구조 통합 뒤 별도 승인 단계에서 진행

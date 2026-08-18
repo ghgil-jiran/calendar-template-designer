@@ -9,6 +9,7 @@
  }
  function create(options={}){
   const datasetDomain=options.datasetDomain||root.ACDLDatasetDomain;
+  const userServiceDataset=options.userServiceDataset||root.ACDLUserServiceDatasetBridge;
   const parity=options.parity||root.ACDLIntegrationParity;
   const pageAdapter=options.pageAdapter||root.ACDLDeskAcademicPageAdapter;
   function adapt(project,pageInstances=project.book.pageInstances||[],datasetOverride){
@@ -24,7 +25,14 @@
    return {template:{schemaVersion:'1.0',id:String(project.template.id||'legacy.template'),revision:Number(project.template.revision||1),pages},dataset}
   }
   function adaptDeskAcademic(project,datasetOverride){const plan=parity.buildDeskAcademicSurfacePlan(project.settings?.year,project.settings?.startMonth||3),composition=pageAdapter.compose(project,plan);return {...adapt(project,composition.pages,datasetOverride),composition}}
-  return Object.freeze({readPath,legacyObject,adapt,adaptDeskAcademic})
+  function adaptUserService(project,adapterResult){
+   if(!userServiceDataset)throw new Error('User Service Dataset Bridge is not available');
+   const accepted=userServiceDataset.accept(adapterResult);
+   if(accepted.hasErrors)return {dataset:accepted.dataset,diagnostics:accepted.diagnostics,hasErrors:true,template:null,composition:null};
+   const runtime=adaptDeskAcademic(project,accepted.dataset);
+   return {...runtime,diagnostics:accepted.diagnostics,hasErrors:false};
+  }
+  return Object.freeze({readPath,legacyObject,adapt,adaptDeskAcademic,adaptUserService})
  }
  root.ACDLRuntimeProjectAdapter=Object.freeze({readPath,legacyObject,create})
 })(typeof window!=='undefined'?window:globalThis);

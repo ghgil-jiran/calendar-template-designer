@@ -25,3 +25,23 @@ test('runtime project adapter keeps academic composition separate from Dataset s
  assert.equal(adapted.dataset,dataset);
  assert.equal(adapted.composition.complete,true);
 });
+
+test('runtime project adapter blocks invalid user service Dataset before composition',()=>{
+ const accepted={dataset:{schemaVersion:'1.0'},diagnostics:[{severity:'error',code:'MISSING_SCHOOL_NAME'}],hasErrors:true};
+ let composed=false;
+ const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{},userServiceDataset:{accept:()=>accepted},parity:{buildDeskAcademicSurfacePlan:()=>[]},pageAdapter:{compose:()=>{composed=true;return {pages:[]}}}});
+ const result=adapter.adaptUserService({settings:{}},accepted);
+ assert.equal(result.hasErrors,true);
+ assert.equal(result.template,null);
+ assert.equal(composed,false);
+});
+
+test('runtime project adapter composes the accepted user service Dataset in shadow mode',()=>{
+ const dataset={school:{name:'테스트중학교'},calendar:{},monthlyQuotes:{}};
+ const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{resolvePageBinding:path=>path},userServiceDataset:{accept:result=>result},parity:{buildDeskAcademicSurfacePlan:()=>[{role:'cover-front'}]},pageAdapter:{compose:()=>({pages:[],missing:[],complete:true})}});
+ const project={productType:{category:'desk',pageSize:{width:260,height:180}},settings:{year:2027,startMonth:3},template:{id:'desk',masterElements:{},masters:{}},book:{elementsByPage:{}}};
+ const adapted=adapter.adaptUserService(project,{dataset,diagnostics:[],hasErrors:false});
+ assert.equal(adapted.dataset,dataset);
+ assert.equal(adapted.composition.complete,true);
+ assert.equal(adapted.hasErrors,false);
+});

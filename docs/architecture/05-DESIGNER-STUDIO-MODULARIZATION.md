@@ -277,6 +277,15 @@ templates/
 - 외부 Dataset을 사용해도 원본 프로젝트를 수정하지 않는 회귀검사를 둔다.
 - 사용자 서비스 v1.1 실제 필드 Adapter는 비공개 원본 소스 또는 저장 JSON을 다시 확인한 뒤 구현하며 필드명을 추측하지 않는다.
 
+두 번째 적용 — 사용자 서비스 Dataset 수용 경계:
+
+- 사용자 서비스 `integration/runtime-v2`의 `contracts.ts`, `mvp-dataset-adapter.ts`와 회귀검사를 기준 원본으로 확인한다.
+- 변환 로직은 사용자 서비스에 유지하고, 템플릿 에디터에는 변환 결과를 검사하는 `user-service-dataset-bridge.js`만 둔다.
+- Dataset Contract `1.0`, `ko-KR`, `Asia/Seoul`, 3월 시작·일요일 시작·5행, 원본 문서/템플릿 ID를 Shadow mode 진입 조건으로 검사한다.
+- `idb`/`url` AssetRef와 `monthlyImages[YYYY-MM].sourcePageN`을 확인하며, Asset 실물 해석은 후속 Resolver 경계로 남긴다.
+- 사용자 서비스 Adapter 오류와 템플릿 경계 오류를 합쳐 반환하고 오류가 있으면 28면 구성을 시작하지 않는다.
+- 기존 Designer Dataset과 화면·저장·PDF 기본 경로는 변경하지 않는다.
+
 ## 9. 사용자 서비스 v1.1에서 가져올 기준
 
 다음 기능은 템플릿 에디터의 `index.html`로 복사하지 않는다.

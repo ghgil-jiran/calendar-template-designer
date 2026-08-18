@@ -232,3 +232,12 @@
 - 외부 Dataset 주입 결과와 원본 프로젝트 불변성을 회귀검사로 고정
 - GitHub 앱의 사용자 서비스 비공개 저장소 조회가 403으로 차단되어 실제 필드 매핑은 추측하지 않고 보류
 - Studio 회귀검사 80개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
+
+## 2026-08-17 — 사용자 서비스 Dataset 수용 경계
+
+- 사용자 서비스 `integration/runtime-v2`의 계약, Adapter, 회귀검사와 통합 문서를 GitHub 원본에서 확인
+- `calendar_docs.doc`와 `doc_render_state.stores`의 학교·연락처·상징·일정·월별 이미지 매핑을 문서에 확정
+- 사용자 서비스의 변환 구현은 복사하지 않고 `RuntimeAdapterResult`를 검사·수용하는 브리지를 추가
+- Dataset 1.0, 한국 locale/timezone, 대표 탁상형 3월 시작·일요일 시작·5행과 원본 식별자를 검사
+- 사용자 서비스 Adapter 진단과 수용 경계 진단을 합쳐 오류 시 Runtime 페이지 구성을 차단
+- 기존 Designer Dataset과 사용자 화면·저장·PDF 기본 경로는 변경하지 않음
