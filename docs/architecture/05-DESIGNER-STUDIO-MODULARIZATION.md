@@ -304,6 +304,14 @@ templates/
 - 구조 오류는 Shadow 검토를 차단하고 이미지 누락은 경고로 남겨 데이터 손실과 선택 입력 누락을 구분한다.
 - 세션은 항상 `approvedForReplacement:false`를 반환하며 실제 사용자 경로 전환은 별도 승인 단계로 남긴다.
 
+다섯 번째 적용 — Shadow 진단 전달 경계:
+
+- `user-service-shadow-diagnostics.js`는 세션 결과에서 상태, 건수와 허용된 진단 필드만 추려 `user-service-shadow-diagnostic.v1` JSON을 만든다.
+- 학교 Dataset, 렌더 HTML, `data:` 이미지, 저장소 자산과 알 수 없는 진단 필드는 보고서에 포함하지 않는다.
+- 같은 규칙을 `@calendar-publishing/designer-runtime-integration`의 `UserServiceShadowDiagnostics` TypeScript 모듈로 공개해 사용자 서비스가 브라우저 전역 객체 없이 가져다 쓸 수 있게 한다.
+- 진단 보고서는 개발 검토용이며 `approvedForReplacement:false`를 강제한다. 보고서 생성만으로 사용자 미리보기나 PDF 경로를 교체하지 않는다.
+- 사용자 서비스 저장소에서 실제 문서 1건을 읽어 이 모듈을 호출하는 작업은 사용자 서비스 작업 브랜치에서 별도로 수행한다.
+
 ## 9. 사용자 서비스 v1.1에서 가져올 기준
 
 다음 기능은 템플릿 에디터의 `index.html`로 복사하지 않는다.

@@ -114,6 +114,9 @@
 - 학교명·일정·월별 이미지 키·이미지 해석 수와 28면 역할 구성을 원본과 Runtime 사이에서 자동 비교
 - 사용자 서비스 `school.contacts[]`를 Package의 `school.contact` 읽기 모델로만 투영하고 원본은 보존
 - 실제 Package와 12개월 URL 이미지를 사용하는 28면 통합 회귀검사 통과, 사용자 경로 교체 승인은 계속 false
+- Shadow 세션 결과를 `user-service-shadow-diagnostic.v1` JSON으로 축약하는 브라우저 진단 경계 추가
+- 학교 Dataset, 렌더 HTML, 이미지 본문과 알 수 없는 진단 필드를 보고서에서 제거하는 회귀검사 추가
+- 동일 진단 규칙을 `@calendar-publishing/designer-runtime-integration` TypeScript 모듈로 내보내 사용자 서비스가 import할 진입점 준비
 
 ## 표준 검증
 
@@ -144,7 +147,8 @@
 
 1. 브라우저에서 Canvas 선택·이동·크기 조절·회전·키보드 이동을 확인
 2. 브라우저에서 페이지·전체 미리보기 진입과 편집 복귀를 확인
-3. 사용자 서비스 측에 Shadow session 호출 Adapter를 연결해 실제 문서 1건의 진단 JSON 생성
-4. 실제 문서 진단에서 누락·불일치 항목을 확인하고 허용 기준 확정
-5. 진단 JSON을 사용자 UI 밖 개발 진단 화면에서 읽을 수 있도록 연결
-6. PDF/X-4 실물 비교는 기능 구조 통합 뒤 별도 승인 단계에서 진행
+3. 사용자 서비스 작업 브랜치에 `designer-runtime-integration` 공급 방법을 정하고 Shadow session 호출 Adapter 연결
+4. 실제 문서 1건에서 `user-service-shadow-diagnostic.v1` JSON 생성
+5. 실제 문서 진단에서 누락·불일치 항목을 확인하고 허용 기준 확정
+6. 진단 JSON을 사용자 UI 밖 개발 진단 화면에서 읽을 수 있도록 연결
+7. PDF/X-4 실물 비교는 기능 구조 통합 뒤 별도 승인 단계에서 진행

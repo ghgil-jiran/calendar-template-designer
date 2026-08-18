@@ -259,3 +259,11 @@
 - 사용자 서비스 `school.contacts[]`를 대표 Package가 읽는 `school.contact`로 복제 투영하고 원본 Dataset은 변경하지 않음
 - 실제 `desk-academic-standard@1.0.0`과 12개월 이미지 Dataset으로 28면 HTML 생성 및 연락처·이미지 렌더 확인
 - 구조 검토가 통과해도 사용자 경로 교체 승인은 자동 부여하지 않고 `approvedForReplacement:false` 유지
+
+## 2026-08-18 — 사용자 서비스 Shadow 진단 전달 경계
+
+- Shadow 세션 전체를 내보내지 않고 상태·건수·허용된 이슈 필드만 담는 `user-service-shadow-diagnostic.v1` 보고서 추가
+- 학교 Dataset, 렌더 HTML, `data:` 이미지, stack과 임의 진단 필드가 JSON에 포함되지 않는 회귀검사 추가
+- 브라우저 진단 모듈과 함께 `@calendar-publishing/designer-runtime-integration`에서 가져다 쓸 수 있는 TypeScript API 공개
+- `approvedForReplacement:false`를 보고서에서도 강제해 진단 생성과 사용자 경로 교체 승인을 분리
+- 사용자 서비스 실제 문서 호출은 패키지 공급 방식과 사용자 서비스 작업 브랜치가 준비된 뒤 진행

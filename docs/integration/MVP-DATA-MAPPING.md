@@ -176,6 +176,12 @@ ResolvedDocument
 
 현재 대표 Template Package는 연락처를 `school.contact.address/telAcademic/telAdmin/fax/site`로 읽는다. 사용자 서비스의 공식 출력인 `school.contacts[]`는 그대로 보존하고, Shadow Runtime 진입 시에만 위 5개 필드의 읽기 전용 호환 보기를 만든다. 이 투영은 사용자 서비스 저장 Schema 변경이 아니다.
 
+## Shadow 진단 JSON 경계
+
+사용자 서비스가 Shadow 세션 결과를 개발 검토 화면이나 파일로 전달할 때는 전체 세션을 직렬화하지 않고 `user-service-shadow-diagnostic.v1` 보고서만 사용한다. 모듈 진입점은 `@calendar-publishing/designer-runtime-integration`의 `createUserServiceShadowDiagnosticReport`와 `serializeUserServiceShadowDiagnosticReport`다.
+
+보고서에는 문서·템플릿 식별자, Dataset Schema 버전, 실행 상태, 페이지·일정·연락처·월별 이미지 건수와 허용된 진단 필드만 포함한다. `expected`/`actual`은 숫자·불리언만 허용한다. 학교 원본 Dataset, 생성 HTML, 이미지 본문, 저장소 자산, 문자열·객체 비교값, stack과 임의 확장 필드는 제외한다. 이 JSON은 비교 증거이며 사용자 서비스의 저장 Schema나 운영 PDF 입력이 아니다.
+
 ## 템플릿·프로젝트·주문 데이터 경계
 
 | 데이터 | 소유 시스템 | Runtime Dataset 포함 여부 |

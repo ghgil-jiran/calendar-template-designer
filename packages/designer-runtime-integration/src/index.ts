@@ -5,3 +5,4 @@ export * from "./ScreenRenderer.js";
 
 export * from "./PublishingRenderer.js";
 export * from "./ParityComparator.js";
+export * from "./UserServiceShadowDiagnostics.js";
