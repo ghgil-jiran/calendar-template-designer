@@ -9,6 +9,31 @@
     "evidence": "제품 책임자가 독립 QA 화면의 대표 3면을 브라우저에서 확인",
     "note": "기존 사용자 UI를 교체하는 승인이 아니라 Shadow Renderer 대표 구조의 육안 확인이다."
   },
+  "fullDocumentComparison": {
+    "status": "technical-verification-complete-owner-review-pending",
+    "verifiedOn": "2026-08-22",
+    "referenceArtifact": "user-service-2028-reference.pdf",
+    "runtimeArtifact": "runtime-2028-comparison_004.pdf",
+    "pageCount": 28,
+    "pageSizeMm": { "width": 266.02, "height": 185.93 },
+    "rotation": 0,
+    "changedPixelRatePct": {
+      "initial": 15.14,
+      "afterFirstPass": 13.08,
+      "afterSecondPass": 9.52,
+      "afterThirdPass": 8.74
+    },
+    "verifiedRoles": [
+      "cover-front",
+      "annual-calendar",
+      "school-symbols",
+      "monthly-calendar",
+      "monthly-photo-memo",
+      "back-contact"
+    ],
+    "result": "28면 순서·데이터·자산·사용자 override·공통 안전영역의 Runtime 기술 검증 완료. 잔여 차이는 주로 글꼴 렌더링·안티앨리어싱이며 제품 책임자 최종 육안 승인은 별도이다.",
+    "next": "동일 Package를 Template Editor 원본과 사용자 서비스 선택 흐름에서 재현하고 Owner visual approval을 기록한다."
+  },
   "print": {
     "status": "pending",
     "requiredEvidence": [
