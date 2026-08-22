@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "print-profile.v1-draft",
+  "templateId": "desk-academic-standard",
+  "version": "1.1.0",
+  "sourceBaseline": "학사달력 에디터 서비스 v1.1 인수인계 확정값",
+  "trimSize": { "width": 260, "height": 180, "unit": "mm" },
+  "productionSize": { "width": 266, "height": 186, "unit": "mm" },
+  "bleed": { "top": 3, "right": 3, "bottom": 3, "left": 3, "unit": "mm" },
+  "cropMarkWidth": { "value": 0.540, "unit": "pt" },
+  "pdfStandard": "PDF/X-4",
+  "colorProfile": "Japan Color 2011 Coated",
+  "blackRule": "K100",
+  "fontHandling": "outline",
+  "boxes": ["TrimBox", "BleedBox"],
+  "status": "contract-verified-output-pending",
+  "note": "사용자 서비스 v1.1의 PDF/X-4 샘플과 Acrobat Preflight 비교가 끝날 때까지 달력 템플릿 에디터의 출력기를 자동 교체하지 않는다."
+}

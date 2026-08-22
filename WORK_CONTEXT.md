@@ -13,6 +13,15 @@
 - 주요 편집 화면: `apps/designer-studio/index.html`
 - 기존 로컬 `v2-development`의 갈라진 작업은 별도 폴더에 보존
 - 우리학교인쇄 운영 서버에는 아직 배포하지 않음
+- 대표 Runtime 기준 Package: `desk-academic-standard@1.0.0`
+- 정밀 배치 검토 Package: `desk-academic-standard@1.1.0` (`runtime-parity-review`, 배포 불가)
+
+## 2026-08-23 작업 결과
+
+- 사용자 서비스 샘플과 Runtime PDF 28면 일괄 비교에서 검증된 좌표를 새 Template Package 버전으로 분리
+- `1.1.0`에 연간 제목·월력, 월력 헤더·요일·본문, 사진·메모의 절대 frame 계약 추가
+- 기존 `1.0.0` 소비 경로와 사용자 UI·저장·PDF 경로는 변경하지 않음
+- 다음 단계는 공통 Runtime이 `1.1.0`의 `layoutContract`를 실제로 읽도록 연결한 뒤 동일 Dataset으로 재비교하는 것
 
 ## 2026-08-13 작업 결과
 
@@ -155,11 +164,9 @@
 
 ## 다음 할 일
 
-1. 브라우저에서 Canvas 선택·이동·크기 조절·회전·키보드 이동을 확인
-2. 브라우저에서 페이지·전체 미리보기 진입과 편집 복귀를 확인
-3. 생성한 `user-service-runtime-bridge`를 사용자 서비스 작업 브랜치의 vendor 의존성으로 고정
-4. 사용자 서비스 Adapter 결과를 `composeDeskAcademicPackageDocument`에 연결
-5. 실제 문서 1건에서 `user-service-shadow-diagnostic.v1` JSON 생성
-6. 실제 문서 진단에서 누락·불일치 항목을 확인하고 허용 기준 확정
-7. 진단 JSON을 사용자 UI 밖 개발 진단 화면에서 읽을 수 있도록 연결
-8. PDF/X-4 실물 비교는 기능 구조 통합 뒤 별도 승인 단계에서 진행
+1. 공통 Runtime의 Package 로더가 `desk-academic-standard@1.1.0`을 선택적으로 읽도록 연결
+2. `layoutContract`를 연간·월력·사진/메모 Renderer가 소비하도록 구현
+3. 동일 2028 Dataset으로 `1.0.0`과 `1.1.0` 28면 결과를 회귀 비교
+4. 템플릿 에디터에서 `1.1.0`을 샘플 템플릿으로 열고 저장·재오픈·개체 override 확인
+5. 사용자 서비스에는 review 버전 선택 경계만 연결하고 기본 버전 전환은 승인 후 진행
+6. PDF/X-4 실물 비교와 Preflight는 기능 구조 통합 뒤 별도 승인 단계에서 진행

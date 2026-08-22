@@ -1,5 +1,14 @@
 # Work Log
 
+## 2026-08-23 — 대표 28면 정밀 배치 Package 버전 분리
+
+- 검증 기준 `desk-academic-standard@1.0.0`을 보존하고 새 `1.1.0` review Package 생성
+- 사용자 서비스 기준 PDF와 Runtime 004 PDF의 28면 비교에서 확정한 연간·월력·사진/메모 좌표를 `layoutContract`로 기록
+- 연간 면 제목·4열 월력, 월력 면 헤더·요일·5행 본문, 사진/메모 절대 안전영역을 Template 데이터로 정형화
+- 28면 평균 픽셀 차이 8.743%, 잔여 차이 상위 면을 `parity.json`에 검토 증거로 기록
+- 새 버전은 `publishable: false`, `runtime-parity-review`로 유지하고 기존 사용자 서비스 Runtime 소비 버전은 `1.0.0`으로 고정
+- 새 Package 버전 계약 회귀검사 추가, 전체 Studio 101건 및 TypeScript 패키지·제품 상호작용·스타일 검사 통과
+
 ## 2026-08-14 — 달력 계산 구조 개선 A2
 
 - 월력 셀 계산을 `calendar-domain-bridge.js`로 이동하고 기존 화면 함수는 위임 방식으로 유지
