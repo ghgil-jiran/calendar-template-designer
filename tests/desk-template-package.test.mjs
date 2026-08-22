@@ -25,11 +25,16 @@ assert.equal(template.pageSequence.reduce((count, item) => count + Number(item.r
 assert.deepEqual(template.pageSequence[1].back, { role: 'monthly-photo-memo', monthOffset: 0 });
 assert.deepEqual(template.pageSequence.at(-1).front, { role: 'monthly-calendar', monthOffset: 11 });
 assert.equal(template.pageSequence.at(-1).back.role, 'back-contact');
-assert.equal(template.masterExtraction.filter(master => master.status === 'source-extracted').length, 4);
+assert.equal(template.masterExtraction.filter(master => master.status === 'source-extracted').length, 3);
+assert.equal(template.masterExtraction.filter(master => master.status === 'v1.3-contract-extracted').length, 1);
 assert.equal(template.masterExtraction.filter(master => master.status === 'v1.1-contract-extracted').length, 2);
 assert.equal(template.masterDefinitions['cover-front'].length, 4);
 assert.equal(template.masterDefinitions['annual-calendar'][0].columns, 4);
 assert.equal(template.masterDefinitions['school-symbols'].length, 4);
+assert.deepEqual(template.masterDefinitions['school-symbols'].map(item => item.role), [
+  'school-flower', 'school-tree', 'school-motto', 'school-song'
+]);
+assert.deepEqual(template.masterDefinitions['school-symbols'].find(item => item.role === 'school-song').framePct, { x: 42, y: 20, width: 53, height: 70 });
 assert.deepEqual(template.masterDefinitions['monthly-calendar'][0].framePct, { x: 5, y: 13, width: 90, height: 82 });
 assert.equal(template.masterDefinitions['monthly-image-collage-source'].length, 4);
 assert.equal(template.masterDefinitions['monthly-image-collage-source'][0].sourceBinding, 'calendar.monthlyImages.current');
