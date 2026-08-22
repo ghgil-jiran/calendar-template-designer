@@ -42,7 +42,7 @@
   "masterExtraction": [
     { "role": "cover-front", "status": "source-extracted", "source": "desk-sample-2" },
     { "role": "annual-calendar", "status": "source-extracted", "source": "desk-sample-2" },
-    { "role": "school-symbols", "status": "source-extracted", "source": "desk-sample-2" },
+    { "role": "school-symbols", "status": "v1.3-contract-extracted", "source": "user-service-v1.3 SymbolFrontCanvas + SYMBOL_PARTS" },
     { "role": "monthly-calendar", "status": "source-extracted", "source": "shared-desk-calendar" },
     { "role": "monthly-photo-memo", "status": "v1.1-contract-extracted", "source": "user-service-v1.1 MonthPhotoBackCanvas" },
     { "role": "back-contact", "status": "v1.1-contract-extracted", "source": "user-service-v1.1 COVER_BACK_PARTS + BackContactCanvas" }
@@ -58,10 +58,10 @@
       { "id": "annual.calendar", "type": "year-calendar", "role": "year-calendar", "framePct": { "x": 6, "y": 8, "width": 88, "height": 84 }, "startMonthBinding": "calendar.startMonth", "columns": 4, "zIndex": 1 }
     ],
     "school-symbols": [
-      { "id": "symbols.motto", "type": "semantic-object", "role": "school-motto", "framePct": { "x": 5, "y": 10, "width": 43, "height": 35 }, "binding": "school.profile.motto", "zIndex": 1 },
-      { "id": "symbols.song", "type": "semantic-object", "role": "school-song", "framePct": { "x": 52, "y": 10, "width": 43, "height": 35 }, "binding": "school.profile.song", "zIndex": 1 },
-      { "id": "symbols.tree", "type": "semantic-object", "role": "school-tree", "framePct": { "x": 5, "y": 52, "width": 43, "height": 35 }, "binding": "school.profile.tree", "showCaption": true, "zIndex": 1 },
-      { "id": "symbols.flower", "type": "semantic-object", "role": "school-flower", "framePct": { "x": 52, "y": 52, "width": 43, "height": 35 }, "binding": "school.profile.flower", "showCaption": true, "zIndex": 1 }
+      { "id": "symbols.flower", "type": "semantic-object", "role": "school-flower", "framePct": { "x": 5, "y": 20, "width": 35, "height": 22 }, "binding": "school.profile.flower", "showCaption": true, "zIndex": 1 },
+      { "id": "symbols.tree", "type": "semantic-object", "role": "school-tree", "framePct": { "x": 5, "y": 44, "width": 35, "height": 22 }, "binding": "school.profile.tree", "showCaption": true, "zIndex": 1 },
+      { "id": "symbols.motto", "type": "semantic-object", "role": "school-motto", "framePct": { "x": 5, "y": 68, "width": 35, "height": 22 }, "binding": "school.profile.motto", "zIndex": 1 },
+      { "id": "symbols.song", "type": "semantic-object", "role": "school-song", "framePct": { "x": 42, "y": 20, "width": 53, "height": 70 }, "binding": "school.profile.song", "zIndex": 1 }
     ],
     "monthly-calendar": [
       { "id": "monthly.calendar", "type": "calendar", "role": "monthly-calendar", "framePct": { "x": 5, "y": 13, "width": 90, "height": 82 }, "monthBinding": "calendar.currentMonth", "zIndex": 1 }
