@@ -15,6 +15,13 @@
     return payload?.image || payload?.src || '';
   }
 
+  function pctStyle(frame) {
+    if (!frame) return '';
+    const values = [frame.x, frame.y, frame.width, frame.height];
+    if (!values.every(Number.isFinite)) return '';
+    return `left:${frame.x}%;top:${frame.y}%;width:${frame.width}%;height:${frame.height}%`;
+  }
+
   function renderImage(object, className = '') {
     const source = imageSource(object.payload);
     if (!source) return `<div class="shadow-empty-image ${className}" data-empty-image="true"></div>`;
@@ -30,7 +37,27 @@
       const adjacent = cell.month === Number(month) ? '' : ' is-adjacent';
       return `<div class="shadow-calendar-cell day-${cell.dow}${adjacent}" data-date="${cell.date}"><span>${cell.day}</span>${extra}</div>`;
     }).join('');
+    if (object.contract?.version === 'desk-runtime-parity.v1') {
+      return `<section class="shadow-monthly-calendar is-parity-layout" data-layout-contract="desk-runtime-parity.v1" data-calendar-rows="${gridRows}"><header style="${pctStyle(object.contract.headerFramePct)}"><small>ACADEMIC CALENDAR</small><h2>${year}년 ${month}월</h2></header><div class="shadow-calendar-weekdays" style="${pctStyle(object.contract.weekdayFramePct)}">${heads}</div><div class="shadow-calendar-grid" style="${pctStyle(object.contract.calendarFramePct)}">${body}</div></section>`;
+    }
     return `<section class="shadow-monthly-calendar" data-calendar-rows="${gridRows}"><h2>${year}년 ${month}월</h2><div class="shadow-calendar-grid">${heads}${body}</div></section>`;
+  }
+
+  function renderYearCalendar(object) {
+    const { year, startMonth = 1, monthCount = 12 } = object.payload || {};
+    const months = Array.from({ length: Number(monthCount) }, (_, offset) => {
+      const date = new Date(Number(year), Number(startMonth) - 1 + offset, 1);
+      const monthYear = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const cells = root.ACDLCalendarDomain.buildCalendarGrid(monthYear, month, 'sunday', 5);
+      const dates = cells.map(cell => `<span class="day-${cell.dow}${cell.month === month ? '' : ' is-adjacent'}">${cell.day}</span>`).join('');
+      return `<section class="shadow-year-month"><h3>${String(month).padStart(2, '0')} <small>${monthYear}</small></h3><div>${WEEKDAYS.map(day => `<b>${day}</b>`).join('')}${dates}</div></section>`;
+    }).join('');
+    const contract = object.contract || {};
+    if (contract.version === 'desk-runtime-parity.v1') {
+      return `<section class="shadow-year-calendar is-parity-layout" data-layout-contract="desk-runtime-parity.v1"><p style="${pctStyle(contract.eyebrowFramePct)}">ACADEMIC CALENDAR</p><h2 style="${pctStyle(contract.titleFramePct)}">${year} 학사달력</h2><div class="shadow-year-grid" style="${pctStyle(contract.calendarFramePct)}">${months}</div></section>`;
+    }
+    return `<section class="shadow-year-calendar"><div class="shadow-year-grid">${months}</div></section>`;
   }
 
   function renderPhotoMemo(object) {
@@ -45,7 +72,8 @@
     )).join('');
     const motto = memo.footer?.leftBinding || '';
     const site = memo.footer?.rightBinding || '';
-    return `<section class="shadow-photo-memo" data-layout="photo-1.7-memo-1"><div class="shadow-photo-area">${photoHtml}</div><div class="shadow-memo-area"><header><strong>MEMO</strong><span>자유 기록 · Free Notes</span></header><div class="shadow-memo-lines">${lines}</div><footer><em>${escapeHtml(motto)}</em><span>${escapeHtml(site)}</span></footer></div></section>`;
+    const exact = object.contract?.model === 'absolute-safe-area';
+    return `<section class="shadow-photo-memo${exact ? ' is-parity-layout' : ''}" data-layout="${exact ? 'absolute-safe-area' : 'photo-1.7-memo-1'}"><div class="shadow-photo-area"${exact ? ` style="${pctStyle(photo.framePct)}"` : ''}>${photoHtml}</div><div class="shadow-memo-area"${exact ? ` style="${pctStyle(memo.framePct)}"` : ''}><header><strong>MEMO</strong><span>자유 기록 · Free Notes</span></header><div class="shadow-memo-lines">${lines}</div><footer><em>${escapeHtml(motto)}</em><span>${escapeHtml(site)}</span></footer></div></section>`;
   }
 
   function renderContactCard(object) {
@@ -64,6 +92,7 @@
 
   function renderObject(object) {
     if (object.type === 'calendar') return renderCalendar(object);
+    if (object.type === 'year-calendar') return renderYearCalendar(object);
     if (object.type === 'composite-master') return renderPhotoMemo(object);
     if (object.type === 'contact-card') return renderContactCard(object);
     if (object.type === 'image' || object.type === 'image-frame') return renderImage(object, object.role || '');
@@ -74,7 +103,7 @@
   }
 
   function frameStyle(object) {
-    const frame = object.frame || {};
+    const frame = object.renderFrame || object.frame || {};
     const values = [frame.x, frame.y, frame.width, frame.height];
     if (!values.every(Number.isFinite)) return '';
     return `left:${frame.x}mm;top:${frame.y}mm;width:${frame.width}mm;height:${frame.height}mm;z-index:${Number(object.zIndex || 0)}`;

@@ -1,5 +1,14 @@
 # Work Log
 
+## 2026-08-23 — Runtime parity layoutContract 실제 소비 연결
+
+- 공통 TypeScript Runtime과 Designer Studio 브라우저 Runtime이 `desk-runtime-parity.v1` 계약을 동일하게 해석하도록 연결
+- `desk-academic-standard@1.1.0`에서만 연간 제목·12개월 4열 격자, 월력 헤더·요일·5행 본문, 사진·메모 절대 frame을 활성화
+- 논리적 개체 frame은 보존하고 렌더 전용 전체면 `renderFrame`을 review 계약에만 추가해 `1.0.0` 문서 구조를 변경하지 않음
+- 연간 월력의 학사연도·시작월 payload 생성과 3월~익년 2월 12개월 렌더 추가
+- TypeScript/브라우저 Runtime 문서 동등성, 두 버전 격리, Renderer HTML 좌표 소비 회귀검사 추가
+- Studio 전체 102건, 모든 TypeScript 패키지, 제품 상호작용·인라인 스크립트·스타일 보호 검사 통과
+
 ## 2026-08-23 — 대표 28면 정밀 배치 Package 버전 분리
 
 - 검증 기준 `desk-academic-standard@1.0.0`을 보존하고 새 `1.1.0` review Package 생성

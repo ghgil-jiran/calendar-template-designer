@@ -20,8 +20,10 @@
 
 - 사용자 서비스 샘플과 Runtime PDF 28면 일괄 비교에서 검증된 좌표를 새 Template Package 버전으로 분리
 - `1.1.0`에 연간 제목·월력, 월력 헤더·요일·본문, 사진·메모의 절대 frame 계약 추가
+- 공통 TypeScript Runtime과 브라우저 Shadow Runtime이 `1.1.0`의 `layoutContract`를 실제 렌더 좌표로 소비하도록 연결
+- 연간 12개월·월력 세 영역·사진/메모 두 영역을 Package 데이터만으로 구성하며 `1.0.0` 출력 계약은 그대로 유지
 - 기존 `1.0.0` 소비 경로와 사용자 UI·저장·PDF 경로는 변경하지 않음
-- 다음 단계는 공통 Runtime이 `1.1.0`의 `layoutContract`를 실제로 읽도록 연결한 뒤 동일 Dataset으로 재비교하는 것
+- 다음 단계는 `1.1.0`을 템플릿 에디터의 선택 가능한 Sample Template로 연결해 저장·재오픈·override를 확인하는 것
 
 ## 2026-08-13 작업 결과
 
@@ -164,9 +166,8 @@
 
 ## 다음 할 일
 
-1. 공통 Runtime의 Package 로더가 `desk-academic-standard@1.1.0`을 선택적으로 읽도록 연결
-2. `layoutContract`를 연간·월력·사진/메모 Renderer가 소비하도록 구현
-3. 동일 2028 Dataset으로 `1.0.0`과 `1.1.0` 28면 결과를 회귀 비교
-4. 템플릿 에디터에서 `1.1.0`을 샘플 템플릿으로 열고 저장·재오픈·개체 override 확인
-5. 사용자 서비스에는 review 버전 선택 경계만 연결하고 기본 버전 전환은 승인 후 진행
-6. PDF/X-4 실물 비교와 Preflight는 기능 구조 통합 뒤 별도 승인 단계에서 진행
+1. 템플릿 에디터에서 `1.1.0`을 선택 가능한 Sample Template로 노출
+2. Sample Template 열기·저장·재오픈과 개체 override 보존 확인
+3. 동일 2028 Dataset으로 `1.0.0`과 `1.1.0` 28면 PDF 결과 재비교
+4. 사용자 서비스에는 review 버전 선택 경계만 연결하고 기본 버전 전환은 승인 후 진행
+5. PDF/X-4 실물 비교와 Preflight는 기능 구조 통합 뒤 별도 승인 단계에서 진행

@@ -85,6 +85,9 @@ function createRuntimeObject(
     payload = readDatasetPath(dataset, definition.fallbackBinding);
   }
   let contract: Record<string, any> | undefined;
+  if (definition.layoutContract) {
+    contract = { ...definition.layoutContract };
+  }
   if (definition.type === "composite-master") {
     contract = {
       ...definition.layout,
@@ -105,12 +108,23 @@ function createRuntimeObject(
   if (definition.type === "calendar") {
     payload = { year: page.calendarYear, month: page.calendarMonth, gridRows: dataset.calendar?.gridRows };
   }
+  if (definition.type === "year-calendar") {
+    payload = {
+      year: dataset.calendar?.year,
+      startMonth: dataset.calendar?.startMonth,
+      monthCount: Number(definition.monthCount || 12)
+    };
+  }
+  const frame = frameFromPercentage(definition.framePct, page.size);
   return {
     id: definition.id || `${page.id}.package-object.${index}`,
     sourceObjectId: definition.id,
     type: definition.type || "semantic-object",
     role: definition.role,
-    frame: frameFromPercentage(definition.framePct, page.size),
+    frame,
+    ...(definition.layoutContract ? {
+      renderFrame: frameFromPercentage({ x: 0, y: 0, width: 100, height: 100 }, page.size)
+    } : {}),
     binding,
     payload,
     style: definition.style || {},
