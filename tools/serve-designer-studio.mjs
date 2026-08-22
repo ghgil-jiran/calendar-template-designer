@@ -10,6 +10,7 @@ const studioEntry = 'apps/designer-studio/index.html';
 const studioAssetAliases = new Map([
   ['/calendar-domain-bridge.js', 'apps/designer-studio/calendar-domain-bridge.js'],
   ['/project-document.js', 'apps/designer-studio/project-document.js'],
+  ['/package-project-adapter.js', 'apps/designer-studio/package-project-adapter.js'],
   ['/canvas-geometry.js', 'apps/designer-studio/canvas-geometry.js'],
   ['/canvas-selection.js', 'apps/designer-studio/canvas-selection.js'],
   ['/canvas-gesture.js', 'apps/designer-studio/canvas-gesture.js'],

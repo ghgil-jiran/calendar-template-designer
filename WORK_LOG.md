@@ -1,5 +1,15 @@
 # Work Log
 
+## 2026-08-23 — Template Package 1.1.0 편집기 Sample 연결
+
+- `desk-academic-standard@1.1.0`을 시스템 베이스의 `ready` Sample Template로 등록하고 일반 사용자 published 목록에는 노출하지 않음
+- Package 28면 역할 순서를 편집기 Project의 14장 28면과 연결하는 `package-project-adapter.js` 추가
+- Package Master의 frame·binding·layoutContract를 편집 가능한 `elementsByPage`와 월력 Master 영역으로 투영
+- 학교 상징 면의 기존 월력 렌더 중복을 막고 마지막 2월 월력 면을 올바른 편집기 역할로 전환
+- 시스템 Sample의 검토 완료 상태가 저장 시 draft로 내려가지 않도록 `ready` 저장 옵션 복구
+- 교가 개체 위치·크기를 수정한 뒤 Project clone 저장·재오픈 시 override와 Package 버전이 유지되는 회귀검사 추가
+- Studio 전체 104건, 모든 TypeScript 패키지, 제품 상호작용·인라인 스크립트·스타일 보호 검사 통과
+
 ## 2026-08-23 — Runtime parity layoutContract 실제 소비 연결
 
 - 공통 TypeScript Runtime과 Designer Studio 브라우저 Runtime이 `desk-runtime-parity.v1` 계약을 동일하게 해석하도록 연결

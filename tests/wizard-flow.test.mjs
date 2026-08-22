@@ -151,3 +151,14 @@ test('template library uses unified controls and calendar product thumbnails', (
   assert.match(runtime, /calendar-product-thumb calendar-product-\$\{escape\(record\.type\)\}/);
   assert.match(runtime, /calendar-product-page.*data-library-thumbnail/);
 });
+
+test('runtime parity package is exposed as a review sample without publishing it to users', () => {
+  const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
+  assert.match(catalog, /tpl-2028-desk-academic-standard-v1-1/);
+  assert.match(catalog, /packageVersion:\"1\.1\.0\"/);
+  assert.match(catalog, /status:\"ready\"/);
+  assert.match(catalog, /packageBase:\"\/templates\/desk-academic-standard\/1\.1\.0\/\"/);
+  assert.doesNotMatch(catalog, /tpl-2028-desk-academic-standard-v1-1[^\n]+status:\"published\"/);
+  const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
+  assert.match(runtime, /\['draft','ready','published','archived'\]/);
+});
