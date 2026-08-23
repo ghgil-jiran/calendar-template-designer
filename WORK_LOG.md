@@ -1,5 +1,15 @@
 # Work Log
 
+## 2026-08-23 — Template Package 편집기 로컬 종단 검증 완료
+
+- 사용자 로컬 브라우저에서 `desk-academic-standard@1.1.0` ready Sample 노출과 2028 Edition 확인
+- Package 기반 14장 28면의 페이지 순서와 각 면 기본 양식 로딩 확인
+- 학교 상징 등 개체 이동·크기 변경 후 템플릿 저장·재오픈 시 변경값 보존 확인
+- 원격 저장 과정에서 잘린 Designer Studio 진입 파일을 정상 3,992줄 원본으로 복구하고 500 KB 미만·필수 Runtime 누락을 거부하는 무결성 검사 추가
+- 개발 서버의 누락된 user-service bridge 경로와 `--port` 인자를 복구하고 제거된 라이브러리 필터 상태 참조 제거
+- 브라우저 기능과 무관한 `/favicon.ico` 404를 204 응답으로 정리
+- 다음 단계는 검증된 Sample Package를 사용자 서비스 선택 목록과 정확 버전 Runtime에 연결해 동일 편집·저장·재오픈 결과를 확인하는 것
+
 ## 2026-08-23 — Template Package 1.1.0 편집기 Sample 연결
 
 - `desk-academic-standard@1.1.0`을 시스템 베이스의 `ready` Sample Template로 등록하고 일반 사용자 published 목록에는 노출하지 않음
