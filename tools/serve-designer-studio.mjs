@@ -56,6 +56,9 @@ const legacyEntryPaths = new Set([
 const server = createServer(async (req,res)=>{
   try {
     const url = new URL(req.url || '/', `http://${req.headers.host}`);
+    if (url.pathname === '/favicon.ico') {
+      res.writeHead(204, {'cache-control':'public, max-age=86400'});res.end();return;
+    }
     const rel = url.pathname === '/' || legacyEntryPaths.has(url.pathname) ? studioEntry : studioAssetAliases.get(url.pathname) || url.pathname.replace(/^\//,'');
     const file = normalize(join(root, rel));
     if (!file.startsWith(normalize(root))) throw new Error('invalid path');
