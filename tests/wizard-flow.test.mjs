@@ -162,3 +162,10 @@ test('runtime parity package is exposed as a review sample without publishing it
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(runtime, /\['draft','ready','published','archived'\]/);
 });
+
+test('template library entry and save do not reference the removed legacy filter state', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.doesNotMatch(html, /activeLibraryFilter/);
+  assert.match(html, /designerHomeLibrary[^\n]+renderTemplateLibrary\('all'\)/);
+  assert.match(html, /renderTemplateLibrary\("all"\);/);
+});
