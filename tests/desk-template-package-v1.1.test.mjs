@@ -11,10 +11,10 @@ const print = await readJson(manifest.files.print);
 const parity = await readJson(manifest.files.parity);
 
 assert.equal(manifest.version, '1.1.0');
-assert.equal(manifest.status, 'runtime-parity-review');
+assert.equal(manifest.status, 'review');
 assert.equal(manifest.publishable, false);
 assert.equal(template.version, manifest.version);
-assert.equal(template.extractionStatus, manifest.status);
+assert.equal(template.extractionStatus, 'runtime-parity-review');
 assert.equal(bindings.templateVersion, manifest.version);
 assert.equal(print.version, manifest.version);
 assert.equal(parity.version, manifest.version);
