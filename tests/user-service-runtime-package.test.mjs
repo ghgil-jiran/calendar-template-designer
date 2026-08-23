@@ -29,6 +29,7 @@ try {
   assert.match(integrity.files['dist/DeskAcademicSurfacePlan.js'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['templates/desk-academic-standard/1.0.0/template.json'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['templates/desk-academic-standard/1.1.0/template.json'], /^[a-f0-9]{64}$/);
+  assert.match(integrity.files['templates/desk-academic-standard/1.1.0/publishing.json'], /^[a-f0-9]{64}$/);
   const templateBytes = await readFile(join(output, 'templates/desk-academic-standard/1.0.0/template.json'));
   assert.equal(createHash('sha256').update(templateBytes).digest('hex'), integrity.files['templates/desk-academic-standard/1.0.0/template.json']);
 
