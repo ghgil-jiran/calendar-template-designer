@@ -2163,7 +2163,7 @@ el("confirmTemplateSaveBtn")?.addEventListener("click",async ()=>{
   const verified=v22Library().find(x=>x.id===id);if(!verified)throw new Error("저장 후 라이브러리에서 템플릿을 확인하지 못했습니다.");
   stable();el("templateSaveDialog").classList.add("hidden");
   el("designerHome")?.classList.add("hidden");el("setup")?.classList.add("hidden");el("templateLibraryModal").classList.remove("hidden");
-  activeLibraryFilter="all";renderTemplateLibrary("all");
+  renderTemplateLibrary("all");
   const card=el("templateLibraryGrid")?.querySelector(`[data-template-id="${id}"]`);if(card){card.classList.add("just-saved");card.scrollIntoView({block:"center",behavior:"smooth"})}
   showEditorToast(`${name} ${edition} Edition 저장 완료`);
  }catch(err){
@@ -2272,7 +2272,7 @@ function startUserWorkspace(){openDesignerStudio({mode:'user',source:'entry'});}
 enterDesigner=function(){openDesignerStudio({mode:'designer',source:'entry'});} 
 el('enterDesignerFlow').onclick=enterDesigner;
 el('designerHomeNew')?.addEventListener('click',()=>openDesignerStudio({mode:'designer',source:'designer-home'}));
-el('designerHomeLibrary')?.addEventListener('click',()=>{el('designerHome').classList.add('hidden');el('templateLibraryModal').classList.remove('hidden');renderTemplateLibrary(activeLibraryFilter)});
+el('designerHomeLibrary')?.addEventListener('click',()=>{el('designerHome').classList.add('hidden');el('templateLibraryModal').classList.remove('hidden');renderTemplateLibrary('all')});
 el('designerHomeOpen')?.addEventListener('click',()=>{setEditorContext('기존 템플릿 열기');el('fileInput').click()});
 el('designerHomeBackBtn')?.addEventListener('click',()=>showEntry());
 const oldShowEntry=showEntry;showEntry=function(){el('designerHome')?.classList.add('hidden');oldShowEntry()};
