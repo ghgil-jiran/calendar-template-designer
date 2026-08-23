@@ -3,6 +3,19 @@ import vm from 'node:vm';
 
 const file = new URL('../apps/designer-studio/index.html', import.meta.url);
 const html = fs.readFileSync(file, 'utf8');
+const requiredRuntimeMarkers = [
+  'const SIZE_PRESETS=',
+  'function makeProject(opts)',
+  'function renderFreeElements(pageNode)',
+  'function setUserWizardStep(step)',
+  'window.resolveTextContent=resolveTextContent'
+];
+if (html.startsWith('Warning: truncated output') || html.length < 500_000) {
+  throw new Error(`Designer Studio HTML이 불완전합니다: ${html.length} bytes`);
+}
+for (const marker of requiredRuntimeMarkers) {
+  if (!html.includes(marker)) throw new Error(`Designer Studio 필수 Runtime 누락: ${marker}`);
+}
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
   .map((match) => match[1])
   .filter((code) => code.trim());
