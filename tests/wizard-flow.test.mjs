@@ -169,3 +169,9 @@ test('template library entry and save do not reference the removed legacy filter
   assert.match(html, /designerHomeLibrary[^\n]+renderTemplateLibrary\('all'\)/);
   assert.match(html, /renderTemplateLibrary\("all"\);/);
 });
+
+test('local studio server handles the browser favicon request without a 404', () => {
+  const server = fs.readFileSync(new URL('../tools/serve-designer-studio.mjs', import.meta.url), 'utf8');
+  assert.match(server, /url\.pathname === '\/favicon\.ico'/);
+  assert.match(server, /res\.writeHead\(204/);
+});
