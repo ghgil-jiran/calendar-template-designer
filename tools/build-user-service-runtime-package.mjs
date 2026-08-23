@@ -77,7 +77,8 @@ const integrityFiles = [
     `templates/desk-academic-standard/${version}/bindings.json`,
     `templates/desk-academic-standard/${version}/print.json`,
     `templates/desk-academic-standard/${version}/parity.json`
-  ])
+  ]),
+  'templates/desk-academic-standard/1.1.0/publishing.json'
 ];
 const hashes = {};
 for (const path of integrityFiles) {
