@@ -4,7 +4,9 @@ import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const port = Number(process.env.PORT || 3000);
+const portArgIndex = process.argv.indexOf('--port');
+const portArg = portArgIndex >= 0 ? process.argv[portArgIndex + 1] : undefined;
+const port = Number(portArg || process.env.PORT || 3000);
 const mime = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json; charset=utf-8', '.svg':'image/svg+xml', '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg' };
 const studioEntry = 'apps/designer-studio/index.html';
 const studioAssetAliases = new Map([
@@ -23,6 +25,8 @@ const studioAssetAliases = new Map([
   ['/persistence-project.js', 'apps/designer-studio/persistence-project.js'],
   ['/persistence-indexeddb.js', 'apps/designer-studio/persistence-indexeddb.js'],
   ['/dataset-domain-bridge.js', 'apps/designer-studio/dataset-domain-bridge.js'],
+  ['/user-service-dataset-bridge.js', 'apps/designer-studio/user-service-dataset-bridge.js'],
+  ['/user-service-asset-resolver.js', 'apps/designer-studio/user-service-asset-resolver.js'],
   ['/desk-academic-page-adapter.js', 'apps/designer-studio/desk-academic-page-adapter.js'],
   ['/integration-parity-bridge.js', 'apps/designer-studio/integration-parity-bridge.js'],
   ['/runtime-project-adapter.js', 'apps/designer-studio/runtime-project-adapter.js'],
@@ -32,6 +36,8 @@ const studioAssetAliases = new Map([
   ['/desk-academic-shadow-renderer.css', 'apps/designer-studio/desk-academic-shadow-renderer.css'],
   ['/desk-academic-visual-parity.js', 'apps/designer-studio/desk-academic-visual-parity.js'],
   ['/desk-academic-print-parity.js', 'apps/designer-studio/desk-academic-print-parity.js'],
+  ['/user-service-shadow-session.js', 'apps/designer-studio/user-service-shadow-session.js'],
+  ['/user-service-shadow-diagnostics.js', 'apps/designer-studio/user-service-shadow-diagnostics.js'],
   ['/template-catalog.js', 'apps/designer-studio/template-catalog.js'],
   ['/wizard-flow.js', 'apps/designer-studio/wizard-flow.js'],
   ['/template-library-runtime.js', 'apps/designer-studio/template-library-runtime.js']
