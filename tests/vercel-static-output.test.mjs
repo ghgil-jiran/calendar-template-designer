@@ -8,9 +8,9 @@ import { dirname, resolve } from 'node:path';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(root, 'public');
 
-function build() {
+function build(cwd = root) {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(process.execPath, ['scripts/build-vercel-static.mjs'], { cwd: root, stdio: 'inherit' });
+    const child = spawn(process.execPath, [resolve(root, 'scripts/build-vercel-static.mjs')], { cwd, stdio: 'inherit' });
     child.on('error', reject);
     child.on('exit', code => code === 0 ? resolvePromise() : reject(new Error(`build exited ${code}`)));
   });
@@ -29,4 +29,13 @@ test('Vercel static output contains editor, design tokens, and both package type
   const config = JSON.parse(await readFile(resolve(root, 'vercel.json'), 'utf8'));
   assert.equal(config.outputDirectory, 'public');
   await rm(output, { recursive: true, force: true });
+});
+
+test('Vercel output also builds when the working directory is Designer Studio', async () => {
+  const studio = resolve(root, 'apps/designer-studio');
+  const nestedOutput = resolve(studio, 'public');
+  await build(studio);
+  await access(resolve(nestedOutput, 'apps/designer-studio/index.html'));
+  await access(resolve(nestedOutput, 'templates/wall-academic-standard/0.1.0/manifest.json'));
+  await rm(nestedOutput, { recursive: true, force: true });
 });

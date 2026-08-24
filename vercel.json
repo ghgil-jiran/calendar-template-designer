@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node scripts/build-vercel-static.mjs",
+  "buildCommand": "node \"$(git rev-parse --show-toplevel)/scripts/build-vercel-static.mjs\"",
   "outputDirectory": "public",
   "rewrites": [
     { "source": "/", "destination": "/apps/designer-studio/index.html" },
