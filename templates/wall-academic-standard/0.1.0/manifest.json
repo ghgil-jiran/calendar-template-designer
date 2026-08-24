@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "template-package.v1-draft",
+  "templateId": "wall-academic-standard",
+  "version": "0.1.0",
+  "name": "학사달력 표준 벽걸이형",
+  "productType": "wall",
+  "status": "review",
+  "publishable": false,
+  "pageComposition": {
+    "sheetCount": 13,
+    "surfaceCount": 13,
+    "monthCount": 12,
+    "defaultStartMonth": 3,
+    "duplex": false
+  },
+  "compatibility": {
+    "datasetSchema": "1.x",
+    "templateSchema": "2.x",
+    "runtime": "1.x"
+  },
+  "files": {
+    "template": "template.json",
+    "bindings": "bindings.json",
+    "print": "print.json",
+    "parity": "parity.json",
+    "assets": "assets/",
+    "publishing": "publishing.json"
+  },
+  "releaseContract": {
+    "schemaVersion": "template-publishing.v1",
+    "status": "review",
+    "immutableAfterPublish": true
+  }
+}
