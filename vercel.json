@@ -1,4 +1,7 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "node scripts/build-vercel-static.mjs",
+  "outputDirectory": "public",
   "rewrites": [
     { "source": "/", "destination": "/apps/designer-studio/index.html" },
     { "source": "/template-catalog.js", "destination": "/apps/designer-studio/template-catalog.js" },

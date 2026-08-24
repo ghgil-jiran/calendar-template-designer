@@ -2169,15 +2169,16 @@ el("confirmTemplateSaveBtn")?.addEventListener("click",async ()=>{
   const projectCopy=window.ACDLPersistenceProject.clone(project);await saveTemplateProjectData(id,projectCopy);let savedId=id,remoteSaved=false,remoteVersion=Number(project.template.remoteVersionNumber)||0;
   const remote=window.ACDLTemplateRemotePersistence;
   if(remote?.isRemote?.())try{const result=await remote.save({templateId:project.template.remoteId||null,stableKey,name,description,edition,state,productType:project.productType?.category||project.settings?.type||"desk",templateKey:project.template?.preset||project.settings?.template||"school-basic",saveKind:state==="published"?"publish":"manual",saveNote:`${name} 저장`,schemaVersion:"2.0",projectData:projectCopy});savedId=result.template.id;remoteVersion=result.version.versionNumber;remoteSaved=true;project.template.id=savedId;project.template.remoteId=savedId;project.template.remoteStableKey=result.template.stableKey;project.template.remoteVersionNumber=remoteVersion;await saveTemplateProjectData(savedId,window.ACDLPersistenceProject.clone(project))}catch(error){console.warn("원격 템플릿 저장 실패",error);showEditorToast(`${name} 로컬 저장 완료 · ${error?.message||"원격 저장 미완료"}`)}
-  const list=v22Library(),record={id:savedId,remoteId:remoteSaved?savedId:undefined,stableKey,name,description,edition,state,type:project.productType?.category||project.settings?.type||"desk",template:project.template?.preset||project.settings?.template||"school-basic",packageVersion:project.template?.package?.version,packageBase:project.template?.package?.base,source:project.template.librarySource||"local",thumbnail:project.template?.thumbnail||{kind:"renderer",source:"templateData"},version:remoteVersion||1,updatedAt:new Date().toISOString(),storage:remoteSaved?"supabase":"indexeddb"};
+  project.template.librarySource="local";
+  const list=v22Library(),record={id:savedId,remoteId:remoteSaved?savedId:undefined,stableKey,name,description,edition,state,type:project.productType?.category||project.settings?.type||"desk",template:project.template?.preset||project.settings?.template||"school-basic",packageVersion:project.template?.package?.version,packageBase:project.template?.package?.base,source:"local",thumbnail:project.template?.thumbnail||{kind:"renderer",source:"templateData"},version:remoteVersion||1,updatedAt:new Date().toISOString(),storage:remoteSaved?"supabase":"indexeddb"};
   const filtered=list.filter(x=>x.id!==id&&x.id!==savedId&&(!stableKey||x.stableKey!==stableKey));filtered.unshift(record);list.splice(0,list.length,...filtered);
   v22SaveLibrary(list);
   renderUserTemplateChoices();
-  const verified=v22Library().find(x=>x.id===id);if(!verified)throw new Error("저장 후 라이브러리에서 템플릿을 확인하지 못했습니다.");
+  const verified=v22Library().find(x=>x.id===savedId);if(!verified)throw new Error("저장 후 라이브러리에서 템플릿을 확인하지 못했습니다.");
   stable();el("templateSaveDialog").classList.add("hidden");
   el("designerHome")?.classList.add("hidden");el("setup")?.classList.add("hidden");el("templateLibraryModal").classList.remove("hidden");
   renderTemplateLibrary("all");
-  const card=el("templateLibraryGrid")?.querySelector(`[data-template-id="${id}"]`);if(card){card.classList.add("just-saved");card.scrollIntoView({block:"center",behavior:"smooth"})}
+  const card=el("templateLibraryGrid")?.querySelector(`[data-template-id="${savedId}"]`);if(card){card.classList.add("just-saved");card.scrollIntoView({block:"center",behavior:"smooth"})}
   showEditorToast(`${name} ${edition} Edition ${remoteSaved?`원격 저장 완료 · v${remoteVersion}`:"로컬 저장 완료"}`);
  }catch(err){
   feedback.className="save-feedback error";feedback.textContent=`저장 실패: ${err?.message||"브라우저 데이터베이스 저장 오류"}`;

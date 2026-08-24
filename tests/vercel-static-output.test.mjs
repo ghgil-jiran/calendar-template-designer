@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import { access, readFile, rm } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import test from 'node:test';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const output = resolve(root, 'public');
+
+function build() {
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn(process.execPath, ['scripts/build-vercel-static.mjs'], { cwd: root, stdio: 'inherit' });
+    child.on('error', reject);
+    child.on('exit', code => code === 0 ? resolvePromise() : reject(new Error(`build exited ${code}`)));
+  });
+}
+
+test('Vercel static output contains editor, design tokens, and both package types', async () => {
+  await build();
+  for (const path of [
+    'apps/designer-studio/index.html',
+    'apps/designer-studio/template-remote-persistence.js',
+    'design-system/09-css-tokens.css',
+    'templates/desk-academic-standard/1.1.0/manifest.json',
+    'templates/wall-academic-standard/0.1.0/manifest.json'
+  ]) await access(resolve(output, path));
+
+  const config = JSON.parse(await readFile(resolve(root, 'vercel.json'), 'utf8'));
+  assert.equal(config.outputDirectory, 'public');
+  await rm(output, { recursive: true, force: true });
+});
