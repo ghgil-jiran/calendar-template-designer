@@ -60,3 +60,32 @@ const reopenedSong = reopened.book.elementsByPage[symbolPage.id].find(item => it
 assert.equal(reopenedSong.x, 47.5);
 assert.equal(reopenedSong.width, 48);
 assert.equal(reopened.template.package.version, '1.1.0');
+
+const wallTemplate = JSON.parse(await readFile(new URL('../templates/wall-academic-standard/0.1.0/template.json', import.meta.url), 'utf8'));
+const wallBase = globalThis.ACDLProjectDocument.createProject({
+  type: 'wall', template: 'school-basic', year: 2028, startMonth: 3,
+  frontInsertCount: 0, rearInsertCount: 0, calendarRows: 6, weekStart: 'sunday',
+  showAdjacentMiniCalendars: true, sizePresetId: 'wall-a3'
+}, {
+  sizePresets: { wall: [{ id: 'wall-a3', label: 'A3', width: 297, height: 420 }] },
+  buildMonths: globalThis.ACDLCalendarDomain.buildTwelveMonths
+});
+const wallProject = globalThis.ACDLPackageProjectAdapter.applyPackage(wallBase, wallTemplate);
+assert.equal(wallProject.book.pageInstances.length, 13);
+assert.equal(wallProject.book.sheets.length, 0);
+assert.equal(wallProject.productType.category, 'wall');
+assert.equal(wallProject.productType.duplex, false);
+assert.equal(wallProject.template.metadata.name, '벽걸이형 표준 01 · 이미지 월력형');
+assert.equal(wallProject.template.package.version, '0.1.0');
+assert.deepEqual(wallProject.book.pageInstances.slice(0, 3).map(page => page.packageRole), ['cover-front', 'monthly-calendar', 'monthly-calendar']);
+assert.equal(wallProject.book.pageInstances[1].monthKey, '2028-03');
+assert.equal(wallProject.book.pageInstances[12].monthKey, '2029-02');
+assert.deepEqual(wallProject.template.masters.calendar.calendarRegion, { x: 7, y: 41, width: 86, height: 52 });
+const wallMarch = wallProject.book.pageInstances[1];
+const wallImage = wallProject.book.elementsByPage[wallMarch.id].find(item => item.role === 'monthly-image');
+assert.deepEqual({ x: wallImage.x, y: wallImage.y, width: wallImage.width, height: wallImage.height }, { x: 7, y: 6, width: 86, height: 29 });
+wallImage.y = 8.5;
+const reopenedWall = globalThis.ACDLPersistenceProject.clone(globalThis.ACDLPersistenceProject.clone(wallProject));
+assert.equal(reopenedWall.book.elementsByPage[wallMarch.id].find(item => item.role === 'monthly-image').y, 8.5);
+assert.equal(reopenedWall.book.pageInstances.length, 13);
+assert.equal(reopenedWall.template.package.version, '0.1.0');
