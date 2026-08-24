@@ -2,7 +2,7 @@
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Calendar Template Designer v2.0 Alpha</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><link rel="stylesheet" href="./desk-academic-shadow-renderer.css"><script src="./calendar-domain-bridge.js"></script><script src="./project-document.js"></script><script src="./canvas-geometry.js"></script><script src="./canvas-selection.js"></script><script src="./canvas-gesture.js"></script><script src="./canvas-input.js"></script><script src="./inspector-form.js"></script><script src="./inspector-graphic.js"></script><script src="./inspector-element.js"></script><script src="./preview-state.js"></script><script src="./persistence-history.js"></script><script src="./persistence-project.js"></script><script src="./persistence-indexeddb.js"></script><script src="./dataset-domain-bridge.js"></script><script src="./user-service-dataset-bridge.js"></script><script src="./user-service-asset-resolver.js"></script><script src="./desk-academic-page-adapter.js"></script><script src="./integration-parity-bridge.js"></script><script src="./runtime-project-adapter.js"></script><script src="./template-package-loader.js"></script><script src="./desk-academic-package-runtime.js"></script><script src="./desk-academic-shadow-renderer.js"></script><script src="./desk-academic-visual-parity.js"></script><script src="./desk-academic-print-parity.js"></script><script src="./user-service-shadow-session.js"></script><script src="./user-service-shadow-diagnostics.js"></script><script src="./template-catalog.js"></script>
 <script src="./package-project-adapter.js"></script>
-<script src="./wizard-flow.js"></script>
+<script src="./wizard-flow.js"></script><script src="./template-remote-persistence.js"></script>
 <style>
 :root{--bg:var(--acds-canvas,#f6f8fb);--panel:var(--acds-surface,#fff);--line:var(--acds-border,#e2e8f0);--text:var(--acds-text-strong,#0f172a);--muted:var(--acds-text-muted,#64748b);--accent:var(--acds-primary,#2563eb);--soft:var(--acds-primary-soft,#eff6ff);--danger:var(--acds-error,#dc2626);--ok:var(--acds-success,#027a48);--warn:var(--acds-warning,#d97706)}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans KR",sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer}
@@ -2043,7 +2043,17 @@ const ACDL_DB_NAME="acdl-template-storage-v25",ACDL_STORE="templates";
 const templateProjectDatabase=window.ACDLPersistenceIndexedDB.createDatabase(indexedDB,{databaseName:ACDL_DB_NAME,version:1,stores:{[ACDL_STORE]:{keyPath:"id"}}});
 function openTemplateDb(){return templateProjectDatabase.open()}
 async function saveTemplateProjectData(id,data){await templateProjectDatabase.put(ACDL_STORE,{id,data,updatedAt:new Date().toISOString()});return true}
-async function loadTemplateProjectData(id){return (await templateProjectDatabase.get(ACDL_STORE,id))?.data||null}
+async function loadTemplateProjectData(id){
+ const local=(await templateProjectDatabase.get(ACDL_STORE,id))?.data,remote=window.ACDLTemplateRemotePersistence,isRemoteId=/^[0-9a-f-]{36}$/i.test(String(id));if(!remote?.isRemote?.()||!isRemoteId)return local||null;
+ try{const result=await remote.load(id),data=result?.version?.projectData;if(data){await saveTemplateProjectData(id,data);return data}}catch(error){console.warn("원격 템플릿 불러오기 실패",error)}
+ return local||null;
+}
+async function refreshRemoteTemplateLibrary(){
+ const remote=window.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return false;
+ try{const remoteRecords=await remote.list(),current=v22Library().filter(item=>item.source!=="catalog"),remoteIds=new Set(remoteRecords.map(item=>item.id)),remoteKeys=new Set(remoteRecords.map(item=>item.stableKey)),localOnly=current.filter(item=>!remoteIds.has(item.id)&&!remoteKeys.has(item.stableKey));v22SaveLibrary([...remoteRecords,...localOnly]);renderTemplateLibrary?.("all");return true}
+ catch(error){console.warn("원격 템플릿 목록 동기화 실패",error);showEditorToast?.(error?.message||"원격 템플릿 목록을 불러오지 못했습니다.");return false}
+}
+window.refreshRemoteTemplateLibrary=refreshRemoteTemplateLibrary;
 function v22StateLabel(state){return {draft:"초안",ready:"검토 완료",published:"배포중",archived:"종료"}[state]||state}
 function updateRoleIndicator(){const box=el("roleIndicator"),text=el("roleIndicatorText");if(!box||!text)return;const user=appMode==="user";box.classList.toggle("user",user);text.textContent=user?"Calendar Workspace · 사용자 편집기":"Designer Studio · 디자이너 편집기"}
 const originalEnterDesigner=enterDesigner;enterDesigner=function(){originalEnterDesigner();updateRoleIndicator()};
@@ -2144,7 +2154,7 @@ function closeTemplateLibrary(){
   el("designerHome")?.classList.remove("hidden");
  }
 }
-el("libraryBtn")?.addEventListener("click",()=>{if(appMode!=="designer")return;el("templateLibraryModal").classList.remove("hidden");renderTemplateLibrary()});el("closeTemplateLibraryBtn")?.addEventListener("click",closeTemplateLibrary);el("newLibraryTemplateBtn")?.addEventListener("click",()=>{el("templateLibraryModal").classList.add("hidden");enterDesigner()});
+el("libraryBtn")?.addEventListener("click",()=>{if(appMode!=="designer")return;el("templateLibraryModal").classList.remove("hidden");renderTemplateLibrary();refreshRemoteTemplateLibrary()});el("closeTemplateLibraryBtn")?.addEventListener("click",closeTemplateLibrary);el("newLibraryTemplateBtn")?.addEventListener("click",()=>{el("templateLibraryModal").classList.add("hidden");enterDesigner()});
 // Designer save now opens metadata/state dialog; user save keeps original file save behavior.
 el("saveBtn").addEventListener("click",e=>{if(appMode!=="designer")return;e.stopImmediatePropagation();normalizeElementData();const m=project?.template?.metadata||{};el("saveTemplateName").value=m.name||"학교 기본형";el("saveTemplateDescription").value=m.description||"";el("saveTemplateEdition").value=project?.settings?.year||2027;el("saveTemplateState").value=m.state||"draft";el("templateSaveDialog").classList.remove("hidden")},true);
 el("cancelTemplateSaveBtn")?.addEventListener("click",()=>el("templateSaveDialog").classList.add("hidden"));
@@ -2154,10 +2164,13 @@ el("confirmTemplateSaveBtn")?.addEventListener("click",async ()=>{
  try{
   normalizeElementData();ensureV22Metadata();
   const name=el("saveTemplateName").value.trim()||"이름 없는 템플릿",description=el("saveTemplateDescription").value.trim(),edition=Number(el("saveTemplateEdition").value)||2027,state=el("saveTemplateState").value;
-  const id=project.template.id||("tpl-"+Date.now());project.template.id=id;
+  const id=project.template.id||("tpl-"+Date.now()),stableKey=project.template.remoteStableKey||id;project.template.id=id;
   Object.assign(project.template.metadata,{name,description,edition,state});project.settings.year=edition;
-  const projectCopy=window.ACDLPersistenceProject.clone(project);await saveTemplateProjectData(id,projectCopy);const list=v22Library(),record={id,name,description,edition,state,type:project.productType?.category||project.settings?.type||"desk",template:project.template?.preset||project.settings?.template||"school-basic",packageVersion:project.template?.package?.version,packageBase:project.template?.package?.base,source:project.template.librarySource||"local",thumbnail:project.template?.thumbnail||{kind:"renderer",source:"templateData"},updatedAt:new Date().toISOString().slice(0,10),storage:"indexeddb"};
-  const existing=list.findIndex(x=>x.id===id);if(existing>=0)list[existing]=record;else list.unshift(record);
+  const projectCopy=window.ACDLPersistenceProject.clone(project);await saveTemplateProjectData(id,projectCopy);let savedId=id,remoteSaved=false,remoteVersion=Number(project.template.remoteVersionNumber)||0;
+  const remote=window.ACDLTemplateRemotePersistence;
+  if(remote?.isRemote?.())try{const result=await remote.save({templateId:project.template.remoteId||null,stableKey,name,description,edition,state,productType:project.productType?.category||project.settings?.type||"desk",templateKey:project.template?.preset||project.settings?.template||"school-basic",saveKind:state==="published"?"publish":"manual",saveNote:`${name} 저장`,schemaVersion:"2.0",projectData:projectCopy});savedId=result.template.id;remoteVersion=result.version.versionNumber;remoteSaved=true;project.template.id=savedId;project.template.remoteId=savedId;project.template.remoteStableKey=result.template.stableKey;project.template.remoteVersionNumber=remoteVersion;await saveTemplateProjectData(savedId,window.ACDLPersistenceProject.clone(project))}catch(error){console.warn("원격 템플릿 저장 실패",error);showEditorToast(`${name} 로컬 저장 완료 · ${error?.message||"원격 저장 미완료"}`)}
+  const list=v22Library(),record={id:savedId,remoteId:remoteSaved?savedId:undefined,stableKey,name,description,edition,state,type:project.productType?.category||project.settings?.type||"desk",template:project.template?.preset||project.settings?.template||"school-basic",packageVersion:project.template?.package?.version,packageBase:project.template?.package?.base,source:project.template.librarySource||"local",thumbnail:project.template?.thumbnail||{kind:"renderer",source:"templateData"},version:remoteVersion||1,updatedAt:new Date().toISOString(),storage:remoteSaved?"supabase":"indexeddb"};
+  const filtered=list.filter(x=>x.id!==id&&x.id!==savedId&&(!stableKey||x.stableKey!==stableKey));filtered.unshift(record);list.splice(0,list.length,...filtered);
   v22SaveLibrary(list);
   renderUserTemplateChoices();
   const verified=v22Library().find(x=>x.id===id);if(!verified)throw new Error("저장 후 라이브러리에서 템플릿을 확인하지 못했습니다.");
@@ -2165,7 +2178,7 @@ el("confirmTemplateSaveBtn")?.addEventListener("click",async ()=>{
   el("designerHome")?.classList.add("hidden");el("setup")?.classList.add("hidden");el("templateLibraryModal").classList.remove("hidden");
   renderTemplateLibrary("all");
   const card=el("templateLibraryGrid")?.querySelector(`[data-template-id="${id}"]`);if(card){card.classList.add("just-saved");card.scrollIntoView({block:"center",behavior:"smooth"})}
-  showEditorToast(`${name} ${edition} Edition 저장 완료`);
+  showEditorToast(`${name} ${edition} Edition ${remoteSaved?`원격 저장 완료 · v${remoteVersion}`:"로컬 저장 완료"}`);
  }catch(err){
   feedback.className="save-feedback error";feedback.textContent=`저장 실패: ${err?.message||"브라우저 데이터베이스 저장 오류"}`;
  }
@@ -2272,7 +2285,7 @@ function startUserWorkspace(){openDesignerStudio({mode:'user',source:'entry'});}
 enterDesigner=function(){openDesignerStudio({mode:'designer',source:'entry'});} 
 el('enterDesignerFlow').onclick=enterDesigner;
 el('designerHomeNew')?.addEventListener('click',()=>openDesignerStudio({mode:'designer',source:'designer-home'}));
-el('designerHomeLibrary')?.addEventListener('click',()=>{el('designerHome').classList.add('hidden');el('templateLibraryModal').classList.remove('hidden');renderTemplateLibrary('all')});
+el('designerHomeLibrary')?.addEventListener('click',()=>{el('designerHome').classList.add('hidden');el('templateLibraryModal').classList.remove('hidden');renderTemplateLibrary('all');refreshRemoteTemplateLibrary()});
 el('designerHomeOpen')?.addEventListener('click',()=>{setEditorContext('기존 템플릿 열기');el('fileInput').click()});
 el('designerHomeBackBtn')?.addEventListener('click',()=>showEntry());
 const oldShowEntry=showEntry;showEntry=function(){el('designerHome')?.classList.add('hidden');oldShowEntry()};
@@ -3398,7 +3411,7 @@ body.user-mode .editor-menubar:before{display:inline-flex;align-items:center;hei
  function ensureMonitor(){let m=document.getElementById('v361MemoryMonitor');if(m)return m;m=document.createElement('aside');m.id='v361MemoryMonitor';m.innerHTML='<strong><span>프로젝트 메모리</span><span id="v361Total">0 MB</span></strong><div class="bar"><span></span></div><small id="v361Detail">계산 중…</small>';document.body.appendChild(m);const status=document.getElementById('saveStatus');if(status&&!document.getElementById('v361Badge')){const b=document.createElement('span');b.id='v361Badge';b.className='v361-badge';b.textContent='v36.1 안정화';status.after(b)}return m}
  function update(){const m=ensureMonitor(),currentProject=typeof window.project!=='undefined'&&window.project?window.project:(typeof project!=='undefined'?project:null),projectBytes=roughSize(currentProject),historyBytes=(Array.isArray(history)?history:[]).reduce((a,x)=>a+(x?.length||0)*2,0),poolBytes=window.__historyBinaryPool?[...window.__historyBinaryPool.values()].reduce((a,x)=>a+(x?.length||0)*2,0):0,total=projectBytes+historyBytes+poolBytes;m.querySelector('#v361Total').textContent=formatBytes(total);m.querySelector('#v361Detail').textContent=`프로젝트 ${formatBytes(projectBytes)} · 실행 취소 ${formatBytes(historyBytes)} · 이미지 풀 ${formatBytes(poolBytes)}`;m.querySelector('.bar span').style.width=`${Math.min(100,total/(200*1024*1024)*100)}%`;m.classList.toggle('warn',total>160*1024*1024)}
  window.__acdlUpdateMemoryMonitor=update;setTimeout(update,200);setInterval(update,5000);
- async function saveRecovery(){const currentProject=typeof window.project!=='undefined'&&window.project?window.project:(typeof project!=='undefined'?project:null);if(!currentProject)return;try{const record=window.ACDLPersistenceProject.createRecoveryRecord(currentProject,window.selectedPageId||selectedPageId,{compact:typeof __compactHistoryValue==='function'?__compactHistoryValue:undefined});await txPut('recovery',record);const s=document.getElementById('saveStatus');if(s&&s.textContent.includes('변경'))s.title='자동 복구본이 저장되었습니다.'}catch(err){console.warn('자동 복구 저장 실패',err)}}
+ async function saveRecovery(){const currentProject=typeof window.project!=='undefined'&&window.project?window.project:(typeof project!=='undefined'?project:null);if(!currentProject)return;try{const record=window.ACDLPersistenceProject.createRecoveryRecord(currentProject,window.selectedPageId||selectedPageId,{compact:typeof __compactHistoryValue==='function'?__compactHistoryValue:undefined});await txPut('recovery',record);const remote=window.ACDLTemplateRemotePersistence,remoteId=currentProject.template?.remoteId;if(remoteId&&remote?.hasToken?.())remote.saveDraft({templateId:remoteId,schemaVersion:'2.0',projectData:record.project}).catch(error=>console.warn('원격 자동저장 실패',error));const s=document.getElementById('saveStatus');if(s&&s.textContent.includes('변경'))s.title='자동 복구본이 저장되었습니다.'}catch(err){console.warn('자동 복구 저장 실패',err)}}
  setInterval(saveRecovery,30000);window.addEventListener('beforeunload',()=>{saveRecovery()});
  const oldRender=typeof window.render==='function'?window.render:null;if(oldRender)window.render=function(){const r=oldRender.apply(this,arguments);requestAnimationFrame(update);return r};
  const closeBtn=document.getElementById('closeFullPreviewBtn');closeBtn?.addEventListener('click',()=>{document.getElementById('fullPreviewGrid')?.replaceChildren();document.getElementById('previewFocusBody')?.replaceChildren();update()});

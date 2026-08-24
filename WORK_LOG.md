@@ -1,5 +1,18 @@
 # Work Log
 
+## 2026-08-24 — 템플릿 최신본·버전 이력·이미지 원격 저장
+
+- 라이브러리에는 템플릿별 최신본 한 개만 표시하고 명시적 저장·복원·배포는 수정 불가 버전으로 누적하는 정책 확정
+- 자동저장은 버전 번호를 늘리지 않고 템플릿별 임시본 한 개만 갱신하도록 분리
+- `template_projects`, `template_versions`, `template_drafts`, `template_assets`, `template_version_assets` migration과 원자적 버전 저장 함수 추가
+- Vercel Node API에 최신본 조회, 정식 저장, 자동저장, 버전 목록, 복원, 비공개 이미지 자산 저장 경로 추가
+- 내부 접근 토큰과 서버 전용 Supabase service role 경계를 적용하고 공개 DB 접근을 차단
+- 기존 IndexedDB 선저장·원격 실패 시 로컬 유지·다른 브라우저 최신본 조회를 에디터에 연결
+- Base64 이미지를 SHA-256으로 중복 제거하고 원격 프로젝트에는 `acdl-asset://<id>` 참조만 저장
+- 비공개 이미지의 24시간 유효 주소를 템플릿을 열 때마다 재발급하고 재저장 시 자산 참조로 환원
+- 사용자 계정의 `calendar-editor-runtime-dev` Supabase에 표 5개와 비공개 `template-assets` 버킷 적용 및 설정 확인
+- Studio 자동검사 124/124, contracts TypeScript, 제품 상호작용, 인라인 스크립트 19개, 스타일 보호 검사 통과
+
 ## 2026-08-24 — 벽걸이형 표준 01 편집기 작성·저장 기반 연결
 
 - `벽걸이형 표준 01 · 이미지 월력형`을 2028 Edition review Sample Template로 등록

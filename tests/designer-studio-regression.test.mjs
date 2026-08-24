@@ -118,3 +118,11 @@ test('wizard helper can reset step and selection state for a fresh flow', () => 
   assert.equal(wizard.restoreWizardState().selectedType, '');
   assert.match(source, /resetWizardState/, 'wizard helper should expose a reset helper');
 });
+
+test('designer studio keeps local storage while adding protected remote persistence', () => {
+  assert.match(html, /template-remote-persistence\.js/);
+  assert.match(html, /await saveTemplateProjectData\(id,projectCopy\)/);
+  assert.match(html, /await remote\.save\(/);
+  assert.match(html, /remoteSaved\?`원격 저장 완료/);
+  assert.match(html, /remote\.saveDraft\(/);
+});

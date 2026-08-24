@@ -1,4 +1,58 @@
 export const CONTRACT_VERSION="1.0" as const;
+export const TEMPLATE_PERSISTENCE_CONTRACT_VERSION="1.0" as const;
+export const TEMPLATE_SAVE_KINDS=["manual","restore","publish"] as const;
+export const TEMPLATE_STATES=["draft","ready","published","archived"] as const;
+export type TemplateSaveKind=typeof TEMPLATE_SAVE_KINDS[number];
+export type TemplateState=typeof TEMPLATE_STATES[number];
+export interface TemplateLibraryItem{
+  id:string;
+  stableKey:string;
+  name:string;
+  description:string;
+  edition:number;
+  state:TemplateState;
+  productType:string;
+  templateKey:string;
+  latestVersionNumber:number;
+  latestVersionId:string;
+  updatedAt:string;
+}
+export interface TemplateVersionRecord{
+  id:string;
+  templateId:string;
+  versionNumber:number;
+  saveKind:TemplateSaveKind;
+  state:TemplateState;
+  saveNote?:string;
+  sourceVersionId?:string;
+  schemaVersion:string;
+  projectData:Record<string,unknown>;
+  createdAt:string;
+}
+export interface SaveTemplateVersionRequest{
+  templateId?:string;
+  stableKey:string;
+  name:string;
+  description?:string;
+  edition:number;
+  state:TemplateState;
+  productType:string;
+  templateKey:string;
+  saveKind:TemplateSaveKind;
+  saveNote?:string;
+  sourceVersionId?:string;
+  schemaVersion:string;
+  projectData:Record<string,unknown>;
+}
+export interface SaveTemplateVersionResponse{
+  template:TemplateLibraryItem;
+  version:TemplateVersionRecord;
+}
+export interface SaveTemplateDraftRequest{
+  templateId:string;
+  schemaVersion:string;
+  projectData:Record<string,unknown>;
+}
 export type Unit="mm"|"pt"|"px"; export interface Size{width:number;height:number;unit:Unit} export interface Frame{x:number;y:number;width:number;height:number}
 export interface BindingRef{path:string;fallback?:unknown;format?:string}
 export interface DocumentObject{id:string;kind:string;frame:Frame;binding?:BindingRef;value?:unknown;style?:Record<string,unknown>;visible?:boolean;zIndex?:number;rotation?:number;opacity?:number;children?:DocumentObject[]}

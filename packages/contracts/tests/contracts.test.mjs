@@ -1,5 +1,9 @@
 import assert from"node:assert/strict";
-import{SCHOOL_DATA_SCHEMA,assertCalendarDocument,normalizeSchoolData,validateSchoolData,normalizeAcademicYear,normalizeCalendarEvent,validateCalendarEvent,normalizeImageFrameValue,mergeMonthlyStyle}from"../dist/index.js";
+import{SCHOOL_DATA_SCHEMA,TEMPLATE_PERSISTENCE_CONTRACT_VERSION,TEMPLATE_SAVE_KINDS,TEMPLATE_STATES,assertCalendarDocument,normalizeSchoolData,validateSchoolData,normalizeAcademicYear,normalizeCalendarEvent,validateCalendarEvent,normalizeImageFrameValue,mergeMonthlyStyle}from"../dist/index.js";
+
+assert.equal(TEMPLATE_PERSISTENCE_CONTRACT_VERSION,"1.0");
+assert.deepEqual(TEMPLATE_SAVE_KINDS,["manual","restore","publish"]);
+assert.deepEqual(TEMPLATE_STATES,["draft","ready","published","archived"]);
 
 const document={contractVersion:"1.0",id:"x",revision:1,pages:[]};
 assert.doesNotThrow(()=>assertCalendarDocument(document));

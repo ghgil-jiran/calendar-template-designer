@@ -40,6 +40,7 @@ const studioAssetAliases = new Map([
   ['/user-service-shadow-diagnostics.js', 'apps/designer-studio/user-service-shadow-diagnostics.js'],
   ['/template-catalog.js', 'apps/designer-studio/template-catalog.js'],
   ['/wizard-flow.js', 'apps/designer-studio/wizard-flow.js'],
+  ['/template-remote-persistence.js', 'apps/designer-studio/template-remote-persistence.js'],
   ['/template-library-runtime.js', 'apps/designer-studio/template-library-runtime.js']
 ]);
 const legacyEntryPaths = new Set([
