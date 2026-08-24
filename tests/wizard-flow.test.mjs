@@ -163,6 +163,16 @@ test('runtime parity package is exposed as a review sample without publishing it
   assert.match(runtime, /\['draft','ready','published','archived'\]/);
 });
 
+test('wall academic package is exposed as an editor review sample with its exact version', () => {
+  const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
+  assert.match(catalog, /tpl-2028-wall-academic-standard-v0-1/);
+  assert.match(catalog, /name:"벽걸이형 표준 01 · 이미지 월력형"/);
+  assert.match(catalog, /packageVersion:"0\.1\.0"/);
+  assert.match(catalog, /packageBase:"\/templates\/wall-academic-standard\/0\.1\.0\/"/);
+  assert.match(catalog, /pageSummary:"표지 1면·월력 12면"/);
+  assert.doesNotMatch(catalog, /tpl-2028-wall-academic-standard-v0-1[^\n]+status:"published"/);
+});
+
 test('template library entry and save do not reference the removed legacy filter state', () => {
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
   assert.doesNotMatch(html, /activeLibraryFilter/);
