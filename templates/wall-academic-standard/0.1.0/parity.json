@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "academic-template-parity.v1",
+  "templateId": "wall-academic-standard",
+  "version": "0.1.0",
+  "visual": {
+    "status": "pending",
+    "scope": ["cover-front", "monthly-calendar"],
+    "metrics": { "surfaceCount": 13, "trimSizeMm": { "width": 297, "height": 420 } },
+    "requiredEvidence": ["template-editor-wall-reference", "user-service-runtime-wall-capture"]
+  },
+  "print": {
+    "status": "pending",
+    "blockers": ["RUNTIME_PDF_NOT_GENERATED", "PREFLIGHT_NOT_VERIFIED"]
+  }
+}
