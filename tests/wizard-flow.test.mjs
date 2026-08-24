@@ -92,6 +92,14 @@ test('system templates retain their source while editing and save as a custom la
   assert.match(html, /v22Library\(\)\.find\(x=>x\.id===savedId\)/);
 });
 
+test('reopened remote templates keep the identity needed to create the next version', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /project\.template\.remoteId=t\.remoteId\|\|t\.id/);
+  assert.match(html, /project\.template\.remoteStableKey=t\.stableKey/);
+  assert.match(html, /project\.template\.remoteVersionNumber=Number\(t\.version\)/);
+  assert.match(html, /templateId:project\.template\.remoteId\|\|null/);
+});
+
 test('sample schedule registration uses the same primary action style', () => {
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
   assert.match(html, /id="resourceScheduleUploadBtn" class="save"/);

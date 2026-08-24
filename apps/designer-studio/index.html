@@ -2131,6 +2131,11 @@ async function openDesignerProjectFromRecord(t){
  }
  project.template ||= {};
  project.template.id=t.id;
+ if(t.remoteId||/^[0-9a-f-]{36}$/i.test(String(t.id))){
+  project.template.remoteId=t.remoteId||t.id;
+  project.template.remoteStableKey=t.stableKey||project.template.remoteStableKey||t.id;
+  project.template.remoteVersionNumber=Number(t.version)||Number(project.template.remoteVersionNumber)||0;
+ }
  project.template.librarySource=t.source||project.template.librarySource||"local";
  project.template.preset=t.template||project.settings?.template||"school-basic";
  project.template.metadata={...(project.template.metadata||{}),name:t.name,description:t.description||"",edition:Number(t.edition)||2027,state:t.state||"draft"};
