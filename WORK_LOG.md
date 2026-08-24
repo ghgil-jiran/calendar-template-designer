@@ -1,5 +1,15 @@
 # Work Log
 
+## 2026-08-24 — 벽걸이형 표준 01 편집기 작성·저장 기반 연결
+
+- `벽걸이형 표준 01 · 이미지 월력형`을 2028 Edition review Sample Template로 등록
+- 기존 탁상형 28면 전용 Package Adapter를 제품 유형별로 분기하고 벽걸이형 pageSequence를 표지 1면 + 월력 12면의 A3 세로 13면으로 확장
+- 2028년 3월부터 2029년 2월까지 monthKey, 단면 역할, 상단 월별 이미지 frame, 하단 월력 영역을 편집기 Project에 투영
+- 벽걸이형 Package ID·정확 버전 `wall-academic-standard@0.1.0`과 편집 개체 위치가 저장·재열기 후 유지되는 회귀검사 추가
+- review Sample은 일반 사용자 published 목록에 노출하지 않고 템플릿 에디터 시스템 베이스에서만 편집 가능하게 유지
+- TypeScript 3개 패키지, Studio 전체 108건, 제품 상호작용, 인라인 스크립트 19개, 스타일 보호 검사 통과
+- 다음 단계는 사용자 로컬 화면에서 벽걸이형 표지·월력 12면, 개체 편집, 저장·재열기를 육안 확인한 뒤 결정적 Package 내보내기와 사용자 서비스 E2E로 진행
+
 ## 2026-08-23 — Template Package 편집기 로컬 종단 검증 완료
 
 - 사용자 로컬 브라우저에서 `desk-academic-standard@1.1.0` ready Sample 노출과 2028 Edition 확인
