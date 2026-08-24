@@ -19,6 +19,9 @@ function build(cwd = root) {
 test('Vercel static output contains editor, design tokens, and both package types', async () => {
   await build();
   for (const path of [
+    'index.html',
+    'canvas-selection.js',
+    'desk-academic-shadow-renderer.js',
     'apps/designer-studio/index.html',
     'apps/designer-studio/template-remote-persistence.js',
     'design-system/09-css-tokens.css',
@@ -28,6 +31,10 @@ test('Vercel static output contains editor, design tokens, and both package type
 
   const config = JSON.parse(await readFile(resolve(root, 'vercel.json'), 'utf8'));
   assert.equal(config.outputDirectory, 'public');
+  const html = await readFile(resolve(output, 'index.html'), 'utf8');
+  for (const [, path] of html.matchAll(/(?:src|href)="\.\/([^"?#]+)"/g)) {
+    await access(resolve(output, path));
+  }
   await rm(output, { recursive: true, force: true });
 });
 
@@ -35,6 +42,8 @@ test('Vercel output also builds when the working directory is Designer Studio', 
   const studio = resolve(root, 'apps/designer-studio');
   const nestedOutput = resolve(studio, 'public');
   await build(studio);
+  await access(resolve(nestedOutput, 'canvas-selection.js'));
+  await access(resolve(nestedOutput, 'desk-academic-shadow-renderer.js'));
   await access(resolve(nestedOutput, 'apps/designer-studio/index.html'));
   await access(resolve(nestedOutput, 'templates/wall-academic-standard/0.1.0/manifest.json'));
   await rm(nestedOutput, { recursive: true, force: true });

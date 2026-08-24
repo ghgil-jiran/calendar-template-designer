@@ -13,7 +13,9 @@ const studioOutput = resolve(output, 'apps/designer-studio');
 await mkdir(studioOutput, { recursive: true });
 for (const entry of await readdir(studioSource, { withFileTypes: true })) {
   if (entry.name === 'public') continue;
-  await cp(resolve(studioSource, entry.name), resolve(studioOutput, entry.name), { recursive: entry.isDirectory() });
+  const source = resolve(studioSource, entry.name);
+  await cp(source, resolve(output, entry.name), { recursive: entry.isDirectory() });
+  await cp(source, resolve(studioOutput, entry.name), { recursive: entry.isDirectory() });
 }
 
 for (const directory of ['design-system', 'templates']) {
