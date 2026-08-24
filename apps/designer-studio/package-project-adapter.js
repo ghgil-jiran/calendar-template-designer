@@ -72,10 +72,94 @@
     page.overrides ||= {};
   }
 
+  function rangeValue(value, index) {
+    if (typeof value === 'number') return value;
+    const match = /^(\d+)\.\.(\d+)$/.exec(String(value || ''));
+    if (!match) throw new Error(`Unsupported Package range: ${value}`);
+    const resolved = Number(match[1]) + index;
+    if (resolved > Number(match[2])) throw new Error(`Package range overflow: ${value}`);
+    return resolved;
+  }
+
+  function wallPackagePages(project, packageTemplate) {
+    const months = root.ACDLCalendarDomain.buildTwelveMonths(project.settings.year, project.settings.startMonth);
+    const surfaces = [];
+    for (const rule of packageTemplate.pageSequence || []) {
+      const repeat = Number(rule.repeat || 1);
+      if (!Number.isInteger(repeat) || repeat < 1) throw new Error(`Invalid Package repeat: ${rule.repeat}`);
+      for (let index = 0; index < repeat; index += 1) {
+        const monthOffset = rule.monthOffset == null ? null : rangeValue(rule.monthOffset, index);
+        const calendar = monthOffset == null ? null : months[monthOffset];
+        if (monthOffset != null && !calendar) throw new Error(`Package monthOffset out of range: ${monthOffset}`);
+        const number = rangeValue(rule.page ?? rule.pages ?? surfaces.length + 1, index);
+        surfaces.push({
+          id: `page.${number}`,
+          number,
+          side: 'front',
+          role: rule.role === 'monthly-calendar' ? 'monthly-front' : rule.role,
+          sourceRole: rule.role,
+          packageRole: rule.role,
+          semanticPageRole: rule.role,
+          sequenceIndex: surfaces.length,
+          masterId: rule.role === 'monthly-calendar' ? 'master.monthly.front' : `master.${rule.role}`,
+          calendarYear: calendar?.year || null,
+          calendarMonth: calendar?.month || null,
+          monthKey: calendar ? `${calendar.year}-${String(calendar.month).padStart(2, '0')}` : null,
+          overrides: {}
+        });
+      }
+    }
+    return { surfaces, months };
+  }
+
+  function applyWallPackage(project, packageTemplate) {
+    const { surfaces, months } = wallPackagePages(project, packageTemplate);
+    if (surfaces.length !== 13) throw new RangeError(`Wall Package requires 13 surfaces: ${surfaces.length}`);
+    project.productType = {
+      id: 'wall-portrait-single',
+      category: 'wall',
+      duplex: false,
+      pageSize: clone(project.productType?.pageSize || { width: 297, height: 420, unit: 'mm' })
+    };
+    project.book.pageInstances = surfaces;
+    project.book.sheets = [];
+    project.book.elementsByPage = {};
+    project.template.id = packageTemplate.templateId;
+    project.template.revision = packageTemplate.version;
+    project.template.preset = packageTemplate.templateId;
+    project.template.package = { templateId: packageTemplate.templateId, version: packageTemplate.version, status: packageTemplate.extractionStatus || 'review' };
+    project.template.pageComposition = { type: 'wall-academic-package', pageCount: 13, monthCount: 12, duplex: false };
+    project.template.metadata = {
+      ...(project.template.metadata || {}),
+      name: '벽걸이형 표준 01 · 이미지 월력형',
+      sampleFamily: 'wall-academic-standard-01',
+      productRuntime: 'wall-runtime-review.v1'
+    };
+    project.settings.type = 'wall';
+    project.settings.template = packageTemplate.templateId;
+    project.settings.frontInsertCount = 0;
+    project.settings.rearInsertCount = 0;
+    project.settings.calendarRows = Number(packageTemplate.calendar?.defaultRows || 6);
+    project.settings.weekStart = packageTemplate.calendar?.defaultWeekStart || 'sunday';
+    surfaces.forEach(page => {
+      const definitions = packageTemplate.masterDefinitions[page.packageRole] || [];
+      project.book.elementsByPage[page.id] = elementsForPage(definitions, page);
+      if (page.packageRole === 'monthly-calendar') {
+        const calendar = definitions.find(item => item.type === 'calendar');
+        const region = calendar?.layoutContract?.calendarFramePct || calendar?.framePct;
+        if (region) project.template.masters.calendar.calendarRegion = clone(region);
+        page.layoutContract = clone(calendar?.layoutContract);
+      }
+    });
+    project.book.monthlyImages = Object.fromEntries(months.map(month => [`${month.year}-${String(month.month).padStart(2, '0')}`, '']));
+    return project;
+  }
+
   function applyPackage(project, packageTemplate) {
     if (!project?.book?.pageInstances || !packageTemplate?.masterDefinitions) {
       throw new TypeError('project and package template are required');
     }
+    if (packageTemplate.templateId === 'wall-academic-standard') return applyWallPackage(project, packageTemplate);
     if (project.book.pageInstances.length !== 28) {
       throw new RangeError(`Package project requires 28 surfaces: ${project.book.pageInstances.length}`);
     }
