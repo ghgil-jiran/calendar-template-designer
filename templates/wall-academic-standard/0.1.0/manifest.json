@@ -7,8 +7,11 @@
   "status": "review",
   "publishable": false,
   "pageComposition": {
-    "sheetCount": 13,
-    "surfaceCount": 13,
+    "sheetCount": 15,
+    "surfaceCount": 15,
+    "coverCount": 2,
+    "frontInsertCount": 1,
+    "rearInsertCount": 0,
     "monthCount": 12,
     "defaultStartMonth": 3,
     "duplex": false
