@@ -32,8 +32,13 @@
         ? { binding, fit: definition.fit || 'cover' }
         : undefined,
       fit: definition.fit,
+      src: definition.src,
+      alt: definition.alt,
+      content: definition.content,
+      format: definition.format,
       columns: definition.columns,
       startMonth: definition.startMonth,
+      monthCount: definition.monthCount,
       lineCount: definition.lineCount,
       drawnLineCount: definition.drawnLineCount,
       footer: clone(definition.footer),
@@ -92,11 +97,16 @@
         const calendar = monthOffset == null ? null : months[monthOffset];
         if (monthOffset != null && !calendar) throw new Error(`Package monthOffset out of range: ${monthOffset}`);
         const number = rangeValue(rule.page ?? rule.pages ?? surfaces.length + 1, index);
+        const editorRole = {
+          'school-symbols': 'front-insert-front',
+          'monthly-calendar': 'monthly-front',
+          'back-contact': 'back-cover-front'
+        }[rule.role] || rule.role;
         surfaces.push({
           id: `page.${number}`,
           number,
           side: 'front',
-          role: rule.role === 'monthly-calendar' ? 'monthly-front' : rule.role,
+          role: editorRole,
           sourceRole: rule.role,
           packageRole: rule.role,
           semanticPageRole: rule.role,

@@ -48,7 +48,7 @@
           "x": 7,
           "y": 7,
           "width": 86,
-          "height": 58
+          "height": 53
         },
         "binding": "school.profile.building",
         "fit": "cover",
@@ -60,37 +60,74 @@
         "role": "year",
         "framePct": {
           "x": 8,
-          "y": 69,
-          "width": 30,
-          "height": 10
+          "y": 63,
+          "width": 84,
+          "height": 9
         },
         "binding": "calendar.year",
         "zIndex": 2,
         "style": {
-          "fontSize": 34,
+          "fontSize": 38,
           "fontWeight": 700,
-          "textAlign": "left",
+          "textAlign": "center",
           "color": "#17202e"
+        },
+        "content": "2028",
+        "format": "year-plain"
+      },
+      {
+        "id": "wall.cover.calendar-label",
+        "type": "text",
+        "role": "calendar-label",
+        "content": "CALENDAR",
+        "framePct": {
+          "x": 8,
+          "y": 73,
+          "width": 84,
+          "height": 5
+        },
+        "zIndex": 2,
+        "style": {
+          "fontSize": 14,
+          "fontWeight": 600,
+          "textAlign": "center",
+          "color": "#667085",
+          "letterSpacing": 5
         }
+      },
+      {
+        "id": "wall.cover.logo",
+        "type": "image",
+        "role": "school-logo",
+        "framePct": {
+          "x": 8,
+          "y": 81,
+          "width": 9,
+          "height": 9
+        },
+        "binding": "school.profile.logo",
+        "fit": "contain",
+        "zIndex": 2
       },
       {
         "id": "wall.cover.school-name",
         "type": "text",
         "role": "school-name",
         "framePct": {
-          "x": 42,
-          "y": 69,
-          "width": 50,
-          "height": 10
+          "x": 20,
+          "y": 82,
+          "width": 72,
+          "height": 7
         },
         "binding": "school.name",
         "zIndex": 2,
         "style": {
-          "fontSize": 22,
+          "fontSize": 20,
           "fontWeight": 700,
           "textAlign": "right",
           "color": "#17202e"
-        }
+        },
+        "content": "샘플 학교"
       },
       {
         "id": "wall.cover.slogan",
@@ -98,9 +135,9 @@
         "role": "slogan",
         "framePct": {
           "x": 15,
-          "y": 82,
+          "y": 91,
           "width": 70,
-          "height": 7
+          "height": 5
         },
         "binding": "school.slogan",
         "zIndex": 2,
@@ -108,7 +145,8 @@
           "fontSize": 13,
           "textAlign": "center",
           "color": "#667085"
-        }
+        },
+        "content": "배움으로 성장하고 함께 미래를 여는 학교"
       }
     ],
     "monthly-calendar": [
@@ -160,87 +198,140 @@
     ],
     "school-symbols": [
       {
-        "id": "wall.insert.flower",
-        "type": "semantic-object",
-        "role": "school-flower",
-        "framePct": {
-          "x": 8,
-          "y": 13,
-          "width": 38,
-          "height": 22
-        },
-        "binding": "school.profile.flower",
-        "zIndex": 1
-      },
-      {
-        "id": "wall.insert.tree",
-        "type": "semantic-object",
-        "role": "school-tree",
-        "framePct": {
-          "x": 54,
-          "y": 13,
-          "width": 38,
-          "height": 22
-        },
-        "binding": "school.profile.tree",
-        "zIndex": 1
-      },
-      {
-        "id": "wall.insert.motto",
-        "type": "semantic-object",
-        "role": "school-motto",
-        "framePct": {
-          "x": 8,
-          "y": 41,
-          "width": 84,
-          "height": 14
-        },
-        "binding": "school.profile.motto",
-        "zIndex": 1
-      },
-      {
-        "id": "wall.insert.song",
-        "type": "semantic-object",
-        "role": "school-song",
-        "framePct": {
-          "x": 8,
-          "y": 61,
-          "width": 84,
-          "height": 29
-        },
-        "binding": "school.profile.song",
-        "zIndex": 1
-      }
-    ],
-    "back-contact": [
-      {
-        "id": "wall.back.school-name",
+        "id": "wall.insert.year",
         "type": "text",
-        "role": "school-name",
+        "role": "year",
+        "content": "2028",
+        "format": "year-plain",
         "framePct": {
           "x": 8,
-          "y": 16,
+          "y": 5,
           "width": 84,
-          "height": 10
+          "height": 7
         },
-        "binding": "school.name",
+        "binding": "calendar.year",
         "zIndex": 2,
         "style": {
-          "fontSize": 24,
+          "fontSize": 26,
           "fontWeight": 700,
           "textAlign": "center",
           "color": "#17202e"
         }
       },
       {
+        "id": "wall.insert.calendar-label",
+        "type": "text",
+        "role": "calendar-label",
+        "content": "YEAR CALENDAR",
+        "framePct": {
+          "x": 8,
+          "y": 11,
+          "width": 84,
+          "height": 4
+        },
+        "zIndex": 2,
+        "style": {
+          "fontSize": 10,
+          "fontWeight": 600,
+          "textAlign": "center",
+          "color": "#667085",
+          "letterSpacing": 3
+        }
+      },
+      {
+        "id": "wall.insert.annual-calendar",
+        "type": "year-calendar",
+        "role": "annual-calendar",
+        "framePct": {
+          "x": 7,
+          "y": 17,
+          "width": 86,
+          "height": 66
+        },
+        "columns": 3,
+        "startMonth": 1,
+        "monthCount": 12,
+        "zIndex": 1
+      },
+      {
+        "id": "wall.insert.logo",
+        "type": "image",
+        "role": "school-logo",
+        "framePct": {
+          "x": 8,
+          "y": 87,
+          "width": 9,
+          "height": 7
+        },
+        "binding": "school.profile.logo",
+        "fit": "contain",
+        "zIndex": 2
+      },
+      {
+        "id": "wall.insert.school-name",
+        "type": "text",
+        "role": "school-name",
+        "content": "샘플 학교",
+        "framePct": {
+          "x": 20,
+          "y": 87,
+          "width": 72,
+          "height": 7
+        },
+        "binding": "school.name",
+        "zIndex": 2,
+        "style": {
+          "fontSize": 16,
+          "fontWeight": 700,
+          "textAlign": "right",
+          "color": "#17202e"
+        }
+      }
+    ],
+    "back-contact": [
+      {
+        "id": "wall.back.logo",
+        "type": "image",
+        "role": "school-logo",
+        "framePct": {
+          "x": 8,
+          "y": 8,
+          "width": 9,
+          "height": 9
+        },
+        "binding": "school.profile.logo",
+        "fit": "contain",
+        "zIndex": 2
+      },
+      {
+        "id": "wall.back.school-name",
+        "type": "text",
+        "role": "school-name",
+        "framePct": {
+          "x": 20,
+          "y": 9,
+          "width": 72,
+          "height": 8
+        },
+        "binding": "school.name",
+        "zIndex": 2,
+        "style": {
+          "fontSize": 24,
+          "fontWeight": 700,
+          "textAlign": "right",
+          "color": "#17202e"
+        },
+        "content": "샘플 학교"
+      },
+      {
         "id": "wall.back.photo",
         "type": "image",
         "role": "end-photo",
         "framePct": {
-          "x": 12,
-          "y": 32,
-          "width": 76,
-          "height": 36
+          "x": 8,
+          "y": 22,
+          "width": 84,
+          "height": 43
         },
         "binding": "assets.endPhoto",
         "fallbackBinding": "school.profile.building",
@@ -253,7 +344,7 @@
         "role": "school-address",
         "framePct": {
           "x": 10,
-          "y": 74,
+          "y": 72,
           "width": 80,
           "height": 6
         },
@@ -263,7 +354,8 @@
           "fontSize": 12,
           "textAlign": "center",
           "color": "#475467"
-        }
+        },
+        "content": "학교 주소를 입력하세요"
       },
       {
         "id": "wall.back.phone",
@@ -271,17 +363,18 @@
         "role": "school-phone",
         "framePct": {
           "x": 10,
-          "y": 82,
+          "y": 80,
           "width": 80,
           "height": 6
         },
-        "binding": "school.contact.telAcademic",
+        "binding": "school.contacts",
         "zIndex": 2,
         "style": {
           "fontSize": 12,
           "textAlign": "center",
           "color": "#475467"
-        }
+        },
+        "content": "대표전화와 팩스 번호를 입력하세요"
       },
       {
         "id": "wall.back.site",
@@ -289,17 +382,18 @@
         "role": "school-site",
         "framePct": {
           "x": 10,
-          "y": 90,
+          "y": 88,
           "width": 80,
           "height": 5
         },
-        "binding": "school.contact.site",
+        "binding": "school.website",
         "zIndex": 2,
         "style": {
           "fontSize": 11,
           "textAlign": "center",
           "color": "#667085"
-        }
+        },
+        "content": "학교 홈페이지 주소를 입력하세요"
       }
     ]
   }
