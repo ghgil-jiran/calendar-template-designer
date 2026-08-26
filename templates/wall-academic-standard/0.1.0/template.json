@@ -7,28 +7,300 @@
   "source": {
     "application": "apps/designer-studio/index.html",
     "canonicalPresetId": "tpl-2027-wall",
-    "selectionRule": "기존 학교 이미지형 벽걸이 템플릿의 표지와 12개월 단면 구조를 공통 Runtime 두 번째 유형 검증 대상으로 선택"
+    "selectionRule": "학교 이미지형 벽걸이 디자인 검토본의 앞표지·앞간지·12개월 월력·뒷표지 단면 구조를 공통 Runtime 두 번째 유형 검증 대상으로 선택"
   },
   "calendar": {
     "defaultRows": 6,
-    "supportedRows": [5, 6],
+    "supportedRows": [
+      5,
+      6
+    ],
     "defaultWeekStart": "sunday",
     "monthCount": 12
   },
   "pageSequence": [
-    { "page": 1, "role": "cover-front" },
-    { "pages": "2..13", "repeat": 12, "role": "monthly-calendar", "monthOffset": "0..11" }
+    {
+      "page": 1,
+      "role": "cover-front"
+    },
+    {
+      "page": 2,
+      "role": "school-symbols"
+    },
+    {
+      "pages": "3..14",
+      "repeat": 12,
+      "role": "monthly-calendar",
+      "monthOffset": "0..11"
+    },
+    {
+      "page": 15,
+      "role": "back-contact"
+    }
   ],
   "masterDefinitions": {
     "cover-front": [
-      { "id": "wall.cover.school-image", "type": "image", "role": "school-image", "framePct": { "x": 7, "y": 7, "width": 86, "height": 58 }, "binding": "school.profile.building", "fit": "cover", "zIndex": 1 },
-      { "id": "wall.cover.year", "type": "text", "role": "year", "framePct": { "x": 8, "y": 69, "width": 30, "height": 10 }, "binding": "calendar.year", "zIndex": 2, "style": { "fontSize": 34, "fontWeight": 700, "textAlign": "left", "color": "#17202e" } },
-      { "id": "wall.cover.school-name", "type": "text", "role": "school-name", "framePct": { "x": 42, "y": 69, "width": 50, "height": 10 }, "binding": "school.name", "zIndex": 2, "style": { "fontSize": 22, "fontWeight": 700, "textAlign": "right", "color": "#17202e" } },
-      { "id": "wall.cover.slogan", "type": "text", "role": "slogan", "framePct": { "x": 15, "y": 82, "width": 70, "height": 7 }, "binding": "school.slogan", "zIndex": 2, "style": { "fontSize": 13, "textAlign": "center", "color": "#667085" } }
+      {
+        "id": "wall.cover.school-image",
+        "type": "image",
+        "role": "school-image",
+        "framePct": {
+          "x": 7,
+          "y": 7,
+          "width": 86,
+          "height": 58
+        },
+        "binding": "school.profile.building",
+        "fit": "cover",
+        "zIndex": 1
+      },
+      {
+        "id": "wall.cover.year",
+        "type": "text",
+        "role": "year",
+        "framePct": {
+          "x": 8,
+          "y": 69,
+          "width": 30,
+          "height": 10
+        },
+        "binding": "calendar.year",
+        "zIndex": 2,
+        "style": {
+          "fontSize": 34,
+          "fontWeight": 700,
+          "textAlign": "left",
+          "color": "#17202e"
+        }
+      },
+      {
+        "id": "wall.cover.school-name",
+        "type": "text",
+        "role": "school-name",
+        "framePct": {
+          "x": 42,
+          "y": 69,
+          "width": 50,
+          "height": 10
+        },
+        "binding": "school.name",
+        "zIndex": 2,
+        "style": {
+          "fontSize": 22,
+          "fontWeight": 700,
+          "textAlign": "right",
+          "color": "#17202e"
+        }
+      },
+      {
+        "id": "wall.cover.slogan",
+        "type": "text",
+        "role": "slogan",
+        "framePct": {
+          "x": 15,
+          "y": 82,
+          "width": 70,
+          "height": 7
+        },
+        "binding": "school.slogan",
+        "zIndex": 2,
+        "style": {
+          "fontSize": 13,
+          "textAlign": "center",
+          "color": "#667085"
+        }
+      }
     ],
     "monthly-calendar": [
-      { "id": "wall.monthly.image", "type": "image", "role": "monthly-image", "framePct": { "x": 7, "y": 6, "width": 86, "height": 29 }, "bindingPattern": "monthlyImages.{YYYY-MM}", "fallbackBinding": "school.profile.building", "fit": "cover", "zIndex": 1 },
-      { "id": "wall.monthly.calendar", "type": "calendar", "role": "monthly-calendar", "framePct": { "x": 7, "y": 41, "width": 86, "height": 52 }, "monthBinding": "calendar.currentMonth", "zIndex": 2, "layoutContract": { "version": "wall-runtime-review.v1", "headerFramePct": { "x": 7, "y": 36, "width": 86, "height": 5 }, "calendarFramePct": { "x": 7, "y": 41, "width": 86, "height": 52 }, "rowsBinding": "calendar.rows", "defaultRows": 6 } }
+      {
+        "id": "wall.monthly.image",
+        "type": "image",
+        "role": "monthly-image",
+        "framePct": {
+          "x": 7,
+          "y": 6,
+          "width": 86,
+          "height": 29
+        },
+        "bindingPattern": "monthlyImages.{YYYY-MM}",
+        "fallbackBinding": "school.profile.building",
+        "fit": "cover",
+        "zIndex": 1
+      },
+      {
+        "id": "wall.monthly.calendar",
+        "type": "calendar",
+        "role": "monthly-calendar",
+        "framePct": {
+          "x": 7,
+          "y": 41,
+          "width": 86,
+          "height": 52
+        },
+        "monthBinding": "calendar.currentMonth",
+        "zIndex": 2,
+        "layoutContract": {
+          "version": "wall-runtime-review.v1",
+          "headerFramePct": {
+            "x": 7,
+            "y": 36,
+            "width": 86,
+            "height": 5
+          },
+          "calendarFramePct": {
+            "x": 7,
+            "y": 41,
+            "width": 86,
+            "height": 52
+          },
+          "rowsBinding": "calendar.rows",
+          "defaultRows": 6
+        }
+      }
+    ],
+    "school-symbols": [
+      {
+        "id": "wall.insert.flower",
+        "type": "semantic-object",
+        "role": "school-flower",
+        "framePct": {
+          "x": 8,
+          "y": 13,
+          "width": 38,
+          "height": 22
+        },
+        "binding": "school.profile.flower",
+        "zIndex": 1
+      },
+      {
+        "id": "wall.insert.tree",
+        "type": "semantic-object",
+        "role": "school-tree",
+        "framePct": {
+          "x": 54,
+          "y": 13,
+          "width": 38,
+          "height": 22
+        },
+        "binding": "school.profile.tree",
+        "zIndex": 1
+      },
+      {
+        "id": "wall.insert.motto",
+        "type": "semantic-object",
+        "role": "school-motto",
+        "framePct": {
+          "x": 8,
+          "y": 41,
+          "width": 84,
+          "height": 14
+        },
+        "binding": "school.profile.motto",
+        "zIndex": 1
+      },
+      {
+        "id": "wall.insert.song",
+        "type": "semantic-object",
+        "role": "school-song",
+        "framePct": {
+          "x": 8,
+          "y": 61,
+          "width": 84,
+          "height": 29
+        },
+        "binding": "school.profile.song",
+        "zIndex": 1
+      }
+    ],
+    "back-contact": [
+      {
+        "id": "wall.back.school-name",
+        "type": "text",
+        "role": "school-name",
+        "framePct": {
+          "x": 8,
+          "y": 16,
+          "width": 84,
+          "height": 10
+        },
+        "binding": "school.name",
+        "zIndex": 2,
+        "style": {
+          "fontSize": 24,
+          "fontWeight": 700,
+          "textAlign": "center",
+          "color": "#17202e"
+        }
+      },
+      {
+        "id": "wall.back.photo",
+        "type": "image",
+        "role": "end-photo",
+        "framePct": {
+          "x": 12,
+          "y": 32,
+          "width": 76,
+          "height": 36
+        },
+        "binding": "assets.endPhoto",
+        "fallbackBinding": "school.profile.building",
+        "fit": "cover",
+        "zIndex": 1
+      },
+      {
+        "id": "wall.back.address",
+        "type": "text",
+        "role": "school-address",
+        "framePct": {
+          "x": 10,
+          "y": 74,
+          "width": 80,
+          "height": 6
+        },
+        "binding": "school.contact.address",
+        "zIndex": 2,
+        "style": {
+          "fontSize": 12,
+          "textAlign": "center",
+          "color": "#475467"
+        }
+      },
+      {
+        "id": "wall.back.phone",
+        "type": "text",
+        "role": "school-phone",
+        "framePct": {
+          "x": 10,
+          "y": 82,
+          "width": 80,
+          "height": 6
+        },
+        "binding": "school.contact.telAcademic",
+        "zIndex": 2,
+        "style": {
+          "fontSize": 12,
+          "textAlign": "center",
+          "color": "#475467"
+        }
+      },
+      {
+        "id": "wall.back.site",
+        "type": "text",
+        "role": "school-site",
+        "framePct": {
+          "x": 10,
+          "y": 90,
+          "width": 80,
+          "height": 5
+        },
+        "binding": "school.contact.site",
+        "zIndex": 2,
+        "style": {
+          "fontSize": 11,
+          "textAlign": "center",
+          "color": "#667085"
+        }
+      }
     ]
   }
 }
