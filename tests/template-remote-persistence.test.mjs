@@ -43,6 +43,14 @@ test('remote save sends project data through the protected Vercel API', async ()
   assert.equal(result.version.versionNumber, 2);
 });
 
+test('package preflight checks the latest saved remote version',async()=>{
+  let requestPath;
+  const api=runtime({fetch:async path=>{requestPath=path;return {ok:true,status:200,json:async()=>({ok:true,version:{versionNumber:4}})}}});
+  const result=await api.packagePreflight('template id');
+  assert.equal(requestPath,'/api/template-package-preflight?templateId=template%20id');
+  assert.equal(result.version.versionNumber,4);
+});
+
 test('autosave never prompts for a missing access token', async () => {
   let promptCount = 0;
   const api = runtime({ prompt: () => { promptCount += 1; return ''; }, fetch: async () => { throw new Error('must not fetch'); } });
