@@ -114,7 +114,7 @@
 
   function applyWallPackage(project, packageTemplate) {
     const { surfaces, months } = wallPackagePages(project, packageTemplate);
-    if (surfaces.length !== 13) throw new RangeError(`Wall Package requires 13 surfaces: ${surfaces.length}`);
+    if (surfaces.length !== 15) throw new RangeError(`Wall Package requires 15 surfaces: ${surfaces.length}`);
     project.productType = {
       id: 'wall-portrait-single',
       category: 'wall',
@@ -128,7 +128,7 @@
     project.template.revision = packageTemplate.version;
     project.template.preset = packageTemplate.templateId;
     project.template.package = { templateId: packageTemplate.templateId, version: packageTemplate.version, status: packageTemplate.extractionStatus || 'review' };
-    project.template.pageComposition = { type: 'wall-academic-package', pageCount: 13, monthCount: 12, duplex: false };
+    project.template.pageComposition = { type: 'wall-academic-package', pageCount: 15, coverCount: 2, frontInsertCount: 1, rearInsertCount: 0, monthCount: 12, duplex: false };
     project.template.metadata = {
       ...(project.template.metadata || {}),
       name: '벽걸이형 표준 01 · 이미지 월력형',
@@ -137,7 +137,7 @@
     };
     project.settings.type = 'wall';
     project.settings.template = packageTemplate.templateId;
-    project.settings.frontInsertCount = 0;
+    project.settings.frontInsertCount = 1;
     project.settings.rearInsertCount = 0;
     project.settings.calendarRows = Number(packageTemplate.calendar?.defaultRows || 6);
     project.settings.weekStart = packageTemplate.calendar?.defaultWeekStart || 'sunday';
