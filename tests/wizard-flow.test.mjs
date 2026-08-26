@@ -162,6 +162,16 @@ test('template library uses unified controls and calendar product thumbnails', (
   assert.match(runtime, /calendar-product-page.*data-library-thumbnail/);
 });
 
+test('remote template cards expose immutable version history and restore controls', () => {
+  const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
+  assert.match(runtime, /<span class="version-badge">v\$\{escape\(String\(record\.version\)\)\}<\/span>/);
+  assert.match(runtime, /data-library-history/);
+  assert.match(runtime, /ACDLTemplateRemotePersistence\.versions\(templateId\)/);
+  assert.match(runtime, /기존 버전은 그대로 보존됩니다/);
+  assert.match(runtime, /remote\.restore\(templateId,versionId/);
+  assert.match(runtime, /과거 버전 읽기 전용 미리보기/);
+});
+
 test('runtime parity package is exposed as a review sample without publishing it to users', () => {
   const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
   assert.match(catalog, /tpl-2028-desk-academic-standard-v1-1/);

@@ -63,3 +63,12 @@ test('project images become stable asset references and hydrate with signed URLs
   const resaved = await api.prepareProjectData(hydrated);
   assert.equal(resaved.cover.image, 'acdl-asset://11111111-1111-4111-8111-111111111111');
 });
+
+test('a historical version hydrates private asset references for preview', async () => {
+  const api = runtime({ fetch: async path => {
+    assert.match(path, /^\/api\/template-assets\?ids=/);
+    return { ok: true, status: 200, json: async () => ({ assets: [{ id: '11111111-1111-4111-8111-111111111111', url: 'https://signed.example/history.png' }] }) };
+  }});
+  const version = await api.hydrateVersion({ id: 'v1', projectData: { image: 'acdl-asset://11111111-1111-4111-8111-111111111111' } });
+  assert.equal(version.projectData.image, 'https://signed.example/history.png');
+});

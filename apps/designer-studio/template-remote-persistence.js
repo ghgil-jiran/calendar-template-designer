@@ -29,6 +29,7 @@
  async function save(input){const projectData=await prepareProjectData(input.projectData);return request('/api/templates',{method:'POST',body:JSON.stringify({...input,projectData})})}
  async function saveDraft(input){const projectData=await prepareProjectData(input.projectData,false);return request('/api/template-drafts',{method:'PUT',body:JSON.stringify({...input,projectData})},false)}
  async function versions(templateId){return request(`/api/template-versions?templateId=${encodeURIComponent(templateId)}`)}
+ async function hydrateVersion(version){return version?.projectData?{...version,projectData:await hydrateProjectData(version.projectData)}:version}
  async function restore(templateId,versionId,saveNote){return request('/api/template-restore',{method:'POST',body:JSON.stringify({templateId,versionId,saveNote})})}
- root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasToken:()=>Boolean(token()),list,load,save,saveDraft,versions,restore,toLibraryRecord:record,prepareProjectData,hydrateProjectData});
+ root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasToken:()=>Boolean(token()),list,load,save,saveDraft,versions,hydrateVersion,restore,toLibraryRecord:record,prepareProjectData,hydrateProjectData});
 })(window);
