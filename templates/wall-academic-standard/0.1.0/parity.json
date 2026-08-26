@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "visual": {
     "status": "pending",
-    "scope": ["cover-front", "monthly-calendar"],
-    "metrics": { "surfaceCount": 13, "trimSizeMm": { "width": 297, "height": 420 } },
+    "scope": ["cover-front", "school-symbols", "monthly-calendar", "back-contact"],
+    "metrics": { "surfaceCount": 15, "trimSizeMm": { "width": 297, "height": 420 } },
     "requiredEvidence": ["template-editor-wall-reference", "user-service-runtime-wall-capture"]
   },
   "print": {
