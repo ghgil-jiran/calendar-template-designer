@@ -101,7 +101,7 @@
   const features=record.features?.length?record.features.map(item=>`<span>${escape(item)}</span>`).join(''):`<span>${escape(meta.description)}</span>`;
   const kindLabel=record.source==='local'?'내 템플릿':'시스템 베이스';
   const kindClass=record.source==='local'?'custom-template':'base-template';
-  const remoteHistory=record.source==='local'&&record.storage==='supabase'?`<button data-library-history="${escape(record.id)}" aria-expanded="false">버전 이력</button>`:'';
+  const remoteHistory=record.source==='local'&&record.storage==='supabase'?`<button data-library-history="${escape(record.id)}" aria-expanded="false">버전 이력</button><button data-library-package-check="${escape(record.id)}">Package 검사</button>`:'';
   return `<article class="library-template-card ${kindClass}" data-template-id="${escape(record.id)}" data-library-state="${record.state}" data-library-type="${escape(record.type)}"><div class="library-thumb calendar-product-thumb calendar-product-${escape(record.type)}"><div class="calendar-product-shell"><span class="calendar-product-binding" aria-hidden="true"></span><div class="calendar-product-page" data-library-thumbnail="${escape(record.id)}"><span class="thumbnail-placeholder">템플릿 미리보기</span></div><span class="calendar-product-side" aria-hidden="true"></span><span class="calendar-product-stand" aria-hidden="true"></span></div></div><div class="library-card-body"><div class="library-meta-line"><h3>${escape(record.name)}</h3><span class="edition-badge">${record.edition} Edition</span><span class="version-badge">v${escape(String(record.version))}</span></div><div class="library-card-meta"><span class="badge-base">${escape(kindLabel)}</span><span>${escape(meta.label)}</span><span>${escape(record.size?.label||`${record.size?.width||'-'} × ${record.size?.height||'-'} ${record.size?.unit||'mm'}`)}</span></div><span class="state-badge state-${record.state}">${record.state==='published'?'게시됨':record.state==='archived'?'보관됨':record.state==='ready'?'검토 완료':'초안'}</span><p>${escape(record.description)}</p><small>${escape(record.pageSummary)} · 수정 ${escape(String(record.updatedAt).slice(0,10))}</small><div class="template-tags catalog-card-features">${features}</div><div class="library-card-actions"><button class="primary" data-library-use="${escape(record.id)}">이 템플릿 사용하기</button><button data-library-edit="${escape(record.id)}">편집</button><button data-library-copy="${escape(record.id)}">복제</button><button data-library-state-change="${escape(record.id)}">상태 변경</button>${remoteHistory}</div><div class="library-version-history hidden" data-library-history-panel="${escape(record.id)}"></div></div></article>`;
  }
  function versionStateLabel(state){return state==='published'?'게시됨':state==='archived'?'보관됨':state==='ready'?'검토 완료':'초안'}
@@ -133,6 +133,16 @@
   const opening=panel.classList.contains('hidden');panel.classList.toggle('hidden',!opening);button.setAttribute('aria-expanded',String(opening));if(!opening)return;
   panel.innerHTML='<p class="library-version-loading">버전 이력을 불러오는 중입니다.</p>';
   try{let versions=versionHistoryCache.get(templateId);if(!versions){const result=await window.ACDLTemplateRemotePersistence.versions(templateId);versions=result.versions||[];versionHistoryCache.set(templateId,versions)}panel.innerHTML=historyMarkup(templateId,versions,record.version);panel.querySelectorAll('[data-version-preview]').forEach(item=>item.addEventListener('click',()=>openVersionPreview(templateId,item.dataset.versionPreview).catch(error=>showEditorToast(error?.message||'버전 미리보기를 열지 못했습니다.'))));panel.querySelectorAll('[data-version-restore]').forEach(item=>item.addEventListener('click',()=>restoreVersion(templateId,item.dataset.versionRestore).catch(error=>showEditorToast(error?.message||'버전을 복원하지 못했습니다.'))))}catch(error){panel.innerHTML=`<p class="library-version-error">${escape(error?.message||'버전 이력을 불러오지 못했습니다.')}</p>`}
+ }
+ async function runPackagePreflight(button){
+  const templateId=button.dataset.libraryPackageCheck,remote=window.ACDLTemplateRemotePersistence;if(!templateId||!remote?.packagePreflight)return;
+  const original=button.textContent;button.disabled=true;button.textContent='검사 중';
+  try{
+   const result=await remote.packagePreflight(templateId),failed=(result.checks||[]).filter(check=>!check.ok);
+   if(failed.length)alert(`Package 기준 검사에서 ${failed.length}개 항목을 확인해야 합니다.\n\n${failed.map(check=>`- ${check.label}`).join('\n')}`);
+   else alert(`Package 기준 검사 통과\n\n최신 버전: v${result.version.versionNumber}\n페이지: ${result.summary.surfaceCount}면\n규격: ${result.summary.pageSize.width} × ${result.summary.pageSize.height} ${result.summary.pageSize.unit}\n원격 이미지 자산: ${result.summary.assetCount}개\n프로젝트 SHA-256: ${result.summary.projectSha256.slice(0,16)}…`);
+  }catch(error){showEditorToast(error?.message||'Package 기준 검사를 완료하지 못했습니다.')}
+  finally{button.disabled=false;button.textContent=original}
  }
  function mountCoverSnapshot(host,page){
   const rect=page.getBoundingClientRect();
@@ -206,6 +216,7 @@
     grid.querySelectorAll('[data-library-copy]').forEach(button=>button.addEventListener('click',()=>{const source=records().find(record=>record.id===button.dataset.libraryCopy);if(!source)return;saveRecords([...records(),{...source,id:`tpl-${Date.now()}`,name:`${source.name} 복사본`,state:'draft',status:'draft',updatedAt:new Date().toISOString()}]);renderLibrary(filter)}));
     grid.querySelectorAll('[data-library-state-change]').forEach(button=>button.addEventListener('click',()=>{const list=records(),record=list.find(item=>item.id===button.dataset.libraryStateChange);if(!record)return;const seq=['draft','ready','published','archived'];record.state=seq[(seq.indexOf(record.state)+1)%seq.length];record.status=record.state;record.updatedAt=new Date().toISOString();saveRecords(list);renderLibrary(filter);renderUserTemplateChoices()}));
     grid.querySelectorAll('[data-library-history]').forEach(button=>button.addEventListener('click',()=>toggleVersionHistory(button)));
+    grid.querySelectorAll('[data-library-package-check]').forEach(button=>button.addEventListener('click',()=>runPackagePreflight(button)));
     hydrateThumbnails(list);
   }
   updateLibrarySummary(list.length);
