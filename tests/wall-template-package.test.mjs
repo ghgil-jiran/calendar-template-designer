@@ -12,9 +12,12 @@ const publishing = await readJson("publishing.json");
 
 assert.equal(manifest.templateId, "wall-academic-standard");
 assert.equal(manifest.productType, "wall");
-assert.equal(manifest.pageComposition.surfaceCount, 13);
+assert.equal(manifest.pageComposition.surfaceCount, 15);
+assert.equal(manifest.pageComposition.frontInsertCount, 1);
+assert.equal(manifest.pageComposition.rearInsertCount, 0);
 assert.equal(manifest.pageComposition.duplex, false);
-assert.equal(template.pageSequence[1].repeat, 12);
+assert.equal(template.pageSequence[2].repeat, 12);
+assert.deepEqual(template.pageSequence.map((rule) => rule.role), ["cover-front", "school-symbols", "monthly-calendar", "back-contact"]);
 assert.equal(template.masterDefinitions["monthly-calendar"].some((item) => item.type === "calendar"), true);
 assert.equal(bindings.templateVersion, manifest.version);
 assert.deepEqual(print.trimSize, { width: 297, height: 420, unit: "mm" });
