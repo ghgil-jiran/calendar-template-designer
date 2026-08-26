@@ -32,6 +32,7 @@
         ? { binding, fit: definition.fit || 'cover' }
         : undefined,
       fit: definition.fit,
+      fallbackBinding: definition.fallbackBinding,
       src: definition.src,
       alt: definition.alt,
       content: definition.content,

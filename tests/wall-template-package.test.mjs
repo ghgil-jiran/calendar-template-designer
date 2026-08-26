@@ -24,6 +24,7 @@ assert.equal(template.masterDefinitions["cover-front"].find((item) => item.id ==
 assert.equal(template.masterDefinitions["school-symbols"].find((item) => item.type === "year-calendar").monthCount, 12);
 assert.equal(template.masterDefinitions["back-contact"].find((item) => item.id === "wall.back.site").binding, "school.website");
 assert.equal(bindings.templateVersion, manifest.version);
+for (const path of ["school.address", "school.website", "school.contacts", "school.profile.logo"]) assert.equal(bindings.bindings.some((item) => item.path === path), true);
 assert.deepEqual(print.trimSize, { width: 297, height: 420, unit: "mm" });
 assert.equal(print.orientation, "portrait");
 assert.equal(parity.visual.status, "pending");

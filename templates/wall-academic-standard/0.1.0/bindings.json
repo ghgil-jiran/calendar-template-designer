@@ -3,20 +3,101 @@
   "templateId": "wall-academic-standard",
   "templateVersion": "0.1.0",
   "bindings": [
-    { "path": "school.name", "required": true, "status": "current", "missing": "error" },
-    { "path": "school.slogan", "required": false, "status": "current", "missing": "empty" },
-    { "path": "school.profile.building", "required": false, "status": "current", "missing": "empty" },
-    { "path": "school.profile.flower", "required": false, "status": "current", "missing": "empty" },
-    { "path": "school.profile.tree", "required": false, "status": "current", "missing": "empty" },
-    { "path": "school.profile.motto", "required": false, "status": "current", "missing": "empty" },
-    { "path": "school.profile.song", "required": false, "status": "current", "missing": "empty" },
-    { "path": "school.contact.address", "required": false, "status": "current", "missing": "empty" },
-    { "path": "school.contact.telAcademic", "required": false, "status": "current", "missing": "empty" },
-    { "path": "school.contact.site", "required": false, "status": "current", "missing": "empty" },
-    { "path": "calendar.year", "required": true, "status": "current", "missing": "error" },
-    { "path": "calendar.startMonth", "required": true, "status": "current", "missing": "default-3" },
-    { "path": "calendar.events", "required": false, "status": "current", "missing": "empty-list" },
-    { "path": "monthlyImages", "required": false, "status": "current", "missing": "school.profile.building" },
-    { "path": "assets.endPhoto", "required": false, "status": "current", "missing": "school.profile.building" }
+    {
+      "path": "school.name",
+      "required": true,
+      "status": "current",
+      "missing": "error"
+    },
+    {
+      "path": "school.slogan",
+      "required": false,
+      "status": "current",
+      "missing": "empty"
+    },
+    {
+      "path": "school.address",
+      "required": false,
+      "status": "current",
+      "missing": "empty"
+    },
+    {
+      "path": "school.website",
+      "required": false,
+      "status": "current",
+      "missing": "empty"
+    },
+    {
+      "path": "school.contacts",
+      "required": false,
+      "status": "current",
+      "missing": "empty-list"
+    },
+    {
+      "path": "school.profile.logo",
+      "required": false,
+      "status": "current",
+      "missing": "sample-or-empty"
+    },
+    {
+      "path": "school.profile.building",
+      "required": false,
+      "status": "current",
+      "missing": "empty"
+    },
+    {
+      "path": "school.profile.flower",
+      "required": false,
+      "status": "current",
+      "missing": "empty"
+    },
+    {
+      "path": "school.profile.tree",
+      "required": false,
+      "status": "current",
+      "missing": "empty"
+    },
+    {
+      "path": "school.profile.motto",
+      "required": false,
+      "status": "current",
+      "missing": "empty"
+    },
+    {
+      "path": "school.profile.song",
+      "required": false,
+      "status": "current",
+      "missing": "empty"
+    },
+    {
+      "path": "calendar.year",
+      "required": true,
+      "status": "current",
+      "missing": "error"
+    },
+    {
+      "path": "calendar.startMonth",
+      "required": true,
+      "status": "current",
+      "missing": "default-3"
+    },
+    {
+      "path": "calendar.events",
+      "required": false,
+      "status": "current",
+      "missing": "empty-list"
+    },
+    {
+      "path": "monthlyImages",
+      "required": false,
+      "status": "current",
+      "missing": "school.profile.building"
+    },
+    {
+      "path": "assets.endPhoto",
+      "required": false,
+      "status": "current",
+      "missing": "school.profile.building"
+    }
   ]
 }

@@ -348,7 +348,7 @@
           "width": 80,
           "height": 6
         },
-        "binding": "school.contact.address",
+        "binding": "school.address",
         "zIndex": 2,
         "style": {
           "fontSize": 12,
