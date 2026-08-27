@@ -14,7 +14,7 @@
     return typeof value === 'string' && key ? value.replace('{YYYY-MM}', key) : value;
   }
 
-  function elementFromDefinition(definition, page, suffix = '') {
+  function elementFromDefinition(definition, page, sampleAssets = {}, suffix = '') {
     const frame = definition.framePct || { x: 0, y: 0, width: 100, height: 100 };
     const binding = resolvePattern(definition.bindingPattern || definition.targetBindingPattern || definition.binding, page);
     return {
@@ -33,7 +33,8 @@
         : undefined,
       fit: definition.fit,
       fallbackBinding: definition.fallbackBinding,
-      src: definition.src,
+      src: definition.src || sampleAssets[definition.sampleAssetKey]?.src,
+      sampleAssetKey: definition.sampleAssetKey,
       alt: definition.alt,
       content: definition.content,
       format: definition.format,
@@ -48,16 +49,16 @@
     };
   }
 
-  function elementsForPage(definitions, page) {
+  function elementsForPage(definitions, page, sampleAssets = {}) {
     return definitions.flatMap((definition) => {
       if (definition.type === 'calendar') return [];
-      if (definition.type !== 'composite-master') return [elementFromDefinition(definition, page)];
+      if (definition.type !== 'composite-master') return [elementFromDefinition(definition, page, sampleAssets)];
       return (definition.layout?.children || []).map((child, index) => elementFromDefinition({
         ...child,
         id: `${definition.id}.${child.id || index}`,
         role: child.id || definition.role,
         zIndex: definition.zIndex
-      }, page));
+      }, page, sampleAssets));
     });
   }
 
@@ -154,7 +155,7 @@
     project.settings.weekStart = packageTemplate.calendar?.defaultWeekStart || 'sunday';
     surfaces.forEach(page => {
       const definitions = packageTemplate.masterDefinitions[page.packageRole] || [];
-      project.book.elementsByPage[page.id] = elementsForPage(definitions, page);
+      project.book.elementsByPage[page.id] = elementsForPage(definitions, page, packageTemplate.sampleAssets);
       if (page.packageRole === 'monthly-calendar') {
         const calendar = definitions.find(item => item.type === 'calendar');
         const region = calendar?.layoutContract?.calendarFramePct || calendar?.framePct;
@@ -209,7 +210,7 @@
     pages.forEach((page, index) => {
       page.sequenceIndex = index;
       const definitions = packageTemplate.masterDefinitions[page.packageRole] || [];
-      project.book.elementsByPage[page.id] = elementsForPage(definitions, page);
+      project.book.elementsByPage[page.id] = elementsForPage(definitions, page, packageTemplate.sampleAssets);
       if (page.packageRole === 'monthly-calendar') {
         const calendar = definitions.find(item => item.type === 'calendar');
         const region = calendar?.layoutContract?.calendarFramePct || calendar?.framePct;

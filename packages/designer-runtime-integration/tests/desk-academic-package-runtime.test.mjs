@@ -49,4 +49,48 @@ const diagnostics = validateDeskAcademicPackageDocument(document);
 assert.ok(diagnostics.some((item) => item.code === "PACKAGE_SURFACE_COUNT"));
 assert.equal(diagnostics.some((item) => item.code === "PACKAGE_CALENDAR_ROWS"), false);
 
+const sampleAsset = { ref: "url", src: "data:image/svg+xml;base64,PHN2Zy8+" };
+const sampleTemplate = {
+  ...template,
+  sampleAssets: { schoolPhoto: sampleAsset },
+  masterDefinitions: {
+    ...template.masterDefinitions,
+    "cover-front": template.masterDefinitions["cover-front"].map((item) =>
+      item.id === "cover.school-image" ? { ...item, sampleAssetKey: "schoolPhoto" } : item
+    ),
+    "monthly-photo-memo": template.masterDefinitions["monthly-photo-memo"].map((item) => ({
+      ...item,
+      layout: {
+        ...item.layout,
+        children: item.layout.children.map((child) =>
+          child.id === "monthly-photo" ? { ...child, sampleAssetKey: "schoolPhoto" } : child
+        )
+      }
+    }))
+  }
+};
+const emptyPhotoDataset = {
+  ...adapted,
+  dataset: {
+    ...adapted.dataset,
+    school: { ...adapted.dataset.school, profile: {} },
+    monthlyImages: {}
+  }
+};
+const sampleDocument = buildDeskAcademicPackageDocument(emptyPhotoDataset, sampleTemplate);
+assert.deepEqual(sampleDocument.template.pages[0].objects.find((object) => object.id === "cover.school-image").payload, sampleAsset);
+assert.deepEqual(sampleDocument.template.pages[4].objects[0].contract.children[0].payload, sampleAsset);
+
+const userPhoto = { ref: "url", src: "/user-photo.jpg" };
+const userDocument = buildDeskAcademicPackageDocument({
+  ...emptyPhotoDataset,
+  dataset: {
+    ...emptyPhotoDataset.dataset,
+    school: { ...emptyPhotoDataset.dataset.school, profile: { building: userPhoto } },
+    monthlyImages: { "2027-03": { assetRef: userPhoto } }
+  }
+}, sampleTemplate);
+assert.deepEqual(userDocument.template.pages[0].objects.find((object) => object.id === "cover.school-image").payload, userPhoto);
+assert.deepEqual(userDocument.template.pages[4].objects[0].contract.children[0].payload, { assetRef: userPhoto });
+
 console.log("desk academic package runtime tests passed");

@@ -20,6 +20,7 @@ export interface DeskAcademicAdaptedDocument {
 export interface DeskAcademicPackageTemplate extends TemplatePackageTemplate {
   extractionStatus?: string;
   calendar?: { defaultRows?: number; defaultWeekStart?: string };
+  sampleAssets?: Record<string, unknown>;
   masterDefinitions: Record<string, Array<Record<string, any>>>;
 }
 
@@ -73,6 +74,7 @@ function createRuntimeObject(
   definition: Record<string, any>,
   page: DeskAcademicPage,
   dataset: Record<string, any>,
+  sampleAssets: Record<string, unknown>,
   index: number,
   resolveBinding: PageBindingResolver
 ): Record<string, any> {
@@ -84,6 +86,9 @@ function createRuntimeObject(
   if ((payload === undefined || payload === null || payload === "") && definition.fallbackBinding) {
     payload = readDatasetPath(dataset, definition.fallbackBinding);
   }
+  if ((payload === undefined || payload === null || payload === "") && definition.sampleAssetKey) {
+    payload = sampleAssets[definition.sampleAssetKey];
+  }
   let contract: Record<string, any> | undefined;
   if (definition.layoutContract) {
     contract = { ...definition.layoutContract };
@@ -93,13 +98,20 @@ function createRuntimeObject(
       ...definition.layout,
       children: (definition.layout?.children || []).map((child: Record<string, any>) => {
         const childBinding = resolveBinding(child.bindingPattern, page) || child.bindingPattern;
+        let childPayload = childBinding ? readDatasetPath(dataset, childBinding) : undefined;
+        if ((childPayload === undefined || childPayload === null || childPayload === "") && child.fallbackBinding) {
+          childPayload = readDatasetPath(dataset, child.fallbackBinding);
+        }
+        if ((childPayload === undefined || childPayload === null || childPayload === "") && child.sampleAssetKey) {
+          childPayload = sampleAssets[child.sampleAssetKey];
+        }
         const footer = child.footer
           ? Object.fromEntries(Object.entries(child.footer).map(([key, path]) => [key, readDatasetPath(dataset, path)]))
           : undefined;
         return {
           ...child,
           binding: childBinding,
-          payload: childBinding ? readDatasetPath(dataset, childBinding) : undefined,
+          payload: childPayload,
           footer
         };
       })
@@ -164,7 +176,14 @@ export function buildDeskAcademicPackageDocument(
     };
     return {
       ...page,
-      objects: definitions.map((definition, index) => createRuntimeObject(definition, bindingPage, dataset, index, resolveBinding)),
+      objects: definitions.map((definition, index) => createRuntimeObject(
+        definition,
+        bindingPage,
+        dataset,
+        packageTemplate.sampleAssets || {},
+        index,
+        resolveBinding
+      )),
       metadata: { ...page.metadata, packageMasterRole: page.role }
     };
   });
