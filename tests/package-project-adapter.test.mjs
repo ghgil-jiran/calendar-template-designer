@@ -7,7 +7,7 @@ await import('../apps/designer-studio/package-project-adapter.js');
 await import('../apps/designer-studio/persistence-project.js');
 
 const packageTemplate = JSON.parse(await readFile(
-  new URL('../templates/desk-academic-standard/1.2.0/template.json', import.meta.url),
+  new URL('../templates/desk-academic-standard/1.3.0/template.json', import.meta.url),
   'utf8'
 ));
 const dependencies = {
@@ -30,7 +30,7 @@ const project = globalThis.ACDLPackageProjectAdapter.applyPackage(base, packageT
 
 assert.equal(project.book.pageInstances.length, 28);
 assert.equal(project.template.package.templateId, 'desk-academic-standard');
-assert.equal(project.template.package.version, '1.2.0');
+assert.equal(project.template.package.version, '1.3.0');
 assert.equal(project.settings.calendarRows, 5);
 assert.deepEqual(project.book.pageInstances.slice(0, 6).map(page => page.packageRole), [
   'cover-front', 'annual-calendar', 'school-symbols', 'monthly-photo-memo', 'monthly-calendar', 'monthly-photo-memo'
@@ -48,9 +48,10 @@ const song = project.book.elementsByPage[symbolPage.id].find(item => item.role =
 assert.deepEqual({ x: song.x, y: song.y, width: song.width, height: song.height }, { x: 42, y: 20, width: 53, height: 70 });
 const photoPage = project.book.pageInstances[3];
 const photo = project.book.elementsByPage[photoPage.id].find(item => item.role === 'monthly-photo');
-assert.equal(photo.binding, 'monthlyImages.2028-03');
 assert.match(photo.src, /^data:image\/svg\+xml;base64,/);
-assert.equal(photo.sampleAssetKey, 'schoolPhoto');
+assert.equal(photo.binding, undefined);
+assert.equal(photo.defaultAssetKey, 'schoolPhoto');
+assert.equal(photo.userReplaceable, true);
 assert.deepEqual({ x: photo.x, y: photo.y, width: photo.width, height: photo.height }, { x: 5, y: 9.7, width: 90, height: 50.3 });
 assert.deepEqual(project.template.masters.calendar.calendarRegion, { x: 5, y: 26.5, width: 90, height: 66.5 });
 
@@ -61,10 +62,10 @@ const reopened = globalThis.ACDLPersistenceProject.clone(saved);
 const reopenedSong = reopened.book.elementsByPage[symbolPage.id].find(item => item.role === 'school-song');
 assert.equal(reopenedSong.x, 47.5);
 assert.equal(reopenedSong.width, 48);
-assert.equal(reopened.template.package.version, '1.2.0');
+assert.equal(reopened.template.package.version, '1.3.0');
 assert.equal(reopened.book.elementsByPage[photoPage.id].find(item => item.role === 'monthly-photo').src, photo.src);
 
-const wallTemplate = JSON.parse(await readFile(new URL('../templates/wall-academic-standard/0.2.0/template.json', import.meta.url), 'utf8'));
+const wallTemplate = JSON.parse(await readFile(new URL('../templates/wall-academic-standard/0.3.0/template.json', import.meta.url), 'utf8'));
 const wallBase = globalThis.ACDLProjectDocument.createProject({
   type: 'wall', template: 'school-basic', year: 2028, startMonth: 3,
   frontInsertCount: 0, rearInsertCount: 0, calendarRows: 6, weekStart: 'sunday',
@@ -79,7 +80,7 @@ assert.equal(wallProject.book.sheets.length, 0);
 assert.equal(wallProject.productType.category, 'wall');
 assert.equal(wallProject.productType.duplex, false);
 assert.equal(wallProject.template.metadata.name, '벽걸이형 표준 01 · 이미지 월력형');
-assert.equal(wallProject.template.package.version, '0.2.0');
+assert.equal(wallProject.template.package.version, '0.3.0');
 assert.deepEqual(wallProject.book.pageInstances.slice(0, 3).map(page => page.packageRole), ['cover-front', 'school-symbols', 'monthly-calendar']);
 assert.equal(wallProject.book.pageInstances[2].monthKey, '2028-03');
 assert.equal(wallProject.book.pageInstances[13].monthKey, '2029-02');
@@ -107,10 +108,12 @@ assert.equal(wallProject.book.elementsByPage[wallBack.id].find(item => item.id =
 const wallMarch = wallProject.book.pageInstances[2];
 const wallImage = wallProject.book.elementsByPage[wallMarch.id].find(item => item.role === 'monthly-image');
 assert.equal(wallImage.src, wallCoverImage.src);
+assert.equal(wallImage.binding, undefined);
+assert.equal(wallImage.userReplaceable, true);
 assert.deepEqual({ x: wallImage.x, y: wallImage.y, width: wallImage.width, height: wallImage.height }, { x: 7, y: 6, width: 86, height: 29 });
 wallImage.y = 8.5;
 const reopenedWall = globalThis.ACDLPersistenceProject.clone(globalThis.ACDLPersistenceProject.clone(wallProject));
 assert.equal(reopenedWall.book.elementsByPage[wallMarch.id].find(item => item.role === 'monthly-image').y, 8.5);
 assert.equal(reopenedWall.book.pageInstances.length, 15);
-assert.equal(reopenedWall.template.package.version, '0.2.0');
+assert.equal(reopenedWall.template.package.version, '0.3.0');
 assert.equal(reopenedWall.book.elementsByPage[wallMarch.id].find(item => item.role === 'monthly-image').src, wallCoverImage.src);

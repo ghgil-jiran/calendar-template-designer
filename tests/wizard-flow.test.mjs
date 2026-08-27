@@ -174,24 +174,24 @@ test('remote template cards expose immutable version history and restore control
 
 test('runtime parity package is exposed as a review sample without publishing it to users', () => {
   const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
-  assert.match(catalog, /tpl-2028-desk-academic-standard-v1-2/);
-  assert.match(catalog, /packageVersion:\"1\.2\.0\"/);
+  assert.match(catalog, /tpl-2028-desk-academic-standard-v1-3/);
+  assert.match(catalog, /packageVersion:\"1\.3\.0\"/);
   assert.match(catalog, /status:\"ready\"/);
-  assert.match(catalog, /packageBase:\"\/templates\/desk-academic-standard\/1\.2\.0\/\"/);
-  assert.match(catalog, /교체 가능한 샘플 사진/);
-  assert.doesNotMatch(catalog, /tpl-2028-desk-academic-standard-v1-2[^\n]+status:\"published\"/);
+  assert.match(catalog, /packageBase:\"\/templates\/desk-academic-standard\/1\.3\.0\/\"/);
+  assert.match(catalog, /사용자가 사진 보관함에서 직접 교체/);
+  assert.doesNotMatch(catalog, /tpl-2028-desk-academic-standard-v1-3[^\n]+status:\"published\"/);
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(runtime, /\['draft','ready','published','archived'\]/);
 });
 
 test('wall academic package is exposed as an editor review sample with its exact version', () => {
   const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
-  assert.match(catalog, /tpl-2028-wall-academic-standard-v0-2/);
+  assert.match(catalog, /tpl-2028-wall-academic-standard-v0-3/);
   assert.match(catalog, /name:"벽걸이형 표준 01 · 이미지 월력형"/);
-  assert.match(catalog, /packageVersion:"0\.2\.0"/);
-  assert.match(catalog, /packageBase:"\/templates\/wall-academic-standard\/0\.2\.0\/"/);
+  assert.match(catalog, /packageVersion:"0\.3\.0"/);
+  assert.match(catalog, /packageBase:"\/templates\/wall-academic-standard\/0\.3\.0\/"/);
   assert.match(catalog, /pageSummary:"앞표지 1면·앞간지 1면·월력 12면·뒷표지 1면"/);
-  assert.doesNotMatch(catalog, /tpl-2028-wall-academic-standard-v0-2[^\n]+status:"published"/);
+  assert.doesNotMatch(catalog, /tpl-2028-wall-academic-standard-v0-3[^\n]+status:"published"/);
 });
 
 test('template library entry and save do not reference the removed legacy filter state', () => {

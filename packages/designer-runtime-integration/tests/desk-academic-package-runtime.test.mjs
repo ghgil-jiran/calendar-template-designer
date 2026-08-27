@@ -93,4 +93,40 @@ const userDocument = buildDeskAcademicPackageDocument({
 assert.deepEqual(userDocument.template.pages[0].objects.find((object) => object.id === "cover.school-image").payload, userPhoto);
 assert.deepEqual(userDocument.template.pages[4].objects[0].contract.children[0].payload, { assetRef: userPhoto });
 
+const manualPhoto = { ref: "url", src: "/manually-selected.jpg" };
+const selectableTemplate = {
+  ...sampleTemplate,
+  masterDefinitions: {
+    ...sampleTemplate.masterDefinitions,
+    "cover-front": sampleTemplate.masterDefinitions["cover-front"].map((item) =>
+      item.id === "cover.school-image" ? { ...item, userReplaceable: true, defaultAssetKey: "schoolPhoto" } : item
+    ),
+    "monthly-photo-memo": sampleTemplate.masterDefinitions["monthly-photo-memo"].map((item) => ({
+      ...item,
+      layout: {
+        ...item.layout,
+        children: item.layout.children.map((child) =>
+          child.id === "monthly-photo"
+            ? { ...child, bindingPattern: undefined, userReplaceable: true, defaultAssetKey: "schoolPhoto" }
+            : child
+        )
+      }
+    }))
+  }
+};
+const manualDocument = buildDeskAcademicPackageDocument({
+  ...adapted,
+  dataset: {
+    ...adapted.dataset,
+    variables: {
+      imageSelections: {
+        "page.cover-front": { "cover.school-image": manualPhoto },
+        "page.monthly-photo-memo": { "monthly-photo": manualPhoto }
+      }
+    }
+  }
+}, selectableTemplate);
+assert.deepEqual(manualDocument.template.pages[0].objects.find((object) => object.id === "cover.school-image").payload, manualPhoto);
+assert.deepEqual(manualDocument.template.pages[4].objects[0].contract.children[0].payload, manualPhoto);
+
 console.log("desk academic package runtime tests passed");

@@ -57,6 +57,14 @@ export function resolveDeskAcademicPageBinding(binding: unknown, page: DeskAcade
   return binding.replace("{YYYY-MM}", monthKey);
 }
 
+function imageSelection(dataset: Record<string, any>, page: DeskAcademicPage, objectId: unknown): unknown {
+  const selections = dataset.variables?.imageSelections ?? dataset.imageSelections;
+  if (!selections || typeof selections !== "object") return undefined;
+  const pageSelections = selections[page.id];
+  if (!pageSelections || typeof pageSelections !== "object") return undefined;
+  return pageSelections[String(objectId || "")];
+}
+
 export function frameFromPercentage(
   frame: Record<string, unknown> | undefined,
   size: { width: number; height: number }
@@ -80,14 +88,18 @@ function createRuntimeObject(
 ): Record<string, any> {
   const bindingPattern = definition.bindingPattern || definition.targetBindingPattern || definition.binding;
   const binding = resolveBinding(bindingPattern, page) || bindingPattern;
-  let payload = definition.bindings
+  const selectedImage = definition.userReplaceable ? imageSelection(dataset, page, definition.id) : undefined;
+  let payload = selectedImage ?? (definition.bindings
     ? Object.fromEntries(Object.entries(definition.bindings).map(([key, path]) => [key, readDatasetPath(dataset, path)]))
-    : binding ? readDatasetPath(dataset, binding) : undefined;
+    : binding ? readDatasetPath(dataset, binding) : undefined);
   if ((payload === undefined || payload === null || payload === "") && definition.fallbackBinding) {
     payload = readDatasetPath(dataset, definition.fallbackBinding);
   }
   if ((payload === undefined || payload === null || payload === "") && definition.sampleAssetKey) {
     payload = sampleAssets[definition.sampleAssetKey];
+  }
+  if ((payload === undefined || payload === null || payload === "") && definition.defaultAssetKey) {
+    payload = sampleAssets[definition.defaultAssetKey];
   }
   let contract: Record<string, any> | undefined;
   if (definition.layoutContract) {
@@ -98,12 +110,16 @@ function createRuntimeObject(
       ...definition.layout,
       children: (definition.layout?.children || []).map((child: Record<string, any>) => {
         const childBinding = resolveBinding(child.bindingPattern, page) || child.bindingPattern;
-        let childPayload = childBinding ? readDatasetPath(dataset, childBinding) : undefined;
+        const selectedChildImage = child.userReplaceable ? imageSelection(dataset, page, child.id) : undefined;
+        let childPayload = selectedChildImage ?? (childBinding ? readDatasetPath(dataset, childBinding) : undefined);
         if ((childPayload === undefined || childPayload === null || childPayload === "") && child.fallbackBinding) {
           childPayload = readDatasetPath(dataset, child.fallbackBinding);
         }
         if ((childPayload === undefined || childPayload === null || childPayload === "") && child.sampleAssetKey) {
           childPayload = sampleAssets[child.sampleAssetKey];
+        }
+        if ((childPayload === undefined || childPayload === null || childPayload === "") && child.defaultAssetKey) {
+          childPayload = sampleAssets[child.defaultAssetKey];
         }
         const footer = child.footer
           ? Object.fromEntries(Object.entries(child.footer).map(([key, path]) => [key, readDatasetPath(dataset, path)]))
@@ -143,6 +159,8 @@ function createRuntimeObject(
     contract,
     metadata: {
       fallbackBinding: definition.fallbackBinding,
+      defaultAssetKey: definition.defaultAssetKey,
+      userReplaceable: definition.userReplaceable === true,
       hideEmptyFields: definition.hideEmptyFields,
       hideWhenAllEmpty: definition.hideWhenAllEmpty
     },

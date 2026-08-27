@@ -19,8 +19,10 @@ try {
   assert.equal(pkg.exports['./templates/desk-academic-standard/1.0.0/*'], './templates/desk-academic-standard/1.0.0/*');
   assert.equal(pkg.exports['./templates/desk-academic-standard/1.1.0/*'], './templates/desk-academic-standard/1.1.0/*');
   assert.equal(pkg.exports['./templates/desk-academic-standard/1.2.0/*'], './templates/desk-academic-standard/1.2.0/*');
+  assert.equal(pkg.exports['./templates/desk-academic-standard/1.3.0/*'], './templates/desk-academic-standard/1.3.0/*');
   assert.equal(pkg.exports['./templates/wall-academic-standard/0.1.0/*'], './templates/wall-academic-standard/0.1.0/*');
   assert.equal(pkg.exports['./templates/wall-academic-standard/0.2.0/*'], './templates/wall-academic-standard/0.2.0/*');
+  assert.equal(pkg.exports['./templates/wall-academic-standard/0.3.0/*'], './templates/wall-academic-standard/0.3.0/*');
 
   const integrity = JSON.parse(await readFile(join(output, 'INTEGRITY.json'), 'utf8'));
   assert.equal(integrity.algorithm, 'sha256');
@@ -29,8 +31,10 @@ try {
     'desk-academic-standard@1.0.0',
     'desk-academic-standard@1.1.0',
     'desk-academic-standard@1.2.0',
+    'desk-academic-standard@1.3.0',
     'wall-academic-standard@0.1.0',
-    'wall-academic-standard@0.2.0'
+    'wall-academic-standard@0.2.0',
+    'wall-academic-standard@0.3.0'
   ]);
   assert.match(integrity.files['dist/DeskAcademicSurfacePlan.js'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['dist/AcademicPackageSurfacePlan.js'], /^[a-f0-9]{64}$/);
@@ -38,9 +42,11 @@ try {
   assert.match(integrity.files['templates/desk-academic-standard/1.1.0/template.json'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['templates/desk-academic-standard/1.1.0/publishing.json'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['templates/desk-academic-standard/1.2.0/template.json'], /^[a-f0-9]{64}$/);
+  assert.match(integrity.files['templates/desk-academic-standard/1.3.0/template.json'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['templates/wall-academic-standard/0.1.0/template.json'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['templates/wall-academic-standard/0.1.0/publishing.json'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['templates/wall-academic-standard/0.2.0/template.json'], /^[a-f0-9]{64}$/);
+  assert.match(integrity.files['templates/wall-academic-standard/0.3.0/template.json'], /^[a-f0-9]{64}$/);
   const templateBytes = await readFile(join(output, 'templates/desk-academic-standard/1.0.0/template.json'));
   assert.equal(createHash('sha256').update(templateBytes).digest('hex'), integrity.files['templates/desk-academic-standard/1.0.0/template.json']);
 
