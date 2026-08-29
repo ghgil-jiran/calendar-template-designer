@@ -80,3 +80,21 @@ test('a historical version hydrates private asset references for preview', async
   const version = await api.hydrateVersion({ id: 'v1', projectData: { image: 'acdl-asset://11111111-1111-4111-8111-111111111111' } });
   assert.equal(version.projectData.image, 'https://signed.example/history.png');
 });
+
+
+test('non-ASCII access tokens are rejected before the browser constructs request headers', async () => {
+  let fetchCount = 0;
+  const api = runtime({
+    prompt: () => '한글-접근-코드',
+    fetch: async () => {
+      fetchCount += 1;
+      throw new Error('must not fetch');
+    }
+  });
+  await assert.rejects(
+    () => api.list(),
+    error => error.code === 'INVALID_ACCESS_TOKEN' && /영문·숫자·기호/.test(error.message)
+  );
+  assert.equal(fetchCount, 0);
+  assert.equal(api.hasToken(), false);
+});
