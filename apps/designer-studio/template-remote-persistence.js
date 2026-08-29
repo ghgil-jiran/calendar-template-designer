@@ -3,12 +3,13 @@
  const signedToMarker=new Map();
  const isRemote=()=>!['localhost','127.0.0.1',''].includes(root.location?.hostname||'');
  const token=()=>{try{return root.sessionStorage.getItem(TOKEN_KEY)||''}catch{return''}};
+ const clearToken=()=>{try{root.sessionStorage.removeItem(TOKEN_KEY)}catch{}};
  function requestToken(){let value=token();if(value||!isRemote())return value;value=String(root.prompt?.('템플릿 원격 저장 접근 코드를 입력하세요.')||'').trim();if(value)try{root.sessionStorage.setItem(TOKEN_KEY,value)}catch{}return value}
  async function request(path,options={},interactive=true){
   if(!isRemote())throw Object.assign(new Error('로컬 환경에서는 브라우저 저장을 사용합니다.'),{code:'REMOTE_DISABLED'});
   const accessToken=interactive?requestToken():token();if(!accessToken)throw Object.assign(new Error('원격 저장 접근 코드가 필요합니다.'),{code:'ACCESS_TOKEN_REQUIRED'});
   const response=await root.fetch(path,{...options,headers:{'Content-Type':'application/json','x-template-editor-token':accessToken,...options.headers}}),body=await response.json().catch(()=>({}));
-  if(!response.ok){if(response.status===401)try{root.sessionStorage.removeItem(TOKEN_KEY)}catch{}throw Object.assign(new Error(response.status===401?'접근 코드를 확인해주세요.':response.status===503?'원격 저장 환경 설정이 필요합니다.':'원격 저장 요청에 실패했습니다.'),{code:body.error||'REMOTE_REQUEST_FAILED',status:response.status})}
+  if(!response.ok){if(response.status===401)clearToken()throw Object.assign(new Error(response.status===401?'접근 코드를 확인해주세요.':response.status===503?'원격 저장 환경 설정이 필요합니다.':'원격 저장 요청에 실패했습니다.'),{code:body.error||'REMOTE_REQUEST_FAILED',status:response.status})}
   return body;
  }
  function record(item){return {id:item.id,remoteId:item.id,stableKey:item.stableKey,name:item.name,description:item.description,edition:item.edition,state:item.state,type:item.productType,template:item.templateKey,version:item.latestVersionNumber,updatedAt:item.updatedAt,storage:'supabase',source:'local'}}
@@ -32,5 +33,5 @@
  async function hydrateVersion(version){return version?.projectData?{...version,projectData:await hydrateProjectData(version.projectData)}:version}
  async function restore(templateId,versionId,saveNote){return request('/api/template-restore',{method:'POST',body:JSON.stringify({templateId,versionId,saveNote})})}
  async function packagePreflight(templateId){return request(`/api/template-package-preflight?templateId=${encodeURIComponent(templateId)}`)}
- root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasToken:()=>Boolean(token()),accessToken:requestToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,prepareProjectData,hydrateProjectData});
+ root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasToken:()=>Boolean(token()),accessToken:requestToken,clearAccessToken:clearToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,prepareProjectData,hydrateProjectData});
 })(window);
