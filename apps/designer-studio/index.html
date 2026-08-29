@@ -1490,7 +1490,7 @@ function renderPage(){
    const renderDay=(day,extra=false)=>{
     const hideAdjacent=day.month!==p.calendarMonth&&project.template.masters.calendar.showAdjacentMonths===false;
     const suppressCompactEvents=rows===5&&extra;
-    const evs=(hideAdjacent||suppressCompactEvents)?[]:(g[day.date]||[]).filter(ev=>!isRangeEvent(ev)).sort((a,b)=>eventPriority(b)-eventPriority(a)||a.title.localeCompare(b.title)),vis=evs.slice(0,max),hidden=evs.length-vis.length;
+    const evs=[],vis=[],hidden=0;
     let part=`<div class="day-block ${extra?"compact-extra":""}" data-date="${day.date}"><div class="day">${hideAdjacent?"":day.day}</div>`;
     vis.forEach(ev=>{const color=eventColor(ev);part+=`<span class="event ${ev.category==="holiday"?"holiday":""}" style="color:${color};background:color-mix(in srgb,${color} 12%,white)">${ev.title}</span>`});
     if(hidden)part+=`<div class="more">+${hidden}개</div>`;
@@ -1638,7 +1638,7 @@ function renderInspector(){
  if(!sourceElement()){
  design+=`<div class="section"><label>월 제목 크기<input id="masterTitleSize" type="number" min="14" max="36" value="${project.template.masters.calendar.monthTitleSize}"></label><label>단일 일정 표시 개수<select id="masterMaxEvents">${[1,2,3,4].map(n=>`<option ${n===project.template.masters.calendar.eventMaxVisiblePerDay?"selected":""}>${n}</option>`).join("")}</select></label><button id="applyMaster" class="action">월력 기본 설정 저장</button></div>`;
  const rs=project.template.masters.calendar.rangeEventStyle;
- design+=`<div class="section"><span class="layer-chip">구간 일정 자동 조판</span><div class="range-event-legend">시작일과 종료일이 다른 일정은 주 단위 막대로 자동 분할합니다. 겹치는 일정은 Lane에 자동 배치하고 다음 주나 다른 달로 이어지는 구간도 표시합니다.</div><div class="range-style-preview"><div class="demo-bar">교육과정 집중 운영기간</div></div><label class="inline-check"><input id="rangeEnabled" type="checkbox" ${rs.enabled?"checked":""}><span>구간 일정을 막대 형태로 표시</span></label><div class="range-style-grid"><label>일정명 표시<select id="rangeLabelMode"><option value="first" ${rs.labelMode==="first"?"selected":""}>첫 구간만</option><option value="every" ${rs.labelMode==="every"?"selected":""}>매주 반복</option><option value="continued" ${rs.labelMode==="continued"?"selected":""}>후속 구간에 계속 표시</option><option value="none" ${rs.labelMode==="none"?"selected":""}>표시 안 함</option></select></label><label>일정명 위치<select id="rangeLabelPosition"><option value="inside" ${rs.labelPosition==="inside"?"selected":""}>막대 안</option><option value="above" ${rs.labelPosition==="above"?"selected":""}>막대 위</option></select></label><label>막대 높이(px)<input id="rangeBarHeight" type="number" min="6" max="24" value="${rs.barHeight}"></label><label>Lane 간격(px)<input id="rangeLaneGap" type="number" min="0" max="10" value="${rs.laneGap}"></label><label>최대 Lane<select id="rangeMaxLanes">${[1,2,3,4,5].map(n=>`<option value="${n}" ${n===Number(rs.maxLanes)?"selected":""}>${n}</option>`).join("")}</select></label><label>초과 일정<select id="rangeOverflowStyle"><option value="count" ${rs.overflowStyle==="count"?"selected":""}>+N개 표시</option><option value="hide" ${rs.overflowStyle==="hide"?"selected":""}>숨김</option></select></label></div><button id="applyRangeEventStyle" class="action">구간 일정 스타일 저장</button></div>`;
+ design+=`<div class="section"><span class="layer-chip">구간 일정 자동 조판</span><div class="range-event-legend">시작일과 종료일이 다른 일정은 주 단위 막대로 자동 분할합니다. 겹치는 일정은 Lane에 자동 배치하고 다음 주나 다른 달로 이어지는 구간도 표시합니다.</div><div class="range-style-preview"><div class="demo-bar">교육과정 집중 운영기간</div></div><label class="inline-check"><input id="rangeEnabled" type="checkbox" ${rs.enabled?"checked":""}><span>구간 일정을 막대 형태로 표시</span></label><div class="range-style-grid"><label>일정명 표시<select id="rangeLabelMode"><option value="first" ${rs.labelMode==="first"?"selected":""}>첫 구간만</option><option value="every" ${rs.labelMode==="every"?"selected":""}>매주 반복</option><option value="continued" ${rs.labelMode==="continued"?"selected":""}>후속 구간에 계속 표시</option><option value="none" ${rs.labelMode==="none"?"selected":""}>표시 안 함</option></select></label><label>일정명 위치<select id="rangeLabelPosition"><option value="inside" ${rs.labelPosition==="inside"?"selected":""}>막대 안</option><option value="above" ${rs.labelPosition==="above"?"selected":""}>막대 위</option></select></label><label>막대 높이(px)<input id="rangeBarHeight" type="number" min="6" max="24" value="${rs.barHeight}"></label><label>Lane 간격(px)<input id="rangeLaneGap" type="number" min="0" max="10" value="${rs.laneGap}"></label><label>최대 Lane<input id="rangeMaxLanes" type="number" value="4" readonly><small>사용자 서비스 표준 · 단일/기간 일정 공통</small></label><label>초과 일정<select id="rangeOverflowStyle"><option value="count" ${rs.overflowStyle==="count"?"selected":""}>+N개 표시</option><option value="hide" ${rs.overflowStyle==="hide"?"selected":""}>숨김</option></select></label></div><button id="applyRangeEventStyle" class="action">구간 일정 스타일 저장</button></div>`;
  design+=`<div class="section"><label>표지 제목 크기<input id="coverTitleSize" type="number" min="20" max="50" value="${project.template.masters.cover.titleSize}"></label><button id="applyCoverMaster" class="action">표지 Master 설정 저장</button></div>`;
  const validationMessages=validate();
  if(validationMessages.length)content+=`<div class="section validation warn">${validationMessages.join("<br>")}</div>`;
@@ -1718,7 +1718,7 @@ function bindInspector(){
   s.labelPosition=el("rangeLabelPosition").value;
   s.barHeight=Number(el("rangeBarHeight").value);
   s.laneGap=Number(el("rangeLaneGap").value);
-  s.maxLanes=Number(el("rangeMaxLanes").value);
+  s.maxLanes=window.ACDLCalendarDomain.SCHEDULE_MAX_LANES;
   s.overflowStyle=el("rangeOverflowStyle").value
  }));
  bind("promoteToMonthlyMaster",promoteSelectedToMonthlyMaster);
@@ -2664,17 +2664,39 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     });return segments
   };
   assignRangeLanes=function(grid){
-    const style=project.template.masters.calendar.rangeEventStyle,segments=buildRangeSegments(grid),result=[],overflow=[];
-    for(let week=0;week<Math.ceil(grid.length/7);week++){
-      const ws=segments.filter(s=>s.week===week).sort((a,b)=>eventPriority(b.event)-eventPriority(a.event)||a.event.startDate.localeCompare(b.event.startDate)||b.duration-a.duration||a.event.title.localeCompare(b.event.title)),lanes=[];
-      ws.forEach(seg=>{let lane=lanes.findIndex(items=>items.every(x=>seg.endColumn<x.startColumn||seg.startColumn>x.endColumn));if(lane<0){lane=lanes.length;lanes.push([])}if(lane<Number(style.maxLanes||3)){seg.lane=lane;lanes[lane].push(seg);result.push(seg)}else overflow.push(seg)});
-    }return {segments:result,overflow}
+    const p=selectedPage(),weekStart=project.settings.weekStart==="monday"?"monday":"sunday",rows=Number(project.settings.calendarRows||5);
+    const layout=window.ACDLCalendarDomain.buildCalendarScheduleLanes(
+      Number(p?.calendarYear),
+      Number(p?.calendarMonth),
+      project.book.events,
+      weekStart,
+      rows
+    );
+    const eventsById=new Map(project.book.events.map(event=>[event.id,event]));
+    return {
+      segments:layout.segments.map(segment=>({
+        ...segment,
+        event:eventsById.get(segment.eventId),
+        week:segment.row,
+        startColumn:segment.startCol,
+        endColumn:segment.startCol+segment.span-1
+      })).filter(segment=>segment.event),
+      hiddenByDate:layout.hiddenByDate,
+      maxLanes:layout.maxLanes
+    }
   };
   renderRangeEventLayer=function(grid,rows){
     const style=project.template.masters.calendar.rangeEventStyle;if(!style?.enabled)return '';
-    const layout=assignRangeLanes(grid),rowHeight=100/rows,barHeight=Number(style.barHeight||11),gap=Number(style.laneGap||2),max=Number(style.maxLanes||3);let html='<div class="range-event-layer">';
-    layout.segments.forEach(seg=>{const left=seg.startColumn/7*100,width=(seg.endColumn-seg.startColumn+1)/7*100,label=rangeLabel(seg,style),classes=['range-event-bar',seg.continuesBefore?'continues-before':'',seg.continuesAfter?'continues-after':'',style.labelPosition==='above'?'label-above':''].filter(Boolean).join(' '),color=eventColor(seg.event),bottomPx=3+(seg.lane+1)*(barHeight+gap)-gap;html+=`<div class="${classes}" title="${escapeAttr(seg.event.title)} · ${seg.event.startDate} ~ ${seg.event.endDate}" style="left:calc(${left}% + 2px);width:calc(${width}% - 4px);top:calc(${(seg.week+1)*rowHeight}% - ${bottomPx}px);height:${barHeight}px;background:${color}">${label}</div>`});
-    if(style.overflowStyle==='count'){const counts={};layout.overflow.forEach(x=>counts[x.week]=(counts[x.week]||0)+1);Object.entries(counts).forEach(([week,count])=>{const bottomPx=3+(max+1)*(barHeight+gap)-gap;html+=`<div class="range-event-overflow" style="top:calc(${(Number(week)+1)*rowHeight}% - ${bottomPx}px)">+${count}개 구간</div>`})}
+    const layout=assignRangeLanes(grid),rowHeight=100/rows,barHeight=Number(style.barHeight||11),gap=Number(style.laneGap||2);let html='<div class="range-event-layer">';
+    layout.segments.forEach(seg=>{
+      const left=seg.startColumn/7*100,width=(seg.endColumn-seg.startColumn+1)/7*100,classes=['range-event-bar',style.labelPosition==='above'?'label-above':''].filter(Boolean).join(' '),color=eventColor(seg.event),bottomPx=3+(seg.lane+1)*(barHeight+gap)-gap,typography=window.ACDLCalendarDomain.calendarScheduleTypography(seg.title,seg.span);
+      html+=`<div class="${classes}" title="${escapeAttr(seg.event.title)} · ${seg.event.startDate} ~ ${seg.event.endDate}" style="left:calc(${left}% + 2px);width:calc(${width}% - 4px);top:calc(${(seg.week+1)*rowHeight}% - ${bottomPx}px);height:${barHeight}px;background:${color};font-size:${typography.fontPx}px;-webkit-line-clamp:${typography.maxLines}">${seg.title}</div>`
+    });
+    if(style.overflowStyle==='count'){
+      const positions=new Map();
+      grid.forEach((cell,index)=>{positions.set(cell.date,{row:Math.floor(index/7),col:index%7});if(cell.extra)positions.set(cell.extra.date,{row:Math.floor(index/7),col:index%7})});
+      Object.entries(layout.hiddenByDate).forEach(([date,count])=>{const pos=positions.get(date);if(!pos)return;const left=pos.col/7*100,bottomPx=3+(layout.maxLanes+1)*(barHeight+gap)-gap;html+=`<div class="range-event-overflow" style="left:calc(${left}% + 2px);width:calc(${100/7}% - 4px);top:calc(${(pos.row+1)*rowHeight}% - ${bottomPx}px)">+${count}</div>`})
+    }
     return html+'</div>'
   };
 })();
