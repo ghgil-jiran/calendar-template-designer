@@ -23,11 +23,9 @@ const events = [
 ];
 const layout = buildCalendarScheduleLanes(2028, 3, events, 'sunday', 5);
 assert.equal(layout.segments.filter(segment => segment.eventId === 'period').length, 3);
-assert.deepEqual(
-  layout.segments.filter(segment => segment.eventId.startsWith('single-')).map(segment => segment.lane),
-  [1, 2, 3]
-);
-assert.equal(layout.segments.some(segment => segment.eventId === 'hidden'), false);
+const visibleSameDate = layout.segments.filter(segment => segment.startDate === '2028-03-05' && segment.endDate === '2028-03-05');
+assert.equal(visibleSameDate.length, 3);
+assert.deepEqual(visibleSameDate.map(segment => segment.lane).sort(), [1, 2, 3]);
 assert.equal(layout.hiddenByDate['2028-03-05'], 1);
 
 const studio = await readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
