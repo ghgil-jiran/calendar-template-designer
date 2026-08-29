@@ -13,14 +13,27 @@
     };
   }
 
-  function runtimeObject(definition, page, dataset, index) {
+  function imageSelection(dataset, page, objectId) {
+    const selections = dataset.variables?.imageSelections || dataset.imageSelections;
+    const pageSelections = selections && typeof selections === 'object' ? selections[page.id] : undefined;
+    return pageSelections && typeof pageSelections === 'object' ? pageSelections[String(objectId || '')] : undefined;
+  }
+
+  function runtimeObject(definition, page, dataset, sampleAssets, index) {
     const bindingPattern = definition.bindingPattern || definition.targetBindingPattern || definition.binding;
     const binding = root.ACDLDatasetDomain?.resolvePageBinding(bindingPattern, page) || bindingPattern;
-    let payload = definition.bindings
+    const selectedImage = definition.userReplaceable ? imageSelection(dataset, page, definition.id) : undefined;
+    let payload = selectedImage ?? (definition.bindings
       ? Object.fromEntries(Object.entries(definition.bindings).map(([key, path]) => [key, readPath(dataset, path)]))
-      : binding ? readPath(dataset, binding) : undefined;
+      : binding ? readPath(dataset, binding) : undefined);
     if ((payload === undefined || payload === null || payload === '') && definition.fallbackBinding) {
       payload = readPath(dataset, definition.fallbackBinding);
+    }
+    if ((payload === undefined || payload === null || payload === '') && definition.sampleAssetKey) {
+      payload = sampleAssets[definition.sampleAssetKey];
+    }
+    if ((payload === undefined || payload === null || payload === '') && definition.defaultAssetKey) {
+      payload = sampleAssets[definition.defaultAssetKey];
     }
     let contract;
     if (definition.layoutContract) {
@@ -31,10 +44,21 @@
         ...definition.layout,
         children: (definition.layout?.children || []).map(child => {
           const childBinding = root.ACDLDatasetDomain?.resolvePageBinding(child.bindingPattern, page) || child.bindingPattern;
+          const selectedChildImage = child.userReplaceable ? imageSelection(dataset, page, child.id) : undefined;
+          let childPayload = selectedChildImage ?? (childBinding ? readPath(dataset, childBinding) : undefined);
+          if ((childPayload === undefined || childPayload === null || childPayload === '') && child.fallbackBinding) {
+            childPayload = readPath(dataset, child.fallbackBinding);
+          }
+          if ((childPayload === undefined || childPayload === null || childPayload === '') && child.sampleAssetKey) {
+            childPayload = sampleAssets[child.sampleAssetKey];
+          }
+          if ((childPayload === undefined || childPayload === null || childPayload === '') && child.defaultAssetKey) {
+            childPayload = sampleAssets[child.defaultAssetKey];
+          }
           const footer = child.footer
             ? Object.fromEntries(Object.entries(child.footer).map(([key, path]) => [key, readPath(dataset, path)]))
             : undefined;
-          return { ...child, binding: childBinding, payload: childBinding ? readPath(dataset, childBinding) : undefined, footer };
+          return { ...child, binding: childBinding, payload: childPayload, footer };
         })
       };
     }
@@ -64,6 +88,8 @@
       contract,
       metadata: {
         fallbackBinding: definition.fallbackBinding,
+        defaultAssetKey: definition.defaultAssetKey,
+        userReplaceable: definition.userReplaceable === true,
         hideEmptyFields: definition.hideEmptyFields,
         hideWhenAllEmpty: definition.hideWhenAllEmpty
       },
@@ -84,6 +110,7 @@
         weekStart: packageTemplate.calendar?.defaultWeekStart || adapted.dataset.calendar?.weekStart || 'sunday'
       }
     };
+    const sampleAssets = packageTemplate.sampleAssets || {};
     const pages = adapted.template.pages.map(page => {
       const definitions = packageTemplate.masterDefinitions[page.role] || [];
       const bindingPage = {
@@ -93,7 +120,7 @@
       };
       return {
         ...page,
-        objects: definitions.map((definition, index) => runtimeObject(definition, bindingPage, dataset, index)),
+        objects: definitions.map((definition, index) => runtimeObject(definition, bindingPage, dataset, sampleAssets, index)),
         metadata: { ...page.metadata, packageMasterRole: page.role }
       };
     });
