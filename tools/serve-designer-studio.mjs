@@ -34,6 +34,9 @@ const studioAssetAliases = new Map([
   ['/desk-academic-package-runtime.js', 'apps/designer-studio/desk-academic-package-runtime.js'],
   ['/desk-academic-shadow-renderer.js', 'apps/designer-studio/desk-academic-shadow-renderer.js'],
   ['/desk-academic-shadow-renderer.css', 'apps/designer-studio/desk-academic-shadow-renderer.css'],
+  ['/schedule-api-client.js', 'apps/designer-studio/schedule-api-client.js'],
+  ['/schedule-api-client.css', 'apps/designer-studio/schedule-api-client.css'],
+  ['/schedule-file-parser.js', 'apps/designer-studio/schedule-file-parser.js'],
   ['/desk-academic-visual-parity.js', 'apps/designer-studio/desk-academic-visual-parity.js'],
   ['/desk-academic-print-parity.js', 'apps/designer-studio/desk-academic-print-parity.js'],
   ['/user-service-shadow-session.js', 'apps/designer-studio/user-service-shadow-session.js'],
@@ -44,6 +47,9 @@ const studioAssetAliases = new Map([
   ['/template-library-runtime.js', 'apps/designer-studio/template-library-runtime.js']
 ]);
 const legacyEntryPaths = new Set([
+  '/apps/designer-studio',
+  '/apps/designer-studio/',
+  '/apps/designer-studio/index.html',
   '/editor-core-demo',
   '/editor-core-demo/',
   '/apps/editor-core-demo',
