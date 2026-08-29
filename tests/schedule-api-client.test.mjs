@@ -37,3 +37,9 @@ assert.match(source, /resourceScheduleAiPanel/);
 assert.match(source, /academicYear/);
 assert.match(source, /startMonth/);
 assert.match(source, /공통 AI로 추출했습니다/);
+
+const server = await readFile(new URL('../tools/serve-designer-studio.mjs', import.meta.url), 'utf8');
+assert.match(server, /'\/apps\/designer-studio\/'/);
+assert.match(server, /'\/schedule-api-client\.js'/);
+assert.match(server, /'\/schedule-api-client\.css'/);
+assert.match(server, /'\/schedule-file-parser\.js'/);
