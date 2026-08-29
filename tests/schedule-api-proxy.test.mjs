@@ -7,6 +7,9 @@ const remote = await readFile(new URL('../apps/designer-studio/template-remote-p
 const vercel = JSON.parse(await readFile(new URL('../vercel.json', import.meta.url), 'utf8'));
 const env = await readFile(new URL('../.env.example', import.meta.url), 'utf8');
 
+assert.doesNotThrow(() => new Function(client));
+assert.doesNotThrow(() => new Function(remote));
+
 assert.match(proxy, /assertInternalAccess\(request\)/);
 assert.match(proxy, /process\.env\.USER_SERVICE_ORIGIN/);
 assert.match(proxy, /\/api\/ai\/schedule-extract/);
