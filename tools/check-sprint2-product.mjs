@@ -1,7 +1,8 @@
 import fs from 'node:fs';
-const html=fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url),'utf8');
-const selectionModule=fs.readFileSync(new URL('../apps/designer-studio/canvas-selection.js', import.meta.url),'utf8');
-const inputModule=fs.readFileSync(new URL('../apps/designer-studio/canvas-input.js', import.meta.url),'utf8');
+const readSource = path => fs.readFileSync(new URL(path, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+const html=readSource('../apps/designer-studio/index.html');
+const selectionModule=readSource('../apps/designer-studio/canvas-selection.js');
+const inputModule=readSource('../apps/designer-studio/canvas-input.js');
 const start=html.lastIndexOf('startElementPointer=function(e)');
 const move=html.indexOf('moveElementPointer=function(e)', start);
 if(start<0||move<0) throw new Error('Sprint 2 pointer handlers missing');
