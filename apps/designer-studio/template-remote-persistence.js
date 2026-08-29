@@ -4,7 +4,7 @@
  const isRemote=()=>!['localhost','127.0.0.1',''].includes(root.location?.hostname||'');
  const token=()=>{try{return String(root.sessionStorage.getItem(TOKEN_KEY)||'').trim()}catch{return''}};
  const clearToken=()=>{try{root.sessionStorage.removeItem(TOKEN_KEY)}catch{}};
- const validToken=value=>/^[\\x21-\\x7E]+$/.test(value);
+ const validToken=value=>/^[\x21-\x7E]+$/.test(value);
  function invalidToken(){return Object.assign(new Error('접근 코드는 공백 없는 영문·숫자·기호만 사용할 수 있습니다. 저장된 접근 코드를 지우고 다시 입력해주세요.'),{code:'INVALID_ACCESS_TOKEN'})}
  function requestToken(){let value=token();if(value&&!validToken(value)){clearToken();value=''}if(value||!isRemote())return value;value=String(root.prompt?.('템플릿 원격 저장 접근 코드를 입력하세요.')||'').trim();if(value&&!validToken(value))throw invalidToken();if(value)try{root.sessionStorage.setItem(TOKEN_KEY,value)}catch{}return value}
  async function request(path,options={},interactive=true){
