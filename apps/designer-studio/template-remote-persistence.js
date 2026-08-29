@@ -9,7 +9,7 @@
   if(!isRemote())throw Object.assign(new Error('로컬 환경에서는 브라우저 저장을 사용합니다.'),{code:'REMOTE_DISABLED'});
   const accessToken=interactive?requestToken():token();if(!accessToken)throw Object.assign(new Error('원격 저장 접근 코드가 필요합니다.'),{code:'ACCESS_TOKEN_REQUIRED'});
   const response=await root.fetch(path,{...options,headers:{'Content-Type':'application/json','x-template-editor-token':accessToken,...options.headers}}),body=await response.json().catch(()=>({}));
-  if(!response.ok){if(response.status===401)clearToken()throw Object.assign(new Error(response.status===401?'접근 코드를 확인해주세요.':response.status===503?'원격 저장 환경 설정이 필요합니다.':'원격 저장 요청에 실패했습니다.'),{code:body.error||'REMOTE_REQUEST_FAILED',status:response.status})}
+  if(!response.ok){if(response.status===401)clearToken();throw Object.assign(new Error(response.status===401?'접근 코드를 확인해주세요.':response.status===503?'원격 저장 환경 설정이 필요합니다.':'원격 저장 요청에 실패했습니다.'),{code:body.error||'REMOTE_REQUEST_FAILED',status:response.status})}
   return body;
  }
  function record(item){return {id:item.id,remoteId:item.id,stableKey:item.stableKey,name:item.name,description:item.description,edition:item.edition,state:item.state,type:item.productType,template:item.templateKey,version:item.latestVersionNumber,updatedAt:item.updatedAt,storage:'supabase',source:'local'}}
