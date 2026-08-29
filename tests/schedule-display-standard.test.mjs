@@ -33,5 +33,8 @@ const projectDocument = await readFile(new URL('../apps/designer-studio/project-
 assert.match(studio, /buildCalendarScheduleLanes/);
 assert.match(studio, /const evs=\[\],vis=\[\],hidden=0/);
 assert.match(studio, /SCHEDULE_MAX_LANES/);
+assert.match(studio, /hasSampleSchedule=Boolean\(project\.book\.scheduleImport\?\.events\?\.length\)/);
+assert.match(studio, /style\.enabled===false && !hasSampleSchedule/);
+assert.match(studio, /project\.template\.masters\.calendar\.rangeEventStyle\.enabled=true/);
 assert.doesNotMatch(studio, /maxLanes:\s*3/);
 assert.doesNotMatch(projectDocument, /maxLanes:\s*3/);
