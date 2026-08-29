@@ -146,10 +146,110 @@
     return { segments: result, overflow };
   }
 
+  const SCHEDULE_MAX_LANES = 4;
+
+  function calendarScheduleTypography(title, span) {
+    const charactersPerColumn = String(title || '').length / Math.max(Number(span) || 1, 1);
+    return {
+      fontPx: charactersPerColumn >= 29 ? 6 : charactersPerColumn >= 13 ? 7 : 8,
+      maxLines: 2
+    };
+  }
+
+  function buildCalendarScheduleLanes(year, month, input, weekStart = 'sunday', rows = 5) {
+    const grid = buildCalendarGrid(year, month, weekStart, rows);
+    const monthFirst = `${year}-${String(month).padStart(2, '0')}-01`;
+    const monthLastDay = new Date(year, month, 0).getDate();
+    const monthLast = `${year}-${String(month).padStart(2, '0')}-${String(monthLastDay).padStart(2, '0')}`;
+    const dayOf = value => Number(String(value).slice(-2));
+    const dateLength = event => dayOf(event.endDate) - dayOf(event.startDate);
+    const overlaps = (left, right) => left.startDate <= right.endDate && right.startDate <= left.endDate;
+    const events = (Array.isArray(input) ? input : [])
+      .filter(event => event?.id && event?.startDate && (event.endDate || event.startDate) >= event.startDate)
+      .filter(event => event.startDate <= monthLast && (event.endDate || event.startDate) >= monthFirst)
+      .map(event => ({
+        ...event,
+        title: String(event.title || ''),
+        startDate: event.startDate < monthFirst ? monthFirst : event.startDate,
+        endDate: (event.endDate || event.startDate) > monthLast ? monthLast : (event.endDate || event.startDate)
+      }))
+      .sort((left, right) => dateLength(right) - dateLength(left)
+        || left.startDate.localeCompare(right.startDate)
+        || left.title.localeCompare(right.title));
+
+    const lanes = [];
+    const eventLane = new Map();
+    events.forEach(event => {
+      let lane = lanes.findIndex(placed => placed.every(item => !overlaps(item, event)));
+      if (lane < 0) {
+        lane = lanes.length;
+        lanes.push([event]);
+      } else {
+        lanes[lane].push(event);
+      }
+      eventLane.set(event.id, lane);
+    });
+
+    const primaryByDate = new Map();
+    grid.forEach((cell, index) => {
+      primaryByDate.set(cell.date, { row: Math.floor(index / 7), startCol: index % 7 });
+      if (cell.extra) primaryByDate.set(cell.extra.date, { row: Math.floor(index / 7), startCol: index % 7, compactExtra: true });
+    });
+    const segments = [];
+    const hiddenByDate = {};
+    events.forEach(event => {
+      const lane = eventLane.get(event.id) || 0;
+      let cursor = dateFromISO(event.startDate);
+      const end = dateFromISO(event.endDate);
+      if (lane >= SCHEDULE_MAX_LANES) {
+        while (cursor <= end) {
+          const date = isoDate(cursor);
+          hiddenByDate[date] = (hiddenByDate[date] || 0) + 1;
+          cursor.setDate(cursor.getDate() + 1);
+        }
+        return;
+      }
+      while (cursor <= end) {
+        const date = isoDate(cursor);
+        const start = primaryByDate.get(date);
+        if (!start) {
+          cursor.setDate(cursor.getDate() + 1);
+          continue;
+        }
+        let span = 1;
+        const compactExtra = start.compactExtra === true;
+        if (!compactExtra) {
+          let probe = new Date(cursor);
+          while (span < 7 - start.startCol && probe < end) {
+            probe.setDate(probe.getDate() + 1);
+            const next = primaryByDate.get(isoDate(probe));
+            if (!next || next.compactExtra || next.row !== start.row || next.startCol !== start.startCol + span) break;
+            span += 1;
+          }
+        }
+        segments.push({
+          eventId: event.id,
+          title: event.title,
+          row: start.row,
+          startCol: start.startCol,
+          span,
+          lane,
+          startDate: event.startDate,
+          endDate: event.endDate
+        });
+        cursor.setDate(cursor.getDate() + span);
+      }
+    });
+    return { segments, hiddenByDate, maxLanes: SCHEDULE_MAX_LANES };
+  }
+
   root.ACDLCalendarDomain = Object.freeze({
     buildTwelveMonths,
     buildCalendarGrid,
     buildRangeSegments,
-    assignRangeLanes
+    assignRangeLanes,
+    calendarScheduleTypography,
+    buildCalendarScheduleLanes,
+    SCHEDULE_MAX_LANES
   });
 })(typeof window !== 'undefined' ? window : globalThis);
