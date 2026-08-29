@@ -39,15 +39,26 @@
     form.append('academicYear', String(options?.academicYear || ''));
     form.append('startMonth', String(options?.startMonth || 3));
     const target = options?.endpoint || endpoint();
-    const headers = {};
-    if (isRemote() && target === endpoint()) {
-      const accessToken = root.ACDLTemplateRemotePersistence?.accessToken?.();
-      if (!accessToken) throw new Error('템플릿 에디터 원격 저장 접근 코드가 필요합니다.');
-      headers['x-template-editor-token'] = accessToken;
+    const guarded = isRemote() && target === endpoint();
+    const request = async () => {
+      const headers = {};
+      if (guarded) {
+        const accessToken = root.ACDLTemplateRemotePersistence?.accessToken?.();
+        if (!accessToken) throw new Error('템플릿 에디터 원격 저장 접근 코드가 필요합니다.');
+        headers['x-template-editor-token'] = accessToken;
+      }
+      return fetch(target, { method: 'POST', headers, body: form });
+    };
+    let response = await request();
+    if (response.status === 401 && guarded) {
+      root.ACDLTemplateRemotePersistence?.clearAccessToken?.();
+      response = await request();
     }
-    const response = await fetch(target, { method: 'POST', headers, body: form });
     const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(body?.error?.message || `일정 추출 API 오류 (${response.status})`);
+    if (!response.ok) {
+      const message = body?.error?.message || (response.status === 401 ? '템플릿 에디터 접근 코드가 일치하지 않습니다.' : `일정 추출 API 오류 (${response.status})`);
+      throw new Error(message);
+    }
     if (!Array.isArray(body.schedules)) throw new Error('일정 추출 API 응답에 schedules 배열이 없습니다.');
     return body;
   }
