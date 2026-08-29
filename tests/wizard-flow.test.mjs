@@ -79,15 +79,25 @@ test('calendar type rules disable unsupported insert controls', () => {
 test('template settings persist against the current template id', () => {
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
   assert.match(html, /const id=project\.template\?\.id/);
-  assert.match(html, /saveTemplateProjectData\(id,JSON\.parse\(JSON\.stringify\(project\)\)\)/);
+  assert.match(html, /saveTemplateProjectData\(id,window\.ACDLPersistenceProject\.clone\(project\)\)/);
   assert.match(html, /persistAfter\('saveSchoolInfoBtn','학교 정보 및 에셋'\)/);
   assert.match(html, /persistCurrentTemplateSettings\('샘플 일정 파일'\)/);
 });
 
-test('system template edits preserve their library source', () => {
+test('system templates retain their source while editing and save as a custom latest record', () => {
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
   assert.match(html, /project\.template\.librarySource=t\.source\|\|project\.template\.librarySource\|\|"local"/);
-  assert.match(html, /source:project\.template\.librarySource\|\|"local"/);
+  assert.match(html, /project\.template\.librarySource="local"/);
+  assert.match(html, /source:"local"/);
+  assert.match(html, /v22Library\(\)\.find\(x=>x\.id===savedId\)/);
+});
+
+test('reopened remote templates keep the identity needed to create the next version', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /project\.template\.remoteId=t\.remoteId\|\|t\.id/);
+  assert.match(html, /project\.template\.remoteStableKey=t\.stableKey/);
+  assert.match(html, /project\.template\.remoteVersionNumber=Number\(t\.version\)/);
+  assert.match(html, /templateId:project\.template\.remoteId\|\|null/);
 });
 
 test('sample schedule registration uses the same primary action style', () => {
@@ -150,4 +160,49 @@ test('template library uses unified controls and calendar product thumbnails', (
   assert.match(html, /\.calendar-product-wall \.calendar-product-shell/);
   assert.match(runtime, /calendar-product-thumb calendar-product-\$\{escape\(record\.type\)\}/);
   assert.match(runtime, /calendar-product-page.*data-library-thumbnail/);
+});
+
+test('remote template cards expose immutable version history and restore controls', () => {
+  const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
+  assert.match(runtime, /<span class="version-badge">v\$\{escape\(String\(record\.version\)\)\}<\/span>/);
+  assert.match(runtime, /data-library-history/);
+  assert.match(runtime, /ACDLTemplateRemotePersistence\.versions\(templateId\)/);
+  assert.match(runtime, /기존 버전은 그대로 보존됩니다/);
+  assert.match(runtime, /remote\.restore\(templateId,versionId/);
+  assert.match(runtime, /과거 버전 읽기 전용 미리보기/);
+});
+
+test('runtime parity package is exposed as a review sample without publishing it to users', () => {
+  const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
+  assert.match(catalog, /tpl-2028-desk-academic-standard-v1-3/);
+  assert.match(catalog, /packageVersion:\"1\.3\.0\"/);
+  assert.match(catalog, /status:\"ready\"/);
+  assert.match(catalog, /packageBase:\"\/templates\/desk-academic-standard\/1\.3\.0\/\"/);
+  assert.match(catalog, /사용자가 사진 보관함에서 직접 교체/);
+  assert.doesNotMatch(catalog, /tpl-2028-desk-academic-standard-v1-3[^\n]+status:\"published\"/);
+  const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
+  assert.match(runtime, /\['draft','ready','published','archived'\]/);
+});
+
+test('wall academic package is exposed as an editor review sample with its exact version', () => {
+  const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
+  assert.match(catalog, /tpl-2028-wall-academic-standard-v0-3/);
+  assert.match(catalog, /name:"벽걸이형 표준 01 · 이미지 월력형"/);
+  assert.match(catalog, /packageVersion:"0\.3\.0"/);
+  assert.match(catalog, /packageBase:"\/templates\/wall-academic-standard\/0\.3\.0\/"/);
+  assert.match(catalog, /pageSummary:"앞표지 1면·앞간지 1면·월력 12면·뒷표지 1면"/);
+  assert.doesNotMatch(catalog, /tpl-2028-wall-academic-standard-v0-3[^\n]+status:"published"/);
+});
+
+test('template library entry and save do not reference the removed legacy filter state', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.doesNotMatch(html, /activeLibraryFilter/);
+  assert.match(html, /designerHomeLibrary[^\n]+renderTemplateLibrary\('all'\)/);
+  assert.match(html, /renderTemplateLibrary\("all"\);/);
+});
+
+test('local studio server handles the browser favicon request without a 404', () => {
+  const server = fs.readFileSync(new URL('../tools/serve-designer-studio.mjs', import.meta.url), 'utf8');
+  assert.match(server, /url\.pathname === '\/favicon\.ico'/);
+  assert.match(server, /res\.writeHead\(204/);
 });

@@ -24,7 +24,8 @@
     "demo:sprint2": "npm run verify && node tools/serve-designer-studio.mjs",
     "dev": "node tools/serve-designer-studio.mjs",
     "test:sprint2-product": "node tools/check-sprint2-product.mjs",
-    "test:wizard": "node --test tests/wizard-flow.test.mjs"
+    "test:wizard": "node --test tests/wizard-flow.test.mjs",
+    "build:user-service-runtime": "npm run test:integration && node tools/build-user-service-runtime-package.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.2"

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "print-profile.v1-draft",
+  "templateId": "wall-academic-standard",
+  "version": "0.2.0",
+  "trimSize": { "width": 297, "height": 420, "unit": "mm" },
+  "productionSize": { "width": 303, "height": 426, "unit": "mm" },
+  "bleed": { "top": 3, "right": 3, "bottom": 3, "left": 3, "unit": "mm" },
+  "orientation": "portrait",
+  "duplex": false,
+  "cropMarkWidth": { "value": 0.540, "unit": "pt" },
+  "pdfStandard": "PDF/X-4",
+  "colorProfile": "Japan Color 2011 Coated",
+  "blackRule": "K100",
+  "fontHandling": "outline",
+  "boxes": ["TrimBox", "BleedBox"],
+  "status": "contract-review"
+}

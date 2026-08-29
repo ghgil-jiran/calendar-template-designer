@@ -1,6 +1,6 @@
 # 사용자 MVP 데이터 매핑
 
-상태: 통합 착수용 초안  
+상태: 사용자 서비스 v1.1 Adapter 계약 확인 완료
 기준 계약: Dataset Contract `1.0`, Template Package Binding Contract `1.1`  
 목적: 기존 사용자 MVP의 입력 데이터를 Designer Studio 템플릿과 Template Runtime에 손실 없이 전달한다.
 
@@ -78,19 +78,21 @@ ResolvedDocument
 
 ## 학교 정보 매핑
 
+사용자 서비스의 실제 원본은 `calendar_docs.doc`와 `doc_render_state.stores`다. 아래 필드는 `integration/runtime-v2`의 Adapter와 테스트에서 확인했으며, 템플릿 에디터는 원본 버킷을 직접 읽지 않고 Adapter가 만든 Dataset만 받는다.
+
 | 업무 데이터 | MVP 원본 필드 | Runtime Dataset 경로 | 현재 에디터에서 확인된 위치 | 1차 처리 |
 |---|---|---|---|---|
-| 학교명 | 원본 확인 필요 | `school.name` | `book.school.name` | 필수 |
-| 영문 학교명 | 원본 확인 필요 | `school.englishName` | `book.school.englishName` | 선택 |
+| 학교명 | `doc.meta.schoolName`, 보조 `school-crest-v1.crest.nameKo` | `school.name` | `book.school.name` | 필수 |
+| 영문 학교명 | `school-crest-v1.crest.nameEn` | `school.englishName` | `book.school.englishName` | 선택 |
 | 슬로건 | 원본 확인 필요 | `school.slogan` | `book.school.slogan` | 선택 |
-| 주소 | 원본 확인 필요 | `school.address` | `book.school.address` | 선택 |
-| 홈페이지 | 원본 확인 필요 | `school.website` | `book.school.website` | 선택 |
-| 대표·부서 연락처 | 원본 확인 필요 | `school.contacts[]` | 프로필 입력에는 `contacts[]`, 초기 프로젝트에는 `phone`이 존재 | 구조 통일 필요 |
-| 교표 | 원본 확인 필요 | `school.profile.logo` | `book.school.profile.logo` | 필수 이미지 |
+| 주소 | `school-contact-v1.contact.address` | `school.address` | `book.school.address` | 선택 |
+| 홈페이지 | `school-contact-v1.contact.site` | `school.website` | `book.school.website` | 선택 |
+| 대표·부서 연락처 | `school-contact-v1.contact.telAcademic/telAdmin/fax` | `school.contacts[]` (`academic`/`admin`/`fax`) | 프로필 입력에는 `contacts[]`, 초기 프로젝트에는 `phone`이 존재 | Adapter 구조 확인 |
+| 교표 | `school-crest-v1.crest.imageRef` | `school.profile.logo` | `book.school.profile.logo` | `MvpAssetRef` |
 | 학교 전경 | 원본 확인 필요 | `school.profile.building` | `book.school.profile.building` | 필수 이미지 |
-| 교화 | 원본 확인 필요 | `school.profile.flower` | `book.school.profile.flower` | 선택 |
-| 교목 | 원본 확인 필요 | `school.profile.tree` | `book.school.profile.tree` | 선택 |
-| 교훈 | 원본 확인 필요 | `school.profile.motto` | 프로필 입력의 `motto`, Binding Contract의 `profile.motto` | 구조 통일 필요 |
+| 교화 | `school-symbols-v1.symbols.flower/flowerDesc` | `school.profile.flower` | `book.school.profile.flower` | 선택 |
+| 교목 | `school-symbols-v1.symbols.tree/treeDesc` | `school.profile.tree` | `book.school.profile.tree` | 선택 |
+| 교훈 | 현재 Adapter는 `school-symbols-v1.symbols.bird`를 설명으로 투영 | `school.profile.motto` | 프로필 입력의 `motto`, Binding Contract의 `profile.motto` | 의미 재확인 필요 |
 | 교가 | 원본 확인 필요 | `school.profile.song` | 프로필 입력은 이미지·설명 모두 지원 | 선택 |
 | 사용자 등록 학교 이미지 | 원본 확인 필요 | `school.profile.customAssets[]` 또는 `assets[]` | `book.school.customAssets`, `template.resources.sampleAssets`가 함께 존재 | 소유권 분리 필요 |
 
@@ -100,19 +102,21 @@ ResolvedDocument
 
 | 업무 데이터 | MVP 원본 필드 | Runtime Dataset 경로 | 현재 에디터 기준 | 1차 처리 |
 |---|---|---|---|---|
-| 기준 연도 | 원본 확인 필요 | `calendar.year` | `settings.year` | 필수 |
-| 시작월 | 원본 확인 필요 | `calendar.startMonth` | `settings.startMonth` | 필수, 1~12 |
-| 주 시작 요일 | 원본 확인 필요 | `calendar.weekStart` | `settings.weekStart` | `sunday`/`monday` |
-| 월력 행 수 | 원본 확인 필요 | `calendar.gridRows` | `settings.calendarRows` | MVP 이름과 통일 필요 |
-| 공휴일 포함 | 원본 확인 필요 | `calendar.dataOptions.includeHolidays` | Binding Contract에 정의 | 기존 MVP 기능 보존 |
-| 24절기 포함 | 원본 확인 필요 | `calendar.dataOptions.includeSolarTerms` | Binding Contract에 정의 | 기존 MVP 기능 보존 |
-| 음력 포함 | 원본 확인 필요 | `calendar.dataOptions.includeLunar` | Binding Contract에 정의 | 기존 MVP 기능 보존 |
+| 기준 연도 | `doc.meta.academicYear` | `calendar.year` | `settings.year` | 필수 |
+| 시작월 | v1.1 고정값 `3` | `calendar.startMonth` | `settings.startMonth` | 대표 탁상형 고정 |
+| 주 시작 요일 | v1.1 고정값 `sunday` | `calendar.weekStart` | `settings.weekStart` | 대표 탁상형 고정 |
+| 월력 행 수 | v1.1 고정값 `5` | `calendar.gridRows` | `settings.calendarRows` | 대표 탁상형 고정 |
+| 공휴일 포함 | v1.1 고정값 `true` | `calendar.dataOptions.includeHolidays` | Binding Contract에 정의 | 기존 코드 판정 보존 |
+| 24절기 포함 | `doc.spreads[].pages[].elements[].showSolarTerms` | `calendar.dataOptions.includeSolarTerms` | Binding Contract에 정의 | 하나라도 true면 포함 |
+| 음력 포함 | `doc.spreads[].pages[].elements[].showLunar` | `calendar.dataOptions.includeLunar` | Binding Contract에 정의 | 하나라도 true면 포함 |
 | 달력 유형·크기 | 원본 확인 필요 | Template 선택 정보로 전달 | `productType`, `settings.sizePreset` | Dataset이 아닌 프로젝트/템플릿 선택 값 |
 | 앞·뒤 간지 수 | 원본 확인 필요 | 프로젝트 생성 옵션 | `settings.frontInsertCount`, `settings.rearInsertCount` | 템플릿 허용 범위와 검증 |
 
 달력 유형, 페이지 크기, 양면 여부, 페이지 구성은 사용자 콘텐츠가 아니라 선택한 배포 템플릿의 구조다. 사용자 MVP가 같은 값을 갖고 있더라도 Runtime 실행 시 템플릿과 불일치하면 오류로 처리한다.
 
 ## 학사일정 매핑
+
+실제 일정 원본은 `user-schedules-v1.schedules[월].events[]/periods[]`이며 3~12월은 학사연도, 1~2월은 다음 연도로 변환한다. 단일 일정은 `d`, 기간 일정은 `s/e`를 사용하고 `label`, 선택적 `id/color`를 읽는다. 유효하지 않은 월·일·기간은 Dataset에서 제외하고 Adapter 오류로 반환한다.
 
 현재 에디터가 실제로 사용하는 일정 형태는 다음과 같다.
 
@@ -150,13 +154,41 @@ ResolvedDocument
 
 | 업무 데이터 | MVP 원본 필드 | Runtime Dataset 경로 | 키 규칙 | 1차 처리 |
 |---|---|---|---|---|
-| 월별 대표 이미지 | 원본 확인 필요 | `monthlyImages[YYYY-MM]` | 시작월부터 12개월의 실제 연·월 | 필수 검증 대상 |
-| 월별 이미지 파일 참조 | 원본 확인 필요 | 이미지 값의 `assetId` | Asset Contract 사용 | Base64 중복 금지 |
+| 월별 대표 이미지 | `photo-assets-v1.pageSrc[pageN]` + `doc.spreads[].month` | `monthlyImages[YYYY-MM]` | 시작월부터 12개월의 실제 연·월 | 연결 월 없는 쪽은 경고·제외 |
+| 월별 이미지 파일 참조 | `{ref:'idb',id}` 또는 `{ref:'url',src}` | `monthlyImages[key].assetRef` | 사용자 서비스 `MvpAssetRef` | 읽기 전용 Resolver 연결 |
 | 월별 추가 문구 | 원본 확인 필요 | `monthlyTexts[YYYY-MM]` | 이미지와 같은 키 | Schema 보완 후 사용 |
 | 월력용 명언 문구 | MVP 보유 여부 확인 필요 | `monthlyQuotes[YYYY-MM]` | 제목·한글·영문·출처·출처 상태 | Template Editor에서 `monthlyQuote` 개체 구현 |
 | 월별 자유 개체 편집 | 기존 MVP 구조 확인 필요 | 프로젝트 override 또는 별도 사용자 편집 계약 | 페이지 ID와 연·월을 함께 보존 | 1차 범위에서는 최소화 |
 
 숫자 월(`3`)만 키로 사용하면 12개월이 연도를 넘을 때 충돌하므로 항상 `YYYY-MM`을 사용한다.
+
+### AssetRef 해석 규칙
+
+사용자 서비스 v1.1의 실제 구현을 기준으로 다음 순서를 유지한다.
+
+1. `{ref:'url',src}`는 `src`를 그대로 사용한다.
+2. `{ref:'idb',id}`는 IndexedDB `calendar-uploads`의 `assets` store에서 ID로 조회한다.
+3. 로컬 자산의 `UploadAsset.dataUrl`이 있으면 이를 사용한다.
+4. 로컬에 없으면 Supabase 공개 버킷 `print-assets/user/{id}`의 존재를 확인하고 공개 URL을 사용한다.
+5. 두 위치 모두 없으면 원본 참조는 보존하고 `ASSET_NOT_FOUND` 경고와 빈 슬롯을 반환한다.
+
+템플릿 에디터는 사용자 서비스 IndexedDB나 Supabase 클라이언트를 직접 소유하지 않는다. 사용자 서비스가 `getAsset`, `cloudAssetUrl`, `cloudAssetExists` 구현을 주입하며, Resolver는 Shadow Runtime용 복제 Dataset에만 렌더 가능한 `src`를 추가한다.
+
+현재 대표 Template Package는 연락처를 `school.contact.address/telAcademic/telAdmin/fax/site`로 읽는다. 사용자 서비스의 공식 출력인 `school.contacts[]`는 그대로 보존하고, Shadow Runtime 진입 시에만 위 5개 필드의 읽기 전용 호환 보기를 만든다. 이 투영은 사용자 서비스 저장 Schema 변경이 아니다.
+
+## Shadow 진단 JSON 경계
+
+사용자 서비스가 Shadow 세션 결과를 개발 검토 화면이나 파일로 전달할 때는 전체 세션을 직렬화하지 않고 `user-service-shadow-diagnostic.v1` 보고서만 사용한다. 모듈 진입점은 `@calendar-publishing/designer-runtime-integration`의 `createUserServiceShadowDiagnosticReport`와 `serializeUserServiceShadowDiagnosticReport`다.
+
+보고서에는 문서·템플릿 식별자, Dataset Schema 버전, 실행 상태, 페이지·일정·연락처·월별 이미지 건수와 허용된 진단 필드만 포함한다. `expected`/`actual`은 숫자·불리언만 허용한다. 학교 원본 Dataset, 생성 HTML, 이미지 본문, 저장소 자산, 문자열·객체 비교값, stack과 임의 확장 필드는 제외한다. 이 JSON은 비교 증거이며 사용자 서비스의 저장 Schema나 운영 PDF 입력이 아니다.
+
+## Template Package 공급 방식
+
+사용자 서비스는 `@calendar-publishing/designer-runtime-integration`의 공통 API를 사용한다. Template Package는 배포 URL에서 `loadTemplatePackage(fetcher, base)`로 불러오거나, 빌드 시 JSON을 직접 import한 뒤 `assembleTemplatePackage(files)`로 조립할 수 있다. 두 방식 모두 manifest의 필수 파일과 manifest/template의 ID·버전을 같은 규칙으로 검사한다.
+
+검증된 Package의 `template`과 사용자 서비스 Adapter 결과는 `buildDeskAcademicPackageDocument`에 전달한다. 이 함수는 기존 사용자 문서를 저장하거나 변경하지 않고 화면·비교용 공통 문서를 반환한다. 사용자 서비스에 어떤 방식으로 패키지 소스를 고정할지는 실제 작업 브랜치에서 정하되, 운영 중 임의 최신 버전을 자동 선택하지 않고 ID와 버전을 명시적으로 고정한다.
+
+사용자 서비스에는 템플릿 에디터의 Legacy Project가 없으므로 실제 연결에서는 `composeDeskAcademicPackageDocument(dataset, packageTemplate)`를 사용한다. 이 API가 Dataset의 `calendar.year`와 `calendar.startMonth`를 기준으로 14장 28면을 만들고 Package Master를 적용한다. 입력 Dataset은 같은 객체로 보존되며, 생성된 페이지는 계산 결과이므로 사용자 서비스의 원본 저장 Schema에 다시 기록하지 않는다.
 
 ## 템플릿·프로젝트·주문 데이터 경계
 

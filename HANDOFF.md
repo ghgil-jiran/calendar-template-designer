@@ -22,3 +22,13 @@
 - 우리학교인쇄 실제 API
 - 인쇄소 전달 API
 - 기존 UI와 디자인 토큰
+
+## 템플릿 영구 저장 전환에서 맞출 부분
+
+1. 개발·검토용 Supabase `calendar-editor-runtime-dev`에 `supabase/migrations/202608240001_template_persistence.sql` 적용 완료
+2. Vercel 서버 환경에 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TEMPLATE_EDITOR_ACCESS_TOKEN` 등록
+3. 서비스 키는 브라우저에 노출하지 않고 `/api/templates` 계열 서버 경로에서만 사용
+4. 현재 단계는 단일 내부 제작자 기준이며, 다중 사용자 인증·권한은 이후 별도 설계
+5. `template-assets`는 검토용 이미지 보관 범위이며 장기 보관·운영 자산 정책은 운영 전환 전에 재확인
+6. 운영 전환 전 버전 보관 기간, 템플릿 삭제 방식, 이미지 미사용 자산 정리 정책 확정
+7. 비공개 이미지 주소는 템플릿을 열 때마다 24시간 유효 주소로 다시 발급하며, 원격 프로젝트에는 `acdl-asset://<id>` 참조만 저장

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "template-package.v1-draft",
+  "templateId": "desk-academic-standard",
+  "version": "1.0.0",
+  "name": "학사달력 표준 탁상형",
+  "productType": "desk",
+  "status": "print-review-ready",
+  "publishable": false,
+  "pageComposition": {
+    "sheetCount": 14,
+    "surfaceCount": 28,
+    "monthCount": 12,
+    "defaultStartMonth": 3
+  },
+  "compatibility": {
+    "datasetSchema": "1.x",
+    "templateSchema": "2.x",
+    "runtime": "1.x"
+  },
+  "files": {
+    "template": "template.json",
+    "bindings": "bindings.json",
+    "print": "print.json",
+    "parity": "parity.json",
+    "assets": "assets/"
+  }
+}

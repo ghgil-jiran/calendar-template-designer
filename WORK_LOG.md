@@ -1,5 +1,194 @@
 # Work Log
 
+## 2026-08-25 — Supabase 원격 저장·버전 누적 Preview 육안 검증 완료
+
+- Vercel Preview `6b55dbf`에서 내부 접근 코드 입력과 달력 템플릿 에디터 진입 확인
+- 시스템 베이스의 벽걸이형 표준 01을 A3 세로 13면으로 열고 페이지 선택·저장 대화상자·원격 저장 확인
+- 다른 브라우저에서 `내 템플릿` 최신 카드 한 개와 저장한 13면·배치 재조회를 확인
+- 원격 재열기 후 같은 템플릿을 다시 저장했을 때 새 카드가 생기지 않고 `v2`로 누적되는 것을 확인
+- `v2`를 다시 열어 이동한 개체 위치가 유지되는 것을 확인
+- 초기 재열기 식별자 오류로 생성된 중복 프로젝트는 삭제하지 않고 `archived_at`으로 보관 처리
+- 화면에는 최신본만 표시하고 내부에는 불변 버전을 누적하는 1차 저장 정책 검증 완료
+- 다음 단계는 필요할 때만 펼치는 버전 이력·복원 UI와 복원 시 새 버전 누적 검증
+
+## 2026-08-25 — Vercel Preview 정적 Package 배포 보완
+
+- Preview 환경에 Supabase URL, 서버 전용 service role, 내부 접근 토큰을 등록하고 `d2a42e8` 재배포 완료
+- 첫 배포 육안 검사에서 디자인 토큰과 탁상형·벽걸이형 Package manifest가 404로 빠지는 정적 출력 경계 확인
+- Vercel 전용 정적 빌드가 Designer Studio, 디자인 토큰, 전체 Template Package를 `public` 출력에 복사하도록 연결
+- 시스템 베이스를 원격 저장할 때 새 UUID를 기준으로 저장 결과를 확인하고 `내 템플릿` 최신본으로 분류하도록 수정
+- Vercel의 실제 작업 위치가 `apps/designer-studio`인 경우에도 저장소 루트의 빌드 스크립트를 찾아 해당 위치의 `public`으로 출력하도록 보완
+- `/` 진입 HTML의 상대 경로가 요구하는 Designer Studio 스크립트·스타일을 정적 출력 루트에도 배치하고 모든 `./...` 참조 파일 존재를 자동검사
+- 다른 브라우저에서 원격 저장본을 다시 열 때 `remoteId`, stable key, 최신 버전 번호를 Project에 복원해 다음 저장이 새 템플릿이 아닌 동일 템플릿의 다음 버전이 되도록 보완
+- 저장소 루트·Vercel 작업 위치 양쪽 정적 출력 검사와 Studio 전체 자동검사 127/127, 제품 상호작용, 인라인 스크립트 19개, 스타일 보호 검사 통과
+- Preview 접근 토큰, 벽걸이형 13면·페이지 이동·저장, 다른 브라우저 재조회와 `v2` 누적 육안 검증 완료
+
+## 2026-08-24 — 템플릿 최신본·버전 이력·이미지 원격 저장
+
+- 라이브러리에는 템플릿별 최신본 한 개만 표시하고 명시적 저장·복원·배포는 수정 불가 버전으로 누적하는 정책 확정
+- 자동저장은 버전 번호를 늘리지 않고 템플릿별 임시본 한 개만 갱신하도록 분리
+- `template_projects`, `template_versions`, `template_drafts`, `template_assets`, `template_version_assets` migration과 원자적 버전 저장 함수 추가
+- Vercel Node API에 최신본 조회, 정식 저장, 자동저장, 버전 목록, 복원, 비공개 이미지 자산 저장 경로 추가
+- 내부 접근 토큰과 서버 전용 Supabase service role 경계를 적용하고 공개 DB 접근을 차단
+- 기존 IndexedDB 선저장·원격 실패 시 로컬 유지·다른 브라우저 최신본 조회를 에디터에 연결
+- Base64 이미지를 SHA-256으로 중복 제거하고 원격 프로젝트에는 `acdl-asset://<id>` 참조만 저장
+- 비공개 이미지의 24시간 유효 주소를 템플릿을 열 때마다 재발급하고 재저장 시 자산 참조로 환원
+- 사용자 계정의 `calendar-editor-runtime-dev` Supabase에 표 5개와 비공개 `template-assets` 버킷 적용 및 설정 확인
+- Studio 자동검사 124/124, contracts TypeScript, 제품 상호작용, 인라인 스크립트 19개, 스타일 보호 검사 통과
+
+## 2026-08-24 — 벽걸이형 표준 01 편집기 작성·저장 기반 연결
+
+- `벽걸이형 표준 01 · 이미지 월력형`을 2028 Edition review Sample Template로 등록
+- 기존 탁상형 28면 전용 Package Adapter를 제품 유형별로 분기하고 벽걸이형 pageSequence를 표지 1면 + 월력 12면의 A3 세로 13면으로 확장
+- 2028년 3월부터 2029년 2월까지 monthKey, 단면 역할, 상단 월별 이미지 frame, 하단 월력 영역을 편집기 Project에 투영
+- 벽걸이형 Package ID·정확 버전 `wall-academic-standard@0.1.0`과 편집 개체 위치가 저장·재열기 후 유지되는 회귀검사 추가
+- review Sample은 일반 사용자 published 목록에 노출하지 않고 템플릿 에디터 시스템 베이스에서만 편집 가능하게 유지
+- TypeScript 3개 패키지, Studio 전체 108건, 제품 상호작용, 인라인 스크립트 19개, 스타일 보호 검사 통과
+- 다음 단계는 사용자 로컬 화면에서 벽걸이형 표지·월력 12면, 개체 편집, 저장·재열기를 육안 확인한 뒤 결정적 Package 내보내기와 사용자 서비스 E2E로 진행
+
+## 2026-08-23 — Template Package 편집기 로컬 종단 검증 완료
+
+- 사용자 로컬 브라우저에서 `desk-academic-standard@1.1.0` ready Sample 노출과 2028 Edition 확인
+- Package 기반 14장 28면의 페이지 순서와 각 면 기본 양식 로딩 확인
+- 학교 상징 등 개체 이동·크기 변경 후 템플릿 저장·재오픈 시 변경값 보존 확인
+- 원격 저장 과정에서 잘린 Designer Studio 진입 파일을 정상 3,992줄 원본으로 복구하고 500 KB 미만·필수 Runtime 누락을 거부하는 무결성 검사 추가
+- 개발 서버의 누락된 user-service bridge 경로와 `--port` 인자를 복구하고 제거된 라이브러리 필터 상태 참조 제거
+- 브라우저 기능과 무관한 `/favicon.ico` 404를 204 응답으로 정리
+- 다음 단계는 검증된 Sample Package를 사용자 서비스 선택 목록과 정확 버전 Runtime에 연결해 동일 편집·저장·재오픈 결과를 확인하는 것
+
+## 2026-08-23 — Template Package 1.1.0 편집기 Sample 연결
+
+- `desk-academic-standard@1.1.0`을 시스템 베이스의 `ready` Sample Template로 등록하고 일반 사용자 published 목록에는 노출하지 않음
+- Package 28면 역할 순서를 편집기 Project의 14장 28면과 연결하는 `package-project-adapter.js` 추가
+- Package Master의 frame·binding·layoutContract를 편집 가능한 `elementsByPage`와 월력 Master 영역으로 투영
+- 학교 상징 면의 기존 월력 렌더 중복을 막고 마지막 2월 월력 면을 올바른 편집기 역할로 전환
+- 시스템 Sample의 검토 완료 상태가 저장 시 draft로 내려가지 않도록 `ready` 저장 옵션 복구
+- 교가 개체 위치·크기를 수정한 뒤 Project clone 저장·재오픈 시 override와 Package 버전이 유지되는 회귀검사 추가
+- Studio 전체 104건, 모든 TypeScript 패키지, 제품 상호작용·인라인 스크립트·스타일 보호 검사 통과
+
+## 2026-08-23 — Runtime parity layoutContract 실제 소비 연결
+
+- 공통 TypeScript Runtime과 Designer Studio 브라우저 Runtime이 `desk-runtime-parity.v1` 계약을 동일하게 해석하도록 연결
+- `desk-academic-standard@1.1.0`에서만 연간 제목·12개월 4열 격자, 월력 헤더·요일·5행 본문, 사진·메모 절대 frame을 활성화
+- 논리적 개체 frame은 보존하고 렌더 전용 전체면 `renderFrame`을 review 계약에만 추가해 `1.0.0` 문서 구조를 변경하지 않음
+- 연간 월력의 학사연도·시작월 payload 생성과 3월~익년 2월 12개월 렌더 추가
+- TypeScript/브라우저 Runtime 문서 동등성, 두 버전 격리, Renderer HTML 좌표 소비 회귀검사 추가
+- Studio 전체 102건, 모든 TypeScript 패키지, 제품 상호작용·인라인 스크립트·스타일 보호 검사 통과
+
+## 2026-08-23 — 대표 28면 정밀 배치 Package 버전 분리
+
+- 검증 기준 `desk-academic-standard@1.0.0`을 보존하고 새 `1.1.0` review Package 생성
+- 사용자 서비스 기준 PDF와 Runtime 004 PDF의 28면 비교에서 확정한 연간·월력·사진/메모 좌표를 `layoutContract`로 기록
+- 연간 면 제목·4열 월력, 월력 면 헤더·요일·5행 본문, 사진/메모 절대 안전영역을 Template 데이터로 정형화
+- 28면 평균 픽셀 차이 8.743%, 잔여 차이 상위 면을 `parity.json`에 검토 증거로 기록
+- 새 버전은 `publishable: false`, `runtime-parity-review`로 유지하고 기존 사용자 서비스 Runtime 소비 버전은 `1.0.0`으로 고정
+- 새 Package 버전 계약 회귀검사 추가, 전체 Studio 101건 및 TypeScript 패키지·제품 상호작용·스타일 검사 통과
+
+## 2026-08-14 — 달력 계산 구조 개선 A2
+
+- 월력 셀 계산을 `calendar-domain-bridge.js`로 이동하고 기존 화면 함수는 위임 방식으로 유지
+- 6행 42칸과 5행 35칸을 모두 지원하며, 기존 5행 달력의 여섯째 주 `extra` 병합 규칙 보존
+- 기간 일정의 주별 segment 분할과 lane·overflow 계산을 DOM 독립 함수로 이동
+- 월 경계, 5행 병합, 여러 주 기간 일정, 우선순위 및 최대 lane 회귀검사 추가
+- 사용자 서비스 데이터, 기존 UI, 저장 형식, 인쇄 설정 변경 없음
+- Designer Studio 회귀검사 58개, 제품 상호작용 검사, 인라인 JavaScript 19개, 스타일 검사 통과
+- 현재 실행 환경의 TypeScript 의존성 부재로 전체 패키지 빌드는 후속 검증 대상으로 기록
+
+## 2026-08-14 — Dataset 경계와 대표 탁상형 패키지 기준선
+
+- 학교 profile 기본 구조 생성과 학사일정 날짜별 인덱스를 `dataset-domain-bridge.js`로 분리
+- 과거의 일부 profile을 자동 보완하지 않고 일정 객체 원본 참조를 유지하는 회귀검사 추가
+- `desk-academic-standard@1.0.0`의 manifest, template 참조, Binding, print, assets 구조 생성
+- 실제 페이지 구조 추출 전이므로 패키지를 배포 불가 기준선으로 명시
+- 현재 Binding과 공휴일·음력·24절기 Adapter 예정 Binding을 구분
+- 사용자 서비스 v1.1 인수인계의 인쇄 확정값을 참조 전용으로 기록하고 기존 출력기는 유지
+- Designer Studio 회귀검사 60개, 제품 상호작용 검사, 인라인 JavaScript 19개, 스타일 검사 통과
+
+## 2026-08-14 — 대표 탁상형 구조 정본 후보 선택
+
+- GitHub의 사용자 서비스 v1.1 `integration/runtime-v2` 소스에서 실제 14장 28면 순서 확인
+- 사용자 서비스의 월력 앞면+다음 달 사진·메모 뒷면 구조와 두 Designer Studio 샘플 비교
+- 월별 이미지 구조가 가까운 `desk-sample-2`를 통합 출발점으로 선택하고 `desk-sample-6`은 참조 후보로 유지
+- 사용자 서비스 페이지 순서를 Template Package의 `pageSequence`로 기록
+- 사용자 서비스 기준 5행 월력을 패키지 기본값으로 설정하고 기존 5·6행 지원은 보존
+- 사진+메모 및 연락처 Master는 v1.1 실물 비교 전 좌표를 추측하지 않도록 미완료 상태로 명시
+- 선택 근거와 후속 검증을 `docs/integration/DESK-TEMPLATE-BASELINE-SELECTION.md`에 기록
+- 전체 TypeScript 패키지 컴파일과 contracts·calendar-domain·editor-core·renderer-core·template-runtime·integration 검사 통과
+- Designer Studio 회귀검사 60개, 제품 상호작용 검사, 인라인 JavaScript 19개, 스타일 검사 재통과
+- `desk-sample-2`의 표지·연간·학교 상징·월력·이미지 콜라주 개체를 frame·binding 단위로 Template Package에 추출
+- 월별 이미지 Binding의 현재 경로와 목표 Dataset 경로를 함께 기록해 추후 Adapter에서 검증하도록 보호
+
+## 2026-08-14 — v1.1 사진·메모/끝지 계약 추출
+
+- 사용자 서비스 v1.1의 `MonthPhotoBackCanvas`, `BackContactCanvas`, `COVER_BACK_PARTS`를 대조
+- 월별 사진+메모 면을 고정 좌표 추측이 아닌 안전영역 `사진 1.7 : 메모 1` 복합 Master로 기록
+- PDF 괘선 품질 방어를 위해 메모 7칸·DOM 선 6개 규칙과 화면 전용 빈 슬롯 정책 기록
+- 끝지 교표·사진·연락처 카드의 실제 측정 좌표와 빈 연락처 숨김 정책을 Template Package에 반영
+- `school.contacts[]`를 v1.1 연락처 5필드로 투영하는 순수 Adapter와 회귀검사 추가
+- Runtime Dataset 생성 책임을 `dataset-domain-bridge.js`로 이동하고 월별 이미지·명언을 읽기 전용 복사본으로 포함
+- 월별 이미지 목표 Binding을 `monthlyImages.{YYYY-MM}` 패턴으로 명확화
+- Runtime 페이지 Adapter에서 기존 `calendar.monthlyImages.current`와 새 패턴을 실제 페이지 연월 경로로 치환
+- 이미지 개체의 중첩 `image.binding`도 Runtime 계약으로 읽도록 보완
+- 사용자 서비스 v1.1의 14장 28면 정본을 생성하는 `integration-parity-bridge.js` 추가
+- 현재 프로젝트와 정본의 면 개수·역할·연월을 순서대로 비교하는 숨은 Parity Report 연결
+- 같은 달 앞/뒷면인 현재 구조와 다음 달 사진이 뒷면인 v1.1 구조 차이를 회귀검사로 고정
+- 월별 사진 누락과 끝지 연락처 전체 누락을 별도 데이터 진단으로 기록
+- 기존 Runtime 상태 표시와 편집 UI에는 Parity 경고를 노출하지 않음
+- 원본 페이지와 개체를 수정하지 않고 v1.1 순서로 재참조하는 28면 페이지 구성 Adapter 추가
+- 구성 Adapter 결과를 기존 Runtime Adapter의 별도 입력으로 연결
+- Template Package 네 파일을 manifest 기준으로 불러오고 ID·버전을 검증하는 로더 추가
+- Package Master를 별도 28면 Runtime 문서로 해석하고 5행 월력·사진·연락처 진단 추가
+- 전체 28면 Package 문서에서 구조 오류 0건, 비어 있는 샘플 사진만 정보 진단으로 분리하는 검사 통과
+- Template Package 상태를 `runtime-contract-wired`로 갱신하고 `publishable: false` 유지
+- 커밋 전 전체 TypeScript 패키지 컴파일·검사, Studio 회귀검사 63건, 제품 상호작용, 인라인 스크립트 19개, 스타일 보호 검사 통과
+- 사용자 서비스 UI, 프로젝트 저장 형식, 기존 출력기에는 변경 없음
+
+## 2026-08-14 — 대표 탁상형 숨은 Renderer 연결
+
+- `desk-academic-standard@1.0.0`의 28면 Package 문서를 기존 화면과 분리된 HTML 결과로 생성
+- 5행 월력 35칸과 마지막 칸의 30·31일 병기 결과를 회귀검사로 고정
+- 월별 사진+메모의 `1.7:1` 배치, 메모 7칸·DOM 구분선 6개, 교훈·홈페이지 푸터 렌더링 추가
+- 끝지 연락처에서 빈 필드를 제외하고 전체가 비면 카드 자체를 숨기는 규칙 적용
+- 끝지 전용 사진이 없을 때 학교 전경으로 이어지는 fallback Binding을 Runtime에 연결
+- 결과를 `ACDLRuntimeBridge.lastDeskAcademicShadowRender`에만 보관해 기존 사용자 UI·저장·인쇄 경로를 변경하지 않음
+- 대체 차단 조건을 미구현 Master가 아닌 `VISUAL_PARITY_NOT_VERIFIED`, `PRINT_PARITY_NOT_VERIFIED`로 전환
+- Package 상태를 `shadow-renderer-wired`로 갱신하되 `publishable: false` 유지
+- 전체 TypeScript 패키지 컴파일·검사, Studio 회귀검사 64건, 제품 상호작용, 인라인 스크립트 19개, 스타일 보호 검사 통과
+
+## 2026-08-14 — v1.1 시각 비교 준비
+
+- GitHub의 사용자 서비스 `integration/runtime-v2`에서 `sample-doc.ts`, `constants.ts`, `editor-pages.ts`, `canvas.tsx`를 다시 대조
+- 제작면 266×186mm, 5행×7열, 사진:메모 `1.7:1`, 메모 7칸·선 6개, 연락처 빈 필드 제거를 독립 시각 기준으로 고정
+- Shadow Renderer에 mm 기반 개체 frame 배치와 월력·사진/메모·연락처 전용 스타일 연결
+- 대표 월력, 사진+메모, 끝지 연락처를 검토하는 독립 QA 페이지 추가
+- 전체 28면 결과의 구조 기준을 자동 검사하고 `structurallyReady`와 사람의 `visuallyApproved`를 구분
+- 구조 자동검사는 통과했지만 육안 승인과 PDF/X-4 비교 전이므로 `publishable: false` 유지
+- Package 상태를 `visual-review-ready`로 갱신
+- 첫 브라우저 캡처에서 5행 월력과 30·31일 병기, 메모 7칸·6선, 연락처 필드 구성이 정상임을 확인
+- 사진이 없는 QA 입력 때문에 사진:메모 비율과 끝지 상단 구성을 육안 판단하기 어려운 점을 발견
+- 전용 QA 입력에 저장소와 무관한 내장 학교 전경 샘플, 끝지 학교명 영역을 추가해 다음 육안 비교를 보완
+- 실제 프로젝트에서 사진이 비어 있는 경우에는 화면 전용 안내만 보이고 인쇄에서는 숨는 정책을 CSS로 명시
+
+## 2026-08-14 — 시각 승인 기록과 PDF/X-4 계약 검사
+
+- 제품 책임자의 보완된 대표 3면 브라우저 확인을 `parity.json`의 시각 승인으로 기록
+- 자동 구조검사와 별도 승인 기록이 모두 있을 때만 `visuallyApproved`가 true가 되도록 변경
+- 사용자 서비스 v1.1 최종 인수 브리핑에서 PDF/X-4 인쇄 확정값을 다시 확인
+- 제작 266×186mm, 재단 260×180mm, 도련 3mm, Japan Color 2011 Coated, 재단선 0.540pt, K100, 서체 아웃라인, TrimBox/BleedBox 계약 검사 추가
+- 과거 OPERATIONS 및 생성 스크립트 주석의 PDF/X-3 표현보다 최종 인수 브리핑의 PDF/X-4를 우선하는 기준 명시
+- 인쇄 계약 자동검사는 통과했지만 기준 PDF, Runtime PDF, Preflight 증거가 없어 `outputApproved: false` 유지
+- Package 상태를 `print-review-ready`로 올리고 `publishable: false` 유지
+
+## 2026-08-13 — 달력 템플릿 에디터 구조 개선 1단계
+
+- GitHub `main`의 PR #5 병합본 `d5784ae`를 기준으로 구조 개선 전용 브랜치 생성
+- 제품 정식 명칭을 `달력 템플릿 에디터`, `학사달력 에디터 서비스`로 문서에 반영
+- 4,136줄 규모 Designer Studio의 책임, 데이터 소유권, 기능별 코드 이동표와 단계별 분리 계획 작성
+- 기존 사용자 서비스 v1.1의 UI·인쇄·음력·24절기·공휴일 처리 보존 원칙 기록
+- 첫 순수 계산 분리로 학사연도 12개월 순서를 `calendar-domain-bridge.js`로 이동
+- 연도 경계와 잘못된 시작월 회귀 검사 추가
+- Designer Studio 회귀검사 58개, 인라인 JavaScript 19개, 전체 빌드 통과
+
 ## 2026-08-12 — 새 개체 이동 시 기존 개체가 함께 움직이는 오류 수정
 
 - 새 개체가 주 선택 대상이 될 때 남아 있던 이전 선택 목록을 새 개체 하나로 교체
@@ -46,3 +235,152 @@
 - 기존 UI, 스타일, 기능, `apps/designer-studio/index.html` 보존
 - 우리학교인쇄 서비스 경계, 주문/파일 연동 초안, 배포 단계를 문서화
 - `npm run style:check`, `npm run build` 검증 예정
+## 2026-08-17 — Project 문서 생성 분리
+
+- Designer Studio의 프로젝트 기본 구조와 탁상형 대표 템플릿 보정을 `project-document.js`로 이동
+- 기존 `makeProject` 진입점은 유지하고 순수 생성 모듈에 위임하여 뒤쪽 달력 유형 확장 코드와 호환
+- 탁상형·벽걸이형·벽보형 페이지 생성, 빈 일정, 대표 탁상형 Master와 월별 스타일 회귀검사 추가
+- HTML에 하드코딩된 프로젝트 생성 책임을 줄였으며 화면 UI, 저장 형식, 출력 경로는 변경하지 않음
+- PDF 실물 비교는 사용자 확인에 따라 후속 승인 단계로 보류
+
+## 2026-08-17 — Canvas 좌표 계산 분리
+
+- 다중 선택 Canvas의 이동, 8방향 크기 조절, 회전, 키보드 미세 이동을 `canvas-geometry.js`로 이동
+- 좌표 계산만 순수 모듈에 위임하고 기존 선택 상태, pointer 이벤트, undo, DOM 갱신 순서는 유지
+- Canvas 경계 제한, 최소 크기, 5도 회전 맞춤, 키보드 이동 회귀검사 추가
+- Studio 회귀검사 68개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
+
+## 2026-08-17 — Canvas 선택 상태 분리
+
+- 단일·다중 선택 목록과 주 선택 개체 전환을 `canvas-selection.js`로 이동
+- 새 개체 선택 시 이전 선택 교체, 삭제된 개체 선택 정리, ID 구분자 보존을 독립 검사로 고정
+- Shift·Ctrl 선택, 전체 선택, 복제 후 선택의 화면 호출 순서와 undo 처리는 유지
+- Studio 회귀검사 69개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
+
+## 2026-08-17 — Canvas 드래그 작업 상태 분리
+
+- pointer 시작 시점의 원본 개체, 중심점, 회전 시작각과 변경 여부를 `canvas-gesture.js`로 이동
+- 선택된 여러 개체 이동과 주 개체 크기 조절·회전을 기존 좌표 계산 모듈에 연결
+- pointer capture, undo 스냅샷, DOM 스타일 갱신 순서는 기존 이벤트 코드에 유지
+- 종료 시 변경 여부, 임시 undo 스냅샷 폐기 여부와 안내 메시지를 브라우저 독립 판정으로 고정
+- Studio 회귀검사 70개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
+
+## 2026-08-17 — Canvas 입력 연결 분리
+
+- pointer capture 등록·해제와 move/up/cancel listener 정리를 `canvas-input.js`로 이동
+- Ctrl/Cmd+A, Delete/Backspace, 방향키 입력을 화면 변경과 분리된 명령 판정으로 고정
+- 실제 선택·삭제·위치 변경, undo 스냅샷과 render 순서는 기존 화면 코드에 유지
+- 폼 입력 중 단축키 무시, 선택 유무, Shift 방향키 배속 회귀검사 추가
+- Studio 회귀검사 71개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
+
+## 2026-08-17 — Inspector 폼과 그래픽 설정 분리
+
+- Inspector 입력 변경 서명과 숫자 min/max 검증을 `inspector-form.js`로 이동
+- 파일 입력 제외, 체크박스 서명, 오류 필드 표시와 기존 안내 문구를 회귀검사로 고정
+- 도형·벡터·사진 프레임 스타일, 배치, 이미지 설정과 권한 반영을 `inspector-graphic.js`로 이동
+- DOM 입력 읽기, undo 스냅샷, dirty 상태, render와 저장 알림 순서는 기존 화면 코드에 유지
+- Studio 회귀검사 73개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
+
+## 2026-08-17 — 일반 개체 Inspector 분리
+
+- 텍스트 콘텐츠·Binding, 글자 스타일, 이미지 fit·대체 문구 반영을 `inspector-element.js`로 이동
+- 개체 위치·크기 숫자 변환과 0~100% Canvas 경계·최소 3% 크기 보정을 같은 모듈로 이동
+- 월력·일정·의미 객체처럼 별도 도메인 규칙이 필요한 Inspector는 기존 화면 연결에 유지
+- DOM 입력 읽기, undo 스냅샷, dirty 상태, render와 알림 순서는 변경하지 않음
+- Studio 회귀검사 74개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
+
+## 2026-08-17 — Preview 상태와 복제 경계 분리
+
+- 현재 프로젝트의 페이지 목록, 오래된 선택 페이지 복구, 편집 상태 저장·복원을 `preview-state.js`로 이동
+- 전체 미리보기 뒤 페이지·개체·scope·월력 편집 상태를 복구하고 preview 상태를 명시적으로 종료
+- 복제 페이지의 ID, 편집 전용 개체, resize handle, 선택·잠금·Binding 오류 표시 제거를 모듈화
+- 연간 벽보 720×1018 미리보기와 일반 페이지 실제 렌더 크기 보존 규칙을 회귀검사로 고정
+- DOM 카드 생성, 오류 카드, 확대·축소와 modal 표시 순서는 기존 화면 코드에 유지
+- Studio 회귀검사 75개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
+
+## 2026-08-17 — Persistence 기록과 프로젝트 직렬화 분리
+
+- undo/redo 기록의 긴 `data:` 이미지 dedup pool, 순환 참조 처리와 복원을 `persistence-history.js`로 이동
+- 프로젝트 clone·변경 hash와 자동 복구 레코드 생성을 `persistence-project.js`로 이동
+- 템플릿 저장과 설정 저장은 동일한 JSON clone 결과를 사용하고 기존 저장 스키마는 유지
+- 자동 복구의 `latest` 키, 선택 페이지 ID, ISO 시각과 IndexedDB 연결 순서는 변경하지 않음
+- IndexedDB 공통 열기·읽기·쓰기를 `persistence-indexeddb.js`로 이동
+- 기존 템플릿·자산 DB 이름, 버전, store와 `id` keyPath를 회귀검사로 고정
+- Studio 회귀검사 78개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
+
+## 2026-08-17 — Runtime Dataset 공급 경계 분리
+
+- Legacy Project의 페이지·개체·Binding 변환을 `runtime-project-adapter.js`로 이동
+- 기본 Designer Dataset 외에 외부 Adapter Dataset을 같은 Runtime 변환기에 주입할 수 있도록 경계 추가
+- 사용자 서비스 v1.1의 28면 구성은 기존 Page Adapter에 유지하여 데이터 변환과 물리 순서를 분리
+- 외부 Dataset 주입 결과와 원본 프로젝트 불변성을 회귀검사로 고정
+- GitHub 앱의 사용자 서비스 비공개 저장소 조회가 403으로 차단되어 실제 필드 매핑은 추측하지 않고 보류
+- Studio 회귀검사 80개와 제품 상호작용·인라인 스크립트·스타일 검사 통과
+
+## 2026-08-17 — 사용자 서비스 Dataset 수용 경계
+
+- 사용자 서비스 `integration/runtime-v2`의 계약, Adapter, 회귀검사와 통합 문서를 GitHub 원본에서 확인
+- `calendar_docs.doc`와 `doc_render_state.stores`의 학교·연락처·상징·일정·월별 이미지 매핑을 문서에 확정
+- 사용자 서비스의 변환 구현은 복사하지 않고 `RuntimeAdapterResult`를 검사·수용하는 브리지를 추가
+- Dataset 1.0, 한국 locale/timezone, 대표 탁상형 3월 시작·일요일 시작·5행과 원본 식별자를 검사
+- 사용자 서비스 Adapter 진단과 수용 경계 진단을 합쳐 오류 시 Runtime 페이지 구성을 차단
+- 기존 Designer Dataset과 사용자 화면·저장·PDF 기본 경로는 변경하지 않음
+
+## 2026-08-18 — 사용자 서비스 AssetRef Resolver
+
+- 사용자 서비스 v1.1의 `upload-store.ts`, `asset-cloud.ts`, `use-photo-assets.ts`를 GitHub 원본에서 확인
+- IndexedDB `calendar-uploads/assets`의 `UploadAsset.dataUrl`을 우선하고 공개 버킷 `print-assets/user/{id}`로 폴백하는 기존 규칙을 보존
+- 사용자 서비스의 저장소 조회 함수를 주입받는 브라우저 독립 `user-service-asset-resolver.js` 추가
+- URL 참조는 즉시 사용하고 IDB 참조는 로컬→클라우드 순으로 해석하며 동일 ID 결과를 캐시
+- 원본 Dataset을 변경하지 않고 학교 교표와 월별 이미지에 Shadow Runtime용 `src`만 추가
+- 누락 이미지는 빈 슬롯과 `ASSET_NOT_FOUND` 경고로 유지하고 기존 화면·저장·PDF 경로는 변경하지 않음
+
+## 2026-08-18 — 사용자 서비스 Shadow 실행 세션
+
+- Dataset 수용→Asset 해석→28면 구성→Template Package 적용→숨은 HTML 렌더→Parity 비교를 하나의 세션으로 연결
+- 잘못된 Dataset은 Package 로드 전에 중단하고, 구조 오류와 선택 이미지 누락 경고를 구분
+- 학교명, 일정, 월별 이미지 키·해석 수와 표지·연간·학교 상징·12개월 달력·사진/메모·끝지 역할 수를 자동 비교
+- 사용자 서비스 `school.contacts[]`를 대표 Package가 읽는 `school.contact`로 복제 투영하고 원본 Dataset은 변경하지 않음
+- 실제 `desk-academic-standard@1.0.0`과 12개월 이미지 Dataset으로 28면 HTML 생성 및 연락처·이미지 렌더 확인
+- 구조 검토가 통과해도 사용자 경로 교체 승인은 자동 부여하지 않고 `approvedForReplacement:false` 유지
+
+## 2026-08-18 — 사용자 서비스 Shadow 진단 전달 경계
+
+- Shadow 세션 전체를 내보내지 않고 상태·건수·허용된 이슈 필드만 담는 `user-service-shadow-diagnostic.v1` 보고서 추가
+- 학교 Dataset, 렌더 HTML, `data:` 이미지, stack과 임의 진단 필드가 JSON에 포함되지 않는 회귀검사 추가
+- 브라우저 진단 모듈과 함께 `@calendar-publishing/designer-runtime-integration`에서 가져다 쓸 수 있는 TypeScript API 공개
+- `approvedForReplacement:false`를 보고서에서도 강제해 진단 생성과 사용자 경로 교체 승인을 분리
+- 사용자 서비스 실제 문서 호출은 패키지 공급 방식과 사용자 서비스 작업 브랜치가 준비된 뒤 진행
+
+## 2026-08-18 — Template Package 공통 소비 경계
+
+- Template Package를 배포 URL에서 읽거나 JSON 직접 import로 조립할 수 있는 TypeScript 로더 추가
+- manifest 필수 파일과 manifest/template ID·버전 불일치를 공통 검사로 차단
+- Package Master를 공통 문서로 변환하는 `DeskAcademicPackageRuntime`과 28면·5행·사진·연락처 진단 공개
+- 기존 Designer Studio 브라우저 Runtime과 공통 TypeScript Runtime의 문서·진단 동등성 회귀검사 추가
+- 사용자 서비스 UI·저장·미리보기·PDF 경로는 변경하지 않았으며 실제 저장소 설치는 다음 단계로 유지
+
+## 2026-08-18 — 사용자 Dataset 기반 28면 생성
+
+- 학사연도와 시작월에서 사용자 서비스 v1.1의 14장 28면 순서를 생성하는 `DeskAcademicSurfacePlan` 추가
+- 사용자 Dataset을 변경하지 않고 공통 Runtime 입력 28면을 만드는 API 추가
+- Dataset+Template Package만으로 공통 문서를 생성해 Legacy Designer Project 의존 제거
+- 3월~다음 해 2월, 월력 12면·사진/메모 12면·끝지와 기존 브라우저 Surface Plan 동등성 검사 통과
+- 사용자 서비스 화면·저장·미리보기·PDF 기본 경로는 변경하지 않음
+
+## 2026-08-18 — 사용자 서비스 Runtime 독립 배포 패키지
+
+- 사용자 서비스 연결용 ESM·타입 선언과 대표 Template Package만 모으는 재현 가능한 빌드 도구 추가
+- 로컬 `file:` 의존성으로 설치 가능한 `@calendar-publishing/user-service-runtime-bridge@0.1.0-alpha.1` 생성
+- `desk-academic-standard@1.0.0`을 패키지에 고정하고 Template JSON export 경로 공개
+- JavaScript·타입 선언·Template Package JSON의 SHA-256 무결성 목록 생성
+- 임시 배포 폴더를 실제 import해 사용자 Dataset 28면 생성·진단 회귀검사 통과
+- 사용자 서비스 적용·업데이트 절차와 기존 UI·저장·PDF 교체 금지 경계를 별도 문서화
+## 2026-08-26 — 원격 템플릿 버전 이력·복원 UI
+
+- Supabase에 저장된 내 템플릿 카드는 최신본 한 개만 유지하면서 현재 버전을 `v1`, `v2` 형식으로 항상 표시
+- 카드에서 필요할 때만 펼치는 `버전 이력`을 추가하고 버전 번호·저장 시각·상태·저장 유형·메모를 최신순으로 표시
+- 과거 버전의 비공개 이미지 참조를 서명 URL로 복원해 읽기 전용 화면 미리보기에서 확인하도록 연결
+- 미리보기 종료 버튼과 Esc 모두 편집 화면이 아니라 기존 라이브러리로 돌아오도록 보호
+- 과거 버전 복원은 기존 행을 수정하지 않고 `saveKind=restore`, 원본 버전 ID와 함께 새 최신 버전을 생성하는 기존 서버 계약을 사용
+- 집중 검사 32건, 전체 Studio 검사 129건, 제품 상호작용, 인라인 스크립트 19개, Vercel 정적 출력과 스타일 보호 검사 통과

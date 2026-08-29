@@ -6,6 +6,7 @@ import vm from 'node:vm';
 
 const htmlPath = path.resolve('apps/designer-studio/index.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
+const projectDocument = fs.readFileSync(path.resolve('apps/designer-studio/project-document.js'), 'utf8');
 
 test('new template setup covers the editor chrome and remains scrollable on short screens', () => {
   assert.match(html, /\.setup\{[^}]*z-index:200[^}]*overflow:auto/);
@@ -38,8 +39,8 @@ test('dragging and resizing mutate only the selected element', () => {
 });
 
 test('system base templates start without sample school events', () => {
-  assert.match(html, /pageInstances:\[\],events:\[\],elementsByPage:\{\}/);
-  assert.doesNotMatch(html, /events:SAMPLE_EVENTS\.filter/);
+  assert.match(projectDocument, /pageInstances: \[\], events: \[\], elementsByPage: \{\}/);
+  assert.doesNotMatch(projectDocument, /events:\s*SAMPLE_EVENTS\.filter/);
 });
 
 test('postcard calendar editing uses the single shared toggle handler', () => {
@@ -116,4 +117,26 @@ test('wizard helper can reset step and selection state for a fresh flow', () => 
   assert.equal(wizard.restoreWizardState().step, 1);
   assert.equal(wizard.restoreWizardState().selectedType, '');
   assert.match(source, /resetWizardState/, 'wizard helper should expose a reset helper');
+});
+
+test('designer studio keeps local storage while adding protected remote persistence', () => {
+  assert.match(html, /template-remote-persistence\.js/);
+  assert.match(html, /await saveTemplateProjectData\(id,projectCopy\)/);
+  assert.match(html, /await remote\.save\(/);
+  assert.match(html, /remoteSaved\?`원격 저장 완료/);
+  assert.match(html, /remote\.saveDraft\(/);
+});
+
+
+test('template saves report whether data reached Supabase or only the browser', () => {
+  assert.match(html, /저장 위치: Supabase 원격 저장/);
+  assert.match(html, /템플릿은 이 브라우저에만 저장되었습니다/);
+  assert.match(html, /버전 이력과 Package 검사를 사용하려면 Supabase 원격 저장이 필요합니다/);
+});
+
+test('template library labels remote and browser-only records explicitly', () => {
+  const runtime = fs.readFileSync(path.resolve('apps/designer-studio/template-library-runtime.js'), 'utf8');
+  assert.match(runtime, /Supabase 원격 저장/);
+  assert.match(runtime, /브라우저 저장 · 원격 저장 필요/);
+  assert.match(runtime, /const remoteHistory=remoteStored/);
 });
