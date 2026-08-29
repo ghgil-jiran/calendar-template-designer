@@ -15,7 +15,16 @@ export function assertInternalAccess(request) {
   const expectedBytes = Buffer.from(expected);
   const receivedBytes = Buffer.from(received);
   if (!received || expectedBytes.length !== receivedBytes.length || !timingSafeEqual(expectedBytes, receivedBytes)) {
-    throw Object.assign(new Error('Internal access token mismatch'), { statusCode: 401, code: 'UNAUTHORIZED' });
+    throw Object.assign(new Error('Internal access token mismatch'), {
+      statusCode: 401,
+      code: 'UNAUTHORIZED',
+      details: {
+        tokenConfigured: Boolean(expected),
+        tokenReceived: Boolean(received),
+        expectedLength: expectedBytes.length,
+        receivedLength: receivedBytes.length,
+      },
+    });
   }
 }
 
@@ -280,7 +289,7 @@ export function sendJson(response, status, body) {
 
 export function sendError(response, error) {
   const status = Number(error?.statusCode) || 500;
-  sendJson(response, status, { error: error?.code || 'INTERNAL_ERROR' });
+  sendJson(response, status, { error: error?.code || 'INTERNAL_ERROR', ...(error?.details ? { details: error.details } : {}) });
 }
 
 export async function readJson(request) {
