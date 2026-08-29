@@ -32,5 +32,5 @@
  async function hydrateVersion(version){return version?.projectData?{...version,projectData:await hydrateProjectData(version.projectData)}:version}
  async function restore(templateId,versionId,saveNote){return request('/api/template-restore',{method:'POST',body:JSON.stringify({templateId,versionId,saveNote})})}
  async function packagePreflight(templateId){return request(`/api/template-package-preflight?templateId=${encodeURIComponent(templateId)}`)}
- root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasToken:()=>Boolean(token()),list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,prepareProjectData,hydrateProjectData});
+ root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasToken:()=>Boolean(token()),accessToken:requestToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,prepareProjectData,hydrateProjectData});
 })(window);
