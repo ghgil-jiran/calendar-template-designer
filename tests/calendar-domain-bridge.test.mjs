@@ -75,9 +75,9 @@ const standardEvents = [
 const standardLayout = buildCalendarScheduleLanes(2027, 3, standardEvents, 'sunday', 5);
 assert.equal(standardLayout.maxLanes, 4);
 assert.equal(standardLayout.segments.filter(segment => segment.eventId === 'long').length, 2);
-assert.equal(standardLayout.segments.some(segment => segment.eventId === 'hidden'), false);
+assert.equal(standardLayout.segments.filter(segment => segment.startDate === '2027-03-06' && segment.endDate === '2027-03-06').length, 3);
 assert.equal(standardLayout.hiddenByDate['2027-03-06'], 1);
 assert.deepEqual(
-  [...new Set(standardLayout.segments.filter(segment => segment.startDate === '2027-03-06' && segment.endDate === '2027-03-06').map(segment => segment.lane))],
+  [...new Set(standardLayout.segments.filter(segment => segment.startDate === '2027-03-06' && segment.endDate === '2027-03-06').map(segment => segment.lane))].sort(),
   [1, 2, 3]
 );
