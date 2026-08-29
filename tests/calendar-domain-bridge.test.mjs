@@ -6,7 +6,10 @@ const {
   buildTwelveMonths,
   buildCalendarGrid,
   buildRangeSegments,
-  assignRangeLanes
+  assignRangeLanes,
+  buildCalendarScheduleLanes,
+  calendarScheduleTypography,
+  SCHEDULE_MAX_LANES
 } = globalThis.ACDLCalendarDomain;
 
 assert.deepEqual(buildTwelveMonths(2027, 3).at(0), { year: 2027, month: 3 });
@@ -55,3 +58,26 @@ assert.equal(laneLayout.segments.length, 2);
 assert.equal(laneLayout.overflow.length, 1);
 assert.equal(laneLayout.overflow[0].event.id, 'camp');
 assert.equal(laneLayout.segments.find(segment => segment.event.id === 'holiday').lane, 0);
+
+
+assert.equal(SCHEDULE_MAX_LANES, 4);
+assert.deepEqual(calendarScheduleTypography('123456789012', 1), { fontPx: 8, maxLines: 2 });
+assert.deepEqual(calendarScheduleTypography('1234567890123', 1), { fontPx: 7, maxLines: 2 });
+assert.deepEqual(calendarScheduleTypography('가'.repeat(29), 1), { fontPx: 6, maxLines: 2 });
+
+const standardEvents = [
+  { id: 'long', title: '학급공동체 세우기주간', startDate: '2027-03-05', endDate: '2027-03-12' },
+  { id: 'single-a', title: '학부모연수', startDate: '2027-03-06', endDate: '2027-03-06' },
+  { id: 'single-b', title: '전교임원선거', startDate: '2027-03-06', endDate: '2027-03-06' },
+  { id: 'single-c', title: '학급임원선거', startDate: '2027-03-06', endDate: '2027-03-06' },
+  { id: 'hidden', title: '다섯번째 일정', startDate: '2027-03-06', endDate: '2027-03-06' }
+];
+const standardLayout = buildCalendarScheduleLanes(2027, 3, standardEvents, 'sunday', 5);
+assert.equal(standardLayout.maxLanes, 4);
+assert.equal(standardLayout.segments.filter(segment => segment.eventId === 'long').length, 2);
+assert.equal(standardLayout.segments.some(segment => segment.eventId === 'hidden'), false);
+assert.equal(standardLayout.hiddenByDate['2027-03-06'], 1);
+assert.deepEqual(
+  [...new Set(standardLayout.segments.filter(segment => segment.startDate === '2027-03-06' && segment.endDate === '2027-03-06').map(segment => segment.lane))],
+  [1, 2, 3]
+);
