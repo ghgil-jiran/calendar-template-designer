@@ -3,11 +3,17 @@
   const DEFAULT_ENDPOINT = 'http://localhost:3000/api/ai/schedule-extract';
   const CATEGORY_LABELS = { exam: '시험', vacation: '방학', event: '행사', custom: '기타' };
 
+  function isRemote() {
+    return !['localhost', '127.0.0.1', ''].includes(root.location?.hostname || '');
+  }
+
   function endpoint() {
+    if (isRemote()) return root.location.origin + '/api/schedule-extract';
     return localStorage.getItem(STORAGE_KEY) || root.ACDL_SCHEDULE_EXTRACT_API_URL || DEFAULT_ENDPOINT;
   }
 
   function setEndpoint(value) {
+    if (isRemote()) return endpoint();
     const normalized = String(value || '').trim().replace(/\/$/, '');
     if (!/^https?:\/\//i.test(normalized)) throw new Error('API 주소는 http:// 또는 https://로 시작해야 합니다.');
     const url = normalized.endsWith('/api/ai/schedule-extract') ? normalized : normalized + '/api/ai/schedule-extract';
@@ -32,7 +38,14 @@
     form.append('file', file);
     form.append('academicYear', String(options?.academicYear || ''));
     form.append('startMonth', String(options?.startMonth || 3));
-    const response = await fetch(options?.endpoint || endpoint(), { method: 'POST', body: form });
+    const target = options?.endpoint || endpoint();
+    const headers = {};
+    if (isRemote() && target === endpoint()) {
+      const accessToken = root.ACDLTemplateRemotePersistence?.accessToken?.();
+      if (!accessToken) throw new Error('템플릿 에디터 원격 저장 접근 코드가 필요합니다.');
+      headers['x-template-editor-token'] = accessToken;
+    }
+    const response = await fetch(target, { method: 'POST', headers, body: form });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body?.error?.message || `일정 추출 API 오류 (${response.status})`);
     if (!Array.isArray(body.schedules)) throw new Error('일정 추출 API 응답에 schedules 배열이 없습니다.');
@@ -56,8 +69,8 @@
         <span id="resourceScheduleAiState">등록 전</span>
       </div>
       <label class="schedule-api-field">공통 일정 추출 API 주소
-        <div><input id="resourceScheduleApiUrl" type="url" value="${endpoint()}" aria-label="공통 일정 추출 API 주소"><button id="resourceScheduleApiSave" type="button">주소 저장</button></div>
-        <small>로컬 사용자 서비스는 http://localhost:3000, 배포본은 사용자 서비스 주소를 입력하세요. API 키는 서버에만 보관됩니다.</small>
+        <div><input id="resourceScheduleApiUrl" type="url" value="${endpoint()}" aria-label="공통 일정 추출 API 주소" ${isRemote() ? 'readonly' : ''}><button id="resourceScheduleApiSave" type="button" ${isRemote() ? 'disabled' : ''}>${isRemote() ? '운영 자동 연결' : '주소 저장'}</button></div>
+        <small>${isRemote() ? '배포본은 템플릿 에디터 서버를 통해 사용자 서비스의 공통 AI 모듈에 자동 연결됩니다.' : '로컬 사용자 서비스는 http://localhost:3000, 또는 사용자 서비스 공개 주소를 입력하세요. API 키는 서버에만 보관됩니다.'}</small>
       </label>
       <div id="resourceScheduleSummary" class="schedule-summary">파일을 등록하면 추출 건수와 분류를 보여줍니다.</div>
       <div id="resourceScheduleMonths" class="schedule-months" role="group" aria-label="일정 월 필터"></div>
@@ -166,5 +179,5 @@
     if (saved?.schedules) renderReview(saved);
   });
 
-  root.ACDLScheduleApiClient = Object.freeze({ endpoint, setEndpoint, extract, toEditorEvents, renderReview });
+  root.ACDLScheduleApiClient = Object.freeze({ isRemote, endpoint, setEndpoint, extract, toEditorEvents, renderReview });
 })(typeof window !== 'undefined' ? window : globalThis);
