@@ -2532,7 +2532,13 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     if(target==='user'){
       window.userScheduleImport=payload;el('userScheduleFileName').textContent=file.name;el('userScheduleFileStatus').textContent=isText?`${events.length}개 일정을 달력 기간에 반영합니다.`:'파일 등록 완료 · 워드/엑셀 변환 모듈 연동 대상';const pv=el('userSchedulePreview');pv.classList.remove('hidden');pv.innerHTML=result?parserPreview(result):'파일 원본은 등록되었으며, 실제 서비스의 워드·엑셀 일정 변환 API와 연결됩니다.';
     }else{
-      project.book.scheduleImport=payload;if(events.length)project.book.events=[...(project.book.events||[]).filter(e=>e.source!=='user-import'),...events];el('resourceScheduleFileName').textContent=file.name;el('resourceScheduleFileStatus').textContent=isText?`${events.length}개 샘플 일정을 달력 기간에 반영합니다.`:'샘플 파일 등록 완료 · 변환 연동 대상';const pv=el('resourceSchedulePreview');pv.classList.remove('hidden');pv.innerHTML=result?parserPreview(result):'템플릿에는 calendar.events 데이터 슬롯과 파일 메타데이터가 저장됩니다.';markDirty();render();
+      project.book.scheduleImport=payload;
+      if(events.length){
+        project.book.events=[...(project.book.events||[]).filter(e=>e.source!=='user-import'),...events];
+        project.template.masters.calendar.rangeEventStyle ||= {enabled:true,labelMode:'every',labelPosition:'inside',barHeight:11,laneGap:2,maxLanes:window.ACDLCalendarDomain.SCHEDULE_MAX_LANES,continuationStyle:'arrow',overflowStyle:'count'};
+        project.template.masters.calendar.rangeEventStyle.enabled=true;
+      }
+      el('resourceScheduleFileName').textContent=file.name;el('resourceScheduleFileStatus').textContent=isText?`${events.length}개 샘플 일정을 달력 기간에 반영합니다.`:'샘플 파일 등록 완료 · 변환 연동 대상';const pv=el('resourceSchedulePreview');pv.classList.remove('hidden');pv.innerHTML=result?parserPreview(result):'템플릿에는 calendar.events 데이터 슬롯과 파일 메타데이터가 저장됩니다.';markDirty();render();
     }
   };
 
@@ -2686,7 +2692,9 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     }
   };
   renderRangeEventLayer=function(grid,rows){
-    const style=project.template.masters.calendar.rangeEventStyle;if(!style?.enabled)return '';
+    const style=project.template.masters.calendar.rangeEventStyle;
+    const hasSampleSchedule=Boolean(project.book.scheduleImport?.events?.length);
+    if(!style || (style.enabled===false && !hasSampleSchedule))return '';
     const layout=assignRangeLanes(grid),rowHeight=100/rows,barHeight=Number(style.barHeight||11),gap=Number(style.laneGap||2);let html='<div class="range-event-layer">';
     layout.segments.forEach(seg=>{
       const left=seg.startColumn/7*100,width=(seg.endColumn-seg.startColumn+1)/7*100,classes=['range-event-bar',style.labelPosition==='above'?'label-above':''].filter(Boolean).join(' '),color=eventColor(seg.event),bottomPx=3+(seg.lane+1)*(barHeight+gap)-gap,typography=window.ACDLCalendarDomain.calendarScheduleTypography(seg.title,seg.span);
