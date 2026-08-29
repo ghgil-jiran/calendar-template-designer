@@ -2,9 +2,11 @@
  const TOKEN_KEY='acdl.templateRemoteAccessToken';
  const signedToMarker=new Map();
  const isRemote=()=>!['localhost','127.0.0.1',''].includes(root.location?.hostname||'');
- const token=()=>{try{return root.sessionStorage.getItem(TOKEN_KEY)||''}catch{return''}};
+ const token=()=>{try{return String(root.sessionStorage.getItem(TOKEN_KEY)||'').trim()}catch{return''}};
  const clearToken=()=>{try{root.sessionStorage.removeItem(TOKEN_KEY)}catch{}};
- function requestToken(){let value=token();if(value||!isRemote())return value;value=String(root.prompt?.('템플릿 원격 저장 접근 코드를 입력하세요.')||'').trim();if(value)try{root.sessionStorage.setItem(TOKEN_KEY,value)}catch{}return value}
+ const validToken=value=>/^[\\x21-\\x7E]+$/.test(value);
+ function invalidToken(){return Object.assign(new Error('접근 코드는 공백 없는 영문·숫자·기호만 사용할 수 있습니다. 저장된 접근 코드를 지우고 다시 입력해주세요.'),{code:'INVALID_ACCESS_TOKEN'})}
+ function requestToken(){let value=token();if(value&&!validToken(value)){clearToken();value=''}if(value||!isRemote())return value;value=String(root.prompt?.('템플릿 원격 저장 접근 코드를 입력하세요.')||'').trim();if(value&&!validToken(value))throw invalidToken();if(value)try{root.sessionStorage.setItem(TOKEN_KEY,value)}catch{}return value}
  async function request(path,options={},interactive=true){
   if(!isRemote())throw Object.assign(new Error('로컬 환경에서는 브라우저 저장을 사용합니다.'),{code:'REMOTE_DISABLED'});
   const accessToken=interactive?requestToken():token();if(!accessToken)throw Object.assign(new Error('원격 저장 접근 코드가 필요합니다.'),{code:'ACCESS_TOKEN_REQUIRED'});
