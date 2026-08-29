@@ -439,7 +439,7 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
    <div class="profile-upload"><strong>교화</strong><div id="userFlowerPreview" class="profile-upload-preview">이미지 미등록</div><button type="button" data-user-upload="flower">이미지 선택</button><input id="userFlowerInput" class="hidden" type="file" accept="image/*"></div>
    <div class="profile-upload"><strong>교목</strong><div id="userTreePreview" class="profile-upload-preview">이미지 미등록</div><button type="button" data-user-upload="tree">이미지 선택</button><input id="userTreeInput" class="hidden" type="file" accept="image/*"></div>
   </div></div>
-  <div class="school-profile-section"><h3>학교 일정 파일</h3><p class="desc inline-desc">워드·엑셀 일정표를 등록합니다. 단일 일정과 여러 날짜에 걸친 구간 일정, 하루 5개 이상의 일정 데이터를 고려합니다.</p><div class="schedule-upload-card"><div><strong id="userScheduleFileName">등록된 일정 파일 없음</strong><small id="userScheduleFileStatus">지원 형식: DOC, DOCX, XLS, XLSX, CSV, TXT</small></div><button id="userScheduleUploadBtn" type="button">일정 파일 선택</button><input id="userScheduleInput" class="hidden" type="file" accept=".doc,.docx,.xls,.xlsx,.csv,.txt"></div><div id="userSchedulePreview" class="schedule-preview hidden"></div></div>
+  <div class="school-profile-section"><h3>학교 일정 파일</h3><p class="desc inline-desc">워드·엑셀 일정표를 등록합니다. 단일 일정과 여러 날짜에 걸친 구간 일정, 하루 5개 이상의 일정 데이터를 고려합니다.</p><div class="schedule-upload-card"><div><strong id="userScheduleFileName">등록된 일정 파일 없음</strong><small id="userScheduleFileStatus">지원 형식: XLSX, CSV, TXT</small></div><button id="userScheduleUploadBtn" type="button">일정 파일 선택</button><input id="userScheduleInput" class="hidden" type="file" accept=".xlsx,.csv,.txt"></div><div id="userSchedulePreview" class="schedule-preview hidden"></div></div>
   </section>
   <section class="wizard-page" data-user-step="5"><h2>5. 만들기 전 확인</h2><p class="desc">선택한 템플릿과 입력 정보를 확인한 후 사용자 편집 화면으로 이동합니다.</p><div id="userWizardSummary" class="wizard-summary"></div></section>
  </div>
@@ -576,7 +576,7 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
     <div class="slot-card"><strong>학교 일정</strong><code>calendar.events</code><small>단일 일정과 구간 일정, 하루 다중 일정을 연결합니다.</small></div>
    </div><div class="resource-actions"><button id="saveSchoolInfoBtn" class="save">학교 정보 슬롯 저장</button></div></div>
    <div class="settings-card"><h4>학교 이미지 에셋 슬롯</h4><p class="resource-description">학교 전경·교표·교화·교목·교가 이미지와 사용자 지정 이미지를 역할별로 등록하면 템플릿 개체의 데이터 연결 대상으로 사용할 수 있습니다.</p><div class="settings-grid"><label>자산 역할<select id="resourceAssetRole"><option value="school-building">학교 전경</option><option value="school-logo">교표</option><option value="school-flower">교화</option><option value="school-tree">교목</option><option value="school-song">교가(악보·이미지)</option><option value="school-custom-image">사용자 지정 이미지</option><option value="school-student">학생</option><option value="school-classroom">교실</option><option value="school-other">기타</option></select></label><label>샘플 자산 이름<input id="resourceAssetName" placeholder="예: 본관 전경"></label></div><div class="resource-actions"><button id="registerResourceAssetBtn" class="save">샘플 이미지 등록</button><button id="resetResourceAssetsBtn" class="secondary">등록 자산 전체 삭제</button></div><input id="resourceAssetInput" class="hidden" type="file" accept="image/*"></div><div id="resourceAssetManagerGrid" class="asset-manager-grid"></div>
-   <div class="settings-card"><h4>학사일정 데이터 슬롯 및 샘플 파일</h4><p class="resource-description">사용자단에서 등록할 워드·엑셀 일정 데이터를 <code>calendar.events</code> 배열로 연결합니다. 단일 일정, 구간 일정, 하루 다중 일정을 모두 허용합니다.</p><div class="schedule-schema-grid"><span>단일 일정 <code>월/일 일정명</code></span><span>구간 일정 <code>월/일 - 월/일 일정명</code></span><span>하루 일정 <strong>5개 이상 허용</strong></span></div><div class="schedule-upload-card"><div><strong id="resourceScheduleFileName">샘플 일정 파일 없음</strong><small id="resourceScheduleFileStatus">DOC·DOCX·XLS·XLSX·CSV·TXT 등록 가능</small></div><button id="resourceScheduleUploadBtn" class="save" type="button">샘플 일정 파일 등록</button><input id="resourceScheduleInput" class="hidden" type="file" accept=".doc,.docx,.xls,.xlsx,.csv,.txt"></div><div id="resourceSchedulePreview" class="schedule-preview hidden"></div></div>
+   <div class="settings-card"><h4>학사일정 데이터 슬롯 및 샘플 파일</h4><p class="resource-description">사용자단에서 등록할 워드·엑셀 일정 데이터를 <code>calendar.events</code> 배열로 연결합니다. 단일 일정, 구간 일정, 하루 다중 일정을 모두 허용합니다.</p><div class="schedule-schema-grid"><span>단일 일정 <code>월/일 일정명</code></span><span>구간 일정 <code>월/일 - 월/일 일정명</code></span><span>하루 일정 <strong>5개 이상 허용</strong></span></div><div class="schedule-upload-card"><div><strong id="resourceScheduleFileName">샘플 일정 파일 없음</strong><small id="resourceScheduleFileStatus">XLSX·CSV·TXT 등록 가능</small></div><button id="resourceScheduleUploadBtn" class="save" type="button">샘플 일정 파일 등록</button><input id="resourceScheduleInput" class="hidden" type="file" accept=".xlsx,.csv,.txt"></div><div id="resourceSchedulePreview" class="schedule-preview hidden"></div></div>
    </section>
    <section class="resource-page" data-resource-content="colors"><h3>색상 테마</h3><p class="resource-description">템플릿 전체에서 공유하는 색상 토큰입니다. 저장 즉시 미리보기와 월력에 반영됩니다.</p><div class="settings-card"><h4>기본 색상 토큰</h4><div class="theme-token-grid"><label>Primary<div class="color-field"><input id="themeColorPrimary" type="color"><input id="themeColorPrimaryText"></div></label><label>Secondary<div class="color-field"><input id="themeColorSecondary" type="color"><input id="themeColorSecondaryText"></div></label><label>Accent<div class="color-field"><input id="themeColorAccent" type="color"><input id="themeColorAccentText"></div></label><label>공휴일<div class="color-field"><input id="themeColorHoliday" type="color"><input id="themeColorHolidayText"></div></label><label>토요일<div class="color-field"><input id="themeColorWeekend" type="color"><input id="themeColorWeekendText"></div></label><label>배경<div class="color-field"><input id="themeColorBackground" type="color"><input id="themeColorBackgroundText"></div></label><label>선·구분선<div class="color-field"><input id="themeColorLine" type="color"><input id="themeColorLineText"></div></label></div><div class="settings-apply-note"><strong>적용 범위</strong>페이지 배경, 제목, 월력 선, 일요일·토요일, 단일 일정과 기간 일정에 적용됩니다.</div><div class="resource-actions"><button id="resetColorThemeBtn" class="secondary">기본값 불러오기</button><button id="saveColorThemeBtn" class="save">색상 테마 저장</button></div></div></section>
    <section class="resource-page" data-resource-content="fonts"><h3>폰트 테마</h3><p class="resource-description">제목, 본문, 월력, 일정에 사용할 글꼴 역할을 지정합니다.</p><div class="settings-card"><h4>폰트 역할</h4><div class="settings-grid"><label>제목 폰트<select id="themeFontTitle"></select></label><label>본문 폰트<select id="themeFontBody"></select></label><label>월력 폰트<select id="themeFontCalendar"></select></label><label>일정 폰트<select id="themeFontEvent"></select></label><label>대체 폰트<input id="themeFontFallback" placeholder='예: "Noto Sans KR", sans-serif'></label></div><div id="fontThemePreview" class="font-preview"><strong>2027 학사달력</strong><p>학교 행사와 월력 본문 미리보기</p></div><div class="settings-apply-note"><strong>적용 범위</strong>표지 제목·연도, 본문 텍스트, 월력, 일정, 학교 정보 개체에 역할별로 적용됩니다.</div><div class="resource-actions"><button id="resetFontThemeBtn" class="secondary">기본값 불러오기</button><button id="saveFontThemeBtn" class="save">폰트 테마 저장</button></div></div></section>
@@ -621,6 +621,7 @@ document.getElementById("enterDesignerFlow")?.addEventListener("click",()=>{
  bind('designerHomeNew',openDesignerSetup);
 })();
 </script>
+<script src="./schedule-file-parser.js"></script>
 <script>
 const SAMPLE_EVENTS=[
 {id:"e1",title:"삼일절",startDate:"2027-03-01",endDate:"2027-03-01",category:"holiday",source:"template"},
@@ -2526,11 +2527,18 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
       (result.warnings.length?`<br><br><span style="color:#b54708">확인 필요 ${result.warnings.length}건</span>`:'');
   }
   registerScheduleFile=async function(file,target){
-    const isText=/\.(csv|txt)$/i.test(file.name);let events=[],result=null,rawText='';
-    if(isText){rawText=await file.text();const year=Number(el(target==='user'?'userYear':'resourceCalendarYear')?.value)||2027;const startMonth=Number(el(target==='user'?'userStartMonth':'resourceStartMonth')?.value)||1;result=window.parseAcademicScheduleText(rawText,year,startMonth);events=result.events}
-    const payload={fileName:file.name,fileType:file.type||file.name.split('.').pop(),size:file.size,registeredAt:new Date().toISOString(),events,rawText,parseResult:result,status:isText?'parsed':'registered-for-conversion'};
+    const isSupported=/\.(xlsx|csv|txt)$/i.test(file.name);let events=[],result=null,rawText='',sourceInfo=null;
+    const year=Number(el(target==='user'?'userYear':'resourceCalendarYear')?.value)||2027;
+    const startMonth=Number(el(target==='user'?'userStartMonth':'resourceStartMonth')?.value)||1;
+    if(isSupported){
+      sourceInfo=await window.ACDLScheduleFileParser.extractText(file,year);
+      rawText=sourceInfo.text;
+      result=window.parseAcademicScheduleText(rawText,year,startMonth);
+      events=result.events;
+    }
+    const payload={fileName:file.name,fileType:file.type||file.name.split('.').pop(),size:file.size,registeredAt:new Date().toISOString(),events,rawText,sourceInfo,parseResult:result,status:isSupported?'parsed':'unsupported'};
     if(target==='user'){
-      window.userScheduleImport=payload;el('userScheduleFileName').textContent=file.name;el('userScheduleFileStatus').textContent=isText?`${events.length}개 일정을 달력 기간에 반영합니다.`:'파일 등록 완료 · 워드/엑셀 변환 모듈 연동 대상';const pv=el('userSchedulePreview');pv.classList.remove('hidden');pv.innerHTML=result?parserPreview(result):'파일 원본은 등록되었으며, 실제 서비스의 워드·엑셀 일정 변환 API와 연결됩니다.';
+      window.userScheduleImport=payload;el('userScheduleFileName').textContent=file.name;el('userScheduleFileStatus').textContent=isSupported?`${events.length}개 일정을 달력 기간에 반영합니다.`:'지원하지 않는 파일 형식입니다.';const pv=el('userSchedulePreview');pv.classList.remove('hidden');pv.innerHTML=result?parserPreview(result):'파일 원본은 등록되었으며, 실제 서비스의 워드·엑셀 일정 변환 API와 연결됩니다.';
     }else{
       project.book.scheduleImport=payload;
       if(events.length){
@@ -2538,7 +2546,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
         project.template.masters.calendar.rangeEventStyle ||= {enabled:true,labelMode:'every',labelPosition:'inside',barHeight:11,laneGap:2,maxLanes:window.ACDLCalendarDomain.SCHEDULE_MAX_LANES,continuationStyle:'arrow',overflowStyle:'count'};
         project.template.masters.calendar.rangeEventStyle.enabled=true;
       }
-      el('resourceScheduleFileName').textContent=file.name;el('resourceScheduleFileStatus').textContent=isText?`${events.length}개 샘플 일정을 달력 기간에 반영합니다.`:'샘플 파일 등록 완료 · 변환 연동 대상';const pv=el('resourceSchedulePreview');pv.classList.remove('hidden');pv.innerHTML=result?parserPreview(result):'템플릿에는 calendar.events 데이터 슬롯과 파일 메타데이터가 저장됩니다.';markDirty();render();
+      el('resourceScheduleFileName').textContent=file.name;el('resourceScheduleFileStatus').textContent=isSupported?`${events.length}개 샘플 일정을 달력 기간에 반영합니다.`:'지원하지 않는 파일 형식입니다.';const pv=el('resourceSchedulePreview');pv.classList.remove('hidden');pv.innerHTML=result?parserPreview(result):'템플릿에는 calendar.events 데이터 슬롯과 파일 메타데이터가 저장됩니다.';markDirty();render();
     }
   };
 
