@@ -98,3 +98,19 @@ test('non-ASCII access tokens are rejected before the browser constructs request
   assert.equal(fetchCount, 0);
   assert.equal(api.hasToken(), false);
 });
+
+
+test('a 64-character hexadecimal access token reaches the request header unchanged', async () => {
+  const accessToken = 'a1'.repeat(32);
+  let received;
+  const api = runtime({
+    prompt: () => accessToken,
+    fetch: async (path, options) => {
+      received = options.headers['x-template-editor-token'];
+      return { ok: true, status: 200, json: async () => ({ templates: [] }) };
+    }
+  });
+  await api.list();
+  assert.equal(received, accessToken);
+  assert.equal(api.hasToken(), true);
+});
