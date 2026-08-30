@@ -38,3 +38,7 @@ assert.match(studio, /style\.enabled===false && !hasSampleSchedule/);
 assert.match(studio, /project\.template\.masters\.calendar\.rangeEventStyle\.enabled=true/);
 assert.doesNotMatch(studio, /maxLanes:\s*3/);
 assert.doesNotMatch(projectDocument, /maxLanes:\s*3/);
+
+// 밀집 월에도 날짜·공휴일 레이어가 일정 막대 위에 남고, 막대 제목은 사용자 서비스처럼 중앙 정렬한다.
+assert.match(studio, /\.day-stack\{position:relative;z-index:14/);
+assert.match(studio, /\.range-event-bar\{[^}]*justify-content:center;text-align:center/);
