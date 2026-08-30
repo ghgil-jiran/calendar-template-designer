@@ -180,6 +180,19 @@
     };
   }
 
+  function isLegacyAutomaticScheduleColor(value) {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (!normalized) return false;
+    if (normalized === SCHEDULE_DISPLAY_CONTRACT.colors.single.toLowerCase()) return true;
+    const hex = /^#([0-9a-f]{6})$/.exec(normalized);
+    if (hex) {
+      const channels = [0, 2, 4].map(offset => Number.parseInt(hex[1].slice(offset, offset + 2), 16));
+      return Math.max(...channels) - Math.min(...channels) <= 48;
+    }
+    const oklch = /^oklch\(\s*[\d.]+\s+([\d.]+)/.exec(normalized);
+    return oklch ? Number(oklch[1]) <= 0.06 : false;
+  }
+
   function assignCalendarScheduleColors(input) {
     let periodIndex = 0;
     return (Array.isArray(input) ? input : []).map(event => {
@@ -189,7 +202,7 @@
         : SCHEDULE_DISPLAY_CONTRACT.colors.single;
       if (isPeriod) periodIndex += 1;
       const explicit = typeof event?.color === 'string' && event.color.trim() ? event.color.trim() : '';
-      return { ...event, color: explicit || paletteColor };
+      return { ...event, color: explicit && !isLegacyAutomaticScheduleColor(explicit) ? explicit : paletteColor };
     });
   }
 
