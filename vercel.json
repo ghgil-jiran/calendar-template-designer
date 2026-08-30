@@ -59,6 +59,9 @@
   "functions": {
     "api/schedule-extract.js": {
       "maxDuration": 60
+    },
+    "api/calendar-reference.js": {
+      "maxDuration": 60
     }
   }
 }
