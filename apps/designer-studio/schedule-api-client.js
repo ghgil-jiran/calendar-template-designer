@@ -22,7 +22,7 @@
   }
 
   function toEditorEvents(schedules) {
-    return (Array.isArray(schedules) ? schedules : []).map((item, index) => ({
+    const events = (Array.isArray(schedules) ? schedules : []).map((item, index) => ({
       id: `ai-import-${Date.now()}-${index}`,
       title: String(item.label || '').trim(),
       startDate: item.date,
@@ -31,6 +31,9 @@
       source: 'user-import',
       priority: item.category === 'vacation' ? 85 : item.category === 'exam' ? 80 : 70
     })).filter(item => item.title && /^\d{4}-\d{2}-\d{2}$/.test(item.startDate));
+    return root.ACDLCalendarDomain?.assignCalendarScheduleColors
+      ? root.ACDLCalendarDomain.assignCalendarScheduleColors(events)
+      : events;
   }
 
   async function extract(file, options) {
