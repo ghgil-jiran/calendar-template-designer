@@ -54,3 +54,9 @@ assert.doesNotMatch(studio, /\.page\.wall\{width:min\(100%,520px\)/);
 assert.match(studio, /const hiddenScheduleByDate=assignRangeLanes\(grid\)\.hiddenByDate\|\|\{\}/);
 assert.match(studio, /class="calendar-overflow-count"/);
 assert.doesNotMatch(studio, /class="range-event-overflow" style=/);
+// 빈 셀의 이전·다음 달 미니 월력은 사용자 서비스처럼 셀 전체를 사용한다.
+assert.match(studio, /\.cell-mini-calendar\{position:absolute;inset:0;/);
+assert.match(studio, /\.cell-mini-grid\{[^}]*justify-content:space-between/);
+assert.match(studio, /calendarGridFor\(y,m,5\)/);
+assert.match(studio, /class="cell-mini-week"/);
+assert.match(studio, /c\.extra\?\`\$\{c\.day\}\/\$\{c\.extra\.day\}\`/);
