@@ -43,6 +43,11 @@ test('공공 데이터 수신 뒤 실제 편집 월력을 다시 렌더링한다
   assert.doesNotMatch(client, /root\.render\?\.\(\)/);
 });
 
+test('비어 있는 과거 공공 데이터 캐시는 유효한 캐시로 간주하지 않는다', () => {
+  assert.match(client, /Array\.isArray\(items\) && items\.length > 0/);
+  assert.match(client, /calendarYears\(targetProject\)\.filter/);
+});
+
 test('음력 표시 옵션과 캐시 계약을 사용자 서비스와 공유한다', () => {
   assert.match(studio, /calendarReferenceItems\(date,"lunar"\)/);
   assert.match(studio, /calendar-reference.*lunar/);
