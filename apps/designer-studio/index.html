@@ -141,6 +141,7 @@
 .calendar-reference{display:block;margin-top:1px;font-size:7px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .calendar-reference.auxiliary{min-width:0;margin-top:0;color:#98a2b3;text-align:right;font-size:6px}
 .calendar-reference.special{color:#d92d20;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;line-height:1.05}
+.calendar-overflow-count{display:block;margin-top:1px;font-size:7px;font-weight:700;line-height:1;color:#667085}
 .day-block.compact-extra{border-top:1px dashed rgba(110,120,135,.45);padding-top:2px;margin-top:1px}
 .day-block.compact-extra .day{font-size:9px}
 .day-block.compact-extra .event{font-size:7px;line-height:1.15}
@@ -1514,6 +1515,7 @@ function renderPage(){
   html+=`<div id="calendarRegion" class="calendar-region ${calendarEditing?"editing":""}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%"><div class="month-title" style="font-size:${project.template.masters.calendar.monthTitleSize}px;color:var(--month-primary)">${title}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
   weekDayHeaders().forEach(h=>html+=`<div class="cell head">${h}</div>`);
   const miniCells=rows===5&&project.settings.showAdjacentMiniCalendars?selectAdjacentMiniCells(grid,p.calendarMonth):[];
+  const hiddenScheduleByDate=assignRangeLanes(grid).hiddenByDate||{};
   grid.forEach((c,cellIndex)=>{
    const renderDay=(day,extra=false)=>{
     const hideAdjacent=day.month!==p.calendarMonth&&project.template.masters.calendar.showAdjacentMonths===false;
@@ -1524,6 +1526,8 @@ function renderPage(){
     if(!hideAdjacent&&auxiliary)part+=`<span class="calendar-reference auxiliary" title="${escapeAttr(auxiliary)}">${escapeAttr(auxiliary)}</span>`;
     part+="</div>";
     if(!hideAdjacent&&special)part+=`<span class="calendar-reference special" title="${escapeAttr(special)}">${escapeAttr(special)}</span>`;
+    const hiddenCount=Number(hiddenScheduleByDate[day.date]||0);
+    if(!hideAdjacent&&hiddenCount>0)part+=`<span class="calendar-overflow-count" title="표시 공간을 넘은 일정">+${hiddenCount}</span>`;
     return part+"</div>"
    };
    const selected=selectedDate===c.date||(c.extra&&selectedDate===c.extra.date);
@@ -2746,11 +2750,6 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
       const left=seg.startColumn/7*100,width=(seg.endColumn-seg.startColumn+1)/7*100,classes=['range-event-bar',style.labelPosition==='above'?'label-above':''].filter(Boolean).join(' '),color=eventColor(seg.event),bottomPx=3+(seg.lane+1)*(barHeight+gap)-gap,typography=window.ACDLCalendarDomain.calendarScheduleTypography(seg.title,seg.span);
       html+=`<div class="${classes}" title="${escapeAttr(seg.event.title)} · ${seg.event.startDate} ~ ${seg.event.endDate}" style="left:calc(${left}% + 2px);width:calc(${width}% - 4px);top:calc(${(seg.week+1)*rowHeight}% - ${bottomPx}px);height:${barHeight}px;background:${color};font-size:${typography.fontPx}px;-webkit-line-clamp:${typography.maxLines}">${seg.title}</div>`
     });
-    if(style.overflowStyle==='count'){
-      const positions=new Map();
-      grid.forEach((cell,index)=>{positions.set(cell.date,{row:Math.floor(index/7),col:index%7});if(cell.extra)positions.set(cell.extra.date,{row:Math.floor(index/7),col:index%7})});
-      Object.entries(layout.hiddenByDate).forEach(([date,count])=>{const pos=positions.get(date);if(!pos)return;const left=pos.col/7*100,bottomPx=3+(layout.maxLanes+1)*(barHeight+gap)-gap;html+=`<div class="range-event-overflow" style="left:calc(${left}% + 2px);width:calc(${100/7}% - 4px);top:calc(${(pos.row+1)*rowHeight}% - ${bottomPx}px)">+${count}</div>`})
-    }
     return html+'</div>'
   };
 })();
