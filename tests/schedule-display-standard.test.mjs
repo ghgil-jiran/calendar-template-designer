@@ -39,6 +39,9 @@ assert.match(studio, /project\.template\.masters\.calendar\.rangeEventStyle\.ena
 assert.doesNotMatch(studio, /maxLanes:\s*3/);
 assert.doesNotMatch(projectDocument, /maxLanes:\s*3/);
 
-// 밀집 월에도 날짜·공휴일 레이어가 일정 막대 위에 남고, 막대 제목은 사용자 서비스처럼 중앙 정렬한다.
-assert.match(studio, /\.day-stack\{position:relative;z-index:14/);
+// 밀집 월에도 날짜·음력·공휴일용 32px를 먼저 예약하고 남은 영역에만 일정 막대를 배치한다.
+assert.match(studio, /const cellHeight=Math\.max\(1,\(stageHeight-weekdayHeight\)\/rows\),reservedTop=32/);
+assert.match(studio, /cellHeight-reservedTop/);
+assert.doesNotMatch(studio, /querySelector\("\.calendar-stage"\)\?\.clientHeight/);
+assert.doesNotMatch(studio, /\.day-stack\{position:relative;z-index:14/);
 assert.match(studio, /\.range-event-bar\{[^}]*justify-content:center;text-align:center/);
