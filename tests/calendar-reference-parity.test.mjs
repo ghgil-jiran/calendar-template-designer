@@ -31,6 +31,7 @@ test('기본 설정에서 공휴일·기념일·24절기 표시 여부를 저장
   assert.match(studio, /resourceIncludeHolidays/);
   assert.match(studio, /resourceIncludeAnniversaries/);
   assert.match(studio, /resourceIncludeSolarTerms/);
+  assert.match(studio, /resourceIncludeLunar/);
   assert.match(studio, /includeAnniversaries/);
   assert.match(studio, /ensureCalendarReferences\?\.\(project,\{force:true\}\)/);
 });
@@ -40,4 +41,10 @@ test('공공 데이터 수신 뒤 실제 편집 월력을 다시 렌더링한다
   assert.match(client, /markDirty\?\.\(\)/);
   assert.match(client, /render\?\.\(\)/);
   assert.doesNotMatch(client, /root\.render\?\.\(\)/);
+});
+
+test('음력 표시 옵션과 캐시 계약을 사용자 서비스와 공유한다', () => {
+  assert.match(studio, /calendarReferenceItems\(date,"lunar"\)/);
+  assert.match(studio, /calendar-reference.*lunar/);
+  assert.match(client, /'solar_term', 'lunar'/);
 });

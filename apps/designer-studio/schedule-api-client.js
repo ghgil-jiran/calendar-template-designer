@@ -110,7 +110,7 @@
   }
 
   function hasReferenceYear(value) {
-    return ['public_holiday', 'anniversary', 'solar_term'].every(category => Array.isArray(value?.[category]?.items));
+    return ['public_holiday', 'anniversary', 'solar_term', 'lunar'].every(category => Array.isArray(value?.[category]?.items));
   }
 
   async function ensureCalendarReferences(targetProject = project, options = {}) {
