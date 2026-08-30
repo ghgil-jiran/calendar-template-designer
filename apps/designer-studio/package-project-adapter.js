@@ -232,6 +232,7 @@
     const files = await root.ACDLTemplatePackageLoader.load(fetcher, packageBase);
     const result = applyPackage(project, files.template);
     result.template.package.base = packageBase;
+    if (files.publishing) result.template.publishing = clone(files.publishing);
     return result;
   }
 
