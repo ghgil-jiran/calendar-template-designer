@@ -10,7 +10,8 @@ const {
   buildCalendarScheduleLanes,
   calendarScheduleTypography,
   SCHEDULE_MAX_LANES,
-  SCHEDULE_DISPLAY_CONTRACT
+  SCHEDULE_DISPLAY_CONTRACT,
+  assignCalendarScheduleColors
 } = globalThis.ACDLCalendarDomain;
 
 assert.deepEqual(buildTwelveMonths(2027, 3).at(0), { year: 2027, month: 3 });
@@ -98,3 +99,20 @@ const clippedLayout = buildCalendarScheduleLanes(2027, 3, [
 assert.deepEqual(clippedLayout.segments.map(({ row, startCol, span }) => ({ row, startCol, span })), [
   { row: 0, startCol: 1, span: 3 }
 ]);
+
+
+assert.deepEqual(SCHEDULE_DISPLAY_CONTRACT.colors.periodPalette, [
+  'oklch(0.72 0.09 20)', 'oklch(0.68 0.09 180)', 'oklch(0.75 0.11 75)'
+]);
+const colored = assignCalendarScheduleColors([
+  { id: 'single', title: '개학식', startDate: '2027-03-02', endDate: '2027-03-02' },
+  { id: 'period-a', title: '상담주간', startDate: '2027-03-06', endDate: '2027-03-10' },
+  { id: 'period-b', title: '시험기간', startDate: '2027-03-13', endDate: '2027-03-17' },
+  { id: 'explicit', title: '지정색', startDate: '2027-03-20', endDate: '2027-03-22', color: '#123456' },
+  { id: 'period-d', title: '다음기간', startDate: '2027-03-24', endDate: '2027-03-25' }
+]);
+assert.equal(colored[0].color, SCHEDULE_DISPLAY_CONTRACT.colors.single);
+assert.equal(colored[1].color, SCHEDULE_DISPLAY_CONTRACT.colors.periodPalette[0]);
+assert.equal(colored[2].color, SCHEDULE_DISPLAY_CONTRACT.colors.periodPalette[1]);
+assert.equal(colored[3].color, '#123456');
+assert.equal(colored[4].color, SCHEDULE_DISPLAY_CONTRACT.colors.periodPalette[0]);
