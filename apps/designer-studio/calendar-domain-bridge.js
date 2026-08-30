@@ -160,7 +160,13 @@
     overflow: 'count-badge',
     labelMode: 'every-segment',
     typography: Object.freeze({ shortMax: 12, mediumMax: 28, shortPx: 8, mediumPx: 7, longPx: 6, maxLines: 2 }),
-    bar: Object.freeze({ heightPx: 14, laneGapPx: 1 })
+    bar: Object.freeze({ heightPx: 14, laneGapPx: 1 }),
+    colors: Object.freeze({
+      explicitFirst: true,
+      single: '#687894',
+      periodPalette: Object.freeze(['oklch(0.72 0.09 20)', 'oklch(0.68 0.09 180)', 'oklch(0.75 0.11 75)']),
+      keepAcrossSegments: true
+    })
   });
   const SCHEDULE_MAX_LANES = SCHEDULE_DISPLAY_CONTRACT.maxLanes;
 
@@ -172,6 +178,19 @@
         : charactersPerColumn > typography.shortMax ? typography.mediumPx : typography.shortPx,
       maxLines: typography.maxLines
     };
+  }
+
+  function assignCalendarScheduleColors(input) {
+    let periodIndex = 0;
+    return (Array.isArray(input) ? input : []).map(event => {
+      const isPeriod = (event?.endDate || event?.startDate) !== event?.startDate;
+      const paletteColor = isPeriod
+        ? SCHEDULE_DISPLAY_CONTRACT.colors.periodPalette[periodIndex % SCHEDULE_DISPLAY_CONTRACT.colors.periodPalette.length]
+        : SCHEDULE_DISPLAY_CONTRACT.colors.single;
+      if (isPeriod) periodIndex += 1;
+      const explicit = typeof event?.color === 'string' && event.color.trim() ? event.color.trim() : '';
+      return { ...event, color: explicit || paletteColor };
+    });
   }
 
   function buildCalendarScheduleLanes(year, month, input, weekStart = 'sunday', rows = 5) {
@@ -275,6 +294,7 @@
     calendarScheduleTypography,
     buildCalendarScheduleLanes,
     SCHEDULE_MAX_LANES,
-    SCHEDULE_DISPLAY_CONTRACT
+    SCHEDULE_DISPLAY_CONTRACT,
+    assignCalendarScheduleColors
   });
 })(typeof window !== 'undefined' ? window : globalThis);
