@@ -45,3 +45,7 @@ assert.match(studio, /cellHeight-reservedTop/);
 assert.doesNotMatch(studio, /querySelector\("\.calendar-stage"\)\?\.clientHeight/);
 assert.doesNotMatch(studio, /\.day-stack\{position:relative;z-index:14/);
 assert.match(studio, /\.range-event-bar\{[^}]*justify-content:center;text-align:center/);
+
+// 벽걸이형 월력은 520px 고정값이 아니라 가용 화면 높이·너비에 맞춰 확대한다.
+assert.match(studio, /\.page\.wall\{width:min\(100%,720px,calc\(\(100dvh - 120px\)\*297\/420\)\)/);
+assert.doesNotMatch(studio, /\.page\.wall\{width:min\(100%,520px\)/);
