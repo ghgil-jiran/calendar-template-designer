@@ -26,3 +26,18 @@ test('공공 데이터가 템플릿 문서에 저장되어 재열기와 출력�
   assert.match(client, /calendar-reference\.v1/);
   assert.match(studio, /project\.book\.calendarReference/);
 });
+
+test('기본 설정에서 공휴일·기념일·24절기 표시 여부를 저장한다', () => {
+  assert.match(studio, /resourceIncludeHolidays/);
+  assert.match(studio, /resourceIncludeAnniversaries/);
+  assert.match(studio, /resourceIncludeSolarTerms/);
+  assert.match(studio, /includeAnniversaries/);
+  assert.match(studio, /ensureCalendarReferences\?\.\(project,\{force:true\}\)/);
+});
+
+test('공공 데이터 수신 뒤 실제 편집 월력을 다시 렌더링한다', () => {
+  assert.match(client, /hasReferenceYear/);
+  assert.match(client, /markDirty\?\.\(\)/);
+  assert.match(client, /render\?\.\(\)/);
+  assert.doesNotMatch(client, /root\.render\?\.\(\)/);
+});
