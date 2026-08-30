@@ -109,23 +109,28 @@
     return body;
   }
 
-  async function ensureCalendarReferences(targetProject = project) {
+  function hasReferenceYear(value) {
+    return ['public_holiday', 'anniversary', 'solar_term'].every(category => Array.isArray(value?.[category]?.items));
+  }
+
+  async function ensureCalendarReferences(targetProject = project, options = {}) {
     if (!targetProject?.book) return null;
     targetProject.book.calendarReference ||= { schemaVersion: 'calendar-reference.v1', years: {} };
     targetProject.book.calendarReference.years ||= {};
-    const missing = calendarYears(targetProject).filter(year => !targetProject.book.calendarReference.years[String(year)]);
+    const missing = calendarYears(targetProject).filter(year => options.force || !hasReferenceYear(targetProject.book.calendarReference.years[String(year)]));
     await Promise.all(missing.map(year => {
       if (!referenceInflight.has(year)) {
         referenceInflight.set(year, fetchReferenceYear(year).then(body => {
-          targetProject.book.calendarReference.years[String(year)] = body.data || {};
+          if (!body?.data || !hasReferenceYear(body.data)) throw new Error('공공 달력 API 응답 형식이 올바르지 않습니다.');
+          targetProject.book.calendarReference.years[String(year)] = body.data;
           return body;
         }).finally(() => referenceInflight.delete(year)));
       }
       return referenceInflight.get(year);
     }));
     if (missing.length) {
-      root.markDirty?.();
-      root.render?.();
+      markDirty?.();
+      render?.();
     }
     return targetProject.book.calendarReference;
   }
