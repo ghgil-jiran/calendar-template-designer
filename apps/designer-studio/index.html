@@ -137,9 +137,10 @@
 .day-stack{display:flex;flex-direction:column;gap:2px;min-height:0}
 .day-block{min-height:0}
 .day-block.public-holiday .day{color:#d92d20}
+.day-head-row{display:flex;align-items:baseline;justify-content:space-between;gap:2px;min-width:0}
 .calendar-reference{display:block;margin-top:1px;font-size:7px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.calendar-reference.holiday,.calendar-reference.anniversary{color:#d92d20}
-.calendar-reference.solar-term,.calendar-reference.lunar{color:#98a2b3;text-align:right}
+.calendar-reference.auxiliary{min-width:0;margin-top:0;color:#98a2b3;text-align:right;font-size:6px}
+.calendar-reference.special{color:#d92d20;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;line-height:1.05}
 .day-block.compact-extra{border-top:1px dashed rgba(110,120,135,.45);padding-top:2px;margin-top:1px}
 .day-block.compact-extra .day{font-size:9px}
 .day-block.compact-extra .event{font-size:7px;line-height:1.15}
@@ -1517,14 +1518,12 @@ function renderPage(){
    const renderDay=(day,extra=false)=>{
     const hideAdjacent=day.month!==p.calendarMonth&&project.template.masters.calendar.showAdjacentMonths===false;
     const refs=calendarReferenceForDate(day.date),holiday=refs.holidays.find(item=>item.isHoliday!==false);
-    const annotations=[
-      ...refs.holidays.map(item=>({name:item.name,tone:"holiday"})),
-      ...refs.anniversaries.map(item=>({name:item.name,tone:"anniversary"})),
-      ...refs.solarTerms.map(item=>({name:item.name,tone:"solar-term"})),
-      ...refs.lunars.map(item=>({name:item.name,tone:"lunar"}))
-    ].slice(0,3);
-    let part=`<div class="day-block ${extra?"compact-extra":""} ${holiday?"public-holiday":""}" data-date="${day.date}"><div class="day">${hideAdjacent?"":day.day}</div>`;
-    if(!hideAdjacent)annotations.forEach(item=>{part+=`<span class="calendar-reference ${item.tone}">${escapeAttr(item.name)}</span>`});
+    const auxiliary=[...refs.lunars,...refs.solarTerms].map(item=>item.name).filter(Boolean).join(" / ");
+    const special=[...refs.holidays,...refs.anniversaries].map(item=>item.name).filter(Boolean).join(" · ");
+    let part=`<div class="day-block ${extra?"compact-extra":""} ${holiday?"public-holiday":""}" data-date="${day.date}"><div class="day-head-row"><div class="day">${hideAdjacent?"":day.day}</div>`;
+    if(!hideAdjacent&&auxiliary)part+=`<span class="calendar-reference auxiliary" title="${escapeAttr(auxiliary)}">${escapeAttr(auxiliary)}</span>`;
+    part+="</div>";
+    if(!hideAdjacent&&special)part+=`<span class="calendar-reference special" title="${escapeAttr(special)}">${escapeAttr(special)}</span>`;
     return part+"</div>"
    };
    const selected=selectedDate===c.date||(c.extra&&selectedDate===c.extra.date);
