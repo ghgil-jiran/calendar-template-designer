@@ -136,6 +136,10 @@
 
 .day-stack{display:flex;flex-direction:column;gap:2px;min-height:0}
 .day-block{min-height:0}
+.day-block.public-holiday .day{color:#d92d20}
+.calendar-reference{display:block;margin-top:1px;font-size:7px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.calendar-reference.holiday,.calendar-reference.anniversary{color:#d92d20}
+.calendar-reference.solar-term{color:#98a2b3;text-align:right}
 .day-block.compact-extra{border-top:1px dashed rgba(110,120,135,.45);padding-top:2px;margin-top:1px}
 .day-block.compact-extra .day{font-size:9px}
 .day-block.compact-extra .event{font-size:7px;line-height:1.15}
@@ -722,6 +726,26 @@ function renderNavigator(){
 }
 function pageButton(p){const b=document.createElement("button"),type=pageDesignType(p);b.className="page-btn "+(p.id===selectedPageId?"active":"");b.innerHTML=`<span>${roleLabel(p)} <em class="page-nav-type ${type.key}">${type.label}</em></span><small>${p.overrides&&Object.keys(p.overrides).length?"●":p.number}</small>`;b.addEventListener("click",()=>{if(p.id!==selectedPageId&&!confirmDiscardInspectorChanges())return;inspectorDirty=false;inspectorNotice={type:"ready",message:"설정을 변경하면 저장 버튼이 활성화됩니다."};selectedPageId=p.id;selectedDate=null;selectedElementId=null;selectedElementScope=null;semanticImageDraft=null;semanticImageDraftElementId=null;calendarEditing=false;render()});return b}
 function groupedEvents(){return window.ACDLDatasetDomain.groupEventsByDate(project.book.events)}
+function calendarReferenceItems(date,category){
+ const year=String(date||"").slice(0,4),bucket=project.book.calendarReference?.years?.[year]?.[category];
+ return Array.isArray(bucket?.items)?bucket.items.filter(item=>item?.date===date):[]
+}
+function calendarReferenceForDate(date){
+ const options=project.settings.calendarData||{};
+ const holidays=options.includeHolidays===false?[]:calendarReferenceItems(date,"public_holiday");
+ const anniversaries=options.includeHolidays===false?[]:calendarReferenceItems(date,"anniversary");
+ const solarTerms=options.includeSolarTerms===false?[]:calendarReferenceItems(date,"solar_term");
+ return {holidays,anniversaries,solarTerms}
+}
+function normalizeReferenceTitle(value){
+ return String(value||"").replace(/\s+/g,"").replace(/노동절/g,"근로자의날").replace(/[()·ㆍ.,-]/g,"").toLowerCase()
+}
+function isPublicReferenceEvent(event){
+ const start=event?.startDate,end=event?.endDate||start;
+ if(!start||start!==end)return false;
+ const refs=calendarReferenceForDate(start),title=normalizeReferenceTitle(event.title);
+ return [...refs.holidays,...refs.anniversaries,...refs.solarTerms].some(item=>normalizeReferenceTitle(item.name)===title)
+}
 function weekDayHeaders(){
  return project.settings.weekStart==="monday"?["월","화","수","목","금","토","일"]:["일","월","화","수","목","금","토"]
 }
@@ -1483,6 +1507,7 @@ function setupInspectorTabs(){
 function renderPage(){
  const p=selectedPage(),page=el("page"),ps=project.productType.pageSize;page.className=`page ${project.productType.category} ${isInsertPage(p)?"template-insert-page":""}`;page.style.aspectRatio=`${ps.width}/${ps.height}`;const monthStyle=(project.book.monthlyStyleOverrides||[]).find(item=>item.monthKey===p.monthKey);page.style.setProperty("--month-primary",monthStyle?.tokens?.primary||"var(--acdl-primary)");let html='<div class="binding"></div><div class="surface-content">';
  if(p.role==="monthly-front"){
+  window.ACDLScheduleApiClient?.ensureCalendarReferences?.(project).catch(()=>{});
   const g=groupedEvents(),max=project.template.masters.calendar.eventMaxVisiblePerDay,title=p.overrides.monthTitle||`${p.calendarYear}년 ${p.calendarMonth}월`,cr=calendarRegion(),rows=Number(project.settings.calendarRows||6),grid=calendarGrid(p.calendarYear,p.calendarMonth);
   html+=`<div id="calendarRegion" class="calendar-region ${calendarEditing?"editing":""}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%"><div class="month-title" style="font-size:${project.template.masters.calendar.monthTitleSize}px;color:var(--month-primary)">${title}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
   weekDayHeaders().forEach(h=>html+=`<div class="cell head">${h}</div>`);
@@ -1490,11 +1515,14 @@ function renderPage(){
   grid.forEach((c,cellIndex)=>{
    const renderDay=(day,extra=false)=>{
     const hideAdjacent=day.month!==p.calendarMonth&&project.template.masters.calendar.showAdjacentMonths===false;
-    const suppressCompactEvents=rows===5&&extra;
-    const evs=[],vis=[],hidden=0;
-    let part=`<div class="day-block ${extra?"compact-extra":""}" data-date="${day.date}"><div class="day">${hideAdjacent?"":day.day}</div>`;
-    vis.forEach(ev=>{const color=eventColor(ev);part+=`<span class="event ${ev.category==="holiday"?"holiday":""}" style="color:${color};background:color-mix(in srgb,${color} 12%,white)">${ev.title}</span>`});
-    if(hidden)part+=`<div class="more">+${hidden}개</div>`;
+    const refs=calendarReferenceForDate(day.date),holiday=refs.holidays.find(item=>item.isHoliday!==false);
+    const annotations=[
+      ...refs.holidays.map(item=>({name:item.name,tone:"holiday"})),
+      ...refs.anniversaries.map(item=>({name:item.name,tone:"anniversary"})),
+      ...refs.solarTerms.map(item=>({name:item.name,tone:"solar-term"}))
+    ].slice(0,3);
+    let part=`<div class="day-block ${extra?"compact-extra":""} ${holiday?"public-holiday":""}" data-date="${day.date}"><div class="day">${hideAdjacent?"":day.day}</div>`;
+    if(!hideAdjacent)annotations.forEach(item=>{part+=`<span class="calendar-reference ${item.tone}">${escapeAttr(item.name)}</span>`});
     return part+"</div>"
    };
    const selected=selectedDate===c.date||(c.extra&&selectedDate===c.extra.date);
@@ -2020,7 +2048,7 @@ el("userNextBtn").addEventListener("click",()=>{setUserWizardStep(userWizardStep
 function renderUserSummary(){const tpl=document.querySelector("[data-user-template].selected strong")?.textContent||"템플릿";el("userWizardSummary").innerHTML=`<div class="summary-card"><h3>달력 구성</h3><div class="summary-row"><span>템플릿</span><strong>${v21Escape(tpl)}</strong></div><div class="summary-row"><span>연도·시작월</span><strong>${el("userYear").value}년 · ${el("userStartMonth").value}월</strong></div><div class="summary-row"><span>월력</span><strong>${el("userCalendarRows").value}×7 · ${el("userWeekStart").value==="monday"?"월요일":"일요일"} 시작</strong></div></div><div class="summary-card"><h3>학교 정보</h3><div class="summary-row"><span>학교명</span><strong>${v21Escape(el("userSchoolName").value||"미입력")}</strong></div><div class="summary-row"><span>학교 전경</span><strong>${userImages.building?"등록":"미등록"}</strong></div><div class="summary-row"><span>교표·교화</span><strong>${userImages.logo?"교표 등록":"교표 미등록"} · ${userImages.flower?"교화 등록":"교화 미등록"}</strong></div></div>`}
 function bindUserImage(kind){const cap=kind[0].toUpperCase()+kind.slice(1),input=el(`user${cap}Input`),preview=el(`user${cap}Preview`);document.querySelector(`[data-user-upload="${kind}"]`).addEventListener("click",()=>input.click());input.addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;userImages[kind]=await v21FileToDataURL(f);preview.innerHTML=`<img src="${userImages[kind]}" alt="">`})}
 ["building","logo","flower","tree"].forEach(bindUserImage);
-function applyUserSchoolData(){normalizeElementData();ensureSchoolProfile();const school=project.book.school;school.name=el("userSchoolName").value.trim()||"학교명 미입력";school.englishName=el("userSchoolEnglishName").value.trim();school.slogan=el("userSchoolSlogan").value.trim();school.address=el("userSchoolAddress").value.trim();school.phone=el("userSchoolPhone").value.trim();school.fax=el("userSchoolFax").value.trim();school.website=el("userSchoolWebsite").value.trim();school.profile.motto.description=el("userSchoolMotto").value.trim();school.profile.song.description=el("userSchoolSong").value.trim();school.profile.building.name=school.name;school.profile.building.image=userImages.building;school.profile.logo.image=userImages.logo;school.profile.flower.image=userImages.flower;school.profile.tree.image=userImages.tree;project.settings.calendarData={includeHolidays:el("userIncludeHolidays").checked,includeSolarTerms:el("userIncludeSolarTerms").checked,includeLunar:el("userIncludeLunar").checked,lunarDisplayRule:"1,5,10,15,20,25"};project.book.scheduleImport=window.userScheduleImport||null;if(window.userScheduleImport?.events?.length)project.book.events=[...(project.book.events||[]).filter(e=>e.source!=="user-import"),...window.userScheduleImport.events];project.book.pageInstances.filter(p=>p.role==="cover-front").forEach(p=>(project.book.elementsByPage[p.id]||[]).forEach(item=>{if(item.role==="school-name")item.binding="school.name";if(item.role==="slogan")item.content=school.slogan;if(item.role==="school-image"&&userImages.building)item.src=userImages.building}))}
+function applyUserSchoolData(){normalizeElementData();ensureSchoolProfile();const school=project.book.school;school.name=el("userSchoolName").value.trim()||"학교명 미입력";school.englishName=el("userSchoolEnglishName").value.trim();school.slogan=el("userSchoolSlogan").value.trim();school.address=el("userSchoolAddress").value.trim();school.phone=el("userSchoolPhone").value.trim();school.fax=el("userSchoolFax").value.trim();school.website=el("userSchoolWebsite").value.trim();school.profile.motto.description=el("userSchoolMotto").value.trim();school.profile.song.description=el("userSchoolSong").value.trim();school.profile.building.name=school.name;school.profile.building.image=userImages.building;school.profile.logo.image=userImages.logo;school.profile.flower.image=userImages.flower;school.profile.tree.image=userImages.tree;project.settings.calendarData={includeHolidays:el("userIncludeHolidays").checked,includeSolarTerms:el("userIncludeSolarTerms").checked,includeLunar:el("userIncludeLunar").checked,lunarDisplayRule:"1,5,10,15,20,25"};project.book.scheduleImport=window.userScheduleImport||null;window.ACDLScheduleApiClient?.ensureCalendarReferences?.(project).catch(error=>showEditorToast?.(error.message));if(window.userScheduleImport?.events?.length)project.book.events=[...(project.book.events||[]).filter(e=>e.source!=="user-import"),...window.userScheduleImport.events];project.book.pageInstances.filter(p=>p.role==="cover-front").forEach(p=>(project.book.elementsByPage[p.id]||[]).forEach(item=>{if(item.role==="school-name")item.binding="school.name";if(item.role==="slogan")item.content=school.slogan;if(item.role==="school-image"&&userImages.building)item.src=userImages.building}))}
 function createUserCalendar(){resetEditorViewState();const opts={type:selectedUserTemplate.type,year:Number(el("userYear").value),startMonth:Number(el("userStartMonth").value),template:selectedUserTemplate.template,frontInsertCount:Number(el("userFrontInserts").value),rearInsertCount:Number(el("userRearInserts").value),calendarRows:Number(el("userCalendarRows").value),weekStart:el("userWeekStart").value,showAdjacentMiniCalendars:el("userAdjacentMini").checked,posterColumns:4,sizePresetId:el("userSize").value};project=makeProject(opts);project.mode="calendar-workspace";applyUserSchoolData();selectedPageId=project.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];el("userSetup").classList.add("hidden");el("setup").classList.add("hidden");el("appBrand").childNodes[0].nodeValue="ACDL 사용자 달력 에디터 ";el("currentTemplateTitle").textContent=`${project.book.school.name} ${project.settings.year} 달력`;el("newBtn").textContent="새 달력";el("saveBtn").textContent="달력 저장";el("templateMode").textContent="달력 편집";el("modeHelp").textContent="학교 정보와 월별 콘텐츠를 입력하고, 템플릿이 허용한 영역을 편집합니다.";setEditorContext("새 달력 만들기");stable();render();updateRoleIndicator();showEditorToast("학교 정보가 적용된 새 달력을 만들었습니다.")}
 el("userCreateBtn").addEventListener("click",createUserCalendar);
 // The New button follows the current workspace role.
@@ -2679,7 +2707,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
   };
   assignRangeLanes=function(grid){
     const p=selectedPage(),weekStart=project.settings.weekStart==="monday"?"monday":"sunday",rows=Number(project.settings.calendarRows||5);
-    const displayEvents=window.ACDLCalendarDomain.assignCalendarScheduleColors(project.book.events);
+    const displayEvents=window.ACDLCalendarDomain.assignCalendarScheduleColors((project.book.events||[]).filter(event=>!isPublicReferenceEvent(event)));
     const layout=window.ACDLCalendarDomain.buildCalendarScheduleLanes(
       Number(p?.calendarYear),
       Number(p?.calendarMonth),
@@ -2704,7 +2732,12 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     const style=project.template.masters.calendar.rangeEventStyle;
     const hasSampleSchedule=Boolean(project.book.scheduleImport?.events?.length);
     if(!style || (style.enabled===false && !hasSampleSchedule))return '';
-    const layout=assignRangeLanes(grid),rowHeight=100/rows,barHeight=Number(style.barHeight||11),gap=Number(style.laneGap||2);let html='<div class="range-event-layer">';
+    const layout=assignRangeLanes(grid),rowHeight=100/rows,gap=Number(style.laneGap||1);
+    const stageHeight=el("calendarRegion")?.querySelector(".calendar-stage")?.clientHeight||Math.max(300,(el("page")?.clientHeight||700)*(calendarRegion().height/100)-28);
+    const cellHeight=Math.max(1,(stageHeight-21)/rows),reservedTop=32;
+    const requestedHeight=Number(style.barHeight||14);
+    const fittedHeight=Math.floor((cellHeight-reservedTop-Math.max(0,layout.maxLanes-1)*gap)/Math.max(1,layout.maxLanes));
+    const barHeight=Math.max(7,Math.min(requestedHeight,fittedHeight||requestedHeight));let html='<div class="range-event-layer">';
     layout.segments.forEach(seg=>{
       const left=seg.startColumn/7*100,width=(seg.endColumn-seg.startColumn+1)/7*100,classes=['range-event-bar',style.labelPosition==='above'?'label-above':''].filter(Boolean).join(' '),color=eventColor(seg.event),bottomPx=3+(seg.lane+1)*(barHeight+gap)-gap,typography=window.ACDLCalendarDomain.calendarScheduleTypography(seg.title,seg.span);
       html+=`<div class="${classes}" title="${escapeAttr(seg.event.title)} · ${seg.event.startDate} ~ ${seg.event.endDate}" style="left:calc(${left}% + 2px);width:calc(${width}% - 4px);top:calc(${(seg.week+1)*rowHeight}% - ${bottomPx}px);height:${barHeight}px;background:${color};font-size:${typography.fontPx}px;-webkit-line-clamp:${typography.maxLines}">${seg.title}</div>`
