@@ -109,7 +109,7 @@
     return body;
   }
 
-  async function ensureCalendarReferences(targetProject = root.project) {
+  async function ensureCalendarReferences(targetProject = project) {
     if (!targetProject?.book) return null;
     targetProject.book.calendarReference ||= { schemaVersion: 'calendar-reference.v1', years: {} };
     targetProject.book.calendarReference.years ||= {};
@@ -254,7 +254,7 @@
     if (input) input.accept = '.pdf,.xlsx,.xls,.docx,.hwpx,.csv,.txt';
     const saved = project?.book?.scheduleImport?.apiResult;
     if (saved?.schedules) renderReview(saved);
-    ensureCalendarReferences(root.project).catch(error => showEditorToast?.(error.message));
+    ensureCalendarReferences(project).catch(error => showEditorToast?.(error.message));
   });
 
   root.ACDLScheduleApiClient = Object.freeze({ isRemote, endpoint, setEndpoint, extract, toEditorEvents, renderReview, referenceEndpoint, fetchReferenceYear, ensureCalendarReferences });
