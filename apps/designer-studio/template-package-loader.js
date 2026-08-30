@@ -9,15 +9,16 @@
       return response.json();
     };
     const manifest = await read('manifest.json');
-    const [template, bindings, print, parity] = await Promise.all([
+    const [template, bindings, print, parity, publishing] = await Promise.all([
       read(manifest.files.template),
       read(manifest.files.bindings),
       read(manifest.files.print),
-      read(manifest.files.parity)
+      read(manifest.files.parity),
+      manifest.files.publishing ? read(manifest.files.publishing) : Promise.resolve(null)
     ]);
     if (manifest.templateId !== template.templateId) throw new Error('Template Package id mismatch');
     if (manifest.version !== template.version) throw new Error('Template Package version mismatch');
-    return Object.freeze({ manifest, template, bindings, print, parity });
+    return Object.freeze({ manifest, template, bindings, print, parity, publishing });
   }
 
   root.ACDLTemplatePackageLoader = Object.freeze({ load, DEFAULT_BASE });
