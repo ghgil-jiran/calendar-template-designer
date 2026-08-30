@@ -9,7 +9,8 @@ const {
   assignRangeLanes,
   buildCalendarScheduleLanes,
   calendarScheduleTypography,
-  SCHEDULE_MAX_LANES
+  SCHEDULE_MAX_LANES,
+  SCHEDULE_DISPLAY_CONTRACT
 } = globalThis.ACDLCalendarDomain;
 
 assert.deepEqual(buildTwelveMonths(2027, 3).at(0), { year: 2027, month: 3 });
@@ -81,3 +82,19 @@ assert.deepEqual(
   [...new Set(standardLayout.segments.filter(segment => segment.startDate === '2027-03-06' && segment.endDate === '2027-03-06').map(segment => segment.lane))].sort(),
   [1, 2, 3]
 );
+
+
+assert.equal(SCHEDULE_DISPLAY_CONTRACT.schemaVersion, 'academic-schedule-display.v1');
+assert.equal(SCHEDULE_DISPLAY_CONTRACT.id, 'user-service-v1.1');
+assert.equal(SCHEDULE_DISPLAY_CONTRACT.revision, '1.0.0');
+assert.deepEqual(SCHEDULE_DISPLAY_CONTRACT.sort, ['duration-desc', 'start-date-asc', 'title-asc']);
+assert.equal(SCHEDULE_DISPLAY_CONTRACT.overflow, 'count-badge');
+assert.equal(standardLayout.contractId, SCHEDULE_DISPLAY_CONTRACT.id);
+assert.equal(standardLayout.contractRevision, SCHEDULE_DISPLAY_CONTRACT.revision);
+
+const clippedLayout = buildCalendarScheduleLanes(2027, 3, [
+  { id: 'cross-month', title: '학년 전환 준비', startDate: '2027-02-26', endDate: '2027-03-03' }
+], 'sunday', 5);
+assert.deepEqual(clippedLayout.segments.map(({ row, startCol, span }) => ({ row, startCol, span })), [
+  { row: 0, startCol: 1, span: 3 }
+]);
