@@ -146,13 +146,31 @@
     return { segments: result, overflow };
   }
 
-  const SCHEDULE_MAX_LANES = 4;
+  // 사용자 서비스 v1.1을 유일한 월력 일정 표시 기준으로 사용한다.
+  // 계약 ID와 revision은 Template Package에 함께 저장해 두 런타임의 회귀 여부를 확인한다.
+  const SCHEDULE_DISPLAY_CONTRACT = Object.freeze({
+    schemaVersion: 'academic-schedule-display.v1',
+    id: 'user-service-v1.1',
+    revision: '1.0.0',
+    weekStart: 'sunday',
+    clipToMonth: true,
+    splitByWeek: true,
+    sort: Object.freeze(['duration-desc', 'start-date-asc', 'title-asc']),
+    maxLanes: 4,
+    overflow: 'count-badge',
+    labelMode: 'every-segment',
+    typography: Object.freeze({ shortMax: 12, mediumMax: 28, shortPx: 8, mediumPx: 7, longPx: 6, maxLines: 2 }),
+    bar: Object.freeze({ heightPx: 14, laneGapPx: 1 })
+  });
+  const SCHEDULE_MAX_LANES = SCHEDULE_DISPLAY_CONTRACT.maxLanes;
 
   function calendarScheduleTypography(title, span) {
     const charactersPerColumn = String(title || '').length / Math.max(Number(span) || 1, 1);
+    const typography = SCHEDULE_DISPLAY_CONTRACT.typography;
     return {
-      fontPx: charactersPerColumn >= 29 ? 6 : charactersPerColumn >= 13 ? 7 : 8,
-      maxLines: 2
+      fontPx: charactersPerColumn > typography.mediumMax ? typography.longPx
+        : charactersPerColumn > typography.shortMax ? typography.mediumPx : typography.shortPx,
+      maxLines: typography.maxLines
     };
   }
 
@@ -240,7 +258,13 @@
         cursor.setDate(cursor.getDate() + span);
       }
     });
-    return { segments, hiddenByDate, maxLanes: SCHEDULE_MAX_LANES };
+    return {
+      segments,
+      hiddenByDate,
+      maxLanes: SCHEDULE_MAX_LANES,
+      contractId: SCHEDULE_DISPLAY_CONTRACT.id,
+      contractRevision: SCHEDULE_DISPLAY_CONTRACT.revision
+    };
   }
 
   root.ACDLCalendarDomain = Object.freeze({
@@ -250,6 +274,7 @@
     assignRangeLanes,
     calendarScheduleTypography,
     buildCalendarScheduleLanes,
-    SCHEDULE_MAX_LANES
+    SCHEDULE_MAX_LANES,
+    SCHEDULE_DISPLAY_CONTRACT
   });
 })(typeof window !== 'undefined' ? window : globalThis);
