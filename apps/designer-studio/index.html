@@ -134,10 +134,10 @@
 .free-element.active .elem-handle{display:block}
 .preview-only .editor-toast{display:none!important}
 
-.day-stack{display:flex;flex-direction:column;gap:2px;min-height:0}
+.day-stack{position:relative;z-index:14;display:flex;flex-direction:column;gap:2px;min-height:0;pointer-events:none}
 .day-block{min-height:0}
 .day-block.public-holiday .day{color:#d92d20}
-.day-head-row{display:flex;align-items:baseline;justify-content:space-between;gap:2px;min-width:0}
+.day-head-row{display:flex;align-items:baseline;justify-content:space-between;gap:2px;min-width:0;background:linear-gradient(90deg,rgba(255,255,255,.96),rgba(255,255,255,.82) 72%,rgba(255,255,255,0))}
 .calendar-reference{display:block;margin-top:1px;font-size:7px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .calendar-reference.auxiliary{min-width:0;margin-top:0;color:#98a2b3;text-align:right;font-size:6px}
 .calendar-reference.special{color:#d92d20;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;line-height:1.05}
@@ -180,7 +180,7 @@
 .calendar-stage{position:relative;flex:1;min-height:0}
 .calendar-stage .calendar{height:100%}
 .range-event-layer{position:absolute;left:0;right:0;top:21px;bottom:0;pointer-events:none;z-index:8}
-.range-event-bar{position:absolute;box-sizing:border-box;border-radius:4px;background:var(--accent);color:#fff;font-size:7px;font-weight:700;line-height:1;display:flex;align-items:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 4px;opacity:.92}
+.range-event-bar{position:absolute;box-sizing:border-box;border-radius:4px;background:var(--accent);color:#fff;font-size:7px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 4px;opacity:.92}
 .range-event-bar.continues-before{border-top-left-radius:0;border-bottom-left-radius:0;padding-left:7px}
 .range-event-bar.continues-after{border-top-right-radius:0;border-bottom-right-radius:0;padding-right:8px}
 .range-event-bar.continues-before::before{content:"‹";position:absolute;left:2px;font-size:9px}
