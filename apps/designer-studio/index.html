@@ -654,7 +654,7 @@ function ensureTemplateResources(){
 function applyThemeTokens(){if(!project)return;ensureTemplateResources();const page=el("page");if(!page)return;const c=project.template.resources.colorTheme,f=project.template.resources.fontTheme,e=project.template.resources.exportSettings;Object.entries({primary:c.primary,secondary:c.secondary,accent:c.accent,holiday:c.holiday,weekend:c.weekend,background:c.background,line:c.line}).forEach(([k,v])=>page.style.setProperty(`--tpl-${k}`,v));page.style.setProperty("--tpl-title-font",`${f.title}, ${f.fallback}`);page.style.setProperty("--tpl-body-font",`${f.body}, ${f.fallback}`);page.style.setProperty("--tpl-calendar-font",`${f.calendar}, ${f.fallback}`);page.style.setProperty("--tpl-event-font",`${f.event}, ${f.fallback}`);page.style.setProperty("--export-bleed-mm",Number(e.bleed||0));page.classList.toggle("export-guides-visible",preview&&e.guides===true);page.classList.toggle("export-crop-marks",preview&&e.cropMarks===true)}
 function eventCategoryFor(ev){ensureTemplateResources();return project.template.resources.eventCategories.find(c=>c.id===ev.category)||null}
 function eventPriority(ev){const category=eventCategoryFor(ev);return Number(ev.priority??category?.priority??0)}
-function eventColor(ev){const category=eventCategoryFor(ev);if(category?.color)return category.color;const c=project.template.resources.colorTheme;return ev.category==="holiday"?c.holiday:c.accent}
+function eventColor(ev){if(typeof ev?.color==='string'&&ev.color.trim())return ev.color.trim();const category=eventCategoryFor(ev);if(category?.color)return category.color;const c=project.template.resources.colorTheme;return ev.category==="holiday"?c.holiday:c.accent}
 function escapeAttr(value){return String(value??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}
 
 
@@ -2679,14 +2679,15 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
   };
   assignRangeLanes=function(grid){
     const p=selectedPage(),weekStart=project.settings.weekStart==="monday"?"monday":"sunday",rows=Number(project.settings.calendarRows||5);
+    const displayEvents=window.ACDLCalendarDomain.assignCalendarScheduleColors(project.book.events);
     const layout=window.ACDLCalendarDomain.buildCalendarScheduleLanes(
       Number(p?.calendarYear),
       Number(p?.calendarMonth),
-      project.book.events,
+      displayEvents,
       weekStart,
       rows
     );
-    const eventsById=new Map(project.book.events.map(event=>[event.id,event]));
+    const eventsById=new Map(displayEvents.map(event=>[event.id,event]));
     return {
       segments:layout.segments.map(segment=>({
         ...segment,
