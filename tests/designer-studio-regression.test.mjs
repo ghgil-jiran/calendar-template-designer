@@ -140,3 +140,12 @@ test('template library labels remote and browser-only records explicitly', () =>
   assert.match(runtime, /브라우저 저장 · 원격 저장 필요/);
   assert.match(runtime, /const remoteHistory=remoteStored/);
 });
+
+test('template settings author required optional and unused inputs with sample fallback', () => {
+  assert.match(html, /id="resourceInputContractGrid"/);
+  assert.match(html, /const TEMPLATE_INPUT_DEFINITIONS=/);
+  assert.match(html, /필수<\/option><option value="optional"/);
+  assert.match(html, /선택 · 샘플 유지/);
+  assert.match(html, /stage==="optional"\?\{fallback:"sample"\}/);
+  assert.match(html, /project\.template\.publishing=\{/);
+});
