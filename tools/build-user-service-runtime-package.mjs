@@ -8,7 +8,7 @@ const output = resolve(process.argv[2] || resolve(root, 'dist/user-service-runti
 const source = resolve(root, 'packages/designer-runtime-integration/dist');
 const bridgeVersion = '0.1.0-alpha.2';
 const templatePackages = [
-  { templateId: 'desk-academic-standard', versions: ['1.0.0', '1.1.0', '1.2.0', '1.3.0'] },
+  { templateId: 'desk-academic-standard', versions: ['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0'] },
   { templateId: 'wall-academic-standard', versions: ['0.1.0', '0.2.0', '0.3.0'] }
 ];
 const modules = [
