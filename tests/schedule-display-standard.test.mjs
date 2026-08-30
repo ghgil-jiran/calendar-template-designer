@@ -49,3 +49,8 @@ assert.match(studio, /\.range-event-bar\{[^}]*justify-content:center;text-align:
 // 벽걸이형 월력은 520px 고정값이 아니라 가용 화면 높이·너비에 맞춰 확대한다.
 assert.match(studio, /\.page\.wall\{width:min\(100%,720px,calc\(\(100dvh - 120px\)\*297\/420\)\)/);
 assert.doesNotMatch(studio, /\.page\.wall\{width:min\(100%,520px\)/);
+
+// +N은 일정 막대 위 절대 좌표가 아니라 날짜 셀 정보 영역에서 공휴일 다음 줄에 표시한다.
+assert.match(studio, /const hiddenScheduleByDate=assignRangeLanes\(grid\)\.hiddenByDate\|\|\{\}/);
+assert.match(studio, /class="calendar-overflow-count"/);
+assert.doesNotMatch(studio, /class="range-event-overflow" style=/);
