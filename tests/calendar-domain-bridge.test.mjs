@@ -116,3 +116,10 @@ assert.equal(colored[1].color, SCHEDULE_DISPLAY_CONTRACT.colors.periodPalette[0]
 assert.equal(colored[2].color, SCHEDULE_DISPLAY_CONTRACT.colors.periodPalette[1]);
 assert.equal(colored[3].color, '#123456');
 assert.equal(colored[4].color, SCHEDULE_DISPLAY_CONTRACT.colors.periodPalette[0]);
+
+const legacyColored = assignCalendarScheduleColors([
+  { id: 'legacy-gray', title: '기존 회색 기간', startDate: '2028-06-01', endDate: '2028-06-07', color: '#687894' },
+  { id: 'legacy-neutral', title: '기존 무채색 기간', startDate: '2028-06-08', endDate: '2028-06-14', color: 'oklch(0.62 0.03 250)' }
+]);
+assert.equal(legacyColored[0].color, SCHEDULE_DISPLAY_CONTRACT.colors.periodPalette[0]);
+assert.equal(legacyColored[1].color, SCHEDULE_DISPLAY_CONTRACT.colors.periodPalette[1]);
