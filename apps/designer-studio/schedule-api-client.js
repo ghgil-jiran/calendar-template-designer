@@ -146,8 +146,11 @@
         status: 'parsed'
       };
       project.book.events = [...(project.book.events || []).filter(item => item.source !== 'user-import'), ...events];
-      project.template.masters.calendar.rangeEventStyle ||= { enabled: true, labelMode: 'every', labelPosition: 'inside', barHeight: 11, laneGap: 2, maxLanes: 4, continuationStyle: 'arrow', overflowStyle: 'count' };
+      project.template.masters.calendar.rangeEventStyle ||= { enabled: true, contractId: 'user-service-v1.1', contractRevision: '1.0.0', labelMode: 'every', labelPosition: 'inside', barHeight: 14, laneGap: 1, maxLanes: 4, continuationStyle: 'arrow', overflowStyle: 'count' };
       project.template.masters.calendar.rangeEventStyle.enabled = true;
+      project.template.masters.calendar.rangeEventStyle.contractId = 'user-service-v1.1';
+      project.template.masters.calendar.rangeEventStyle.contractRevision = '1.0.0';
+      project.book.scheduleDisplay = { schemaVersion: 'academic-schedule-display.v1', contractId: 'user-service-v1.1', revision: '1.0.0' };
       document.getElementById('resourceScheduleFileName').textContent = file.name;
       document.getElementById('resourceScheduleFileStatus').textContent = `${events.length}개 샘플 일정을 공통 AI로 추출했습니다.`;
       previewResult(result);
