@@ -71,6 +71,65 @@
     return `${item.date} ~ ${item.endDate}`;
   }
 
+  const REFERENCE_DEFAULT_ENDPOINT = 'http://localhost:3000/api/calendar/reference';
+  const referenceInflight = new Map();
+
+  function referenceEndpoint(year) {
+    const base = isRemote() ? root.location.origin + '/api/calendar-reference' : REFERENCE_DEFAULT_ENDPOINT;
+    return base + '?year=' + encodeURIComponent(year);
+  }
+
+  function calendarYears(targetProject) {
+    const pages = targetProject?.book?.pageInstances || [];
+    const years = pages.filter(page => page?.role === 'monthly-front').map(page => Number(page.calendarYear)).filter(Number.isFinite);
+    if (!years.length) {
+      const startYear = Number(targetProject?.settings?.calendarYear) || new Date().getFullYear();
+      const startMonth = Number(targetProject?.settings?.startMonth) || 3;
+      years.push(startYear);
+      if (startMonth > 1) years.push(startYear + 1);
+    }
+    return [...new Set(years)].sort();
+  }
+
+  async function fetchReferenceYear(year) {
+    const target = referenceEndpoint(year);
+    const guarded = isRemote();
+    const headers = {};
+    if (guarded) {
+      const accessToken = root.ACDLTemplateRemotePersistence?.accessToken?.();
+      if (!accessToken) throw new Error('템플릿 에디터 원격 저장 접근 코드가 필요합니다.');
+      headers['x-template-editor-token'] = accessToken;
+    }
+    const response = await fetch(target, { headers });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || body?.ok === false) {
+      const message = body?.error?.message || (response.status === 401 ? '템플릿 에디터 접근 코드가 일치하지 않습니다.' : `공공 달력 API 오류 (${response.status})`);
+      throw new Error(message);
+    }
+    return body;
+  }
+
+  async function ensureCalendarReferences(targetProject = root.project) {
+    if (!targetProject?.book) return null;
+    targetProject.book.calendarReference ||= { schemaVersion: 'calendar-reference.v1', years: {} };
+    targetProject.book.calendarReference.years ||= {};
+    const missing = calendarYears(targetProject).filter(year => !targetProject.book.calendarReference.years[String(year)]);
+    await Promise.all(missing.map(year => {
+      if (!referenceInflight.has(year)) {
+        referenceInflight.set(year, fetchReferenceYear(year).then(body => {
+          targetProject.book.calendarReference.years[String(year)] = body.data || {};
+          return body;
+        }).finally(() => referenceInflight.delete(year)));
+      }
+      return referenceInflight.get(year);
+    }));
+    if (missing.length) {
+      root.markDirty?.();
+      root.render?.();
+    }
+    return targetProject.book.calendarReference;
+  }
+
   function mountReviewPanel() {
     const preview = document.getElementById('resourceSchedulePreview');
     if (!preview || document.getElementById('resourceScheduleAiPanel')) return;
@@ -162,6 +221,7 @@
       state.className = 'ready';
       markDirty();
       render();
+      ensureCalendarReferences(project).catch(error => showEditorToast?.(error.message));
       showEditorToast?.(`${events.length}개 학사일정을 반영했습니다.`);
     } catch (error) {
       state.textContent = '추출 실패';
@@ -194,7 +254,8 @@
     if (input) input.accept = '.pdf,.xlsx,.xls,.docx,.hwpx,.csv,.txt';
     const saved = project?.book?.scheduleImport?.apiResult;
     if (saved?.schedules) renderReview(saved);
+    ensureCalendarReferences(root.project).catch(error => showEditorToast?.(error.message));
   });
 
-  root.ACDLScheduleApiClient = Object.freeze({ isRemote, endpoint, setEndpoint, extract, toEditorEvents, renderReview });
+  root.ACDLScheduleApiClient = Object.freeze({ isRemote, endpoint, setEndpoint, extract, toEditorEvents, renderReview, referenceEndpoint, fetchReferenceYear, ensureCalendarReferences });
 })(typeof window !== 'undefined' ? window : globalThis);
