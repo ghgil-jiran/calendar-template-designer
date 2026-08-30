@@ -20,6 +20,7 @@ try {
   assert.equal(pkg.exports['./templates/desk-academic-standard/1.1.0/*'], './templates/desk-academic-standard/1.1.0/*');
   assert.equal(pkg.exports['./templates/desk-academic-standard/1.2.0/*'], './templates/desk-academic-standard/1.2.0/*');
   assert.equal(pkg.exports['./templates/desk-academic-standard/1.3.0/*'], './templates/desk-academic-standard/1.3.0/*');
+  assert.equal(pkg.exports['./templates/desk-academic-standard/1.4.0/*'], './templates/desk-academic-standard/1.4.0/*');
   assert.equal(pkg.exports['./templates/wall-academic-standard/0.1.0/*'], './templates/wall-academic-standard/0.1.0/*');
   assert.equal(pkg.exports['./templates/wall-academic-standard/0.2.0/*'], './templates/wall-academic-standard/0.2.0/*');
   assert.equal(pkg.exports['./templates/wall-academic-standard/0.3.0/*'], './templates/wall-academic-standard/0.3.0/*');
@@ -32,6 +33,7 @@ try {
     'desk-academic-standard@1.1.0',
     'desk-academic-standard@1.2.0',
     'desk-academic-standard@1.3.0',
+    'desk-academic-standard@1.4.0',
     'wall-academic-standard@0.1.0',
     'wall-academic-standard@0.2.0',
     'wall-academic-standard@0.3.0'
@@ -43,6 +45,8 @@ try {
   assert.match(integrity.files['templates/desk-academic-standard/1.1.0/publishing.json'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['templates/desk-academic-standard/1.2.0/template.json'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['templates/desk-academic-standard/1.3.0/template.json'], /^[a-f0-9]{64}$/);
+  assert.match(integrity.files['templates/desk-academic-standard/1.4.0/template.json'], /^[a-f0-9]{64}$/);
+  assert.match(integrity.files['templates/desk-academic-standard/1.4.0/publishing.json'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['templates/wall-academic-standard/0.1.0/template.json'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['templates/wall-academic-standard/0.1.0/publishing.json'], /^[a-f0-9]{64}$/);
   assert.match(integrity.files['templates/wall-academic-standard/0.2.0/template.json'], /^[a-f0-9]{64}$/);
