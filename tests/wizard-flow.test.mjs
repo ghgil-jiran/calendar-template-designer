@@ -172,16 +172,16 @@ test('remote template cards expose immutable version history and restore control
   assert.match(runtime, /과거 버전 읽기 전용 미리보기/);
 });
 
-test('runtime parity package is exposed as a review sample without publishing it to users', () => {
+test('desk 1.4.0 is the exact published canonical system base', () => {
   const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
-  assert.match(catalog, /tpl-2028-desk-academic-standard-v1-3/);
-  assert.match(catalog, /packageVersion:\"1\.3\.0\"/);
-  assert.match(catalog, /status:\"ready\"/);
-  assert.match(catalog, /packageBase:\"\/templates\/desk-academic-standard\/1\.3\.0\/\"/);
-  assert.match(catalog, /사용자가 사진 보관함에서 직접 교체/);
-  assert.doesNotMatch(catalog, /tpl-2028-desk-academic-standard-v1-3[^\n]+status:\"published\"/);
+  assert.match(catalog, /tpl-2028-desk-academic-standard-v1-4/);
+  assert.match(catalog, /packageVersion:\"1\.4\.0\"/);
+  assert.match(catalog, /packageBase:\"\/templates\/desk-academic-standard\/1\.4\.0\/\"/);
+  assert.match(catalog, /status:\"published\",registryStatus:\"published\",canonicalPackage:true/);
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
-  assert.match(runtime, /\['draft','ready','published','archived'\]/);
+  assert.match(runtime, /function linkedWorkingCopy\(record\)/);
+  assert.match(runtime, /derivedFromPackage:\{templateId:record\.template,version:record\.packageVersion/);
+  assert.match(runtime, /연결 작업본 만들기/);
 });
 
 test('wall academic package is exposed as an editor review sample with its exact version', () => {
@@ -192,6 +192,17 @@ test('wall academic package is exposed as an editor review sample with its exact
   assert.match(catalog, /packageBase:"\/templates\/wall-academic-standard\/0\.3\.0\/"/);
   assert.match(catalog, /pageSummary:"앞표지 1면·앞간지 1면·월력 12면·뒷표지 1면"/);
   assert.doesNotMatch(catalog, /tpl-2028-wall-academic-standard-v0-3[^\n]+status:"published"/);
+});
+
+test('prototype system bases are archived and hidden from the default active view', () => {
+  const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
+  const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
+  for (const id of ['tpl-2027-desk-sample-6', 'tpl-2027-desk-sample-2', 'tpl-2027-basic-desk', 'tpl-2027-minimal-desk', 'tpl-2027-wall', 'tpl-2027-poster', 'tpl-2027-postcard']) {
+    assert.match(catalog, new RegExp(`${id}[^\\n]+status:\"archived\"`));
+  }
+  assert.match(runtime, /activeLibraryState==='all'&&record\.state==='archived'/);
+  assert.match(runtime, /record\.source==='local'\?`<button data-library-state-change/);
+  assert.match(runtime, /if\(!map\.has\(record\.id\)\)map\.set\(record\.id,record\)/);
 });
 
 test('template library entry and save do not reference the removed legacy filter state', () => {

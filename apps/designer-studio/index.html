@@ -2195,6 +2195,7 @@ async function openDesignerProjectFromRecord(t){
   project.template.remoteVersionNumber=Number(t.version)||Number(project.template.remoteVersionNumber)||0;
  }
  project.template.librarySource=t.source||project.template.librarySource||"local";
+ project.template.derivedFromPackage=t.derivedFromPackage||project.template.derivedFromPackage||null;
  project.template.preset=t.template||project.settings?.template||"school-basic";
  project.template.metadata={...(project.template.metadata||{}),name:t.name,description:t.description||"",edition:Number(t.edition)||2027,state:t.state||"draft"};
  selectedPageId=project.book.pageInstances[0]?.id||null;selectedElementId=null;selectedElementScope=null;history=[];future=[];
@@ -2233,7 +2234,7 @@ el("confirmTemplateSaveBtn")?.addEventListener("click",async ()=>{
   const remote=window.ACDLTemplateRemotePersistence;
   if(remote?.isRemote?.())try{const result=await remote.save({templateId:project.template.remoteId||null,stableKey,name,description,edition,state,productType:project.productType?.category||project.settings?.type||"desk",templateKey:project.template?.preset||project.settings?.template||"school-basic",saveKind:state==="published"?"publish":"manual",saveNote:`${name} 저장`,schemaVersion:"2.0",projectData:projectCopy});savedId=result.template.id;remoteVersion=result.version.versionNumber;remoteSaved=true;project.template.id=savedId;project.template.remoteId=savedId;project.template.remoteStableKey=result.template.stableKey;project.template.remoteVersionNumber=remoteVersion;await saveTemplateProjectData(savedId,window.ACDLPersistenceProject.clone(project))}catch(error){remoteError=error;console.warn("원격 템플릿 저장 실패",error)}
   project.template.librarySource="local";
-  const list=v22Library(),record={id:savedId,remoteId:remoteSaved?savedId:undefined,stableKey,name,description,edition,state,type:project.productType?.category||project.settings?.type||"desk",template:project.template?.preset||project.settings?.template||"school-basic",packageVersion:project.template?.package?.version,packageBase:project.template?.package?.base,source:"local",thumbnail:project.template?.thumbnail||{kind:"renderer",source:"templateData"},version:remoteVersion||1,updatedAt:new Date().toISOString(),storage:remoteSaved?"supabase":"indexeddb"};
+  const list=v22Library(),record={id:savedId,remoteId:remoteSaved?savedId:undefined,stableKey,name,description,edition,state,type:project.productType?.category||project.settings?.type||"desk",template:project.template?.preset||project.settings?.template||"school-basic",packageVersion:project.template?.package?.version,packageBase:project.template?.package?.base,derivedFromPackage:project.template?.derivedFromPackage||undefined,source:"local",thumbnail:project.template?.thumbnail||{kind:"renderer",source:"templateData"},version:remoteVersion||1,updatedAt:new Date().toISOString(),storage:remoteSaved?"supabase":"indexeddb"};
   const filtered=list.filter(x=>x.id!==id&&x.id!==savedId&&(!stableKey||x.stableKey!==stableKey));filtered.unshift(record);list.splice(0,list.length,...filtered);
   v22SaveLibrary(list);
   renderUserTemplateChoices();

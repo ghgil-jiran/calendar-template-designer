@@ -141,6 +141,15 @@ test('template library labels remote and browser-only records explicitly', () =>
   assert.match(runtime, /const remoteHistory=remoteStored/);
 });
 
+test('canonical package edits keep their origin on a separate working copy', () => {
+  const runtime = fs.readFileSync(path.resolve('apps/designer-studio/template-library-runtime.js'), 'utf8');
+  assert.match(runtime, /id:`tpl-work-\$\{record\.template\}-\$\{record\.packageVersion\}-\$\{suffix\}`/);
+  assert.match(runtime, /state:'draft',status:'draft'/);
+  assert.match(runtime, /derivedFromPackage:\{templateId:record\.template,version:record\.packageVersion/);
+  assert.match(html, /project\.template\.derivedFromPackage=t\.derivedFromPackage/);
+  assert.match(html, /derivedFromPackage:project\.template\?\.derivedFromPackage\|\|undefined/);
+});
+
 test('template settings author required optional and unused inputs with sample fallback', () => {
   assert.match(html, /id="resourceInputContractGrid"/);
   assert.match(html, /const TEMPLATE_INPUT_DEFINITIONS=/);

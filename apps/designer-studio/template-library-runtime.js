@@ -66,7 +66,7 @@
  }
  function records(){
   const map=new Map((catalog.templates||[]).map(record=>[record.id,normalize(record,'catalog')]));
-  oldLibrary().map(record=>normalize(record,'local')).forEach(record=>map.set(record.id,record));
+  oldLibrary().map(record=>normalize(record,'local')).forEach(record=>{if(!map.has(record.id))map.set(record.id,record)});
   return [...map.values()];
  }
  function saveRecords(list){oldSaveLibrary(list.map(record=>normalize(record,record?.source||'local')))}
@@ -104,7 +104,26 @@
   const remoteStored=record.source==='local'&&record.storage==='supabase';
   const storageBadge=record.source==='local'?`<span class="${remoteStored?'storage-remote':'storage-local'}">${remoteStored?'Supabase 원격 저장':'브라우저 저장 · 원격 저장 필요'}</span>`:'';
   const remoteHistory=remoteStored?`<button data-library-history="${escape(record.id)}" aria-expanded="false">버전 이력</button><button data-library-package-check="${escape(record.id)}">Package 검사</button>`:'';
-  return `<article class="library-template-card ${kindClass}" data-template-id="${escape(record.id)}" data-library-state="${record.state}" data-library-type="${escape(record.type)}"><div class="library-thumb calendar-product-thumb calendar-product-${escape(record.type)}"><div class="calendar-product-shell"><span class="calendar-product-binding" aria-hidden="true"></span><div class="calendar-product-page" data-library-thumbnail="${escape(record.id)}"><span class="thumbnail-placeholder">템플릿 미리보기</span></div><span class="calendar-product-side" aria-hidden="true"></span><span class="calendar-product-stand" aria-hidden="true"></span></div></div><div class="library-card-body"><div class="library-meta-line"><h3>${escape(record.name)}</h3><span class="edition-badge">${record.edition} Edition</span><span class="version-badge">v${escape(String(record.version))}</span></div><div class="library-card-meta"><span class="badge-base">${escape(kindLabel)}</span>${storageBadge}<span>${escape(meta.label)}</span><span>${escape(record.size?.label||`${record.size?.width||'-'} × ${record.size?.height||'-'} ${record.size?.unit||'mm'}`)}</span></div><span class="state-badge state-${record.state}">${record.state==='published'?'게시됨':record.state==='archived'?'보관됨':record.state==='ready'?'검토 완료':'초안'}</span><p>${escape(record.description)}</p><small>${escape(record.pageSummary)} · 수정 ${escape(String(record.updatedAt).slice(0,10))}</small><div class="template-tags catalog-card-features">${features}</div><div class="library-card-actions"><button class="primary" data-library-use="${escape(record.id)}">이 템플릿 사용하기</button><button data-library-edit="${escape(record.id)}">편집</button><button data-library-copy="${escape(record.id)}">복제</button><button data-library-state-change="${escape(record.id)}">상태 변경</button>${remoteHistory}</div><div class="library-version-history hidden" data-library-history-panel="${escape(record.id)}"></div></div></article>`;
+  const canonical=record.source==='catalog'&&record.canonicalPackage===true;
+  const originBadge=canonical?`<span>Package ${escape(record.template)}@${escape(record.packageVersion)}</span>`:'';
+  const editLabel=canonical?'연결 작업본 만들기':'편집';
+  const stateAction=record.source==='local'?`<button data-library-state-change="${escape(record.id)}">상태 변경</button>`:'';
+  return `<article class="library-template-card ${kindClass}" data-template-id="${escape(record.id)}" data-library-state="${record.state}" data-library-type="${escape(record.type)}"><div class="library-thumb calendar-product-thumb calendar-product-${escape(record.type)}"><div class="calendar-product-shell"><span class="calendar-product-binding" aria-hidden="true"></span><div class="calendar-product-page" data-library-thumbnail="${escape(record.id)}"><span class="thumbnail-placeholder">템플릿 미리보기</span></div><span class="calendar-product-side" aria-hidden="true"></span><span class="calendar-product-stand" aria-hidden="true"></span></div></div><div class="library-card-body"><div class="library-meta-line"><h3>${escape(record.name)}</h3><span class="edition-badge">${record.edition} Edition</span><span class="version-badge">v${escape(String(record.version))}</span></div><div class="library-card-meta"><span class="badge-base">${escape(kindLabel)}</span>${storageBadge}${originBadge}<span>${escape(meta.label)}</span><span>${escape(record.size?.label||`${record.size?.width||'-'} × ${record.size?.height||'-'} ${record.size?.unit||'mm'}`)}</span></div><span class="state-badge state-${record.state}">${record.state==='published'?'게시됨':record.state==='archived'?'보관됨':record.state==='ready'?'검토 완료':'초안'}</span><p>${escape(record.description)}</p><small>${escape(record.pageSummary)} · 수정 ${escape(String(record.updatedAt).slice(0,10))}</small><div class="template-tags catalog-card-features">${features}</div><div class="library-card-actions"><button class="primary" data-library-use="${escape(record.id)}">이 템플릿 사용하기</button><button data-library-edit="${escape(record.id)}">${editLabel}</button><button data-library-copy="${escape(record.id)}">복제</button>${stateAction}${remoteHistory}</div><div class="library-version-history hidden" data-library-history-panel="${escape(record.id)}"></div></div></article>`;
+ }
+
+ function linkedWorkingCopy(record){
+  if(record?.source!=='catalog'||record?.canonicalPackage!==true)return record;
+  const createdAt=new Date().toISOString(),suffix=Date.now();
+  return {...record,
+   id:`tpl-work-${record.template}-${record.packageVersion}-${suffix}`,
+   stableKey:`${record.id}-work-${suffix}`,
+   name:`${record.name} 작업본`,
+   description:`${record.name} ${record.packageVersion} 게시 원본에서 만든 연결 작업본입니다.`,
+   source:'local',storage:'indexeddb',state:'draft',status:'draft',version:1,
+   remoteId:undefined,remoteStableKey:undefined,
+   derivedFromPackage:{templateId:record.template,version:record.packageVersion,catalogId:record.id,registryStatus:record.registryStatus||record.state},
+   createdAt,updatedAt:createdAt,publishedAt:null,readyAt:null,archivedAt:null
+  };
  }
  function versionStateLabel(state){return state==='published'?'게시됨':state==='archived'?'보관됨':state==='ready'?'검토 완료':'초안'}
  function versionKindLabel(kind){return kind==='restore'?'복원':kind==='publish'?'게시 저장':'직접 저장'}
@@ -198,6 +217,7 @@
  function filterActive(record){
   if(activeLibraryScope==='base'&&record.source!=='catalog')return false;
   if(activeLibraryScope==='custom'&&record.source!=='local')return false;
+  if(activeLibraryState==='all'&&record.state==='archived')return false;
   if(activeLibraryState!=='all'&&record.state!==activeLibraryState)return false;
   if(activeTypeFilter!=='all'&&record.type!==activeTypeFilter)return false;
   const edition=el('libraryEditionFilter')?.value||'all';
@@ -214,8 +234,9 @@
     const button=el('createCustomTemplateBtn');if(button)button.addEventListener('click',()=>{closeTemplateLibrary();enterDesigner();});
   } else {
     grid.innerHTML=list.length?list.map(cardMarkup).join(''):`<div class="library-empty-state"><strong>${activeTypeFilter==='all'?'등록된 템플릿이 없습니다.':`${escape(label(activeTypeFilter))}에 등록된 템플릿이 없습니다.`}</strong><p>새 템플릿을 만들어 보세요.</p></div>`;
-    grid.querySelectorAll('[data-library-edit],[data-library-use]').forEach(button=>button.addEventListener('click',()=>openDesignerProjectFromRecord(records().find(record=>record.id===button.dataset.libraryEdit||record.id===button.dataset.libraryUse))));
-    grid.querySelectorAll('[data-library-copy]').forEach(button=>button.addEventListener('click',()=>{const source=records().find(record=>record.id===button.dataset.libraryCopy);if(!source)return;saveRecords([...records(),{...source,id:`tpl-${Date.now()}`,name:`${source.name} 복사본`,state:'draft',status:'draft',updatedAt:new Date().toISOString()}]);renderLibrary(filter)}));
+    grid.querySelectorAll('[data-library-use]').forEach(button=>button.addEventListener('click',()=>{const source=records().find(record=>record.id===button.dataset.libraryUse);openDesignerProjectFromRecord(linkedWorkingCopy(source))}));
+    grid.querySelectorAll('[data-library-edit]').forEach(button=>button.addEventListener('click',()=>{const source=records().find(record=>record.id===button.dataset.libraryEdit);openDesignerProjectFromRecord(linkedWorkingCopy(source))}));
+    grid.querySelectorAll('[data-library-copy]').forEach(button=>button.addEventListener('click',()=>{const source=records().find(record=>record.id===button.dataset.libraryCopy);if(!source)return;const draft=source.canonicalPackage?linkedWorkingCopy(source):{...source,id:`tpl-${Date.now()}`,stableKey:`${source.id}-copy-${Date.now()}`,source:'local',storage:'indexeddb',name:`${source.name} 복사본`,state:'draft',status:'draft',updatedAt:new Date().toISOString()};saveRecords([...records(),draft]);renderLibrary(filter)}));
     grid.querySelectorAll('[data-library-state-change]').forEach(button=>button.addEventListener('click',()=>{const list=records(),record=list.find(item=>item.id===button.dataset.libraryStateChange);if(!record)return;const seq=['draft','ready','published','archived'];record.state=seq[(seq.indexOf(record.state)+1)%seq.length];record.status=record.state;record.updatedAt=new Date().toISOString();saveRecords(list);renderLibrary(filter);renderUserTemplateChoices()}));
     grid.querySelectorAll('[data-library-history]').forEach(button=>button.addEventListener('click',()=>toggleVersionHistory(button)));
     grid.querySelectorAll('[data-library-package-check]').forEach(button=>button.addEventListener('click',()=>runPackagePreflight(button)));
