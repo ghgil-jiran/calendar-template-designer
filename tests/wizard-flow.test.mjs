@@ -223,6 +223,8 @@ test('library project opening waits for package loading and clears stale schedul
   assert.match(html, /resourceScheduleFileName"\)\.textContent="샘플 일정 파일 없음"/);
   assert.match(html, /preview\.classList\.add\("hidden"\);preview\.innerHTML=""/);
   assert.match(openSource, /requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>\{if\(isCurrentProjectTransition\(transitionId\)&&project===openedProject\)render\(\)\}\)\)/);
+  assert.match(html, /\.calendar-stage \.calendar\{height:100%;grid-template-rows:minmax\(20px,auto\) repeat\(var\(--calendar-rows,6\),1fr\)\}/);
+  assert.match(html, /\.calendar-stage \.head\{line-height:14px\}/);
 });
 
 test('local studio server handles the browser favicon request without a 404', () => {
