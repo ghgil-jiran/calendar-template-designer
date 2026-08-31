@@ -2174,7 +2174,6 @@ async function openDesignerProjectFromRecord(t){
  el("entryScreen").classList.add("hidden");
  el("setup").classList.add("hidden");
  el("userSetup").classList.add("hidden");
- el("templateLibraryModal").classList.add("hidden");
  let nextProject=null;
  try{const stored=await loadTemplateProjectData(t.id);if(stored)nextProject=structuredClone(stored);else if(t.projectData)nextProject=typeof t.projectData==="string"?JSON.parse(t.projectData):structuredClone(t.projectData)}catch(_){nextProject=null}
  if(!isCurrentProjectTransition(transitionId))return;
@@ -2200,6 +2199,7 @@ async function openDesignerProjectFromRecord(t){
  project.template.metadata={...(project.template.metadata||{}),name:t.name,description:t.description||"",edition:Number(t.edition)||2027,state:t.state||"draft"};
  selectedPageId=project.book.pageInstances[0]?.id||null;selectedElementId=null;selectedElementScope=null;history=[];future=[];
  el("appBrand").childNodes[0].nodeValue="ACDL 템플릿 에디터 ";el("newBtn").textContent="새 템플릿";el("saveBtn").textContent="템플릿 저장";el("templateMode").textContent="템플릿 설계";el("modeHelp").textContent="샘플 콘텐츠, 데이터 연결, 위치와 스타일을 한 화면에서 설계합니다.";
+ el("templateLibraryModal").classList.add("hidden");
  setEditorContext("템플릿 라이브러리");stable();render();updateRoleIndicator();showEditorToast(`${t.name} ${t.edition} Edition 편집을 시작했습니다.`);
 }
 function closeTemplateLibrary(){
@@ -2363,7 +2363,7 @@ el("templateMenuDropdown")?.addEventListener("click",e=>e.stopPropagation());
 el("newBtn")?.addEventListener("click",()=>{if(appMode==="designer"){el("designerHome")?.classList.add("hidden");el("setup").classList.remove("hidden")}el("templateMenuDropdown")?.classList.add("hidden")},true);
 
 // Resource form compatibility for newly added fields and schedule metadata
-const oldPopulateSchoolResourceForm=populateSchoolResourceForm;populateSchoolResourceForm=function(){oldPopulateSchoolResourceForm();const school=project?.book?.school||{};if(el("resourceSchoolFax"))el("resourceSchoolFax").value=school.fax||"";if(el("resourceSchoolSong"))el("resourceSchoolSong").value=school.profile?.song?.description||"";const imp=project?.book?.scheduleImport;if(imp){el("resourceScheduleFileName").textContent=imp.fileName||"샘플 일정 파일";el("resourceScheduleFileStatus").textContent=imp.events?.length?`${imp.events.length}개 샘플 일정 저장됨`:"변환 연동 대상 파일 등록됨"}}
+const oldPopulateSchoolResourceForm=populateSchoolResourceForm;populateSchoolResourceForm=function(){oldPopulateSchoolResourceForm();const school=project?.book?.school||{};if(el("resourceSchoolFax"))el("resourceSchoolFax").value=school.fax||"";if(el("resourceSchoolSong"))el("resourceSchoolSong").value=school.profile?.song?.description||"";const imp=project?.book?.scheduleImport,preview=el("resourceSchedulePreview"),input=el("resourceScheduleInput");if(imp){el("resourceScheduleFileName").textContent=imp.fileName||"샘플 일정 파일";el("resourceScheduleFileStatus").textContent=imp.events?.length?`${imp.events.length}개 샘플 일정 저장됨`:"변환 연동 대상 파일 등록됨"}else{el("resourceScheduleFileName").textContent="샘플 일정 파일 없음";el("resourceScheduleFileStatus").textContent="XLSX·CSV·TXT 등록 가능";if(preview){preview.classList.add("hidden");preview.innerHTML=""}if(input)input.value=""}}
 
 const v23OldRenderUserSummary=renderUserSummary;renderUserSummary=function(){
  const tpl=document.querySelector("[data-user-template].selected strong")?.textContent||"템플릿", opts=[];

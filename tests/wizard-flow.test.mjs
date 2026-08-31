@@ -212,6 +212,18 @@ test('template library entry and save do not reference the removed legacy filter
   assert.match(html, /renderTemplateLibrary\("all"\);/);
 });
 
+test('library project opening waits for package loading and clears stale schedule settings', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const openStart = html.indexOf('async function openDesignerProjectFromRecord(t)');
+  const openEnd = html.indexOf('function closeTemplateLibrary()', openStart);
+  const openSource = html.slice(openStart, openEnd);
+  const packageLoad = openSource.indexOf('ACDLPackageProjectAdapter.loadAndApply');
+  const closeLibrary = openSource.indexOf('templateLibraryModal").classList.add("hidden")');
+  assert.ok(packageLoad >= 0 && closeLibrary > packageLoad);
+  assert.match(html, /resourceScheduleFileName"\)\.textContent="샘플 일정 파일 없음"/);
+  assert.match(html, /preview\.classList\.add\("hidden"\);preview\.innerHTML=""/);
+});
+
 test('local studio server handles the browser favicon request without a 404', () => {
   const server = fs.readFileSync(new URL('../tools/serve-designer-studio.mjs', import.meta.url), 'utf8');
   assert.match(server, /url\.pathname === '\/favicon\.ico'/);
