@@ -2200,7 +2200,10 @@ async function openDesignerProjectFromRecord(t){
  selectedPageId=project.book.pageInstances[0]?.id||null;selectedElementId=null;selectedElementScope=null;history=[];future=[];
  el("appBrand").childNodes[0].nodeValue="ACDL 템플릿 에디터 ";el("newBtn").textContent="새 템플릿";el("saveBtn").textContent="템플릿 저장";el("templateMode").textContent="템플릿 설계";el("modeHelp").textContent="샘플 콘텐츠, 데이터 연결, 위치와 스타일을 한 화면에서 설계합니다.";
  el("templateLibraryModal").classList.add("hidden");
- setEditorContext("템플릿 라이브러리");stable();render();updateRoleIndicator();showEditorToast(`${t.name} ${t.edition} Edition 편집을 시작했습니다.`);
+ setEditorContext("템플릿 라이브러리");stable();render();updateRoleIndicator();
+ const openedProject=project;
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{if(isCurrentProjectTransition(transitionId)&&project===openedProject)render()}));
+ showEditorToast(`${t.name} ${t.edition} Edition 편집을 시작했습니다.`);
 }
 function closeTemplateLibrary(){
  el("templateLibraryModal")?.classList.add("hidden");
