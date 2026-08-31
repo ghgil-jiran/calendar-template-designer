@@ -2,21 +2,67 @@
   const palette = ['#315e9e', '#4777bd', '#2e8b72', '#4c8f3a', '#b57b23', '#c05a4f', '#a64f78', '#7459a8', '#3f769e', '#50806b', '#9a6a45', '#526487'];
   const pastel = ['#dff4ee', '#e7f3df', '#fff0d8', '#fde5df', '#f8e4ed', '#eee7f8', '#e1edf8', '#e2f1ed', '#f6eadf', '#e8edf6', '#f1e8dc', '#e7ebf2'];
   const protectedPlannerPermissions = { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false };
+  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 2 };
+
+  function createPlannerMasterElements() {
+    return [
+      { id: 'master.planner.goal', type: 'memo', role: 'monthly-goal', memoLayout: 'goal', x: 4, y: 9.8, width: 35, height: 40.2, zIndex: 2, title: 'MONTHLY GOAL', required: true, permissions: { ...protectedPlannerPermissions }, style: {} },
+      { id: 'master.planner.todo', type: 'memo', role: 'monthly-todo', memoLayout: 'checklist', x: 4, y: 51.8, width: 35, height: 42.8, zIndex: 2, title: 'TO DO LIST', itemCount: 9, required: true, permissions: { ...protectedPlannerPermissions }, style: {} },
+      { id: 'master.planner.weekly', type: 'memo', role: 'weekly-planner', memoLayout: 'weekly', x: 40.8, y: 9.8, width: 55.3, height: 84.8, zIndex: 2, title: 'WEEKLY PLANNER', weekCount: 5, showMemo: true, required: true, permissions: { ...protectedPlannerPermissions }, style: {} }
+    ];
+  }
+
+  function isDeskPlannerStandardDocument(project) {
+    const pages = project?.book?.pageInstances || [];
+    return project?.settings?.template === deskPlannerStandard.templateKey
+      && pages.length === 30
+      && pages.filter(page => page.role === 'monthly-front').length === 12
+      && pages.filter(page => page.role === 'monthly-back').length === 12;
+  }
+
+  function migrateProject(project) {
+    if (!project || typeof project !== 'object') return { project, report: { applied: [], source: 'invalid' } };
+    if (!isDeskPlannerStandardDocument(project)) return { project, report: { applied: [], source: 'not-desk-planner-standard-01' } };
+    const applied = [];
+    project.template ||= {};
+    project.template.metadata ||= {};
+    if (project.template.metadata.sampleFamily !== 'desk-6') {
+      project.template.metadata.sampleFamily = 'desk-6';
+      applied.push('desk-planner-sample-family');
+    }
+    if (project.template.standardIdentity?.catalogId !== deskPlannerStandard.catalogId) {
+      project.template.standardIdentity = { catalogId: deskPlannerStandard.catalogId, templateKey: deskPlannerStandard.templateKey };
+      applied.push('desk-planner-standard-identity');
+    }
+    const fromVersion = Number(project.template.documentVersion || 0);
+    if (fromVersion < 2) {
+      project.template.masterElements ||= {};
+      project.template.masterElements['master.monthly.back'] = createPlannerMasterElements();
+      applied.push('desk-planner-master-source-match-v2');
+    }
+    if (fromVersion < deskPlannerStandard.documentVersion) {
+      project.template.documentVersion = deskPlannerStandard.documentVersion;
+      applied.push(`desk-planner-document-version-${deskPlannerStandard.documentVersion}`);
+    }
+    const report = { applied, source: 'desk-planner-standard-01', fromVersion, toVersion: deskPlannerStandard.documentVersion };
+    project.template.migrationReport = report;
+    return { project, report };
+  }
 
   function applyDeskRepresentativePreset(project, options) {
     if (options.type !== 'desk' || !['desk-sample-6', 'desk-sample-2'].includes(options.template)) return project;
     const isPlanner = options.template === 'desk-sample-6';
     const months = project.book.pageInstances.filter(page => page.role === 'monthly-front');
     project.template.metadata = { name: isPlanner ? '탁상형 6번 · 월별 플래너형' : '탁상형 2번 · 이미지 콜라주형', sampleFamily: isPlanner ? 'desk-6' : 'desk-2', productRuntime: 'desk-sequence' };
+    if (isPlanner) {
+      project.template.standardIdentity = { catalogId: deskPlannerStandard.catalogId, templateKey: deskPlannerStandard.templateKey };
+      project.template.documentVersion = deskPlannerStandard.documentVersion;
+    }
     project.template.pageComposition = { type: 'desk-sequence', pageCount: 30, monthPairCount: 12, frontInsertSurfaceCount: 2 };
     project.template.masters.calendar.calendarRegion = { x: 3, y: 10, width: 94, height: 87 };
     project.template.masters.calendar.eventMaxVisiblePerDay = 3;
     project.template.masters.calendar.design = { monthTitleAlign: 'left', monthTitleStyle: 'number-stack', weekdayStyle: 'filled-tabs', gridStyle: 'boxed', eventStyle: 'strong-bars' };
-    project.template.masterElements['master.monthly.back'] = isPlanner ? [
-      { id: 'master.planner.goal', type: 'memo', role: 'monthly-goal', memoLayout: 'goal', x: 4, y: 11, width: 36, height: 42, zIndex: 2, title: 'MONTHLY GOAL', required: true, permissions: { ...protectedPlannerPermissions }, style: {} },
-      { id: 'master.planner.todo', type: 'memo', role: 'monthly-todo', memoLayout: 'checklist', x: 4, y: 55, width: 36, height: 40, zIndex: 2, title: 'TO DO LIST', itemCount: 9, required: true, permissions: { ...protectedPlannerPermissions }, style: {} },
-      { id: 'master.planner.weekly', type: 'memo', role: 'weekly-planner', memoLayout: 'weekly', x: 42, y: 11, width: 54, height: 84, zIndex: 2, title: 'WEEKLY PLANNER', weekCount: 5, showMemo: true, required: true, permissions: { ...protectedPlannerPermissions }, style: {} }
-    ] : [
+    project.template.masterElements['master.monthly.back'] = isPlanner ? createPlannerMasterElements() : [
       { id: 'master.collage.large', type: 'image-frame', role: 'monthly-image', x: 5, y: 6, width: 57, height: 58, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', fit: 'cover', focalPoint: { x: .5, y: .5 } }, fit: 'cover', style: { borderRadius: 3 } },
       { id: 'master.collage.small-a', type: 'image-frame', role: 'monthly-image-secondary', x: 65, y: 6, width: 30, height: 27, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', fit: 'cover', focalPoint: { x: .25, y: .5 } }, fit: 'cover', style: { borderRadius: 3 } },
       { id: 'master.collage.small-b', type: 'image-frame', role: 'monthly-image-tertiary', x: 65, y: 37, width: 30, height: 27, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', fit: 'cover', focalPoint: { x: .75, y: .5 } }, fit: 'cover', style: { borderRadius: 3 } },
@@ -127,5 +173,5 @@
     return applyDeskRepresentativePreset(project, options);
   }
 
-  root.ACDLProjectDocument = Object.freeze({ createProject });
+  root.ACDLProjectDocument = Object.freeze({ createProject, migrateProject, isDeskPlannerStandardDocument });
 })(typeof window !== 'undefined' ? window : globalThis);

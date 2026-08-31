@@ -51,6 +51,30 @@ assert.ok(representative.book.elementsByPage['surface.1.front'].some(item => ite
 assert.ok(representative.book.elementsByPage['surface.1.back'].some(item => item.type === 'year-calendar'));
 assert.ok(representative.book.elementsByPage['surface.15.back'].some(item => item.role === 'school-motto'));
 assert.ok(representative.book.elementsByPage['surface.15.back'].some(item => item.role === 'school-song'));
+assert.deepEqual(representative.template.standardIdentity, { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6' });
+assert.equal(representative.template.documentVersion, 2);
+assert.deepEqual(plannerElements.map(item => [item.x, item.y, item.width, item.height]), [
+  [4, 9.8, 35, 40.2],
+  [4, 51.8, 35, 42.8],
+  [40.8, 9.8, 55.3, 84.8]
+]);
+
+const savedPlanner = structuredClone(representative);
+delete savedPlanner.template.standardIdentity;
+delete savedPlanner.template.documentVersion;
+delete savedPlanner.template.metadata.sampleFamily;
+const migratedPlanner = globalThis.ACDLProjectDocument.migrateProject(savedPlanner);
+assert.equal(migratedPlanner.project.book.pageInstances.length, 30);
+assert.equal(migratedPlanner.project.template.standardIdentity.catalogId, 'tpl-2028-desk-planner-standard-01');
+assert.equal(migratedPlanner.project.template.metadata.sampleFamily, 'desk-6');
+assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-document-version-2']);
+assert.deepEqual(globalThis.ACDLProjectDocument.migrateProject(migratedPlanner.project).report.applied, []);
+
+const archivedPlanner = structuredClone(representative);
+archivedPlanner.book.pageInstances = archivedPlanner.book.pageInstances.slice(0, 28);
+delete archivedPlanner.template.standardIdentity;
+assert.equal(globalThis.ACDLProjectDocument.migrateProject(archivedPlanner).report.source, 'not-desk-planner-standard-01');
+assert.equal(archivedPlanner.template.standardIdentity, undefined);
 
 const wall = globalThis.ACDLProjectDocument.createProject({ ...base, type: 'wall', template: 'school-basic', sizePresetId: 'wall-a3' }, dependencies);
 assert.equal(wall.book.pageInstances.length, 15);

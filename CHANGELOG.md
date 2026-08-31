@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-31 — 탁상형 표준 01 작업본 구분 준비
+
+- 신규 30면 시스템 베이스와 기존 저장 작업본의 재열기 경로를 구분했다.
+- 30면 `desk-sample-6` 작업본에만 적용되는 문서 버전 2 migration을 추가했다.
+- 기존 저장 원본을 덮어쓰지 않고 작업 사본에서 표준 identity와 월력 뒷면 공통 Master를 보완한다.
+- 28면 보관 샘플과 다른 템플릿은 migration 대상에서 제외했다.
+- 6번 실물 PDF 기준 월력 뒷면 Master 좌표를 1차 보정했으며, 다음 단계에서 화면을 나란히 비교해 최종 확정한다.
+
 ## Build and verification stabilization — 2026-08-04
 
 - GitHub `main` 기준의 깨끗한 작업 환경에서 `npm ci` 후 전체 빌드 검증

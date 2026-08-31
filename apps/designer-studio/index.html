@@ -2138,9 +2138,11 @@ const templateProjectDatabase=window.ACDLPersistenceIndexedDB.createDatabase(ind
 function openTemplateDb(){return templateProjectDatabase.open()}
 async function saveTemplateProjectData(id,data){await templateProjectDatabase.put(ACDL_STORE,{id,data,updatedAt:new Date().toISOString()});return true}
 async function loadTemplateProjectData(id){
- const local=(await templateProjectDatabase.get(ACDL_STORE,id))?.data,remote=window.ACDLTemplateRemotePersistence,isRemoteId=/^[0-9a-f-]{36}$/i.test(String(id));if(!remote?.isRemote?.()||!isRemoteId)return local||null;
- try{const result=await remote.load(id),data=result?.version?.projectData;if(data){await saveTemplateProjectData(id,data);return data}}catch(error){console.warn("원격 템플릿 불러오기 실패",error)}
- return local||null;
+ const local=(await templateProjectDatabase.get(ACDL_STORE,id))?.data,remote=window.ACDLTemplateRemotePersistence,isRemoteId=/^[0-9a-f-]{36}$/i.test(String(id));
+ if(!remote?.isRemote?.()||!isRemoteId){const localCopy=local?structuredClone(local):null;return window.ACDLProjectDocument?.migrateProject?.(localCopy)?.project||localCopy}
+ try{const result=await remote.load(id),data=result?.version?.projectData;if(data){await saveTemplateProjectData(id,data);return window.ACDLProjectDocument?.migrateProject?.(structuredClone(data))?.project||data}}catch(error){console.warn("원격 템플릿 불러오기 실패",error)}
+ const localCopy=local?structuredClone(local):null;
+ return window.ACDLProjectDocument?.migrateProject?.(localCopy)?.project||localCopy;
 }
 async function refreshRemoteTemplateLibrary(){
  const remote=window.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return false;
