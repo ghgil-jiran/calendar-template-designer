@@ -31,7 +31,8 @@ assert.equal(layout.hiddenByDate['2028-03-05'], 1);
 const studio = await readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
 const projectDocument = await readFile(new URL('../apps/designer-studio/project-document.js', import.meta.url), 'utf8');
 assert.match(studio, /buildCalendarScheduleLanes/);
-assert.match(studio, /const evs=\[\],vis=\[\],hidden=0/);
+assert.match(studio, /const displayEvents=window\.ACDLCalendarDomain\.assignCalendarScheduleColors/);
+assert.match(studio, /hiddenByDate:layout\.hiddenByDate/);
 assert.match(studio, /SCHEDULE_MAX_LANES/);
 assert.match(studio, /hasSampleSchedule=Boolean\(project\.book\.scheduleImport\?\.events\?\.length\)/);
 assert.match(studio, /style\.enabled===false && !hasSampleSchedule/);
@@ -53,7 +54,7 @@ assert.doesNotMatch(studio, /\.page\.wall\{width:min\(100%,520px\)/);
 // +N은 일정 막대 위 절대 좌표가 아니라 날짜 셀 정보 영역에서 공휴일 다음 줄에 표시한다.
 assert.match(studio, /const hiddenScheduleByDate=assignRangeLanes\(grid\)\.hiddenByDate\|\|\{\}/);
 assert.match(studio, /class="calendar-overflow-count"/);
-assert.doesNotMatch(studio, /class="range-event-overflow" style=/);
+assert.match(studio, /hiddenCount=Number\(hiddenScheduleByDate\[day\.date\]\|\|0\)/);
 // 빈 셀의 이전·다음 달 미니 월력은 사용자 서비스처럼 셀 전체를 사용한다.
 assert.match(studio, /\.cell-mini-calendar\{position:absolute;inset:0;/);
 assert.match(studio, /\.cell-mini-grid\{[^}]*justify-content:space-between/);
