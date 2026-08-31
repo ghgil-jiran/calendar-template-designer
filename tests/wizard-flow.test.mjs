@@ -207,8 +207,16 @@ test('prototype system bases are archived and hidden from the default active vie
 
 test('new desk planner standard is visible as a separate 2028 draft system base', () => {
   const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
   assert.match(catalog, /tpl-2028-desk-planner-standard-01[^\n]+name:"탁상형 표준 01 · 월별 플래너형"[^\n]+status:"draft"[^\n]+template:"desk-sample-6"/);
-  assert.match(catalog, /features:\["6번 원본 재현","월별 파스텔 색상","월 목표·할 일","5주 계획·메모","사용자 편집 보호"\]/);
+  assert.match(catalog, /features:\["6번 원본 재현","30면·간지 포함","월별 파스텔 색상","월 목표·할 일","5주 계획·메모","사용자 편집 보호"\]/);
+  assert.match(catalog, /pageSummary:"표지 2면·간지 2면·월력 앞뒤 24면·뒷표지 2면\(마지막 학교 상징\)"/);
+  assert.match(html, /id="masterMonthTitleAlign"/);
+  assert.match(html, /id="masterWeekdayStyle"/);
+  assert.match(html, /id="masterGridStyle"/);
+  assert.match(html, /12개월 공통 월력 디자인/);
+  assert.match(html, /designer-only-control[^\n]+월 표시 위치/);
+  assert.match(html, /page\.planner-back-surface \.surface-content\{background:var\(--planner-background\)/);
 });
 
 test('template library entry and save do not reference the removed legacy filter state', () => {
