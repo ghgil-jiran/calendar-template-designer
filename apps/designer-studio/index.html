@@ -62,6 +62,9 @@
 .widget-memo{width:100%;height:100%;background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:6px;padding:7px;display:flex;flex-direction:column}
 .widget-memo strong{font-size:12px;margin-bottom:5px}
 .memo-lines{flex:1;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(12.5% - 1px),#cfd5df calc(12.5% - 1px),#cfd5df 12.5%)}
+.widget-memo[data-memo-layout="goal"],.widget-memo[data-memo-layout="weekly"],.widget-memo[data-memo-layout="checklist"]{border:0;background:transparent;padding:0;gap:7px}.widget-memo[data-memo-layout]>.planner-ribbon{align-self:flex-start;margin:0;padding:5px 18px;background:var(--month-primary,var(--accent));color:#fff;line-height:1;border-radius:2px;letter-spacing:.02em}.planner-goal-box{flex:1;min-height:0;border-radius:7px;background:rgba(255,255,255,.96)}
+.widget-memo[data-memo-layout="weekly"] .planner-week-list{flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:8px;min-height:0}.planner-week-card{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;border-radius:7px;background:rgba(255,255,255,.96)}.planner-week-label{display:flex;align-items:center;justify-content:center;flex:0 0 24px;background:color-mix(in srgb,var(--month-primary,var(--accent)) 25%,white);color:var(--month-primary,var(--accent));font-size:9px;font-weight:800}.planner-week-card.memo .planner-week-label{background:var(--month-primary,var(--accent));color:#fff}.planner-week-space{flex:1}
+.widget-memo[data-memo-layout="checklist"] .planner-check-list{flex:1;display:grid;min-height:0;gap:3px}.planner-check-row{display:grid;grid-template-columns:20% 1fr 8%;align-items:center;overflow:hidden;border-radius:5px;background:rgba(255,255,255,.96);min-height:0}.planner-check-row.header{background:color-mix(in srgb,var(--month-primary,var(--accent)) 25%,white);color:var(--month-primary,var(--accent));font-size:8px;text-align:center}.planner-check-row>span{height:100%;display:flex;align-items:center;justify-content:center;border-right:1px solid color-mix(in srgb,var(--month-primary,var(--accent)) 15%,white)}.planner-check-row>span:last-child{border-right:0}
 .widget-schedule{width:100%;height:100%;background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:6px;padding:7px;overflow:hidden}
 .widget-schedule strong{font-size:12px;display:block;margin-bottom:4px}
 .widget-monthly-quote{width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;overflow:hidden;padding:clamp(8px,2.2%,18px);background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:6px;color:var(--quote-color,#17202e);text-align:var(--quote-align,center);gap:var(--quote-gap,7px)}
@@ -551,7 +554,10 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
    <button class="object-card" data-widget-add="event-list"><strong>전체 학사일정</strong><span>연간·선택 기간 일정을 여러 단으로 배치</span></button>
    <button class="object-card" data-widget-add="month-date-strip"><strong>한달 날짜 띠</strong><span>요일·일자를 두 줄로 한 줄 배열</span></button>
    <button class="object-card" data-widget-add="monthly-quote"><strong>월력용 명언 문구</strong><span>월별 한글·영문 명언과 출처</span></button>
-   <button class="object-card" data-widget-add="memo"><strong>메모</strong><span>기록을 위한 줄 메모</span></button>
+   <button class="object-card" data-widget-add="planner-goal"><strong>월 목표</strong><span>제목과 입력선을 가진 목표 영역</span></button>
+   <button class="object-card" data-widget-add="planner-weekly"><strong>주간 계획</strong><span>주차별 구획과 입력선</span></button>
+   <button class="object-card" data-widget-add="planner-checklist"><strong>할 일</strong><span>체크박스가 있는 할 일 목록</span></button>
+   <button class="object-card" data-widget-add="memo"><strong>자유 메모</strong><span>기록을 위한 줄 메모</span></button>
   </div></section>
   <section class="object-section" data-library-section="basic"><h3>기본 개체</h3><div class="object-grid">
    <button class="object-card" data-basic-add="text"><strong>텍스트</strong><span>자유 텍스트 상자</span></button>
@@ -910,7 +916,13 @@ function applyCalendarRegionPreset(preset){
 
 function addBackWidget(type){
  if(type==="monthly-quote"&&selectedPage()?.role!=="monthly-back"){showEditorToast("월력용 명언 문구는 월력 뒷면에서 추가할 수 있습니다.");return}
- const scope=type==="monthly-quote"?"master":el("elementScope").value,arr=scope==="master"?masterElements():pageElements(),defaults={
+ const plannerPresets={
+  "planner-goal":{memoLayout:"goal",role:"monthly-goal",title:"MONTHLY GOAL",x:4,y:11,width:36,height:42},
+  "planner-weekly":{memoLayout:"weekly",role:"weekly-planner",title:"WEEKLY PLANNER",weekCount:5,showMemo:true,x:42,y:11,width:54,height:84},
+  "planner-checklist":{memoLayout:"checklist",role:"monthly-todo",title:"TO DO LIST",itemCount:9,x:4,y:55,width:36,height:40}
+ },plannerPreset=plannerPresets[type],elementType=plannerPreset?"memo":type;
+ if(plannerPreset&&selectedPage()?.role!=="monthly-back"){showEditorToast("플래너 개체는 월력 뒷면 Master에서 추가할 수 있습니다.");return}
+ const scope=type==="monthly-quote"||plannerPreset?"master":el("elementScope").value,arr=scope==="master"?masterElements():pageElements(),defaults=plannerPreset||{
   "mini-calendar":{x:8,y:12,width:35,height:40},
   "mini-calendar-prev":{x:8,y:12,width:24,height:26},
   "mini-calendar-next":{x:68,y:12,width:24,height:26},
@@ -922,8 +934,9 @@ function addBackWidget(type){
   "monthly-quote":{x:7,y:18,width:38,height:32}
  }[type];
  if(!defaults)return;
- const elem={id:`element.${type}.${Date.now()}`,type,...defaults,zIndex:maxZ(scope)+1};
- if(type==="memo")Object.assign(elem,{title:"메모",lineCount:8});
+ const elem={id:`element.${type}.${Date.now()}`,type:elementType,...defaults,zIndex:maxZ(scope)+1};
+ if(type==="memo")Object.assign(elem,{memoLayout:"lines",title:"메모",lineCount:8});
+ if(plannerPreset)Object.assign(elem,{required:true,permissions:{move:false,resize:false,rotate:false,color:false,replaceImage:false,delete:false,duplicate:false,layer:false,content:false}});
  if(type==="year-calendar")Object.assign(elem,{columns:4,startMonth:1,monthCount:12,showWeekdayHeader:true});
  if(type==="monthly-schedule")Object.assign(elem,{title:"이달의 일정",maxItems:10});
  if(type==="event-list")Object.assign(elem,{title:"전체 학사일정",startMonth:project.settings.startMonth||1,monthCount:12,displayMode:"limit",maxItems:24,showEndDate:false,columns:1,fontSize:8,minFontSize:6,autoShrink:true});
@@ -980,7 +993,21 @@ function renderWidgetContent(view,p){
   for(let day=1;day<=count;day++){const dow=new Date(year,month-1,day).getDay(),letter="SMTWTFS"[dow];inner+=`<div class="month-date-cell ${dow===0?"sun":dow===6?"sat":""}">${view.showWeekday===false?"":`<span class="dow">${letter}</span>`}${view.showDate===false?"":`<span class="date">${day}</span>`}</div>`}
   return inner+"</div>"
  }
- if(view.type==="memo")return `<div class="widget-memo"><strong>${view.title||"메모"}</strong><div class="memo-lines" style="--memo-line-count:${Math.max(3,Number(view.lineCount||8))}"></div></div>`;
+ if(view.type==="memo"){
+  const layout=view.memoLayout||"lines",title=v21Escape(view.title||"메모");
+  if(layout==="goal")return `<div class="widget-memo" data-memo-layout="goal"><strong class="planner-ribbon">${title}</strong><div class="planner-goal-box"></div></div>`;
+  if(layout==="weekly"){
+   const weeks=Math.max(1,Math.min(5,Number(view.weekCount||5))),ordinals=["1st","2nd","3rd","4th","5th"];
+   const cards=Array.from({length:weeks},(_,index)=>`<div class="planner-week-card"><span class="planner-week-label">${ordinals[index]} WEEK</span><span class="planner-week-space"></span></div>`);
+   if(view.showMemo!==false)cards.push(`<div class="planner-week-card memo"><span class="planner-week-label">MEMO</span><span class="planner-week-space"></span></div>`);
+   return `<div class="widget-memo" data-memo-layout="weekly"><strong class="planner-ribbon">${title}</strong><div class="planner-week-list">${cards.join("")}</div></div>`
+  }
+  if(layout==="checklist"){
+   const count=Math.max(1,Math.min(20,Number(view.itemCount||6)));
+   return `<div class="widget-memo" data-memo-layout="checklist"><strong class="planner-ribbon">${title}</strong><div class="planner-check-list" style="grid-template-rows:auto repeat(${count},1fr)"><div class="planner-check-row header"><span>DATE</span><span>TO DO</span><span></span></div>${Array.from({length:count},()=>`<div class="planner-check-row"><span></span><span></span><span></span></div>`).join("")}</div></div>`
+  }
+  return `<div class="widget-memo" data-memo-layout="${layout}"><strong>${title}</strong><div class="memo-lines" style="--memo-line-count:${Math.max(3,Number(view.lineCount||8))}"></div></div>`
+ }
  if(view.type==="monthly-quote"){
   const q=monthlyQuoteForPage(p),s=view.style||{},css=`--quote-title-size:${Number(s.titleSize||13)}px;--quote-ko-size:${Number(s.quoteKoSize||18)}px;--quote-en-size:${Number(s.quoteEnSize||10)}px;--quote-source-size:${Number(s.sourceSize||9)}px;--quote-align:${s.textAlign||"center"};--quote-color:${s.color||"#17202e"};--quote-accent:${s.accentColor||"#315e9e"};--quote-secondary:${s.secondaryColor||"#667085"};--quote-gap:${Number(s.itemGap||7)}px`;
   return `<div class="widget-monthly-quote" style="${css}"><div class="quote-title">${v21Escape(q.title||view.title||"이 달의 명언")}</div><div class="quote-ko">${v21Escape(q.quoteKo||"")}</div>${q.quoteEn?`<div class="quote-en">${v21Escape(q.quoteEn)}</div>`:""}${q.source?`<div class="quote-source">— ${v21Escape(q.source)}</div>`:""}</div>`
@@ -1490,7 +1517,10 @@ function elementInspectorPanels(){
   panels.content=head+`<div class="template-help-card"><strong>${monthLabel} 문구</strong>만 수정됩니다. 다른 달의 명언과 Master 배치·스타일은 그대로 유지됩니다.</div><label>제목<input id="quoteTitle" value="${escapeAttr(q.title||"이 달의 명언")}"></label><label>한글 명언<textarea id="quoteKo" rows="4">${v21Escape(q.quoteKo||"")}</textarea></label><label>영문 원문·번역<textarea id="quoteEn" rows="4">${v21Escape(q.quoteEn||"")}</textarea></label><label>출처<input id="quoteSource" value="${escapeAttr(q.source||"")}"></label><button id="applyMonthlyQuoteContent" class="action">${monthLabel} 명언 저장</button></div>`;
   const s=item.style||{};
   panels.design=head+`<div class="grid2"><label>제목 크기<input id="quoteTitleSize" type="number" min="7" max="48" value="${s.titleSize||13}"></label><label>한글 크기<input id="quoteKoSize" type="number" min="8" max="72" value="${s.quoteKoSize||18}"></label><label>영문 크기<input id="quoteEnSize" type="number" min="6" max="48" value="${s.quoteEnSize||10}"></label><label>출처 크기<input id="quoteSourceSize" type="number" min="6" max="36" value="${s.sourceSize||9}"></label></div><label>정렬<select id="quoteAlign"><option value="left" ${s.textAlign==="left"?"selected":""}>왼쪽</option><option value="center" ${s.textAlign!=="left"&&s.textAlign!=="right"?"selected":""}>가운데</option><option value="right" ${s.textAlign==="right"?"selected":""}>오른쪽</option></select></label><div class="grid2"><label>본문 색<input id="quoteColor" type="color" value="${s.color||"#17202e"}"></label><label>제목 색<input id="quoteAccentColor" type="color" value="${s.accentColor||"#315e9e"}"></label><label>보조 색<input id="quoteSecondaryColor" type="color" value="${s.secondaryColor||"#667085"}"></label><label>항목 간격<input id="quoteItemGap" type="number" min="0" max="40" value="${s.itemGap||7}"></label></div><button id="applyMonthlyQuoteStyle" class="action">명언 공통 스타일 저장</button></div>`;
- }else if(item.type==="memo")panels.content=head+`<label>메모 제목<input id="widgetTitle" value="${item.title||"메모"}"></label><label>줄 수<input id="memoLineCount" type="number" min="3" max="20" value="${item.lineCount||8}"></label><button id="applyMemoWidget" class="action">메모 설정 적용</button></div>`;
+ }else if(item.type==="memo"){
+  const layout=item.memoLayout||"lines";
+  panels.content=head+`<label>개체 유형<select id="memoLayout"><option value="lines" ${layout==="lines"?"selected":""}>자유 메모</option><option value="goal" ${layout==="goal"?"selected":""}>월 목표</option><option value="weekly" ${layout==="weekly"?"selected":""}>주간 계획</option><option value="checklist" ${layout==="checklist"?"selected":""}>할 일</option></select></label><label>제목<input id="widgetTitle" value="${item.title||"메모"}"></label>${layout==="weekly"?`<label>주차 수<input id="memoWeekCount" type="number" min="1" max="5" value="${item.weekCount||5}"></label><label><input id="memoShowMemo" type="checkbox" ${item.showMemo!==false?"checked":""} style="width:auto;height:auto"> 마지막 칸을 MEMO로 사용</label>`:layout==="checklist"?`<label>할 일 행 수<input id="memoItemCount" type="number" min="1" max="20" value="${item.itemCount||9}"></label>`:layout==="lines"?`<label>줄 수<input id="memoLineCount" type="number" min="3" max="20" value="${item.lineCount||8}"></label>`:""}<div class="hint">월력 뒷면 Master에서 설정하면 12개월에 공통 적용됩니다. 사용자 서비스에서는 이 구조와 제목을 편집할 수 없습니다.</div><button id="applyMemoWidget" class="action">플래너 설정 적용</button></div>`;
+ }
  else if(item.type==="monthly-schedule")panels.content=head+`<label>일정 제목<input id="widgetTitle" value="${item.title||"이달의 일정"}"></label><label>최대 표시 일정<input id="scheduleMaxItems" type="number" min="1" max="30" value="${item.maxItems||10}"></label><button id="applyScheduleWidget" class="action">일정 설정 적용</button></div>`;
  else if(item.type==="year-calendar"){
   panels.content=head+`<label>시작월<input id="yearCalendarStartMonth" type="number" min="1" max="12" value="${item.startMonth||1}"></label><button id="applyYearCalendarContent" class="action">연간 월력 콘텐츠 저장</button></div>`;
@@ -1731,7 +1761,7 @@ function bindInspector(){
  bind("calendarPresetCompact",()=>applyCalendarRegionPreset("compact"));
  bind("calendarPresetCenter",()=>applyCalendarRegionPreset("center"));
  bind("closeCalendarEditing",()=>{calendarEditing=false;render()});
- bind("applyMemoWidget",()=>change(()=>{const i=sourceElement();i.title=el("widgetTitle").value;i.lineCount=Number(el("memoLineCount").value)}));
+ bind("applyMemoWidget",()=>change(()=>{const i=sourceElement();i.memoLayout=el("memoLayout")?.value||"lines";i.title=el("widgetTitle").value;if(el("memoLineCount"))i.lineCount=Number(el("memoLineCount").value);if(el("memoWeekCount"))i.weekCount=Number(el("memoWeekCount").value);if(el("memoShowMemo"))i.showMemo=el("memoShowMemo").checked;if(el("memoItemCount"))i.itemCount=Number(el("memoItemCount").value)}));
  bind("applyMonthlyQuoteContent",()=>change(()=>{const key=monthlyQuoteKey(selectedPage());if(!key)return;ensureMonthlyQuotes();const current=project.book.monthlyQuotes[key]||{};project.book.monthlyQuotes[key]={...current,title:el("quoteTitle").value.trim()||"이 달의 명언",quoteKo:el("quoteKo").value.trim(),quoteEn:el("quoteEn").value.trim(),source:el("quoteSource").value.trim(),sourceStatus:"edited",translationType:current.translationType||"editorial"}}));
  bind("applyMonthlyQuoteStyle",()=>change(()=>{const i=sourceElement();i.style||={};i.style.titleSize=Number(el("quoteTitleSize").value);i.style.quoteKoSize=Number(el("quoteKoSize").value);i.style.quoteEnSize=Number(el("quoteEnSize").value);i.style.sourceSize=Number(el("quoteSourceSize").value);i.style.textAlign=el("quoteAlign").value;i.style.color=el("quoteColor").value;i.style.accentColor=el("quoteAccentColor").value;i.style.secondaryColor=el("quoteSecondaryColor").value;i.style.itemGap=Number(el("quoteItemGap").value)}));
  bind("applyYearCalendarContent",()=>change(()=>{const i=sourceElement();i.startMonth=Number(el("yearCalendarStartMonth").value)}));

@@ -205,6 +205,12 @@ test('prototype system bases are archived and hidden from the default active vie
   assert.match(runtime, /if\(!map\.has\(record\.id\)\)map\.set\(record\.id,record\)/);
 });
 
+test('new desk planner standard is visible as a separate 2028 draft system base', () => {
+  const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
+  assert.match(catalog, /tpl-2028-desk-planner-standard-01[^\n]+name:"탁상형 표준 01 · 월별 플래너형"[^\n]+status:"draft"[^\n]+template:"desk-sample-6"/);
+  assert.match(catalog, /features:\["6번 원본 재현","월별 파스텔 색상","월 목표·할 일","5주 계획·메모","사용자 편집 보호"\]/);
+});
+
 test('template library entry and save do not reference the removed legacy filter state', () => {
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
   assert.doesNotMatch(html, /activeLibraryFilter/);

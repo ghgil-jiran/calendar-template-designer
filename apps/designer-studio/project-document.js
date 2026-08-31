@@ -10,10 +10,9 @@
     project.template.masters.calendar.calendarRegion = { x: 5, y: 13, width: 90, height: 82 };
     project.template.masters.calendar.eventMaxVisiblePerDay = 3;
     project.template.masterElements['master.monthly.back'] = isPlanner ? [
-      { id: 'master.planner.title', type: 'text', role: 'planner-title', x: 6, y: 8, width: 88, height: 10, zIndex: 2, content: '이번 달의 계획', style: { fontSize: 24, textAlign: 'left', color: '#2457a7' } },
-      { id: 'master.planner.goal', type: 'memo', role: 'monthly-goal', x: 6, y: 22, width: 42, height: 29, zIndex: 2, title: 'MONTHLY GOAL', lineCount: 5, style: {} },
-      { id: 'master.planner.weekly', type: 'memo', role: 'weekly-planner', x: 52, y: 22, width: 42, height: 66, zIndex: 2, title: 'WEEKLY PLANNER', lineCount: 10, style: {} },
-      { id: 'master.planner.todo', type: 'memo', role: 'monthly-todo', x: 6, y: 55, width: 42, height: 33, zIndex: 2, title: 'TO DO · MEMO', lineCount: 6, style: {} }
+      { id: 'master.planner.goal', type: 'memo', role: 'monthly-goal', memoLayout: 'goal', x: 4, y: 11, width: 36, height: 42, zIndex: 2, title: 'MONTHLY GOAL', required: true, permissions: { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false }, style: {} },
+      { id: 'master.planner.todo', type: 'memo', role: 'monthly-todo', memoLayout: 'checklist', x: 4, y: 55, width: 36, height: 40, zIndex: 2, title: 'TO DO LIST', itemCount: 9, required: true, permissions: { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false }, style: {} },
+      { id: 'master.planner.weekly', type: 'memo', role: 'weekly-planner', memoLayout: 'weekly', x: 42, y: 11, width: 54, height: 84, zIndex: 2, title: 'WEEKLY PLANNER', weekCount: 5, showMemo: true, required: true, permissions: { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false }, style: {} }
     ] : [
       { id: 'master.collage.large', type: 'image-frame', role: 'monthly-image', x: 5, y: 6, width: 57, height: 58, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', fit: 'cover', focalPoint: { x: .5, y: .5 } }, fit: 'cover', style: { borderRadius: 3 } },
       { id: 'master.collage.small-a', type: 'image-frame', role: 'monthly-image-secondary', x: 65, y: 6, width: 30, height: 27, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', fit: 'cover', focalPoint: { x: .25, y: .5 } }, fit: 'cover', style: { borderRadius: 3 } },

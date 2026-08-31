@@ -22,7 +22,11 @@ assert.equal(desk.book.pageInstances[4].calendarMonth, 3);
 
 const representative = globalThis.ACDLProjectDocument.createProject({ ...base, type: 'desk', template: 'desk-sample-6', sizePresetId: 'desk-standard' }, dependencies);
 assert.equal(representative.template.pageComposition.pageCount, 28);
-assert.equal(representative.template.masterElements['master.monthly.back'][0].role, 'planner-title');
+const plannerElements = representative.template.masterElements['master.monthly.back'];
+assert.deepEqual(plannerElements.map(item => item.memoLayout), ['goal', 'checklist', 'weekly']);
+assert.equal(plannerElements.find(item => item.role === 'weekly-planner').weekCount, 5);
+assert.equal(plannerElements.find(item => item.role === 'monthly-todo').itemCount, 9);
+assert.ok(plannerElements.every(item => item.required && item.permissions.content === false));
 assert.equal(representative.book.pageInstances.filter(page => page.semanticPageRole === 'month-calendar').length, 12);
 assert.equal(representative.book.monthlyStyleOverrides.length, 12);
 
