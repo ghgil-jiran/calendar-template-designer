@@ -28,3 +28,12 @@ test('the reorganized workspace completes insertion scope, search and inspector 
   assert.match(html, /item\.permissions=Object\.fromEntries/);
   assert.match(html, /id="inspectorSelectionSummary"/);
 });
+
+test('current-page editing shadows a Master object without mutating other pages', () => {
+  assert.match(html, /shadowOfMasterElementId/);
+  assert.match(html, /masterElements\(\)\.filter\(e=>!shadowed\.has\(e\.id\)\)/);
+  assert.match(html, /scope==="master"&&el\("elementScope"\)\?\.value==="page"/);
+  assert.match(html, /clone\.originScope="master"/);
+  assert.match(html, /pageOverrideCreated/);
+  assert.match(html, /삽입·편집 적용 범위/);
+});
