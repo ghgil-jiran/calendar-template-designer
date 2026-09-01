@@ -2,7 +2,7 @@
   const palette = ['#2fb79d', '#4777bd', '#2e8b72', '#4c8f3a', '#b57b23', '#c05a4f', '#a64f78', '#7459a8', '#3f769e', '#50806b', '#9a6a45', '#526487'];
   const pastel = ['#dff4ee', '#e7f3df', '#fff0d8', '#fde5df', '#f8e4ed', '#eee7f8', '#e1edf8', '#e2f1ed', '#f6eadf', '#e8edf6', '#f1e8dc', '#e7ebf2'];
   const protectedPlannerPermissions = { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false };
-  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 3 };
+  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 4 };
 
   function createPlannerMasterElements() {
     return [
@@ -85,16 +85,49 @@
     };
     assign('cover-front', 'cover-front', createCoverFrontElements(options.year));
     assign('cover-back', 'yearly-calendar', createYearlyElements(options.year, options.startMonth));
-    assign('front-insert-front', 'school-history', createFrontInsertFrontElements());
-    assign('front-insert-back', 'education-vision', createFrontInsertBackElements());
-    assign('back-cover-front', 'back-cover-information', createBackCoverElements(options.year));
-    assign('back-cover-back', 'school-symbols', createSchoolSymbolElements());
+    assign('front-insert-front', 'school-symbols', createSchoolSymbolElements());
+    assign('back-cover-back', 'back-cover-information', createBackCoverElements(options.year));
+  }
+
+  function normalizeDeskPlannerSampleSixSequence(project) {
+    const oldPages = project.book.pageInstances || [];
+    const oldElements = project.book.elementsByPage || {};
+    const byRole = role => oldPages.find(page => page.role === role);
+    const monthPages = role => oldPages.filter(page => page.role === role).sort((a, b) => (a.sequenceIndex ?? a.number ?? 0) - (b.sequenceIndex ?? b.number ?? 0));
+    const fronts = monthPages('monthly-front');
+    const backs = monthPages('monthly-back');
+    const symbolSource = oldPages.find(page => page.semanticPageRole === 'school-symbols') || byRole('front-insert-front') || byRole('back-cover-back');
+    const backCoverSource = oldPages.find(page => page.semanticPageRole === 'back-cover-information') || byRole('back-cover-front') || byRole('back-cover-back');
+    const sources = [byRole('cover-front'), byRole('cover-back'), symbolSource];
+    for (let index = 0; index < 12; index += 1) sources.push(backs[index], fronts[index]);
+    sources.push(backCoverSource);
+    const roles = ['cover-front', 'cover-back', 'front-insert-front'];
+    for (let index = 0; index < 12; index += 1) roles.push('monthly-back', 'monthly-front');
+    roles.push('back-cover-back');
+    const pages = [];
+    const elementsByPage = {};
+    for (let index = 0; index < 28; index += 1) {
+      const number = index + 1;
+      const sheetNumber = Math.ceil(number / 2);
+      const side = number % 2 ? 'front' : 'back';
+      const role = roles[index];
+      const source = sources[index] || {};
+      const id = `surface.${sheetNumber}.${side}`;
+      const page = { ...source, id, number, sequenceIndex: index, sheetNumber, side, role, masterId: role === 'monthly-front' ? 'master.monthly.front' : role === 'monthly-back' ? 'master.monthly.back' : `master.${role.replace(/-(front|back)$/, '.$1')}` };
+      pages.push(page);
+      elementsByPage[id] = oldElements[source.id] || [];
+    }
+    project.book.pageInstances = pages;
+    project.book.elementsByPage = elementsByPage;
+    project.book.sheets = Array.from({ length: 14 }, (_, index) => ({ id: `sheet.${index + 1}`, sheetNumber: index + 1, role: 'sample-6-sequence', surfaces: pages.slice(index * 2, index * 2 + 2) }));
+    project.settings.frontInsertCount = 0;
+    project.settings.rearInsertCount = 0;
   }
 
   function isDeskPlannerStandardDocument(project) {
     const pages = project?.book?.pageInstances || [];
     return project?.settings?.template === deskPlannerStandard.templateKey
-      && pages.length === 30
+      && (pages.length === 28 || pages.length === 30)
       && pages.filter(page => page.role === 'monthly-front').length === 12
       && pages.filter(page => page.role === 'monthly-back').length === 12;
   }
@@ -123,6 +156,12 @@
       applyDeskPlannerFixedSurfaces(project, { year: Number(project.settings?.year || 2028), startMonth: Number(project.settings?.startMonth || 3) });
       applied.push('desk-planner-fixed-surfaces-v3');
     }
+    if (fromVersion < 4 || project.book.pageInstances.length !== 28) {
+      normalizeDeskPlannerSampleSixSequence(project);
+      applyDeskPlannerFixedSurfaces(project, { year: Number(project.settings?.year || 2028), startMonth: Number(project.settings?.startMonth || 3) });
+      project.template.pageComposition = { type: 'desk-sample-6-sequence', pageCount: 28, monthPairCount: 12, leadingSurfaceCount: 3, trailingSurfaceCount: 1 };
+      applied.push('desk-planner-sample-6-sequence-v4');
+    }
     if (fromVersion < deskPlannerStandard.documentVersion) {
       project.template.documentVersion = deskPlannerStandard.documentVersion;
       applied.push(`desk-planner-document-version-${deskPlannerStandard.documentVersion}`);
@@ -141,7 +180,7 @@
       project.template.standardIdentity = { catalogId: deskPlannerStandard.catalogId, templateKey: deskPlannerStandard.templateKey };
       project.template.documentVersion = deskPlannerStandard.documentVersion;
     }
-    project.template.pageComposition = { type: 'desk-sequence', pageCount: 30, monthPairCount: 12, frontInsertSurfaceCount: 2 };
+    project.template.pageComposition = { type: 'desk-sample-6-sequence', pageCount: 28, monthPairCount: 12, leadingSurfaceCount: 3, trailingSurfaceCount: 1 };
     project.template.masters.calendar.calendarRegion = { x: 3, y: 10, width: 94, height: 87 };
     project.template.masters.calendar.eventMaxVisiblePerDay = 3;
     project.template.masters.calendar.design = { monthTitleAlign: 'left', monthTitleStyle: 'number-stack', weekdayStyle: 'filled-tabs', gridStyle: 'boxed', eventStyle: 'strong-bars' };
@@ -173,7 +212,7 @@
         { id: 'page.yearly', type: 'year-calendar', role: 'year-calendar', x: 7, y: 21, width: 86, height: 70, zIndex: 1, startMonth: options.startMonth, monthCount: 12, columns: 4, showWeekdayHeader: true, style: {} }
       ];
     }
-    const symbolPage = project.book.pageInstances.find(page => page.role === 'back-cover-back');
+    const symbolPage = project.book.pageInstances.find(page => page.role === 'front-insert-front');
     if (symbolPage) {
       symbolPage.semanticPageRole = 'school-symbols';
       project.book.elementsByPage[symbolPage.id] = [
@@ -183,7 +222,7 @@
         { id: 'page.symbols.flower', type: 'semantic-object', role: 'school-flower', x: 52, y: 52, width: 43, height: 35, zIndex: 1, binding: 'school.profile.flower', bindingEnabled: true, fallbackToSample: true, showCaption: true, sampleContent: { name: '교화', description: '아름다운 배움과 우정' }, style: {} }
       ];
     }
-    const backCover = project.book.pageInstances.find(page => page.role === 'back-cover-front');
+    const backCover = project.book.pageInstances.find(page => page.role === 'back-cover-back');
     if (isPlanner && backCover) {
       backCover.semanticPageRole = 'back-cover-information';
       project.book.elementsByPage[backCover.id] = [
@@ -197,7 +236,10 @@
         { id: 'page.back.contacts', type: 'text', role: 'school-contact', binding: 'school.contacts', x: 25, y: 87, width: 54, height: 6, zIndex: 3, content: '학교 연락처', style: { fontSize: 8, textAlign: 'center', background: false, color: '#475467' } }
       ];
     }
-    if (isPlanner) applyDeskPlannerFixedSurfaces(project, options);
+    if (isPlanner) {
+      normalizeDeskPlannerSampleSixSequence(project);
+      applyDeskPlannerFixedSurfaces(project, options);
+    }
     project.book.pageInstances.forEach((page, index) => {
       page.sequenceIndex = index;
       if (page.role === 'cover-front') page.semanticPageRole = 'cover-front';
@@ -224,6 +266,24 @@
     if (isPoster) {
       project.book.pageInstances.push({ id: 'page.poster.annual', number: 1, side: 'front', role: 'poster-annual', masterId: 'master.poster.annual', calendarYear: options.year, calendarMonth: null, overrides: {} });
     } else if (isDesk) {
+      if (options.template === 'desk-sample-6') {
+        const specs = [
+          ['cover-front', null], ['cover-back', null], ['front-insert-front', null],
+          ...months.flatMap(month => [['monthly-back', month], ['monthly-front', month]]),
+          ['back-cover-back', null]
+        ];
+        specs.forEach(([role, calendar], index) => {
+          const number = index + 1;
+          const sheetNumber = Math.ceil(number / 2);
+          const side = number % 2 ? 'front' : 'back';
+          const page = { id: `surface.${sheetNumber}.${side}`, number, sheetNumber, side, role, masterId: role === 'monthly-front' ? 'master.monthly.front' : role === 'monthly-back' ? 'master.monthly.back' : `master.${role.replace(/-(front|back)$/, '.$1')}`, calendarYear: calendar?.year || null, calendarMonth: calendar?.month || null, overrides: {} };
+          project.book.pageInstances.push(page);
+        });
+        project.book.sheets = Array.from({ length: 14 }, (_, index) => ({ id: `sheet.${index + 1}`, sheetNumber: index + 1, role: 'sample-6-sequence', surfaces: project.book.pageInstances.slice(index * 2, index * 2 + 2) }));
+        project.settings.frontInsertCount = 0;
+        project.settings.rearInsertCount = 0;
+        return applyDeskRepresentativePreset(project, options);
+      }
       const specs = [['cover', null, null]];
       const frontInsertCount = options.template === 'desk-sample-6' ? 1 : Number(options.frontInsertCount || 0);
       const rearInsertCount = options.template === 'desk-sample-6' ? 0 : Number(options.rearInsertCount || 0);
