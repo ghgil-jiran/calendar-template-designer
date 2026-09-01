@@ -61,3 +61,5 @@ assert.match(studio, /\.cell-mini-grid\{[^}]*justify-content:space-between/);
 assert.match(studio, /calendarGridFor\(y,m,5\)/);
 assert.match(studio, /class="cell-mini-week"/);
 assert.match(studio, /c\.extra\?\`\$\{c\.day\}\/\$\{c\.extra\.day\}\`/);
+assert.match(studio, /const miniCells=project\.settings\.showAdjacentMiniCalendars\?selectAdjacentMiniCells\(grid,p\.calendarMonth\):\[\]/);
+assert.doesNotMatch(studio, /const miniCells=rows===5&&project\.settings\.showAdjacentMiniCalendars/);
