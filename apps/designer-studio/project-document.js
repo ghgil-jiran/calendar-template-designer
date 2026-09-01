@@ -2,7 +2,7 @@
   const palette = ['#2fb79d', '#4777bd', '#2e8b72', '#4c8f3a', '#b57b23', '#c05a4f', '#a64f78', '#7459a8', '#3f769e', '#50806b', '#9a6a45', '#526487'];
   const pastel = ['#dff4ee', '#e7f3df', '#fff0d8', '#fde5df', '#f8e4ed', '#eee7f8', '#e1edf8', '#e2f1ed', '#f6eadf', '#e8edf6', '#f1e8dc', '#e7ebf2'];
   const protectedPlannerPermissions = { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false };
-  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 7 };
+  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 8 };
   const deskSixReviewAssets = [
     { id: 'asset.sample.desk-6.building', name: '지란중학교 전경', role: 'school-building', binding: 'school.profile.building', kind: '학교 전경', image: 'assets/sample-school/jiran-building.webp' },
     { id: 'asset.sample.desk-6.logo', name: '지란중학교 교표 연결', role: 'school-logo', binding: 'school.profile.logo', kind: '교표', image: 'assets/sample-school/jiran-logo-composite.svg' },
@@ -61,10 +61,16 @@
     if (!school.fax) school.fax = '031-608-9735';
     if (!school.website) school.website = 'schoolp.co.kr';
     if (!Array.isArray(school.contacts) || !school.contacts.length) school.contacts = [
-      { label: '교무실', value: '031-608-9735' },
-      { label: '행정실', value: '031-608-9735' },
-      { label: '팩스', value: '031-608-9735' }
+      { label: '교무실', phone: '031-608-9735', fax: '' },
+      { label: '행정실', phone: '031-608-9735', fax: '' },
+      { label: '팩스', phone: '', fax: '031-608-9735' }
     ];
+    school.contacts.forEach(contact => {
+      if (!contact?.value || contact.phone || contact.fax) return;
+      if (String(contact.label || '').includes('팩스')) contact.fax = contact.value;
+      else contact.phone = contact.value;
+      delete contact.value;
+    });
     school.profile ||= {};
     Object.entries(deskSixReviewProfile).forEach(([key, sample]) => {
       const current = school.profile[key] ||= {};
@@ -255,6 +261,10 @@
     if (fromVersion < 7) {
       ensureDeskSixReviewSampleData(project);
       applied.push('desk-planner-review-sample-data-v7');
+    }
+    if (fromVersion < 8) {
+      ensureDeskSixReviewSampleData(project);
+      applied.push('desk-planner-review-color-contact-fix-v8');
     }
     if (fromVersion < deskPlannerStandard.documentVersion) {
       project.template.documentVersion = deskPlannerStandard.documentVersion;

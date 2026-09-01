@@ -52,7 +52,7 @@ assert.ok(representative.book.elementsByPage['surface.1.back'].some(item => item
 assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-motto'));
 assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-song'));
 assert.deepEqual(representative.template.standardIdentity, { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6' });
-assert.equal(representative.template.documentVersion, 7);
+assert.equal(representative.template.documentVersion, 8);
 assert.equal(representative.template.review.status, 'review');
 assert.equal(representative.template.review.publicPackage, false);
 assert.equal(representative.template.resources.sampleAssets.length, 5);
@@ -61,6 +61,11 @@ assert.equal(representative.book.school.name, '지란중학교');
 assert.equal(representative.book.school.englishName, 'JIRAN MIDDLE SCHOOL');
 assert.equal(representative.book.school.profile.tree.name, '은행나무');
 assert.equal(representative.book.school.profile.flower.name, '장미');
+assert.deepEqual(representative.book.school.contacts, [
+  { label: '교무실', phone: '031-608-9735', fax: '' },
+  { label: '행정실', phone: '031-608-9735', fax: '' },
+  { label: '팩스', phone: '', fax: '031-608-9735' }
+]);
 assert.match(representative.book.school.profile.building.image, /jiran-building\.webp$/);
 assert.match(representative.book.elementsByPage['surface.1.front'].find(item => item.role === 'school-building').sampleContent.image, /jiran-building\.webp$/);
 assert.match(representative.book.elementsByPage['surface.2.front'].find(item => item.role === 'school-song').sampleContent.image, /jiran-song\.webp$/);
@@ -87,11 +92,11 @@ const migratedPlanner = globalThis.ACDLProjectDocument.migrateProject(savedPlann
 assert.equal(migratedPlanner.project.book.pageInstances.length, 28);
 assert.equal(migratedPlanner.project.template.standardIdentity.catalogId, 'tpl-2028-desk-planner-standard-01');
 assert.equal(migratedPlanner.project.template.metadata.sampleFamily, 'desk-6');
-assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-sample-6-sequence-v4', 'desk-planner-fixed-surfaces-v5', 'desk-planner-editable-background-presets-v6', 'desk-planner-review-sample-data-v7', 'desk-planner-document-version-7']);
+assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-sample-6-sequence-v4', 'desk-planner-fixed-surfaces-v5', 'desk-planner-editable-background-presets-v6', 'desk-planner-review-sample-data-v7', 'desk-planner-review-color-contact-fix-v8', 'desk-planner-document-version-8']);
 assert.deepEqual(globalThis.ACDLProjectDocument.migrateProject(migratedPlanner.project).report.applied, []);
 
 const customizedPlanner = structuredClone(representative);
-customizedPlanner.template.documentVersion = 6;
+customizedPlanner.template.documentVersion = 7;
 customizedPlanner.book.school.name = '사용자 학교';
 customizedPlanner.book.school.profile.building.image = 'data:image/png;base64,custom';
 customizedPlanner.book.elementsByPage['surface.1.front'].find(item => item.role === 'school-building').sampleContent.image = '';
@@ -101,6 +106,12 @@ assert.equal(migratedCustomizedPlanner.book.school.name, '사용자 학교');
 assert.equal(migratedCustomizedPlanner.book.school.profile.building.image, 'data:image/png;base64,custom');
 assert.equal(migratedCustomizedPlanner.book.elementsByPage['surface.1.front'].find(item => item.role === 'school-building').sampleContent.image, 'data:image/png;base64,custom');
 assert.equal(migratedCustomizedPlanner.template.resources.sampleAssets.find(item => item.role === 'school-building').id, 'asset.project.school-building.1');
+
+const legacyReviewContacts = structuredClone(representative);
+legacyReviewContacts.template.documentVersion = 7;
+legacyReviewContacts.book.school.contacts = [{ label: '교무실', value: '02-111-2222' }, { label: '팩스', value: '02-111-3333' }];
+const migratedLegacyReviewContacts = globalThis.ACDLProjectDocument.migrateProject(legacyReviewContacts).project.book.school.contacts;
+assert.deepEqual(migratedLegacyReviewContacts, [{ label: '교무실', phone: '02-111-2222' }, { label: '팩스', fax: '02-111-3333' }]);
 
 assert.deepEqual(
   representative.book.pageInstances.slice(0, 5).map(page => page.semanticPageRole),
