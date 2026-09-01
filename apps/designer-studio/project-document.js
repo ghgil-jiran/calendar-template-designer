@@ -2,7 +2,7 @@
   const palette = ['#2fb79d', '#4777bd', '#2e8b72', '#4c8f3a', '#b57b23', '#c05a4f', '#a64f78', '#7459a8', '#3f769e', '#50806b', '#9a6a45', '#526487'];
   const pastel = ['#dff4ee', '#e7f3df', '#fff0d8', '#fde5df', '#f8e4ed', '#eee7f8', '#e1edf8', '#e2f1ed', '#f6eadf', '#e8edf6', '#f1e8dc', '#e7ebf2'];
   const protectedPlannerPermissions = { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false };
-  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 4 };
+  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 5 };
 
   function createPlannerMasterElements() {
     return [
@@ -17,9 +17,7 @@
       { id: 'page.cover.building', type: 'semantic-object', role: 'school-building', x: 18.5, y: 14, width: 62, height: 52, zIndex: 1, binding: 'school.profile.building', bindingEnabled: true, fallbackToSample: true, showCaption: false, sampleContent: { name: '학교 전경', description: '', image: '' }, style: { borderRadius: 5 } },
       { id: 'page.cover.year', type: 'text', role: 'year', binding: 'calendar.year', x: 34, y: 68, width: 20, height: 11, zIndex: 3, content: String(year), style: { fontSize: 44, textAlign: 'right', background: false, color: '#20abc3' } },
       { id: 'page.cover.calendar', type: 'text', role: 'calendar-label', x: 55, y: 73, width: 18, height: 5, zIndex: 3, content: 'CALENDAR', style: { fontSize: 13, textAlign: 'left', background: false, color: '#8a8a8a' } },
-      { id: 'page.cover.logo', type: 'semantic-object', role: 'school-logo', x: 20, y: 84, width: 6, height: 8, zIndex: 3, binding: 'school.profile.logo', bindingEnabled: true, fallbackToSample: true, sampleContent: { image: '' }, style: {} },
-      { id: 'page.cover.school', type: 'text', role: 'school-name', binding: 'school.name', x: 27, y: 84, width: 20, height: 5, zIndex: 3, content: '샘플 학교', style: { fontSize: 15, textAlign: 'left', background: false, color: '#17202e' } },
-      { id: 'page.cover.english', type: 'text', role: 'school-english-name', binding: 'school.englishName', x: 27, y: 89, width: 20, height: 3, zIndex: 3, content: 'SAMPLE SCHOOL', style: { fontSize: 7, textAlign: 'left', background: false, color: '#667085' } },
+      { id: 'page.cover.logo', type: 'semantic-object', role: 'school-logo', x: 20, y: 83, width: 27, height: 10, zIndex: 3, binding: 'school.profile.logo', bindingEnabled: true, fallbackToSample: true, sampleContent: { image: '' }, style: {} },
       { id: 'page.cover.address', type: 'text', role: 'school-contact', binding: 'school.address', x: 49, y: 84, width: 35, height: 4, zIndex: 3, content: '학교 주소', style: { fontSize: 7, textAlign: 'left', background: false, color: '#475467' } },
       { id: 'page.cover.contacts', type: 'text', role: 'school-contact', binding: 'school.contacts', x: 49, y: 88, width: 35, height: 6, zIndex: 3, content: '학교 연락처', style: { fontSize: 7, textAlign: 'left', background: false, color: '#475467' } }
     ];
@@ -57,9 +55,7 @@
       { id: 'page.back.year', type: 'text', role: 'year', binding: 'calendar.year', x: 37, y: 9, width: 20, height: 10, zIndex: 3, content: String(year), style: { fontSize: 40, textAlign: 'right', background: false, color: '#20abc3' } },
       { id: 'page.back.calendar', type: 'text', role: 'calendar-label', x: 58, y: 13, width: 16, height: 5, zIndex: 3, content: 'CALENDAR', style: { fontSize: 12, textAlign: 'left', background: false, color: '#8a8a8a' } },
       { id: 'page.back.building', type: 'semantic-object', role: 'school-building', x: 29, y: 24, width: 43, height: 39, zIndex: 1, binding: 'school.profile.building', bindingEnabled: true, fallbackToSample: true, showCaption: false, sampleContent: { name: '학교 전경', description: '', image: '' }, style: { borderRadius: 5 } },
-      { id: 'page.back.logo', type: 'semantic-object', role: 'school-logo', x: 39, y: 70, width: 6, height: 8, zIndex: 3, binding: 'school.profile.logo', bindingEnabled: true, fallbackToSample: true, sampleContent: { image: '' }, style: {} },
-      { id: 'page.back.school', type: 'text', role: 'school-name', binding: 'school.name', x: 46, y: 70, width: 24, height: 5, zIndex: 3, content: '샘플 학교', style: { fontSize: 15, textAlign: 'left', background: false, color: '#17202e' } },
-      { id: 'page.back.english', type: 'text', role: 'school-english-name', binding: 'school.englishName', x: 46, y: 75, width: 24, height: 3, zIndex: 3, content: 'SAMPLE SCHOOL', style: { fontSize: 7, textAlign: 'left', background: false, color: '#667085' } },
+      { id: 'page.back.logo', type: 'semantic-object', role: 'school-logo', x: 35, y: 69, width: 30, height: 10, zIndex: 3, binding: 'school.profile.logo', bindingEnabled: true, fallbackToSample: true, sampleContent: { image: '' }, style: {} },
       { id: 'page.back.address', type: 'text', role: 'school-contact', binding: 'school.address', x: 27, y: 84, width: 46, height: 4, zIndex: 3, content: '학교 주소', style: { fontSize: 7, textAlign: 'center', background: false, color: '#475467' } },
       { id: 'page.back.contacts', type: 'text', role: 'school-contact', binding: 'school.contacts', x: 24, y: 88, width: 52, height: 6, zIndex: 3, content: '학교 연락처', style: { fontSize: 7, textAlign: 'center', background: false, color: '#475467' } }
     ];
@@ -161,6 +157,10 @@
       applyDeskPlannerFixedSurfaces(project, { year: Number(project.settings?.year || 2028), startMonth: Number(project.settings?.startMonth || 3) });
       project.template.pageComposition = { type: 'desk-sample-6-sequence', pageCount: 28, monthPairCount: 12, leadingSurfaceCount: 3, trailingSurfaceCount: 1 };
       applied.push('desk-planner-sample-6-sequence-v4');
+    }
+    if (fromVersion < 5) {
+      applyDeskPlannerFixedSurfaces(project, { year: Number(project.settings?.year || 2028), startMonth: Number(project.settings?.startMonth || 3) });
+      applied.push('desk-planner-fixed-surfaces-v5');
     }
     if (fromVersion < deskPlannerStandard.documentVersion) {
       project.template.documentVersion = deskPlannerStandard.documentVersion;
