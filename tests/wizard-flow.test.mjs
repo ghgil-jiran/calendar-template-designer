@@ -221,6 +221,10 @@ test('new desk planner standard is visible as a separate 2028 draft system base'
   assert.match(html, /inlineTitle=`<span class="month-year">\$\{p\.calendarYear\}<\/span><span class="month-number">/);
   assert.match(html, /weekday-outlined-pills \.calendar>\.head\{[^}]*min-height:26px[^}]*border:1\.5px solid #98a2b3!important/);
   assert.match(html, /grid-open-rows \.calendar>\.cell:not\(\.head\)\{[^}]*border-right:0!important[^}]*border-bottom:1px solid #a7a7a7!important/);
+  assert.match(html, /id="masterCalendarDesignPreset"/);
+  assert.match(html, /"sample-6":\{title:"number-stack",align:"left",weekday:"filled-tabs",grid:"boxed"\}/);
+  assert.match(html, /derivedMonthKey=p\.monthKey\|\|p\.calendarYear&&p\.calendarMonth/);
+  assert.match(html, /monthPrimary=monthStyle\?\.tokens\?\.primary\|\|project\.template\.resources\?\.colorTheme\?\.primary\|\|"#315e9e"/);
   assert.match(html, /12개월 공통 월력 디자인/);
   assert.match(html, /designer-only-control[^\n]+월 표시 위치/);
   assert.match(html, /page\.planner-back-surface \.surface-content\{background:var\(--planner-background\)/);
