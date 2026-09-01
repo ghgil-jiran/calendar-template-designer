@@ -493,7 +493,16 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
 </nav>
 
 <main class="workspace">
-<aside class="panel editor-chrome"><h2 class="page-panel-title">페이지 편집</h2><div class="panel-body nav" id="navigator"></div></aside>
+<aside id="insertSidebar" class="panel insert-sidebar editor-chrome" aria-label="자료 및 개체 추가">
+ <h2 class="page-panel-title">자료·개체 추가</h2>
+ <div class="insert-sidebar-intro">페이지에 넣을 자료와 개체를 선택합니다.</div>
+ <div id="insertSidebarHost" class="insert-sidebar-host">
+  <div class="sample-data-card">
+   <div><strong>샘플 학교 자료</strong><span>학교 정보와 교표·전경 이미지를 입력하거나 수정합니다.</span></div>
+   <button id="openSampleSchoolDataBtn" type="button">정보·이미지 입력/수정</button>
+  </div>
+ </div>
+</aside>
 <section class="panel center">
 <div class="icon-toolbar editor-chrome" role="toolbar" aria-label="편집 도구">
  <div class="tool-group" aria-label="작업 기록">
@@ -530,7 +539,11 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
  <div class="hidden" aria-hidden="true"><button id="contentMode">이전 콘텐츠 모드</button><button id="templateMode">템플릿 설계</button><span id="modeHelp"></span><button id="previewBtn">현재 페이지 미리보기</button></div>
 </div>
 <div class="canvas-wrap"><div id="page" class="page desk"></div></div></section>
-<aside class="panel right editor-chrome" aria-label="개체 속성"><div id="inspector"></div></aside>
+<aside class="panel right editor-chrome" aria-label="선택 개체 속성"><h2 id="inspectorPanelTitle" class="inspector-panel-title">페이지 스타일</h2><div id="inspector"></div></aside>
+<section class="panel page-dock editor-chrome" aria-label="페이지 구성 및 선택">
+ <div class="page-dock-head"><strong>페이지 구성</strong><span>페이지를 선택해 편집 화면을 전환합니다.</span></div>
+ <div class="panel-body nav" id="navigator"></div>
+</section>
 </main>
 
 <div id="fullPreviewOverlay" class="full-preview-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="fullPreviewTitle">
@@ -550,11 +563,11 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
 <aside id="objectDrawer" class="object-drawer hidden editor-chrome" aria-label="개체 추가">
  <div class="drawer-head"><h2>개체 추가</h2><button id="closeObjectDrawerBtn" type="button">×</button></div>
  <div class="drawer-body">
-  <div class="object-library-tabs"><button class="active" data-library-tab="all">전체</button><button data-library-tab="basic">기본</button><button data-library-tab="shapes">도형</button><button data-library-tab="frames">프레임</button><button data-library-tab="vectors">벡터</button></div>
-  <div class="object-library-search"><input id="objectLibrarySearch" placeholder="도형·프레임·벡터 검색"></div>
+  <div class="object-library-tabs"><button class="active" data-library-tab="school">학교</button><button data-library-tab="calendar">달력</button><button data-library-tab="graphics">도형·프레임</button><button data-library-tab="basic">기본</button></div>
+  <div class="object-library-search"><input id="objectLibrarySearch" placeholder="추가할 개체 검색"></div>
 
   <div class="recommend-strip"><strong>이 페이지에 추천</strong><div id="recommendedObjects" class="recommend-buttons"></div></div>
-  <section class="object-section" data-library-section="basic"><h3>학교 개체</h3><div class="object-grid">
+  <section class="object-section" data-library-section="school"><h3>학교 개체</h3><div class="object-grid">
    <button class="object-card" data-semantic-add="school-logo"><strong>교표</strong><span>학교 공통 교표 이미지</span></button>
    <button class="object-card" data-semantic-add="school-building"><strong>학교 전경</strong><span>전경 이미지와 설명</span></button>
    <button class="object-card" data-semantic-add="school-flower"><strong>교화</strong><span>이미지·명칭·상징 설명</span></button>
@@ -562,13 +575,13 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
    <button class="object-card" data-semantic-add="school-motto"><strong>교훈</strong><span>교훈 제목과 문구</span></button>
    <button class="object-card" data-semantic-add="school-song"><strong>교가</strong><span>악보·제목·작사·작곡</span></button>
   </div></section>
-  <section class="object-section" data-library-section="basic"><h3>학교 정보 텍스트</h3><p class="resource-description">템플릿 설정에 등록한 샘플값을 실제 학교 데이터 슬롯과 연결해 추가합니다.</p><div class="object-grid"><button class="object-card" data-school-text-add="school.name"><strong>학교명</strong><span>school.name</span></button><button class="object-card" data-school-text-add="school.englishName"><strong>영문 학교명</strong><span>school.englishName</span></button><button class="object-card" data-school-text-add="school.slogan"><strong>슬로건</strong><span>school.slogan</span></button><button class="object-card" data-school-text-add="school.address"><strong>학교 주소</strong><span>school.address</span></button><button class="object-card" data-school-text-add="school.website"><strong>홈페이지</strong><span>school.website</span></button><button class="object-card" data-school-text-add="school.contacts"><strong>연락처 목록</strong><span>교무실·행정실·팩스</span></button><button class="object-card" data-school-text-add="school.profile.motto.description"><strong>교훈</strong><span>교훈 텍스트</span></button><button class="object-card" data-school-text-add="school.profile.song.description"><strong>교가 정보</strong><span>제목·작사·작곡·가사</span></button></div></section>
-  <section id="registeredAssetSection" class="object-section registered-asset-section" data-library-section="basic"><h3>등록된 학교 이미지</h3><p class="resource-description">템플릿 설정에서 등록한 이미지를 바로 개체로 추가합니다.</p><div id="registeredAssetGrid" class="registered-asset-grid"></div></section>
+  <section class="object-section" data-library-section="school"><h3>학교 정보 텍스트</h3><p class="resource-description">템플릿 설정에 등록한 샘플값을 실제 학교 데이터 슬롯과 연결해 추가합니다.</p><div class="object-grid"><button class="object-card" data-school-text-add="school.name"><strong>학교명</strong><span>school.name</span></button><button class="object-card" data-school-text-add="school.englishName"><strong>영문 학교명</strong><span>school.englishName</span></button><button class="object-card" data-school-text-add="school.slogan"><strong>슬로건</strong><span>school.slogan</span></button><button class="object-card" data-school-text-add="school.address"><strong>학교 주소</strong><span>school.address</span></button><button class="object-card" data-school-text-add="school.website"><strong>홈페이지</strong><span>school.website</span></button><button class="object-card" data-school-text-add="school.contacts"><strong>연락처 목록</strong><span>교무실·행정실·팩스</span></button><button class="object-card" data-school-text-add="school.profile.motto.description"><strong>교훈</strong><span>교훈 텍스트</span></button><button class="object-card" data-school-text-add="school.profile.song.description"><strong>교가 정보</strong><span>제목·작사·작곡·가사</span></button></div></section>
+  <section id="registeredAssetSection" class="object-section registered-asset-section" data-library-section="school"><h3>등록된 학교 이미지</h3><p class="resource-description">템플릿 설정에서 등록한 이미지를 바로 개체로 추가합니다.</p><div id="registeredAssetGrid" class="registered-asset-grid"></div></section>
   
-  <section class="object-section" data-library-section="shapes"><h3>도형 라이브러리</h3><p class="resource-description">색상과 테두리를 바꿀 수 있는 인쇄용 SVG 기본 도형입니다.</p><div id="shapeLibraryGrid" class="object-grid"></div></section>
-  <section class="object-section" data-library-section="frames"><h3>사진 프레임</h3><p class="resource-description">학교 전경·교표·행사 사진을 도형 안에 채우고 내부 위치와 배율을 조절합니다.</p><div id="frameLibraryGrid" class="object-grid"></div></section>
-  <section class="object-section" data-library-section="vectors"><h3>샘플 벡터 라이브러리</h3><div class="graphics-library-note">기능 검증용으로 학교·교육, 계절·자연, 행사, 장식 카테고리의 SVG를 내장했습니다. 각 자산은 ID와 색상 토큰을 유지하므로 향후 관리자 CMS로 옮길 수 있습니다.</div><div id="vectorCategoryRow" class="library-category-row"></div><div id="vectorLibraryGrid" class="object-grid"></div></section>
-  <section id="calendarObjectSection" class="object-section" data-library-section="basic"><h3>달력 개체</h3><div class="object-grid">
+  <section class="object-section" data-library-section="graphics"><h3>도형 라이브러리</h3><p class="resource-description">색상과 테두리를 바꿀 수 있는 인쇄용 SVG 기본 도형입니다.</p><div id="shapeLibraryGrid" class="object-grid"></div></section>
+  <section class="object-section" data-library-section="graphics"><h3>사진 프레임</h3><p class="resource-description">학교 전경·교표·행사 사진을 도형 안에 채우고 내부 위치와 배율을 조절합니다.</p><div id="frameLibraryGrid" class="object-grid"></div></section>
+  <section class="object-section" data-library-section="graphics"><h3>샘플 벡터 라이브러리</h3><div class="graphics-library-note">기능 검증용으로 학교·교육, 계절·자연, 행사, 장식 카테고리의 SVG를 내장했습니다. 각 자산은 ID와 색상 토큰을 유지하므로 향후 관리자 CMS로 옮길 수 있습니다.</div><div id="vectorCategoryRow" class="library-category-row"></div><div id="vectorLibraryGrid" class="object-grid"></div></section>
+  <section id="calendarObjectSection" class="object-section" data-library-section="calendar"><h3>달력 개체</h3><div class="object-grid">
    <button class="object-card" data-widget-add="mini-calendar"><strong>해당 월력</strong><span>현재 월의 작은 달력</span></button><button class="object-card" data-widget-add="mini-calendar-prev"><strong>이전달 미니 월력</strong><span>현재 월 기준 이전 달</span></button><button class="object-card" data-widget-add="mini-calendar-next"><strong>다음달 미니 월력</strong><span>현재 월 기준 다음 달</span></button>
    <button class="object-card" data-widget-add="year-calendar"><strong>연간 월력</strong><span>한 개체 안에 12개월 표시</span></button>
    <button class="object-card" data-widget-add="monthly-schedule"><strong>해당 일정</strong><span>현재 월의 일정 목록</span></button>
@@ -4161,6 +4174,65 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  replacePreviewButton('previewBtn',togglePagePreview);
  replacePreviewButton('fullPreviewBtn',enterFullPreview);
  window.ACDLPreviewEntry={availablePreviewPages,enterPagePreview,enterFullPreview};
+})();
+</script>
+<style id="workspace-layout-v38-styles">
+.workspace{grid-template-columns:280px minmax(570px,1fr) 320px;grid-template-rows:minmax(0,1fr) 184px;height:calc(100vh - 128px);min-height:0}
+.workspace>.insert-sidebar{grid-column:1;grid-row:1;display:flex;flex-direction:column;min-height:0}
+.insert-sidebar-intro{padding:9px 12px;border-bottom:1px solid var(--acds-border,#e2e8f0);background:#fff;color:#64748b;font-size:10px;line-height:1.5}
+.insert-sidebar-host{display:flex;flex:1;min-height:0;flex-direction:column;overflow:hidden}
+.sample-data-card{margin:10px 10px 0;padding:11px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff}
+.sample-data-card div{display:flex;flex-direction:column;gap:3px}.sample-data-card strong{font-size:12px;color:#1e3a8a}.sample-data-card span{font-size:9px;line-height:1.5;color:#475569}
+.sample-data-card button{width:100%;height:34px;margin-top:9px;border:1px solid #93c5fd;border-radius:7px;background:#fff;color:#1d4ed8;font-size:10px;font-weight:800}
+.insert-sidebar-host>.drawer-body{display:flex;flex:1;min-height:0;flex-direction:column;padding:10px;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.insert-sidebar .object-library-tabs{position:sticky;top:-10px;z-index:4;margin:-10px -10px 10px;padding:10px;grid-template-columns:repeat(2,1fr);background:#fff;border-bottom:1px solid #e2e8f0}
+.insert-sidebar .object-library-tabs button{min-height:34px;font-size:10px}.insert-sidebar .object-library-search{margin-bottom:9px}.insert-sidebar .recommend-strip{margin-bottom:10px}
+.insert-sidebar .object-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.insert-sidebar .object-card{min-width:0}.insert-sidebar .object-card strong,.insert-sidebar .object-card span{overflow-wrap:anywhere}
+.workspace>.center{grid-column:2;grid-row:1}.workspace>.right{grid-column:3;grid-row:1;display:flex;flex-direction:column}
+.inspector-panel-title{min-height:38px;flex:0 0 auto;background:#f8fafc!important;color:#1e293b!important;font-size:13px!important;font-weight:800!important}
+.workspace>.right #inspector{flex:1;height:auto}
+.workspace>.page-dock{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:150px minmax(0,1fr);min-height:0;overflow:hidden}
+.page-dock-head{display:flex;flex-direction:column;justify-content:center;gap:5px;padding:13px;border-right:1px solid #e2e8f0;background:#f8fafc}.page-dock-head strong{font-size:13px;color:#0f172a}.page-dock-head span{font-size:9px;line-height:1.5;color:#64748b}
+.page-dock>.nav{display:flex;align-items:stretch;gap:8px;min-width:0;max-height:none;padding:9px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-gutter:stable}
+.page-dock .sheet{display:grid;grid-template-rows:24px minmax(0,1fr);grid-template-columns:repeat(2,150px);flex:0 0 auto;gap:5px;padding:6px;border:1px solid #dbe3ee;border-radius:8px;background:#f8fafc}
+.page-dock .sheet-head{grid-column:1/-1;padding:3px 5px;border:0;background:transparent;color:#64748b;font-size:9px;white-space:nowrap}
+.page-dock .page-btn{height:100%;min-height:94px;margin:0;padding:8px;align-items:flex-start;text-align:left}.page-dock .page-btn span{display:flex;flex-direction:column;align-items:flex-start;gap:5px}.page-dock .page-btn small{align-self:flex-end}
+#objectDrawer{display:none!important}
+.preview-only .workspace{grid-template-columns:1fr;grid-template-rows:1fr}.preview-only .workspace>.center{grid-column:1;grid-row:1}
+@media(max-width:1180px){.workspace{grid-template-columns:240px minmax(500px,1fr) 286px}.insert-sidebar .object-grid{grid-template-columns:1fr}}
+@media(max-width:980px){.workspace{grid-template-columns:220px minmax(480px,1fr);grid-template-rows:minmax(620px,1fr) minmax(420px,auto) 184px;height:auto}.workspace>.right{grid-column:1/-1;grid-row:2;max-height:520px}.workspace>.page-dock{grid-row:3}.workspace>.insert-sidebar{grid-row:1}.workspace>.center{grid-row:1}}
+@media(max-width:720px){.workspace{grid-template-columns:1fr;grid-template-rows:minmax(520px,1fr)}.workspace>.center{grid-column:1;grid-row:1}}
+</style>
+<script id="workspace-layout-v38-runtime">
+(()=>{
+ const $=id=>document.getElementById(id),host=$('insertSidebarHost'),drawer=$('objectDrawer'),body=drawer?.querySelector('.drawer-body');
+ if(!host||!body)return;
+ host.appendChild(body);
+ drawer.classList.add('hidden');
+ const normalize=tab=>({all:'school',shapes:'graphics',frames:'graphics',vectors:'graphics'}[tab]||tab||'school');
+ const activate=tab=>{
+  const category=normalize(tab);
+  document.querySelectorAll('[data-library-tab]').forEach(button=>button.classList.toggle('active',button.dataset.libraryTab===category));
+  document.querySelectorAll('[data-library-section]').forEach(section=>section.classList.toggle('library-filter-hidden',section.dataset.librarySection!==category));
+  host.scrollIntoView({block:'nearest'});
+  renderObjectRecommendations?.();renderRegisteredAssetLibrary?.();
+ };
+ switchObjectLibrary=activate;window.switchObjectLibrary=activate;
+ $('openSampleSchoolDataBtn')?.addEventListener('click',()=>openResourceModal('school'));
+ $('openObjectDrawerBtn')?.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();activate('school')},true);
+ document.querySelectorAll('[data-library-tab]').forEach(button=>button.addEventListener('click',()=>activate(button.dataset.libraryTab)));
+ const priorNavigator=renderNavigator;
+ renderNavigator=function(){
+  priorNavigator();
+  requestAnimationFrame(()=>$('navigator')?.querySelector('.page-btn.active')?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}));
+ };
+ const priorRender=render;
+ render=function(){
+  const result=priorRender.apply(this,arguments),item=typeof sourceElement==='function'?sourceElement():null,title=$('inspectorPanelTitle');
+  if(title)title.textContent=item?'선택 개체 속성':'페이지 스타일';
+  return result;
+ };
+ activate('school');
 })();
 </script>
 <script src="./schedule-api-client.js"></script>
