@@ -2,7 +2,24 @@
   const palette = ['#2fb79d', '#4777bd', '#2e8b72', '#4c8f3a', '#b57b23', '#c05a4f', '#a64f78', '#7459a8', '#3f769e', '#50806b', '#9a6a45', '#526487'];
   const pastel = ['#dff4ee', '#e7f3df', '#fff0d8', '#fde5df', '#f8e4ed', '#eee7f8', '#e1edf8', '#e2f1ed', '#f6eadf', '#e8edf6', '#f1e8dc', '#e7ebf2'];
   const protectedPlannerPermissions = { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false };
-  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 5 };
+  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 6 };
+  const deskSixBackgroundPresets = {
+    cover: { id: 'background.desk-6.cover', name: '6번 표지 청록 블록', roles: ['cover-front'], parts: [[4,11,88,31,'#3bbcd124'],[-3,32,15,22,'#3bbcd117'],[86,23,14,24,'#3bbcd114'],[83,57,18,31,'#3bbcd11a'],[-2,87,18,18,'#316cbe12']] },
+    yearly: { id: 'background.desk-6.yearly', name: '6번 연력 흰 패널', roles: ['cover-back'], parts: [[81,5,20,23,'#3bbcd11a'],[-2,22,14,25,'#3bbcd114'],[83,48,18,22,'#3bbcd117'],[-2,70,16,28,'#3bbcd114'],[6,11,88,82,'#fffffff5']] },
+    symbols: { id: 'background.desk-6.symbols', name: '6번 학교 상징 패널', roles: ['front-insert-front'], parts: [[3,8,94,88,'#effbfa'],[-3,8,20,28,'#3bbcd114'],[84,70,20,27,'#3bbcd112']] },
+    backCover: { id: 'background.desk-6.back-cover', name: '6번 뒷표지 청록 블록', roles: ['back-cover-back'], parts: [[15,29,74,31,'#3bbcd124'],[83,48,19,24,'#3bbcd117'],[-2,34,19,28,'#3bbcd117'],[82,88,20,18,'#316cbe17']] }
+  };
+
+  function createBackgroundPresetElements(key) {
+    const preset = deskSixBackgroundPresets[key];
+    return preset.parts.map(([x, y, width, height, fill], index) => ({ id: `${preset.id}.part.${index + 1}`, type: 'shape', role: 'background-decoration', backgroundPresetId: preset.id, backgroundPartId: index + 1, shapeType: 'rect', x, y, width, height, zIndex: 0, opacity: 1, style: { fill, stroke: 'transparent', strokeWidth: 0 }, permissions: { move: true, resize: true, rotate: false, color: true, delete: true, duplicate: true, layer: true, content: false } }));
+  }
+
+  function ensureDeskSixBackgroundPresetRegistry(project) {
+    project.template.resources ||= {};
+    project.template.resources.backgroundPresetLibraryVersion = 1;
+    project.template.resources.backgroundPresets = Object.values(deskSixBackgroundPresets).map(({ parts, ...preset }) => ({ ...preset, kind: 'shape-composition', editable: true, supportsBleed: true }));
+  }
 
   function createPlannerMasterElements() {
     return [
@@ -14,6 +31,7 @@
 
   function createCoverFrontElements(year) {
     return [
+      ...createBackgroundPresetElements('cover'),
       { id: 'page.cover.building', type: 'semantic-object', role: 'school-building', x: 18.5, y: 14, width: 62, height: 52, zIndex: 1, binding: 'school.profile.building', bindingEnabled: true, fallbackToSample: true, showCaption: false, sampleContent: { name: '학교 전경', description: '', image: '' }, style: { borderRadius: 5 } },
       { id: 'page.cover.year', type: 'text', role: 'year', binding: 'calendar.year', x: 34, y: 68, width: 20, height: 11, zIndex: 3, content: String(year), style: { fontSize: 44, textAlign: 'right', background: false, color: '#20abc3' } },
       { id: 'page.cover.calendar', type: 'text', role: 'calendar-label', x: 55, y: 73, width: 18, height: 5, zIndex: 3, content: 'CALENDAR', style: { fontSize: 13, textAlign: 'left', background: false, color: '#8a8a8a' } },
@@ -25,6 +43,7 @@
 
   function createYearlyElements(year, startMonth) {
     return [
+      ...createBackgroundPresetElements('yearly'),
       { id: 'page.yearly.title', type: 'text', role: 'year', binding: 'calendar.year', x: 39, y: 7, width: 22, height: 11, zIndex: 2, content: String(year), style: { fontSize: 42, textAlign: 'center', background: false, color: '#20abc3' } },
       { id: 'page.yearly', type: 'year-calendar', role: 'year-calendar', x: 8, y: 21, width: 84, height: 70, zIndex: 1, startMonth, monthCount: 12, columns: 4, showWeekdayHeader: true, style: {} }
     ];
@@ -52,6 +71,7 @@
 
   function createBackCoverElements(year) {
     return [
+      ...createBackgroundPresetElements('backCover'),
       { id: 'page.back.year', type: 'text', role: 'year', binding: 'calendar.year', x: 37, y: 9, width: 20, height: 10, zIndex: 3, content: String(year), style: { fontSize: 40, textAlign: 'right', background: false, color: '#20abc3' } },
       { id: 'page.back.calendar', type: 'text', role: 'calendar-label', x: 58, y: 13, width: 16, height: 5, zIndex: 3, content: 'CALENDAR', style: { fontSize: 12, textAlign: 'left', background: false, color: '#8a8a8a' } },
       { id: 'page.back.building', type: 'semantic-object', role: 'school-building', x: 29, y: 24, width: 43, height: 39, zIndex: 1, binding: 'school.profile.building', bindingEnabled: true, fallbackToSample: true, showCaption: false, sampleContent: { name: '학교 전경', description: '', image: '' }, style: { borderRadius: 5 } },
@@ -63,6 +83,7 @@
 
   function createSchoolSymbolElements() {
     return [
+      ...createBackgroundPresetElements('symbols'),
       { id: 'page.symbols.title', type: 'text', role: 'symbols-title', x: 10, y: 8, width: 80, height: 8, zIndex: 3, content: '우리학교 상징', style: { fontSize: 27, textAlign: 'center', background: false, color: '#20abc3' } },
       { id: 'page.symbols.motto', type: 'semantic-object', role: 'school-motto', x: 8, y: 22, width: 40, height: 23, zIndex: 1, binding: 'school.profile.motto', bindingEnabled: true, fallbackToSample: true, sampleContent: { name: '교훈', description: '바르게 배우고 함께 성장합니다.' }, style: { titleSize: 17, descriptionSize: 12 } },
       { id: 'page.symbols.song', type: 'semantic-object', role: 'school-song', x: 52, y: 22, width: 40, height: 62, zIndex: 1, binding: 'school.profile.song', bindingEnabled: true, fallbackToSample: true, sampleContent: { name: '교가', description: '우리 학교 교가' }, style: { titleSize: 17, descriptionSize: 9 } },
@@ -72,6 +93,7 @@
   }
 
   function applyDeskPlannerFixedSurfaces(project, options) {
+    ensureDeskSixBackgroundPresetRegistry(project);
     const byRole = role => project.book.pageInstances.find(page => page.role === role);
     const assign = (role, semanticPageRole, elements) => {
       const page = byRole(role);
@@ -161,6 +183,10 @@
     if (fromVersion < 5) {
       applyDeskPlannerFixedSurfaces(project, { year: Number(project.settings?.year || 2028), startMonth: Number(project.settings?.startMonth || 3) });
       applied.push('desk-planner-fixed-surfaces-v5');
+    }
+    if (fromVersion < 6) {
+      applyDeskPlannerFixedSurfaces(project, { year: Number(project.settings?.year || 2028), startMonth: Number(project.settings?.startMonth || 3) });
+      applied.push('desk-planner-editable-background-presets-v6');
     }
     if (fromVersion < deskPlannerStandard.documentVersion) {
       project.template.documentVersion = deskPlannerStandard.documentVersion;

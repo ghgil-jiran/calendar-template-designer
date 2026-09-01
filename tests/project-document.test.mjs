@@ -52,7 +52,12 @@ assert.ok(representative.book.elementsByPage['surface.1.back'].some(item => item
 assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-motto'));
 assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-song'));
 assert.deepEqual(representative.template.standardIdentity, { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6' });
-assert.equal(representative.template.documentVersion, 5);
+assert.equal(representative.template.documentVersion, 6);
+assert.equal(representative.template.resources.backgroundPresetLibraryVersion, 1);
+assert.equal(representative.template.resources.backgroundPresets.length, 4);
+assert.ok(representative.template.resources.backgroundPresets.every(item => item.editable && item.supportsBleed));
+assert.ok(representative.book.elementsByPage['surface.1.front'].some(item => item.role === 'background-decoration' && item.backgroundPresetId === 'background.desk-6.cover'));
+assert.ok(representative.book.elementsByPage['surface.1.front'].some(item => item.x < 0));
 assert.equal(representative.book.elementsByPage['surface.1.front'].filter(item => ['school-name', 'school-english-name'].includes(item.role)).length, 0);
 assert.equal(representative.book.elementsByPage['surface.14.back'].filter(item => ['school-name', 'school-english-name'].includes(item.role)).length, 0);
 assert.equal(representative.book.elementsByPage['surface.1.front'].find(item => item.role === 'school-logo').width, 27);
@@ -71,7 +76,7 @@ const migratedPlanner = globalThis.ACDLProjectDocument.migrateProject(savedPlann
 assert.equal(migratedPlanner.project.book.pageInstances.length, 28);
 assert.equal(migratedPlanner.project.template.standardIdentity.catalogId, 'tpl-2028-desk-planner-standard-01');
 assert.equal(migratedPlanner.project.template.metadata.sampleFamily, 'desk-6');
-assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-sample-6-sequence-v4', 'desk-planner-fixed-surfaces-v5', 'desk-planner-document-version-5']);
+assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-sample-6-sequence-v4', 'desk-planner-fixed-surfaces-v5', 'desk-planner-editable-background-presets-v6', 'desk-planner-document-version-6']);
 assert.deepEqual(globalThis.ACDLProjectDocument.migrateProject(migratedPlanner.project).report.applied, []);
 
 assert.deepEqual(
