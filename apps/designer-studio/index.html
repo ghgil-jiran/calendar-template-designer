@@ -501,6 +501,10 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
    <div><strong>샘플 학교 자료</strong><span>학교 정보와 교표·전경 이미지를 입력하거나 수정합니다.</span></div>
    <button id="openSampleSchoolDataBtn" type="button">정보·이미지 입력/수정</button>
   </div>
+  <div class="insert-scope-card">
+   <label for="insertScopeMirror"><strong>삽입 적용 범위</strong><span>현재 면에만 넣거나 같은 Master의 모든 면에 공통 적용합니다.</span></label>
+   <select id="insertScopeMirror"><option value="page">현재 페이지</option><option value="master">같은 Master 전체</option></select>
+  </div>
  </div>
 </aside>
 <section class="panel center">
@@ -539,7 +543,7 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
  <div class="hidden" aria-hidden="true"><button id="contentMode">이전 콘텐츠 모드</button><button id="templateMode">템플릿 설계</button><span id="modeHelp"></span><button id="previewBtn">현재 페이지 미리보기</button></div>
 </div>
 <div class="canvas-wrap"><div id="page" class="page desk"></div></div></section>
-<aside class="panel right editor-chrome" aria-label="선택 개체 속성"><h2 id="inspectorPanelTitle" class="inspector-panel-title">페이지 스타일</h2><div id="inspector"></div></aside>
+<aside class="panel right editor-chrome" aria-label="선택 개체 속성"><h2 id="inspectorPanelTitle" class="inspector-panel-title">페이지 스타일</h2><div id="inspectorSelectionSummary" class="inspector-selection-summary">페이지를 선택했거나 개체가 선택되지 않았습니다.</div><div id="inspector"></div></aside>
 <section class="panel page-dock editor-chrome" aria-label="페이지 구성 및 선택">
  <div class="page-dock-head"><strong>페이지 구성</strong><span>페이지를 선택해 편집 화면을 전환합니다.</span></div>
  <div class="panel-body nav" id="navigator"></div>
@@ -4184,13 +4188,17 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .sample-data-card{margin:10px 10px 0;padding:11px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff}
 .sample-data-card div{display:flex;flex-direction:column;gap:3px}.sample-data-card strong{font-size:12px;color:#1e3a8a}.sample-data-card span{font-size:9px;line-height:1.5;color:#475569}
 .sample-data-card button{width:100%;height:34px;margin-top:9px;border:1px solid #93c5fd;border-radius:7px;background:#fff;color:#1d4ed8;font-size:10px;font-weight:800}
+.insert-scope-card{margin:8px 10px 0;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.insert-scope-card label{display:flex;gap:3px;margin:0 0 8px}.insert-scope-card label strong{font-size:11px;color:#1e293b}.insert-scope-card label span{font-size:9px;line-height:1.45;color:#64748b}.insert-scope-card select{height:34px;font-size:10px}
 .insert-sidebar-host>.drawer-body{display:flex;flex:1;min-height:0;flex-direction:column;padding:10px;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
 .insert-sidebar .object-library-tabs{position:sticky;top:-10px;z-index:4;margin:-10px -10px 10px;padding:10px;grid-template-columns:repeat(2,1fr);background:#fff;border-bottom:1px solid #e2e8f0}
 .insert-sidebar .object-library-tabs button{min-height:34px;font-size:10px}.insert-sidebar .object-library-search{margin-bottom:9px}.insert-sidebar .recommend-strip{margin-bottom:10px}
 .insert-sidebar .object-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.insert-sidebar .object-card{min-width:0}.insert-sidebar .object-card strong,.insert-sidebar .object-card span{overflow-wrap:anywhere}
 .workspace>.center{grid-column:2;grid-row:1}.workspace>.right{grid-column:3;grid-row:1;display:flex;flex-direction:column}
 .inspector-panel-title{min-height:38px;flex:0 0 auto;background:#f8fafc!important;color:#1e293b!important;font-size:13px!important;font-weight:800!important}
+.inspector-selection-summary{flex:0 0 auto;padding:8px 11px;border-bottom:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:9px;line-height:1.5}.inspector-selection-summary strong{display:block;color:#1e293b;font-size:11px}.inspector-selection-summary .selection-chips{display:flex;gap:5px;margin-top:5px}.inspector-selection-summary .selection-chip{padding:2px 6px;border-radius:999px;background:#eef2f7;color:#475569;font-size:8px;font-weight:800}.inspector-selection-summary .selection-chip.master{background:#eff6ff;color:#1d4ed8}
 .workspace>.right #inspector{flex:1;height:auto}
+.workspace .toolbar-scope{display:none!important}
+.library-search-empty{padding:18px 8px;text-align:center;color:#64748b;font-size:10px;line-height:1.5}
 .workspace>.page-dock{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:150px minmax(0,1fr);min-height:0;overflow:hidden}
 .page-dock-head{display:flex;flex-direction:column;justify-content:center;gap:5px;padding:13px;border-right:1px solid #e2e8f0;background:#f8fafc}.page-dock-head strong{font-size:13px;color:#0f172a}.page-dock-head span{font-size:9px;line-height:1.5;color:#64748b}
 .page-dock>.nav{display:flex;align-items:stretch;gap:8px;min-width:0;max-height:none;padding:9px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-gutter:stable}
@@ -4215,10 +4223,12 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   document.querySelectorAll('[data-library-tab]').forEach(button=>button.classList.toggle('active',button.dataset.libraryTab===category));
   document.querySelectorAll('[data-library-section]').forEach(section=>section.classList.toggle('library-filter-hidden',section.dataset.librarySection!==category));
   host.scrollIntoView({block:'nearest'});
-  renderObjectRecommendations?.();renderRegisteredAssetLibrary?.();
+ renderObjectRecommendations?.();renderRegisteredAssetLibrary?.();
  };
  switchObjectLibrary=activate;window.switchObjectLibrary=activate;
  $('openSampleSchoolDataBtn')?.addEventListener('click',()=>openResourceModal('school'));
+ const scopeMirror=$('insertScopeMirror'),scopeSource=$('elementScope');
+ if(scopeMirror&&scopeSource){scopeMirror.value=scopeSource.value;scopeMirror.addEventListener('change',()=>{scopeSource.value=scopeMirror.value;scopeSource.dispatchEvent(new Event('change',{bubbles:true}))});scopeSource.addEventListener('change',()=>scopeMirror.value=scopeSource.value)}
  $('openObjectDrawerBtn')?.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();activate('school')},true);
  document.querySelectorAll('[data-library-tab]').forEach(button=>button.addEventListener('click',()=>activate(button.dataset.libraryTab)));
  const priorNavigator=renderNavigator;
@@ -4230,8 +4240,48 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  render=function(){
   const result=priorRender.apply(this,arguments),item=typeof sourceElement==='function'?sourceElement():null,title=$('inspectorPanelTitle');
   if(title)title.textContent=item?'선택 개체 속성':'페이지 스타일';
+  const summary=$('inspectorSelectionSummary');
+  if(summary){
+   if(!item)summary.textContent='개체를 선택하면 콘텐츠·스타일·배치·데이터·권한을 설정할 수 있습니다.';
+   else{
+    const names={'semantic-object':'학교 개체',text:'텍스트',image:'이미지',shape:'도형',vector:'벡터','image-frame':'사진 프레임','mini-calendar':'미니 월력','mini-calendar-prev':'이전달 미니 월력','mini-calendar-next':'다음달 미니 월력','year-calendar':'연간 월력','monthly-schedule':'월 일정','event-list':'학사일정','month-date-strip':'날짜 띠','monthly-quote':'월 명언',memo:'플래너·메모'};
+    const scope=selectedElementScope==='master'?'같은 Master 전체':'현재 페이지';
+    summary.innerHTML=`<strong>${names[item.type]||item.type}</strong><div class="selection-chips"><span class="selection-chip ${selectedElementScope==='master'?'master':''}">${scope}</span>${item.binding||item.image?.binding||item.role?'<span class="selection-chip">데이터 연결</span>':''}</div>`;
+   }
+  }
   return result;
  };
+ const objectCards=[...body.querySelectorAll('.object-card')];
+ objectCards.forEach(card=>card.dataset.search ||= card.textContent.trim().replace(/\s+/g,' '));
+ const search=$('objectLibrarySearch'),empty=document.createElement('div');empty.className='library-search-empty hidden';empty.textContent='이 범주에서 일치하는 개체가 없습니다.';body.appendChild(empty);
+ const filterObjects=()=>{
+  const query=(search?.value||'').trim().toLowerCase(),category=body.querySelector('[data-library-tab].active')?.dataset.libraryTab||'school';let visible=0;
+  body.querySelectorAll('[data-library-section]').forEach(section=>{
+   if(section.dataset.librarySection!==category)return;
+   section.querySelectorAll('.object-card').forEach(card=>{const match=!query||(card.dataset.search||card.textContent).toLowerCase().includes(query);card.style.display=match?'':'none';if(match)visible++});
+  });
+  empty.classList.toggle('hidden',visible>0||!query);
+ };
+ search?.addEventListener('input',()=>setTimeout(filterObjects,0));
+ body.querySelectorAll('[data-library-tab]').forEach(button=>button.addEventListener('click',()=>setTimeout(filterObjects,0)));
+ const bindingFor=item=>{
+  const widgetBindings={'mini-calendar':'calendar.currentMonth','mini-calendar-prev':'calendar.previousMonth','mini-calendar-next':'calendar.nextMonth','year-calendar':'calendar.year','monthly-schedule':'calendar.events','event-list':'calendar.events','month-date-strip':'calendar.currentMonth','monthly-quote':'calendar.monthlyQuotes'};
+  return item?.binding||item?.image?.binding||widgetBindings[item?.type]||(item?.type==='semantic-object'&&item?.bindingEnabled!==false?`school.profile.${String(item.role||'').replace('school-','')}`:'');
+ };
+ const ensureInspectorSupport=()=>{
+  const item=typeof sourceElement==='function'?sourceElement():null,ins=$('inspector');if(!item||!ins)return;
+  const tabs=ins.querySelector('.inspector-tabs');
+  [['data','데이터'],['permission','권한']].forEach(([id,label])=>{if(tabs&&!tabs.querySelector(`[data-tab="${id}"]`)){const button=document.createElement('button');button.type='button';button.className=`inspector-tab ${inspectorActiveTab===id?'active':''}`;button.dataset.tab=id;button.textContent=label;tabs.appendChild(button)}});
+  const binding=bindingFor(item);
+  let dataPanel=ins.querySelector('[data-panel="data"]');if(!dataPanel){dataPanel=document.createElement('div');dataPanel.className='inspector-tab-panel';dataPanel.dataset.panel='data';ins.appendChild(dataPanel)}
+  dataPanel.innerHTML=binding?`<div class="section element-inspector"><div class="inspector-group"><div class="inspector-group-title"><span>데이터 연결</span><small>연결됨</small></div><div class="binding-path">${binding}</div><div class="hint">샘플 학교 자료 또는 사용자 서비스 데이터가 이 개체에 연결됩니다.</div></div></div>`:'<div class="inspector-tab-empty">고정 콘텐츠 개체입니다. 콘텐츠 탭에서 직접 값을 설정합니다.</div>';
+  let permissionPanel=ins.querySelector('[data-panel="permission"]');if(!permissionPanel){permissionPanel=document.createElement('div');permissionPanel.className='inspector-tab-panel';permissionPanel.dataset.panel='permission';ins.appendChild(permissionPanel)}permissionPanel.innerHTML=permissionHTML(item);
+  ins.querySelectorAll('.inspector-tab').forEach(button=>button.onclick=()=>{inspectorActiveTab=button.dataset.tab;ins.querySelectorAll('.inspector-tab').forEach(n=>n.classList.toggle('active',n.dataset.tab===inspectorActiveTab));ins.querySelectorAll('.inspector-tab-panel').forEach(n=>n.classList.toggle('active',n.dataset.panel===inspectorActiveTab))});
+  ins.querySelectorAll('.inspector-tab-panel').forEach(panel=>panel.classList.toggle('active',panel.dataset.panel===inspectorActiveTab));
+ };
+ const renderedWithSupport=render;
+ render=function(){const result=renderedWithSupport.apply(this,arguments);ensureInspectorSupport();return result};
+ $('inspector')?.addEventListener('click',event=>{const button=event.target.closest('#applyGraphicPermissions');if(!button)return;event.preventDefault();event.stopImmediatePropagation();const item=sourceElement();if(!item)return;snapshot();item.permissions=Object.fromEntries([...$('inspector').querySelectorAll('[data-permission]')].map(input=>[input.dataset.permission,input.checked]));item.required=!!$('graphicRequired')?.checked;markDirty();render();showEditorToast('사용자 편집 권한을 저장했습니다.')},true);
  activate('school');
 })();
 </script>
