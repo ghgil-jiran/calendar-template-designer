@@ -14,6 +14,7 @@ test('review PDF renders every project surface at the product trim size',()=>{
  assert.match(html,/sheet\.style\.width=`\$\{width\}mm`/);
  assert.match(html,/sheet\.style\.height=`\$\{height\}mm`/);
  assert.match(html,/@page\{size:\$\{width\}mm \$\{height\}mm;margin:0\}/);
+ assert.match(html,/print-color-adjust:exact/);
 });
 
 test('review PDF reuses clean preview clones and restores editor state',()=>{

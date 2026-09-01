@@ -90,7 +90,7 @@
 .size-note{margin-top:-3px;margin-bottom:8px;font-size:10px;color:var(--muted)}
 @media print{.non-output,.editor-chrome,.app-header{display:none!important}.page{box-shadow:none!important}
  body.review-pdf-printing>*:not(.review-pdf-root){display:none!important}
- body.review-pdf-printing .review-pdf-root{display:block!important}
+ body.review-pdf-printing .review-pdf-root{display:block!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
  body.review-pdf-printing .review-pdf-sheet{position:relative;box-sizing:border-box;overflow:hidden;break-after:page;page-break-after:always;background:#fff}
  body.review-pdf-printing .review-pdf-sheet:last-child{break-after:auto;page-break-after:auto}
  body.review-pdf-printing .review-pdf-sheet>.page{position:relative!important;inset:auto!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;transform:none!important;zoom:1!important;box-shadow:none!important;border-radius:0!important;overflow:hidden!important}
