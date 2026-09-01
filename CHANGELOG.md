@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-01 - Review PDF export
+
+- Added a template-menu action that renders every project surface into a browser-saveable review PDF.
+- Preserved trim dimensions and removed editor-only controls and binding badges from review output.
+- Kept review PDF output explicitly separate from production PDF/X-4 package validation.
+
 ## 2026-09-01 — 검토본 CMYK 이미지·연락처 표시 수정
 
 - PDF에서 추출한 CMYK 이미지가 WebP 변환 중 반전되던 문제를 수정해 전경·교가·교목·교화의 원본 색상을 복구했다.
