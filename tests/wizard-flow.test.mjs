@@ -214,6 +214,10 @@ test('new desk planner standard is visible as a separate 2028 draft system base'
   assert.match(html, /id="masterMonthTitleAlign"/);
   assert.match(html, /id="masterWeekdayStyle"/);
   assert.match(html, /id="masterGridStyle"/);
+  assert.match(html, /id="masterMonthTitleStyle"/);
+  assert.match(html, /value="number-inline"/);
+  assert.match(html, /calendar\.design\.monthTitleStyle=el\("masterMonthTitleStyle"\)/);
+  assert.match(html, /weekday-outlined-pills \.calendar>\.head\{[^}]*border:1\.5px/);
   assert.match(html, /12개월 공통 월력 디자인/);
   assert.match(html, /designer-only-control[^\n]+월 표시 위치/);
   assert.match(html, /page\.planner-back-surface \.surface-content\{background:var\(--planner-background\)/);
