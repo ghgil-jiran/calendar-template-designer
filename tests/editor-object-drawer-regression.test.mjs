@@ -35,5 +35,10 @@ test('current-page editing shadows a Master object without mutating other pages'
   assert.match(html, /scope==="master"&&el\("elementScope"\)\?\.value==="page"/);
   assert.match(html, /clone\.originScope="master"/);
   assert.match(html, /pageOverrideCreated/);
+  assert.match(html, /function ensureCurrentPageEditTarget/);
+  assert.match(html, /const usePageOverride=scope==='master'&&el\('elementScope'\)\?\.value==='page'/);
+  assert.match(html, /if\(usePageOverride\)\{const target=ensureCurrentPageEditTarget/);
+  assert.match(html, /function changeElement\(fn\)\{snapshot\(\);const target=ensureCurrentPageEditTarget\(\)/);
+  assert.match(html, /function applyGraphicInspector\(action\)\{snapshot\(\);const target=ensureCurrentPageEditTarget\(\)/);
   assert.match(html, /삽입·편집 적용 범위/);
 });
