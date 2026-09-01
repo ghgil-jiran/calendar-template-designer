@@ -2,7 +2,22 @@
   const palette = ['#2fb79d', '#4777bd', '#2e8b72', '#4c8f3a', '#b57b23', '#c05a4f', '#a64f78', '#7459a8', '#3f769e', '#50806b', '#9a6a45', '#526487'];
   const pastel = ['#dff4ee', '#e7f3df', '#fff0d8', '#fde5df', '#f8e4ed', '#eee7f8', '#e1edf8', '#e2f1ed', '#f6eadf', '#e8edf6', '#f1e8dc', '#e7ebf2'];
   const protectedPlannerPermissions = { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false };
-  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 6 };
+  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 7 };
+  const deskSixReviewAssets = [
+    { id: 'asset.sample.desk-6.building', name: '지란중학교 전경', role: 'school-building', binding: 'school.profile.building', kind: '학교 전경', image: 'assets/sample-school/jiran-building.webp' },
+    { id: 'asset.sample.desk-6.logo', name: '지란중학교 교표 연결', role: 'school-logo', binding: 'school.profile.logo', kind: '교표', image: 'assets/sample-school/jiran-logo-composite.svg' },
+    { id: 'asset.sample.desk-6.song', name: '지란중학교 교가', role: 'school-song', binding: 'school.profile.song', kind: '교가', image: 'assets/sample-school/jiran-song.webp' },
+    { id: 'asset.sample.desk-6.tree', name: '은행나무', role: 'school-tree', binding: 'school.profile.tree', kind: '교목', image: 'assets/sample-school/jiran-tree.webp' },
+    { id: 'asset.sample.desk-6.flower', name: '장미', role: 'school-flower', binding: 'school.profile.flower', kind: '교화', image: 'assets/sample-school/jiran-flower.webp' }
+  ];
+  const deskSixReviewProfile = {
+    building: { name: '지란중학교', description: '학교 전경', image: 'assets/sample-school/jiran-building.webp', assetId: 'asset.sample.desk-6.building' },
+    logo: { name: '지란중학교 교표 연결', description: '', image: 'assets/sample-school/jiran-logo-composite.svg', assetId: 'asset.sample.desk-6.logo' },
+    motto: { name: '교훈', description: '슬기롭게, 화목하게, 튼튼하게', image: '' },
+    song: { name: '교가', description: '지란중학교 교가', image: 'assets/sample-school/jiran-song.webp', assetId: 'asset.sample.desk-6.song' },
+    tree: { name: '은행나무', description: '풍경을 아름답게 함\n중요한 가구재로 쓰임', image: 'assets/sample-school/jiran-tree.webp', assetId: 'asset.sample.desk-6.tree' },
+    flower: { name: '장미', description: '고상한 품위와 아름다움\n순결, 정열, 위엄', image: 'assets/sample-school/jiran-flower.webp', assetId: 'asset.sample.desk-6.flower' }
+  };
   const deskSixBackgroundPresets = {
     cover: { id: 'background.desk-6.cover', name: '6번 표지 청록 블록', roles: ['cover-front'], parts: [[4,11,88,31,'#3bbcd124'],[-3,32,15,22,'#3bbcd117'],[86,23,14,24,'#3bbcd114'],[83,57,18,31,'#3bbcd11a'],[-2,87,18,18,'#316cbe12']] },
     yearly: { id: 'background.desk-6.yearly', name: '6번 연력 흰 패널', roles: ['cover-back'], parts: [[81,5,20,23,'#3bbcd11a'],[-2,22,14,25,'#3bbcd114'],[83,48,18,22,'#3bbcd117'],[-2,70,16,28,'#3bbcd114'],[6,11,88,82,'#fffffff5']] },
@@ -19,6 +34,55 @@
     project.template.resources ||= {};
     project.template.resources.backgroundPresetLibraryVersion = 1;
     project.template.resources.backgroundPresets = Object.values(deskSixBackgroundPresets).map(({ parts, ...preset }) => ({ ...preset, kind: 'shape-composition', editable: true, supportsBleed: true }));
+  }
+
+  function ensureDeskSixReviewSampleData(project) {
+    project.template.resources ||= {};
+    project.template.resources.sampleAssets ||= [];
+    const existingRoles = new Set(project.template.resources.sampleAssets.map(asset => asset.role));
+    deskSixReviewAssets.forEach(asset => {
+      if (!existingRoles.has(asset.role)) project.template.resources.sampleAssets.push({ ...asset });
+    });
+    project.template.review ||= {};
+    Object.assign(project.template.review, {
+      status: 'review',
+      reviewId: 'tpl-2028-desk-planner-standard-01-review-01',
+      sourceCatalogId: deskPlannerStandard.catalogId,
+      referenceSample: 'desk-6',
+      publicPackage: false
+    });
+    project.book.school ||= {};
+    const school = project.book.school;
+    if (!school.name || school.name === '샘플 학교' || school.name === '학교명 미입력') school.name = '지란중학교';
+    if (!school.englishName || school.englishName === 'SAMPLE SCHOOL') school.englishName = 'JIRAN MIDDLE SCHOOL';
+    if (!school.slogan || school.slogan === '배움으로 성장하고 함께 미래를 여는 학교') school.slogan = '슬기롭게, 화목하게, 튼튼하게';
+    if (!school.address) school.address = '경기도 성남시 수정구 금토로80번길 37 인피니티타워 WEST 10층';
+    if (!school.phone) school.phone = '031-608-9735';
+    if (!school.fax) school.fax = '031-608-9735';
+    if (!school.website) school.website = 'schoolp.co.kr';
+    if (!Array.isArray(school.contacts) || !school.contacts.length) school.contacts = [
+      { label: '교무실', value: '031-608-9735' },
+      { label: '행정실', value: '031-608-9735' },
+      { label: '팩스', value: '031-608-9735' }
+    ];
+    school.profile ||= {};
+    Object.entries(deskSixReviewProfile).forEach(([key, sample]) => {
+      const current = school.profile[key] ||= {};
+      if (!current.name) current.name = sample.name;
+      if (!current.description) current.description = sample.description;
+      if (!current.image) current.image = sample.image;
+      if (!current.assetId && current.image === sample.image) current.assetId = sample.assetId;
+    });
+    const samplesByRole = Object.fromEntries(Object.entries(deskSixReviewProfile).map(([key, value]) => [`school-${key}`, { ...value, ...school.profile[key] }]));
+    Object.values(project.book.elementsByPage || {}).forEach(elements => (elements || []).forEach(item => {
+      const sample = samplesByRole[item.role];
+      if (!sample || item.type !== 'semantic-object') return;
+      item.sampleContent ||= {};
+      if (!item.sampleContent.name || ['학교 전경', '교훈', '교가', '교목', '교화'].includes(item.sampleContent.name)) item.sampleContent.name = sample.name;
+      if (!item.sampleContent.description || ['바르게 배우고 함께 성장합니다.', '우리 학교 교가', '곧은 마음과 푸른 꿈', '아름다운 배움과 우정'].includes(item.sampleContent.description)) item.sampleContent.description = sample.description;
+      if (!item.sampleContent.image) item.sampleContent.image = sample.image;
+      if (!item.sampleAssetId && sample.assetId) item.sampleAssetId = sample.assetId;
+    }));
   }
 
   function createPlannerMasterElements() {
@@ -188,6 +252,10 @@
       applyDeskPlannerFixedSurfaces(project, { year: Number(project.settings?.year || 2028), startMonth: Number(project.settings?.startMonth || 3) });
       applied.push('desk-planner-editable-background-presets-v6');
     }
+    if (fromVersion < 7) {
+      ensureDeskSixReviewSampleData(project);
+      applied.push('desk-planner-review-sample-data-v7');
+    }
     if (fromVersion < deskPlannerStandard.documentVersion) {
       project.template.documentVersion = deskPlannerStandard.documentVersion;
       applied.push(`desk-planner-document-version-${deskPlannerStandard.documentVersion}`);
@@ -265,6 +333,7 @@
     if (isPlanner) {
       normalizeDeskPlannerSampleSixSequence(project);
       applyDeskPlannerFixedSurfaces(project, options);
+      ensureDeskSixReviewSampleData(project);
     }
     project.book.pageInstances.forEach((page, index) => {
       page.sequenceIndex = index;
