@@ -6,9 +6,10 @@ import path from 'node:path';
 const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8');
 
 test('editor columns keep independent scrolling inside the viewport', () => {
-  assert.match(html, /\.workspace>aside\.panel:first-child \.nav\{[^}]*overflow-y:auto[^}]*scrollbar-gutter:stable/);
+  assert.match(html, /\.insert-sidebar-host>\.drawer-body\{[^}]*overflow-y:auto[^}]*scrollbar-gutter:stable/);
   assert.match(html, /\.workspace>\.center \.canvas-wrap\{[^}]*overflow:auto[^}]*scrollbar-gutter:stable/);
   assert.match(html, /\.workspace>\.right #inspector\{[^}]*height:100%[^}]*overflow-y:auto[^}]*scrollbar-gutter:stable/);
+  assert.match(html, /\.page-dock>\.nav\{[^}]*overflow-x:auto[^}]*overflow-y:hidden/);
 });
 
 test('the object inspector uses one typography and form-control scale', () => {
