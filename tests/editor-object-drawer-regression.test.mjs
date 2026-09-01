@@ -18,3 +18,13 @@ test('the object inspector uses one typography and form-control scale', () => {
   assert.match(html, /\.workspace>\.right \.inline-check\{[^}]*flex-direction:row[^}]*align-items:center[^}]*font-size:11px/);
   assert.match(html, /\.workspace>\.right \.inline-check input\[type="checkbox"\]\{[^}]*width:15px!important[^}]*height:15px!important/);
 });
+
+test('the reorganized workspace completes insertion scope, search and inspector support', () => {
+  assert.match(html, /id="insertScopeMirror"/);
+  assert.match(html, /scopeMirror\.addEventListener\('change'/);
+  assert.match(html, /objectCards\.forEach\(card=>card\.dataset\.search/);
+  assert.match(html, /const filterObjects=/);
+  assert.match(html, /\[\['data','데이터'\],\['permission','권한'\]\]/);
+  assert.match(html, /item\.permissions=Object\.fromEntries/);
+  assert.match(html, /id="inspectorSelectionSummary"/);
+});
