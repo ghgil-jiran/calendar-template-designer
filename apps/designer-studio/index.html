@@ -742,7 +742,7 @@ function pageDesignType(p){
  if(p.role.includes("cover"))return {key:"fixed",label:"구조 정의 면"};
  return {key:"template",label:"템플릿 면"}
 }
-function roleLabel(p){const map={"cover-front":"표지 앞면","cover-back":"표지 뒷면","front-insert-front":"앞 간지 앞면","front-insert-back":"앞 간지 뒷면","rear-insert-front":"뒤 간지 앞면","rear-insert-back":"뒤 간지 뒷면","monthly-front":"월력 앞면","monthly-back":"월력 뒷면","back-cover-front":"맨 뒷표지 앞면","back-cover-back":"맨 뒷표지 뒷면","poster-annual":"연간 벽보"};const idx=p.insertIndex?` ${p.insertIndex}`:"";return p.calendarMonth?`${p.calendarYear}.${String(p.calendarMonth).padStart(2,"0")} · ${map[p.role]}`:`${map[p.role]||p.role}${idx}`}
+function roleLabel(p){const map={"cover-front":"표지 앞면","cover-back":"표지 뒷면","front-insert-front":"앞 간지 앞면","front-insert-back":"앞 간지 뒷면","rear-insert-front":"뒤 간지 앞면","rear-insert-back":"뒤 간지 뒷면","monthly-front":"월력 앞면","monthly-back":"월력 뒷면","back-cover-front":"맨 뒷표지 앞면","back-cover-back":"맨 뒷표지 뒷면","poster-annual":"연간 벽보"},semantic={"yearly-calendar":"연력","school-symbols":"학교 상징","back-cover-information":"맨 뒷표지"};const idx=p.insertIndex?` ${p.insertIndex}`:"";return p.calendarMonth?`${p.calendarYear}.${String(p.calendarMonth).padStart(2,"0")} · ${map[p.role]}`:`${semantic[p.semanticPageRole]||map[p.role]||p.role}${idx}`}
 function renderNavigator(){
  const nav=el("navigator");nav.innerHTML="";const isDesk=project.productType.category==="desk";
  const size=project.productType.pageSize;const calendarScheme=`${project.settings.calendarRows||6}×7 · ${project.settings.weekStart==="monday"?"월요일":"일요일"} 시작`;
@@ -2466,13 +2466,10 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
 
   function deepClone(v){return typeof structuredClone==='function'?structuredClone(v):JSON.parse(JSON.stringify(v))}
   function syncTemplateCalendarDates(prj,year,startMonth){
-    let cursor=0,last=null;
-    (prj.book?.pageInstances||[]).forEach(page=>{
-      if(page.role==='monthly-front'){
-        const d=new Date(year,startMonth-1+cursor,1);page.calendarYear=d.getFullYear();page.calendarMonth=d.getMonth()+1;page.monthKey=`${page.calendarYear}-${String(page.calendarMonth).padStart(2,'0')}`;page.pairId=`month-pair.${page.monthKey}`;last={year:page.calendarYear,month:page.calendarMonth,monthKey:page.monthKey,pairId:page.pairId};cursor++;
-      }else if(page.role==='monthly-back'&&last){page.calendarYear=last.year;page.calendarMonth=last.month;page.monthKey=last.monthKey;page.pairId=last.pairId}
-      else if(page.role==='poster-annual'){page.calendarYear=year;page.calendarMonth=1}
-    });
+    const pages=prj.book?.pageInstances||[], fronts=pages.filter(page=>page.role==='monthly-front'), backs=pages.filter(page=>page.role==='monthly-back');
+    fronts.forEach((page,index)=>{const d=new Date(year,startMonth-1+index,1);page.calendarYear=d.getFullYear();page.calendarMonth=d.getMonth()+1;page.monthKey=`${page.calendarYear}-${String(page.calendarMonth).padStart(2,'0')}`;page.pairId=`month-pair.${page.monthKey}`});
+    backs.forEach((page,index)=>{const front=fronts[index];if(front){page.calendarYear=front.calendarYear;page.calendarMonth=front.calendarMonth;page.monthKey=front.monthKey;page.pairId=front.pairId}});
+    pages.filter(page=>page.role==='poster-annual').forEach(page=>{page.calendarYear=year;page.calendarMonth=1});
   }
   function roleImage(role,school,item){
     const map={'school-image':'building','school-building':'building','school-logo':'logo','school-flower':'flower','school-tree':'tree','school-song':'song'};
@@ -2707,12 +2704,10 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
   };
 
   function syncDates(prj,year,startMonth){
-    let cursor=0,last=null;
-    (prj.book?.pageInstances||[]).forEach(page=>{
-      if(page.role==='monthly-front'){const d=new Date(year,startMonth-1+cursor,1);page.calendarYear=d.getFullYear();page.calendarMonth=d.getMonth()+1;page.monthKey=`${page.calendarYear}-${String(page.calendarMonth).padStart(2,'0')}`;page.pairId=`month-pair.${page.monthKey}`;last={year:page.calendarYear,month:page.calendarMonth,monthKey:page.monthKey,pairId:page.pairId};cursor++}
-      else if(page.role==='monthly-back'&&last){page.calendarYear=last.year;page.calendarMonth=last.month;page.monthKey=last.monthKey;page.pairId=last.pairId}
-      else if(page.role==='poster-annual'){page.calendarYear=year;page.calendarMonth=1}
-    });
+    const pages=prj.book?.pageInstances||[], fronts=pages.filter(page=>page.role==='monthly-front'), backs=pages.filter(page=>page.role==='monthly-back');
+    fronts.forEach((page,index)=>{const d=new Date(year,startMonth-1+index,1);page.calendarYear=d.getFullYear();page.calendarMonth=d.getMonth()+1;page.monthKey=`${page.calendarYear}-${String(page.calendarMonth).padStart(2,'0')}`;page.pairId=`month-pair.${page.monthKey}`});
+    backs.forEach((page,index)=>{const front=fronts[index];if(front){page.calendarYear=front.calendarYear;page.calendarMonth=front.calendarMonth;page.monthKey=front.monthKey;page.pairId=front.pairId}});
+    pages.filter(page=>page.role==='poster-annual').forEach(page=>{page.calendarYear=year;page.calendarMonth=1});
   }
 
   async function createCalendarV28(){
