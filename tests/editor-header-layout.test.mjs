@@ -21,8 +21,10 @@ test('workspace navigation contains global actions and edit menus stay separate'
   for (const label of ['편집', '삽입', '정렬', '보기']) assert.match(editorNav, new RegExp(`>${label}<`));
 });
 
-test('page editor heading and preview menu do not compete with blue page selection', () => {
-  assert.match(html, /<h2 class="page-panel-title">페이지 편집<\/h2>/);
+test('workspace roles and preview action remain visually distinct', () => {
+  assert.match(html, /<h2 class="page-panel-title">자료·개체 추가<\/h2>/);
+  assert.match(html, /class="panel page-dock editor-chrome" aria-label="페이지 구성 및 선택"/);
+  assert.match(html, /id="inspectorPanelTitle" class="inspector-panel-title">페이지 스타일/);
   assert.match(html, /id="fullPreviewBtn" class="workspace-menu preview-menu"/);
   assert.doesNotMatch(html, /id="fullPreviewBtn" class="workspace-menu primary"/);
   assert.match(html, /\.workspace-menu\.preview-menu\{[^}]*background:#fff/);
