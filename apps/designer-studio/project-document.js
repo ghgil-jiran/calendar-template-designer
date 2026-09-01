@@ -1,8 +1,8 @@
 (function (root) {
-  const palette = ['#315e9e', '#4777bd', '#2e8b72', '#4c8f3a', '#b57b23', '#c05a4f', '#a64f78', '#7459a8', '#3f769e', '#50806b', '#9a6a45', '#526487'];
+  const palette = ['#2fb79d', '#4777bd', '#2e8b72', '#4c8f3a', '#b57b23', '#c05a4f', '#a64f78', '#7459a8', '#3f769e', '#50806b', '#9a6a45', '#526487'];
   const pastel = ['#dff4ee', '#e7f3df', '#fff0d8', '#fde5df', '#f8e4ed', '#eee7f8', '#e1edf8', '#e2f1ed', '#f6eadf', '#e8edf6', '#f1e8dc', '#e7ebf2'];
   const protectedPlannerPermissions = { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false };
-  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 2 };
+  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 3 };
 
   function createPlannerMasterElements() {
     return [
@@ -10,6 +10,85 @@
       { id: 'master.planner.todo', type: 'memo', role: 'monthly-todo', memoLayout: 'checklist', x: 4, y: 51.8, width: 35, height: 42.8, zIndex: 2, title: 'TO DO LIST', itemCount: 9, required: true, permissions: { ...protectedPlannerPermissions }, style: {} },
       { id: 'master.planner.weekly', type: 'memo', role: 'weekly-planner', memoLayout: 'weekly', x: 40.8, y: 9.8, width: 55.3, height: 84.8, zIndex: 2, title: 'WEEKLY PLANNER', weekCount: 5, showMemo: true, required: true, permissions: { ...protectedPlannerPermissions }, style: {} }
     ];
+  }
+
+  function createCoverFrontElements(year) {
+    return [
+      { id: 'page.cover.building', type: 'semantic-object', role: 'school-building', x: 18.5, y: 14, width: 62, height: 52, zIndex: 1, binding: 'school.profile.building', bindingEnabled: true, fallbackToSample: true, showCaption: false, sampleContent: { name: '학교 전경', description: '', image: '' }, style: { borderRadius: 5 } },
+      { id: 'page.cover.year', type: 'text', role: 'year', binding: 'calendar.year', x: 34, y: 68, width: 20, height: 11, zIndex: 3, content: String(year), style: { fontSize: 44, textAlign: 'right', background: false, color: '#20abc3' } },
+      { id: 'page.cover.calendar', type: 'text', role: 'calendar-label', x: 55, y: 73, width: 18, height: 5, zIndex: 3, content: 'CALENDAR', style: { fontSize: 13, textAlign: 'left', background: false, color: '#8a8a8a' } },
+      { id: 'page.cover.logo', type: 'semantic-object', role: 'school-logo', x: 20, y: 84, width: 6, height: 8, zIndex: 3, binding: 'school.profile.logo', bindingEnabled: true, fallbackToSample: true, sampleContent: { image: '' }, style: {} },
+      { id: 'page.cover.school', type: 'text', role: 'school-name', binding: 'school.name', x: 27, y: 84, width: 20, height: 5, zIndex: 3, content: '샘플 학교', style: { fontSize: 15, textAlign: 'left', background: false, color: '#17202e' } },
+      { id: 'page.cover.english', type: 'text', role: 'school-english-name', binding: 'school.englishName', x: 27, y: 89, width: 20, height: 3, zIndex: 3, content: 'SAMPLE SCHOOL', style: { fontSize: 7, textAlign: 'left', background: false, color: '#667085' } },
+      { id: 'page.cover.address', type: 'text', role: 'school-contact', binding: 'school.address', x: 49, y: 84, width: 35, height: 4, zIndex: 3, content: '학교 주소', style: { fontSize: 7, textAlign: 'left', background: false, color: '#475467' } },
+      { id: 'page.cover.contacts', type: 'text', role: 'school-contact', binding: 'school.contacts', x: 49, y: 88, width: 35, height: 6, zIndex: 3, content: '학교 연락처', style: { fontSize: 7, textAlign: 'left', background: false, color: '#475467' } }
+    ];
+  }
+
+  function createYearlyElements(year, startMonth) {
+    return [
+      { id: 'page.yearly.title', type: 'text', role: 'year', binding: 'calendar.year', x: 39, y: 7, width: 22, height: 11, zIndex: 2, content: String(year), style: { fontSize: 42, textAlign: 'center', background: false, color: '#20abc3' } },
+      { id: 'page.yearly', type: 'year-calendar', role: 'year-calendar', x: 8, y: 21, width: 84, height: 70, zIndex: 1, startMonth, monthCount: 12, columns: 4, showWeekdayHeader: true, style: {} }
+    ];
+  }
+
+  function createFrontInsertFrontElements() {
+    return [
+      { id: 'page.insert.history.title', type: 'text', role: 'insert-title', x: 10, y: 10, width: 80, height: 9, zIndex: 3, content: '우리 학교 이야기', style: { fontSize: 28, textAlign: 'center', background: false, color: '#20abc3' } },
+      { id: 'page.insert.history.building', type: 'semantic-object', role: 'school-building', x: 8, y: 23, width: 42, height: 60, zIndex: 2, binding: 'school.profile.building', bindingEnabled: true, fallbackToSample: true, showCaption: false, sampleContent: { name: '학교 전경', description: '', image: '' }, style: { borderRadius: 5 } },
+      { id: 'page.insert.history.school', type: 'text', role: 'school-name', binding: 'school.name', x: 55, y: 25, width: 35, height: 7, zIndex: 3, content: '샘플 학교', style: { fontSize: 22, textAlign: 'left', background: false, color: '#17202e' } },
+      { id: 'page.insert.history.slogan', type: 'text', role: 'school-slogan', binding: 'school.slogan', x: 55, y: 34, width: 35, height: 10, zIndex: 3, content: '배움으로 성장하고 함께 미래를 여는 학교', style: { fontSize: 12, textAlign: 'left', background: false, color: '#475467' } },
+      { id: 'page.insert.history.heading', type: 'text', role: 'history-heading', x: 55, y: 50, width: 35, height: 6, zIndex: 3, content: '학교 연혁', style: { fontSize: 15, textAlign: 'left', background: false, color: '#20abc3' } },
+      { id: 'page.insert.history.body', type: 'text', role: 'school-history', x: 55, y: 58, width: 35, height: 27, zIndex: 3, content: '학교의 주요 연혁을 입력하세요.\n\n설립과 성장의 기록을 간결하게 정리할 수 있습니다.', style: { fontSize: 10, textAlign: 'left', background: false, color: '#475467' } }
+    ];
+  }
+
+  function createFrontInsertBackElements() {
+    return [
+      { id: 'page.insert.vision.title', type: 'text', role: 'insert-title', x: 10, y: 10, width: 80, height: 9, zIndex: 3, content: '교육 비전', style: { fontSize: 28, textAlign: 'center', background: false, color: '#20abc3' } },
+      { id: 'page.insert.vision.motto', type: 'semantic-object', role: 'school-motto', x: 18, y: 25, width: 64, height: 22, zIndex: 2, binding: 'school.profile.motto', bindingEnabled: true, fallbackToSample: true, sampleContent: { name: '교훈', description: '바르게 배우고 함께 성장합니다.' }, style: { titleSize: 18, descriptionSize: 13 } },
+      { id: 'page.insert.vision.left', type: 'text', role: 'education-direction', x: 10, y: 57, width: 37, height: 25, zIndex: 3, content: '함께 배우는 학교\n\n서로 존중하고 협력하며 배움의 즐거움을 키웁니다.', style: { fontSize: 12, textAlign: 'center', background: true, color: '#475467' } },
+      { id: 'page.insert.vision.right', type: 'text', role: 'education-direction', x: 53, y: 57, width: 37, height: 25, zIndex: 3, content: '미래를 여는 학교\n\n학생의 가능성을 발견하고 창의적인 성장을 지원합니다.', style: { fontSize: 12, textAlign: 'center', background: true, color: '#475467' } }
+    ];
+  }
+
+  function createBackCoverElements(year) {
+    return [
+      { id: 'page.back.year', type: 'text', role: 'year', binding: 'calendar.year', x: 37, y: 9, width: 20, height: 10, zIndex: 3, content: String(year), style: { fontSize: 40, textAlign: 'right', background: false, color: '#20abc3' } },
+      { id: 'page.back.calendar', type: 'text', role: 'calendar-label', x: 58, y: 13, width: 16, height: 5, zIndex: 3, content: 'CALENDAR', style: { fontSize: 12, textAlign: 'left', background: false, color: '#8a8a8a' } },
+      { id: 'page.back.building', type: 'semantic-object', role: 'school-building', x: 29, y: 24, width: 43, height: 39, zIndex: 1, binding: 'school.profile.building', bindingEnabled: true, fallbackToSample: true, showCaption: false, sampleContent: { name: '학교 전경', description: '', image: '' }, style: { borderRadius: 5 } },
+      { id: 'page.back.logo', type: 'semantic-object', role: 'school-logo', x: 39, y: 70, width: 6, height: 8, zIndex: 3, binding: 'school.profile.logo', bindingEnabled: true, fallbackToSample: true, sampleContent: { image: '' }, style: {} },
+      { id: 'page.back.school', type: 'text', role: 'school-name', binding: 'school.name', x: 46, y: 70, width: 24, height: 5, zIndex: 3, content: '샘플 학교', style: { fontSize: 15, textAlign: 'left', background: false, color: '#17202e' } },
+      { id: 'page.back.english', type: 'text', role: 'school-english-name', binding: 'school.englishName', x: 46, y: 75, width: 24, height: 3, zIndex: 3, content: 'SAMPLE SCHOOL', style: { fontSize: 7, textAlign: 'left', background: false, color: '#667085' } },
+      { id: 'page.back.address', type: 'text', role: 'school-contact', binding: 'school.address', x: 27, y: 84, width: 46, height: 4, zIndex: 3, content: '학교 주소', style: { fontSize: 7, textAlign: 'center', background: false, color: '#475467' } },
+      { id: 'page.back.contacts', type: 'text', role: 'school-contact', binding: 'school.contacts', x: 24, y: 88, width: 52, height: 6, zIndex: 3, content: '학교 연락처', style: { fontSize: 7, textAlign: 'center', background: false, color: '#475467' } }
+    ];
+  }
+
+  function createSchoolSymbolElements() {
+    return [
+      { id: 'page.symbols.title', type: 'text', role: 'symbols-title', x: 10, y: 8, width: 80, height: 8, zIndex: 3, content: '우리학교 상징', style: { fontSize: 27, textAlign: 'center', background: false, color: '#20abc3' } },
+      { id: 'page.symbols.motto', type: 'semantic-object', role: 'school-motto', x: 8, y: 22, width: 40, height: 23, zIndex: 1, binding: 'school.profile.motto', bindingEnabled: true, fallbackToSample: true, sampleContent: { name: '교훈', description: '바르게 배우고 함께 성장합니다.' }, style: { titleSize: 17, descriptionSize: 12 } },
+      { id: 'page.symbols.song', type: 'semantic-object', role: 'school-song', x: 52, y: 22, width: 40, height: 62, zIndex: 1, binding: 'school.profile.song', bindingEnabled: true, fallbackToSample: true, sampleContent: { name: '교가', description: '우리 학교 교가' }, style: { titleSize: 17, descriptionSize: 9 } },
+      { id: 'page.symbols.tree', type: 'semantic-object', role: 'school-tree', x: 8, y: 52, width: 18, height: 32, zIndex: 1, binding: 'school.profile.tree', bindingEnabled: true, fallbackToSample: true, showCaption: true, sampleContent: { name: '교목', description: '곧은 마음과 푸른 꿈' }, style: { titleSize: 14, descriptionSize: 9 } },
+      { id: 'page.symbols.flower', type: 'semantic-object', role: 'school-flower', x: 29, y: 52, width: 18, height: 32, zIndex: 1, binding: 'school.profile.flower', bindingEnabled: true, fallbackToSample: true, showCaption: true, sampleContent: { name: '교화', description: '아름다운 배움과 우정' }, style: { titleSize: 14, descriptionSize: 9 } }
+    ];
+  }
+
+  function applyDeskPlannerFixedSurfaces(project, options) {
+    const byRole = role => project.book.pageInstances.find(page => page.role === role);
+    const assign = (role, semanticPageRole, elements) => {
+      const page = byRole(role);
+      if (!page) return;
+      page.semanticPageRole = semanticPageRole;
+      project.book.elementsByPage[page.id] = elements;
+    };
+    assign('cover-front', 'cover-front', createCoverFrontElements(options.year));
+    assign('cover-back', 'yearly-calendar', createYearlyElements(options.year, options.startMonth));
+    assign('front-insert-front', 'school-history', createFrontInsertFrontElements());
+    assign('front-insert-back', 'education-vision', createFrontInsertBackElements());
+    assign('back-cover-front', 'back-cover-information', createBackCoverElements(options.year));
+    assign('back-cover-back', 'school-symbols', createSchoolSymbolElements());
   }
 
   function isDeskPlannerStandardDocument(project) {
@@ -39,6 +118,10 @@
       project.template.masterElements ||= {};
       project.template.masterElements['master.monthly.back'] = createPlannerMasterElements();
       applied.push('desk-planner-master-source-match-v2');
+    }
+    if (fromVersion < 3) {
+      applyDeskPlannerFixedSurfaces(project, { year: Number(project.settings?.year || 2028), startMonth: Number(project.settings?.startMonth || 3) });
+      applied.push('desk-planner-fixed-surfaces-v3');
     }
     if (fromVersion < deskPlannerStandard.documentVersion) {
       project.template.documentVersion = deskPlannerStandard.documentVersion;
@@ -114,6 +197,7 @@
         { id: 'page.back.contacts', type: 'text', role: 'school-contact', binding: 'school.contacts', x: 25, y: 87, width: 54, height: 6, zIndex: 3, content: '학교 연락처', style: { fontSize: 8, textAlign: 'center', background: false, color: '#475467' } }
       ];
     }
+    if (isPlanner) applyDeskPlannerFixedSurfaces(project, options);
     project.book.pageInstances.forEach((page, index) => {
       page.sequenceIndex = index;
       if (page.role === 'cover-front') page.semanticPageRole = 'cover-front';

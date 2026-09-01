@@ -52,7 +52,7 @@ assert.ok(representative.book.elementsByPage['surface.1.back'].some(item => item
 assert.ok(representative.book.elementsByPage['surface.15.back'].some(item => item.role === 'school-motto'));
 assert.ok(representative.book.elementsByPage['surface.15.back'].some(item => item.role === 'school-song'));
 assert.deepEqual(representative.template.standardIdentity, { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6' });
-assert.equal(representative.template.documentVersion, 2);
+assert.equal(representative.template.documentVersion, 3);
 assert.deepEqual(plannerElements.map(item => [item.x, item.y, item.width, item.height]), [
   [4, 9.8, 35, 40.2],
   [4, 51.8, 35, 42.8],
@@ -67,8 +67,21 @@ const migratedPlanner = globalThis.ACDLProjectDocument.migrateProject(savedPlann
 assert.equal(migratedPlanner.project.book.pageInstances.length, 30);
 assert.equal(migratedPlanner.project.template.standardIdentity.catalogId, 'tpl-2028-desk-planner-standard-01');
 assert.equal(migratedPlanner.project.template.metadata.sampleFamily, 'desk-6');
-assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-document-version-2']);
+assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-document-version-3']);
 assert.deepEqual(globalThis.ACDLProjectDocument.migrateProject(migratedPlanner.project).report.applied, []);
+
+assert.deepEqual(
+  representative.book.pageInstances.slice(0, 4).map(page => page.semanticPageRole),
+  ['cover-front', 'yearly-calendar', 'school-history', 'education-vision']
+);
+assert.deepEqual(
+  representative.book.pageInstances.slice(-2).map(page => page.semanticPageRole),
+  ['back-cover-information', 'school-symbols']
+);
+assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-history'));
+assert.ok(representative.book.elementsByPage['surface.2.back'].some(item => item.role === 'education-direction'));
+assert.ok(representative.book.elementsByPage['surface.15.front'].some(item => item.role === 'school-building'));
+assert.ok(representative.book.elementsByPage['surface.15.back'].some(item => item.role === 'symbols-title'));
 
 const archivedPlanner = structuredClone(representative);
 archivedPlanner.book.pageInstances = archivedPlanner.book.pageInstances.slice(0, 28);
