@@ -13,9 +13,13 @@ test('new template setup covers the editor chrome and remains scrollable on shor
   assert.match(html, /\.setup-card\{[^}]*max-height:calc\(100dvh - 36px\)[^}]*overflow:auto/);
 });
 
-test('object drawer clears both editor menu rows and keeps calendar objects in Basic after template images', () => {
+test('the insertion library is docked on the left and separates calendar objects from school data', () => {
   assert.match(html, /\.object-drawer\{position:fixed;top:128px;[^}]*height:calc\(100vh - 128px\)/);
-  assert.match(html, /id="calendarObjectSection" class="object-section" data-library-section="basic"/);
+  assert.match(html, /id="insertSidebar" class="panel insert-sidebar/);
+  assert.match(html, /id="insertSidebarHost"/);
+  assert.match(html, /id="calendarObjectSection" class="object-section" data-library-section="calendar"/);
+  assert.match(html, /data-library-section="school"><h3>학교 개체/);
+  assert.match(html, /host\.appendChild\(body\)/);
   assert.match(html, /\(backgroundSection\|\|registered\)\?\.after\(calendarSection\)/);
 });
 
