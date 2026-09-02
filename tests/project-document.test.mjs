@@ -53,7 +53,7 @@ assert.ok(representative.book.elementsByPage['surface.1.back'].some(item => item
 assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-motto'));
 assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-song'));
 assert.deepEqual(representative.template.standardIdentity, { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6' });
-assert.equal(representative.template.documentVersion, 12);
+assert.equal(representative.template.documentVersion, 13);
 assert.equal(representative.settings.calendarRowsMode, 'adaptive');
 assert.equal(representative.book.events.filter(item => item.sample).length, 6);
 assert.equal(representative.template.review.status, 'review');
@@ -103,7 +103,7 @@ const migratedPlanner = globalThis.ACDLProjectDocument.migrateProject(savedPlann
 assert.equal(migratedPlanner.project.book.pageInstances.length, 28);
 assert.equal(migratedPlanner.project.template.standardIdentity.catalogId, 'tpl-2028-desk-planner-standard-01');
 assert.equal(migratedPlanner.project.template.metadata.sampleFamily, 'desk-6');
-assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-sample-6-sequence-v4', 'desk-planner-fixed-surfaces-v5', 'desk-planner-editable-background-presets-v6', 'desk-planner-review-sample-data-v7', 'desk-planner-review-color-contact-fix-v8', 'desk-planner-sample-six-visual-parity-v9', 'desk-planner-back-cover-parity-v10', 'desk-planner-special-page-text-image-parity-v11', 'desk-planner-year-caption-parity-v12', 'desk-planner-document-version-12']);
+assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-sample-6-sequence-v4', 'desk-planner-fixed-surfaces-v5', 'desk-planner-editable-background-presets-v6', 'desk-planner-review-sample-data-v7', 'desk-planner-review-color-contact-fix-v8', 'desk-planner-sample-six-visual-parity-v9', 'desk-planner-back-cover-parity-v10', 'desk-planner-special-page-text-image-parity-v11', 'desk-planner-year-caption-parity-v12', 'desk-planner-calendar-layout-parity-v13', 'desk-planner-document-version-13']);
 assert.deepEqual(globalThis.ACDLProjectDocument.migrateProject(migratedPlanner.project).report.applied, []);
 
 const customizedPlanner = structuredClone(representative);
@@ -128,12 +128,23 @@ const legacySong = versionElevenPlanner.book.elementsByPage['surface.2.front'].f
 legacySong.showCaption = true;
 legacySong.sampleContent.image = 'data:image/png;base64,custom-song';
 const migratedVersionTwelve = globalThis.ACDLProjectDocument.migrateProject(versionElevenPlanner);
-assert.deepEqual(migratedVersionTwelve.report.applied, ['desk-planner-year-caption-parity-v12', 'desk-planner-document-version-12']);
+assert.deepEqual(migratedVersionTwelve.report.applied, ['desk-planner-year-caption-parity-v12', 'desk-planner-calendar-layout-parity-v13', 'desk-planner-document-version-13']);
 assert.equal(legacyYearlyTitle.format, 'year-plain');
 assert.equal(legacyYearlyTitle.y, 4.5);
 assert.equal(legacyYearlyTitle.height, 15);
 assert.equal(legacySong.showCaption, false);
 assert.equal(legacySong.sampleContent.image, 'data:image/png;base64,custom-song');
+
+const versionTwelvePlanner = structuredClone(representative);
+versionTwelvePlanner.template.documentVersion = 12;
+versionTwelvePlanner.template.masters.calendar.calendarRegion = { x: 3, y: 20, width: 94, height: 70 };
+versionTwelvePlanner.template.masters.calendar.design = { monthTitleAlign: 'center', monthTitleStyle: 'number-inline', weekdayStyle: 'outlined-pills', gridStyle: 'open-rows', presetId: 'sample-3' };
+delete versionTwelvePlanner.book.elementsByPage['surface.1.back'].find(item => item.type === 'year-calendar').rowsMode;
+const migratedVersionThirteen = globalThis.ACDLProjectDocument.migrateProject(versionTwelvePlanner);
+assert.deepEqual(migratedVersionThirteen.report.applied, ['desk-planner-calendar-layout-parity-v13', 'desk-planner-document-version-13']);
+assert.deepEqual(versionTwelvePlanner.template.masters.calendar.calendarRegion, { x: 0, y: 8, width: 100, height: 91 });
+assert.equal(versionTwelvePlanner.template.masters.calendar.design.presetId, 'sample-6');
+assert.equal(versionTwelvePlanner.book.elementsByPage['surface.1.back'].find(item => item.type === 'year-calendar').rowsMode, 'inherit');
 
 const legacyReviewContacts = structuredClone(representative);
 legacyReviewContacts.template.documentVersion = 7;
