@@ -53,7 +53,7 @@ assert.ok(representative.book.elementsByPage['surface.1.back'].some(item => item
 assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-motto'));
 assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-song'));
 assert.deepEqual(representative.template.standardIdentity, { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6' });
-assert.equal(representative.template.documentVersion, 11);
+assert.equal(representative.template.documentVersion, 12);
 assert.equal(representative.settings.calendarRowsMode, 'adaptive');
 assert.equal(representative.book.events.filter(item => item.sample).length, 6);
 assert.equal(representative.template.review.status, 'review');
@@ -74,6 +74,12 @@ assert.match(representative.book.elementsByPage['surface.1.front'].find(item => 
 assert.match(representative.book.elementsByPage['surface.14.back'].find(item => item.role === 'school-building').sampleContent.image, /jiran-building\.webp$/);
 assert.match(representative.book.elementsByPage['surface.14.back'].find(item => item.role === 'school-logo').sampleContent.image, /jiran-logo-composite\.svg$/);
 assert.match(representative.book.elementsByPage['surface.2.front'].find(item => item.role === 'school-song').sampleContent.image, /jiran-song\.webp$/);
+assert.equal(representative.book.elementsByPage['surface.2.front'].find(item => item.role === 'school-song').showCaption, false);
+assert.equal(representative.book.elementsByPage['surface.1.front'].find(item => item.role === 'year').format, 'year-plain');
+assert.deepEqual(
+  (({ x, y, width, height }) => ({ x, y, width, height }))(representative.book.elementsByPage['surface.1.back'].find(item => item.id === 'page.yearly.title')),
+  { x: 34, y: 4.5, width: 32, height: 15 }
+);
 assert.equal(representative.template.resources.backgroundPresetLibraryVersion, 1);
 assert.equal(representative.template.resources.backgroundPresets.length, 4);
 assert.ok(representative.template.resources.backgroundPresets.every(item => item.editable && item.supportsBleed));
@@ -97,7 +103,7 @@ const migratedPlanner = globalThis.ACDLProjectDocument.migrateProject(savedPlann
 assert.equal(migratedPlanner.project.book.pageInstances.length, 28);
 assert.equal(migratedPlanner.project.template.standardIdentity.catalogId, 'tpl-2028-desk-planner-standard-01');
 assert.equal(migratedPlanner.project.template.metadata.sampleFamily, 'desk-6');
-assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-sample-6-sequence-v4', 'desk-planner-fixed-surfaces-v5', 'desk-planner-editable-background-presets-v6', 'desk-planner-review-sample-data-v7', 'desk-planner-review-color-contact-fix-v8', 'desk-planner-sample-six-visual-parity-v9', 'desk-planner-back-cover-parity-v10', 'desk-planner-special-page-text-image-parity-v11', 'desk-planner-document-version-11']);
+assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-sample-6-sequence-v4', 'desk-planner-fixed-surfaces-v5', 'desk-planner-editable-background-presets-v6', 'desk-planner-review-sample-data-v7', 'desk-planner-review-color-contact-fix-v8', 'desk-planner-sample-six-visual-parity-v9', 'desk-planner-back-cover-parity-v10', 'desk-planner-special-page-text-image-parity-v11', 'desk-planner-year-caption-parity-v12', 'desk-planner-document-version-12']);
 assert.deepEqual(globalThis.ACDLProjectDocument.migrateProject(migratedPlanner.project).report.applied, []);
 
 const customizedPlanner = structuredClone(representative);
@@ -111,6 +117,23 @@ assert.equal(migratedCustomizedPlanner.book.school.name, '사용자 학교');
 assert.equal(migratedCustomizedPlanner.book.school.profile.building.image, 'data:image/png;base64,custom');
 assert.equal(migratedCustomizedPlanner.book.elementsByPage['surface.1.front'].find(item => item.role === 'school-building').sampleContent.image, 'data:image/png;base64,custom');
 assert.equal(migratedCustomizedPlanner.template.resources.sampleAssets.find(item => item.role === 'school-building').id, 'asset.project.school-building.1');
+
+const versionElevenPlanner = structuredClone(representative);
+versionElevenPlanner.template.documentVersion = 11;
+const legacyYearlyTitle = versionElevenPlanner.book.elementsByPage['surface.1.back'].find(item => item.id === 'page.yearly.title');
+legacyYearlyTitle.format = 'year-ko';
+legacyYearlyTitle.y = 7;
+legacyYearlyTitle.height = 11;
+const legacySong = versionElevenPlanner.book.elementsByPage['surface.2.front'].find(item => item.role === 'school-song');
+legacySong.showCaption = true;
+legacySong.sampleContent.image = 'data:image/png;base64,custom-song';
+const migratedVersionTwelve = globalThis.ACDLProjectDocument.migrateProject(versionElevenPlanner);
+assert.deepEqual(migratedVersionTwelve.report.applied, ['desk-planner-year-caption-parity-v12', 'desk-planner-document-version-12']);
+assert.equal(legacyYearlyTitle.format, 'year-plain');
+assert.equal(legacyYearlyTitle.y, 4.5);
+assert.equal(legacyYearlyTitle.height, 15);
+assert.equal(legacySong.showCaption, false);
+assert.equal(legacySong.sampleContent.image, 'data:image/png;base64,custom-song');
 
 const legacyReviewContacts = structuredClone(representative);
 legacyReviewContacts.template.documentVersion = 7;
