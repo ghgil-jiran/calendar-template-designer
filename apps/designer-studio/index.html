@@ -46,10 +46,10 @@
 .layer-chip{font-size:10px;padding:3px 6px;border-radius:999px;background:var(--soft);color:var(--accent);display:inline-block;margin-bottom:7px}
 
 
-.calendar-region{position:absolute;left:5%;top:16%;width:90%;height:79%;display:grid;grid-template-rows:minmax(0,var(--calendar-title-height,52px)) minmax(var(--calendar-grid-min-height,0px),1fr);z-index:5}
+.calendar-region{position:absolute;left:5%;top:16%;width:90%;height:79%;display:flex;flex-direction:column;z-index:5}
 .calendar-region.editing{outline:2px solid var(--accent);outline-offset:2px}
-.calendar-region .month-title{min-height:0;overflow:hidden}
-.calendar-region .calendar{height:auto;min-height:0}
+.calendar-region .month-title{flex:0 0 auto}
+.calendar-region .calendar{flex:1;height:auto;min-height:0}
 .calendar-region-label{position:absolute;left:0;top:-20px;background:var(--accent);color:white;border-radius:3px;padding:2px 5px;font-size:9px}
 .calendar-handle{position:absolute;width:11px;height:11px;background:white;border:2px solid var(--accent)}
 .calendar-handle.e{right:-7px;top:50%;transform:translateY(-50%);cursor:ew-resize}
@@ -189,11 +189,9 @@
 .calendar-size-presets button{font-size:9px;padding:7px 5px}
 .calendar-master-note{font-size:9px;color:#245b9e;background:#f3f8ff;border-radius:7px;padding:7px;line-height:1.45;margin:7px 0}
 
-.calendar-stage{position:relative;min-height:0}
+.calendar-stage{position:relative;flex:1;min-height:0}
 .calendar-stage .calendar{height:100%;grid-template-rows:minmax(20px,auto) repeat(var(--calendar-rows,6),1fr)}
 .calendar-stage .head{line-height:14px}
-.calendar-stage::after{content:"";position:absolute;z-index:7;pointer-events:none;left:0;right:0;top:20px;bottom:0;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc((100% / var(--calendar-rows,6)) - 1px),var(--calendar-row-line,#aeb4bd) calc((100% / var(--calendar-rows,6)) - 1px),var(--calendar-row-line,#aeb4bd) calc(100% / var(--calendar-rows,6)))}
-.cell-mini-grid{display:grid;grid-template-rows:repeat(var(--mini-calendar-rows,6),minmax(0,1fr));justify-content:normal}.cell-mini-week{align-items:center}
 .calendar-region.month-title-left .month-title{text-align:left}.calendar-region.month-title-center .month-title{text-align:center}.calendar-region .month-title.number-stack,.calendar-region .month-title.number-inline{display:flex;align-items:flex-end;gap:10px;line-height:1;margin-bottom:9px}.calendar-region.month-title-center .month-title.number-stack,.calendar-region.month-title-center .month-title.number-inline{justify-content:center}.month-title .month-number{font-size:2.15em;font-weight:900;line-height:.8}.month-title .month-meta{display:flex;flex-direction:column;align-items:flex-start;gap:2px;color:#344054;font-size:.62em;font-weight:700}.month-title .month-en{font-size:1.05em;color:#17202e}.calendar-region .month-title.number-inline{align-items:center;gap:18px;min-height:64px}.calendar-region .month-title.number-inline .month-number{font-size:3.35em;line-height:.75}.calendar-region .month-title.number-inline .month-year{font-size:1.05em;font-weight:850;color:#17202e}.calendar-region .month-title.number-inline .month-en{font-size:1.12em;font-weight:800;color:#8a8a8a}.calendar-region .month-title.korean-label{font-weight:850;letter-spacing:-.04em;border-bottom:3px solid var(--month-primary);padding-bottom:5px}
 .calendar-region.weekday-filled-tabs .calendar>.head{margin:0 1px;border:0;border-radius:10px 10px 0 0;background:color-mix(in srgb,var(--month-primary) 22%,white);color:#344054;font-weight:800}.calendar-region.weekday-filled-tabs .calendar>.head:first-child{color:#d92d20}.calendar-region.weekday-filled-tabs .calendar>.head:nth-child(7){color:#175cd3}.calendar-region.weekday-outlined-pills .calendar>.head{align-self:stretch;box-sizing:border-box;min-height:26px;margin:0 2px 6px;padding:5px 3px;border:1.5px solid #98a2b3!important;border-radius:7px;background:#fff!important;color:#262626;font-weight:850;line-height:1}.calendar-region.weekday-outlined-pills .calendar>.head:first-child{border-color:#f04455!important;color:#d92d20}.calendar-region.weekday-outlined-pills .calendar>.head:nth-child(7){border-color:#7aa7d9!important;color:#2864b5}
 .calendar-region.grid-open-rows .calendar{border-left:0!important;border-top:0!important;column-gap:0}.calendar-region.grid-open-rows .calendar>.cell:not(.head){border-right:0!important;border-bottom:1px solid #a7a7a7!important;background:transparent!important;padding:8px 8px 42px}.calendar-region.grid-boxed .calendar>.cell:not(.head){background:rgba(255,255,255,.97)}
@@ -286,7 +284,7 @@
 .page.editor-bleed-visible::after{inset:var(--export-safe-y-pct,2%) var(--export-safe-x-pct,2%);border:1px dashed rgba(22,163,74,.58)}
 .page.export-crop-marks{outline:1px solid rgba(37,99,235,.7);outline-offset:-1px}
 .page.editor-bleed-visible .free-layer{overflow:visible}
-body.resource-modal-open .page.editor-bleed-visible::before,body.resource-modal-open .page.editor-bleed-visible::after,body:has(#templateLibraryModal:not(.hidden)) .page.editor-bleed-visible::before,body:has(#templateLibraryModal:not(.hidden)) .page.editor-bleed-visible::after{display:none}
+body.resource-modal-open .page.editor-bleed-visible::before,body.resource-modal-open .page.editor-bleed-visible::after{display:none}
 .page[data-standard-family="desk-6"] .calendar-region.grid-boxed .calendar{border-top:1px solid #aeb4bd!important;border-left:1px solid #aeb4bd!important}
 .settings-apply-note{margin-top:8px;padding:9px 10px;border-radius:8px;background:#eef4ff;color:#344054;font-size:10px;line-height:1.5}
 .settings-apply-note strong{display:block;color:#175cd3;margin-bottom:2px}
@@ -816,14 +814,6 @@ function calendarRowCountFor(y,m){
  return Math.max(5,Math.min(6,Math.ceil((offset+days)/7)))
 }
 function calendarGrid(y,m){return calendarGridFor(y,m,calendarRowCountFor(y,m))}
-function calendarVerticalMetrics(rows){
- const calendar=project.template.masters.calendar,range=calendar.rangeEventStyle||{},singleLines=Math.max(1,Number(calendar.eventMaxVisiblePerDay||1)),rangeLines=range.enabled===false?0:Math.max(1,Number(range.maxLanes||4));
- const barHeight=Math.max(6,Number(range.barHeight||11)),laneGap=Math.max(0,Number(range.laneGap||2)),singleEventHeight=10;
- const eventHeight=Math.max(singleLines*singleEventHeight,rangeLines*barHeight+Math.max(0,rangeLines-1)*laneGap),cellMin=Math.max(46,18+eventHeight+6),headerHeight=20;
- const pageHeight=el("page")?.clientHeight||700,region=calendarRegion(),regionHeight=Math.max(1,pageHeight*(Number(region.height||79)/100)),gridMin=headerHeight+rows*cellMin;
- const preferredTitle=Math.max(38,Math.min(64,Number(calendar.monthTitleSize||22)*2.15)),titleHeight=Math.max(30,Math.min(preferredTitle,regionHeight-gridMin));
- return {cellMin,gridMin:headerHeight+rows*cellMin,titleHeight};
-}
 function yearCalendarRowCountFor(view,y,m){
  const mode=view?.rowsMode||"inherit";
  if(mode==="5"||mode==="6")return Number(mode);
@@ -841,7 +831,7 @@ function selectAdjacentMiniCells(grid,currentMonth){
 }
 function renderCellMiniCalendar(y,m){
  const rows=calendarRowCountFor(y,m),cells=calendarGridFor(y,m,rows),weeks=[];for(let i=0;i<cells.length;i+=7)weeks.push(cells.slice(i,i+7));
- let h=`<div class="cell-mini-calendar"><strong>${m}</strong><div class="cell-mini-grid" style="--mini-calendar-rows:${rows}">`;
+ let h=`<div class="cell-mini-calendar"><strong>${m}</strong><div class="cell-mini-grid">`;
  weeks.forEach(week=>{h+='<div class="cell-mini-week">';week.forEach(c=>{const current=c.month===m,label=current?(c.extra?`${c.day}/${c.extra.day}`:c.day):"",tone=!current?"adj":c.dow===0?"sun-mini":c.dow===6?"sat-mini":"",merged=c.extra?" merged":"";h+=`<span class="${tone}${merged}">${label}</span>`});h+="</div>"});
  return h+"</div></div>"
 }
@@ -1641,8 +1631,8 @@ function renderPage(){
  const p=selectedPage(),page=el("page"),ps=project.productType.pageSize;page.className=`page ${project.productType.category} ${p.role}-surface ${isInsertPage(p)?"template-insert-page":""} ${p.role==="monthly-back"?"planner-back-surface":""}`;page.dataset.surfaceRole=p.role;page.dataset.standardFamily=project.template?.metadata?.sampleFamily||"";page.dataset.editableBackground=pageElements(p).some(item=>item.role==="background-decoration")?"true":"false";page.style.aspectRatio=`${ps.width}/${ps.height}`;const derivedMonthKey=p.monthKey||p.calendarYear&&p.calendarMonth?`${p.calendarYear}-${String(p.calendarMonth).padStart(2,"0")}`:null,monthlyStyles=project.book.monthlyStyleOverrides||[],monthPageIndex=project.book.pageInstances.filter(item=>item.role==="monthly-front").findIndex(item=>item.id===p.id||item.calendarYear===p.calendarYear&&item.calendarMonth===p.calendarMonth),monthStyle=monthlyStyles.find(item=>item.monthKey===derivedMonthKey)||monthlyStyles[monthPageIndex]||null,monthPrimary=monthStyle?.tokens?.primary||project.template.resources?.colorTheme?.primary||"#315e9e";page.style.setProperty("--month-primary",monthPrimary);page.style.setProperty("--planner-background",monthStyle?.tokens?.plannerBackground||"#eef5f2");page.style.background=p.role==="monthly-back"?(monthStyle?.tokens?.plannerBackground||"#eef5f2"):"#fff";let html='<div class="binding"></div><div class="surface-content">';
  if(p.role==="monthly-front"){
   window.ACDLScheduleApiClient?.ensureCalendarReferences?.(project).catch(()=>{});
-  const g=groupedEvents(),max=project.template.masters.calendar.eventMaxVisiblePerDay,title=p.overrides.monthTitle||`${p.calendarYear}년 ${p.calendarMonth}월`,cr=calendarRegion(),rows=calendarRowCountFor(p.calendarYear,p.calendarMonth),vertical=calendarVerticalMetrics(rows),grid=calendarGridFor(p.calendarYear,p.calendarMonth,rows),design=project.template.masters.calendar.design||{},monthNames=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"],monthTitleStyle=["number-stack","number-inline","korean-label"].includes(design.monthTitleStyle)?design.monthTitleStyle:"number-stack",stackTitle=`<span class="month-number">${p.calendarMonth}</span><span class="month-meta"><span>${p.calendarYear}</span><span class="month-en">${monthNames[p.calendarMonth-1]}</span></span>`,inlineTitle=`<span class="month-year">${p.calendarYear}</span><span class="month-number">${p.calendarMonth}</span><span class="month-en">${monthNames[p.calendarMonth-1]}</span>`,titleMarkup=p.overrides.monthTitle?title:monthTitleStyle==="number-inline"?inlineTitle:monthTitleStyle==="number-stack"?stackTitle:title,calendarClasses=[design.monthTitleAlign==="center"?"month-title-center":"month-title-left",design.weekdayStyle==="outlined-pills"?"weekday-outlined-pills":"weekday-filled-tabs",design.gridStyle==="open-rows"?"grid-open-rows":"grid-boxed"].join(" ");
-  html+=`<div id="calendarRegion" class="calendar-region ${calendarClasses} ${calendarEditing?"editing":""}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%;--calendar-title-height:${vertical.titleHeight}px;--calendar-grid-min-height:${vertical.gridMin}px;--calendar-row-line:${design.gridStyle==="open-rows"?"#a7a7a7":"#aeb4bd"}"><div class="month-title ${monthTitleStyle}" style="font-size:${project.template.masters.calendar.monthTitleSize}px;color:var(--month-primary)">${titleMarkup}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
+  const g=groupedEvents(),max=project.template.masters.calendar.eventMaxVisiblePerDay,title=p.overrides.monthTitle||`${p.calendarYear}년 ${p.calendarMonth}월`,cr=calendarRegion(),rows=calendarRowCountFor(p.calendarYear,p.calendarMonth),grid=calendarGridFor(p.calendarYear,p.calendarMonth,rows),design=project.template.masters.calendar.design||{},monthNames=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"],monthTitleStyle=["number-stack","number-inline","korean-label"].includes(design.monthTitleStyle)?design.monthTitleStyle:"number-stack",stackTitle=`<span class="month-number">${p.calendarMonth}</span><span class="month-meta"><span>${p.calendarYear}</span><span class="month-en">${monthNames[p.calendarMonth-1]}</span></span>`,inlineTitle=`<span class="month-year">${p.calendarYear}</span><span class="month-number">${p.calendarMonth}</span><span class="month-en">${monthNames[p.calendarMonth-1]}</span>`,titleMarkup=p.overrides.monthTitle?title:monthTitleStyle==="number-inline"?inlineTitle:monthTitleStyle==="number-stack"?stackTitle:title,calendarClasses=[design.monthTitleAlign==="center"?"month-title-center":"month-title-left",design.weekdayStyle==="outlined-pills"?"weekday-outlined-pills":"weekday-filled-tabs",design.gridStyle==="open-rows"?"grid-open-rows":"grid-boxed"].join(" ");
+  html+=`<div id="calendarRegion" class="calendar-region ${calendarClasses} ${calendarEditing?"editing":""}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%"><div class="month-title ${monthTitleStyle}" style="font-size:${project.template.masters.calendar.monthTitleSize}px;color:var(--month-primary)">${titleMarkup}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
   weekDayHeaders().forEach(h=>html+=`<div class="cell head">${h}</div>`);
   const miniCells=project.settings.showAdjacentMiniCalendars?selectAdjacentMiniCells(grid,p.calendarMonth):[];
   const hiddenScheduleByDate=assignRangeLanes(grid).hiddenByDate||{};
@@ -2893,8 +2883,8 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     const layout=assignRangeLanes(grid),rowHeight=100/rows,gap=Number(style.laneGap||1);
     const pageHeight=el("page")?.clientHeight||700,region=calendarRegion();
     const regionHeight=Math.max(1,pageHeight*(region.height/100));
-    const vertical=calendarVerticalMetrics(rows),titleHeight=vertical.titleHeight;
-    const weekdayHeight=20,stageHeight=Math.max(1,regionHeight-titleHeight);
+    const titleHeight=Number(project.template.masters.calendar.monthTitleSize||22)+8;
+    const weekdayHeight=21,stageHeight=Math.max(1,regionHeight-titleHeight);
     const cellHeight=Math.max(1,(stageHeight-weekdayHeight)/rows),reservedTop=32;
     const requestedHeight=Number(style.barHeight||14);
     const fittedHeight=Math.max(1,Math.floor((cellHeight-reservedTop-Math.max(0,layout.maxLanes-1)*gap)/Math.max(1,layout.maxLanes)));
