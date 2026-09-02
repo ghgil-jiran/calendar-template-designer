@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-02 - 탁상형 표준 01 뒷표지 원본 비율 보정
+
+- 6번 실물 PDF의 28면을 기준으로 연도·사진 프레임·복합 교표·주소·연락처의 크기와 세로 위치를 다시 맞췄다.
+- 연락처 목록을 원본처럼 한 줄 정보 띠로 표시하고, 문서 버전 10 migration은 사용자 이미지와 다른 면을 보존한 채 뒷표지만 갱신한다.
+
 ## 2026-09-02 - Desk sample 6 full visual parity pass
 
 - Added adaptive five/six-week monthly grids, English weekday tabs, clean adjacent mini calendars, and the source-matched twelve-month color sequence.
