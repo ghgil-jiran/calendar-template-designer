@@ -28,6 +28,23 @@ test('monthly calendar rendering uses the active product type region', () => {
   assert.doesNotMatch(html, /cr=project\.template\.masters\.calendar\.calendarRegion\|\|\{x:5,y:16,width:90,height:79\}/);
 });
 
+test('monthly calendar reserves schedule capacity before fitting the month title', () => {
+  assert.match(html, /function calendarVerticalMetrics\(rows\)/);
+  assert.match(html, /eventHeight=Math\.max\(singleLines\*singleEventHeight,rangeLines\*barHeight/);
+  assert.match(html, /--calendar-title-height:\$\{vertical\.titleHeight\}px/);
+  assert.match(html, /--calendar-grid-min-height:\$\{vertical\.gridMin\}px/);
+});
+
+test('calendar row rules and mini calendars use complete row geometry', () => {
+  assert.match(html, /\.calendar-stage::after\{[^}]*repeating-linear-gradient/);
+  assert.match(html, /--mini-calendar-rows:\$\{rows\}/);
+  assert.match(html, /grid-template-rows:repeat\(var\(--mini-calendar-rows,6\),minmax\(0,1fr\)\)/);
+});
+
+test('template library hides editor bleed and safe-area guides', () => {
+  assert.match(html, /body:has\(#templateLibraryModal:not\(\.hidden\)\) \.page\.editor-bleed-visible::before/);
+});
+
 test('template objects allow overlap without collision avoidance or forced grid snapping', () => {
   assert.doesNotMatch(html, /rectanglesOverlap\(/);
   assert.doesNotMatch(html, /findOpenWidgetPlacement|widgetOverlap|placementItems/);
