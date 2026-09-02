@@ -288,8 +288,6 @@
 .page.export-crop-marks{outline:1px solid rgba(37,99,235,.7);outline-offset:-1px}
 .page.editor-bleed-visible .free-layer{overflow:visible}
 body.resource-modal-open .page.editor-bleed-visible::before,body.resource-modal-open .page.editor-bleed-visible::after{display:none}
-body:has(#templateLibraryModal:not(.hidden)) .page.editor-bleed-visible::before,body:has(#templateLibraryModal:not(.hidden)) .page.editor-bleed-visible::after{display:none}
-body:has(#templateLibraryModal:not(.hidden)) .page.export-crop-marks{outline:0}
 .page[data-standard-family="desk-6"] .calendar-region.grid-boxed .calendar{border-top:1px solid #aeb4bd!important;border-left:1px solid #aeb4bd!important}
 .settings-apply-note{margin-top:8px;padding:9px 10px;border-radius:8px;background:#eef4ff;color:#344054;font-size:10px;line-height:1.5}
 .settings-apply-note strong{display:block;color:#175cd3;margin-bottom:2px}
@@ -850,13 +848,6 @@ function renderCellMiniCalendar(y,m){
  let h=`<div class="cell-mini-calendar"><strong>${m}</strong><div class="cell-mini-grid" style="--mini-calendar-rows:${rows}">`;
  weeks.forEach(week=>{h+='<div class="cell-mini-week">';week.forEach(c=>{const current=c.month===m,label=current?(c.extra?`${c.day}/${c.extra.day}`:c.day):"",tone=!current?"adj":c.dow===0?"sun-mini":c.dow===6?"sat-mini":"",merged=c.extra?" merged":"";h+=`<span class="${tone}${merged}">${label}</span>`});h+="</div>"});
  return h+"</div></div>"
-}
-function renderCalendarGridRules(rows){
- const height=rows*100,segments=[];
- for(let column=1;column<7;column++)segments.push(`M ${column*100} 0 V ${height}`);
- segments.push(`M 0 0 H 700`);
- for(let row=1;row<rows;row++)segments.push(`M 0 ${row*100} H 700`);
- return `<svg class="calendar-grid-rules" viewBox="0 0 700 ${height}" preserveAspectRatio="none" aria-hidden="true"><path d="${segments.join(" ")}"/></svg>`
 }
 
 function isoDate(d){
@@ -1677,7 +1668,7 @@ function renderPage(){
    if(miniCells.includes(cellIndex)){const rel=cellIndex===miniCells[0]?-1:1,d=new Date(p.calendarYear,p.calendarMonth-1+rel,1);html+=`<div class="cell mini-host">${renderCellMiniCalendar(d.getFullYear(),d.getMonth()+1)}</div>`;return}
    html+=`<div class="cell ${c.month!==p.calendarMonth?"adj":""} ${c.dow===0?"sun":c.dow===6?"sat":""} ${selected?"selected":""} ${c.extra?"compact-pair":""}"><div class="day-stack">${renderDay(c)}${c.extra?renderDay(c.extra,true):""}</div></div>`
   });
-  html+=`${renderCalendarGridRules(rows)}</div>${renderRangeEventLayer(grid,rows)}</div></div`;
+  html+=`</div>${renderRangeEventLayer(grid,rows)}</div></div>`;
  }else if(p.role==="poster-annual"){
   if((project.book.elementsByPage?.[p.id]||[]).length===0)html+=`<div class="poster-empty-guide non-output editor-only">개체 추가에서 연간 월력, 학교 정보, 일정 목록을 배치하세요.</div>`;
  }else if(p.role==="monthly-back"){
@@ -4391,16 +4382,14 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .page[data-standard-family="desk-6"] .free-element[data-element-role="calendar-label"] .free-text{font-weight:500;letter-spacing:.08em}
 .page[data-standard-family="desk-6"] .free-element[data-element-id="page.cover.contacts"] .free-text,.page[data-standard-family="desk-6"] .free-element[data-element-id="page.back.contacts"] .free-text{white-space:normal;flex-wrap:nowrap;align-items:center}
 .page[data-standard-family="desk-6"] .semantic-object.semantic-logo{background:transparent!important}
-.page[data-standard-family="desk-6"] .calendar-region .month-title.number-stack{box-sizing:border-box;gap:9px;margin-bottom:8px;align-items:flex-end;overflow:hidden;padding-bottom:2px}
-.page[data-standard-family="desk-6"] .calendar-region .month-title.number-stack .month-number{font-size:2em;font-weight:900;line-height:.8;letter-spacing:-.07em}
+.page[data-standard-family="desk-6"] .calendar-region .month-title.number-stack{gap:9px;margin-bottom:8px;align-items:flex-end}
+.page[data-standard-family="desk-6"] .calendar-region .month-title.number-stack .month-number{font-size:2.45em;font-weight:900;line-height:.76;letter-spacing:-.07em}
 .page[data-standard-family="desk-6"] .calendar-region .month-title.number-stack .month-meta{gap:1px;font-size:.58em;font-weight:750;line-height:1.03}
 .page[data-standard-family="desk-6"] .calendar-region.weekday-filled-tabs .calendar>.head{min-height:20px;margin:0 1px;border-radius:10px 10px 0 0;background:#e8e8e8;color:#25282d;font-size:9px;font-weight:850;line-height:14px}
 .page[data-standard-family="desk-6"] .calendar-region.weekday-filled-tabs .calendar>.head:first-child{background:#f7ddcf;color:#d92d20}
 .page[data-standard-family="desk-6"] .calendar-region.weekday-filled-tabs .calendar>.head:nth-child(7){background:#e5eaf8;color:#175cd3}
-.page[data-standard-family="desk-6"] .calendar-region.grid-boxed .calendar{position:relative;border:1px solid #aeb4bd!important}
-.page[data-standard-family="desk-6"] .calendar-region.grid-boxed .calendar>.cell:not(.head){border:0!important;background:#fff;padding:5px 7px}
-.page[data-standard-family="desk-6"] .calendar-grid-rules{position:absolute;z-index:7;left:0;right:0;top:var(--calendar-weekday-stage-share,4.45%);bottom:0;width:100%;height:auto;overflow:visible;pointer-events:none}
-.page[data-standard-family="desk-6"] .calendar-grid-rules path{fill:none;stroke:#aeb4bd;stroke-width:1;vector-effect:non-scaling-stroke;shape-rendering:crispEdges}
+.page[data-standard-family="desk-6"] .calendar-region.grid-boxed .calendar{border-color:#aeb4bd}
+.page[data-standard-family="desk-6"] .calendar-region.grid-boxed .calendar>.cell:not(.head){border-color:#aeb4bd;background:#fff;padding:5px 7px}
 .page[data-standard-family="desk-6"] .calendar-region .day{font-size:10px;font-weight:650}
 .page[data-standard-family="desk-6"] .calendar-region .calendar>.cell.adj{opacity:1}
 .page[data-standard-family="desk-6"] .calendar-region .calendar>.cell.adj>.day-stack{opacity:.22}
