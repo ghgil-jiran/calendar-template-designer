@@ -28,6 +28,21 @@ test('monthly calendar rendering uses the active product type region', () => {
   assert.doesNotMatch(html, /cr=project\.template\.masters\.calendar\.calendarRegion\|\|\{x:5,y:16,width:90,height:79\}/);
 });
 
+test('monthly calendar uses sample-measured fixed vertical ratios', () => {
+  assert.match(html, /function calendarVerticalLayout\(design=/);
+  assert.match(html, /"sample-6":\{title:10,weekday:4,grid:86\}/);
+  assert.match(html, /"sample-3":\{title:21,weekday:4,grid:75\}/);
+  assert.match(html, /--calendar-title-share:\$\{vertical\.title\}%/);
+  assert.match(html, /--calendar-weekday-stage-share:\$\{vertical\.weekdayStage\}%/);
+  assert.doesNotMatch(html, /function calendarVerticalMetrics\(rows\)/);
+});
+
+test('five and six week modes only repartition the fixed date grid', () => {
+  assert.match(html, /repeat\(var\(--calendar-rows,6\),minmax\(0,1fr\)\)/);
+  assert.match(html, /--mini-calendar-rows:\$\{rows\}/);
+  assert.match(html, /grid-template-rows:repeat\(var\(--mini-calendar-rows,6\),minmax\(0,1fr\)\)/);
+});
+
 test('template objects allow overlap without collision avoidance or forced grid snapping', () => {
   assert.doesNotMatch(html, /rectanglesOverlap\(/);
   assert.doesNotMatch(html, /findOpenWidgetPlacement|widgetOverlap|placementItems/);
