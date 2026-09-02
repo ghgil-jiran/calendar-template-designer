@@ -160,11 +160,15 @@ test('template library uses unified controls and calendar product thumbnails', (
   assert.match(html, /\.calendar-product-wall \.calendar-product-shell/);
   assert.match(runtime, /calendar-product-thumb calendar-product-\$\{escape\(record\.type\)\}/);
   assert.match(runtime, /calendar-product-page.*data-library-thumbnail/);
+  assert.match(runtime, /function cardStateLabel\(record\)/);
+  assert.match(runtime, /record\.state==='published'\?'표준'/);
+  assert.match(runtime, /function internalVersionLabel\(record\)/);
+  assert.match(runtime, /library-card-version/);
 });
 
 test('remote template cards expose immutable version history and restore controls', () => {
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
-  assert.match(runtime, /<span class="version-badge">v\$\{escape\(String\(record\.version\)\)\}<\/span>/);
+  assert.match(runtime, /Package \$\{record\.template\}@\$\{record\.packageVersion\}/);
   assert.match(runtime, /data-library-history/);
   assert.match(runtime, /ACDLTemplateRemotePersistence\.versions\(templateId\)/);
   assert.match(runtime, /기존 버전은 그대로 보존됩니다/);
@@ -178,6 +182,8 @@ test('desk 1.4.0 is the exact published canonical system base', () => {
   assert.match(catalog, /packageVersion:\"1\.4\.0\"/);
   assert.match(catalog, /packageBase:\"\/templates\/desk-academic-standard\/1\.4\.0\/\"/);
   assert.match(catalog, /status:\"published\",registryStatus:\"published\",canonicalPackage:true/);
+  assert.match(catalog, /name:\"\[학사달력\] 탁상형 표준 02 - 월별 이미지\"/);
+  assert.match(catalog, /description:\"총 28면 · 표지 1면 · 간지 2면 · 월력 24면 · 뒷표지 1면 — 연력 \/ 학교상징 \/ 월별 이미지·월력·미니월력\"/);
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(runtime, /function linkedWorkingCopy\(record\)/);
   assert.match(runtime, /derivedFromPackage:\{templateId:record\.template,version:record\.packageVersion/);
@@ -187,10 +193,10 @@ test('desk 1.4.0 is the exact published canonical system base', () => {
 test('wall academic package is exposed as an editor review sample with its exact version', () => {
   const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
   assert.match(catalog, /tpl-2028-wall-academic-standard-v0-3/);
-  assert.match(catalog, /name:"벽걸이형 표준 01 · 이미지 월력형"/);
+  assert.match(catalog, /name:"\[학사달력\] 벽걸이형 검토 01 - 이미지 월력"/);
   assert.match(catalog, /packageVersion:"0\.3\.0"/);
   assert.match(catalog, /packageBase:"\/templates\/wall-academic-standard\/0\.3\.0\/"/);
-  assert.match(catalog, /pageSummary:"앞표지 1면·앞간지 1면·월력 12면·뒷표지 1면"/);
+  assert.match(catalog, /pageSummary:"총 15면 · 표지 1면 · 간지 1면 · 월력 12면 · 뒷표지 1면"/);
   assert.doesNotMatch(catalog, /tpl-2028-wall-academic-standard-v0-3[^\n]+status:"published"/);
 });
 
@@ -208,9 +214,9 @@ test('prototype system bases are archived and hidden from the default active vie
 test('new desk planner standard is visible as a separate 2028 draft system base', () => {
   const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
-  assert.match(catalog, /tpl-2028-desk-planner-standard-01[^\n]+name:"탁상형 표준 01 · 월별 플래너형"[^\n]+status:"draft"[^\n]+template:"desk-sample-6"/);
-  assert.match(catalog, /features:\["6번 원본 재현","30면·간지 포함","월별 파스텔 색상","월 목표·할 일","5주 계획·메모","사용자 편집 보호"\]/);
-  assert.match(catalog, /pageSummary:"표지 2면·간지 2면·월력 앞뒤 24면·뒷표지 2면\(마지막 학교 상징\)"/);
+  assert.match(catalog, /tpl-2028-desk-planner-standard-01[^\n]+name:"\[학사달력\] 탁상형 검토 01 - 월별 플래너"[^\n]+status:"draft"[^\n]+template:"desk-sample-6"/);
+  assert.match(catalog, /features:\["6번 원본 재현","28면 구성","월별 파스텔 색상","월 목표·할 일","5주 계획·메모","사용자 편집 보호"\]/);
+  assert.match(catalog, /pageSummary:"총 28면 · 표지 1면 · 간지 2면 · 월력 24면 · 뒷표지 1면"/);
   assert.match(html, /id="masterMonthTitleAlign"/);
   assert.match(html, /id="masterWeekdayStyle"/);
   assert.match(html, /id="masterGridStyle"/);
