@@ -1,11 +1,24 @@
 (function (root) {
   const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(value, maximum));
+  const MIN_SIZE = 3;
+  const MIN_VISIBLE = 1;
+  const MAX_SIZE = 500;
+
+  function keepPartiallyVisible(frame) {
+    const width = clamp(Number(frame.width) || MIN_SIZE, MIN_SIZE, MAX_SIZE);
+    const height = clamp(Number(frame.height) || MIN_SIZE, MIN_SIZE, MAX_SIZE);
+    return {
+      ...frame,
+      width,
+      height,
+      x: clamp(Number(frame.x) || 0, MIN_VISIBLE - width, 100 - MIN_VISIBLE),
+      y: clamp(Number(frame.y) || 0, MIN_VISIBLE - height, 100 - MIN_VISIBLE)
+    };
+  }
 
   function moveFrame(frame, deltaX, deltaY) {
-    return {
-      x: clamp(frame.x + deltaX, 0, 100 - frame.width),
-      y: clamp(frame.y + deltaY, 0, 100 - frame.height)
-    };
+    const next = keepPartiallyVisible({ ...frame, x: frame.x + deltaX, y: frame.y + deltaY });
+    return { x: next.x, y: next.y };
   }
 
   function resizeFrame(frame, handle, deltaX, deltaY) {
@@ -23,16 +36,7 @@
       y = frame.y + deltaY;
       height = frame.height - deltaY;
     }
-    width = Math.max(3, width);
-    height = Math.max(3, height);
-    x = clamp(x, 0, 100 - width);
-    y = clamp(y, 0, 100 - height);
-    return {
-      x,
-      y,
-      width: Math.min(100 - x, width),
-      height: Math.min(100 - y, height)
-    };
+    return keepPartiallyVisible({ x, y, width, height });
   }
 
   function rotateFrame(rotation, pointerX, pointerY, center, startAngle, keepExactAngle) {
@@ -46,5 +50,5 @@
     return moveFrame(frame, deltaX, deltaY);
   }
 
-  root.ACDLCanvasGeometry = Object.freeze({ moveFrame, resizeFrame, rotateFrame, nudgeFrame });
+  root.ACDLCanvasGeometry = Object.freeze({ moveFrame, resizeFrame, rotateFrame, nudgeFrame, keepPartiallyVisible });
 })(typeof window !== 'undefined' ? window : globalThis);

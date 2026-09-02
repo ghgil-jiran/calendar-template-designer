@@ -39,7 +39,15 @@
         pointer.shiftKey
       );
     } else {
-      Object.assign(gesture.primary.item, root.ACDLCanvasGeometry.resizeFrame(gesture.primary.original, gesture.handle, deltaX, deltaY));
+      const original = gesture.primary.original;
+      const resized = root.ACDLCanvasGeometry.resizeFrame(original, gesture.handle, deltaX, deltaY);
+      if (original.type === 'image' && original.lockAspect !== false) {
+        const ratio = original.width / original.height;
+        if (gesture.handle.includes('e') || gesture.handle.includes('w')) resized.height = resized.width / ratio;
+        else resized.width = resized.height * ratio;
+        Object.assign(resized, root.ACDLCanvasGeometry.keepPartiallyVisible(resized));
+      }
+      Object.assign(gesture.primary.item, resized);
     }
     return gesture.primary.item;
   }

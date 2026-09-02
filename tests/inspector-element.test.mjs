@@ -37,10 +37,10 @@ assert.equal(boundedText.style.shadowBlur, 50);
 
 const image = { type: 'image', fit: 'cover', alt: '' };
 apply(image, 'image-style', { fit: 'contain', alt: '학교 전경' });
-assert.deepEqual(image, { type: 'image', fit: 'contain', alt: '학교 전경' });
+assert.deepEqual(image, { type: 'image', fit: 'contain', alt: '학교 전경', lockAspect: true, opacity: 1, imageStyle: { brightness: 100, contrast: 100, saturation: 100, flipX: false, flipY: false } });
 
 const frame = { x: 90, y: -5, width: 20, height: 2 };
 apply(frame, 'geometry', { x: '95', y: '-10', width: '20', height: '2' });
-assert.deepEqual(frame, { x: 80, y: 0, width: 20, height: 3 });
+assert.deepEqual(frame, { x: 95, y: -2, width: 20, height: 3 });
 apply(frame, 'geometry', { x: 'not-a-number', y: '', width: '200', height: '50' });
-assert.deepEqual(frame, { x: 0, y: 0, width: 100, height: 50 });
+assert.deepEqual(frame, { x: 95, y: -2, width: 200, height: 50 });
