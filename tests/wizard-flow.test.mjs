@@ -254,7 +254,7 @@ test('library project opening waits for package loading and clears stale schedul
   assert.match(html, /resourceScheduleFileName"\)\.textContent="샘플 일정 파일 없음"/);
   assert.match(html, /preview\.classList\.add\("hidden"\);preview\.innerHTML=""/);
   assert.match(openSource, /requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>\{if\(isCurrentProjectTransition\(transitionId\)&&project===openedProject\)render\(\)\}\)\)/);
-  assert.match(html, /\.calendar-stage \.calendar\{height:100%;grid-template-rows:minmax\(20px,auto\) repeat\(var\(--calendar-rows,6\),1fr\)\}/);
+  assert.match(html, /\.calendar-stage \.calendar\{height:100%;grid-template-rows:var\(--calendar-weekday-stage-share,4\.45%\) repeat\(var\(--calendar-rows,6\),minmax\(0,1fr\)\)\}/);
   assert.match(html, /\.calendar-stage \.head\{line-height:14px\}/);
 });
 
