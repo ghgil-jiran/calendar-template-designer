@@ -52,6 +52,9 @@ test('mini calendars use either three-cell edge reserve', () => {
 test('adjacent month fading does not fade calendar rules', () => {
   assert.match(html, /\.calendar \.cell\.adj\{opacity:1\}/);
   assert.match(html, /\.calendar \.cell\.adj \.day-stack\{opacity:\.35\}/);
+  assert.doesNotMatch(html, /\.page\[data-standard-family="desk-6"\] \.calendar-region \.adj\{opacity:\.22\}/);
+  assert.match(html, /\.page\[data-standard-family="desk-6"\] \.calendar-region \.calendar>\.cell\.adj\{opacity:1\}/);
+  assert.match(html, /\.page\[data-standard-family="desk-6"\] \.calendar-region \.calendar>\.cell\.adj>\.day-stack\{opacity:\.22\}/);
 });
 
 test('desk calendar typography follows the rendered page width', () => {
