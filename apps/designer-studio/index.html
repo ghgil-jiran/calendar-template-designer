@@ -790,8 +790,10 @@ function isPublicReferenceEvent(event){
  const refs=calendarReferenceForDate(start),title=normalizeReferenceTitle(event.title);
  return [...refs.holidays,...refs.anniversaries,...refs.solarTerms].some(item=>normalizeReferenceTitle(item.name)===title)
 }
-function weekDayHeaders(){
- return project.settings.weekStart==="monday"?["월","화","수","목","금","토","일"]:["일","월","화","수","목","금","토"]
+function weekDayHeaders(compact=false){
+ const monday=project.settings.weekStart==="monday";
+ if(project.template?.metadata?.sampleFamily==="desk-6")return compact?(monday?["M","T","W","T","F","S","S"]:["S","M","T","W","T","F","S"]):(monday?["MON","TUE","WED","THU","FRI","SAT","SUN"]:["SUN","MON","TUE","WED","THU","FRI","SAT"]);
+ return monday?["월","화","수","목","금","토","일"]:["일","월","화","수","목","금","토"]
 }
 function dateCell(d){
  return {date:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`,day:d.getDate(),month:d.getMonth()+1,dow:d.getDay()}
@@ -799,7 +801,12 @@ function dateCell(d){
 function calendarGridFor(y,m,rows=Number(project.settings.calendarRows||6)){
  return window.ACDLCalendarDomain.buildCalendarGrid(y,m,project.settings.weekStart,rows)
 }
-function calendarGrid(y,m){return calendarGridFor(y,m,Number(project.settings.calendarRows||6))}
+function calendarRowCountFor(y,m){
+ if(project.template?.metadata?.sampleFamily!=="desk-6"||project.settings.calendarRowsMode!=="adaptive")return Number(project.settings.calendarRows||6);
+ const start=new Date(y,m-1,1).getDay(),offset=project.settings.weekStart==="monday"?(start+6)%7:start,days=new Date(y,m,0).getDate();
+ return Math.max(5,Math.min(6,Math.ceil((offset+days)/7)))
+}
+function calendarGrid(y,m){return calendarGridFor(y,m,calendarRowCountFor(y,m))}
 
 function selectAdjacentMiniCells(grid,currentMonth){
  const isEmpty=c=>c.month!==currentMonth&&!c.extra;
@@ -812,7 +819,7 @@ function selectAdjacentMiniCells(grid,currentMonth){
 function renderCellMiniCalendar(y,m){
  const cells=calendarGridFor(y,m,5),weeks=[];for(let i=0;i<cells.length;i+=7)weeks.push(cells.slice(i,i+7));
  let h=`<div class="cell-mini-calendar"><strong>${m}</strong><div class="cell-mini-grid">`;
- weeks.forEach(week=>{h+='<div class="cell-mini-week">';week.forEach(c=>{const current=c.month===m,label=current?(c.extra?`${c.day}/${c.extra.day}`:c.day):"·",tone=!current?"adj":c.dow===0?"sun-mini":c.dow===6?"sat-mini":"",merged=c.extra?" merged":"";h+=`<span class="${tone}${merged}">${label}</span>`});h+="</div>"});
+ weeks.forEach(week=>{h+='<div class="cell-mini-week">';week.forEach(c=>{const current=c.month===m,label=current?(c.extra?`${c.day}/${c.extra.day}`:c.day):"",tone=!current?"adj":c.dow===0?"sun-mini":c.dow===6?"sat-mini":"",merged=c.extra?" merged":"";h+=`<span class="${tone}${merged}">${label}</span>`});h+="</div>"});
  return h+"</div></div>"
 }
 
@@ -1017,7 +1024,7 @@ function renderWidgetContent(view,p){
  if(view.type==="year-calendar"){
   const cols=Number(view.columns||4),count=Number(view.monthCount||12),start=Number(view.startMonth||1),seq=monthSequence(p.calendarYear||project.settings.year,start).slice(0,count);
   let inner=`<div class="year-calendar-object" style="--year-cols:${cols};--year-rows:${Math.ceil(count/cols)}">`;
-  seq.forEach(mm=>{inner+=`<div class="year-month"><strong>${mm.month}월</strong><div class="year-month-grid">`;weekDayHeaders().forEach(x=>inner+=`<span class="mh">${x}</span>`);calendarGridFor(mm.year,mm.month,Number(project.settings.calendarRows||6)).forEach(c=>inner+=`<span class="${c.month!==mm.month?"adj":""}">${c.day}</span>`);inner+=`</div></div>`});
+  seq.forEach(mm=>{inner+=`<div class="year-month"><strong>${mm.month}월</strong><div class="year-month-grid">`;weekDayHeaders(true).forEach(x=>inner+=`<span class="mh">${x}</span>`);calendarGridFor(mm.year,mm.month,6).forEach(c=>inner+=`<span class="${c.month!==mm.month?"adj":""}">${c.day}</span>`);inner+=`</div></div>`});
   return inner+"</div>"
  }
  if(view.type==="month-date-strip"){
@@ -1278,6 +1285,10 @@ function renderSemanticObject(item){
  const d=semanticData(item),layout=item.layoutPreset||"image-top",role=item.role;
  const image=d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)} 이미지">`:`<span class="semantic-empty-visual non-output editor-only" aria-label="${semanticRoleLabel(role)} 이미지 슬롯"></span>`;
  if(role==="school-logo")return `<div class="semantic-object semantic-logo"><div class="semantic-media">${image}</div></div>`;
+ if(layout==="desk-six-symbol-card"){
+  if(role==="school-motto")return `<div class="semantic-object desk-six-symbol-card semantic-motto"><strong style="font-size:${item.style?.titleSize||15}px">${d.name||"교훈"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
+  return `<div class="semantic-object desk-six-symbol-card"><strong style="font-size:${item.style?.titleSize||14}px">${d.name||semanticRoleLabel(role)}</strong><div class="semantic-media">${image}</div><p style="font-size:${item.style?.descriptionSize||8}px">${d.description||""}</p></div>`
+ }
  if(role==="school-motto")return `<div class="semantic-object semantic-motto"><strong style="font-size:${item.style?.titleSize||18}px">${d.name||"교훈"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
  if(role==="school-song")return `<div class="semantic-object semantic-song"><div class="semantic-media">${image}</div><div class="semantic-copy"><strong style="font-size:${item.style?.titleSize||18}px">${d.name||"교가"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div></div>`;
  return `<div class="semantic-object ${layout==="image-left"?"semantic-layout-row":""}"><div class="semantic-media">${image}</div>${item.showCaption===true?`<div class="semantic-copy" style="text-align:${item.style?.textAlign||"center"}"><strong style="font-size:${item.style?.titleSize||18}px">${d.name||semanticRoleLabel(role)}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`:""}</div>`
@@ -1601,7 +1612,7 @@ function renderPage(){
  const p=selectedPage(),page=el("page"),ps=project.productType.pageSize;page.className=`page ${project.productType.category} ${p.role}-surface ${isInsertPage(p)?"template-insert-page":""} ${p.role==="monthly-back"?"planner-back-surface":""}`;page.dataset.surfaceRole=p.role;page.dataset.standardFamily=project.template?.metadata?.sampleFamily||"";page.dataset.editableBackground=pageElements(p).some(item=>item.role==="background-decoration")?"true":"false";page.style.aspectRatio=`${ps.width}/${ps.height}`;const derivedMonthKey=p.monthKey||p.calendarYear&&p.calendarMonth?`${p.calendarYear}-${String(p.calendarMonth).padStart(2,"0")}`:null,monthlyStyles=project.book.monthlyStyleOverrides||[],monthPageIndex=project.book.pageInstances.filter(item=>item.role==="monthly-front").findIndex(item=>item.id===p.id||item.calendarYear===p.calendarYear&&item.calendarMonth===p.calendarMonth),monthStyle=monthlyStyles.find(item=>item.monthKey===derivedMonthKey)||monthlyStyles[monthPageIndex]||null,monthPrimary=monthStyle?.tokens?.primary||project.template.resources?.colorTheme?.primary||"#315e9e";page.style.setProperty("--month-primary",monthPrimary);page.style.setProperty("--planner-background",monthStyle?.tokens?.plannerBackground||"#eef5f2");page.style.background=p.role==="monthly-back"?(monthStyle?.tokens?.plannerBackground||"#eef5f2"):"#fff";let html='<div class="binding"></div><div class="surface-content">';
  if(p.role==="monthly-front"){
   window.ACDLScheduleApiClient?.ensureCalendarReferences?.(project).catch(()=>{});
-  const g=groupedEvents(),max=project.template.masters.calendar.eventMaxVisiblePerDay,title=p.overrides.monthTitle||`${p.calendarYear}년 ${p.calendarMonth}월`,cr=calendarRegion(),rows=Number(project.settings.calendarRows||6),grid=calendarGrid(p.calendarYear,p.calendarMonth),design=project.template.masters.calendar.design||{},monthNames=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"],monthTitleStyle=["number-stack","number-inline","korean-label"].includes(design.monthTitleStyle)?design.monthTitleStyle:"number-stack",stackTitle=`<span class="month-number">${p.calendarMonth}</span><span class="month-meta"><span>${p.calendarYear}</span><span class="month-en">${monthNames[p.calendarMonth-1]}</span></span>`,inlineTitle=`<span class="month-year">${p.calendarYear}</span><span class="month-number">${p.calendarMonth}</span><span class="month-en">${monthNames[p.calendarMonth-1]}</span>`,titleMarkup=p.overrides.monthTitle?title:monthTitleStyle==="number-inline"?inlineTitle:monthTitleStyle==="number-stack"?stackTitle:title,calendarClasses=[design.monthTitleAlign==="center"?"month-title-center":"month-title-left",design.weekdayStyle==="outlined-pills"?"weekday-outlined-pills":"weekday-filled-tabs",design.gridStyle==="open-rows"?"grid-open-rows":"grid-boxed"].join(" ");
+  const g=groupedEvents(),max=project.template.masters.calendar.eventMaxVisiblePerDay,title=p.overrides.monthTitle||`${p.calendarYear}년 ${p.calendarMonth}월`,cr=calendarRegion(),rows=calendarRowCountFor(p.calendarYear,p.calendarMonth),grid=calendarGridFor(p.calendarYear,p.calendarMonth,rows),design=project.template.masters.calendar.design||{},monthNames=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"],monthTitleStyle=["number-stack","number-inline","korean-label"].includes(design.monthTitleStyle)?design.monthTitleStyle:"number-stack",stackTitle=`<span class="month-number">${p.calendarMonth}</span><span class="month-meta"><span>${p.calendarYear}</span><span class="month-en">${monthNames[p.calendarMonth-1]}</span></span>`,inlineTitle=`<span class="month-year">${p.calendarYear}</span><span class="month-number">${p.calendarMonth}</span><span class="month-en">${monthNames[p.calendarMonth-1]}</span>`,titleMarkup=p.overrides.monthTitle?title:monthTitleStyle==="number-inline"?inlineTitle:monthTitleStyle==="number-stack"?stackTitle:title,calendarClasses=[design.monthTitleAlign==="center"?"month-title-center":"month-title-left",design.weekdayStyle==="outlined-pills"?"weekday-outlined-pills":"weekday-filled-tabs",design.gridStyle==="open-rows"?"grid-open-rows":"grid-boxed"].join(" ");
   html+=`<div id="calendarRegion" class="calendar-region ${calendarClasses} ${calendarEditing?"editing":""}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%"><div class="month-title ${monthTitleStyle}" style="font-size:${project.template.masters.calendar.monthTitleSize}px;color:var(--month-primary)">${titleMarkup}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
   weekDayHeaders().forEach(h=>html+=`<div class="cell head">${h}</div>`);
   const miniCells=project.settings.showAdjacentMiniCalendars?selectAdjacentMiniCells(grid,p.calendarMonth):[];
@@ -2823,7 +2834,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     });return segments
   };
   assignRangeLanes=function(grid){
-    const p=selectedPage(),weekStart=project.settings.weekStart==="monday"?"monday":"sunday",rows=Number(project.settings.calendarRows||5);
+    const p=selectedPage(),weekStart=project.settings.weekStart==="monday"?"monday":"sunday",rows=Math.max(1,Math.ceil(grid.length/7));
     const displayEvents=window.ACDLCalendarDomain.assignCalendarScheduleColors((project.book.events||[]).filter(event=>!isPublicReferenceEvent(event)));
     const layout=window.ACDLCalendarDomain.buildCalendarScheduleLanes(
       Number(p?.calendarYear),
@@ -3343,7 +3354,7 @@ body.user-mode #templateSettingsBtn{display:inline-flex!important}
     const cols=Number(view.columns||4),count=Number(view.monthCount||12),start=Number(view.startMonth||1),seq=monthSequence(p.calendarYear||project.settings.year,start).slice(0,count);
     const byDate={};(project.book.events||[]).forEach(ev=>{(byDate[ev.startDate]||=[]).push(ev)});
     let inner=`<div class="year-calendar-object" style="--year-cols:${cols};--year-rows:${Math.ceil(count/cols)}">`;
-    seq.forEach(mm=>{inner+=`<div class="year-month"><strong>${mm.month}월</strong><div class="year-month-grid">`;weekDayHeaders().forEach(x=>inner+=`<span class="mh">${x}</span>`);calendarGridFor(mm.year,mm.month,Number(project.settings.calendarRows||6)).forEach(c=>{const date=`${c.year}-${String(c.month).padStart(2,'0')}-${String(c.day).padStart(2,'0')}`,evs=byDate[date]||[],holiday=evs.some(e=>e.category==='holiday'),dow=new Date(c.year,c.month-1,c.day).getDay(),cls=[c.month!==mm.month?'adj':'','year-day',dow===0?'sun':dow===6?'sat':'',holiday?'holiday':''].filter(Boolean).join(' '),dot=evs.length?`<i class="year-event-dot" style="--event-dot:${eventColor(evs[0])}" title="${evs.map(e=>v21Escape(e.title)).join(' · ')}"></i>${evs.length>1?`<b class="year-event-count">${evs.length}</b>`:''}`:'';inner+=`<span class="${cls}">${c.day}${dot}</span>`});inner+='</div></div>'});
+    seq.forEach(mm=>{inner+=`<div class="year-month"><strong>${mm.month}월</strong><div class="year-month-grid">`;weekDayHeaders(true).forEach(x=>inner+=`<span class="mh">${x}</span>`);calendarGridFor(mm.year,mm.month,6).forEach(c=>{const date=`${c.year}-${String(c.month).padStart(2,'0')}-${String(c.day).padStart(2,'0')}`,evs=byDate[date]||[],holiday=evs.some(e=>e.category==='holiday'),dow=new Date(c.year,c.month-1,c.day).getDay(),cls=[c.month!==mm.month?'adj':'','year-day',dow===0?'sun':dow===6?'sat':'',holiday?'holiday':''].filter(Boolean).join(' '),dot=evs.length?`<i class="year-event-dot" style="--event-dot:${eventColor(evs[0])}" title="${evs.map(e=>v21Escape(e.title)).join(' · ')}"></i>${evs.length>1?`<b class="year-event-count">${evs.length}</b>`:''}`:'';inner+=`<span class="${cls}">${c.day}${dot}</span>`});inner+='</div></div>'});
     return inner+'</div>';
   };
 
@@ -4314,6 +4325,42 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  activate('school');
 })();
 </script>
+<style id="desk-six-parity-v9">
+/* Desk sample 6 visual parity: print-facing rules scoped to this standard only. */
+.page[data-standard-family="desk-6"]{--tpl-title-font:Pretendard,"Noto Sans KR",Arial,sans-serif;--tpl-body-font:Pretendard,"Noto Sans KR",Arial,sans-serif;--tpl-calendar-font:Pretendard,"Noto Sans KR",Arial,sans-serif}
+.page[data-standard-family="desk-6"][data-surface-role="cover-front"] .cover-base{display:none}
+.page[data-standard-family="desk-6"] .free-element[data-element-role="year"] .free-text{font-weight:900;letter-spacing:-.055em}
+.page[data-standard-family="desk-6"] .free-element[data-element-role="calendar-label"] .free-text{font-weight:500;letter-spacing:.08em}
+.page[data-standard-family="desk-6"] .calendar-region .month-title.number-stack{gap:9px;margin-bottom:8px;align-items:flex-end}
+.page[data-standard-family="desk-6"] .calendar-region .month-title.number-stack .month-number{font-size:2.45em;font-weight:900;line-height:.76;letter-spacing:-.07em}
+.page[data-standard-family="desk-6"] .calendar-region .month-title.number-stack .month-meta{gap:1px;font-size:.58em;font-weight:750;line-height:1.03}
+.page[data-standard-family="desk-6"] .calendar-region.weekday-filled-tabs .calendar>.head{min-height:20px;margin:0 1px;border-radius:10px 10px 0 0;background:#e8e8e8;color:#25282d;font-size:9px;font-weight:850;line-height:14px}
+.page[data-standard-family="desk-6"] .calendar-region.weekday-filled-tabs .calendar>.head:first-child{background:#f7ddcf;color:#d92d20}
+.page[data-standard-family="desk-6"] .calendar-region.weekday-filled-tabs .calendar>.head:nth-child(7){background:#e5eaf8;color:#175cd3}
+.page[data-standard-family="desk-6"] .calendar-region.grid-boxed .calendar{border-color:#aeb4bd}
+.page[data-standard-family="desk-6"] .calendar-region.grid-boxed .calendar>.cell:not(.head){border-color:#aeb4bd;background:#fff;padding:5px 7px}
+.page[data-standard-family="desk-6"] .calendar-region .day{font-size:10px;font-weight:650}
+.page[data-standard-family="desk-6"] .calendar-region .adj{opacity:.22}
+.page[data-standard-family="desk-6"] .cell-mini-calendar{padding:5px 7px;background:#fff;border:0}
+.page[data-standard-family="desk-6"] .cell-mini-calendar strong{font-size:10px;font-weight:800}
+.page[data-standard-family="desk-6"] .cell-mini-grid{font-size:6.5px}
+.page[data-standard-family="desk-6"][data-surface-role="cover-back"] .year-calendar-object{gap:15px 26px;padding:0;background:transparent;border:0;border-radius:0}
+.page[data-standard-family="desk-6"][data-surface-role="cover-back"] .year-month{border:0;border-radius:0;overflow:visible;background:transparent}
+.page[data-standard-family="desk-6"][data-surface-role="cover-back"] .year-month>strong{padding:0 0 4px;background:transparent;color:#20abc3;text-align:left;font-size:10px;font-weight:850}
+.page[data-standard-family="desk-6"][data-surface-role="cover-back"] .year-month-grid{font-size:6.2px;gap:1px}
+.page[data-standard-family="desk-6"][data-surface-role="cover-back"] .year-month-grid .mh{background:transparent;color:#8b929b;font-weight:600}
+.page[data-standard-family="desk-6"][data-surface-role="cover-back"] .year-month-grid .sun{color:#e35454}.page[data-standard-family="desk-6"][data-surface-role="cover-back"] .year-month-grid .sat{color:#4f84d8}
+.page[data-standard-family="desk-6"][data-surface-role="front-insert-front"] .surface-content{outline:0}
+.page[data-standard-family="desk-6"][data-surface-role="front-insert-front"] .semantic-object{background:transparent!important;border-radius:0;overflow:visible}
+.page[data-standard-family="desk-6"][data-surface-role="front-insert-front"] .desk-six-symbol-card{gap:6px;align-items:center;text-align:center}
+.page[data-standard-family="desk-6"][data-surface-role="front-insert-front"] .desk-six-symbol-card>strong{align-self:center;min-width:62px;padding:5px 16px;border-radius:999px;background:#20abc3;color:#fff;font-weight:850;line-height:1}
+.page[data-standard-family="desk-6"][data-surface-role="front-insert-front"] .desk-six-symbol-card>.semantic-media{width:100%;min-height:0;border-radius:7px;background:transparent}
+.page[data-standard-family="desk-6"][data-surface-role="front-insert-front"] .desk-six-symbol-card>p{margin:0;color:#394150;line-height:1.45;white-space:pre-line}
+.page[data-standard-family="desk-6"][data-surface-role="front-insert-front"] .desk-six-symbol-card.semantic-motto{justify-content:center}
+.page[data-standard-family="desk-6"] .widget-memo[data-memo-layout]>.planner-ribbon{position:relative;padding:5px 18px 5px 20px;font-size:11px}
+.page[data-standard-family="desk-6"] .widget-memo[data-memo-layout]>.planner-ribbon:after{content:"";position:absolute;right:7px;top:50%;width:3px;height:3px;border-radius:50%;background:#fff;transform:translateY(-50%)}
+.page[data-standard-family="desk-6"] .planner-week-label{flex-basis:24px;font-size:8px}.page[data-standard-family="desk-6"] .planner-check-row.header{font-size:7px}
+</style>
 <script id="review-pdf-export-runtime">
 (()=>{
  const $=id=>document.getElementById(id);

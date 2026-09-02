@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-02 - Desk sample 6 full visual parity pass
+
+- Added adaptive five/six-week monthly grids, English weekday tabs, clean adjacent mini calendars, and the source-matched twelve-month color sequence.
+- Added review-only sample schedules so single-day and range-event styling can be evaluated before approval.
+- Rebuilt the cover, annual calendar, school-symbol page, back cover, and planner proportions against the 28-page source PDF.
+- Added document migration v9 so the existing desk planner review document receives the unified visual baseline.
+
 ## 2026-09-01 - Review PDF export
 
 - Added a template-menu action that renders every project surface into a browser-saveable review PDF.

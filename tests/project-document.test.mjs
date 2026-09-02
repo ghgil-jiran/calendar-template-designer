@@ -33,7 +33,8 @@ assert.deepEqual(representative.template.masters.calendar.design, {
   monthTitleStyle: 'number-stack',
   weekdayStyle: 'filled-tabs',
   gridStyle: 'boxed',
-  eventStyle: 'strong-bars'
+  eventStyle: 'strong-bars',
+  presetId: 'sample-6'
 });
 const plannerElements = representative.template.masterElements['master.monthly.back'];
 assert.deepEqual(plannerElements.map(item => item.memoLayout), ['goal', 'checklist', 'weekly']);
@@ -42,7 +43,7 @@ assert.equal(plannerElements.find(item => item.role === 'monthly-todo').itemCoun
 assert.ok(plannerElements.every(item => item.required && Object.values(item.permissions).every(value => value === false)));
 assert.equal(representative.book.pageInstances.filter(page => page.semanticPageRole === 'month-calendar').length, 12);
 assert.equal(representative.book.monthlyStyleOverrides.length, 12);
-assert.equal(new Set(representative.book.monthlyStyleOverrides.map(item => item.tokens.plannerBackground)).size, 12);
+assert.deepEqual(representative.book.monthlyStyleOverrides.map(item => item.tokens.primary), ['#2fb79d', '#f47c20', '#ec407a', '#3275c8', '#2cb7d5', '#6758ba', '#f47c20', '#8b4a24', '#2cb7d5', '#7554b8', '#ec407a', '#7b8798']);
 assert.deepEqual(
   representative.book.pageInstances.filter(page => ['cover-front', 'cover-back', 'front-insert-front', 'back-cover-back'].includes(page.role)).map(page => page.semanticPageRole),
   ['cover-front', 'yearly-calendar', 'school-symbols', 'back-cover-information']
@@ -52,7 +53,9 @@ assert.ok(representative.book.elementsByPage['surface.1.back'].some(item => item
 assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-motto'));
 assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-song'));
 assert.deepEqual(representative.template.standardIdentity, { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6' });
-assert.equal(representative.template.documentVersion, 8);
+assert.equal(representative.template.documentVersion, 9);
+assert.equal(representative.settings.calendarRowsMode, 'adaptive');
+assert.equal(representative.book.events.filter(item => item.sample).length, 6);
 assert.equal(representative.template.review.status, 'review');
 assert.equal(representative.template.review.publicPackage, false);
 assert.equal(representative.template.resources.sampleAssets.length, 5);
@@ -79,9 +82,9 @@ assert.equal(representative.book.elementsByPage['surface.14.back'].filter(item =
 assert.equal(representative.book.elementsByPage['surface.1.front'].find(item => item.role === 'school-logo').width, 27);
 assert.equal(representative.book.elementsByPage['surface.14.back'].find(item => item.role === 'school-logo').width, 30);
 assert.deepEqual(plannerElements.map(item => [item.x, item.y, item.width, item.height]), [
-  [4, 9.8, 35, 40.2],
-  [4, 51.8, 35, 42.8],
-  [40.8, 9.8, 55.3, 84.8]
+  [4, 9.6, 35, 40.8],
+  [4, 52.1, 35, 42.5],
+  [41, 9.6, 55, 85]
 ]);
 
 const savedPlanner = structuredClone(representative);
@@ -92,7 +95,7 @@ const migratedPlanner = globalThis.ACDLProjectDocument.migrateProject(savedPlann
 assert.equal(migratedPlanner.project.book.pageInstances.length, 28);
 assert.equal(migratedPlanner.project.template.standardIdentity.catalogId, 'tpl-2028-desk-planner-standard-01');
 assert.equal(migratedPlanner.project.template.metadata.sampleFamily, 'desk-6');
-assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-sample-6-sequence-v4', 'desk-planner-fixed-surfaces-v5', 'desk-planner-editable-background-presets-v6', 'desk-planner-review-sample-data-v7', 'desk-planner-review-color-contact-fix-v8', 'desk-planner-document-version-8']);
+assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-sample-6-sequence-v4', 'desk-planner-fixed-surfaces-v5', 'desk-planner-editable-background-presets-v6', 'desk-planner-review-sample-data-v7', 'desk-planner-review-color-contact-fix-v8', 'desk-planner-sample-six-visual-parity-v9', 'desk-planner-document-version-9']);
 assert.deepEqual(globalThis.ACDLProjectDocument.migrateProject(migratedPlanner.project).report.applied, []);
 
 const customizedPlanner = structuredClone(representative);
