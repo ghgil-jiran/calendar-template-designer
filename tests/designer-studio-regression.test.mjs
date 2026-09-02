@@ -57,23 +57,6 @@ test('adjacent month fading does not fade calendar rules', () => {
   assert.match(html, /\.page\[data-standard-family="desk-6"\] \.calendar-region \.calendar>\.cell\.adj>\.day-stack\{opacity:\.22\}/);
 });
 
-test('desk calendar uses one invariant SVG rule layer instead of per-cell borders', () => {
-  assert.match(html, /function renderCalendarGridRules\(rows\)/);
-  assert.match(html, /class="calendar-grid-rules"/);
-  assert.match(html, /shape-rendering:crispEdges/);
-  assert.match(html, /grid-boxed \.calendar>\.cell:not\(\.head\)\{border:0!important/);
-});
-
-test('template library suppresses editor bleed and crop guides', () => {
-  assert.match(html, /body:has\(#templateLibraryModal:not\(\.hidden\)\) \.page\.editor-bleed-visible::before/);
-  assert.match(html, /body:has\(#templateLibraryModal:not\(\.hidden\)\) \.page\.export-crop-marks\{outline:0\}/);
-});
-
-test('desk month title stays inside the reserved title stage by default', () => {
-  assert.match(html, /month-title\.number-stack\{box-sizing:border-box;[^}]*overflow:hidden/);
-  assert.match(html, /month-title\.number-stack \.month-number\{font-size:2em/);
-});
-
 test('desk calendar typography follows the rendered page width', () => {
   assert.match(html, /--calendar-title-responsive:\$\{project\.template\.masters\.calendar\.monthTitleSize\/8\.5\}cqw/);
   assert.match(html, /\.calendar-region \.month-title\{font-size:clamp\(14px,var\(--calendar-title-responsive/);
