@@ -2,7 +2,7 @@
   const palette = ['#2fb79d', '#f47c20', '#ec407a', '#3275c8', '#2cb7d5', '#6758ba', '#f47c20', '#8b4a24', '#2cb7d5', '#7554b8', '#ec407a', '#7b8798'];
   const pastel = ['#dff4ee', '#fff0df', '#fde6ee', '#e7edf9', '#e4f7fc', '#eee9f8', '#fff0df', '#f4e9e1', '#e4f7fc', '#eee9f8', '#fde6ee', '#edf0f5'];
   const protectedPlannerPermissions = { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false };
-  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 12 };
+  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 13 };
   const deskSixReviewAssets = [
     { id: 'asset.sample.desk-6.building', name: '지란중학교 전경', role: 'school-building', binding: 'school.profile.building', kind: '학교 전경', image: 'assets/sample-school/jiran-building.webp' },
     { id: 'asset.sample.desk-6.logo', name: '지란중학교 교표 연결', role: 'school-logo', binding: 'school.profile.logo', kind: '교표', image: 'assets/sample-school/jiran-logo-composite.svg' },
@@ -115,7 +115,7 @@
     return [
       ...createBackgroundPresetElements('yearly'),
       { id: 'page.yearly.title', type: 'text', role: 'year', binding: 'calendar.year', format: 'year-plain', x: 34, y: 4.5, width: 32, height: 15, zIndex: 2, content: String(year), style: { fontSize: 50, fontWeight: 900, textAlign: 'center', background: false, color: '#20abc3' } },
-      { id: 'page.yearly', type: 'year-calendar', role: 'year-calendar', x: 9, y: 22, width: 82, height: 66, zIndex: 1, startMonth, monthCount: 12, columns: 4, showWeekdayHeader: true, style: {} }
+      { id: 'page.yearly', type: 'year-calendar', role: 'year-calendar', x: 9, y: 22, width: 82, height: 66, zIndex: 1, startMonth, monthCount: 12, columns: 4, rowsMode: 'inherit', showWeekdayHeader: true, style: {} }
     ];
   }
 
@@ -218,6 +218,22 @@
     const symbolsPage = byRole('front-insert-front');
     const song = symbolsPage && (project.book.elementsByPage[symbolsPage.id] || []).find(item => item.role === 'school-song');
     if (song) song.showCaption = false;
+  }
+
+  function applyDeskSixCalendarLayoutParity(project) {
+    const calendar = project.template?.masters?.calendar;
+    if (!calendar) return;
+    const design = calendar.design || {};
+    const sampleThreeApplied = design.presetId === 'sample-3'
+      || (design.monthTitleStyle === 'number-inline' && design.monthTitleAlign === 'center' && design.weekdayStyle === 'outlined-pills' && design.gridStyle === 'open-rows');
+    if (sampleThreeApplied) {
+      calendar.calendarRegion = { x: 0, y: 8, width: 100, height: 91 };
+      calendar.monthTitleSize = 25;
+      calendar.design = { ...design, monthTitleAlign: 'left', monthTitleStyle: 'number-stack', weekdayStyle: 'filled-tabs', gridStyle: 'boxed', eventStyle: 'strong-bars', presetId: 'sample-6' };
+    }
+    Object.values(project.book?.elementsByPage || {}).forEach(elements => (elements || []).forEach(item => {
+      if (item.type === 'year-calendar' && !item.rowsMode) item.rowsMode = 'inherit';
+    }));
   }
 
   function ensureDeskSixVisualParity(project) {
@@ -366,6 +382,10 @@
       applyDeskSixYearCaptionParity(project, Number(project.settings?.year || 2028));
       applied.push('desk-planner-year-caption-parity-v12');
     }
+    if (fromVersion < 13) {
+      applyDeskSixCalendarLayoutParity(project);
+      applied.push('desk-planner-calendar-layout-parity-v13');
+    }
     if (fromVersion < deskPlannerStandard.documentVersion) {
       project.template.documentVersion = deskPlannerStandard.documentVersion;
       applied.push(`desk-planner-document-version-${deskPlannerStandard.documentVersion}`);
@@ -413,7 +433,7 @@
       coverBack.semanticPageRole = 'yearly-calendar';
       project.book.elementsByPage[coverBack.id] = [
         { id: 'page.yearly.title', type: 'text', role: 'year', binding: 'calendar.year', x: 35, y: 7, width: 30, height: 10, zIndex: 2, content: String(options.year), style: { fontSize: 42, textAlign: 'center', background: false, color: '#20a9c2' } },
-        { id: 'page.yearly', type: 'year-calendar', role: 'year-calendar', x: 7, y: 21, width: 86, height: 70, zIndex: 1, startMonth: options.startMonth, monthCount: 12, columns: 4, showWeekdayHeader: true, style: {} }
+        { id: 'page.yearly', type: 'year-calendar', role: 'year-calendar', x: 7, y: 21, width: 86, height: 70, zIndex: 1, startMonth: options.startMonth, monthCount: 12, columns: 4, rowsMode: 'inherit', showWeekdayHeader: true, style: {} }
       ];
     }
     const symbolPage = project.book.pageInstances.find(page => page.role === 'front-insert-front');
