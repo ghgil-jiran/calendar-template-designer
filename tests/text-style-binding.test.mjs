@@ -6,9 +6,17 @@ import path from 'node:path';
 const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8');
 
 test('cover text renders its element font size before the cover master default', () => {
-  const renderers = html.match(/t\.style\.fontSize=\(view\.style\?\.fontSize\|\|project\.template\.masters\.cover\.titleSize\|\|18\)\+"px"/g) || [];
+  const renderers = html.match(/applyTextElementStyles\(t,view\)/g) || [];
   assert.equal(renderers.length, 2);
+  assert.match(html, /size=style\.fontSize\|\|project\.template\.masters\.cover\.titleSize\|\|18/);
   assert.doesNotMatch(html, /isCoverTitle\?project\.template\.masters\.cover\.titleSize/);
+});
+
+test('every text object exposes the complete designer style set through one shared renderer', () => {
+  ['elemFontFamily', 'elemFontWeight', 'elemItalic', 'elemUnderline', 'elemStrike', 'elemAlign', 'elemVerticalAlign', 'elemLetterSpacing', 'elemLineHeight', 'elemOpacity', 'elemBackgroundColor', 'elemStrokeWidth', 'elemStrokeColor', 'elemShadow', 'elemShadowX', 'elemShadowY', 'elemShadowBlur', 'elemShadowColor'].forEach(id => assert.match(html, new RegExp(`id="${id}"`)));
+  assert.match(html, /node\.style\.webkitTextStroke/);
+  assert.match(html, /node\.style\.textShadow/);
+  assert.match(html, /node\.style\.alignItems/);
 });
 
 test('saving the cover master applies its size to every cover school-name element', () => {
