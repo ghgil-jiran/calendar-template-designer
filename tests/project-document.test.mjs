@@ -53,7 +53,7 @@ assert.ok(representative.book.elementsByPage['surface.1.back'].some(item => item
 assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-motto'));
 assert.ok(representative.book.elementsByPage['surface.2.front'].some(item => item.role === 'school-song'));
 assert.deepEqual(representative.template.standardIdentity, { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6' });
-assert.equal(representative.template.documentVersion, 10);
+assert.equal(representative.template.documentVersion, 11);
 assert.equal(representative.settings.calendarRowsMode, 'adaptive');
 assert.equal(representative.book.events.filter(item => item.sample).length, 6);
 assert.equal(representative.template.review.status, 'review');
@@ -71,6 +71,8 @@ assert.deepEqual(representative.book.school.contacts, [
 ]);
 assert.match(representative.book.school.profile.building.image, /jiran-building\.webp$/);
 assert.match(representative.book.elementsByPage['surface.1.front'].find(item => item.role === 'school-building').sampleContent.image, /jiran-building\.webp$/);
+assert.match(representative.book.elementsByPage['surface.14.back'].find(item => item.role === 'school-building').sampleContent.image, /jiran-building\.webp$/);
+assert.match(representative.book.elementsByPage['surface.14.back'].find(item => item.role === 'school-logo').sampleContent.image, /jiran-logo-composite\.svg$/);
 assert.match(representative.book.elementsByPage['surface.2.front'].find(item => item.role === 'school-song').sampleContent.image, /jiran-song\.webp$/);
 assert.equal(representative.template.resources.backgroundPresetLibraryVersion, 1);
 assert.equal(representative.template.resources.backgroundPresets.length, 4);
@@ -79,7 +81,7 @@ assert.ok(representative.book.elementsByPage['surface.1.front'].some(item => ite
 assert.ok(representative.book.elementsByPage['surface.1.front'].some(item => item.x < 0));
 assert.equal(representative.book.elementsByPage['surface.1.front'].filter(item => ['school-name', 'school-english-name'].includes(item.role)).length, 0);
 assert.equal(representative.book.elementsByPage['surface.14.back'].filter(item => ['school-name', 'school-english-name'].includes(item.role)).length, 0);
-assert.equal(representative.book.elementsByPage['surface.1.front'].find(item => item.role === 'school-logo').width, 27);
+assert.equal(representative.book.elementsByPage['surface.1.front'].find(item => item.role === 'school-logo').width, 17);
 assert.equal(representative.book.elementsByPage['surface.14.back'].find(item => item.role === 'school-logo').width, 20);
 assert.deepEqual(plannerElements.map(item => [item.x, item.y, item.width, item.height]), [
   [4, 9.6, 35, 40.8],
@@ -95,7 +97,7 @@ const migratedPlanner = globalThis.ACDLProjectDocument.migrateProject(savedPlann
 assert.equal(migratedPlanner.project.book.pageInstances.length, 28);
 assert.equal(migratedPlanner.project.template.standardIdentity.catalogId, 'tpl-2028-desk-planner-standard-01');
 assert.equal(migratedPlanner.project.template.metadata.sampleFamily, 'desk-6');
-assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-sample-6-sequence-v4', 'desk-planner-fixed-surfaces-v5', 'desk-planner-editable-background-presets-v6', 'desk-planner-review-sample-data-v7', 'desk-planner-review-color-contact-fix-v8', 'desk-planner-sample-six-visual-parity-v9', 'desk-planner-back-cover-parity-v10', 'desk-planner-document-version-10']);
+assert.deepEqual(migratedPlanner.report.applied, ['desk-planner-sample-family', 'desk-planner-standard-identity', 'desk-planner-master-source-match-v2', 'desk-planner-fixed-surfaces-v3', 'desk-planner-sample-6-sequence-v4', 'desk-planner-fixed-surfaces-v5', 'desk-planner-editable-background-presets-v6', 'desk-planner-review-sample-data-v7', 'desk-planner-review-color-contact-fix-v8', 'desk-planner-sample-six-visual-parity-v9', 'desk-planner-back-cover-parity-v10', 'desk-planner-special-page-text-image-parity-v11', 'desk-planner-document-version-11']);
 assert.deepEqual(globalThis.ACDLProjectDocument.migrateProject(migratedPlanner.project).report.applied, []);
 
 const customizedPlanner = structuredClone(representative);

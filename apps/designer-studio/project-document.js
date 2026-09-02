@@ -2,7 +2,7 @@
   const palette = ['#2fb79d', '#f47c20', '#ec407a', '#3275c8', '#2cb7d5', '#6758ba', '#f47c20', '#8b4a24', '#2cb7d5', '#7554b8', '#ec407a', '#7b8798'];
   const pastel = ['#dff4ee', '#fff0df', '#fde6ee', '#e7edf9', '#e4f7fc', '#eee9f8', '#fff0df', '#f4e9e1', '#e4f7fc', '#eee9f8', '#fde6ee', '#edf0f5'];
   const protectedPlannerPermissions = { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false };
-  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 10 };
+  const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 11 };
   const deskSixReviewAssets = [
     { id: 'asset.sample.desk-6.building', name: '지란중학교 전경', role: 'school-building', binding: 'school.profile.building', kind: '학교 전경', image: 'assets/sample-school/jiran-building.webp' },
     { id: 'asset.sample.desk-6.logo', name: '지란중학교 교표 연결', role: 'school-logo', binding: 'school.profile.logo', kind: '교표', image: 'assets/sample-school/jiran-logo-composite.svg' },
@@ -103,11 +103,11 @@
     return [
       ...createBackgroundPresetElements('cover'),
       { id: 'page.cover.building', type: 'semantic-object', role: 'school-building', x: 18.5, y: 14, width: 63, height: 52, zIndex: 1, binding: 'school.profile.building', bindingEnabled: true, fallbackToSample: true, showCaption: false, sampleContent: { name: '학교 전경', description: '', image: '' }, style: { borderRadius: 4 } },
-      { id: 'page.cover.year', type: 'text', role: 'year', binding: 'calendar.year', x: 32, y: 68, width: 23, height: 12, zIndex: 3, content: String(year), style: { fontSize: 54, fontWeight: 900, textAlign: 'right', background: false, color: '#20abc3' } },
+      { id: 'page.cover.year', type: 'text', role: 'year', binding: 'calendar.year', x: 32, y: 68, width: 23, height: 12, zIndex: 3, content: String(year), style: { fontSize: 50, fontWeight: 900, textAlign: 'right', background: false, color: '#20abc3' } },
       { id: 'page.cover.calendar', type: 'text', role: 'calendar-label', x: 56, y: 74, width: 16, height: 5, zIndex: 3, content: 'CALENDAR', style: { fontSize: 13, textAlign: 'left', background: false, color: '#777f88' } },
-      { id: 'page.cover.logo', type: 'semantic-object', role: 'school-logo', x: 19, y: 84, width: 27, height: 10, zIndex: 3, binding: 'school.profile.logo', bindingEnabled: true, fallbackToSample: true, sampleContent: { image: '' }, style: {} },
-      { id: 'page.cover.address', type: 'text', role: 'school-contact', binding: 'school.address', x: 49, y: 84, width: 39, height: 4, zIndex: 3, content: '학교 주소', style: { fontSize: 7.5, textAlign: 'left', background: false, color: '#475467' } },
-      { id: 'page.cover.contacts', type: 'text', role: 'school-contact', binding: 'school.contacts', x: 49, y: 88, width: 39, height: 6, zIndex: 3, content: '학교 연락처', style: { fontSize: 7.5, textAlign: 'left', background: false, color: '#475467' } }
+      { id: 'page.cover.logo', type: 'semantic-object', role: 'school-logo', x: 19, y: 89, width: 17, height: 7, zIndex: 3, binding: 'school.profile.logo', bindingEnabled: true, fallbackToSample: true, sampleContent: { image: '' }, style: {} },
+      { id: 'page.cover.address', type: 'text', role: 'school-contact', binding: 'school.address', x: 39, y: 89, width: 43, height: 3.5, zIndex: 3, content: '학교 주소', style: { fontSize: 7.5, textAlign: 'left', background: false, color: '#475467' } },
+      { id: 'page.cover.contacts', type: 'text', role: 'school-contact', binding: 'school.contacts', x: 39, y: 92.5, width: 43, height: 3.5, zIndex: 3, content: '학교 연락처', style: { fontSize: 7.5, textAlign: 'left', background: false, color: '#475467', inlineContacts: true } }
     ];
   }
 
@@ -142,7 +142,7 @@
   function createBackCoverElements(year) {
     return [
       ...createBackgroundPresetElements('backCover'),
-      { id: 'page.back.year', type: 'text', role: 'year', binding: 'calendar.year', x: 36, y: 15, width: 17, height: 9, zIndex: 3, content: String(year), style: { fontSize: 47, fontWeight: 900, textAlign: 'right', background: false, color: '#20abc3' } },
+      { id: 'page.back.year', type: 'text', role: 'year', binding: 'calendar.year', x: 36, y: 14, width: 17, height: 12, zIndex: 3, content: String(year), style: { fontSize: 47, fontWeight: 900, textAlign: 'right', background: false, color: '#20abc3' } },
       { id: 'page.back.calendar', type: 'text', role: 'calendar-label', x: 53, y: 19, width: 14, height: 4, zIndex: 3, content: 'CALENDAR', style: { fontSize: 11, textAlign: 'left', background: false, color: '#8a8a8a' } },
       { id: 'page.back.building', type: 'semantic-object', role: 'school-building', x: 29.5, y: 28.5, width: 40.5, height: 35.5, zIndex: 1, binding: 'school.profile.building', bindingEnabled: true, fallbackToSample: true, showCaption: false, sampleContent: { name: '학교 전경', description: '', image: '' }, style: { borderRadius: 4 } },
       { id: 'page.back.logo', type: 'semantic-object', role: 'school-logo', x: 40, y: 77, width: 20, height: 7, zIndex: 3, binding: 'school.profile.logo', bindingEnabled: true, fallbackToSample: true, sampleContent: { image: '' }, style: {} },
@@ -183,6 +183,22 @@
     if (!page) return;
     page.semanticPageRole = 'back-cover-information';
     project.book.elementsByPage[page.id] = createBackCoverElements(year);
+  }
+
+  function applyDeskSixSpecialPageParity(project, role, semanticPageRole, elements) {
+    const page = project.book.pageInstances.find(item => item.role === role);
+    if (!page) return;
+    const previous = project.book.elementsByPage[page.id] || [];
+    const previousByRole = Object.fromEntries(previous.filter(item => item.type === 'semantic-object').map(item => [item.role, item]));
+    elements.forEach(item => {
+      if (item.type !== 'semantic-object') return;
+      const prior = previousByRole[item.role];
+      if (!prior) return;
+      item.sampleContent = { ...(item.sampleContent || {}), ...(prior.sampleContent || {}) };
+      if (prior.sampleAssetId) item.sampleAssetId = prior.sampleAssetId;
+    });
+    page.semanticPageRole = semanticPageRole;
+    project.book.elementsByPage[page.id] = elements;
   }
 
   function ensureDeskSixVisualParity(project) {
@@ -319,6 +335,13 @@
     if (fromVersion < 10) {
       applyDeskSixBackCoverParity(project, Number(project.settings?.year || 2028));
       applied.push('desk-planner-back-cover-parity-v10');
+    }
+    if (fromVersion < 11) {
+      const year = Number(project.settings?.year || 2028);
+      applyDeskSixSpecialPageParity(project, 'cover-front', 'cover-front', createCoverFrontElements(year));
+      applyDeskSixSpecialPageParity(project, 'back-cover-back', 'back-cover-information', createBackCoverElements(year));
+      ensureDeskSixReviewSampleData(project);
+      applied.push('desk-planner-special-page-text-image-parity-v11');
     }
     if (fromVersion < deskPlannerStandard.documentVersion) {
       project.template.documentVersion = deskPlannerStandard.documentVersion;
