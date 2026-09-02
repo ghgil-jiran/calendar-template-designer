@@ -43,6 +43,23 @@ test('five and six week modes only repartition the fixed date grid', () => {
   assert.match(html, /grid-template-rows:repeat\(var\(--mini-calendar-rows,6\),minmax\(0,1fr\)\)/);
 });
 
+test('mini calendars use either three-cell edge reserve', () => {
+  assert.match(html, /const leading=\[\];for\(let i=0;i<grid\.length&&isEmpty\(grid\[i\]\);i\+\+\)leading\.push\(i\)/);
+  assert.match(html, /if\(trailing\.length>=3\)return trailing\.slice\(-2\)/);
+  assert.match(html, /if\(leading\.length>=3\)return leading\.slice\(0,2\)/);
+});
+
+test('adjacent month fading does not fade calendar rules', () => {
+  assert.match(html, /\.calendar \.cell\.adj\{opacity:1\}/);
+  assert.match(html, /\.calendar \.cell\.adj \.day-stack\{opacity:\.35\}/);
+});
+
+test('desk calendar typography follows the rendered page width', () => {
+  assert.match(html, /--calendar-title-responsive:\$\{project\.template\.masters\.calendar\.monthTitleSize\/8\.5\}cqw/);
+  assert.match(html, /\.calendar-region \.month-title\{font-size:clamp\(14px,var\(--calendar-title-responsive/);
+  assert.match(html, /\.calendar-region \.day\{font-size:clamp\(7px,1\.176cqw,12px\)/);
+});
+
 test('template objects allow overlap without collision avoidance or forced grid snapping', () => {
   assert.doesNotMatch(html, /rectanglesOverlap\(/);
   assert.doesNotMatch(html, /findOpenWidgetPlacement|widgetOverlap|placementItems/);
