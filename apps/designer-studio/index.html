@@ -288,6 +288,16 @@
 .page.export-crop-marks{outline:1px solid rgba(37,99,235,.7);outline-offset:-1px}
 .page.editor-bleed-visible .free-layer{overflow:visible}
 body.resource-modal-open .page.editor-bleed-visible::before,body.resource-modal-open .page.editor-bleed-visible::after{display:none}
+body:has(#entryScreen:not(.hidden)) .page.editor-bleed-visible::before,
+body:has(#entryScreen:not(.hidden)) .page.editor-bleed-visible::after,
+body:has(#designerHome:not(.hidden)) .page.editor-bleed-visible::before,
+body:has(#designerHome:not(.hidden)) .page.editor-bleed-visible::after,
+body:has(#templateLibraryModal:not(.hidden)) .page.editor-bleed-visible::before,
+body:has(#templateLibraryModal:not(.hidden)) .page.editor-bleed-visible::after,
+body:has(#setup:not(.hidden)) .page.editor-bleed-visible::before,
+body:has(#setup:not(.hidden)) .page.editor-bleed-visible::after,
+body:has(#userSetup:not(.hidden)) .page.editor-bleed-visible::before,
+body:has(#userSetup:not(.hidden)) .page.editor-bleed-visible::after{display:none!important}
 .page[data-standard-family="desk-6"] .calendar-region.grid-boxed .calendar{border-top:1px solid #aeb4bd!important;border-left:1px solid #aeb4bd!important}
 .settings-apply-note{margin-top:8px;padding:9px 10px;border-radius:8px;background:#eef4ff;color:#344054;font-size:10px;line-height:1.5}
 .settings-apply-note strong{display:block;color:#175cd3;margin-bottom:2px}
@@ -504,6 +514,10 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
    <select id="insertScopeMirror"><option value="page">현재 페이지</option><option value="master">같은 Master 전체</option></select>
   </div>
  </div>
+ <section class="page-dock editor-chrome" aria-label="페이지 구성 및 선택">
+  <div class="page-dock-head"><strong>페이지</strong><span id="pageDockStatus"></span></div>
+  <div class="panel-body nav" id="navigator"></div>
+ </section>
 </aside>
 <section class="panel center">
 <div class="icon-toolbar editor-chrome" role="toolbar" aria-label="편집 도구">
@@ -551,10 +565,6 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
 </div>
 <div class="canvas-wrap"><div id="page" class="page desk"></div></div></section>
 <aside class="panel right editor-chrome" aria-label="선택 개체 속성"><h2 id="inspectorPanelTitle" class="inspector-panel-title">페이지 스타일</h2><div id="inspectorSelectionSummary" class="inspector-selection-summary">페이지를 선택했거나 개체가 선택되지 않았습니다.</div><div id="inspector"></div></aside>
-<section class="panel page-dock editor-chrome" aria-label="페이지 구성 및 선택">
- <div class="page-dock-head"><strong>페이지</strong><span id="pageDockStatus"></span></div>
- <div class="panel-body nav" id="navigator"></div>
-</section>
 </main>
 
 <div id="fullPreviewOverlay" class="full-preview-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="fullPreviewTitle">
@@ -779,7 +789,8 @@ function renderNavigator(){
  if(isDesk){project.book.sheets.forEach(sh=>{const box=document.createElement("div");box.className="sheet";box.innerHTML=`<div class="sheet-head">Sheet ${sh.sheetNumber} · ${sh.calendar?`${sh.calendar.year}.${String(sh.calendar.month).padStart(2,"0")}`:sh.role}</div>`;sh.surfaces.forEach(p=>box.appendChild(pageButton(p)));nav.appendChild(box)})}
  else project.book.pageInstances.forEach(p=>nav.appendChild(pageButton(p)));
 }
-function pageButton(p){const b=document.createElement("button");b.className="page-btn "+(p.id===selectedPageId?"active":"");b.dataset.pageId=p.id;b.innerHTML=`<span><strong>${p.number}면</strong>${roleLabel(p)}</span>`;b.addEventListener("click",()=>{if(p.id!==selectedPageId&&!confirmDiscardInspectorChanges())return;inspectorDirty=false;inspectorNotice={type:"ready",message:"설정을 변경하면 저장 버튼이 활성화됩니다."};selectedPageId=p.id;selectedDate=null;selectedElementId=null;selectedElementScope=null;semanticImageDraft=null;semanticImageDraftElementId=null;calendarEditing=false;render()});return b}
+function pageNavigationKind(p){if(/^back-cover/.test(p.role))return"back-cover";if(/^cover/.test(p.role))return"cover";if(/^monthly/.test(p.role)||p.role==="poster-annual")return"month";return"insert"}
+function pageButton(p){const b=document.createElement("button"),parity=Number(p.number)%2?"odd":"even",kind=pageNavigationKind(p);b.className=`page-btn page-${parity} page-kind-${kind} ${p.id===selectedPageId?"active":""}`;b.dataset.pageId=p.id;b.dataset.pageParity=parity;b.dataset.pageKind=kind;b.innerHTML=`<span><strong>${p.number}면</strong><small>${roleLabel(p)}</small></span>`;b.addEventListener("click",()=>{if(p.id!==selectedPageId&&!confirmDiscardInspectorChanges())return;inspectorDirty=false;inspectorNotice={type:"ready",message:"설정을 변경하면 저장 버튼이 활성화됩니다."};selectedPageId=p.id;selectedDate=null;selectedElementId=null;selectedElementScope=null;semanticImageDraft=null;semanticImageDraftElementId=null;calendarEditing=false;render()});return b}
 function groupedEvents(){return window.ACDLDatasetDomain.groupEventsByDate(project.book.events)}
 function calendarReferenceItems(date,category){
  const year=String(date||"").slice(0,4),bucket=project.book.calendarReference?.years?.[year]?.[category];
@@ -2183,7 +2194,7 @@ let appMode="designer", userWizardStep=1, selectedUserTemplate={template:"",type
 let projectTransitionId=0;
 function beginProjectTransition({clearProject=false}={}){
  projectTransitionId+=1;
- if(clearProject){project=null;selectedPageId=null;history=[];future=[];savedHash="";}
+ if(clearProject){project=null;selectedPageId=null;history=[];future=[];savedHash="";const page=el("page");page?.classList.remove("editor-bleed-visible","export-crop-marks","export-guides-visible");page?.style.removeProperty("--export-bleed-x-pct");page?.style.removeProperty("--export-bleed-y-pct");page?.style.removeProperty("--export-safe-x-pct");page?.style.removeProperty("--export-safe-y-pct");}
  resetEditorViewState();
  return projectTransitionId;
 }
@@ -4259,7 +4270,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 })();
 </script>
 <style id="workspace-layout-v38-styles">
-.workspace{grid-template-columns:280px minmax(570px,1fr) 320px;grid-template-rows:minmax(0,1fr) 112px;height:calc(100vh - 92px);min-height:0}
+.workspace{grid-template-columns:280px minmax(570px,1fr) 320px;grid-template-rows:minmax(0,1fr);height:calc(100vh - 92px);min-height:0}
 .workspace>.insert-sidebar{grid-column:1;grid-row:1;display:flex;flex-direction:column;min-height:0}
 .insert-sidebar-intro{padding:9px 12px;border-bottom:1px solid var(--acds-border,#e2e8f0);background:#fff;color:#64748b;font-size:10px;line-height:1.5}
 .insert-sidebar-host{display:flex;flex:1;min-height:0;flex-direction:column;overflow:hidden}
@@ -4277,15 +4288,15 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .workspace>.right #inspector{flex:1;height:auto}
 .workspace .toolbar-scope{display:none!important}
 .library-search-empty{padding:18px 8px;text-align:center;color:#64748b;font-size:10px;line-height:1.5}
-.workspace>.page-dock{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:92px minmax(0,1fr);min-height:0;overflow:hidden;border-top:1px solid #dbe3ee}
-.page-dock-head{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:10px;border-right:1px solid #e2e8f0;background:#f8fafc}.page-dock-head strong{font-size:12px;color:#0f172a}.page-dock-head span{font-size:9px;line-height:1.35;color:#64748b}
-.page-dock>.nav{display:flex;align-items:center;gap:6px;min-width:0;max-height:none;padding:7px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-gutter:stable}
+.insert-sidebar>.page-dock{flex:0 0 min(34vh,270px);display:grid;grid-template-rows:38px minmax(0,1fr);min-height:170px;overflow:hidden;border:0;border-top:1px solid #dbe3ee;border-radius:0;background:#f8fafc}
+.page-dock-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 11px;border-bottom:1px solid #e2e8f0;background:#fff}.page-dock-head strong{font-size:12px;color:#0f172a}.page-dock-head span{font-size:9px;color:#64748b}
+.page-dock>.nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:6px;min-width:0;max-height:none;padding:8px;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-gutter:stable}
 .page-dock .sheet{display:contents}.page-dock .sheet-head{display:none}
-.page-dock .page-btn{flex:0 0 108px;height:76px;min-height:0;margin:0;padding:7px;border:1px solid #dbe3ee!important;border-radius:7px;align-items:flex-start;text-align:left;background:#fff}.page-dock .page-btn span{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;line-height:1.25}.page-dock .page-btn span strong{font-size:10px;color:#1e293b}.page-dock .page-btn.active{border-color:#2563eb!important;box-shadow:0 0 0 1px #2563eb inset;background:#eff6ff}.page-dock .page-btn.active span strong{color:#1d4ed8}
+.page-dock .page-btn{position:relative;width:100%;height:56px;min-height:0;margin:0;padding:7px 7px 7px 10px;border:1px solid #d7dfeb!important;border-radius:8px;align-items:flex-start;text-align:left;background:#fff;overflow:hidden}.page-dock .page-btn::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--page-role,#94a3b8)}.page-dock .page-btn span{display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:3px;line-height:1.2}.page-dock .page-btn span strong{font-size:10px;color:#1e293b}.page-dock .page-btn span small{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;color:#64748b;font-size:8px;white-space:nowrap}.page-dock .page-btn.page-odd{background:color-mix(in srgb,var(--page-role,#64748b) 12%,white);border-color:color-mix(in srgb,var(--page-role,#64748b) 35%,white)!important}.page-dock .page-btn.page-even{background:#fff}.page-dock .page-kind-cover{--page-role:#7c3aed}.page-dock .page-kind-month{--page-role:#2563eb}.page-dock .page-kind-insert{--page-role:#d97706}.page-dock .page-kind-back-cover{--page-role:#db2777}.page-dock .page-btn.active{border-color:var(--page-role,#2563eb)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--page-role,#2563eb) 24%,transparent);background:color-mix(in srgb,var(--page-role,#2563eb) 18%,white)}.page-dock .page-btn.active span strong{color:var(--page-role,#1d4ed8)}
 #objectDrawer{display:none!important}
 .preview-only .workspace{grid-template-columns:1fr;grid-template-rows:1fr}.preview-only .workspace>.center{grid-column:1;grid-row:1}
 @media(max-width:1180px){.workspace{grid-template-columns:240px minmax(500px,1fr) 286px}.insert-sidebar .object-grid{grid-template-columns:1fr}}
-@media(max-width:980px){.workspace{grid-template-columns:220px minmax(480px,1fr);grid-template-rows:minmax(620px,1fr) minmax(420px,auto) 112px;height:auto}.workspace>.right{grid-column:1/-1;grid-row:2;max-height:520px}.workspace>.page-dock{grid-row:3}.workspace>.insert-sidebar{grid-row:1}.workspace>.center{grid-row:1}}
+@media(max-width:980px){.workspace{grid-template-columns:220px minmax(480px,1fr);grid-template-rows:minmax(620px,1fr) minmax(420px,auto);height:auto}.workspace>.right{grid-column:1/-1;grid-row:2;max-height:520px}.workspace>.insert-sidebar{grid-row:1}.workspace>.center{grid-row:1}.insert-sidebar>.page-dock{flex-basis:240px}}
 @media(max-width:720px){.workspace{grid-template-columns:1fr;grid-template-rows:minmax(520px,1fr)}.workspace>.center{grid-column:1;grid-row:1}}
 </style>
 <script id="workspace-layout-v38-runtime">

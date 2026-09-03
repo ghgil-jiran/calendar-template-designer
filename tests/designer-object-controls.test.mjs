@@ -12,3 +12,7 @@ assert.match(studio, /id="graphicShadowBlur"/);
 assert.match(studio, /editor-bleed-visible/);
 assert.match(studio, /--export-bleed-x-pct/);
 assert.match(studio, /clone\.classList\.remove\('editor-bleed-visible','export-crop-marks','export-guides-visible'\)/);
+assert.match(studio, /body:has\(#entryScreen:not\(\.hidden\)\) \.page\.editor-bleed-visible::before/);
+assert.match(studio, /body:has\(#designerHome:not\(\.hidden\)\) \.page\.editor-bleed-visible::after/);
+assert.match(studio, /body:has\(#templateLibraryModal:not\(\.hidden\)\) \.page\.editor-bleed-visible::before/);
+assert.match(studio, /page\?\.classList\.remove\("editor-bleed-visible","export-crop-marks","export-guides-visible"\)/);
