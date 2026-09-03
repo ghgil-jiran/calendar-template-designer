@@ -248,6 +248,9 @@
     project.template.masters.calendar ||= {};
     Object.assign(project.template.masters.calendar, {
       calendarRegion: { x: 0, y: 8, width: 100, height: 91 },
+      calendarLayout: { rowsMode: 'adaptive', columns: 7, weekStartsOn: 'sunday', regions: { titlePercent: 10, weekdayPercent: 4, dateGridPercent: 86 } },
+      calendarPreset: { schemaVersion: 'monthly-calendar-preset.v1', presetId: 'academic-boxed', presetVersion: '1.0.0', supportedRows: [5, 6] },
+      calendarOverrides: {},
       monthTitleSize: 25,
       eventMaxVisiblePerDay: 3,
       showAdjacentMonths: true,
