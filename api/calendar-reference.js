@@ -13,7 +13,7 @@ function userServiceOrigin() {
 
 export default async function handler(request, response) {
   try {
-    assertInternalAccess(request);
+    await assertInternalAccess(request);
     if (request.method !== 'GET') {
       response.setHeader('Allow', 'GET');
       response.status(405).json({ error: { code: 'bad_request', message: 'GET 요청만 지원합니다.' } });

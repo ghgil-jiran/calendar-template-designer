@@ -23,6 +23,7 @@ test('Vercel static output contains editor, design tokens, and both package type
     'canvas-selection.js',
     'desk-academic-shadow-renderer.js',
     'apps/designer-studio/index.html',
+    'apps/designer-studio/admin-auth.js',
     'apps/designer-studio/template-remote-persistence.js',
     'design-system/09-css-tokens.css',
     'templates/desk-academic-standard/1.1.0/manifest.json',

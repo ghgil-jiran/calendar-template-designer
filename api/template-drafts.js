@@ -2,7 +2,7 @@ import { assertInternalAccess, readJson, saveDraft, sendError, sendJson } from '
 
 export default async function handler(request, response) {
   try {
-    assertInternalAccess(request);
+    await assertInternalAccess(request);
     if (request.method === 'PUT' || request.method === 'POST') return sendJson(response, 200, { draft: await saveDraft(await readJson(request)) });
     response.setHeader('Allow', 'PUT, POST');
     return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' });

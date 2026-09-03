@@ -11,8 +11,7 @@ import {
 
 const originalEnv = {
   url: process.env.SUPABASE_URL,
-  key: process.env.SUPABASE_SERVICE_ROLE_KEY,
-  token: process.env.TEMPLATE_EDITOR_ACCESS_TOKEN
+  key: process.env.SUPABASE_SERVICE_ROLE_KEY
 };
 const originalFetch = globalThis.fetch;
 
@@ -23,20 +22,23 @@ function response(body, status = 200) {
 test.beforeEach(() => {
   process.env.SUPABASE_URL = 'https://project.supabase.co';
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'server-secret';
-  process.env.TEMPLATE_EDITOR_ACCESS_TOKEN = 'editor-secret';
 });
 
 test.after(() => {
   if (originalEnv.url === undefined) delete process.env.SUPABASE_URL; else process.env.SUPABASE_URL = originalEnv.url;
   if (originalEnv.key === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY; else process.env.SUPABASE_SERVICE_ROLE_KEY = originalEnv.key;
-  if (originalEnv.token === undefined) delete process.env.TEMPLATE_EDITOR_ACCESS_TOKEN; else process.env.TEMPLATE_EDITOR_ACCESS_TOKEN = originalEnv.token;
   globalThis.fetch = originalFetch;
 });
 
-test('internal API rejects a missing or incorrect access token', () => {
-  assert.throws(() => assertInternalAccess({ headers: {} }), error => error.code === 'UNAUTHORIZED');
-  assert.throws(() => assertInternalAccess({ headers: { 'x-template-editor-token': 'wrong' } }), error => error.code === 'UNAUTHORIZED');
-  assert.doesNotThrow(() => assertInternalAccess({ headers: { 'x-template-editor-token': 'editor-secret' } }));
+test('internal API accepts only an active Master Admin session', async () => {
+  await assert.rejects(() => assertInternalAccess({ headers: {} }), error => error.code === 'AUTH_REQUIRED');
+  globalThis.fetch = async url => {
+    if (url.endsWith('/auth/v1/user')) return response({ id: 'user-1', email: 'admin@example.com' });
+    if (url.includes('/template_admins?')) return response([{ user_id: 'user-1', email: 'admin@example.com', role: 'master_admin', active: true }]);
+    throw new Error(`unexpected ${url}`);
+  };
+  const user = await assertInternalAccess({ headers: { authorization: 'Bearer signed-jwt' } });
+  assert.equal(user.role, 'master_admin');
 });
 
 test('library endpoint maps one current row per template', async () => {

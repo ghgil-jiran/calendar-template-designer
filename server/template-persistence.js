@@ -1,4 +1,5 @@
-import { createHash, timingSafeEqual } from 'node:crypto';
+import { createHash } from 'node:crypto';
+import { requireMasterAdmin } from './admin-auth.js';
 
 const STATES = new Set(['draft', 'ready', 'published', 'archived']);
 const SAVE_KINDS = new Set(['manual', 'restore', 'publish']);
@@ -9,24 +10,7 @@ function env(name) {
   return value;
 }
 
-export function assertInternalAccess(request) {
-  const expected = env('TEMPLATE_EDITOR_ACCESS_TOKEN');
-  const received = String(request.headers?.['x-template-editor-token'] || '').trim();
-  const expectedBytes = Buffer.from(expected);
-  const receivedBytes = Buffer.from(received);
-  if (!received || expectedBytes.length !== receivedBytes.length || !timingSafeEqual(expectedBytes, receivedBytes)) {
-    throw Object.assign(new Error('Internal access token mismatch'), {
-      statusCode: 401,
-      code: 'UNAUTHORIZED',
-      details: {
-        tokenConfigured: Boolean(expected),
-        tokenReceived: Boolean(received),
-        expectedLength: expectedBytes.length,
-        receivedLength: receivedBytes.length,
-      },
-    });
-  }
-}
+export async function assertInternalAccess(request) { return requireMasterAdmin(request); }
 
 function supabaseConfig() {
   return { url: env('SUPABASE_URL').replace(/\/$/, ''), key: env('SUPABASE_SERVICE_ROLE_KEY') };

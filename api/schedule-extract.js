@@ -33,7 +33,7 @@ async function readBody(request) {
 
 export default async function handler(request, response) {
   try {
-    assertInternalAccess(request);
+    await assertInternalAccess(request);
     if (request.method !== 'POST') {
       response.setHeader('Allow', 'POST');
       response.status(405).json({ error: { code: 'bad_request', message: 'POST 요청만 지원합니다.' } });

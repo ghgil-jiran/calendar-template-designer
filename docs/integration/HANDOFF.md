@@ -1,5 +1,13 @@
 # Project Handoff
 
+## 2026-09-03 — Master Admin 로그인 전환
+
+- 공개 랜딩과 이메일·비밀번호 로그인 화면을 추가하고 기존 원격 접근 코드 입력 흐름을 제거했다.
+- 모든 템플릿 API는 Supabase 로그인 세션과 `template_admins.role=master_admin`, `active=true`를 함께 확인한다.
+- 배포 환경에는 기존 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`가 필요하며 `TEMPLATE_EDITOR_ACCESS_TOKEN`은 더 이상 사용하지 않는다.
+- 배포 전 `202609030001_template_master_admin.sql` 적용과 Supabase Authentication 계정·Master Admin 행 등록이 필요하다.
+- 다수 관리자 초대·역할 구분·계정 관리 화면은 후속 범위다.
+
 ## 문서 사용법
 
 이 문서는 채팅 요약이 아니라 새 채팅이 작업을 이어받기 위한 정본이다. 새 채팅을 시작하기 전 현재 채팅에서 업데이트하고 GitHub에 저장한다. 새 채팅은 기억이나 이전 답변만 믿지 않고 이 문서와 연결된 설계 문서를 먼저 확인한다.

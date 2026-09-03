@@ -63,10 +63,14 @@ test('library thumbnails cannot restore an earlier editor state', () => {
   assert.match(runtime, /original&&\(!navigation\|\|navigation\.isCurrent\(transitionId\)\)/);
 });
 
-test('entry screen explains both validation and template management flows', () => {
+test('public landing presents the template studio without a calendar creation entry', () => {
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
-  assert.match(html, /새 달력 만들기를 통해서 기존 템플릿에서 달력 만들기가 제대로 되는지 확인할 수 있습니다/);
-  assert.match(html, /달력 템플릿 만들기에서는 달력 유형을 설정하고 템플릿 만들기와 관리가 가능합니다/);
+  const landing = html.match(/<div id="entryScreen"[\s\S]*?<div id="designerHome"/)?.[0] || '';
+  assert.match(landing, /학교의 한 해를/);
+  assert.match(landing, /템플릿 라이브러리/);
+  assert.match(landing, /새 템플릿 만들기/);
+  assert.match(landing, /달력 유형 관리/);
+  assert.doesNotMatch(landing, /새 달력 만들기/);
 });
 
 test('calendar type rules disable unsupported insert controls', () => {

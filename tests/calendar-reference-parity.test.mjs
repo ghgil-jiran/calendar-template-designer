@@ -8,7 +8,7 @@ const proxy = fs.readFileSync(new URL('../api/calendar-reference.js', import.met
 
 test('템플릿 에디터가 사용자 서비스 공공 달력 API를 같은 origin 프록시로 사용한다', () => {
   assert.match(client, /\/api\/calendar-reference/);
-  assert.match(client, /x-template-editor-token/);
+  assert.match(client, /headers\.Authorization = `Bearer \$\{accessToken\}`/);
   assert.match(proxy, /\/api\/calendar\/reference\?year=/);
   assert.match(proxy, /assertInternalAccess/);
 });

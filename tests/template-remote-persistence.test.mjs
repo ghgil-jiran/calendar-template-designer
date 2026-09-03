@@ -5,9 +5,9 @@ import vm from 'node:vm';
 
 const source = await readFile(new URL('../apps/designer-studio/template-remote-persistence.js', import.meta.url), 'utf8');
 
-function runtime({ hostname = 'templates.example.com', fetch, prompt = () => 'access-code' } = {}) {
+function runtime({ hostname = 'templates.example.com', fetch, accessToken = 'admin-jwt' } = {}) {
   const values = new Map();
-  const window = { location: { hostname }, sessionStorage: { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) }, prompt, fetch };
+  const window = { location: { hostname }, sessionStorage: { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) }, ACDLAdminAuth: { accessToken: () => accessToken, signOut() {} }, fetch };
   vm.runInNewContext(source, { window, URL, console, structuredClone });
   return window.ACDLTemplateRemotePersistence;
 }
@@ -27,7 +27,7 @@ test('remote library uses one latest record per template', async () => {
   assert.equal(records[0].id, 't1');
   assert.equal(records[0].version, 7);
   assert.equal(records[0].storage, 'supabase');
-  assert.equal(calls[0].options.headers['x-template-editor-token'], 'access-code');
+  assert.equal(calls[0].options.headers.Authorization, 'Bearer admin-jwt');
 });
 
 test('remote save sends project data through the protected Vercel API', async () => {
@@ -51,11 +51,9 @@ test('package preflight checks the latest saved remote version',async()=>{
   assert.equal(result.version.versionNumber,4);
 });
 
-test('autosave never prompts for a missing access token', async () => {
-  let promptCount = 0;
-  const api = runtime({ prompt: () => { promptCount += 1; return ''; }, fetch: async () => { throw new Error('must not fetch'); } });
-  await assert.rejects(() => api.saveDraft({ templateId: 't1', projectData: {} }), error => error.code === 'ACCESS_TOKEN_REQUIRED');
-  assert.equal(promptCount, 0);
+test('autosave requires an authenticated Master Admin session', async () => {
+  const api = runtime({ accessToken: '', fetch: async () => { throw new Error('must not fetch'); } });
+  await assert.rejects(() => api.saveDraft({ templateId: 't1', projectData: {} }), error => error.code === 'AUTH_REQUIRED');
 });
 
 test('project images become stable asset references and hydrate with signed URLs', async () => {
@@ -82,35 +80,17 @@ test('a historical version hydrates private asset references for preview', async
 });
 
 
-test('non-ASCII access tokens are rejected before the browser constructs request headers', async () => {
-  let fetchCount = 0;
-  const api = runtime({
-    prompt: () => '한글-접근-코드',
-    fetch: async () => {
-      fetchCount += 1;
-      throw new Error('must not fetch');
-    }
-  });
-  await assert.rejects(
-    () => api.list(),
-    error => error.code === 'INVALID_ACCESS_TOKEN' && /영문·숫자·기호/.test(error.message)
-  );
-  assert.equal(fetchCount, 0);
-  assert.equal(api.hasToken(), false);
-});
-
-
-test('a 64-character hexadecimal access token reaches the request header unchanged', async () => {
-  const accessToken = 'a1'.repeat(32);
+test('the Supabase access token reaches the Authorization header unchanged', async () => {
+  const accessToken = 'signed.supabase.jwt';
   let received;
   const api = runtime({
-    prompt: () => accessToken,
+    accessToken,
     fetch: async (path, options) => {
-      received = options.headers['x-template-editor-token'];
+      received = options.headers.Authorization;
       return { ok: true, status: 200, json: async () => ({ templates: [] }) };
     }
   });
   await api.list();
-  assert.equal(received, accessToken);
-  assert.equal(api.hasToken(), true);
+  assert.equal(received, `Bearer ${accessToken}`);
+  assert.equal(api.hasSession(), true);
 });

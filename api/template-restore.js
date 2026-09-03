@@ -2,7 +2,7 @@ import { assertInternalAccess, readJson, restoreVersion, sendError, sendJson } f
 
 export default async function handler(request, response) {
   try {
-    assertInternalAccess(request);
+    await assertInternalAccess(request);
     if (request.method !== 'POST') {
       response.setHeader('Allow', 'POST');
       return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' });

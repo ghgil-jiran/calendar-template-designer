@@ -47,19 +47,16 @@
       const headers = {};
       if (guarded) {
         const accessToken = root.ACDLTemplateRemotePersistence?.accessToken?.();
-        if (!accessToken) throw new Error('템플릿 에디터 원격 저장 접근 코드가 필요합니다.');
-        headers['x-template-editor-token'] = accessToken;
+        if (!accessToken) throw new Error('Master Admin 로그인이 필요합니다.');
+        headers.Authorization = `Bearer ${accessToken}`;
       }
       return fetch(target, { method: 'POST', headers, body: form });
     };
-    let response = await request();
-    if (response.status === 401 && guarded) {
-      root.ACDLTemplateRemotePersistence?.clearAccessToken?.();
-      response = await request();
-    }
+    const response = await request();
+    if (response.status === 401 && guarded) root.ACDLAdminAuth?.signOut?.();
     const body = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const message = body?.error?.message || (response.status === 401 ? '템플릿 에디터 접근 코드가 일치하지 않습니다.' : `일정 추출 API 오류 (${response.status})`);
+      const message = body?.error?.message || (response.status === 401 ? '로그인이 만료되었습니다. 다시 로그인해주세요.' : `일정 추출 API 오류 (${response.status})`);
       throw new Error(message);
     }
     if (!Array.isArray(body.schedules)) throw new Error('일정 추출 API 응답에 schedules 배열이 없습니다.');
@@ -97,13 +94,13 @@
     const headers = {};
     if (guarded) {
       const accessToken = root.ACDLTemplateRemotePersistence?.accessToken?.();
-      if (!accessToken) throw new Error('템플릿 에디터 원격 저장 접근 코드가 필요합니다.');
-      headers['x-template-editor-token'] = accessToken;
+      if (!accessToken) throw new Error('Master Admin 로그인이 필요합니다.');
+      headers.Authorization = `Bearer ${accessToken}`;
     }
     const response = await fetch(target, { headers });
     const body = await response.json().catch(() => ({}));
     if (!response.ok || body?.ok === false) {
-      const message = body?.error?.message || (response.status === 401 ? '템플릿 에디터 접근 코드가 일치하지 않습니다.' : `공공 달력 API 오류 (${response.status})`);
+      const message = body?.error?.message || (response.status === 401 ? '로그인이 만료되었습니다. 다시 로그인해주세요.' : `공공 달력 API 오류 (${response.status})`);
       throw new Error(message);
     }
     return body;

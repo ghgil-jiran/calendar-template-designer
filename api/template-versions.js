@@ -2,7 +2,7 @@ import { assertInternalAccess, listVersions, sendError, sendJson } from '../serv
 
 export default async function handler(request, response) {
   try {
-    assertInternalAccess(request);
+    await assertInternalAccess(request);
     if (request.method !== 'GET') {
       response.setHeader('Allow', 'GET');
       return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' });

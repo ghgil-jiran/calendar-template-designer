@@ -7,16 +7,17 @@ import handler from '../api/schedule-extract.js';
 
 const originalEnv = {
   origin: process.env.USER_SERVICE_ORIGIN,
-  token: process.env.TEMPLATE_EDITOR_ACCESS_TOKEN
+  url: process.env.SUPABASE_URL,
+  key: process.env.SUPABASE_SERVICE_ROLE_KEY
 };
 const originalFetch = globalThis.fetch;
 
-function request({ token = 'shared-editor-token', body = 'multipart-payload' } = {}) {
+function request({ token = 'signed-admin-jwt', body = 'multipart-payload' } = {}) {
   const stream = Readable.from([Buffer.from(body)]);
   stream.method = 'POST';
   stream.headers = {
     'content-type': 'multipart/form-data; boundary=calendar-test',
-    ...(token ? { 'x-template-editor-token': token } : {})
+    ...(token ? { authorization: `Bearer ${token}` } : {})
   };
   return stream;
 }
@@ -35,20 +36,23 @@ function response() {
 
 test.beforeEach(() => {
   process.env.USER_SERVICE_ORIGIN = 'https://school-calendar-editor-service.example/';
-  process.env.TEMPLATE_EDITOR_ACCESS_TOKEN = 'shared-editor-token';
+  process.env.SUPABASE_URL = 'https://project.supabase.co';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-secret';
 });
 
 test.after(() => {
   if (originalEnv.origin === undefined) delete process.env.USER_SERVICE_ORIGIN;
   else process.env.USER_SERVICE_ORIGIN = originalEnv.origin;
-  if (originalEnv.token === undefined) delete process.env.TEMPLATE_EDITOR_ACCESS_TOKEN;
-  else process.env.TEMPLATE_EDITOR_ACCESS_TOKEN = originalEnv.token;
+  if (originalEnv.url === undefined) delete process.env.SUPABASE_URL; else process.env.SUPABASE_URL = originalEnv.url;
+  if (originalEnv.key === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY; else process.env.SUPABASE_SERVICE_ROLE_KEY = originalEnv.key;
   globalThis.fetch = originalFetch;
 });
 
 test('deployed proxy authenticates and forwards the untouched multipart body to the shared User Service module', async () => {
   let upstreamRequest;
   globalThis.fetch = async (url, options) => {
+    if (url === 'https://project.supabase.co/auth/v1/user') return { ok: true, status: 200, text: async () => JSON.stringify({ id: 'admin-1', email: 'admin@example.com' }) };
+    if (url.startsWith('https://project.supabase.co/rest/v1/template_admins?')) return { ok: true, status: 200, text: async () => JSON.stringify([{ user_id: 'admin-1', role: 'master_admin', active: true }]) };
     upstreamRequest = { url, options };
     return {
       status: 200,
@@ -72,18 +76,14 @@ test('deployed proxy authenticates and forwards the untouched multipart body to 
   assert.equal(res.headers['cache-control'], 'no-store');
 });
 
-test('proxy authentication diagnostics never disclose either access-token value', async () => {
+test('proxy rejects a missing Master Admin session without disclosing credentials', async () => {
   const res = response();
-  await handler(request({ token: 'wrong-token' }), res);
+  await handler(request({ token: '' }), res);
 
   assert.equal(res.statusCode, 401);
   const body = JSON.parse(res.body);
-  assert.equal(body.error, 'UNAUTHORIZED');
-  assert.equal(body.details.tokenConfigured, true);
-  assert.equal(body.details.tokenReceived, true);
-  assert.equal(body.details.expectedLength, 'shared-editor-token'.length);
-  assert.equal(body.details.receivedLength, 'wrong-token'.length);
-  assert.doesNotMatch(res.body, /shared-editor-token|wrong-token/);
+  assert.equal(body.error, 'AUTH_REQUIRED');
+  assert.doesNotMatch(res.body, /signed-admin-jwt|service-secret/);
 });
 
 test('proxy refuses deployment without a fixed HTTPS User Service origin', async () => {
@@ -94,7 +94,7 @@ test('proxy refuses deployment without a fixed HTTPS User Service origin', async
   assert.equal(JSON.parse(res.body).error, 'SCHEDULE_API_NOT_CONFIGURED');
 });
 
-test('remote browser client uses same-origin proxy and the remote-persistence access token', async () => {
+test('remote browser client uses same-origin proxy and the Master Admin access token', async () => {
   const source = await readFile(new URL('../apps/designer-studio/schedule-api-client.js', import.meta.url), 'utf8');
   let captured;
   const context = {
@@ -104,8 +104,7 @@ test('remote browser client uses same-origin proxy and the remote-persistence ac
     FormData,
     location: { hostname: 'calendar-template-designer.vercel.app', origin: 'https://calendar-template-designer.vercel.app' },
     ACDLTemplateRemotePersistence: {
-      accessToken: () => 'shared-editor-token',
-      clearAccessToken: () => { throw new Error('must not clear a valid token'); }
+      accessToken: () => 'signed-admin-jwt'
     },
     fetch: async (url, options) => {
       captured = { url, options };
@@ -123,6 +122,6 @@ test('remote browser client uses same-origin proxy and the remote-persistence ac
 
   assert.equal(captured.url, 'https://calendar-template-designer.vercel.app/api/schedule-extract');
   assert.equal(captured.options.method, 'POST');
-  assert.equal(captured.options.headers['x-template-editor-token'], 'shared-editor-token');
+  assert.equal(captured.options.headers.Authorization, 'Bearer signed-admin-jwt');
   assert.equal(result.total, 0);
 });

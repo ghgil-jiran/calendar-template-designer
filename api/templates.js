@@ -2,7 +2,7 @@ import { assertInternalAccess, getTemplate, listTemplates, readJson, saveVersion
 
 export default async function handler(request, response) {
   try {
-    assertInternalAccess(request);
+    await assertInternalAccess(request);
     if (request.method === 'GET') {
       const templateId = new URL(request.url, 'http://localhost').searchParams.get('id');
       return sendJson(response, 200, templateId ? await getTemplate(templateId) : { templates: await listTemplates() });

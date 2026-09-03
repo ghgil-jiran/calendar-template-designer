@@ -1,25 +1,20 @@
 (function(root){
- const TOKEN_KEY='acdl.templateRemoteAccessToken';
  const signedToMarker=new Map();
  const isRemote=()=>!['localhost','127.0.0.1',''].includes(root.location?.hostname||'');
- const token=()=>{try{return String(root.sessionStorage.getItem(TOKEN_KEY)||'').trim()}catch{return''}};
- const clearToken=()=>{try{root.sessionStorage.removeItem(TOKEN_KEY)}catch{}};
- const validToken=value=>/^[\x21-\x7E]+$/.test(value);
- function invalidToken(){return Object.assign(new Error('접근 코드는 공백 없는 영문·숫자·기호만 사용할 수 있습니다. 저장된 접근 코드를 지우고 다시 입력해주세요.'),{code:'INVALID_ACCESS_TOKEN'})}
- function requestToken(){let value=token();if(value&&!validToken(value)){clearToken();value=''}if(value||!isRemote())return value;value=String(root.prompt?.('템플릿 원격 저장 접근 코드를 입력하세요.')||'').trim();if(value&&!validToken(value))throw invalidToken();if(value)try{root.sessionStorage.setItem(TOKEN_KEY,value)}catch{}return value}
- async function request(path,options={},interactive=true){
+ const accessToken=()=>root.ACDLAdminAuth?.accessToken?.()||'';
+ async function request(path,options={}){
   if(!isRemote())throw Object.assign(new Error('로컬 환경에서는 브라우저 저장을 사용합니다.'),{code:'REMOTE_DISABLED'});
-  const accessToken=interactive?requestToken():token();if(!accessToken)throw Object.assign(new Error('원격 저장 접근 코드가 필요합니다.'),{code:'ACCESS_TOKEN_REQUIRED'});
-  const response=await root.fetch(path,{...options,headers:{'Content-Type':'application/json','x-template-editor-token':accessToken,...options.headers}}),body=await response.json().catch(()=>({}));
-  if(!response.ok){if(response.status===401)clearToken();throw Object.assign(new Error(response.status===401?'접근 코드를 확인해주세요.':response.status===503?'원격 저장 환경 설정이 필요합니다.':'원격 저장 요청에 실패했습니다.'),{code:body.error||'REMOTE_REQUEST_FAILED',status:response.status})}
+  const token=accessToken();if(!token)throw Object.assign(new Error('Master Admin 로그인이 필요합니다.'),{code:'AUTH_REQUIRED'});
+  const response=await root.fetch(path,{...options,headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`,...options.headers}}),body=await response.json().catch(()=>({}));
+  if(!response.ok){if(response.status===401)root.ACDLAdminAuth?.signOut?.();throw Object.assign(new Error(response.status===401?'로그인이 만료되었습니다. 다시 로그인해주세요.':response.status===403?'Master Admin 권한이 필요합니다.':response.status===503?'원격 저장 환경 설정이 필요합니다.':'원격 저장 요청에 실패했습니다.'),{code:body.error||'REMOTE_REQUEST_FAILED',status:response.status})}
   return body;
  }
  function record(item){return {id:item.id,remoteId:item.id,stableKey:item.stableKey,name:item.name,description:item.description,edition:item.edition,state:item.state,type:item.productType,template:item.templateKey,version:item.latestVersionNumber,updatedAt:item.updatedAt,storage:'supabase',source:'local'}}
  function visit(value,callback){if(typeof value==='string'){callback(value);return}if(Array.isArray(value)){value.forEach(item=>visit(item,callback));return}if(value&&typeof value==='object')Object.values(value).forEach(item=>visit(item,callback))}
  function replace(value,replacements){if(typeof value==='string')return replacements.get(value)||value;if(Array.isArray(value))return value.map(item=>replace(item,replacements));if(value&&typeof value==='object'){for(const key of Object.keys(value))value[key]=replace(value[key],replacements);return value}return value}
- async function prepareProjectData(projectData,interactive=true){
+ async function prepareProjectData(projectData){
   const copy=structuredClone(projectData),images=new Set();visit(copy,value=>{if(value.startsWith('data:image/'))images.add(value)});const replacements=new Map(signedToMarker);
-  for(const dataUrl of images){const result=await request('/api/template-assets',{method:'POST',body:JSON.stringify({dataUrl})},interactive);replacements.set(dataUrl,`acdl-asset://${result.asset.id}`)}
+  for(const dataUrl of images){const result=await request('/api/template-assets',{method:'POST',body:JSON.stringify({dataUrl})});replacements.set(dataUrl,`acdl-asset://${result.asset.id}`)}
   return replace(copy,replacements);
  }
  async function hydrateProjectData(projectData){
@@ -30,10 +25,10 @@
  async function list(){const body=await request('/api/templates');return (body.templates||[]).map(record)}
  async function load(id){const result=await request(`/api/templates?id=${encodeURIComponent(id)}`);if(result?.version?.projectData)result.version.projectData=await hydrateProjectData(result.version.projectData);return result}
  async function save(input){const projectData=await prepareProjectData(input.projectData);return request('/api/templates',{method:'POST',body:JSON.stringify({...input,projectData})})}
- async function saveDraft(input){const projectData=await prepareProjectData(input.projectData,false);return request('/api/template-drafts',{method:'PUT',body:JSON.stringify({...input,projectData})},false)}
+ async function saveDraft(input){const projectData=await prepareProjectData(input.projectData);return request('/api/template-drafts',{method:'PUT',body:JSON.stringify({...input,projectData})})}
  async function versions(templateId){return request(`/api/template-versions?templateId=${encodeURIComponent(templateId)}`)}
  async function hydrateVersion(version){return version?.projectData?{...version,projectData:await hydrateProjectData(version.projectData)}:version}
  async function restore(templateId,versionId,saveNote){return request('/api/template-restore',{method:'POST',body:JSON.stringify({templateId,versionId,saveNote})})}
  async function packagePreflight(templateId){return request(`/api/template-package-preflight?templateId=${encodeURIComponent(templateId)}`)}
- root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasToken:()=>Boolean(token()),accessToken:requestToken,clearAccessToken:clearToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,prepareProjectData,hydrateProjectData});
+ root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,prepareProjectData,hydrateProjectData});
 })(window);
