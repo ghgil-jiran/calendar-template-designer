@@ -3,7 +3,7 @@
   const pastel = ['#dff4ee', '#fff0df', '#fde6ee', '#e7edf9', '#e4f7fc', '#eee9f8', '#fff0df', '#f4e9e1', '#e4f7fc', '#eee9f8', '#fde6ee', '#edf0f5'];
   const protectedPlannerPermissions = { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false };
   const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 13 };
-  const deskImageCalendarReview = { catalogId: 'tpl-2028-desk-image-calendar-review-02', templateKey: 'desk-sample-3', documentVersion: 2 };
+  const deskImageCalendarReview = { catalogId: 'tpl-2028-desk-image-calendar-review-02', templateKey: 'desk-sample-3', documentVersion: 3 };
   const sampleThreePhotoAssets = [
     'assets/sample-three/school-building.webp', 'assets/sample-three/students.webp', 'assets/sample-three/spring-field.webp',
     'assets/sample-three/travel.webp', 'assets/sample-three/bicycle.webp', 'assets/sample-three/summer.webp',
@@ -123,12 +123,39 @@
       { id: 'master.sample-3.photo.large', type: 'image-frame', role: 'monthly-image', x: 6.5, y: 15, width: 26.5, height: 75, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', src: sampleThreePhotoAssets[0], fit: 'cover', focalPoint: { x: .18, y: .5 } }, fit: 'cover', style: { borderRadius: 0 } },
       { id: 'master.sample-3.photo.top', type: 'image-frame', role: 'monthly-image-secondary', x: 33.7, y: 15, width: 26.3, height: 37, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', src: sampleThreePhotoAssets[1], fit: 'cover', focalPoint: { x: .55, y: .22 } }, fit: 'cover', style: { borderRadius: 0 } },
       { id: 'master.sample-3.photo.bottom', type: 'image-frame', role: 'monthly-image-tertiary', x: 33.7, y: 53, width: 26.3, height: 37, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', src: sampleThreePhotoAssets[2], fit: 'cover', focalPoint: { x: .62, y: .78 } }, fit: 'cover', style: { borderRadius: 0 } },
-      { id: 'master.sample-3.calendar.current', type: 'mini-calendar', role: 'mini-calendar-current', x: 63, y: 27, width: 30, height: 34, zIndex: 2, monthSource: 'page', showWeekdayHeader: true, style: { background: false, primary: '#293878', sunday: '#ef3340' } },
+      { id: 'master.sample-3.calendar.current', type: 'mini-calendar', role: 'mini-calendar-current', x: 63, y: 25, width: 30, height: 30, zIndex: 2, monthSource: 'page', showWeekdayHeader: false, monthLabelStyle: 'number-en', style: { background: false, primary: '#293878', sunday: '#ef3340' } },
       { id: 'master.sample-3.divider.top', type: 'shape', role: 'calendar-divider', shapeType: 'rect', x: 63, y: 65.5, width: 30, height: .4, zIndex: 1, style: { fill: '#e4e9f2', stroke: 'transparent', strokeWidth: 0 } },
-      { id: 'master.sample-3.calendar.prev', type: 'mini-calendar-prev', role: 'mini-calendar-prev', x: 63, y: 70, width: 14.2, height: 18, zIndex: 2, showWeekdayHeader: false, style: { background: false, primary: '#293878', sunday: '#ef3340' } },
-      { id: 'master.sample-3.calendar.next', type: 'mini-calendar-next', role: 'mini-calendar-next', x: 78.8, y: 70, width: 14.2, height: 18, zIndex: 2, showWeekdayHeader: false, style: { background: false, primary: '#293878', sunday: '#ef3340' } },
+      { id: 'master.sample-3.calendar.prev', type: 'mini-calendar-prev', role: 'mini-calendar-prev', x: 63, y: 70, width: 14.2, height: 18, zIndex: 2, showWeekdayHeader: false, monthLabelStyle: 'number-en', style: { background: false, primary: '#293878', sunday: '#ef3340' } },
+      { id: 'master.sample-3.calendar.next', type: 'mini-calendar-next', role: 'mini-calendar-next', x: 78.8, y: 70, width: 14.2, height: 18, zIndex: 2, showWeekdayHeader: false, monthLabelStyle: 'number-en', style: { background: false, primary: '#293878', sunday: '#ef3340' } },
       { id: 'master.sample-3.divider.bottom', type: 'shape', role: 'calendar-divider', shapeType: 'rect', x: 63, y: 89.5, width: 30, height: .4, zIndex: 1, style: { fill: '#e4e9f2', stroke: 'transparent', strokeWidth: 0 } }
     ];
+  }
+
+  function createSampleThreeCalendarMasterElements() {
+    return [
+      { id: 'master.sample-3.calendar.motto', type: 'text', role: 'school-motto-text', binding: 'school.profile.motto.description', x: 4, y: 3.4, width: 27, height: 3.2, zIndex: 8, content: '슬기롭게, 화목하게, 튼튼하게', style: { fontSize: 7.5, fontWeight: 800, textAlign: 'left', background: false, color: '#ef536a' } },
+      { id: 'master.sample-3.calendar.slogan', type: 'text', role: 'school-slogan', binding: 'school.slogan', x: 4, y: 6.6, width: 29, height: 4.2, zIndex: 8, content: '사랑을 실천하는 교육', style: { fontSize: 10.5, fontWeight: 800, textAlign: 'left', background: false, color: '#293878' } },
+      { id: 'master.sample-3.calendar.logo', type: 'semantic-object', role: 'school-logo', x: 84, y: 3.6, width: 12, height: 7, zIndex: 8, binding: 'school.profile.logo', bindingEnabled: true, fallbackToSample: true, showCaption: false, sampleContent: { image: 'assets/sample-school/jiran-logo-composite.svg' }, style: {} }
+    ];
+  }
+
+  function applySampleThreeDetailParity(project) {
+    project.template.masterElements ||= {};
+    project.template.masterElements['master.monthly.front'] = createSampleThreeCalendarMasterElements();
+    const calendar = project.template.masters.calendar;
+    calendar.calendarRegion = { x: 3.8, y: 2.8, width: 92.4, height: 92 };
+    calendar.monthTitleSize = 27;
+    calendar.calendarLayout = { rowsMode: 'adaptive', columns: 7, weekStartsOn: 'sunday', regions: { titlePercent: 16, weekdayPercent: 5, dateGridPercent: 79 } };
+    const yearlyPage = project.book.pageInstances.find(page => page.role === 'cover-back');
+    const yearly = yearlyPage && (project.book.elementsByPage[yearlyPage.id] || []).find(item => item.type === 'year-calendar');
+    if (yearly) Object.assign(yearly, { startMonth: 1, monthCount: 12, columns: 4, rowsMode: 'adaptive', showWeekdayHeader: false, monthLabelStyle: 'number-en' });
+    const backPage = project.book.pageInstances.find(page => page.role === 'back-cover-back');
+    if (backPage) {
+      const elements = project.book.elementsByPage[backPage.id] || [];
+      if (!elements.some(item => item.id === 'page.sample-3.back.school')) elements.push({ id: 'page.sample-3.back.school', type: 'text', role: 'school-name', binding: 'school.name', x: 38, y: 84, width: 24, height: 4, zIndex: 3, content: '지란중학교', style: { fontSize: 10, fontWeight: 800, textAlign: 'center', background: false, color: '#293878' } });
+      if (!elements.some(item => item.id === 'page.sample-3.back.website')) elements.push({ id: 'page.sample-3.back.website', type: 'text', role: 'school-contact', binding: 'school.website', x: 62, y: 91, width: 13, height: 3, zIndex: 3, content: 'schoolp.co.kr', style: { fontSize: 7, textAlign: 'left', background: false, color: '#303030' } });
+    }
+    (project.book.monthlyStyleOverrides || []).forEach(item => { item.tokens.plannerBackground = '#ffffff'; });
   }
 
   function createSampleThreeMonthlyPhotoOverrides(monthIndex) {
@@ -444,6 +471,11 @@
       project.template.documentVersion = deskImageCalendarReview.documentVersion;
       applied.push('desk-sample-3-photo-layouts-v2', 'desk-sample-3-document-version-2');
     }
+    if (fromVersion < 3) {
+      applySampleThreeDetailParity(project);
+      project.template.documentVersion = deskImageCalendarReview.documentVersion;
+      applied.push('desk-sample-3-calendar-details-v3', 'desk-sample-3-document-version-3');
+    }
     const report = { applied, source: deskImageCalendarReview.catalogId, fromVersion, toVersion: deskImageCalendarReview.documentVersion };
     project.template.migrationReport = report;
     return { project, report };
@@ -562,6 +594,7 @@
     if (isSampleThree) {
       applySampleThreeSpecialSurfaces(project, Number(options.year), Number(options.startMonth));
       applySampleThreeMonthlyPhotoPages(project);
+      applySampleThreeDetailParity(project);
     }
     const coverFront = project.book.pageInstances.find(page => page.role === 'cover-front');
     if (isPlanner && coverFront) {
@@ -625,7 +658,7 @@
       }
       if (page.role === 'back-cover-back' && !page.semanticPageRole) page.semanticPageRole = 'back-cover';
     });
-    project.book.monthlyStyleOverrides = months.map((page, index) => ({ monthKey: page.monthKey, tokens: { primary: palette[index], accent: palette[index], calendarHeader: palette[index], plannerBackground: pastel[index] } }));
+    project.book.monthlyStyleOverrides = months.map((page, index) => ({ monthKey: page.monthKey, tokens: { primary: palette[index], accent: palette[index], calendarHeader: palette[index], plannerBackground: isSampleThree ? '#ffffff' : pastel[index] } }));
     project.book.monthlyImages = Object.fromEntries(months.map(page => [page.monthKey, '']));
     return project;
   }

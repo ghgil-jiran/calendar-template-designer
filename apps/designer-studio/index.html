@@ -60,6 +60,10 @@
 .mini-grid{flex:1;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:auto repeat(var(--mini-calendar-rows,6),1fr);font-size:7px;text-align:center}
 .mini-grid span{display:flex;align-items:center;justify-content:center;min-width:0}
 .mini-grid .mh{font-weight:700;background:#f2f4f7}
+.page[data-standard-family="desk-3"] .widget-mini-calendar{background:transparent;border:0;border-radius:0;padding:0;color:#293878}
+.page[data-standard-family="desk-3"] .widget-mini-calendar strong{text-align:left;font-size:13px;line-height:1;margin-bottom:5px;color:var(--month-primary,#293878);letter-spacing:.02em}
+.page[data-standard-family="desk-3"] .mini-grid{font-size:7.5px;gap:1px 2px}
+.page[data-standard-family="desk-3"] .mini-grid .mh{background:transparent;color:#7a8291}
 .widget-memo{width:100%;height:100%;background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:6px;padding:7px;display:flex;flex-direction:column}
 .widget-memo strong{font-size:12px;margin-bottom:5px}
 .memo-lines{flex:1;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(12.5% - 1px),#cfd5df calc(12.5% - 1px),#cfd5df 12.5%)}
@@ -1072,15 +1076,16 @@ function renderWidgetContent(view,p){
   const offset=view.type==="mini-calendar-prev"?-1:view.type==="mini-calendar-next"?1:0;
   const baseYear=Number(p.calendarYear||project.settings.year),baseMonth=Number(p.calendarMonth||project.settings.startMonth||1),target=new Date(baseYear,baseMonth-1+offset,1),year=target.getFullYear(),month=target.getMonth()+1;
   const rows=calendarRowCountFor(year,month);
-  let inner=`<div class="widget-mini-calendar"><strong>${year}년 ${month}월</strong><div class="mini-grid" style="--mini-calendar-rows:${rows}">`;
-  weekDayHeaders().forEach(x=>inner+=`<span class="mh">${x}</span>`);
+  const monthNames=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"],label=view.monthLabelStyle==="number-en"?`${month} <small>${monthNames[month-1]}</small>`:`${year}년 ${month}월`,weekdayRows=view.showWeekdayHeader===false?"":"auto ";
+  let inner=`<div class="widget-mini-calendar"><strong>${label}</strong><div class="mini-grid" style="--mini-calendar-rows:${rows};grid-template-rows:${weekdayRows}repeat(${rows},1fr)">`;
+  if(view.showWeekdayHeader!==false)weekDayHeaders().forEach(x=>inner+=`<span class="mh">${x}</span>`);
   calendarGridFor(year,month,rows).forEach(c=>inner+=`<span class="${c.month!==month?"adj":""}">${c.day}${c.extra?` · ${c.extra.day}`:""}</span>`);
   return inner+"</div></div>"
  }
  if(view.type==="year-calendar"){
   const cols=Number(view.columns||4),count=Number(view.monthCount||12),start=Number(view.startMonth||1),seq=monthSequence(p.calendarYear||project.settings.year,start).slice(0,count);
   let inner=`<div class="year-calendar-object" style="--year-cols:${cols};--year-rows:${Math.ceil(count/cols)}">`;
-  seq.forEach(mm=>{const rows=yearCalendarRowCountFor(view,mm.year,mm.month);inner+=`<div class="year-month"><strong>${mm.month}월</strong><div class="year-month-grid" style="--year-calendar-rows:${rows}">`;weekDayHeaders(true).forEach(x=>inner+=`<span class="mh">${x}</span>`);calendarGridFor(mm.year,mm.month,rows).forEach(c=>inner+=`<span class="${c.month!==mm.month?"adj":""}">${c.day}</span>`);inner+=`</div></div>`});
+  seq.forEach(mm=>{const rows=yearCalendarRowCountFor(view,mm.year,mm.month),monthNames=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"],label=view.monthLabelStyle==="number-en"?`${mm.month} <small>${monthNames[mm.month-1]}</small>`:`${mm.month}월`,weekdayRows=view.showWeekdayHeader===false?"":"auto ";inner+=`<div class="year-month"><strong>${label}</strong><div class="year-month-grid" style="--year-calendar-rows:${rows};grid-template-rows:${weekdayRows}repeat(${rows},1fr)">`;if(view.showWeekdayHeader!==false)weekDayHeaders(true).forEach(x=>inner+=`<span class="mh">${x}</span>`);calendarGridFor(mm.year,mm.month,rows).forEach(c=>inner+=`<span class="${c.month!==mm.month?"adj":""}">${c.day}</span>`);inner+=`</div></div>`});
   return inner+"</div>"
  }
  if(view.type==="month-date-strip"){
@@ -3427,7 +3432,7 @@ body.user-mode #templateSettingsBtn{display:inline-flex!important}
     const cols=Number(view.columns||4),count=Number(view.monthCount||12),start=Number(view.startMonth||1),seq=monthSequence(p.calendarYear||project.settings.year,start).slice(0,count);
     const byDate={};(project.book.events||[]).forEach(ev=>{(byDate[ev.startDate]||=[]).push(ev)});
     let inner=`<div class="year-calendar-object" style="--year-cols:${cols};--year-rows:${Math.ceil(count/cols)}">`;
-    seq.forEach(mm=>{const rows=yearCalendarRowCountFor(view,mm.year,mm.month);inner+=`<div class="year-month"><strong>${mm.month}월</strong><div class="year-month-grid" style="--year-calendar-rows:${rows}">`;weekDayHeaders(true).forEach(x=>inner+=`<span class="mh">${x}</span>`);calendarGridFor(mm.year,mm.month,rows).forEach(c=>{const date=`${c.year}-${String(c.month).padStart(2,'0')}-${String(c.day).padStart(2,'0')}`,evs=byDate[date]||[],holiday=evs.some(e=>e.category==='holiday'),dow=new Date(c.year,c.month-1,c.day).getDay(),cls=[c.month!==mm.month?'adj':'','year-day',dow===0?'sun':dow===6?'sat':'',holiday?'holiday':''].filter(Boolean).join(' '),dot=evs.length?`<i class="year-event-dot" style="--event-dot:${eventColor(evs[0])}" title="${evs.map(e=>v21Escape(e.title)).join(' · ')}"></i>${evs.length>1?`<b class="year-event-count">${evs.length}</b>`:''}`:'';inner+=`<span class="${cls}">${c.day}${dot}</span>`});inner+='</div></div>'});
+    seq.forEach(mm=>{const rows=yearCalendarRowCountFor(view,mm.year,mm.month),monthNames=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'],label=view.monthLabelStyle==='number-en'?`${mm.month} <small>${monthNames[mm.month-1]}</small>`:`${mm.month}월`,weekdayRows=view.showWeekdayHeader===false?'':'auto ';inner+=`<div class="year-month"><strong>${label}</strong><div class="year-month-grid" style="--year-calendar-rows:${rows};grid-template-rows:${weekdayRows}repeat(${rows},1fr)">`;if(view.showWeekdayHeader!==false)weekDayHeaders(true).forEach(x=>inner+=`<span class="mh">${x}</span>`);calendarGridFor(mm.year,mm.month,rows).forEach(c=>{const date=`${c.year}-${String(c.month).padStart(2,'0')}-${String(c.day).padStart(2,'0')}`,evs=byDate[date]||[],holiday=evs.some(e=>e.category==='holiday'),dow=new Date(c.year,c.month-1,c.day).getDay(),cls=[c.month!==mm.month?'adj':'','year-day',dow===0?'sun':dow===6?'sat':'',holiday?'holiday':''].filter(Boolean).join(' '),dot=evs.length?`<i class="year-event-dot" style="--event-dot:${eventColor(evs[0])}" title="${evs.map(e=>v21Escape(e.title)).join(' · ')}"></i>${evs.length>1?`<b class="year-event-count">${evs.length}</b>`:''}`:'';inner+=`<span class="${cls}">${c.day}${dot}</span>`});inner+='</div></div>'});
     return inner+'</div>';
   };
 
@@ -4440,6 +4445,13 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .page[data-standard-family="desk-6"][data-surface-role="cover-back"] .year-month-grid{font-size:6.2px;gap:1px}
 .page[data-standard-family="desk-6"][data-surface-role="cover-back"] .year-month-grid .mh{background:transparent;color:#8b929b;font-weight:600}
 .page[data-standard-family="desk-6"][data-surface-role="cover-back"] .year-month-grid .sun{color:#e35454}.page[data-standard-family="desk-6"][data-surface-role="cover-back"] .year-month-grid .sat{color:#4f84d8}
+.page[data-standard-family="desk-3"][data-surface-role="cover-back"] .year-calendar-object{gap:14px 32px;padding:0;background:transparent;border:0;border-radius:0}
+.page[data-standard-family="desk-3"][data-surface-role="cover-back"] .year-month{border:0;border-radius:0;overflow:visible;background:transparent}
+.page[data-standard-family="desk-3"][data-surface-role="cover-back"] .year-month>strong{padding:0 0 4px;background:transparent;color:#293878;text-align:left;font-size:10px;font-weight:900}
+.page[data-standard-family="desk-3"][data-surface-role="cover-back"] .year-month>strong small{font-size:6px;font-weight:750;color:#6b7280}
+.page[data-standard-family="desk-3"][data-surface-role="cover-back"] .year-month-grid{font-size:6.2px;gap:1px 2px}
+.page[data-standard-family="desk-3"][data-surface-role="cover-back"] .year-month-grid .mh{background:transparent;color:#8b929b;font-weight:600}
+.page[data-standard-family="desk-3"][data-surface-role="cover-back"] .year-month-grid .sun{color:#ef536a}.page[data-standard-family="desk-3"][data-surface-role="cover-back"] .year-month-grid .sat{color:#4777bd}
 .page[data-standard-family="desk-6"][data-surface-role="front-insert-front"] .surface-content{outline:0}
 .page[data-standard-family="desk-6"][data-surface-role="front-insert-front"] .semantic-object{background:transparent!important;border-radius:0;overflow:visible}
 .page[data-standard-family="desk-6"][data-surface-role="front-insert-front"] .desk-six-symbol-card{gap:6px;align-items:center;text-align:center}

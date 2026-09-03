@@ -31,7 +31,10 @@ test('monthly calendar rendering uses the active product type region', () => {
 test('monthly calendar uses sample-measured fixed vertical ratios', () => {
   assert.match(html, /function calendarVerticalLayout\(design=/);
   assert.match(html, /"sample-6":\{title:10,weekday:4,grid:86\}/);
-  assert.match(html, /"sample-3":\{title:21,weekday:4,grid:75\}/);
+assert.match(html, /"sample-3":\{title:21,weekday:4,grid:75\}/);
+assert.match(html, /data-standard-family="desk-3"\] \.widget-mini-calendar\{background:transparent;border:0/);
+assert.match(html, /view\.monthLabelStyle==="number-en"/);
+assert.match(html, /view\.showWeekdayHeader!==false/);
   assert.match(html, /--calendar-title-share:\$\{vertical\.title\}%/);
   assert.match(html, /--calendar-weekday-stage-share:\$\{vertical\.weekdayStage\}%/);
   assert.doesNotMatch(html, /function calendarVerticalMetrics\(rows\)/);
