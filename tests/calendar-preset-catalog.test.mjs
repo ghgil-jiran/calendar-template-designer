@@ -5,6 +5,20 @@ await import('../apps/designer-studio/calendar-preset-catalog.js');
 
 const catalog = globalThis.ACDLCalendarPresetCatalog;
 
+test('grid presentation catalog exposes four date-cell structures for five and six rows', () => {
+  assert.deepEqual(Object.keys(catalog.gridPresentations), ['boxed', 'open-rows', 'minimal', 'detached-cards']);
+  Object.values(catalog.gridPresentations).forEach(grid => assert.deepEqual([...grid.supportedRows], [5, 6]));
+  assert.equal(catalog.gridPresentations['open-rows'].source, '월력-날짜 격자 디자인 1.pdf');
+  assert.equal(catalog.gridPresentations.minimal.source, '월력-날짜 격자 디자인 2.pdf');
+});
+
+test('month title catalog declares six structures and their required vertical shares', () => {
+  assert.deepEqual(Object.keys(catalog.titlePresentations), ['number-stack', 'number-inline', 'number-only', 'year-month-korean', 'month-korean', 'english-month']);
+  assert.equal(catalog.titlePresentations['number-stack'].titlePercent, 16);
+  assert.equal(catalog.titlePresentations['number-inline'].titlePercent, 18);
+  assert.equal(catalog.titlePresentations['year-month-korean'].titlePercent, 10);
+});
+
 test('academic boxed preset keeps measured sample 6 geometry', () => {
   const preset = catalog.presets['academic-boxed'];
   assert.equal(preset.schemaVersion, 'monthly-calendar-preset.v1');

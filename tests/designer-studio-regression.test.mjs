@@ -52,6 +52,27 @@ test('month title keeps the measured vertical gap above weekday headers', () => 
   assert.match(html, /\.calendar-region \.month-title\{[^}]*padding-bottom:var\(--calendar-title-weekday-gap,0\)/);
 });
 
+test('month title variants reserve their own vertical footprint and clip accidental overlap', () => {
+  assert.match(html, /titlePresentations\?\.\[preset\.presentation\.monthTitleStyle\]/);
+  assert.match(html, /title=Math\.max\(layout\.titlePercent,titleSpec\?\.titlePercent\|\|0\)/);
+  assert.match(html, /\.calendar-region \.month-title\{[^}]*overflow:hidden/);
+  assert.match(html, />큰 월 숫자만<\/option>/);
+  assert.match(html, />연도년 월월 한글형<\/option>/);
+  assert.match(html, />월월 한글형<\/option>/);
+  assert.match(html, />영문 월 \+ 연도<\/option>/);
+  assert.match(html, /"number-only":`<span class="month-number">/);
+  assert.match(html, /"english-month":`<span class="month-en">/);
+});
+
+test('date grid selector exposes independent underline, minimal and detached cell structures', () => {
+  assert.match(html, /value="open-rows"[^>]*>독립 밑줄 · 첨부 디자인 1/);
+  assert.match(html, /value="minimal"[^>]*>미니멀 무선 · 첨부 디자인 2/);
+  assert.match(html, /value="detached-cards"[^>]*>개별 사각 셀/);
+  assert.match(html, /minimal:"grid-minimal","detached-cards":"grid-detached-cards"/);
+  assert.match(html, /\.grid-minimal \.calendar>\.cell:not\(\.head\)\{border:0!important/);
+  assert.match(html, /\.grid-detached-cards \.calendar>\.cell:not\(\.head\)\{border:1px solid #b8bec7!important/);
+});
+
 test('five and six week modes only repartition the fixed date grid', () => {
   assert.match(html, /repeat\(var\(--calendar-rows,6\),minmax\(0,1fr\)\)/);
   assert.match(html, /--mini-calendar-rows:\$\{rows\}/);
