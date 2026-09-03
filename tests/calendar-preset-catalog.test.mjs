@@ -14,8 +14,9 @@ test('grid presentation catalog exposes four date-cell structures for five and s
 
 test('month title catalog declares six structures and their required vertical shares', () => {
   assert.deepEqual(Object.keys(catalog.titlePresentations), ['number-stack', 'number-inline', 'number-only', 'year-month-korean', 'month-korean', 'english-month']);
-  assert.equal(catalog.titlePresentations['number-stack'].titlePercent, 16);
-  assert.equal(catalog.titlePresentations['number-inline'].titlePercent, 18);
+  assert.equal(catalog.titlePresentations['number-stack'].titlePercent, 18);
+  assert.equal(catalog.titlePresentations['number-inline'].titlePercent, 20);
+  assert.equal(catalog.titlePresentations['number-only'].titlePercent, 20);
   assert.equal(catalog.titlePresentations['year-month-korean'].titlePercent, 10);
 });
 

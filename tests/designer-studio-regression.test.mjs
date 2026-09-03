@@ -62,6 +62,9 @@ test('month title variants reserve their own vertical footprint and clip acciden
   assert.match(html, />영문 월 \+ 연도<\/option>/);
   assert.match(html, /"number-only":`<span class="month-number">/);
   assert.match(html, /"english-month":`<span class="month-en">/);
+  assert.match(html, /month-title-right \.month-title/);
+  assert.match(html, />오른쪽<\/option>/);
+  assert.match(html, /classList\.add\(`month-title-\$\{\["left","center","right"\]\.includes\(align\)\?align:"left"\}`\)/);
 });
 
 test('date grid selector exposes independent underline, minimal and detached cell structures', () => {
@@ -71,6 +74,9 @@ test('date grid selector exposes independent underline, minimal and detached cel
   assert.match(html, /minimal:"grid-minimal","detached-cards":"grid-detached-cards"/);
   assert.match(html, /\.grid-minimal \.calendar>\.cell:not\(\.head\)\{border:0!important/);
   assert.match(html, /\.grid-detached-cards \.calendar>\.cell:not\(\.head\)\{border:1px solid #b8bec7!important/);
+  assert.match(html, /detachedCards=activeGridStyle==='detached-cards'/);
+  assert.match(html, /detachedCards\?'detached-cell-range'/);
+  assert.match(html, /background=detachedCards&&span>1\?`linear-gradient/);
 });
 
 test('five and six week modes only repartition the fixed date grid', () => {

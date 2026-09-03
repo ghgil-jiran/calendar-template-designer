@@ -11,9 +11,9 @@
     'detached-cards': Object.freeze({ id: 'detached-cards', label: '개별 사각 셀', supportedRows: Object.freeze([5, 6]) })
   });
   const titlePresentations = Object.freeze({
-    'number-stack': Object.freeze({ id: 'number-stack', label: '큰 월 숫자 + 연도·영문월 세로', titlePercent: 16 }),
-    'number-inline': Object.freeze({ id: 'number-inline', label: '연도 + 큰 월 숫자 + 영문월 가로', titlePercent: 18 }),
-    'number-only': Object.freeze({ id: 'number-only', label: '큰 월 숫자만', titlePercent: 16 }),
+    'number-stack': Object.freeze({ id: 'number-stack', label: '큰 월 숫자 + 연도·영문월 세로', titlePercent: 18 }),
+    'number-inline': Object.freeze({ id: 'number-inline', label: '연도 + 큰 월 숫자 + 영문월 가로', titlePercent: 20 }),
+    'number-only': Object.freeze({ id: 'number-only', label: '큰 월 숫자만', titlePercent: 20 }),
     'year-month-korean': Object.freeze({ id: 'year-month-korean', label: '연도년 월월 한글형', titlePercent: 10 }),
     'month-korean': Object.freeze({ id: 'month-korean', label: '월월 한글형', titlePercent: 10 }),
     'english-month': Object.freeze({ id: 'english-month', label: '영문 월 + 연도', titlePercent: 12 })
