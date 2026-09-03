@@ -157,6 +157,17 @@ test('mini calendar wording applies to both five and six row calendars', () => {
   assert.match(html, /월력 그리드의 빈 날짜 셀에 이전 달과 다음 달의 미니 월력을 표시합니다/);
 });
 
+test('monthly-back mini calendars expose independent month-title and weekend styles', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /빈 날짜 셀용 미니 월력과 별개의 독립 디자인 개체/);
+  assert.match(html, /id="miniMonthLabelStyle"/);
+  assert.match(html, /id="miniTitleSize"/);
+  assert.match(html, /id="miniTitleAlign"/);
+  assert.match(html, /id="miniSunday"/);
+  assert.match(html, /id="miniSaturday"/);
+  assert.match(html, /bind\("applyMiniCalendarStyle"/);
+});
+
 test('image-based school asset slots do not render fixed role captions', () => {
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
   assert.match(html, /\["image","image-text"\]\.includes\(SEMANTIC_DEFS\[item\.role\]\?\.kind\)\)item\.showCaption=false/);
