@@ -10,6 +10,15 @@
     minimal: Object.freeze({ id: 'minimal', label: '미니멀 무선', supportedRows: Object.freeze([5, 6]), source: '월력-날짜 격자 디자인 2.pdf' }),
     'detached-cards': Object.freeze({ id: 'detached-cards', label: '개별 사각 셀', supportedRows: Object.freeze([5, 6]) })
   });
+  const weekdayPresentations = Object.freeze({
+    'filled-tabs': Object.freeze({ id: 'filled-tabs', label: '연결형 채움 탭', boxHeightMm: 7.06, gridGapMm: 0 }),
+    'outlined-pills': Object.freeze({ id: 'outlined-pills', label: '독립 테두리 캡슐', boxHeightMm: 7, gridGapMm: 1.6 })
+  });
+  const compositionContract = Object.freeze({
+    schemaVersion: 'monthly-calendar-composition.v1',
+    zones: Object.freeze(['top-info', 'month-title', 'weekday', 'date-grid']),
+    invariants: Object.freeze({ weekdayOwnsTrack: true, rowModeOnlyPartitionsDateGrid: true, gridStyleDoesNotMoveWeekdayBoundary: true, topInfoUsesBoundObjects: true })
+  });
   const titlePresentations = Object.freeze({
     'number-stack': Object.freeze({ id: 'number-stack', label: '큰 월 숫자 + 연도·영문월 세로', titlePercent: 18 }),
     'number-inline': Object.freeze({ id: 'number-inline', label: '연도 + 큰 월 숫자 + 영문월 가로', titlePercent: 20 }),
@@ -64,5 +73,5 @@
     };
   }
 
-  return Object.freeze({ schemaVersion, gridPresentations, titlePresentations, presets, resolve });
+  return Object.freeze({ schemaVersion, compositionContract, gridPresentations, weekdayPresentations, titlePresentations, presets, resolve });
 });

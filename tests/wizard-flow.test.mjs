@@ -264,7 +264,8 @@ test('new desk planner standard is visible as a separate 2028 draft system base'
   assert.match(html, /calendar\.design\.monthTitleStyle=el\("masterMonthTitleStyle"\)/);
   assert.match(html, /weekday-outlined-pills \.calendar>\.head\{[^}]*border:1\.5px/);
   assert.match(html, /inlineTitle=`<span class="month-year">\$\{p\.calendarYear\}<\/span><span class="month-number">/);
-  assert.match(html, /weekday-outlined-pills \.calendar>\.head\{[^}]*min-height:26px[^}]*border:1\.5px solid #98a2b3!important/);
+  assert.match(html, /\.calendar-stage \.head\{[^}]*height:calc\(100% - var\(--calendar-weekday-grid-gap,0%\)\)[^}]*min-height:0/);
+  assert.match(html, /weekday-outlined-pills \.calendar>\.head\{[^}]*margin:0 2px[^}]*border:1\.5px solid #98a2b3!important/);
   assert.match(html, /grid-open-rows \.calendar>\.cell:not\(\.head\)\{[^}]*border-right:0!important[^}]*border-bottom:1px solid #a7a7a7!important/);
   assert.match(html, /id="masterCalendarDesignPreset"/);
   assert.match(html, /"sample-6":\{title:"number-stack",align:"left",weekday:"filled-tabs",grid:"boxed"\}/);
@@ -299,8 +300,8 @@ test('library project opening waits for package loading and clears stale schedul
   assert.match(html, /resourceScheduleFileName"\)\.textContent="샘플 일정 파일 없음"/);
   assert.match(html, /preview\.classList\.add\("hidden"\);preview\.innerHTML=""/);
   assert.match(openSource, /requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>\{if\(isCurrentProjectTransition\(transitionId\)&&project===openedProject\)render\(\)\}\)\)/);
-  assert.match(html, /\.calendar-stage \.calendar\{height:100%;grid-template-rows:var\(--calendar-weekday-stage-share,4\.45%\) repeat\(var\(--calendar-rows,6\),minmax\(0,1fr\)\)\}/);
-  assert.match(html, /\.calendar-stage \.head\{line-height:14px\}/);
+  assert.match(html, /\.calendar-stage \.calendar\{height:100%;grid-template-rows:var\(--calendar-weekday-track,6\.5%\) repeat\(var\(--calendar-rows,6\),minmax\(0,1fr\)\)\}/);
+  assert.match(html, /\.calendar-stage \.head\{align-self:start;box-sizing:border-box;height:calc\(100% - var\(--calendar-weekday-grid-gap,0%\)\);min-height:0;line-height:14px\}/);
 });
 
 test('local studio server handles the browser favicon request without a 404', () => {

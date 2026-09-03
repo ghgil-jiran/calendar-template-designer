@@ -12,6 +12,15 @@ test('grid presentation catalog exposes four date-cell structures for five and s
   assert.equal(catalog.gridPresentations.minimal.source, '월력-날짜 격자 디자인 2.pdf');
 });
 
+test('monthly composition keeps weekday geometry independent from grid and row count', () => {
+  assert.deepEqual([...catalog.compositionContract.zones], ['top-info', 'month-title', 'weekday', 'date-grid']);
+  assert.equal(catalog.compositionContract.invariants.weekdayOwnsTrack, true);
+  assert.equal(catalog.compositionContract.invariants.rowModeOnlyPartitionsDateGrid, true);
+  assert.equal(catalog.compositionContract.invariants.gridStyleDoesNotMoveWeekdayBoundary, true);
+  assert.equal(catalog.weekdayPresentations['outlined-pills'].gridGapMm, 1.6);
+  assert.equal(catalog.weekdayPresentations['filled-tabs'].gridGapMm, 0);
+});
+
 test('month title catalog declares six structures and their required vertical shares', () => {
   assert.deepEqual(Object.keys(catalog.titlePresentations), ['number-stack', 'number-inline', 'number-only', 'year-month-korean', 'month-korean', 'english-month']);
   assert.equal(catalog.titlePresentations['number-stack'].titlePercent, 18);

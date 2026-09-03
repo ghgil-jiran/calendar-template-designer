@@ -36,7 +36,11 @@ assert.match(html, /data-standard-family="desk-3"\] \.widget-mini-calendar\{back
 assert.match(html, /view\.monthLabelStyle==="number-en"/);
 assert.match(html, /view\.showWeekdayHeader!==false/);
   assert.match(html, /--calendar-title-share:\$\{vertical\.title\}%/);
-  assert.match(html, /--calendar-weekday-stage-share:\$\{vertical\.weekdayStage\}%/);
+  assert.match(html, /function calendarChromeLayout\(presentation,vertical,region=calendarRegion\(\)\)/);
+  assert.match(html, /--calendar-weekday-track:\$\{chrome\.weekdayStage\}%/);
+  assert.match(html, /--calendar-weekday-grid-gap:\$\{chrome\.gridGapMm\/Math\.max\(\.01,chrome\.trackMm\)\*100\}%/);
+  assert.match(html, /data-calendar-composition="\$\{chrome\.contract\?\.schemaVersion/);
+  assert.doesNotMatch(html, /min-height:26px;margin:0 2px 6px/);
   assert.doesNotMatch(html, /function calendarVerticalMetrics\(rows\)/);
 });
 
