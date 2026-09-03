@@ -1,5 +1,12 @@
 # Handoff
 
+## 2026-09-03 최신 인수인계
+
+- 템플릿 에디터 안정 기준: `main@2671761`, Vercel Production 배포 성공, 전체 Studio 테스트 189개 통과.
+- 범용 달력 랜딩, Master Admin 이메일·비밀번호 로그인, Supabase `template_admins` 등록까지 완료했다.
+- 다음 최우선 작업: [`[학사달력] 탁상형 검토 02 - 이미지 미니월력`](docs/product/05-DESK-REVIEW-02-COMPLETION.md)의 표지·연력·학교 상징 간지·월별 이미지/월력 12쌍·뒷표지 28면 완성.
+- 샘플 3번 PDF에 최대한 가깝게 만들되 기존 Published Package와 검토 01은 변경하지 않는다.
+
 ## 다음 구현 단계 전에 개발자와 맞출 부분
 
 1. 사용자 MVP가 편집기를 호출할 때 전달할 실행 파라미터
