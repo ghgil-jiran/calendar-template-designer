@@ -23,8 +23,8 @@ test('workspace navigation owns preview choices and the redundant menu row is re
 
 test('workspace roles and preview action remain visually distinct', () => {
   assert.match(html, /<h2 class="page-panel-title">자료·개체 추가<\/h2>/);
-  assert.match(html, /class="page-dock editor-chrome" aria-label="페이지 구성 및 선택"/);
-  assert.match(html, /<\/div>\s*<section class="page-dock editor-chrome" aria-label="페이지 구성 및 선택">[\s\S]*?<\/section>\s*<\/aside>/);
+  assert.match(html, /class="panel page-dock editor-chrome" aria-label="페이지 구성 및 선택"/);
+  assert.match(html, /<section class="panel center">[\s\S]*?<\/section>\s*<section class="panel page-dock editor-chrome" aria-label="페이지 구성 및 선택">[\s\S]*?<\/section>\s*<aside class="panel right/);
   assert.match(html, /id="inspectorPanelTitle" class="inspector-panel-title">페이지 스타일/);
   assert.match(html, /id="previewMenuBtn" class="workspace-menu preview-menu"/);
   assert.match(html, /id="fullPreviewBtn" type="button">전체 미리보기/);

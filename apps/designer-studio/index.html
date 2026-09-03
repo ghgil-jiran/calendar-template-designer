@@ -514,10 +514,6 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
    <select id="insertScopeMirror"><option value="page">현재 페이지</option><option value="master">같은 Master 전체</option></select>
   </div>
  </div>
- <section class="page-dock editor-chrome" aria-label="페이지 구성 및 선택">
-  <div class="page-dock-head"><strong>페이지</strong><span id="pageDockStatus"></span></div>
-  <div class="panel-body nav" id="navigator"></div>
- </section>
 </aside>
 <section class="panel center">
 <div class="icon-toolbar editor-chrome" role="toolbar" aria-label="편집 도구">
@@ -564,6 +560,10 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
  <div class="hidden" aria-hidden="true"><button id="contentMode">이전 콘텐츠 모드</button><button id="templateMode">템플릿 설계</button><span id="modeHelp"></span><button id="previewBtn">현재 페이지 미리보기</button></div>
 </div>
 <div class="canvas-wrap"><div id="page" class="page desk"></div></div></section>
+<section class="panel page-dock editor-chrome" aria-label="페이지 구성 및 선택">
+ <div class="page-dock-head"><strong>페이지</strong><span id="pageDockStatus"></span></div>
+ <div class="panel-body nav" id="navigator"></div>
+</section>
 <aside class="panel right editor-chrome" aria-label="선택 개체 속성"><h2 id="inspectorPanelTitle" class="inspector-panel-title">페이지 스타일</h2><div id="inspectorSelectionSummary" class="inspector-selection-summary">페이지를 선택했거나 개체가 선택되지 않았습니다.</div><div id="inspector"></div></aside>
 </main>
 
@@ -4270,8 +4270,8 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 })();
 </script>
 <style id="workspace-layout-v38-styles">
-.workspace{grid-template-columns:280px minmax(570px,1fr) 320px;grid-template-rows:minmax(0,1fr);height:calc(100vh - 92px);min-height:0}
-.workspace>.insert-sidebar{grid-column:1;grid-row:1;display:flex;flex-direction:column;min-height:0}
+.workspace{grid-template-columns:280px minmax(570px,1fr) 320px;grid-template-rows:minmax(0,1fr) 104px;height:calc(100vh - 92px);min-height:0}
+.workspace>.insert-sidebar{grid-column:1;grid-row:1/-1;display:flex;flex-direction:column;min-height:0}
 .insert-sidebar-intro{padding:9px 12px;border-bottom:1px solid var(--acds-border,#e2e8f0);background:#fff;color:#64748b;font-size:10px;line-height:1.5}
 .insert-sidebar-host{display:flex;flex:1;min-height:0;flex-direction:column;overflow:hidden}
 .sample-data-card{margin:10px 10px 0;padding:11px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff}
@@ -4282,21 +4282,21 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .insert-sidebar .object-library-tabs{position:sticky;top:-10px;z-index:4;margin:-10px -10px 10px;padding:10px;grid-template-columns:repeat(2,1fr);background:#fff;border-bottom:1px solid #e2e8f0}
 .insert-sidebar .object-library-tabs button{min-height:34px;font-size:10px}.insert-sidebar .object-library-search{margin-bottom:9px}.insert-sidebar .recommend-strip{margin-bottom:10px}
 .insert-sidebar .object-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.insert-sidebar .object-card{min-width:0}.insert-sidebar .object-card strong,.insert-sidebar .object-card span{overflow-wrap:anywhere}
-.workspace>.center{grid-column:2;grid-row:1}.workspace>.right{grid-column:3;grid-row:1;display:flex;flex-direction:column}
+.workspace>.center{grid-column:2;grid-row:1}.workspace>.right{grid-column:3;grid-row:1/-1;display:flex;flex-direction:column}
 .inspector-panel-title{min-height:38px;flex:0 0 auto;background:#f8fafc!important;color:#1e293b!important;font-size:13px!important;font-weight:800!important}
 .inspector-selection-summary{flex:0 0 auto;padding:8px 11px;border-bottom:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:9px;line-height:1.5}.inspector-selection-summary strong{display:block;color:#1e293b;font-size:11px}.inspector-selection-summary .selection-chips{display:flex;gap:5px;margin-top:5px}.inspector-selection-summary .selection-chip{padding:2px 6px;border-radius:999px;background:#eef2f7;color:#475569;font-size:8px;font-weight:800}.inspector-selection-summary .selection-chip.master{background:#eff6ff;color:#1d4ed8}
 .workspace>.right #inspector{flex:1;height:auto}
 .workspace .toolbar-scope{display:none!important}
 .library-search-empty{padding:18px 8px;text-align:center;color:#64748b;font-size:10px;line-height:1.5}
-.insert-sidebar>.page-dock{flex:0 0 min(34vh,270px);display:grid;grid-template-rows:38px minmax(0,1fr);min-height:170px;overflow:hidden;border:0;border-top:1px solid #dbe3ee;border-radius:0;background:#f8fafc}
-.page-dock-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 11px;border-bottom:1px solid #e2e8f0;background:#fff}.page-dock-head strong{font-size:12px;color:#0f172a}.page-dock-head span{font-size:9px;color:#64748b}
-.page-dock>.nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:6px;min-width:0;max-height:none;padding:8px;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-gutter:stable}
+.workspace>.page-dock{grid-column:2;grid-row:2;display:grid;grid-template-columns:76px minmax(0,1fr);min-width:0;overflow:hidden;background:#f8fafc}
+.page-dock-head{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;padding:0 11px;border-right:1px solid #e2e8f0;background:#fff}.page-dock-head strong{font-size:12px;color:#0f172a}.page-dock-head span{font-size:9px;color:#64748b}
+.page-dock>.nav{display:flex;align-items:center;gap:7px;min-width:0;max-height:none;padding:9px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-gutter:stable}
 .page-dock .sheet{display:contents}.page-dock .sheet-head{display:none}
-.page-dock .page-btn{position:relative;width:100%;height:56px;min-height:0;margin:0;padding:7px 7px 7px 10px;border:1px solid #d7dfeb!important;border-radius:8px;align-items:flex-start;text-align:left;background:#fff;overflow:hidden}.page-dock .page-btn::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--page-role,#94a3b8)}.page-dock .page-btn span{display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:3px;line-height:1.2}.page-dock .page-btn span strong{font-size:10px;color:#1e293b}.page-dock .page-btn span small{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;color:#64748b;font-size:8px;white-space:nowrap}.page-dock .page-btn.page-odd{background:color-mix(in srgb,var(--page-role,#64748b) 12%,white);border-color:color-mix(in srgb,var(--page-role,#64748b) 35%,white)!important}.page-dock .page-btn.page-even{background:#fff}.page-dock .page-kind-cover{--page-role:#7c3aed}.page-dock .page-kind-month{--page-role:#2563eb}.page-dock .page-kind-insert{--page-role:#d97706}.page-dock .page-kind-back-cover{--page-role:#db2777}.page-dock .page-btn.active{border-color:var(--page-role,#2563eb)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--page-role,#2563eb) 24%,transparent);background:color-mix(in srgb,var(--page-role,#2563eb) 18%,white)}.page-dock .page-btn.active span strong{color:var(--page-role,#1d4ed8)}
+.page-dock .page-btn{position:relative;flex:0 0 78px;width:78px;height:72px;min-height:0;margin:0;padding:8px;border:1px solid #d7dfeb!important;border-radius:8px;align-items:flex-start;text-align:left;overflow:hidden}.page-dock .page-btn span{display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:4px;line-height:1.2}.page-dock .page-btn span strong{font-size:10px}.page-dock .page-btn span small{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;font-size:8px;white-space:nowrap}.page-dock .page-btn.page-odd{background:var(--page-role,#64748b);border-color:var(--page-role,#64748b)!important;color:#fff}.page-dock .page-btn.page-odd span strong,.page-dock .page-btn.page-odd span small{color:#fff}.page-dock .page-btn.page-even{background:color-mix(in srgb,var(--page-role,#64748b) 10%,white);border-color:color-mix(in srgb,var(--page-role,#64748b) 32%,white)!important}.page-dock .page-btn.page-even span strong{color:#1e293b}.page-dock .page-btn.page-even span small{color:#64748b}.page-dock .page-kind-cover{--page-role:#7c3aed}.page-dock .page-kind-month{--page-role:#2563eb}.page-dock .page-kind-insert{--page-role:#d97706}.page-dock .page-kind-back-cover{--page-role:#db2777}.page-dock .page-btn.active{border-color:#ef4444!important;box-shadow:0 0 0 2px rgb(239 68 68 / .28)}
 #objectDrawer{display:none!important}
 .preview-only .workspace{grid-template-columns:1fr;grid-template-rows:1fr}.preview-only .workspace>.center{grid-column:1;grid-row:1}
 @media(max-width:1180px){.workspace{grid-template-columns:240px minmax(500px,1fr) 286px}.insert-sidebar .object-grid{grid-template-columns:1fr}}
-@media(max-width:980px){.workspace{grid-template-columns:220px minmax(480px,1fr);grid-template-rows:minmax(620px,1fr) minmax(420px,auto);height:auto}.workspace>.right{grid-column:1/-1;grid-row:2;max-height:520px}.workspace>.insert-sidebar{grid-row:1}.workspace>.center{grid-row:1}.insert-sidebar>.page-dock{flex-basis:240px}}
+@media(max-width:980px){.workspace{grid-template-columns:220px minmax(480px,1fr);grid-template-rows:minmax(620px,1fr) 104px minmax(420px,auto);height:auto}.workspace>.insert-sidebar{grid-column:1;grid-row:1/3}.workspace>.center{grid-column:2;grid-row:1}.workspace>.page-dock{grid-column:2;grid-row:2}.workspace>.right{grid-column:1/-1;grid-row:3;max-height:520px}}
 @media(max-width:720px){.workspace{grid-template-columns:1fr;grid-template-rows:minmax(520px,1fr)}.workspace>.center{grid-column:1;grid-row:1}}
 </style>
 <script id="workspace-layout-v38-runtime">

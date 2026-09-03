@@ -9,21 +9,22 @@ test('editor columns keep independent scrolling inside the viewport', () => {
   assert.match(html, /\.insert-sidebar-host>\.drawer-body\{[^}]*overflow-y:auto[^}]*scrollbar-gutter:stable/);
   assert.match(html, /\.workspace>\.center \.canvas-wrap\{[^}]*overflow:auto[^}]*scrollbar-gutter:stable/);
   assert.match(html, /\.workspace>\.right #inspector\{[^}]*height:100%[^}]*overflow-y:auto[^}]*scrollbar-gutter:stable/);
-  assert.match(html, /\.page-dock>\.nav\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)[^}]*overflow-y:auto/);
+  assert.match(html, /\.page-dock>\.nav\{[^}]*display:flex[^}]*overflow-x:auto[^}]*overflow-y:hidden/);
 });
 
-test('page navigation is a compact role-colored panel below object insertion', () => {
-  assert.match(html, /\.insert-sidebar>\.page-dock\{[^}]*flex:0 0 min\(34vh,270px\)[^}]*grid-template-rows:38px minmax\(0,1fr\)/);
+test('page navigation is a horizontal role-colored dock below the center canvas', () => {
+  assert.match(html, /\.workspace>\.page-dock\{[^}]*grid-column:2[^}]*grid-row:2[^}]*grid-template-columns:76px minmax\(0,1fr\)/);
   assert.match(html, /\.page-dock \.sheet\{display:contents\}/);
   assert.match(html, /\.page-dock \.sheet-head\{display:none\}/);
-  assert.match(html, /\.page-dock \.page-btn\{[^}]*height:56px/);
+  assert.match(html, /\.page-dock \.page-btn\{[^}]*flex:0 0 78px[^}]*height:72px/);
   assert.match(html, /id="pageDockStatus"/);
   assert.match(html, /pageDockStatus'\)\.textContent=pages\.length\?`\$\{index\+1\} \/ \$\{pages\.length\}`/);
   assert.match(html, /function pageNavigationKind\(p\)/);
   assert.match(html, /page-kind-cover\{--page-role:#7c3aed\}/);
   assert.match(html, /page-kind-month\{--page-role:#2563eb\}/);
   assert.match(html, /page-kind-back-cover\{--page-role:#db2777\}/);
-  assert.match(html, /page-btn\.page-odd/);
+  assert.match(html, /page-btn\.page-odd\{background:var\(--page-role/);
+  assert.match(html, /page-btn\.page-even\{background:color-mix/);
 });
 
 test('the object inspector uses one typography and form-control scale', () => {
