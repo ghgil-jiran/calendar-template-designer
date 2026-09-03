@@ -4440,6 +4440,34 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .calendar-region.grid-boxed[data-calendar-preset="academic-boxed"] .calendar>.cell:not(.head){border-color:var(--calendar-line-color)!important;border-width:0 var(--calendar-line-width) var(--calendar-line-width) 0!important;padding:var(--calendar-cell-padding-y) var(--calendar-cell-padding-x);background:#fff}
 .calendar-region[data-calendar-preset="academic-boxed"].weekday-filled-tabs .calendar>.head{border-radius:var(--calendar-weekday-radius) var(--calendar-weekday-radius) 0 0}
 </style>
+<script id="editor-page-auto-fit-runtime">
+(()=>{
+ const page=()=>document.getElementById('page'),canvas=()=>document.querySelector('.workspace>.center .canvas-wrap');
+ let frame=0;
+ function fitEditorPageToViewport(){
+  frame=0;
+  const node=page(),host=canvas(),size=typeof project!=='undefined'?project?.productType?.pageSize:null;
+  if(!node||!host||!size||document.body.classList.contains('review-pdf-printing'))return;
+  const width=Number(size.width),height=Number(size.height);
+  if(!(width>0&&height>0)||host.clientWidth<1||host.clientHeight<1)return;
+  const style=getComputedStyle(host),horizontalPadding=parseFloat(style.paddingLeft||0)+parseFloat(style.paddingRight||0),verticalPadding=parseFloat(style.paddingTop||0)+parseFloat(style.paddingBottom||0);
+  const availableWidth=Math.max(240,host.clientWidth-horizontalPadding-12),availableHeight=Math.max(240,host.clientHeight-verticalPadding-12),ratio=width/height,landscape=ratio>=1;
+  const fittedWidth=landscape?availableWidth*.94:Math.min(availableWidth*.94,availableHeight*.94*ratio);
+  node.style.width=`${Math.max(240,Math.round(fittedWidth))}px`;
+  node.style.maxWidth='none';
+  node.dataset.fitAxis=landscape?'width':'height';
+ }
+ function scheduleFit(){if(frame)cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>requestAnimationFrame(fitEditorPageToViewport))}
+ const priorRenderPage=window.renderPage;
+ if(typeof priorRenderPage==='function')window.renderPage=function(){const result=priorRenderPage.apply(this,arguments);scheduleFit();return result};
+ const host=canvas();
+ if(host&&'ResizeObserver'in window)new ResizeObserver(scheduleFit).observe(host);
+ window.addEventListener('resize',scheduleFit,{passive:true});
+ window.visualViewport?.addEventListener('resize',scheduleFit,{passive:true});
+ window.ACDLEditorPageFit=Object.freeze({fit:fitEditorPageToViewport,schedule:scheduleFit});
+ scheduleFit();
+})();
+</script>
 <script id="review-pdf-export-runtime">
 (()=>{
  const $=id=>document.getElementById(id);

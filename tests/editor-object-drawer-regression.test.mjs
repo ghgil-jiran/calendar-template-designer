@@ -27,6 +27,16 @@ test('page navigation is a horizontal role-colored dock below the center canvas'
   assert.match(html, /page-btn\.page-even\{background:color-mix/);
 });
 
+test('editor page auto-fit follows page orientation and container resizing', () => {
+  assert.match(html, /id="editor-page-auto-fit-runtime"/);
+  assert.match(html, /landscape=ratio>=1/);
+  assert.match(html, /landscape\?availableWidth\*\.94:Math\.min\(availableWidth\*\.94,availableHeight\*\.94\*ratio\)/);
+  assert.match(html, /node\.dataset\.fitAxis=landscape\?'width':'height'/);
+  assert.match(html, /new ResizeObserver\(scheduleFit\)\.observe\(host\)/);
+  assert.match(html, /window\.addEventListener\('resize',scheduleFit/);
+  assert.match(html, /window\.visualViewport\?\.addEventListener\('resize',scheduleFit/);
+});
+
 test('the object inspector uses one typography and form-control scale', () => {
   assert.match(html, /\.workspace>\.right label\{[^}]*font-size:11px[^}]*line-height:1\.4/);
   assert.match(html, /\.workspace>\.right \.action\{[^}]*height:36px[^}]*font-size:11px[^}]*font-weight:700/);
