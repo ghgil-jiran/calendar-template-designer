@@ -66,11 +66,35 @@ test('library thumbnails cannot restore an earlier editor state', () => {
 test('public landing presents the template studio without a calendar creation entry', () => {
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
   const landing = html.match(/<div id="entryScreen"[\s\S]*?<div id="designerHome"/)?.[0] || '';
-  assert.match(landing, /학교의 한 해를/);
+  assert.match(landing, /모든 시간을/);
+  assert.match(landing, /원하는 달력 디자인으로/);
+  assert.match(landing, /UNIVERSAL CALENDAR DESIGN STUDIO/);
   assert.match(landing, /템플릿 라이브러리/);
   assert.match(landing, /새 템플릿 만들기/);
   assert.match(landing, /달력 유형 관리/);
   assert.doesNotMatch(landing, /새 달력 만들기/);
+});
+
+test('public landing explains the editor beyond academic calendars', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const landing = html.match(/<div id="entryScreen"[\s\S]*?<div id="designerHome"/)?.[0] || '';
+  assert.match(landing, /모든 형태의 달력/);
+  assert.match(landing, /풍부한 디자인 요소/);
+  assert.match(landing, /디자인을 템플릿으로/);
+  assert.match(landing, /화면부터 인쇄까지/);
+  assert.match(landing, /기업·학교·개인 포토 달력/);
+  assert.doesNotMatch(html, /transform:rotate\(-1\.4deg\)/);
+});
+
+test('public landing has a compact JIRANTECH footer with related services', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const landing = html.match(/<div id="entryScreen"[\s\S]*?<div id="designerHome"/)?.[0] || '';
+  assert.match(landing, /class="landing-footer"/);
+  assert.match(landing, /href="https:\/\/jirantech\.com\/"/);
+  assert.match(landing, /href="https:\/\/schoolp\.co\.kr\/"/);
+  assert.match(landing, /href="https:\/\/lib\.schoolp\.co\.kr\/"/);
+  assert.match(landing, /href="https:\/\/schoolp\.co\.kr\/contact\/privacy"/);
+  assert.match(landing, /rel="noopener noreferrer"/);
 });
 
 test('calendar type rules disable unsupported insert controls', () => {
