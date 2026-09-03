@@ -12,4 +12,5 @@ export * from "./TextOverflowEngine.js";
 export * from "./ImageFrameResolver.js";
 export * from "./MonthlyStyleResolver.js";
 export * from "./CalendarGridResolver.js";
+export * from "./CalendarPresetResolver.js";
 export * from "./DeskSequenceResolver.js";

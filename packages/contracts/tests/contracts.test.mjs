@@ -1,5 +1,5 @@
 import assert from"node:assert/strict";
-import{SCHOOL_DATA_SCHEMA,TEMPLATE_PERSISTENCE_CONTRACT_VERSION,TEMPLATE_SAVE_KINDS,TEMPLATE_STATES,assertCalendarDocument,normalizeSchoolData,validateSchoolData,normalizeAcademicYear,normalizeCalendarEvent,validateCalendarEvent,normalizeImageFrameValue,mergeMonthlyStyle}from"../dist/index.js";
+import{MONTHLY_CALENDAR_PRESET_SCHEMA_VERSION,SCHOOL_DATA_SCHEMA,TEMPLATE_PERSISTENCE_CONTRACT_VERSION,TEMPLATE_SAVE_KINDS,TEMPLATE_STATES,assertCalendarDocument,normalizeSchoolData,validateSchoolData,normalizeAcademicYear,normalizeCalendarEvent,validateCalendarEvent,normalizeImageFrameValue,mergeMonthlyStyle,normalizeMonthlyCalendarPreset}from"../dist/index.js";
 
 assert.equal(TEMPLATE_PERSISTENCE_CONTRACT_VERSION,"1.0");
 assert.deepEqual(TEMPLATE_SAVE_KINDS,["manual","restore","publish"]);
@@ -35,4 +35,21 @@ assert.equal(single.kind,"single");assert.equal(range.kind,"range");assert.deepE
 assert.deepEqual(validateCalendarEvent(normalizeCalendarEvent({id:"e3",title:"오류",start:"2027-04-02",end:"2027-04-01"})),["event.range.invalid"]);
 assert.deepEqual(normalizeImageFrameValue({assetId:"photo.3",focalPoint:{x:2,y:-1}}).focalPoint,{x:1,y:0});
 assert.deepEqual(mergeMonthlyStyle({color:"blue",font:{size:12,weight:400}},{color:"red",font:{weight:700}}),{color:"red",font:{size:12,weight:700}});
+assert.equal(MONTHLY_CALENDAR_PRESET_SCHEMA_VERSION,"monthly-calendar-preset.v1");
+const boxed=normalizeMonthlyCalendarPreset({rows:5,weekStart:"sunday",design:{presetId:"sample-6",monthTitleStyle:"number-stack",gridStyle:"boxed",unknown:"discard"}});
+assert.equal(boxed.preset.presetId,"academic-boxed");
+assert.equal(boxed.layout.rowsMode,"fixed-5");
+assert.deepEqual(boxed.layout.regions,{titlePercent:10,weekdayPercent:4,dateGridPercent:86});
+assert.equal(boxed.overrides.monthTitleStyle,"number-stack");
+assert.equal("unknown" in boxed.overrides,false);
+const underline=normalizeMonthlyCalendarPreset({calendarLayout:{rowsMode:"adaptive",weekStartsOn:"monday",regions:{titlePercent:21,weekdayPercent:4,dateGridPercent:75}},calendarPreset:{presetId:"segmented-underline",presetVersion:"1.0.0"},calendarOverrides:{lineLength:82}});
+assert.equal(underline.preset.presetId,"segmented-underline");
+assert.equal(underline.layout.weekStartsOn,"monday");
+assert.equal(underline.layout.rowsMode,"adaptive");
+assert.deepEqual(underline.preset.supportedRows,[5,6]);
+assert.equal(underline.overrides.lineLength,82);
+const sixRows=normalizeMonthlyCalendarPreset({rows:6,design:{presetId:"sample-3"}});
+assert.equal(sixRows.preset.presetId,"segmented-underline");
+assert.equal(sixRows.layout.rowsMode,"fixed-6");
+assert.deepEqual(sixRows.layout.regions,{titlePercent:21,weekdayPercent:4,dateGridPercent:75});
 console.log("contracts ok");

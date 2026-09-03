@@ -161,3 +161,43 @@ export function normalizeImageFrameValue(value:unknown):ImageFrameValue{const so
 
 export interface MonthlyStyleOverride{monthKey:string;tokens?:Record<string,string|number>;objectStyles?:Record<string,Record<string,unknown>>;}
 export function mergeMonthlyStyle(base:Record<string,unknown>,override?:Record<string,unknown>):Record<string,unknown>{const result={...base};for(const [key,value] of Object.entries(override??{})){const previous=result[key];result[key]=previous&&value&&typeof previous==="object"&&typeof value==="object"&&!Array.isArray(previous)&&!Array.isArray(value)?{...(previous as Record<string,unknown>),...(value as Record<string,unknown>)}:value;}return result;}
+
+export const MONTHLY_CALENDAR_PRESET_SCHEMA_VERSION="monthly-calendar-preset.v1" as const;
+export const MONTHLY_CALENDAR_PRESET_IDS=["academic-boxed","segmented-underline","legacy-custom"] as const;
+export const MONTHLY_CALENDAR_ROWS_MODES=["fixed-5","fixed-6","adaptive"] as const;
+export type MonthlyCalendarPresetId=typeof MONTHLY_CALENDAR_PRESET_IDS[number];
+export type MonthlyCalendarRowsMode=typeof MONTHLY_CALENDAR_ROWS_MODES[number];
+export interface MonthlyCalendarRegions{titlePercent:number;weekdayPercent:number;dateGridPercent:number;}
+export interface MonthlyCalendarLayout{rowsMode:MonthlyCalendarRowsMode;columns:7;weekStartsOn:"sunday"|"monday";regions:MonthlyCalendarRegions;}
+export interface MonthlyCalendarPresetRef{schemaVersion:typeof MONTHLY_CALENDAR_PRESET_SCHEMA_VERSION;presetId:MonthlyCalendarPresetId;presetVersion:"1.0.0";supportedRows:readonly[5,6];}
+export interface MonthlyCalendarPresetConfig{layout:MonthlyCalendarLayout;preset:MonthlyCalendarPresetRef;overrides:Record<string,string|number|boolean>;}
+
+const MONTHLY_PRESET_DEFAULTS:Record<Exclude<MonthlyCalendarPresetId,"legacy-custom">,MonthlyCalendarRegions>={
+  "academic-boxed":{titlePercent:10,weekdayPercent:4,dateGridPercent:86},
+  "segmented-underline":{titlePercent:21,weekdayPercent:4,dateGridPercent:75}
+};
+const MONTHLY_EDITABLE_TOKENS=new Set(["monthTitleStyle","monthTitleAlign","monthTitleSize","fontFamily","textColor","sundayColor","saturdayColor","holidayColor","dateSize","dateAlign","cellPadding","cellGap","lineColor","lineWidth","lineLength","cornerRadius","backgroundColor","eventFontSize","eventBarHeight","eventMaxVisible","showMiniCalendars"]);
+
+function monthlyPresetId(source:Record<string,unknown>):MonthlyCalendarPresetId{
+  const preset=recordValue(source.calendarPreset);const direct=textValue(preset.presetId);
+  if(direct&&MONTHLY_CALENDAR_PRESET_IDS.includes(direct as MonthlyCalendarPresetId))return direct as MonthlyCalendarPresetId;
+  const design=recordValue(source.design);const legacy=textValue(design.presetId);
+  if(legacy==="sample-6")return "academic-boxed";
+  if(legacy==="sample-3")return "segmented-underline";
+  if(design.monthTitleStyle==="number-stack"&&design.weekdayStyle==="filled-tabs"&&design.gridStyle==="boxed")return "academic-boxed";
+  if(design.monthTitleStyle==="number-inline"&&design.weekdayStyle==="outlined-pills"&&design.gridStyle==="open-rows")return "segmented-underline";
+  return "legacy-custom";
+}
+function monthlyRowsMode(value:unknown):MonthlyCalendarRowsMode{return value==="fixed-5"||value===5?"fixed-5":value==="fixed-6"||value===6?"fixed-6":"adaptive";}
+function monthlyRegions(source:Record<string,unknown>,presetId:MonthlyCalendarPresetId):MonthlyCalendarRegions{
+  const layout=recordValue(source.calendarLayout);const region=recordValue(layout.regions);const fallback=presetId==="segmented-underline"?MONTHLY_PRESET_DEFAULTS["segmented-underline"]:MONTHLY_PRESET_DEFAULTS["academic-boxed"];
+  const title=Number(region.titlePercent),weekday=Number(region.weekdayPercent),grid=Number(region.dateGridPercent);
+  if(Number.isFinite(title)&&Number.isFinite(weekday)&&Number.isFinite(grid)&&title>0&&weekday>0&&grid>0&&Math.abs(title+weekday+grid-100)<.001)return{titlePercent:title,weekdayPercent:weekday,dateGridPercent:grid};
+  return{...fallback};
+}
+export function normalizeMonthlyCalendarPreset(value:unknown):MonthlyCalendarPresetConfig{
+  const source=recordValue(value);const presetId=monthlyPresetId(source);const preset=recordValue(source.calendarPreset);const rawOverrides=recordValue(source.calendarOverrides);const legacyDesign=recordValue(source.design);const overrides:Record<string,string|number|boolean>={};
+  for(const [key,item] of Object.entries({...legacyDesign,...rawOverrides}))if(MONTHLY_EDITABLE_TOKENS.has(key)&&(typeof item==="string"||typeof item==="number"||typeof item==="boolean"))overrides[key]=item;
+  const layout=recordValue(source.calendarLayout);const weekStartsOn=layout.weekStartsOn==="monday"||source.weekStart==="monday"?"monday":"sunday";
+  return{layout:{rowsMode:monthlyRowsMode(layout.rowsMode??source.rowsMode??source.rows),columns:7,weekStartsOn,regions:monthlyRegions(source,presetId)},preset:{schemaVersion:MONTHLY_CALENDAR_PRESET_SCHEMA_VERSION,presetId,presetVersion:"1.0.0",supportedRows:[5,6]},overrides};
+}
