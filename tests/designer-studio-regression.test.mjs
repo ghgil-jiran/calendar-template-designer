@@ -37,6 +37,12 @@ test('monthly calendar uses sample-measured fixed vertical ratios', () => {
   assert.doesNotMatch(html, /function calendarVerticalMetrics\(rows\)/);
 });
 
+test('calendar inspector choices override the measured preset presentation', () => {
+  assert.match(html, /calendar\.calendarOverrides=\{\.\.\.\(calendar\.calendarOverrides\|\|\{\}\),monthTitleAlign:calendar\.design\.monthTitleAlign/);
+  assert.match(html, /\.calendar-region\.grid-boxed\[data-calendar-preset="academic-boxed"\]/);
+  assert.doesNotMatch(html, /\.calendar-region\[data-calendar-preset="academic-boxed"\] \.calendar>\.cell:not\(\.head\)\{border-color/);
+});
+
 test('five and six week modes only repartition the fixed date grid', () => {
   assert.match(html, /repeat\(var\(--calendar-rows,6\),minmax\(0,1fr\)\)/);
   assert.match(html, /--mini-calendar-rows:\$\{rows\}/);

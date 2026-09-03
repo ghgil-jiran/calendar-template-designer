@@ -27,6 +27,15 @@ test('academic boxed resolver reads the new contract and whitelisted overrides',
   assert.equal(preset.presentation.lineColor, '#123456');
 });
 
+test('legacy inspector choices override the preset until they are migrated', () => {
+  const preset = catalog.resolve({
+    calendarPreset: { presetId: 'academic-boxed' },
+    design: { presetId: 'sample-6', weekdayStyle: 'outlined-pills', gridStyle: 'open-rows' }
+  });
+  assert.equal(preset.presentation.weekdayStyle, 'outlined-pills');
+  assert.equal(preset.presentation.gridStyle, 'open-rows');
+});
+
 test('legacy sample 6 resolves without treating sample 3 as the same preset', () => {
   assert.equal(catalog.resolve({ design: { presetId: 'sample-6' } }).presetId, 'academic-boxed');
   assert.equal(catalog.resolve({ design: { presetId: 'sample-3' } }), null);

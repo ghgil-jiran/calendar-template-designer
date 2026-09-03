@@ -547,3 +547,10 @@
 - 새 `calendarPreset/calendarLayout/calendarOverrides`와 기존 `design.presetId=sample-6`가 같은 프리셋으로 해석되도록 연결
 - 샘플 3은 박스형으로 흡수하지 않는 독립 프리셋 경계를 검사
 - 전체 build, Studio 검사 174개, 인라인 스크립트 21개와 `git diff --check` 통과
+
+## 2026-09-03 — 월력 Inspector 스타일 override 복구
+
+- `academic-boxed` 기본 표현이 Inspector의 기존 `design` 저장값보다 우선해 열린 가로줄·요일 캡슐 선택이 화면에 적용되지 않는 회귀 확인
+- 기존 저장본의 `design` 값을 호환 override로 읽고, 새 저장부터 같은 값을 `calendarOverrides`에도 기록하도록 보완
+- 박스형 측정 CSS를 실제 `grid-boxed` 선택에만 한정해 `open-rows`가 테두리를 제거할 수 있도록 수정
+- 전체 build, Studio 검사 176개, 인라인 스크립트 21개와 `git diff --check` 통과

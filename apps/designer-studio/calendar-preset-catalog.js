@@ -39,10 +39,13 @@
     const regions = source.calendarLayout?.regions;
     const validRegions = regions && [regions.titlePercent, regions.weekdayPercent, regions.dateGridPercent].every(value => Number(value) > 0)
       && Math.abs(Number(regions.titlePercent) + Number(regions.weekdayPercent) + Number(regions.dateGridPercent) - 100) < .001;
+    const design = source.design || {};
+    const legacyOverrides = Object.fromEntries(['monthTitleStyle', 'monthTitleAlign', 'weekdayStyle', 'gridStyle', 'eventStyle']
+      .filter(key => typeof design[key] === 'string').map(key => [key, design[key]]));
     return {
       ...preset,
       layout: validRegions ? { titlePercent: Number(regions.titlePercent), weekdayPercent: Number(regions.weekdayPercent), dateGridPercent: Number(regions.dateGridPercent) } : { ...preset.layout },
-      presentation: { ...preset.presentation, ...(source.calendarOverrides || {}) }
+      presentation: { ...preset.presentation, ...legacyOverrides, ...(source.calendarOverrides || {}) }
     };
   }
 
