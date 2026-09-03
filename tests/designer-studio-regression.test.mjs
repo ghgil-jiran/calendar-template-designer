@@ -166,11 +166,12 @@ test('wizard primary action styling stays visible without design tokens', () => 
 
 test('desk sample templates remain visible after the type definition options are rebuilt', () => {
   assert.match(html, /\{id:'desk-sample-6',name:'탁상형 6번 · 월별 플래너형'\}/);
+  assert.match(html, /\{id:'desk-sample-3',name:'탁상형 3번 · 이미지 미니월력형'\}/);
   assert.match(html, /\{id:'desk-sample-2',name:'탁상형 2번 · 이미지 콜라주형'\}/);
   assert.match(html, /DESK_SAMPLE_MIGRATION_KEY='acdl\.deskSamples\.v2'/);
-  assert.match(html, /desk\.starterTemplates=\['desk-sample-6','desk-sample-2',\.\.\.current\.filter/);
-  assert.match(html, /requiredStarters=d\.id==='desk'\?\['desk-sample-6','desk-sample-2'\]:\[\]/);
-  assert.match(html, /required=typeId==='desk'\?\['desk-sample-6','desk-sample-2'\]:\[\]/);
+  assert.match(html, /desk\.starterTemplates=\['desk-sample-6','desk-sample-3','desk-sample-2',\.\.\.current\.filter/);
+  assert.match(html, /requiredStarters=d\.id==='desk'\?\['desk-sample-6','desk-sample-3','desk-sample-2'\]:\[\]/);
+  assert.match(html, /required=typeId==='desk'\?\['desk-sample-6','desk-sample-3','desk-sample-2'\]:\[\]/);
 });
 
 test('wizard helper can reset step and selection state for a fresh flow', () => {

@@ -83,6 +83,26 @@ assert.deepEqual(
 assert.equal(representative.template.resources.backgroundPresetLibraryVersion, 1);
 assert.equal(representative.template.resources.backgroundPresets.length, 4);
 assert.ok(representative.template.resources.backgroundPresets.every(item => item.editable && item.supportsBleed));
+
+const sampleThree = globalThis.ACDLProjectDocument.createProject({ ...base, type: 'desk', template: 'desk-sample-3', sizePresetId: 'desk-standard' }, dependencies);
+assert.equal(sampleThree.book.pageInstances.length, 28);
+assert.equal(sampleThree.book.sheets.length, 14);
+assert.equal(sampleThree.template.pageComposition.type, 'desk-sample-3-sequence');
+assert.equal(sampleThree.template.metadata.sampleFamily, 'desk-3');
+assert.deepEqual(sampleThree.template.standardIdentity, { catalogId: 'tpl-2028-desk-image-calendar-review-02', templateKey: 'desk-sample-3' });
+assert.equal(sampleThree.template.review.referenceSample, 'desk-3');
+assert.equal(sampleThree.template.review.publicPackage, false);
+assert.equal(sampleThree.template.masters.calendar.calendarPreset.presetId, 'segmented-underline');
+assert.deepEqual(sampleThree.template.masters.calendar.calendarPreset.supportedRows, [5, 6]);
+assert.deepEqual(sampleThree.template.masters.calendar.calendarLayout.regions, { titlePercent: 21, weekdayPercent: 4, dateGridPercent: 75 });
+assert.equal(sampleThree.template.masters.calendar.design.gridStyle, 'open-rows');
+assert.equal(sampleThree.template.masterElements['master.monthly.back'].filter(item => item.type === 'image-frame').length, 3);
+assert.deepEqual(sampleThree.template.masterElements['master.monthly.back'].filter(item => item.type.startsWith('mini-calendar')).map(item => item.type), ['mini-calendar', 'mini-calendar-prev', 'mini-calendar-next']);
+assert.ok(sampleThree.book.elementsByPage['surface.1.front'].some(item => item.role === 'school-building'));
+assert.ok(sampleThree.book.elementsByPage['surface.1.back'].some(item => item.id === 'page.sample-3.yearly.calendar'));
+assert.ok(sampleThree.book.elementsByPage['surface.2.front'].some(item => item.id === 'page.sample-3.symbols.song'));
+assert.ok(sampleThree.book.elementsByPage['surface.14.back'].some(item => item.role === 'school-contact'));
+assert.equal(representative.template.metadata.sampleFamily, 'desk-6', 'sample 3 creation must not mutate the sample 6 review template');
 assert.ok(representative.book.elementsByPage['surface.1.front'].some(item => item.role === 'background-decoration' && item.backgroundPresetId === 'background.desk-6.cover'));
 assert.ok(representative.book.elementsByPage['surface.1.front'].some(item => item.x < 0));
 assert.equal(representative.book.elementsByPage['surface.1.front'].filter(item => ['school-name', 'school-english-name'].includes(item.role)).length, 0);

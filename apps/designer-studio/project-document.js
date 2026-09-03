@@ -3,6 +3,7 @@
   const pastel = ['#dff4ee', '#fff0df', '#fde6ee', '#e7edf9', '#e4f7fc', '#eee9f8', '#fff0df', '#f4e9e1', '#e4f7fc', '#eee9f8', '#fde6ee', '#edf0f5'];
   const protectedPlannerPermissions = { move: false, resize: false, rotate: false, color: false, delete: false, duplicate: false, layer: false, content: false };
   const deskPlannerStandard = { catalogId: 'tpl-2028-desk-planner-standard-01', templateKey: 'desk-sample-6', documentVersion: 13 };
+  const deskImageCalendarReview = { catalogId: 'tpl-2028-desk-image-calendar-review-02', templateKey: 'desk-sample-3', documentVersion: 1 };
   const deskSixReviewAssets = [
     { id: 'asset.sample.desk-6.building', name: '지란중학교 전경', role: 'school-building', binding: 'school.profile.building', kind: '학교 전경', image: 'assets/sample-school/jiran-building.webp' },
     { id: 'asset.sample.desk-6.logo', name: '지란중학교 교표 연결', role: 'school-logo', binding: 'school.profile.logo', kind: '교표', image: 'assets/sample-school/jiran-logo-composite.svg' },
@@ -97,6 +98,65 @@
       { id: 'master.planner.todo', type: 'memo', role: 'monthly-todo', memoLayout: 'checklist', x: 4, y: 52.1, width: 35, height: 42.5, zIndex: 2, title: 'TO DO LIST', itemCount: 9, required: true, permissions: { ...protectedPlannerPermissions }, style: {} },
       { id: 'master.planner.weekly', type: 'memo', role: 'weekly-planner', memoLayout: 'weekly', x: 41, y: 9.6, width: 55, height: 85, zIndex: 2, title: 'WEEKLY PLANNER', weekCount: 5, showMemo: true, required: true, permissions: { ...protectedPlannerPermissions }, style: {} }
     ];
+  }
+
+  function sampleThreeDecorations(prefix = 'sample-3') {
+    return [
+      { id: `${prefix}.stripe.1`, type: 'shape', role: 'background-decoration', shapeType: 'rect', x: 4, y: 0, width: 1, height: 10, rotation: -45, zIndex: 0, style: { fill: '#c8d3e4', stroke: 'transparent', strokeWidth: 0 } },
+      { id: `${prefix}.stripe.2`, type: 'shape', role: 'background-decoration', shapeType: 'rect', x: 7, y: 0, width: 1, height: 10, rotation: -45, zIndex: 0, style: { fill: '#c8d3e4', stroke: 'transparent', strokeWidth: 0 } },
+      { id: `${prefix}.corner.gray`, type: 'shape', role: 'background-decoration', shapeType: 'rect', x: 70, y: -8, width: 16, height: 16, rotation: 45, zIndex: 0, opacity: .65, style: { fill: '#d6deeb', stroke: 'transparent', strokeWidth: 0 } },
+      { id: `${prefix}.corner.accent`, type: 'shape', role: 'background-decoration', shapeType: 'rect', x: 91, y: -8, width: 17, height: 17, rotation: 45, zIndex: 0, opacity: .82, style: { fill: '#f36d83', stroke: 'transparent', strokeWidth: 0 } },
+      { id: `${prefix}.chevron`, type: 'shape', role: 'background-decoration', shapeType: 'rect', x: 91, y: 7, width: 15, height: 15, rotation: 45, zIndex: 0, style: { fill: '#293878', stroke: 'transparent', strokeWidth: 0 } }
+    ];
+  }
+
+  function createSampleThreePhotoMaster() {
+    return [
+      ...sampleThreeDecorations('master.sample-3.photo'),
+      { id: 'master.sample-3.photo.large', type: 'image-frame', role: 'monthly-image', x: 6.5, y: 15, width: 26.5, height: 75, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', fit: 'cover', focalPoint: { x: .18, y: .5 } }, fit: 'cover', style: { borderRadius: 0 } },
+      { id: 'master.sample-3.photo.top', type: 'image-frame', role: 'monthly-image-secondary', x: 33.7, y: 15, width: 26.3, height: 37, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', fit: 'cover', focalPoint: { x: .55, y: .22 } }, fit: 'cover', style: { borderRadius: 0 } },
+      { id: 'master.sample-3.photo.bottom', type: 'image-frame', role: 'monthly-image-tertiary', x: 33.7, y: 53, width: 26.3, height: 37, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', fit: 'cover', focalPoint: { x: .62, y: .78 } }, fit: 'cover', style: { borderRadius: 0 } },
+      { id: 'master.sample-3.calendar.current', type: 'mini-calendar', role: 'mini-calendar-current', x: 63, y: 27, width: 30, height: 34, zIndex: 2, monthSource: 'page', showWeekdayHeader: true, style: { background: false, primary: '#293878', sunday: '#ef3340' } },
+      { id: 'master.sample-3.divider.top', type: 'shape', role: 'calendar-divider', shapeType: 'rect', x: 63, y: 65.5, width: 30, height: .4, zIndex: 1, style: { fill: '#e4e9f2', stroke: 'transparent', strokeWidth: 0 } },
+      { id: 'master.sample-3.calendar.prev', type: 'mini-calendar-prev', role: 'mini-calendar-prev', x: 63, y: 70, width: 14.2, height: 18, zIndex: 2, showWeekdayHeader: false, style: { background: false, primary: '#293878', sunday: '#ef3340' } },
+      { id: 'master.sample-3.calendar.next', type: 'mini-calendar-next', role: 'mini-calendar-next', x: 78.8, y: 70, width: 14.2, height: 18, zIndex: 2, showWeekdayHeader: false, style: { background: false, primary: '#293878', sunday: '#ef3340' } },
+      { id: 'master.sample-3.divider.bottom', type: 'shape', role: 'calendar-divider', shapeType: 'rect', x: 63, y: 89.5, width: 30, height: .4, zIndex: 1, style: { fill: '#e4e9f2', stroke: 'transparent', strokeWidth: 0 } }
+    ];
+  }
+
+  function applySampleThreeSpecialSurfaces(project, year, startMonth) {
+    const byRole = role => project.book.pageInstances.find(page => page.role === role);
+    const set = (role, semanticPageRole, elements) => { const page = byRole(role); if (!page) return; page.semanticPageRole = semanticPageRole; project.book.elementsByPage[page.id] = elements; };
+    set('cover-front', 'cover-front', [
+      ...sampleThreeDecorations('page.sample-3.cover'),
+      { id: 'page.sample-3.cover.slogan', type: 'text', role: 'school-slogan', binding: 'school.slogan', x: 15, y: 16, width: 25, height: 6, zIndex: 3, content: '사랑을 실천하는 교육', style: { fontSize: 14, fontWeight: 700, textAlign: 'left', background: false, color: '#506895' } },
+      { id: 'page.sample-3.cover.year', type: 'text', role: 'year', binding: 'calendar.year', format: 'year-plain', x: 15, y: 23, width: 25, height: 15, zIndex: 3, content: String(year), style: { fontSize: 54, fontWeight: 900, textAlign: 'left', background: false, color: '#293878' } },
+      { id: 'page.sample-3.cover.label', type: 'text', role: 'calendar-label', x: 15, y: 38, width: 25, height: 5, zIndex: 3, content: 'C A L E N D A R', style: { fontSize: 12, fontWeight: 700, textAlign: 'center', background: false, color: '#8b8b8b' } },
+      { id: 'page.sample-3.cover.building', type: 'semantic-object', role: 'school-building', x: 43, y: 18, width: 44, height: 56, zIndex: 1, binding: 'school.profile.building', bindingEnabled: true, fallbackToSample: true, showCaption: false, sampleContent: { image: 'assets/sample-school/jiran-building.webp' }, style: { borderRadius: 0 } },
+      { id: 'page.sample-3.cover.logo', type: 'semantic-object', role: 'school-logo', x: 17, y: 90, width: 18, height: 6, zIndex: 3, binding: 'school.profile.logo', bindingEnabled: true, fallbackToSample: true, sampleContent: { image: 'assets/sample-school/jiran-logo-composite.svg' }, style: {} }
+    ]);
+    set('cover-back', 'yearly-calendar', [
+      ...sampleThreeDecorations('page.sample-3.yearly'),
+      { id: 'page.sample-3.yearly.title', type: 'text', role: 'year', binding: 'calendar.year', format: 'year-plain', x: 36, y: 8, width: 30, height: 11, zIndex: 2, content: `CALENDAR ${year}`, style: { fontSize: 36, fontWeight: 900, textAlign: 'center', background: false, color: '#293878' } },
+      { id: 'page.sample-3.yearly.calendar', type: 'year-calendar', role: 'year-calendar', x: 7, y: 23, width: 86, height: 68, zIndex: 1, startMonth: 1, monthCount: 12, columns: 4, rowsMode: 'adaptive', showWeekdayHeader: false, style: { primary: '#293878' } }
+    ]);
+    set('front-insert-front', 'school-symbols', [
+      ...sampleThreeDecorations('page.sample-3.symbols'),
+      { id: 'page.sample-3.symbols.title', type: 'text', role: 'insert-title', x: 34, y: 10, width: 32, height: 8, zIndex: 3, content: '우리학교 상징', style: { fontSize: 25, fontWeight: 900, textAlign: 'center', background: false, color: '#293878' } },
+      { id: 'page.sample-3.symbols.panel', type: 'shape', role: 'background-decoration', shapeType: 'rect', x: 5, y: 22, width: 90, height: 73, zIndex: 0, style: { fill: '#e9edf8', stroke: 'transparent', strokeWidth: 0 } },
+      { id: 'page.sample-3.symbols.motto', type: 'semantic-object', role: 'school-motto', x: 10, y: 30, width: 38, height: 17, zIndex: 2, binding: 'school.profile.motto', bindingEnabled: true, fallbackToSample: true, sampleContent: { name: '교훈', description: '슬기롭게, 화목하게, 튼튼하게' }, style: {} },
+      { id: 'page.sample-3.symbols.tree', type: 'semantic-object', role: 'school-tree', x: 10, y: 54, width: 18, height: 32, zIndex: 2, binding: 'school.profile.tree', bindingEnabled: true, fallbackToSample: true, showCaption: true, sampleContent: { name: '교목', image: 'assets/sample-school/jiran-tree.webp' }, style: {} },
+      { id: 'page.sample-3.symbols.flower', type: 'semantic-object', role: 'school-flower', x: 30, y: 54, width: 18, height: 32, zIndex: 2, binding: 'school.profile.flower', bindingEnabled: true, fallbackToSample: true, showCaption: true, sampleContent: { name: '교화', image: 'assets/sample-school/jiran-flower.webp' }, style: {} },
+      { id: 'page.sample-3.symbols.song', type: 'semantic-object', role: 'school-song', x: 53, y: 30, width: 37, height: 56, zIndex: 2, binding: 'school.profile.song', bindingEnabled: true, fallbackToSample: true, showCaption: true, sampleContent: { name: '교가', image: 'assets/sample-school/jiran-song.webp' }, style: {} }
+    ]);
+    set('back-cover-back', 'back-cover-information', [
+      { id: 'page.sample-3.back.year', type: 'text', role: 'year', binding: 'calendar.year', format: 'year-plain', x: 37, y: 39, width: 26, height: 12, zIndex: 3, content: String(year), style: { fontSize: 46, fontWeight: 900, textAlign: 'center', background: false, color: '#293878' } },
+      { id: 'page.sample-3.back.label', type: 'text', role: 'calendar-label', x: 39, y: 52, width: 22, height: 4, zIndex: 3, content: 'C A L E N D A R', style: { fontSize: 10, fontWeight: 700, textAlign: 'center', background: false, color: '#8b8b8b' } },
+      { id: 'page.sample-3.back.panel', type: 'shape', role: 'background-decoration', shapeType: 'rect', x: 0, y: 68, width: 100, height: 32, zIndex: 0, style: { fill: '#e9edf8', stroke: 'transparent', strokeWidth: 0 } },
+      { id: 'page.sample-3.back.logo', type: 'semantic-object', role: 'school-logo', x: 42, y: 77, width: 16, height: 7, zIndex: 3, binding: 'school.profile.logo', bindingEnabled: true, fallbackToSample: true, sampleContent: { image: 'assets/sample-school/jiran-logo-composite.svg' }, style: {} },
+      { id: 'page.sample-3.back.address', type: 'text', role: 'school-contact', binding: 'school.address', x: 25, y: 87, width: 50, height: 3, zIndex: 3, content: '학교 주소', style: { fontSize: 8, textAlign: 'center', background: false, color: '#303030' } },
+      { id: 'page.sample-3.back.contacts', type: 'text', role: 'school-contact', binding: 'school.contacts', x: 20, y: 91, width: 60, height: 4, zIndex: 3, content: '학교 연락처', style: { fontSize: 8, textAlign: 'center', background: false, color: '#303030', inlineContacts: true } }
+    ]);
   }
 
   function createCoverFrontElements(year) {
@@ -399,24 +459,36 @@
   }
 
   function applyDeskRepresentativePreset(project, options) {
-    if (options.type !== 'desk' || !['desk-sample-6', 'desk-sample-2'].includes(options.template)) return project;
+    if (options.type !== 'desk' || !['desk-sample-6', 'desk-sample-3', 'desk-sample-2'].includes(options.template)) return project;
     const isPlanner = options.template === 'desk-sample-6';
+    const isSampleThree = options.template === 'desk-sample-3';
     const months = project.book.pageInstances.filter(page => page.role === 'monthly-front');
-    project.template.metadata = { name: isPlanner ? '탁상형 6번 · 월별 플래너형' : '탁상형 2번 · 이미지 콜라주형', sampleFamily: isPlanner ? 'desk-6' : 'desk-2', productRuntime: 'desk-sequence' };
+    project.template.metadata = { name: isPlanner ? '탁상형 6번 · 월별 플래너형' : isSampleThree ? '탁상형 3번 · 이미지 미니월력형' : '탁상형 2번 · 이미지 콜라주형', sampleFamily: isPlanner ? 'desk-6' : isSampleThree ? 'desk-3' : 'desk-2', productRuntime: 'desk-sequence' };
     if (isPlanner) {
       project.template.standardIdentity = { catalogId: deskPlannerStandard.catalogId, templateKey: deskPlannerStandard.templateKey };
       project.template.documentVersion = deskPlannerStandard.documentVersion;
     }
-    project.template.pageComposition = { type: 'desk-sample-6-sequence', pageCount: 28, monthPairCount: 12, leadingSurfaceCount: 3, trailingSurfaceCount: 1 };
-    project.template.masters.calendar.calendarRegion = { x: 3, y: 10, width: 94, height: 87 };
+    if (isSampleThree) {
+      project.template.standardIdentity = { catalogId: deskImageCalendarReview.catalogId, templateKey: deskImageCalendarReview.templateKey };
+      project.template.documentVersion = deskImageCalendarReview.documentVersion;
+      project.template.review = { status: 'review', reviewId: 'tpl-2028-desk-image-calendar-review-02-review-01', sourceCatalogId: deskImageCalendarReview.catalogId, referenceSample: 'desk-3', publicPackage: false };
+    }
+    project.template.pageComposition = { type: isSampleThree ? 'desk-sample-3-sequence' : 'desk-sample-6-sequence', pageCount: 28, monthPairCount: 12, leadingSurfaceCount: 3, trailingSurfaceCount: 1 };
+    project.template.masters.calendar.calendarRegion = isSampleThree ? { x: 3.8, y: 13.2, width: 92.4, height: 81.2 } : { x: 3, y: 10, width: 94, height: 87 };
     project.template.masters.calendar.eventMaxVisiblePerDay = 3;
-    project.template.masters.calendar.design = { monthTitleAlign: 'left', monthTitleStyle: 'number-stack', weekdayStyle: 'filled-tabs', gridStyle: 'boxed', eventStyle: 'strong-bars' };
-    project.template.masterElements['master.monthly.back'] = isPlanner ? createPlannerMasterElements() : [
+    project.template.masters.calendar.design = isSampleThree
+      ? { monthTitleAlign: 'center', monthTitleStyle: 'number-inline', weekdayStyle: 'outlined-pills', gridStyle: 'open-rows', eventStyle: 'soft-bars', presetId: 'sample-3' }
+      : { monthTitleAlign: 'left', monthTitleStyle: 'number-stack', weekdayStyle: 'filled-tabs', gridStyle: 'boxed', eventStyle: 'strong-bars' };
+    if (isSampleThree) {
+      Object.assign(project.template.masters.calendar, { monthTitleSize: 27, calendarLayout: { rowsMode: 'adaptive', columns: 7, weekStartsOn: 'sunday', regions: { titlePercent: 21, weekdayPercent: 4, dateGridPercent: 75 } }, calendarPreset: { schemaVersion: 'monthly-calendar-preset.v1', presetId: 'segmented-underline', presetVersion: '1.0.0', supportedRows: [5, 6] }, calendarOverrides: { lineLength: 100 } });
+    }
+    project.template.masterElements['master.monthly.back'] = isPlanner ? createPlannerMasterElements() : isSampleThree ? createSampleThreePhotoMaster() : [
       { id: 'master.collage.large', type: 'image-frame', role: 'monthly-image', x: 5, y: 6, width: 57, height: 58, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', fit: 'cover', focalPoint: { x: .5, y: .5 } }, fit: 'cover', style: { borderRadius: 3 } },
       { id: 'master.collage.small-a', type: 'image-frame', role: 'monthly-image-secondary', x: 65, y: 6, width: 30, height: 27, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', fit: 'cover', focalPoint: { x: .25, y: .5 } }, fit: 'cover', style: { borderRadius: 3 } },
       { id: 'master.collage.small-b', type: 'image-frame', role: 'monthly-image-tertiary', x: 65, y: 37, width: 30, height: 27, zIndex: 1, image: { binding: 'calendar.monthlyImages.current', fit: 'cover', focalPoint: { x: .75, y: .5 } }, fit: 'cover', style: { borderRadius: 3 } },
       { id: 'master.collage.strip', type: 'month-date-strip', role: 'month-date-strip', x: 5, y: 72, width: 90, height: 20, zIndex: 2, monthSource: 'page', showWeekday: true, showDate: true, style: { background: true } }
     ];
+    if (isSampleThree) applySampleThreeSpecialSurfaces(project, Number(options.year), Number(options.startMonth));
     const coverFront = project.book.pageInstances.find(page => page.role === 'cover-front');
     if (isPlanner && coverFront) {
       project.book.elementsByPage[coverFront.id] = [
@@ -432,7 +504,7 @@
       project.book.coverElementsInitialized = { [coverFront.id]: true };
     }
     const coverBack = project.book.pageInstances.find(page => page.role === 'cover-back');
-    if (coverBack) {
+    if (!isSampleThree && coverBack) {
       coverBack.semanticPageRole = 'yearly-calendar';
       project.book.elementsByPage[coverBack.id] = [
         { id: 'page.yearly.title', type: 'text', role: 'year', binding: 'calendar.year', x: 35, y: 7, width: 30, height: 10, zIndex: 2, content: String(options.year), style: { fontSize: 42, textAlign: 'center', background: false, color: '#20a9c2' } },
@@ -440,7 +512,7 @@
       ];
     }
     const symbolPage = project.book.pageInstances.find(page => page.role === 'front-insert-front');
-    if (symbolPage) {
+    if (!isSampleThree && symbolPage) {
       symbolPage.semanticPageRole = 'school-symbols';
       project.book.elementsByPage[symbolPage.id] = [
         { id: 'page.symbols.motto', type: 'semantic-object', role: 'school-motto', x: 5, y: 10, width: 43, height: 35, zIndex: 1, binding: 'school.profile.motto', bindingEnabled: true, fallbackToSample: true, sampleContent: { name: '교훈', description: '바르게 배우고 함께 성장합니다.' }, style: {} },
@@ -494,7 +566,7 @@
     if (isPoster) {
       project.book.pageInstances.push({ id: 'page.poster.annual', number: 1, side: 'front', role: 'poster-annual', masterId: 'master.poster.annual', calendarYear: options.year, calendarMonth: null, overrides: {} });
     } else if (isDesk) {
-      if (options.template === 'desk-sample-6') {
+      if (options.template === 'desk-sample-6' || options.template === 'desk-sample-3') {
         const specs = [
           ['cover-front', null], ['cover-back', null], ['front-insert-front', null],
           ...months.flatMap(month => [['monthly-back', month], ['monthly-front', month]]),
@@ -507,7 +579,7 @@
           const page = { id: `surface.${sheetNumber}.${side}`, number, sheetNumber, side, role, masterId: role === 'monthly-front' ? 'master.monthly.front' : role === 'monthly-back' ? 'master.monthly.back' : `master.${role.replace(/-(front|back)$/, '.$1')}`, calendarYear: calendar?.year || null, calendarMonth: calendar?.month || null, overrides: {} };
           project.book.pageInstances.push(page);
         });
-        project.book.sheets = Array.from({ length: 14 }, (_, index) => ({ id: `sheet.${index + 1}`, sheetNumber: index + 1, role: 'sample-6-sequence', surfaces: project.book.pageInstances.slice(index * 2, index * 2 + 2) }));
+        project.book.sheets = Array.from({ length: 14 }, (_, index) => ({ id: `sheet.${index + 1}`, sheetNumber: index + 1, role: options.template === 'desk-sample-3' ? 'sample-3-sequence' : 'sample-6-sequence', surfaces: project.book.pageInstances.slice(index * 2, index * 2 + 2) }));
         project.settings.frontInsertCount = 0;
         project.settings.rearInsertCount = 0;
         return applyDeskRepresentativePreset(project, options);

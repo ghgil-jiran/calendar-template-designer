@@ -434,7 +434,7 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
 <label class="setup-field" data-types="desk postcard">맨 뒤표지 앞 간지 기본 매수<select id="setupRearInserts"></select></label>
 <label class="setup-field" data-types="poster">연간 월력 배열<select id="setupPosterColumns"><option value="4">4열 × 3행</option><option value="3">3열 × 4행</option><option value="6">6열 × 2행</option></select></label>
 <label class="setup-field full" data-types="desk wall poster postcard">기본 달력 크기<select id="setupSize"></select><span id="setupSizeNote" class="size-note"></span></label>
-<label class="setup-field full" data-types="desk wall poster postcard">시작 템플릿<select id="setupTemplate"><option value="desk-sample-6">탁상형 6번 · 월별 플래너형</option><option value="desk-sample-2">탁상형 2번 · 이미지 콜라주형</option><option value="school-basic">학교 기본형 샘플</option><option value="minimal">미니멀형 샘플</option></select></label>
+<label class="setup-field full" data-types="desk wall poster postcard">시작 템플릿<select id="setupTemplate"><option value="desk-sample-6">탁상형 6번 · 월별 플래너형</option><option value="desk-sample-3">탁상형 3번 · 이미지 미니월력형</option><option value="desk-sample-2">탁상형 2번 · 이미지 콜라주형</option><option value="school-basic">학교 기본형 샘플</option><option value="minimal">미니멀형 샘플</option></select></label>
 </div><div class="setup-actions"><button id="createBtn" class="primary">템플릿 설계 시작</button><button id="setupLoadBtn" class="secondary">기존 템플릿 열기</button><button id="designerBackBtn" class="secondary">처음으로</button></div></div></div>
 
 <div id="userSetup" class="setup user-setup hidden"><div class="setup-card user-wizard-card">
@@ -3930,6 +3930,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  const $=id=>document.getElementById(id),KEY='acdl.calendarTypeDefinitions.v37',DESK_SAMPLE_MIGRATION_KEY='acdl.deskSamples.v2';
  const starterCatalog=[
   {id:'desk-sample-6',name:'탁상형 6번 · 월별 플래너형'},
+  {id:'desk-sample-3',name:'탁상형 3번 · 이미지 미니월력형'},
   {id:'desk-sample-2',name:'탁상형 2번 · 이미지 콜라주형'},
   {id:'school-basic',name:'학교 기본형'},
   {id:'minimal',name:'미니멀형'},
@@ -3972,7 +3973,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   if(!sizes.some(s=>s.recommended)&&sizes[0])sizes[0].recommended=true;
   const rec=sizes.find(s=>s.recommended)||sizes[0];
   const savedStarters=Array.isArray(d.starterTemplates)&&d.starterTemplates.length?d.starterTemplates:['school-basic','minimal','blank'];
-  const requiredStarters=d.id==='desk'?['desk-sample-6','desk-sample-2']:[];
+  const requiredStarters=d.id==='desk'?['desk-sample-6','desk-sample-3','desk-sample-2']:[];
   const starterTemplates=[...requiredStarters,...savedStarters.filter(id=>!requiredStarters.includes(id))];
   return {...d,width:rec?.width||d.width,height:rec?.height||d.height,sizes,starterTemplates};
  }
@@ -3984,7 +3985,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
    const desk=defs.find(d=>d.id==='desk');
    if(desk){
     const current=Array.isArray(desk.starterTemplates)?desk.starterTemplates:[];
-    desk.starterTemplates=['desk-sample-6','desk-sample-2',...current.filter(id=>!['desk-sample-6','desk-sample-2'].includes(id))]
+    desk.starterTemplates=['desk-sample-6','desk-sample-3','desk-sample-2',...current.filter(id=>!['desk-sample-6','desk-sample-3','desk-sample-2'].includes(id))]
    }
    localStorage.setItem(DESK_SAMPLE_MIGRATION_KEY,'1')
   }
@@ -4029,7 +4030,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   $('typeManagerOverlay')?.classList.add('hidden');$('designerHome')?.classList.remove('hidden');$('setup')?.classList.add('hidden');$('templateLibraryModal')?.classList.add('hidden')
  }
  function updateStarterTemplateOptions(typeId){
-  const select=$('setupTemplate');if(!select)return;const d=readDefs().map(normalizeDef).find(x=>x.id===typeId);const fallback=typeId==='desk'?['desk-sample-6','desk-sample-2','school-basic','minimal']:['school-basic','minimal'];const ids=d?.starterTemplates?.length?d.starterTemplates:fallback;const required=typeId==='desk'?['desk-sample-6','desk-sample-2']:[];const visibleIds=[...required,...ids.filter(id=>!required.includes(id))];const current=select.value;select.innerHTML=starterCatalog.filter(x=>visibleIds.includes(x.id)).map(x=>`<option value="${x.id}">${x.name}</option>`).join('');if([...select.options].some(o=>o.value===current))select.value=current
+  const select=$('setupTemplate');if(!select)return;const d=readDefs().map(normalizeDef).find(x=>x.id===typeId);const fallback=typeId==='desk'?['desk-sample-6','desk-sample-3','desk-sample-2','school-basic','minimal']:['school-basic','minimal'];const ids=d?.starterTemplates?.length?d.starterTemplates:fallback;const required=typeId==='desk'?['desk-sample-6','desk-sample-3','desk-sample-2']:[];const visibleIds=[...required,...ids.filter(id=>!required.includes(id))];const current=select.value;select.innerHTML=starterCatalog.filter(x=>visibleIds.includes(x.id)).map(x=>`<option value="${x.id}">${x.name}</option>`).join('');if([...select.options].some(o=>o.value===current))select.value=current
  }
  migrate();ensureManagerSections();syncRuntimeFromDefinitions();
  $('designerHomeTypes')?.addEventListener('click',()=>setTimeout(()=>fillEnhancements(activeDefinition()),0));

@@ -236,6 +236,12 @@ test('new desk planner standard is visible as a separate 2028 draft system base'
   assert.match(html, /page\.planner-back-surface \.surface-content\{background:var\(--planner-background\)/);
 });
 
+test('sample 3 image mini-calendar review is a separate draft system base', () => {
+  const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
+  assert.match(catalog, /tpl-2028-desk-image-calendar-review-02[^\n]+name:"\[학사달력\] 탁상형 검토 02 - 이미지 미니월력"[^\n]+status:"draft"[^\n]+template:"desk-sample-3"/);
+  assert.match(catalog, /features:\["3번 원본 재현","28면 구성","독립 요일 캡슐","세로선 없는 날짜 격자","월별 이미지 콜라주","전후월 미니월력"\]/);
+});
+
 test('template library entry and save do not reference the removed legacy filter state', () => {
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
   assert.doesNotMatch(html, /activeLibraryFilter/);
