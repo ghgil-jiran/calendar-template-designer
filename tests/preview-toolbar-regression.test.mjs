@@ -9,8 +9,8 @@ test('page and full previews preserve the shared editor header and use a unified
   const appHeader = html.indexOf('<header class="app-header">');
   const workspaceMenu = html.indexOf('<nav id="workspaceMenubar"');
   const pagePreviewMenu = html.indexOf('<div id="pagePreviewToolbar"');
-  const editorMenu = html.indexOf('<nav id="editorMenubar"');
-  assert.ok(appHeader < workspaceMenu && workspaceMenu < pagePreviewMenu && pagePreviewMenu < editorMenu);
+  assert.ok(appHeader < workspaceMenu && workspaceMenu < pagePreviewMenu);
+  assert.doesNotMatch(html, /<nav id="editorMenubar"/);
   assert.match(html, /\.preview-only \.app-header\{display:flex\}/);
   assert.match(html, /\.preview-only \.workspace-menubar\{display:flex\}/);
   assert.match(html, /\.full-preview-overlay\{top:92px\}/);

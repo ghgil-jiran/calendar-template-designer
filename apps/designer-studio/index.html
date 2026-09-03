@@ -486,16 +486,9 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
 <nav id="workspaceMenubar" class="workspace-menubar editor-chrome" aria-label="서비스 및 템플릿 메뉴">
  <button id="returnHomeBtn" class="workspace-menu home-btn" type="button">처음으로</button>
  <div class="header-group template-menu-wrap"><button id="templateMenuBtn" class="workspace-menu">템플릿 ▾</button><div id="templateMenuDropdown" class="template-menu-dropdown hidden"><button id="newBtn">새 템플릿</button><button id="libraryBtn">템플릿 라이브러리</button><button id="loadBtn">템플릿 열기</button><button id="saveBtn">템플릿 저장</button><button id="reviewPdfBtn">검토용 PDF 저장</button></div></div>
- <button id="templateSettingsBtn" class="workspace-menu">템플릿 설정</button><span class="menubar-spacer"></span><button id="fullPreviewBtn" class="workspace-menu preview-menu">전체 미리보기</button>
+ <button id="templateSettingsBtn" class="workspace-menu">템플릿 설정</button><span class="menubar-spacer"></span><div class="header-group template-menu-wrap preview-menu-wrap"><button id="previewMenuBtn" class="workspace-menu preview-menu" type="button">미리 보기 ▾</button><div id="previewMenuDropdown" class="template-menu-dropdown hidden"><button type="button" data-menu-action="preview-page">현재 페이지 미리보기</button><button id="fullPreviewBtn" type="button">전체 미리보기</button></div></div>
 </nav>
 <div id="pagePreviewToolbar" class="preview-toolbar" role="toolbar" aria-label="현재 페이지 미리보기 메뉴"><div class="preview-heading"><strong>현재 페이지 미리보기</strong><span id="pagePreviewName"></span></div><span class="preview-spacer"></span><button id="previewPrevPageBtn">이전 페이지</button><button id="previewNextPageBtn">다음 페이지</button><button id="returnToEditBtn">편집으로 돌아가기</button></div>
-<nav id="editorMenubar" class="editor-menubar editor-chrome" aria-label="편집기 메뉴">
- <div class="menu-root"><button type="button">편집</button><div class="editor-menu-popover"><button data-menu-action="undo">실행 취소　Ctrl+Z</button><button data-menu-action="redo">다시 실행　Ctrl+Shift+Z</button><div class="menu-divider"></div><button data-menu-action="duplicate">복제　Ctrl+D</button><button data-menu-action="delete">삭제　Delete</button></div></div>
- <div class="menu-root"><button type="button">삽입</button><div class="editor-menu-popover"><button data-open-library="basic">텍스트·이미지</button><button data-open-library="shapes">도형</button><button data-open-library="frames">사진 프레임</button><button data-open-library="vectors">벡터 일러스트</button><button data-open-library="calendar">달력 개체</button></div></div>
- <div class="menu-root"><button type="button">정렬</button><div class="editor-menu-popover"><button data-menu-action="align-left">페이지 왼쪽 맞춤</button><button data-menu-action="align-center">페이지 가로 가운데</button><button data-menu-action="align-right">페이지 오른쪽 맞춤</button><button data-menu-action="align-top">페이지 위쪽 맞춤</button><button data-menu-action="align-middle">페이지 세로 가운데</button><button data-menu-action="align-bottom">페이지 아래쪽 맞춤</button><div class="menu-divider"></div><button data-menu-action="front">맨 앞으로</button><button data-menu-action="back">맨 뒤로</button></div></div>
- <div class="menu-root"><button type="button">보기</button><div class="editor-menu-popover"><button data-menu-action="preview-page">현재 페이지 미리보기</button><button data-menu-action="preview-all">전체 미리보기</button><button data-menu-action="toggle-guides">재단·안전 영역 표시 전환</button></div></div>
- <div class="menubar-spacer"></div>
-</nav>
 
 <main class="workspace">
 <aside id="insertSidebar" class="panel insert-sidebar editor-chrome" aria-label="자료 및 개체 추가">
@@ -542,6 +535,15 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
   <button class="icon-tool" data-menu-action="front" title="맨 앞으로"><span class="tool-icon">⇧</span><span class="tool-label">맨 앞으로</span></button>
   <button class="icon-tool" data-menu-action="back" title="맨 뒤로"><span class="tool-icon">⇩</span><span class="tool-label">맨 뒤로</span></button>
  </div>
+ <div class="tool-divider"></div>
+ <div class="tool-group toolbar-align-tools" aria-label="선택 개체 정렬">
+  <button class="icon-tool" data-menu-action="align-left" title="페이지 왼쪽 맞춤"><span class="tool-icon">⇤</span><span class="tool-label">왼쪽</span></button>
+  <button class="icon-tool" data-menu-action="align-center" title="페이지 가로 가운데"><span class="tool-icon">↔</span><span class="tool-label">가로 중앙</span></button>
+  <button class="icon-tool" data-menu-action="align-right" title="페이지 오른쪽 맞춤"><span class="tool-icon">⇥</span><span class="tool-label">오른쪽</span></button>
+  <button class="icon-tool" data-menu-action="align-top" title="페이지 위쪽 맞춤"><span class="tool-icon">⇡</span><span class="tool-label">위쪽</span></button>
+  <button class="icon-tool" data-menu-action="align-middle" title="페이지 세로 가운데"><span class="tool-icon">↕</span><span class="tool-label">세로 중앙</span></button>
+  <button class="icon-tool" data-menu-action="align-bottom" title="페이지 아래쪽 맞춤"><span class="tool-icon">⇣</span><span class="tool-label">아래쪽</span></button>
+ </div>
  <div class="toolbar-spacer"></div>
  <div class="toolbar-scope"><label for="elementScope">추가 범위</label><select id="elementScope"><option value="page">현재 페이지</option><option value="master">같은 Master 전체</option></select></div>
  <input id="elementImageInput" class="hidden" type="file" accept="image/*"><input id="frameImageInput" class="hidden" type="file" accept="image/*"><input id="semanticImageInput" class="hidden" type="file" accept="image/*">
@@ -550,7 +552,7 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
 <div class="canvas-wrap"><div id="page" class="page desk"></div></div></section>
 <aside class="panel right editor-chrome" aria-label="선택 개체 속성"><h2 id="inspectorPanelTitle" class="inspector-panel-title">페이지 스타일</h2><div id="inspectorSelectionSummary" class="inspector-selection-summary">페이지를 선택했거나 개체가 선택되지 않았습니다.</div><div id="inspector"></div></aside>
 <section class="panel page-dock editor-chrome" aria-label="페이지 구성 및 선택">
- <div class="page-dock-head"><strong>페이지 구성</strong><span>페이지를 선택해 편집 화면을 전환합니다.</span></div>
+ <div class="page-dock-head"><strong>페이지</strong><span id="pageDockStatus"></span></div>
  <div class="panel-body nav" id="navigator"></div>
 </section>
 </main>
@@ -777,7 +779,7 @@ function renderNavigator(){
  if(isDesk){project.book.sheets.forEach(sh=>{const box=document.createElement("div");box.className="sheet";box.innerHTML=`<div class="sheet-head">Sheet ${sh.sheetNumber} · ${sh.calendar?`${sh.calendar.year}.${String(sh.calendar.month).padStart(2,"0")}`:sh.role}</div>`;sh.surfaces.forEach(p=>box.appendChild(pageButton(p)));nav.appendChild(box)})}
  else project.book.pageInstances.forEach(p=>nav.appendChild(pageButton(p)));
 }
-function pageButton(p){const b=document.createElement("button"),type=pageDesignType(p);b.className="page-btn "+(p.id===selectedPageId?"active":"");b.innerHTML=`<span>${roleLabel(p)} <em class="page-nav-type ${type.key}">${type.label}</em></span><small>${p.overrides&&Object.keys(p.overrides).length?"●":p.number}</small>`;b.addEventListener("click",()=>{if(p.id!==selectedPageId&&!confirmDiscardInspectorChanges())return;inspectorDirty=false;inspectorNotice={type:"ready",message:"설정을 변경하면 저장 버튼이 활성화됩니다."};selectedPageId=p.id;selectedDate=null;selectedElementId=null;selectedElementScope=null;semanticImageDraft=null;semanticImageDraftElementId=null;calendarEditing=false;render()});return b}
+function pageButton(p){const b=document.createElement("button");b.className="page-btn "+(p.id===selectedPageId?"active":"");b.dataset.pageId=p.id;b.innerHTML=`<span><strong>${p.number}면</strong>${roleLabel(p)}</span>`;b.addEventListener("click",()=>{if(p.id!==selectedPageId&&!confirmDiscardInspectorChanges())return;inspectorDirty=false;inspectorNotice={type:"ready",message:"설정을 변경하면 저장 버튼이 활성화됩니다."};selectedPageId=p.id;selectedDate=null;selectedElementId=null;selectedElementScope=null;semanticImageDraft=null;semanticImageDraftElementId=null;calendarEditing=false;render()});return b}
 function groupedEvents(){return window.ACDLDatasetDomain.groupEventsByDate(project.book.events)}
 function calendarReferenceItems(date,category){
  const year=String(date||"").slice(0,4),bucket=project.book.calendarReference?.years?.[year]?.[category];
@@ -4256,7 +4258,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 })();
 </script>
 <style id="workspace-layout-v38-styles">
-.workspace{grid-template-columns:280px minmax(570px,1fr) 320px;grid-template-rows:minmax(0,1fr) 184px;height:calc(100vh - 128px);min-height:0}
+.workspace{grid-template-columns:280px minmax(570px,1fr) 320px;grid-template-rows:minmax(0,1fr) 112px;height:calc(100vh - 92px);min-height:0}
 .workspace>.insert-sidebar{grid-column:1;grid-row:1;display:flex;flex-direction:column;min-height:0}
 .insert-sidebar-intro{padding:9px 12px;border-bottom:1px solid var(--acds-border,#e2e8f0);background:#fff;color:#64748b;font-size:10px;line-height:1.5}
 .insert-sidebar-host{display:flex;flex:1;min-height:0;flex-direction:column;overflow:hidden}
@@ -4274,22 +4276,25 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .workspace>.right #inspector{flex:1;height:auto}
 .workspace .toolbar-scope{display:none!important}
 .library-search-empty{padding:18px 8px;text-align:center;color:#64748b;font-size:10px;line-height:1.5}
-.workspace>.page-dock{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:150px minmax(0,1fr);min-height:0;overflow:hidden}
-.page-dock-head{display:flex;flex-direction:column;justify-content:center;gap:5px;padding:13px;border-right:1px solid #e2e8f0;background:#f8fafc}.page-dock-head strong{font-size:13px;color:#0f172a}.page-dock-head span{font-size:9px;line-height:1.5;color:#64748b}
-.page-dock>.nav{display:flex;align-items:stretch;gap:8px;min-width:0;max-height:none;padding:9px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-gutter:stable}
-.page-dock .sheet{display:grid;grid-template-rows:24px minmax(0,1fr);grid-template-columns:repeat(2,150px);flex:0 0 auto;gap:5px;padding:6px;border:1px solid #dbe3ee;border-radius:8px;background:#f8fafc}
-.page-dock .sheet-head{grid-column:1/-1;padding:3px 5px;border:0;background:transparent;color:#64748b;font-size:9px;white-space:nowrap}
-.page-dock .page-btn{height:100%;min-height:94px;margin:0;padding:8px;align-items:flex-start;text-align:left}.page-dock .page-btn span{display:flex;flex-direction:column;align-items:flex-start;gap:5px}.page-dock .page-btn small{align-self:flex-end}
+.workspace>.page-dock{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:92px minmax(0,1fr);min-height:0;overflow:hidden;border-top:1px solid #dbe3ee}
+.page-dock-head{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:10px;border-right:1px solid #e2e8f0;background:#f8fafc}.page-dock-head strong{font-size:12px;color:#0f172a}.page-dock-head span{font-size:9px;line-height:1.35;color:#64748b}
+.page-dock>.nav{display:flex;align-items:center;gap:6px;min-width:0;max-height:none;padding:7px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-gutter:stable}
+.page-dock .sheet{display:contents}.page-dock .sheet-head{display:none}
+.page-dock .page-btn{flex:0 0 108px;height:76px;min-height:0;margin:0;padding:7px;border:1px solid #dbe3ee!important;border-radius:7px;align-items:flex-start;text-align:left;background:#fff}.page-dock .page-btn span{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;line-height:1.25}.page-dock .page-btn span strong{font-size:10px;color:#1e293b}.page-dock .page-btn.active{border-color:#2563eb!important;box-shadow:0 0 0 1px #2563eb inset;background:#eff6ff}.page-dock .page-btn.active span strong{color:#1d4ed8}
 #objectDrawer{display:none!important}
 .preview-only .workspace{grid-template-columns:1fr;grid-template-rows:1fr}.preview-only .workspace>.center{grid-column:1;grid-row:1}
 @media(max-width:1180px){.workspace{grid-template-columns:240px minmax(500px,1fr) 286px}.insert-sidebar .object-grid{grid-template-columns:1fr}}
-@media(max-width:980px){.workspace{grid-template-columns:220px minmax(480px,1fr);grid-template-rows:minmax(620px,1fr) minmax(420px,auto) 184px;height:auto}.workspace>.right{grid-column:1/-1;grid-row:2;max-height:520px}.workspace>.page-dock{grid-row:3}.workspace>.insert-sidebar{grid-row:1}.workspace>.center{grid-row:1}}
+@media(max-width:980px){.workspace{grid-template-columns:220px minmax(480px,1fr);grid-template-rows:minmax(620px,1fr) minmax(420px,auto) 112px;height:auto}.workspace>.right{grid-column:1/-1;grid-row:2;max-height:520px}.workspace>.page-dock{grid-row:3}.workspace>.insert-sidebar{grid-row:1}.workspace>.center{grid-row:1}}
 @media(max-width:720px){.workspace{grid-template-columns:1fr;grid-template-rows:minmax(520px,1fr)}.workspace>.center{grid-column:1;grid-row:1}}
 </style>
 <script id="workspace-layout-v38-runtime">
 (()=>{
  const $=id=>document.getElementById(id),host=$('insertSidebarHost'),drawer=$('objectDrawer'),body=drawer?.querySelector('.drawer-body');
  if(!host||!body)return;
+ const previewMenu=$('previewMenuBtn'),previewDropdown=$('previewMenuDropdown');
+ previewMenu?.addEventListener('click',event=>{event.stopPropagation();previewDropdown?.classList.toggle('hidden');$('templateMenuDropdown')?.classList.add('hidden')});
+ document.addEventListener('click',event=>{if(!event.target.closest('.preview-menu-wrap'))previewDropdown?.classList.add('hidden')});
+ previewDropdown?.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>previewDropdown.classList.add('hidden')));
  host.appendChild(body);
  drawer.classList.add('hidden');
  const normalize=tab=>({all:'school',shapes:'graphics',frames:'graphics',vectors:'graphics'}[tab]||tab||'school');
@@ -4319,11 +4324,13 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  const priorNavigator=renderNavigator;
  renderNavigator=function(){
   priorNavigator();
+  const pages=project?.book?.pageInstances||[],index=Math.max(0,pages.findIndex(page=>page.id===selectedPageId));if($('pageDockStatus'))$('pageDockStatus').textContent=pages.length?`${index+1} / ${pages.length}`:'페이지 없음';
   requestAnimationFrame(()=>$('navigator')?.querySelector('.page-btn.active')?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}));
  };
  const priorRender=render;
  render=function(){
   const result=priorRender.apply(this,arguments),item=typeof sourceElement==='function'?sourceElement():null,title=$('inspectorPanelTitle');
+  document.querySelectorAll('.toolbar-align-tools [data-menu-action]').forEach(button=>button.disabled=!item);
   if(title)title.textContent=item?'선택 개체 속성':'페이지 스타일';
   const summary=$('inspectorSelectionSummary');
   if(summary){

@@ -12,6 +12,16 @@ test('editor columns keep independent scrolling inside the viewport', () => {
   assert.match(html, /\.page-dock>\.nav\{[^}]*overflow-x:auto[^}]*overflow-y:hidden/);
 });
 
+test('page navigation is a compact essential-only horizontal strip', () => {
+  assert.match(html, /grid-template-rows:minmax\(0,1fr\) 112px/);
+  assert.match(html, /grid-template-columns:92px minmax\(0,1fr\)/);
+  assert.match(html, /\.page-dock \.sheet\{display:contents\}/);
+  assert.match(html, /\.page-dock \.sheet-head\{display:none\}/);
+  assert.match(html, /\.page-dock \.page-btn\{[^}]*flex:0 0 108px[^}]*height:76px/);
+  assert.match(html, /id="pageDockStatus"/);
+  assert.match(html, /pageDockStatus'\)\.textContent=pages\.length\?`\$\{index\+1\} \/ \$\{pages\.length\}`/);
+});
+
 test('the object inspector uses one typography and form-control scale', () => {
   assert.match(html, /\.workspace>\.right label\{[^}]*font-size:11px[^}]*line-height:1\.4/);
   assert.match(html, /\.workspace>\.right \.action\{[^}]*height:36px[^}]*font-size:11px[^}]*font-weight:700/);

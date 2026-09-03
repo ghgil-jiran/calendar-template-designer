@@ -5,28 +5,28 @@ import path from 'node:path';
 
 const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8');
 
-test('the shared editor header separates context, workspace navigation and edit menus', () => {
+test('the shared editor header keeps context and one workspace navigation row', () => {
   assert.match(html, /id="appBrand"[^>]*>ACDL 템플릿 에디터/);
   assert.match(html, /id="currentWorkflowMenu"[^>]*>새 템플릿 만들기/);
   assert.match(html, /id="currentTemplateTitle"/);
   assert.match(html, /id="workspaceMenubar"/);
-  assert.match(html, /id="editorMenubar"/);
-  assert.ok(html.indexOf('id="workspaceMenubar"') < html.indexOf('id="editorMenubar"'));
+  assert.doesNotMatch(html, /id="editorMenubar"/);
 });
 
-test('workspace navigation contains global actions and edit menus stay separate', () => {
+test('workspace navigation owns preview choices and the redundant menu row is removed', () => {
   const workspaceNav = html.match(/<nav id="workspaceMenubar"[\s\S]*?<\/nav>/)?.[0] || '';
-  const editorNav = html.match(/<nav id="editorMenubar"[\s\S]*?<\/nav>/)?.[0] || '';
-  for (const label of ['처음으로', '템플릿', '템플릿 설정', '전체 미리보기']) assert.match(workspaceNav, new RegExp(label));
-  for (const label of ['편집', '삽입', '정렬', '보기']) assert.match(editorNav, new RegExp(`>${label}<`));
+  for (const label of ['처음으로', '템플릿', '템플릿 설정', '미리 보기', '현재 페이지 미리보기', '전체 미리보기']) assert.match(workspaceNav, new RegExp(label));
+  for (const label of ['편집', '삽입', '정렬', '보기']) assert.doesNotMatch(workspaceNav, new RegExp(`>${label}<`));
+  assert.match(html, /class="tool-group toolbar-align-tools"/);
+  for (const action of ['align-left', 'align-center', 'align-right', 'align-top', 'align-middle', 'align-bottom']) assert.match(html, new RegExp(`data-menu-action="${action}"`));
 });
 
 test('workspace roles and preview action remain visually distinct', () => {
   assert.match(html, /<h2 class="page-panel-title">자료·개체 추가<\/h2>/);
   assert.match(html, /class="panel page-dock editor-chrome" aria-label="페이지 구성 및 선택"/);
   assert.match(html, /id="inspectorPanelTitle" class="inspector-panel-title">페이지 스타일/);
-  assert.match(html, /id="fullPreviewBtn" class="workspace-menu preview-menu"/);
-  assert.doesNotMatch(html, /id="fullPreviewBtn" class="workspace-menu primary"/);
+  assert.match(html, /id="previewMenuBtn" class="workspace-menu preview-menu"/);
+  assert.match(html, /id="fullPreviewBtn" type="button">전체 미리보기/);
   assert.match(html, /\.workspace-menu\.preview-menu\{[^}]*background:#fff/);
   assert.match(html, /\.page-panel-title\{[^}]*background:#f8fafc/);
   assert.match(html, /\.page-panel-title\{[^}]*justify-content:center!important/);
