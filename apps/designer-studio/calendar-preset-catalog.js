@@ -14,7 +14,7 @@
       presentation: Object.freeze({
         monthTitleStyle: 'number-stack', monthTitleAlign: 'left', weekdayStyle: 'filled-tabs', gridStyle: 'boxed', eventStyle: 'strong-bars',
         cellPaddingX: 2.4, cellPaddingY: 2, lineWidth: 0.155, lineColor: '#aeb4bd', weekdayHeight: 7.06,
-        weekdayCornerRadius: 3.53, dateFontSize: 2.79, miniCalendarDefault: true
+        weekdayCornerRadius: 3.53, titleWeekdayGap: 1.7, dateFontSize: 2.79, miniCalendarDefault: true
       }),
       sourceMeasurement: Object.freeze({
         source: '[탁상형]2026-6-학교전경-연력-학교상징-뒷면-월목표할일플래너.pdf',

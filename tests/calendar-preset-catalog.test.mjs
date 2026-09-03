@@ -15,6 +15,7 @@ test('academic boxed preset keeps measured sample 6 geometry', () => {
   assert.equal(preset.sourceMeasurement.gridWidth, 243.8);
   assert.equal(preset.sourceMeasurement.lineWidth, undefined);
   assert.equal(preset.presentation.lineWidth, .155);
+  assert.equal(preset.presentation.titleWeekdayGap, 1.7);
 });
 
 test('academic boxed resolver reads the new contract and whitelisted overrides', () => {

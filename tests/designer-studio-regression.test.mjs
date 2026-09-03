@@ -43,6 +43,15 @@ test('calendar inspector choices override the measured preset presentation', () 
   assert.doesNotMatch(html, /\.calendar-region\[data-calendar-preset="academic-boxed"\] \.calendar>\.cell:not\(\.head\)\{border-color/);
 });
 
+test('open rows draw the boundary directly below weekday headers', () => {
+  assert.match(html, /\.grid-open-rows \.calendar>\.cell:nth-child\(n\+8\):nth-child\(-n\+14\)\{border-top:1px solid #a7a7a7!important\}/);
+});
+
+test('month title keeps the measured vertical gap above weekday headers', () => {
+  assert.match(html, /--calendar-title-weekday-gap:\$\{presentation\.titleWeekdayGap\}mm/);
+  assert.match(html, /\.calendar-region \.month-title\{[^}]*padding-bottom:var\(--calendar-title-weekday-gap,0\)/);
+});
+
 test('five and six week modes only repartition the fixed date grid', () => {
   assert.match(html, /repeat\(var\(--calendar-rows,6\),minmax\(0,1fr\)\)/);
   assert.match(html, /--mini-calendar-rows:\$\{rows\}/);
