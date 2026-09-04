@@ -185,7 +185,11 @@ test('template thumbnails support uploaded artwork and page fallbacks', () => {
   assert.match(runtime, /record\.type==='poster'\?pages\.find\(page=>page\.role==='poster-annual'\):pages\.find\(page=>page\.role==='cover-front'\)/);
   assert.match(runtime, /function mountCoverSnapshot\(host,page\)/);
   assert.match(runtime, /transform',`scale\(\$\{scale\}\)`,'important'/);
-  assert.match(runtime, /sourceWidth=Math\.max\(1,Math\.round\(rect\.width\|\|page\.offsetWidth\|\|850\)\)/);
+  assert.match(runtime, /const designSize=window\.ACDLEditorPageFit\?\.designSize\?\.\(\)/);
+  assert.match(runtime, /sourceWidth=Math\.max\(1,Math\.round\(Number\(designSize\?\.width\)\|\|page\.offsetWidth/);
+  assert.match(runtime, /render\(\);window\.ACDLEditorPageFit\?\.fit\?\.\(\)/);
+  assert.match(runtime, /clone\.style\.removeProperty\('transform'\)/);
+  assert.doesNotMatch(runtime, /page\.getBoundingClientRect\(\)/);
   assert.doesNotMatch(html, /\.calendar-product-page \.library-thumb-render\{[^}]*transform:none!important/);
 });
 
