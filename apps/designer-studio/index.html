@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Calendar Template Designer v2.0 Alpha</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><link rel="stylesheet" href="./desk-academic-shadow-renderer.css"><link rel="stylesheet" href="./schedule-api-client.css"><script src="./calendar-domain-bridge.js"></script><script src="./project-document.js"></script><script src="./canvas-geometry.js"></script><script src="./canvas-selection.js"></script><script src="./canvas-gesture.js"></script><script src="./canvas-input.js"></script><script src="./inspector-form.js"></script><script src="./inspector-graphic.js"></script><script src="./inspector-element.js"></script><script src="./preview-state.js"></script><script src="./persistence-history.js"></script><script src="./persistence-project.js"></script><script src="./persistence-indexeddb.js"></script><script src="./dataset-domain-bridge.js"></script><script src="./user-service-dataset-bridge.js"></script><script src="./user-service-asset-resolver.js"></script><script src="./desk-academic-page-adapter.js"></script><script src="./integration-parity-bridge.js"></script><script src="./runtime-project-adapter.js"></script><script src="./template-package-loader.js"></script><script src="./desk-academic-package-runtime.js"></script><script src="./desk-academic-shadow-renderer.js"></script><script src="./desk-academic-visual-parity.js"></script><script src="./desk-academic-print-parity.js"></script><script src="./user-service-shadow-session.js"></script><script src="./user-service-shadow-diagnostics.js"></script><script src="./template-catalog.js"></script>
+<title>Calendar Template Designer v2.0 Alpha</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><link rel="stylesheet" href="./desk-academic-shadow-renderer.css"><link rel="stylesheet" href="./schedule-api-client.css"><script src="./calendar-domain-bridge.js"></script><script src="./project-document.js"></script><script src="./canvas-geometry.js"></script><script src="./canvas-selection.js"></script><script src="./canvas-gesture.js"></script><script src="./canvas-input.js"></script><script src="./editor-canvas-fit.js"></script><script src="./inspector-form.js"></script><script src="./inspector-graphic.js"></script><script src="./inspector-element.js"></script><script src="./preview-state.js"></script><script src="./persistence-history.js"></script><script src="./persistence-project.js"></script><script src="./persistence-indexeddb.js"></script><script src="./dataset-domain-bridge.js"></script><script src="./user-service-dataset-bridge.js"></script><script src="./user-service-asset-resolver.js"></script><script src="./desk-academic-page-adapter.js"></script><script src="./integration-parity-bridge.js"></script><script src="./runtime-project-adapter.js"></script><script src="./template-package-loader.js"></script><script src="./desk-academic-package-runtime.js"></script><script src="./desk-academic-shadow-renderer.js"></script><script src="./desk-academic-visual-parity.js"></script><script src="./desk-academic-print-parity.js"></script><script src="./user-service-shadow-session.js"></script><script src="./user-service-shadow-diagnostics.js"></script><script src="./template-catalog.js"></script>
 <script src="./calendar-preset-catalog.js"></script><script src="./package-project-adapter.js"></script>
 <script src="./wizard-flow.js"></script><script src="./admin-auth.js"></script><script src="./template-remote-persistence.js"></script>
 <style>
@@ -581,7 +581,7 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
  <input id="elementImageInput" class="hidden" type="file" accept="image/*"><input id="frameImageInput" class="hidden" type="file" accept="image/*"><input id="semanticImageInput" class="hidden" type="file" accept="image/*">
  <div class="hidden" aria-hidden="true"><button id="contentMode">이전 콘텐츠 모드</button><button id="templateMode">템플릿 설계</button><span id="modeHelp"></span><button id="previewBtn">현재 페이지 미리보기</button></div>
 </div>
-<div class="canvas-wrap"><div id="page" class="page desk"></div></div></section>
+<div class="canvas-wrap"><div id="editorPageViewport" class="editor-page-viewport"><div id="page" class="page desk"></div></div></div></section>
 <section class="panel page-dock editor-chrome" aria-label="페이지 구성 및 선택">
  <div class="page-dock-head"><strong>페이지</strong><span id="pageDockStatus"></span></div>
  <div class="panel-body nav" id="navigator"></div>
@@ -4483,22 +4483,28 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .calendar-region.grid-boxed[data-calendar-preset="academic-boxed"] .calendar>.cell:not(.head){border-color:var(--calendar-line-color)!important;border-width:0 var(--calendar-line-width) var(--calendar-line-width) 0!important;padding:var(--calendar-cell-padding-y) var(--calendar-cell-padding-x);background:#fff}
 .calendar-region[data-calendar-preset="academic-boxed"].weekday-filled-tabs .calendar>.head{border-radius:var(--calendar-weekday-radius) var(--calendar-weekday-radius) 0 0}
 </style>
+<style id="fixed-editor-canvas-v1">
+/* The editor page is a fixed print-layout surface. Only this outer viewport scales. */
+.workspace>.center .canvas-wrap{justify-content:flex-start}
+.editor-page-viewport{position:relative;flex:0 0 auto;margin-inline:auto;transform:none}
+.editor-page-viewport>.page{position:absolute!important;left:0!important;top:0!important;max-width:none!important;transform-origin:top left!important}
+</style>
 <script id="editor-page-auto-fit-runtime">
 (()=>{
- const page=()=>document.getElementById('page'),canvas=()=>document.querySelector('.workspace>.center .canvas-wrap');
+ const page=()=>document.getElementById('page'),viewport=()=>document.getElementById('editorPageViewport'),canvas=()=>document.querySelector('.workspace>.center .canvas-wrap');
  let frame=0;
  function fitEditorPageToViewport(){
   frame=0;
-  const node=page(),host=canvas(),size=typeof project!=='undefined'?project?.productType?.pageSize:null;
-  if(!node||!host||!size||document.body.classList.contains('review-pdf-printing'))return;
+  const node=page(),frameNode=viewport(),host=canvas(),size=typeof project!=='undefined'?project?.productType?.pageSize:null;
+  if(!node||!frameNode||!host||!size||document.body.classList.contains('review-pdf-printing'))return;
   const width=Number(size.width),height=Number(size.height);
   if(!(width>0&&height>0)||host.clientWidth<1||host.clientHeight<1)return;
   const style=getComputedStyle(host),horizontalPadding=parseFloat(style.paddingLeft||0)+parseFloat(style.paddingRight||0),verticalPadding=parseFloat(style.paddingTop||0)+parseFloat(style.paddingBottom||0);
-  const availableWidth=Math.max(240,host.clientWidth-horizontalPadding-12),availableHeight=Math.max(240,host.clientHeight-verticalPadding-12),ratio=width/height,landscape=ratio>=1;
-  const fittedWidth=landscape?availableWidth*.94:Math.min(availableWidth*.94,availableHeight*.94*ratio);
-  node.style.width=`${Math.max(240,Math.round(fittedWidth))}px`;
-  node.style.maxWidth='none';
-  node.dataset.fitAxis=landscape?'width':'height';
+  const availableWidth=Math.max(240,host.clientWidth-horizontalPadding-12),availableHeight=Math.max(240,host.clientHeight-verticalPadding-12),fit=window.ACDLEditorCanvasFit.fixedCanvasViewport({pageWidth:width,pageHeight:height,availableWidth,availableHeight});
+  node.style.width=`${fit.designWidth}px`;node.style.height=`${fit.designHeight}px`;node.style.transform=`scale(${fit.scale})`;
+  frameNode.style.width=`${fit.displayWidth}px`;frameNode.style.height=`${fit.displayHeight}px`;
+  frameNode.dataset.canvasScale=fit.scale.toFixed(4);frameNode.dataset.designWidth=String(fit.designWidth);frameNode.dataset.designHeight=fit.designHeight.toFixed(4);
+  node.dataset.fitAxis=fit.fitAxis;
  }
  function scheduleFit(){if(frame)cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>requestAnimationFrame(fitEditorPageToViewport))}
  const priorRenderPage=window.renderPage;
@@ -4507,7 +4513,7 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
  if(host&&'ResizeObserver'in window)new ResizeObserver(scheduleFit).observe(host);
  window.addEventListener('resize',scheduleFit,{passive:true});
  window.visualViewport?.addEventListener('resize',scheduleFit,{passive:true});
- window.ACDLEditorPageFit=Object.freeze({fit:fitEditorPageToViewport,schedule:scheduleFit});
+ window.ACDLEditorPageFit=Object.freeze({fit:fitEditorPageToViewport,schedule:scheduleFit,designSize:()=>{const node=viewport();return node?{width:Number(node.dataset.designWidth),height:Number(node.dataset.designHeight),scale:Number(node.dataset.canvasScale)}:null}});
  scheduleFit();
 })();
 </script>

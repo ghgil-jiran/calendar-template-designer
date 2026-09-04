@@ -27,11 +27,14 @@ test('page navigation is a horizontal role-colored dock below the center canvas'
   assert.match(html, /page-btn\.page-even\{background:color-mix/);
 });
 
-test('editor page auto-fit follows page orientation and container resizing', () => {
+test('editor page auto-fit preserves a fixed print-layout canvas while only the viewport scales', () => {
   assert.match(html, /id="editor-page-auto-fit-runtime"/);
-  assert.match(html, /landscape=ratio>=1/);
-  assert.match(html, /landscape\?availableWidth\*\.94:Math\.min\(availableWidth\*\.94,availableHeight\*\.94\*ratio\)/);
-  assert.match(html, /node\.dataset\.fitAxis=landscape\?'width':'height'/);
+  assert.match(html, /id="editorPageViewport" class="editor-page-viewport"/);
+  assert.match(html, /window\.ACDLEditorCanvasFit\.fixedCanvasViewport\(\{pageWidth:width,pageHeight:height,availableWidth,availableHeight\}\)/);
+  assert.match(html, /node\.style\.width=`\$\{fit\.designWidth\}px`;node\.style\.height=`\$\{fit\.designHeight\}px`;node\.style\.transform=`scale\(\$\{fit\.scale\}\)`/);
+  assert.match(html, /frameNode\.style\.width=`\$\{fit\.displayWidth\}px`;frameNode\.style\.height=`\$\{fit\.displayHeight\}px`/);
+  assert.match(html, /\.editor-page-viewport>\.page\{position:absolute!important;left:0!important;top:0!important;max-width:none!important;transform-origin:top left!important\}/);
+  assert.match(html, /node\.dataset\.fitAxis=fit\.fitAxis/);
   assert.match(html, /new ResizeObserver\(scheduleFit\)\.observe\(host\)/);
   assert.match(html, /window\.addEventListener\('resize',scheduleFit/);
   assert.match(html, /window\.visualViewport\?\.addEventListener\('resize',scheduleFit/);
