@@ -236,6 +236,14 @@ test('template lifecycle separates status, standard, design editing and settings
   assert.match(runtime, /feedback\.classList\.contains\('error'\)\)finish\(\)/);
 });
 
+test('insert sidebar separates and collapses utility controls when an object category opens', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /id="insertSidebarUtilities"/);
+  assert.match(html, /id="toggleInsertSidebarUtilities"/);
+  assert.match(html, /setUtilitiesCollapsed\(true\)/);
+  assert.match(html, /insert-sidebar \.object-library-tabs[^}]*border-top/);
+});
+
 test('remote template cards expose restore history without the unreliable preview action', () => {
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(runtime, /Package \$\{record\.template\}@\$\{record\.packageVersion\}/);
