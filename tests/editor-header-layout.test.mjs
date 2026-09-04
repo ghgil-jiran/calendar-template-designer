@@ -6,7 +6,7 @@ import path from 'node:path';
 const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8');
 
 test('the shared editor header keeps context and one workspace navigation row', () => {
-  assert.match(html, /id="appBrand"[^>]*>ACDL 템플릿 에디터/);
+  assert.match(html, /id="appBrand"[^>]*>우리학교인쇄 CALENDAR EDITOR/);
   assert.match(html, /id="currentWorkflowMenu"[^>]*>새 템플릿 만들기/);
   assert.match(html, /id="currentTemplateTitle"/);
   assert.match(html, /id="workspaceMenubar"/);
