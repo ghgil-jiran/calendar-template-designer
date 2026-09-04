@@ -11,5 +11,7 @@
  ]);
  function createSession(input={}){const count=Math.max(2,Math.min(4,Number(input.variantCount)||3));return {schemaVersion:'ai-design-session.v0',status:'mock-review',scope:input.scope||'template',conditions:{style:input.style||'balanced',schoolLevel:input.schoolLevel||'all',decorationDensity:input.decorationDensity||'medium',photoMode:input.photoMode||'mixed',seasonalVariation:input.seasonalVariation||'medium',instruction:input.instruction||''},versions:{...VERSION},variants:VARIANT_BLUEPRINTS.slice(0,count).map((item,index)=>({...item,id:`mock-${index+1}-${item.key}`,selected:false})),selectedVariantId:null};}
  function selectVariant(session,variantId){return {...session,selectedVariantId:variantId,variants:session.variants.map(item=>({...item,selected:item.id===variantId}))}}
- root.ACDLAIDesignSettings=Object.freeze({VERSION,ROLE_LABELS,VARIANT_BLUEPRINTS,pageRoles,summary,createSession,selectVariant});
+ function canEnterEditor(session){return !!session?.selectedVariantId&&session.variants?.some(item=>item.id===session.selectedVariantId)}
+ function createDraft(session,createdAt=new Date().toISOString()){if(!canEnterEditor(session))throw new Error('AI design proposal selection is required');const selected=session.variants.find(item=>item.id===session.selectedVariantId);return {schemaVersion:'ai-design-draft.v0',status:'selected-not-applied',createdAt,session:JSON.parse(JSON.stringify(session)),selectedVariant:JSON.parse(JSON.stringify(selected))}}
+ root.ACDLAIDesignSettings=Object.freeze({VERSION,ROLE_LABELS,VARIANT_BLUEPRINTS,pageRoles,summary,createSession,selectVariant,canEnterEditor,createDraft});
 })(typeof window==='undefined'?globalThis:window);
