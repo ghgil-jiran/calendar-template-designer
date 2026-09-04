@@ -232,7 +232,8 @@ test('template library labels remote and browser-only records explicitly', () =>
 
 test('published and standard templates are protected while new templates keep their origin', () => {
   const runtime = fs.readFileSync(path.resolve('apps/designer-studio/template-library-runtime.js'), 'utf8');
-  assert.match(runtime, /const locked=record\.isStandard===true\|\|record\.state==='published'\|\|record\.state==='archived'/);
+  assert.match(runtime, /const locked=record\.isStandard===true/);
+  assert.match(runtime, /if\(source&&!source\.isStandard\)openDesignerProjectFromRecord\(source\)/);
   assert.match(runtime, /이 템플릿으로 새로 만들기/);
   assert.doesNotMatch(runtime, /연결 작업본 만들기/);
   assert.match(html, /project\.template\.derivedFromTemplateId=window\.ACDLNewTemplateBaseRecord\?\.id\|\|null/);

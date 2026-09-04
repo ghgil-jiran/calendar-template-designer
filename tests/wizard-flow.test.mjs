@@ -220,7 +220,9 @@ test('template lifecycle separates status, standard, design editing and settings
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(html, /id="saveTemplateStandard"/);
   assert.match(html, /id="libraryStandardFilter"/);
-  assert.match(runtime, /const locked=record\.isStandard===true\|\|record\.state==='published'\|\|record\.state==='archived'/);
+  assert.match(runtime, /const locked=record\.isStandard===true/);
+  assert.match(runtime, /if\(source&&!source\.isStandard\)openDesignerProjectFromRecord\(source\)/);
+  assert.doesNotMatch(runtime, /\['draft','ready'\]\.includes\(source\.state\)/);
   assert.match(runtime, /data-library-settings/);
   assert.match(runtime, /async function saveSettings\(recordId,values\)/);
   assert.match(runtime, /async function startNewFrom\(record\)/);
