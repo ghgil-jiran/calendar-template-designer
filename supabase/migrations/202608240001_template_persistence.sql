@@ -7,6 +7,7 @@ create table if not exists public.template_projects (
   description text not null default '',
   edition integer not null check (edition between 2000 and 2200),
   state text not null default 'draft' check (state in ('draft', 'ready', 'published', 'archived')),
+  is_standard boolean not null default false,
   product_type text not null,
   template_key text not null,
   latest_version_id uuid,

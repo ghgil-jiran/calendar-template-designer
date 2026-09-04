@@ -125,6 +125,7 @@ export function validateVersionSave(value) {
     description: optionalText(body.description, 'description', 1000) || '',
     edition,
     state: body.state,
+    isStandard: body.isStandard === true,
     productType: requiredText(body.productType, 'productType', 80),
     templateKey: requiredText(body.templateKey, 'templateKey', 160),
     saveKind: body.saveKind,
@@ -144,7 +145,7 @@ export function validateDraftSave(value) {
   };
 }
 
-export function rowToLibraryItem(row) {
+export function rowToLibraryItem(row, projectStandard = false) {
   return {
     id: row.id,
     stableKey: row.stable_key,
@@ -152,6 +153,7 @@ export function rowToLibraryItem(row) {
     description: row.description,
     edition: row.edition,
     state: row.state,
+    isStandard: row.is_standard === true || projectStandard === true,
     productType: row.product_type,
     templateKey: row.template_key,
     latestVersionId: row.latest_version_id,
@@ -180,17 +182,22 @@ function firstRow(value) {
 }
 
 export async function listTemplates() {
-  const rows = await supabaseRequest('template_projects?select=*&archived_at=is.null&order=updated_at.desc');
-  return rows.map(rowToLibraryItem);
+  const rows = await supabaseRequest('template_projects?select=*&order=updated_at.desc');
+  if (!rows.length || rows.some(row => Object.hasOwn(row, 'is_standard'))) return rows.map(rowToLibraryItem);
+  const ids = rows.map(row => row.latest_version_id).filter(Boolean);
+  const versions = ids.length ? await supabaseRequest(`template_versions?select=id,project_data&id=in.(${ids.map(encodeURIComponent).join(',')})`) : [];
+  const standardByVersion = new Map(versions.map(version => [version.id, version.project_data?.template?.metadata?.isStandard === true]));
+  return rows.map(row => rowToLibraryItem(row, standardByVersion.get(row.latest_version_id)));
 }
 
 export async function getTemplate(templateId) {
   const id = encodeURIComponent(requiredText(templateId, 'templateId', 80));
   const rows = await supabaseRequest(`template_projects?select=*&id=eq.${id}&limit=1`);
   if (!rows.length) throw Object.assign(new Error('Template not found'), { statusCode: 404, code: 'NOT_FOUND' });
-  const template = rowToLibraryItem(rows[0]);
-  const versions = await supabaseRequest(`template_versions?select=*&id=eq.${encodeURIComponent(template.latestVersionId)}&limit=1`);
+  const latestVersionId = rows[0].latest_version_id;
+  const versions = await supabaseRequest(`template_versions?select=*&id=eq.${encodeURIComponent(latestVersionId)}&limit=1`);
   if (!versions.length) throw Object.assign(new Error('Latest version not found'), { statusCode: 409, code: 'VERSION_MISSING' });
+  const template = rowToLibraryItem(rows[0], versions[0].project_data?.template?.metadata?.isStandard === true);
   return { template, version: rowToVersion(versions[0]) };
 }
 
@@ -216,7 +223,18 @@ export async function saveVersion(input) {
   }));
   const assetIds=[...collectAssetIds(data.projectData)];
   if(assetIds.length)await supabaseRequest('template_version_assets?on_conflict=version_id,asset_id',{method:'POST',headers:{Prefer:'resolution=ignore-duplicates'},body:JSON.stringify(assetIds.map(assetId=>({version_id:versionRow.id,asset_id:assetId})))});
-  const projectRow = firstRow(await supabaseRequest(`template_projects?select=*&id=eq.${encodeURIComponent(versionRow.template_id)}&limit=1`));
+  let projectRow;
+  try {
+    projectRow = firstRow(await supabaseRequest(`template_projects?id=eq.${encodeURIComponent(versionRow.template_id)}&select=*`, {
+      method: 'PATCH',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ is_standard: data.isStandard })
+    }));
+  } catch (error) {
+    if (error?.code !== 'SUPABASE_REQUEST_FAILED') throw error;
+    projectRow = firstRow(await supabaseRequest(`template_projects?select=*&id=eq.${encodeURIComponent(versionRow.template_id)}&limit=1`));
+    if (projectRow) projectRow = { ...projectRow, is_standard: data.isStandard };
+  }
   return { template: rowToLibraryItem(projectRow), version: rowToVersion(versionRow) };
 }
 
@@ -254,6 +272,7 @@ export async function restoreVersion(input) {
     description: current.template.description,
     edition: current.template.edition,
     state: source.state,
+    isStandard: current.template.isStandard,
     productType: current.template.productType,
     templateKey: current.template.templateKey,
     saveKind: 'restore',

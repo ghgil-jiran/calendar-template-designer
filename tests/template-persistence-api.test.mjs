@@ -41,16 +41,18 @@ test('internal API accepts only an active Master Admin session', async () => {
   assert.equal(user.role, 'master_admin');
 });
 
-test('library endpoint maps one current row per template', async () => {
+test('library endpoint maps every current row including archived templates', async () => {
   globalThis.fetch = async (url, options) => {
-    assert.match(url, /template_projects\?select=\*&archived_at=is\.null/);
+    assert.match(url, /template_projects\?select=\*&order=updated_at\.desc/);
+    assert.doesNotMatch(url, /archived_at=is\.null/);
     assert.equal(options.headers.Authorization, 'Bearer server-secret');
-    return response([{ id: 't1', stable_key: 'wall-01', name: '벽걸이형 표준 01', description: '', edition: 2028, state: 'draft', product_type: 'wall', template_key: 'wall-standard', latest_version_id: 'v3', latest_version_number: 3, updated_at: '2026-08-24T00:00:00Z' }]);
+    return response([{ id: 't1', stable_key: 'wall-01', name: '벽걸이형 표준 01', description: '', edition: 2028, state: 'draft', is_standard: true, product_type: 'wall', template_key: 'wall-standard', latest_version_id: 'v3', latest_version_number: 3, updated_at: '2026-08-24T00:00:00Z' }]);
   };
   const templates = await listTemplates();
   assert.equal(templates.length, 1);
   assert.equal(templates[0].latestVersionNumber, 3);
   assert.equal(templates[0].name, '벽걸이형 표준 01');
+  assert.equal(templates[0].isStandard, true);
 });
 
 test('manual save calls the atomic version function then returns the latest library row', async () => {
@@ -58,13 +60,15 @@ test('manual save calls the atomic version function then returns the latest libr
   globalThis.fetch = async (url, options) => {
     calls.push({ url, options });
     if (url.endsWith('/rpc/save_template_version')) return response({ id: 'v4', template_id: 't1', version_number: 4, save_kind: 'manual', state: 'ready', save_note: '표지 정리', source_version_id: null, schema_version: '2.0', project_data: { id: 'project' }, created_at: '2026-08-24T01:00:00Z' });
-    return response([{ id: 't1', stable_key: 'wall-01', name: '벽걸이형 표준 01', description: '', edition: 2028, state: 'ready', product_type: 'wall', template_key: 'wall-standard', latest_version_id: 'v4', latest_version_number: 4, updated_at: '2026-08-24T01:00:00Z' }]);
+    return response([{ id: 't1', stable_key: 'wall-01', name: '벽걸이형 표준 01', description: '', edition: 2028, state: 'ready', is_standard: true, product_type: 'wall', template_key: 'wall-standard', latest_version_id: 'v4', latest_version_number: 4, updated_at: '2026-08-24T01:00:00Z' }]);
   };
-  const saved = await saveVersion({ stableKey: 'wall-01', name: '벽걸이형 표준 01', edition: 2028, state: 'ready', productType: 'wall', templateKey: 'wall-standard', saveKind: 'manual', saveNote: '표지 정리', schemaVersion: '2.0', projectData: { id: 'project' } });
+  const saved = await saveVersion({ stableKey: 'wall-01', name: '벽걸이형 표준 01', edition: 2028, state: 'ready', isStandard: true, productType: 'wall', templateKey: 'wall-standard', saveKind: 'manual', saveNote: '표지 정리', schemaVersion: '2.0', projectData: { id: 'project' } });
   assert.equal(saved.version.versionNumber, 4);
   assert.equal(saved.template.latestVersionId, 'v4');
   assert.equal(calls.length, 2);
   assert.equal(JSON.parse(calls[0].options.body).p_save_kind, 'manual');
+  assert.equal(JSON.parse(calls[1].options.body).is_standard, true);
+  assert.equal(saved.template.isStandard, true);
 });
 
 test('autosave upserts one draft without creating a version', async () => {

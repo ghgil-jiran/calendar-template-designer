@@ -230,13 +230,13 @@ test('template library labels remote and browser-only records explicitly', () =>
   assert.match(runtime, /const remoteHistory=remoteStored/);
 });
 
-test('canonical package edits keep their origin on a separate working copy', () => {
+test('published and standard templates are protected while new templates keep their origin', () => {
   const runtime = fs.readFileSync(path.resolve('apps/designer-studio/template-library-runtime.js'), 'utf8');
-  assert.match(runtime, /id:`tpl-work-\$\{record\.template\}-\$\{record\.packageVersion\}-\$\{suffix\}`/);
-  assert.match(runtime, /state:'draft',status:'draft'/);
-  assert.match(runtime, /derivedFromPackage:\{templateId:record\.template,version:record\.packageVersion/);
-  assert.match(html, /project\.template\.derivedFromPackage=t\.derivedFromPackage/);
-  assert.match(html, /derivedFromPackage:project\.template\?\.derivedFromPackage\|\|undefined/);
+  assert.match(runtime, /const locked=record\.isStandard===true\|\|record\.state==='published'\|\|record\.state==='archived'/);
+  assert.match(runtime, /이 템플릿으로 새로 만들기/);
+  assert.doesNotMatch(runtime, /연결 작업본 만들기/);
+  assert.match(html, /project\.template\.derivedFromTemplateId=window\.ACDLNewTemplateBaseRecord\?\.id\|\|null/);
+  assert.match(html, /isStandard:false/);
 });
 
 test('template settings author required optional and unused inputs with sample fallback', () => {

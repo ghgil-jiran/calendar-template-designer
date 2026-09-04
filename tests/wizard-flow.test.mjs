@@ -46,7 +46,8 @@ test('template click persists the choice before refreshing wizard actions', () =
 
 test('returning home clears the previous editor project', () => {
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
-  assert.match(html, /function showEntry\(\)\{beginProjectTransition\(\{clearProject:true\}\)/);
+  assert.match(html, /function showEntry\(\)\{clearNewTemplateBase\(\);beginProjectTransition\(\{clearProject:true\}\)/);
+  assert.match(html, /function clearNewTemplateBase\(\)\{window\.ACDLNewTemplateBaseProject=null;window\.ACDLNewTemplateBaseRecord=null;el\("setupType"\)\.disabled=false\}/);
   assert.match(html, /function beginProjectTransition\(\{clearProject=false\}=\{\}\)/);
 });
 
@@ -204,9 +205,26 @@ test('template library uses unified controls and calendar product thumbnails', (
   assert.match(runtime, /calendar-product-thumb calendar-product-\$\{escape\(record\.type\)\}/);
   assert.match(runtime, /calendar-product-page.*data-library-thumbnail/);
   assert.match(runtime, /function cardStateLabel\(record\)/);
-  assert.match(runtime, /record\.state==='published'\?'표준'/);
+  assert.match(runtime, /record\.state==='published'\?'게시됨'/);
+  assert.match(runtime, /record\.isStandard\?'<span class="standard-badge">표준<\/span>'/);
+  assert.match(runtime, /data-library-settings/);
+  assert.doesNotMatch(runtime, /data-library-copy/);
   assert.match(runtime, /function internalVersionLabel\(record\)/);
   assert.match(runtime, /library-card-version/);
+});
+
+test('template lifecycle separates status, standard, design editing and settings', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
+  assert.match(html, /id="saveTemplateStandard"/);
+  assert.match(html, /id="libraryStandardFilter"/);
+  assert.match(runtime, /const locked=record\.isStandard===true\|\|record\.state==='published'\|\|record\.state==='archived'/);
+  assert.match(runtime, /data-library-settings/);
+  assert.match(runtime, /async function saveSettings\(recordId,values\)/);
+  assert.match(runtime, /async function startNewFrom\(record\)/);
+  assert.match(runtime, /activeStandardOnly&&!record\.isStandard/);
+  assert.doesNotMatch(runtime, /data-library-copy/);
+  assert.doesNotMatch(runtime, /data-library-state-change/);
 });
 
 test('remote template cards expose immutable version history and restore controls', () => {
@@ -224,13 +242,13 @@ test('desk 1.4.0 is the exact published canonical system base', () => {
   assert.match(catalog, /tpl-2028-desk-academic-standard-v1-4/);
   assert.match(catalog, /packageVersion:\"1\.4\.0\"/);
   assert.match(catalog, /packageBase:\"\/templates\/desk-academic-standard\/1\.4\.0\/\"/);
-  assert.match(catalog, /status:\"published\",registryStatus:\"published\",canonicalPackage:true/);
+  assert.match(catalog, /status:\"published\",isStandard:true,registryStatus:\"published\",canonicalPackage:true/);
   assert.match(catalog, /name:\"\[학사달력\] 탁상형 표준 02 - 월별 이미지\"/);
   assert.match(catalog, /description:\"총 28면 · 표지 1면 · 간지 2면 · 월력 24면 · 뒷표지 1면 — 연력 \/ 학교상징 \/ 월별 이미지·월력·미니월력\"/);
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
-  assert.match(runtime, /function linkedWorkingCopy\(record\)/);
-  assert.match(runtime, /derivedFromPackage:\{templateId:record\.template,version:record\.packageVersion/);
-  assert.match(runtime, /연결 작업본 만들기/);
+  assert.match(runtime, /async function startNewFrom\(record\)/);
+  assert.match(runtime, /window\.ACDLNewTemplateBaseProject=source/);
+  assert.doesNotMatch(runtime, /연결 작업본 만들기/);
 });
 
 test('wall academic package is exposed as an editor review sample with its exact version', () => {
@@ -250,8 +268,8 @@ test('prototype system bases are archived and hidden from the default active vie
     assert.match(catalog, new RegExp(`${id}[^\\n]+status:\"archived\"`));
   }
   assert.match(runtime, /activeLibraryState==='all'&&record\.state==='archived'/);
-  assert.match(runtime, /record\.source==='local'\?`<button data-library-state-change/);
-  assert.match(runtime, /if\(!map\.has\(record\.id\)\)map\.set\(record\.id,record\)/);
+  assert.doesNotMatch(runtime, /data-library-state-change/);
+  assert.match(runtime, /if\(record\.libraryOverride\|\|!map\.has\(record\.id\)\)map\.set\(record\.id,record\)/);
 });
 
 test('new desk planner standard is visible as a separate 2028 draft system base', () => {
@@ -290,7 +308,7 @@ test('template library entry and save do not reference the removed legacy filter
   const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
   assert.doesNotMatch(html, /activeLibraryFilter/);
   assert.match(html, /designerHomeLibrary[^\n]+renderTemplateLibrary\('all'\)/);
-  assert.match(html, /renderTemplateLibrary\("all"\);/);
+  assert.match(html, /if\(isStandard\|\|state==="published"\|\|state==="archived"\)/);
 });
 
 test('library project opening waits for package loading and clears stale schedule settings', () => {

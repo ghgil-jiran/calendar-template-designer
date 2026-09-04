@@ -30,6 +30,13 @@ test('remote library uses one latest record per template', async () => {
   assert.equal(calls[0].options.headers.Authorization, 'Bearer admin-jwt');
 });
 
+test('remote library keeps standard separate from publishing state', async () => {
+  const api = runtime({ fetch: async () => ({ ok: true, status: 200, json: async () => ({ templates: [{ id: 't1', stableKey: 'desk-01', name: '기준 템플릿', description: '', edition: 2028, state: 'ready', isStandard: true, productType: 'desk', templateKey: 'desk-standard', latestVersionNumber: 3, updatedAt: '2026-09-04T00:00:00Z' }] }) }) });
+  const [record] = await api.list();
+  assert.equal(record.state, 'ready');
+  assert.equal(record.isStandard, true);
+});
+
 test('remote save sends project data through the protected Vercel API', async () => {
   let request;
   const api = runtime({ fetch: async (path, options) => {
