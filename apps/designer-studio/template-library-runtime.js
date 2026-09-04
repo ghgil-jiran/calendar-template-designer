@@ -13,6 +13,7 @@
  let activeLibraryState='all';
  let activeStandardOnly=false;
  let thumbnailQueue=Promise.resolve();
+ const thumbnailMarkupCache=new Map();
  const versionHistoryCache=new Map();
 
  function escape(value){return typeof v21Escape==='function'?v21Escape(value):String(value??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]))}
@@ -112,29 +113,19 @@
   const kindClass=record.source==='local'?'custom-template':'base-template';
   const remoteStored=record.storage==='supabase';
   const storageBadge=record.source==='local'?`<span class="${remoteStored?'storage-remote':'storage-local'}">${remoteStored?'Supabase 원격 저장':'브라우저 저장 · 원격 저장 필요'}</span>`:'';
-  const remoteHistory=remoteStored?`<button data-library-history="${escape(record.id)}" aria-expanded="false">버전 이력</button><button data-library-package-check="${escape(record.id)}">Package 검사</button>`:'';
+  const remoteHistory=remoteStored?`<button data-library-history="${escape(record.id)}" aria-expanded="false">버전 이력</button>`:'';
+  const qualityCheck='<button type="button" data-library-quality-check disabled title="인쇄·출력 품질 검사는 추후 제공할 예정입니다.">인쇄·출력 품질 검사 · 준비 중</button>';
   const locked=record.isStandard===true||record.state==='published'||record.state==='archived';
-  const originBadge=record.canonicalPackage?`<span>Package ${escape(record.template)}@${escape(record.packageVersion)}</span>`:'';
   const editAction=locked?'':`<button data-library-edit="${escape(record.id)}">편집</button>`;
-  return `<article class="library-template-card ${kindClass}" data-template-id="${escape(record.id)}" data-library-state="${record.state}" data-library-type="${escape(record.type)}"><div class="library-thumb calendar-product-thumb calendar-product-${escape(record.type)}"><div class="calendar-product-shell"><span class="calendar-product-binding" aria-hidden="true"></span><div class="calendar-product-page" data-library-thumbnail="${escape(record.id)}"><span class="thumbnail-placeholder">템플릿 미리보기</span></div><span class="calendar-product-side" aria-hidden="true"></span><span class="calendar-product-stand" aria-hidden="true"></span></div></div><div class="library-card-body"><div class="library-card-badges"><span class="state-badge state-${record.state}">${escape(cardStateLabel(record))}</span>${record.isStandard?'<span class="standard-badge">표준</span>':''}</div><div class="library-meta-line"><h3>${escape(record.name)}</h3><span class="edition-badge">${record.edition} Edition</span></div><small class="library-card-version">${escape(internalVersionLabel(record))}</small><p>${escape(record.description)}</p><div class="library-card-meta"><span class="badge-base">${escape(kindLabel)}</span>${storageBadge}<span>${escape(meta.label)}</span><span>${escape(record.size?.label||`${record.size?.width||'-'} × ${record.size?.height||'-'} ${record.size?.unit||'mm'}`)}</span></div><div class="template-tags catalog-card-features">${features}</div><small>수정 ${escape(String(record.updatedAt).slice(0,10))}</small><div class="library-card-actions"><button class="primary" data-library-use="${escape(record.id)}">이 템플릿으로 새로 만들기</button>${editAction}<button data-library-settings="${escape(record.id)}">설정</button>${remoteHistory}</div><div class="library-version-history hidden" data-library-history-panel="${escape(record.id)}"></div></div></article>`;
+  const fallbackImage=record.template==='desk-sample-3'?'./assets/sample-three/school-building.webp':'./assets/sample-school/jiran-building.webp';
+  return `<article class="library-template-card ${kindClass}" data-template-id="${escape(record.id)}" data-library-state="${record.state}" data-library-type="${escape(record.type)}"><div class="library-thumb calendar-product-thumb calendar-product-${escape(record.type)}"><div class="calendar-product-shell"><span class="calendar-product-binding" aria-hidden="true"></span><div class="calendar-product-page" data-library-thumbnail="${escape(record.id)}"><img class="library-thumbnail-fallback" src="${fallbackImage}" alt=""><span class="thumbnail-placeholder">표지를 불러오는 중입니다.</span></div><span class="calendar-product-side" aria-hidden="true"></span><span class="calendar-product-stand" aria-hidden="true"></span></div></div><div class="library-card-body"><div class="library-card-badges"><span class="state-badge state-${record.state}">${escape(cardStateLabel(record))}</span>${record.isStandard?'<span class="standard-badge">표준</span>':''}</div><div class="library-meta-line"><h3>${escape(record.name)}</h3><span class="edition-badge">${record.edition} Edition</span></div><small class="library-card-version">${escape(internalVersionLabel(record))}</small><p>${escape(record.description)}</p><div class="library-card-meta"><span class="badge-base">${escape(kindLabel)}</span>${storageBadge}<span>${escape(meta.label)}</span><span>${escape(record.size?.label||`${record.size?.width||'-'} × ${record.size?.height||'-'} ${record.size?.unit||'mm'}`)}</span></div><div class="template-tags catalog-card-features">${features}</div><small>수정 ${escape(String(record.updatedAt).slice(0,10))}</small><div class="library-card-actions"><button class="primary" data-library-use="${escape(record.id)}">이 템플릿으로 새로 만들기</button>${editAction}<button data-library-settings="${escape(record.id)}">설정</button>${remoteHistory}${qualityCheck}</div><div class="library-version-history hidden" data-library-history-panel="${escape(record.id)}"></div></div></article>`;
  }
  function versionStateLabel(state){return state==='published'?'게시됨':state==='archived'?'보관됨':state==='ready'?'검토 완료':'초안'}
  function versionKindLabel(kind){return kind==='restore'?'복원':kind==='publish'?'게시 저장':'직접 저장'}
  function versionDate(value){try{return new Intl.DateTimeFormat('ko-KR',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value))}catch{return String(value||'-')}}
  function historyMarkup(templateId,versions,currentVersion){
   if(!versions.length)return '<p class="library-version-empty">저장된 버전이 없습니다.</p>';
-  return versions.map(version=>`<div class="library-version-row ${Number(version.versionNumber)===Number(currentVersion)?'current':''}"><div class="library-version-summary"><strong>v${escape(String(version.versionNumber))}</strong><span>${escape(versionDate(version.createdAt))}</span><span>${escape(versionStateLabel(version.state))} · ${escape(versionKindLabel(version.saveKind))}</span>${version.saveNote?`<small>${escape(version.saveNote)}</small>`:''}</div><div class="library-version-actions"><button data-version-preview="${escape(version.id)}" data-template-id="${escape(templateId)}">미리보기</button>${Number(version.versionNumber)===Number(currentVersion)?'<span>현재 버전</span>':`<button data-version-restore="${escape(version.id)}" data-template-id="${escape(templateId)}">이 버전 복원</button>`}</div></div>`).join('');
- }
- async function openVersionPreview(templateId,versionId){
-  const remote=window.ACDLTemplateRemotePersistence,versions=versionHistoryCache.get(templateId)||[];
-  const version=versions.find(item=>item.id===versionId);if(!remote||!version)return;
-  const hydrated=await remote.hydrateVersion(version),previous={project,selectedPageId,selectedElementId,selectedElementScope,history,future};
-  project=structuredClone(hydrated.projectData);selectedPageId=project?.book?.pageInstances?.[0]?.id||null;selectedElementId=null;selectedElementScope=null;history=[];future=[];
-  el('templateLibraryModal')?.classList.add('hidden');render();exitPreviewMode();preview=true;previewType='page';document.body.classList.add('preview-only');
-  const title=el('pagePreviewName');if(title)title.textContent=`v${version.versionNumber} · 과거 버전 읽기 전용 미리보기`;
-  const restore=()=>{document.removeEventListener('keydown',onPreviewKeydown,true);project=previous.project;selectedPageId=previous.selectedPageId;selectedElementId=previous.selectedElementId;selectedElementScope=previous.selectedElementScope;history=previous.history;future=previous.future;exitPreviewMode();el('templateLibraryModal')?.classList.remove('hidden');renderLibrary(activeLibraryState);if(project)render()};
-  const onPreviewKeydown=event=>{if(event.key!=='Escape')return;event.preventDefault();event.stopImmediatePropagation();restore()};document.addEventListener('keydown',onPreviewKeydown,true);
-  const button=el('returnToEditBtn');if(button)button.addEventListener('click',event=>{event.stopImmediatePropagation();restore()},{capture:true,once:true});
+  return versions.map(version=>`<div class="library-version-row ${Number(version.versionNumber)===Number(currentVersion)?'current':''}"><div class="library-version-summary"><strong>v${escape(String(version.versionNumber))}</strong><span>${escape(versionDate(version.createdAt))}</span><span>${escape(versionStateLabel(version.state))} · ${escape(versionKindLabel(version.saveKind))}</span>${version.saveNote?`<small>${escape(version.saveNote)}</small>`:''}</div><div class="library-version-actions">${Number(version.versionNumber)===Number(currentVersion)?'<span>현재 버전</span>':`<button data-version-restore="${escape(version.id)}" data-template-id="${escape(templateId)}">이 버전 복원</button>`}</div></div>`).join('');
  }
  async function restoreVersion(templateId,versionId){
   const remote=window.ACDLTemplateRemotePersistence,version=(versionHistoryCache.get(templateId)||[]).find(item=>item.id===versionId);if(!remote||!version)return;
@@ -146,19 +137,9 @@
   const templateId=button.dataset.libraryHistory,panel=document.querySelector(`[data-library-history-panel="${CSS.escape(templateId)}"]`),record=records().find(item=>item.id===templateId);if(!panel||!record)return;
   const opening=panel.classList.contains('hidden');panel.classList.toggle('hidden',!opening);button.setAttribute('aria-expanded',String(opening));if(!opening)return;
   panel.innerHTML='<p class="library-version-loading">버전 이력을 불러오는 중입니다.</p>';
-  try{let versions=versionHistoryCache.get(templateId);if(!versions){const result=await window.ACDLTemplateRemotePersistence.versions(templateId);versions=result.versions||[];versionHistoryCache.set(templateId,versions)}panel.innerHTML=historyMarkup(templateId,versions,record.version);panel.querySelectorAll('[data-version-preview]').forEach(item=>item.addEventListener('click',()=>openVersionPreview(templateId,item.dataset.versionPreview).catch(error=>showEditorToast(error?.message||'버전 미리보기를 열지 못했습니다.'))));panel.querySelectorAll('[data-version-restore]').forEach(item=>item.addEventListener('click',()=>restoreVersion(templateId,item.dataset.versionRestore).catch(error=>showEditorToast(error?.message||'버전을 복원하지 못했습니다.'))))}catch(error){panel.innerHTML=`<p class="library-version-error">${escape(error?.message||'버전 이력을 불러오지 못했습니다.')}</p>`}
+  try{let versions=versionHistoryCache.get(templateId);if(!versions){const result=await window.ACDLTemplateRemotePersistence.versions(templateId);versions=result.versions||[];versionHistoryCache.set(templateId,versions)}panel.innerHTML=historyMarkup(templateId,versions,record.version);panel.querySelectorAll('[data-version-restore]').forEach(item=>item.addEventListener('click',()=>restoreVersion(templateId,item.dataset.versionRestore).catch(error=>showEditorToast(error?.message||'버전을 복원하지 못했습니다.'))))}catch(error){panel.innerHTML=`<p class="library-version-error">${escape(error?.message||'버전 이력을 불러오지 못했습니다.')}</p>`}
  }
- async function runPackagePreflight(button){
-  const templateId=button.dataset.libraryPackageCheck,remote=window.ACDLTemplateRemotePersistence;if(!templateId||!remote?.packagePreflight)return;
-  const original=button.textContent;button.disabled=true;button.textContent='검사 중';
-  try{
-   const result=await remote.packagePreflight(templateId),failed=(result.checks||[]).filter(check=>!check.ok);
-   if(failed.length)alert(`Package 기준 검사에서 ${failed.length}개 항목을 확인해야 합니다.\n\n${failed.map(check=>`- ${check.label}`).join('\n')}`);
-   else alert(`Package 기준 검사 통과\n\n최신 버전: v${result.version.versionNumber}\n페이지: ${result.summary.surfaceCount}면\n규격: ${result.summary.pageSize.width} × ${result.summary.pageSize.height} ${result.summary.pageSize.unit}\n원격 이미지 자산: ${result.summary.assetCount}개\n프로젝트 SHA-256: ${result.summary.projectSha256.slice(0,16)}…`);
-  }catch(error){showEditorToast(error?.message||'Package 기준 검사를 완료하지 못했습니다.')}
-  finally{button.disabled=false;button.textContent=original}
- }
- function mountCoverSnapshot(host,page){
+ function mountCoverSnapshot(record,host,page){
   // The editor page is a fixed design surface with an outer display scale. A
   // thumbnail must start from that unscaled surface; getBoundingClientRect()
   // includes the editor scale and would make the clone scale twice.
@@ -171,6 +152,7 @@
   clone.style.removeProperty('transform');clone.style.setProperty('transform-origin','top left','important');clone.style.setProperty('width',`${sourceWidth}px`,'important');clone.style.setProperty('height',`${sourceHeight}px`,'important');clone.style.setProperty('max-width','none','important');clone.style.setProperty('max-height','none','important');clone.style.setProperty('inset','auto','important');
   const fit=()=>{if(!host.isConnected)return;const scale=Math.min(host.clientWidth/sourceWidth,host.clientHeight/sourceHeight);clone.style.setProperty('left',`${Math.max(0,(host.clientWidth-sourceWidth*scale)/2)}px`,'important');clone.style.setProperty('top',`${Math.max(0,(host.clientHeight-sourceHeight*scale)/2)}px`,'important');clone.style.setProperty('transform',`scale(${scale})`,'important')};
   host.innerHTML='';host.appendChild(clone);fit();
+  thumbnailMarkupCache.set(`${record.id}:${record.version}:${record.updatedAt}`,host.innerHTML);
   if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(fit);observer.observe(host);host._thumbnailObserver?.disconnect?.();host._thumbnailObserver=observer}
  }
  async function renderActualThumbnailNow(record,host){
@@ -186,11 +168,11 @@
    if(uploaded?.dataUrl){host.innerHTML=`<img class="library-uploaded-thumbnail" src="${uploaded.dataUrl}" alt="${escape(record.name)} 대표 이미지">`;host.dataset.rendered='true';return}
    if(!source){const preset=(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[]).find(item=>item.recommended)||(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[])[0];source=makeProject({type:record.type,year:record.edition,startMonth:3,template:record.packageVersion?'school-basic':record.template,frontInsertCount:record.packageVersion?0:1,rearInsertCount:0,calendarRows:record.packageVersion?5:6,weekStart:'sunday',showAdjacentMiniCalendars:true,posterColumns:4,sizePresetId:preset?.id});if(record.packageVersion)source=await window.ACDLPackageProjectAdapter.loadAndApply(source,record.packageBase)}
    project=structuredClone(source);const pages=project.book.pageInstances||[],preferred=record.type==='poster'?pages.find(page=>page.role==='poster-annual'):pages.find(page=>page.role==='cover-front');selectedPageId=preferred?.id||pages[0]?.id||null;selectedElementId=null;selectedElementScope=null;calendarEditing=false;history=[];future=[];render();window.ACDLEditorPageFit?.fit?.();
-   const page=el('page');if(!page)return;mountCoverSnapshot(host,page);host.dataset.rendered='true';
+   const page=el('page');if(!page)return;mountCoverSnapshot(record,host,page);host.dataset.rendered='true';
   }catch(error){host.innerHTML='<span class="thumbnail-placeholder">미리보기를 만들 수 없습니다.</span>';console.warn('Template thumbnail failed',record.id,error)}
   finally{if(original&&(!navigation||navigation.isCurrent(transitionId))){project=original.project;selectedPageId=original.selectedPageId;selectedElementId=original.selectedElementId;selectedElementScope=original.selectedElementScope;calendarEditing=original.calendarEditing;history=original.history;future=original.future;if(project)render()}}
  }
- function renderActualThumbnail(record,host){thumbnailQueue=thumbnailQueue.then(()=>renderActualThumbnailNow(record,host)).catch(error=>console.warn('Template thumbnail queue failed',record.id,error));return thumbnailQueue}
+ function renderActualThumbnail(record,host){const key=`${record.id}:${record.version}:${record.updatedAt}`,cached=thumbnailMarkupCache.get(key);if(cached&&host){host.innerHTML=cached;host.dataset.rendered='true';return Promise.resolve()}thumbnailQueue=thumbnailQueue.then(()=>renderActualThumbnailNow(record,host)).catch(error=>console.warn('Template thumbnail queue failed',record.id,error));return thumbnailQueue}
  function hydrateThumbnails(list){list.forEach(record=>{const host=document.querySelector(`[data-library-thumbnail="${CSS.escape(record.id)}"]`);renderActualThumbnail(record,host)})}
  function editionOptions(){
   return [...new Set(records().map(record=>Number(record.edition)))].filter(Number).sort((a,b)=>b-a);
@@ -257,7 +239,6 @@
     grid.querySelectorAll('[data-library-edit]').forEach(button=>button.addEventListener('click',()=>{const source=records().find(record=>record.id===button.dataset.libraryEdit);if(source&&!source.isStandard&&['draft','ready'].includes(source.state))openDesignerProjectFromRecord(source)}));
     grid.querySelectorAll('[data-library-settings]').forEach(button=>button.addEventListener('click',()=>openSettings(records().find(record=>record.id===button.dataset.librarySettings))));
     grid.querySelectorAll('[data-library-history]').forEach(button=>button.addEventListener('click',()=>toggleVersionHistory(button)));
-    grid.querySelectorAll('[data-library-package-check]').forEach(button=>button.addEventListener('click',()=>runPackagePreflight(button)));
     hydrateThumbnails(list);
   }
   updateLibrarySummary(list.length);

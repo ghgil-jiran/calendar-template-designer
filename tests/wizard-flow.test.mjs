@@ -184,7 +184,9 @@ test('template thumbnails support uploaded artwork and page fallbacks', () => {
   assert.match(html, /권장 크기는 1200×900px, 최소 크기는 800×600px/);
   assert.match(runtime, /uploaded\?\.dataUrl/);
   assert.match(runtime, /record\.type==='poster'\?pages\.find\(page=>page\.role==='poster-annual'\):pages\.find\(page=>page\.role==='cover-front'\)/);
-  assert.match(runtime, /function mountCoverSnapshot\(host,page\)/);
+  assert.match(runtime, /function mountCoverSnapshot\(record,host,page\)/);
+  assert.match(runtime, /thumbnailMarkupCache/);
+  assert.match(runtime, /library-thumbnail-fallback/);
   assert.match(runtime, /transform',`scale\(\$\{scale\}\)`,'important'/);
   assert.match(runtime, /const designSize=window\.ACDLEditorPageFit\?\.designSize\?\.\(\)/);
   assert.match(runtime, /sourceWidth=Math\.max\(1,Math\.round\(Number\(designSize\?\.width\)\|\|page\.offsetWidth/);
@@ -227,14 +229,34 @@ test('template lifecycle separates status, standard, design editing and settings
   assert.doesNotMatch(runtime, /data-library-state-change/);
 });
 
-test('remote template cards expose immutable version history and restore controls', () => {
+test('remote template cards expose restore history without the unreliable preview action', () => {
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(runtime, /Package \$\{record\.template\}@\$\{record\.packageVersion\}/);
   assert.match(runtime, /data-library-history/);
   assert.match(runtime, /ACDLTemplateRemotePersistence\.versions\(templateId\)/);
   assert.match(runtime, /기존 버전은 그대로 보존됩니다/);
   assert.match(runtime, /remote\.restore\(templateId,versionId/);
-  assert.match(runtime, /과거 버전 읽기 전용 미리보기/);
+  assert.doesNotMatch(runtime, /data-version-preview/);
+  assert.doesNotMatch(runtime, /과거 버전 읽기 전용 미리보기/);
+  assert.match(runtime, /data-library-quality-check disabled/);
+  assert.match(runtime, /인쇄·출력 품질 검사 · 준비 중/);
+});
+
+test('new template setup omits file loading and cancel returns to the library', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.doesNotMatch(html, /id="setupLoadBtn"/);
+  assert.match(html, /window\.ACDLReturnToLibraryOnSaveCancel=true/);
+  assert.match(html, /if\(!window\.ACDLReturnToLibraryOnSaveCancel\)return/);
+  assert.match(html, /el\("templateLibraryModal"\)\.classList\.remove\("hidden"\);renderTemplateLibrary\(\);refreshRemoteTemplateLibrary\(\)/);
+});
+
+test('landing uses the requested service title and planner cover', () => {
+  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  assert.match(html, /우리학교인쇄 CALENDAR EDITOR/);
+  assert.doesNotMatch(html, /Universal Calendar Design Lab/);
+  assert.doesNotMatch(html, /<div class="landing-process">/);
+  assert.match(html, /탁상형 검토 01 - 월별 플래너 표지/);
+  assert.match(html, /assets\/sample-school\/jiran-building\.webp/);
 });
 
 test('desk 1.4.0 is the exact published canonical system base', () => {

@@ -220,7 +220,7 @@ test('designer studio keeps local storage while adding protected remote persiste
 test('template saves report whether data reached Supabase or only the browser', () => {
   assert.match(html, /저장 위치: Supabase 원격 저장/);
   assert.match(html, /템플릿은 이 브라우저에만 저장되었습니다/);
-  assert.match(html, /버전 이력과 Package 검사를 사용하려면 Supabase 원격 저장이 필요합니다/);
+  assert.match(html, /버전 이력을 사용하려면 Supabase 원격 저장이 필요합니다/);
 });
 
 test('template library labels remote and browser-only records explicitly', () => {
