@@ -1,0 +1,10 @@
+{
+  "id": "school-calendar-styles",
+  "version": "0.1.0",
+  "profiles": [
+    {"id": "balanced", "name": "단정한 균형형", "range": "가독성과 여백 우선, 절제된 장식"},
+    {"id": "seasonal", "name": "사계절 연결형", "range": "공통 조형 언어와 월별 계절 변화"},
+    {"id": "photo-brand", "name": "사진 중심 브랜드형", "range": "학교 사진·교표 보호와 브랜드 프레임"},
+    {"id": "student-friendly", "name": "학생 친화 포인트형", "range": "격자 밖의 제한된 캐릭터·라벨 포인트"}
+  ]
+}

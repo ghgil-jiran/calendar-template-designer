@@ -1,0 +1,7 @@
+{
+  "id": "print-safe-quality",
+  "version": "0.1.0",
+  "designChecks": ["calendar-readability", "required-space", "decoration-density", "page-set-consistency", "seasonal-continuity", "protected-asset-integrity"],
+  "printChecks": ["trim-and-bleed", "safe-area", "effective-resolution-300dpi", "gamut-risk", "thin-line", "small-text", "transparency"],
+  "pipeline": {"sourceAssets": "RGB-high-resolution-retained", "softProof": "before-design-approval", "finalConversion": "output-stage-only", "finalFormat": "PDF/X-4", "preflight": true}
+}

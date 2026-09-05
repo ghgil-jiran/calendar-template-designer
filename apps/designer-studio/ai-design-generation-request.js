@@ -1,0 +1,10 @@
+(function(root){
+ const SCHEMA_VERSION='ai-design-generation-request.v1';
+ const REQUIRED_RESULT_GROUPS=Object.freeze(['assets','objectStyles','layouts','pageResults','qualityChecks']);
+ function buildRequest({project,conditions={},reference={},versions={}}={}){
+  if(!project)throw new Error('project is required');
+  return {schemaVersion:SCHEMA_VERSION,mode:'sample-generation',source:{projectId:project.book?.id||null,productType:project.productType?.category||null,pageSize:{...(project.productType?.pageSize||{})},year:project.settings?.year||null,startMonth:project.settings?.startMonth||null},scope:conditions.scope||'template',variantCount:Math.max(2,Math.min(4,Number(conditions.variantCount)||3)),conditions:{schoolLevel:conditions.schoolLevel||'all',decorationDensity:conditions.decorationDensity||'medium',photoMode:conditions.photoMode||'mixed',seasonalVariation:conditions.seasonalVariation||'medium',instruction:conditions.instruction||''},referenceTemplate:{templateId:reference.templateId||'unidentified',templateName:reference.templateName||'',templateVersion:reference.templateVersion||'unversioned',readOnly:reference.readOnly!==false,aspects:[...(reference.aspects||[])],pages:(reference.pages||[]).map(page=>({...page}))},versions:{...versions},outputContract:{groups:[...REQUIRED_RESULT_GROUPS],editableDataObjects:['year','school-name','month','weekday','date','holiday','school-event','annual-calendar','mini-calendar','weekly-planner','school-contact'],forbiddenRasterText:['year','school-name','month','weekday','date','holiday','school-event','address','contact','logo'],preserveRgbOriginals:true,applyMode:'separate-draft'}};
+ }
+ function validateResponse(response){const errors=[];if(response?.schemaVersion!=='ai-design-generation-response.v1')errors.push('schemaVersion');REQUIRED_RESULT_GROUPS.forEach(key=>{if(!Array.isArray(response?.[key]))errors.push(key)});return {valid:errors.length===0,errors}}
+ root.ACDLAIDesignGenerationRequest=Object.freeze({SCHEMA_VERSION,REQUIRED_RESULT_GROUPS,buildRequest,validateResponse});
+})(typeof window==='undefined'?globalThis:window);

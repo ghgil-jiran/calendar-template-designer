@@ -1,8 +1,9 @@
 (function(root){
- const VERSION=Object.freeze({module:'1.1.0',promptSet:'planning@0.1.0',styleProfile:'unselected',pageRules:'calendar-pages@0.1.0',qualityProfile:'print-safe@0.1.0'});
+ const VERSION=Object.freeze({module:'1.1.0',promptSet:'school-calendar-prompt@0.1.0',styleProfile:'school-calendar-styles@0.1.0',pageRules:'calendar-page-rules@0.1.0',qualityProfile:'print-safe-quality@0.1.0'});
  const ROLE_LABELS=Object.freeze({cover:'표지',annual:'연력','school-symbols':'학교 상징·간지',month:'월력','month-back':'월력 뒷면','back-cover':'뒷표지'});
- function pageRoles(project){const roles=[];(project?.book?.pages||[]).forEach(page=>{const role=page.role||page.pageRole;if(role&&!roles.includes(role))roles.push(role)});return roles}
- function summary(project){const size=project?.productType?.pageSize||{},settings=project?.settings||{};return {productType:project?.productType?.category||'미설정',pageSize:size.width&&size.height?`${size.width} × ${size.height} ${size.unit||'mm'}`:'미설정',academicYear:settings.year||'미설정',startMonth:settings.startMonth||'미설정',pageCount:(project?.book?.pages||[]).length,roles:pageRoles(project).map(role=>ROLE_LABELS[role]||role),versions:{...VERSION}}}
+ function projectPages(project){return project?.book?.pageInstances||project?.book?.pages||[]}
+ function pageRoles(project){const roles=[];projectPages(project).forEach(page=>{const role=page.semanticPageRole||page.role||page.pageRole;if(role&&!roles.includes(role))roles.push(role)});return roles}
+ function summary(project){const size=project?.productType?.pageSize||{},settings=project?.settings||{};return {productType:project?.productType?.category||'미설정',pageSize:size.width&&size.height?`${size.width} × ${size.height} ${size.unit||'mm'}`:'미설정',academicYear:settings.year||'미설정',startMonth:settings.startMonth||'미설정',pageCount:projectPages(project).length,roles:pageRoles(project).map(role=>ROLE_LABELS[role]||role),versions:{...VERSION}}}
  const VARIANT_BLUEPRINTS=Object.freeze([
   {key:'balanced',name:'단정한 균형형',description:'학교 정보와 달력 가독성을 우선하고 장식을 여백 안에 절제해 배치합니다.',palette:['#315e9e','#dbe8f8','#f7f9fc'],motif:'corner',assets:['부분 배경','모서리 일러스트','사진 프레임'],styles:['차분한 제목 위계','선명한 달력 대비'],layout:'정보 영역을 고정하고 남은 공간에 장식을 배치'},
   {key:'seasonal',name:'사계절 연결형',description:'같은 조형 언어를 유지하면서 월별 색과 독립 일러스트에 계절 변화를 줍니다.',palette:['#477b62','#e7f1eb','#f7efe2'],motif:'season',assets:['계절 일러스트','반복 패턴','월 표시 장식'],styles:['월별 계절 색상','공통 서체 위계'],layout:'표지에서 시작한 장식 흐름을 월별 페이지로 연결'},
