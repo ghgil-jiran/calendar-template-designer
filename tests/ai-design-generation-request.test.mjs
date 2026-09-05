@@ -29,7 +29,7 @@ test('AI generation request keeps the source template read-only and separates ou
 
 test('AI module manifest resolves every independently versioned rule file', () => {
   const manifest = JSON.parse(fs.readFileSync(new URL('ai-design/module-manifest.json', root)));
-  assert.equal(manifest.version, '1.2.0');
+  assert.equal(manifest.version, '1.3.0');
   assert.equal(manifest.storagePolicy.publishedPackage, 'read-only');
   for (const relative of Object.values(manifest.rules)) assert.ok(fs.existsSync(new URL(`ai-design/${relative}`, root)), relative);
 });
@@ -50,7 +50,7 @@ test('AI settings summary reads the current pageInstances structure', () => {
   const settings = loadScript('ai-design-settings.js', 'ACDLAIDesignSettings');
   const summary = settings.summary({book:{pageInstances:[{role:'cover-front'},{role:'monthly-front'}]},productType:{category:'desk',pageSize:{width:260,height:180,unit:'mm'}},settings:{year:2027,startMonth:3}});
   assert.equal(summary.pageCount, 2);
-  assert.match(summary.versions.promptSet, /@0\.3\.0$/);
+  assert.match(summary.versions.promptSet, /@0\.4\.0$/);
 });
 
 test('new-template completion applies the selected sample only to a separate draft project', () => {
@@ -62,10 +62,10 @@ test('new-template completion applies the selected sample only to a separate dra
   assert.match(html, /preservedResources:true,contentRolesPreserved:true/);
   assert.match(html, /preservedMasterDecorations:true/);
   assert.match(html, /mode:"role-scoped"/);
-  assert.match(html, /targetRoles=new Set\(AI_DESIGN_ROLE_MAP\[generatedRole\]\|\|\[\]\)/);
+  assert.match(html, /generatedRoles=selected\?\.assetsByRole\?Object\.keys\(selected\.assetsByRole\)/);
   assert.doesNotMatch(html, /project\.template\.masterElements\[masterId\]=kept/);
-  assert.match(html, /const generatedRole=selected\.generatedRole\|\|"cover"/);
-  assert.match(html, /AI_DESIGN_ROLE_MAP=\{cover:\["cover-front"\]/);
+  assert.match(html, /const AI_DESIGN_ROLE_MAP=\{cover:\["cover-front"\]/);
+  assert.match(html, /"school-symbols":\["school-symbols","front-insert-front"\]/);
   assert.doesNotMatch(html, /selected\.generatedRole==="cover"\?new Set\(\["cover-front"\]\):new Set\(\["cover-front","cover-back","monthly-front"/);
   assert.match(html, /role:"ai-design-background"/);
   assert.match(html, /project\.template\.aiDesignDraft\.neutralBase=prepareNeutralAIDesignBase\(aiDesignMockSession\)/);
