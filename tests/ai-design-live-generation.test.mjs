@@ -148,4 +148,7 @@ test('the selected representative set expands to eleven remaining monthly front 
   assert.match(html,/selected\.monthlyAssets\?all/);
   assert.match(html,/monthlyAppliedPages/);
   assert.match(html,/pages=selected\.monthlyAssets\?all/);
+  assert.match(html,/ACDLDesignSetExpansion\.createReport\(project,selected\)/);
+  assert.match(html,/setExpansion\.status!=="complete"/);
+  assert.match(html,/designSpecVersion:metadata\.designSpecVersion/);
 });
