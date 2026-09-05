@@ -805,3 +805,12 @@
 - 선택 변경 시 현재 템플릿의 `template.settings.aiDesignSpec`에 저장하고 템플릿을 다시 열거나 디자인 유형 단계로 돌아오면 동일 UI로 복원
 - 이전 GitHub 업로드에서 Designer Studio HTML이 잘린 결함을 정상 전체 파일로 복원하고 1·2·3단계 변경을 재적용
 - 전체 build, Studio 검사 234개, Sprint 2 제품 검사, 인라인 스크립트 24개와 스타일 검사 통과
+
+## 2026-09-05 — 디자인 유형 4단계 실제 편집 개체 배치
+
+- `ai-design-layout-application.v1@0.1.0` 적용 계층에 표지 5종, 연력 4종, 학교 상징 4종, 월력 5종, 월력 뒷면 5종, 뒷표지 4종의 시작 배치 좌표 정의
+- 새 AI 초안 편집 진입 시 저장된 `ai-design-spec.v1`을 읽어 생성 자산과 월력 뒷면 개체 적용 후 6개 역할의 실제 페이지 개체 위치·크기를 조정
+- AI 배경은 전면 크기로 유지하고 달력 데이터·학교 정보·사진·교표·일정·플래너 개체의 내용과 바인딩은 보존
+- 월력 구성 유형의 달력 영역을 12개월 공통 Master에 반영하고 각 페이지에 선택 유형·버전·편집 가능 상태를 기록
+- 적용 결과를 `template.settings.aiDesignLayoutApplication`과 AI 초안의 `layoutApplication`에 저장해 재열기·후속 검사에 사용
+- 전체 build, Studio 검사 237개, Sprint 2 제품 검사, 인라인 스크립트 24개와 스타일 검사 통과
