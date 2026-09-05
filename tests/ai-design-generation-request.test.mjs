@@ -43,7 +43,7 @@ test('AI settings summary reads the current pageInstances structure', () => {
   const settings = loadScript('ai-design-settings.js', 'ACDLAIDesignSettings');
   const summary = settings.summary({book:{pageInstances:[{role:'cover-front'},{role:'monthly-front'}]},productType:{category:'desk',pageSize:{width:260,height:180,unit:'mm'}},settings:{year:2027,startMonth:3}});
   assert.equal(summary.pageCount, 2);
-  assert.match(summary.versions.promptSet, /@0\.2\.0$/);
+  assert.match(summary.versions.promptSet, /@0\.2\.1$/);
 });
 
 test('new-template completion applies the selected sample only to a separate draft project', () => {

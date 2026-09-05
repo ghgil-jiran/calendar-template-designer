@@ -1,0 +1,15 @@
+{
+  "id": "school-calendar-prompt",
+  "version": "0.2.1",
+  "experiment": "cover-variants-v2",
+  "purpose": "표지 시안마다 다른 사진·정보 배치안을 생성하고 실제 학교 정보 개체에 같은 배치안을 적용한다.",
+  "cover": {
+    "generate": ["background", "edge-pattern", "independent-decoration", "empty-photo-frame"],
+    "reserve": ["school-photo", "year", "school-name", "school-logo", "school-contact"],
+    "forbid": ["letters", "numbers", "dates", "school-name", "address", "contact", "logo", "emblem", "watermark", "fake-text"],
+    "directions": ["centered-photo", "asymmetric-photo", "editorial-frame", "wide-photo"],
+    "layoutContract": "percent-based-editable-object-layout"
+  },
+  "generation": {"draftQuality": "low", "reviewQuality": "medium"},
+  "print": {"sourceColorSpace": "RGB", "size": "1536x1024", "safeAreaRequired": true, "bleedAware": true}
+}

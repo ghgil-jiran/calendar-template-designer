@@ -21,6 +21,15 @@ test('live generation input rejects unknown styles and long instructions', () =>
   assert.throws(()=>validateGenerationInput({styleKey:'balanced',request:{conditions:{instruction:'가'.repeat(501)}}}),/500자/);
 });
 
+test('cover variants retain distinct directions and selectable generation quality', () => {
+  const centered=validateGenerationInput({styleKey:'balanced',variantIndex:0,quality:'low'});
+  const asymmetric=validateGenerationInput({styleKey:'balanced',variantIndex:1,quality:'medium'});
+  assert.equal(centered.variantDirection,'centered-photo');
+  assert.equal(asymmetric.variantDirection,'asymmetric-photo');
+  assert.equal(centered.quality,'low');
+  assert.equal(asymmetric.quality,'medium');
+});
+
 test('browser client keeps the API key server-side and sends the admin token', async () => {
   const source=fs.readFileSync(new URL('../apps/designer-studio/ai-design-client.js',import.meta.url),'utf8');let call;
   const context={window:null,AbortController,setTimeout,clearTimeout,ACDLTemplateRemotePersistence:{accessToken:()=> 'admin-token'},fetch:async(url,options)=>{call={url,options};return {ok:true,json:async()=>({asset:{dataUrl:'data:image/webp;base64,AA=='}})}}};context.window=context;vm.createContext(context);vm.runInContext(source,context);
@@ -72,5 +81,8 @@ test('AI generation controls render independently from the Vault connection cont
   assert.match(html,/표지 시안 2~4개 생성/);
   assert.match(html,/for\(let index=0;index<count;index\+=1\)/);
   assert.match(html,/pageRole:"cover",variantIndex:index/);
+  assert.match(html,/id="aiDesignLiveQuality"/);
+  assert.match(html,/applyAICoverLayout/);
+  assert.match(html,/layoutApplied/);
   assert.match(html,/selected\.generatedRole==="cover"\?new Set\(\["cover-front"\]\)/);
 });

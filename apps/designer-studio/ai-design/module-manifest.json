@@ -4,7 +4,7 @@
   "host": "calendar-template-editor@1.3",
   "entryStep": "template-settings.ai-design",
   "rules": {
-    "promptSet": "rules/prompt-set@0.2.0.json",
+    "promptSet": "rules/prompt-set@0.2.1.json",
     "styleProfiles": "rules/style-profiles@0.1.0.json",
     "pageRules": "rules/page-rules@0.1.0.json",
     "qualityProfile": "rules/quality-profile@0.1.0.json"

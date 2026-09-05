@@ -1,5 +1,5 @@
 (function(root){
- const VERSION=Object.freeze({module:'1.1.0',promptSet:'school-calendar-prompt@0.2.0',styleProfile:'school-calendar-styles@0.1.0',pageRules:'calendar-page-rules@0.1.0',qualityProfile:'print-safe-quality@0.1.0'});
+ const VERSION=Object.freeze({module:'1.1.0',promptSet:'school-calendar-prompt@0.2.1',styleProfile:'school-calendar-styles@0.1.0',pageRules:'calendar-page-rules@0.1.0',qualityProfile:'print-safe-quality@0.1.0'});
  const ROLE_LABELS=Object.freeze({cover:'표지',annual:'연력','school-symbols':'학교 상징·간지',month:'월력','month-back':'월력 뒷면','back-cover':'뒷표지'});
  function projectPages(project){return project?.book?.pageInstances||project?.book?.pages||[]}
  function pageRoles(project){const roles=[];projectPages(project).forEach(page=>{const role=page.semanticPageRole||page.role||page.pageRole;if(role&&!roles.includes(role))roles.push(role)});return roles}
