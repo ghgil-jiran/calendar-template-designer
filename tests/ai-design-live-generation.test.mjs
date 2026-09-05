@@ -16,14 +16,25 @@ test('live image prompt protects editable calendar and school data', () => {
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.4.0.js');
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.4.0');
+  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.5.0.js');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.5.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','school-symbols','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
     assert.match(prompt,/Never rasterize editable content/i);
     assert.match(prompt,new RegExp(`Page role: ${prompts.ROLE_PROMPTS[pageRole].label}`));
   }
+});
+
+test('design spec selects role-specific composition guidance without rasterizing editable content',()=>{
+  const designSpec={schemaVersion:'ai-design-spec.v1',version:'0.1.0',styleId:'geometry',pageTypes:{month:'split-calendar-image'},expression:{decoration:'high',photoMode:'mixed',seasonal:'high',density:'medium'},protectedContent:['calendar-data','event-text']};
+  const input=validateGenerationInput({styleKey:'balanced',pageRole:'month',request:{designSpec}}),prompt=buildImagePrompt(input);
+  assert.equal(input.designSpec.pageTypeId,'split-calendar-image');
+  assert.match(prompt,/Selected editable composition: split-calendar-image/);
+  assert.match(prompt,/vertical image field beside the calendar grid/);
+  assert.match(prompt,/modern geometry/);
+  assert.match(prompt,/Protected content contract: calendar-data, event-text/);
+  assert.match(prompt,/Never rasterize editable content/);
 });
 
 test('live generation input rejects unknown styles and long instructions', () => {
