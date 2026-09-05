@@ -150,8 +150,13 @@ test('live AI results stay hidden until generation finishes and the user opens t
 
 test('the selected representative set expands to eleven remaining monthly front and back assets', () => {
   const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
+  assert.match(html,/monthlyVariations:structuredClone\(sessionVariant\.monthlyVariations\|\|prepared\.designSet\?\.monthlyVariations\|\|\[\]\)/);
   assert.match(html,/function expandSelectedAIDesignMonths\(\)/);
   assert.match(html,/pending\.length\*2/);
+  assert.match(html,/const pending=variations\.filter\(item=>!selected\.monthlyAssets\?\.\[item\.key\]\?\.month\|\|!selected\.monthlyAssets\?\.\[item\.key\]\?\.\["month-back"\]\)/);
+  assert.match(html,/generatedMonthCount!==12/);
+  assert.match(html,/function aiMonthlyAssetCoverage\(selected=selectedAIDesignVariant\(\)\)/);
+  assert.match(html,/coverage\.expected===12&&coverage\.complete===12/);
   assert.match(html,/Promise\.all\(\["month","month-back"\]/);
   assert.match(html,/ai-design-monthly-expansion\.v1/);
   assert.match(html,/월력 전체 생성/);
