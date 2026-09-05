@@ -11,5 +11,6 @@
   },
   "designTypes": "design-type-catalog@0.1.0.js",
   "designSpec": "design-spec@0.1.0.js",
+  "designLayoutApplication": "design-layout-application@0.1.0.js",
   "storagePolicy": {"applyMode": "separate-draft", "publishedPackage": "read-only"}
 }
