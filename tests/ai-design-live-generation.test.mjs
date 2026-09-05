@@ -23,5 +23,5 @@ test('browser client keeps the API key server-side and sends the admin token', a
   await context.ACDLAIDesignClient.generate({styleKey:'balanced'});
   assert.equal(call.url,'/api/ai-design-generate');
   assert.equal(call.options.headers.Authorization,'Bearer admin-token');
-  assert.doesNotMatch(source,/OPENAI_API_KEY/);
+  assert.doesNotMatch(source,/process\.env|sk-[a-z0-9]/i);
 });

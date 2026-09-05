@@ -51,5 +51,5 @@ test('new-template completion applies the selected sample only to a separate dra
   assert.match(html, /function applyAIDesignSampleDraft\(session\)/);
   assert.match(html, /role:"ai-design-background"/);
   assert.match(html, /project\.template\.aiDesignDraft\.status="sample-applied"/);
-  assert.match(html, /type:"bundled-ai-sample"/);
+  assert.match(html, /selected\.generated\?"live-ai-generation":"bundled-ai-sample"/);
 });
