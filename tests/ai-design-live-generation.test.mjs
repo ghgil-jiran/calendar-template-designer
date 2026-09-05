@@ -8,12 +8,16 @@ test('live image prompt protects editable calendar and school data', () => {
   const input=validateGenerationInput({styleKey:'seasonal',palette:['#315e9e','#ffffff'],request:{conditions:{schoolLevel:'middle',decorationDensity:'low',photoMode:'mixed',seasonalVariation:'high',instruction:'봄 느낌을 유지'},versions:{promptSet:'school-calendar-prompt@0.1.0'}}});
   const prompt=buildImagePrompt(input);
   assert.match(prompt,/no letters, words, numbers, dates, calendar grids/i);
-  assert.match(prompt,/never invent or alter a school photo or logo/i);
+  assert.match(prompt,/never invent, transform, or embed a school photo/i);
   assert.match(prompt,/#315e9e/);
+  assert.match(prompt,/COVER DESIGN ASSET/);
+  assert.match(prompt,/EMPTY photo-frame/i);
+  assert.match(prompt,/editable year and CALENDAR title/i);
 });
 
 test('live generation input rejects unknown styles and long instructions', () => {
   assert.throws(()=>validateGenerationInput({styleKey:'unknown'}),/지원하지 않는/);
+  assert.throws(()=>validateGenerationInput({styleKey:'balanced',pageRole:'month'}),/표지 시안 생성만/);
   assert.throws(()=>validateGenerationInput({styleKey:'balanced',request:{conditions:{instruction:'가'.repeat(501)}}}),/500자/);
 });
 
@@ -48,14 +52,15 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
   const client=fs.readFileSync(new URL('../apps/designer-studio/ai-design-client.js',import.meta.url),'utf8');
   assert.match(html,/closest\?\.\("#saveAIDesignOpenAIKeyBtn"\)/);
   assert.match(html,/e\.key==="Enter"&&e\.target\?\.id==="aiDesignOpenAIKey"/);
-  assert.match(client,/controller\.abort\(\),15000/);
+  assert.match(client,/controller\.abort\(\),timeoutMs/);
+  assert.match(client,/JSON\.stringify\(input\)\},70000/);
   assert.match(client,/연결 확인 시간이 초과됐습니다/);
 });
 
 test('AI generation controls render independently from the Vault connection controls', () => {
   const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
-  assert.match(html,/실제 AI 디자인 생성/);
-  assert.match(html,/생성할 디자인 스타일/);
+  assert.match(html,/실제 AI 표지 시안 생성/);
+  assert.match(html,/디자인 스타일/);
   assert.match(html,/단정한 균형형/);
   assert.match(html,/사계절 연결형/);
   assert.match(html,/사진 중심 브랜드형/);
@@ -64,4 +69,8 @@ test('AI generation controls render independently from the Vault connection cont
   assert.match(html,/if\(!el\("aiDesignOpenAIKey"\)\)/);
   assert.match(html,/if\(!el\("generateLiveAIDesignBtn"\)\)/);
   assert.match(html,/function escapeHtml\(value\)\{return v21Escape\(value\)\}/);
+  assert.match(html,/표지 시안 2~4개 생성/);
+  assert.match(html,/for\(let index=0;index<count;index\+=1\)/);
+  assert.match(html,/pageRole:"cover",variantIndex:index/);
+  assert.match(html,/selected\.generatedRole==="cover"\?new Set\(\["cover-front"\]\)/);
 });
