@@ -1892,11 +1892,12 @@ async function finishNewTemplateSetup(){if(!newTemplateSetupInProgress||!window.
 async function startTemplateEditorAfterGeneration(){
  const selected=selectedAIDesignVariant();
  if(!newTemplateSetupInProgress||!window.ACDLAIDesignSettings.canEnterEditor(aiDesignMockSession)||!isAIMonthlyExpansionComplete(selected)){showEditorToast("월력 전체 생성을 완료한 뒤 템플릿 편집 화면을 시작해 주세요.");return}
- const enter=el("newTemplateEnterEditorBtn"),projectBeforeEditorBuild=structuredClone(project);
+ const enter=el("newTemplateEnterEditorBtn");let projectBeforeEditorBuild=null;
  try{
   enter.disabled=true;
   showTemplateEditorBuildModal();
   await updateTemplateEditorBuildProgress(8,"생성 결과 확인","12개월 이미지와 선택한 배치안을 확인하고 있습니다.");
+  projectBeforeEditorBuild=structuredClone(project);
   project.template.aiDesignDraft=window.ACDLAIDesignSettings.createDraft(aiDesignMockSession);
   project.template.aiDesignDraft.neutralBase=prepareNeutralAIDesignBase(aiDesignMockSession);
   await updateTemplateEditorBuildProgress(24,"편집 초안 구성","표지·연력·월력의 기본 편집 구조를 준비했습니다.");
@@ -1925,7 +1926,7 @@ async function startTemplateEditorAfterGeneration(){
   hideTemplateEditorBuildModal();
   const monthly=project.template.aiDesignDraft.application?.monthlyAppliedPages||0,expandedPages=project.template.aiDesignDraft.setExpansion?.appliedPageCount||0;
   showEditorToast(`템플릿 편집 화면을 시작했습니다. 12개월 ${monthly}면 · 전체 ${expandedPages}면 적용 결과를 디자이너가 최종 조정해 주세요.`)
- }catch(error){project=projectBeforeEditorBuild;console.error("template editor build failed",error);showTemplateEditorBuildError(error);showEditorToast(error.message||"템플릿 편집 화면을 시작하지 못했습니다.");updateNewTemplateSettingsActions()}
+ }catch(error){if(projectBeforeEditorBuild)project=projectBeforeEditorBuild;console.error("template editor build failed",error);showTemplateEditorBuildError(error);showEditorToast(error.message||"템플릿 편집 화면을 시작하지 못했습니다.");updateNewTemplateSettingsActions()}
 }
 function nextTemplateEditorBuildFrame(){return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))}
 function showTemplateEditorBuildModal(){const modal=el("templateEditorBuildModal");modal.classList.remove("hidden","failed");el("templateEditorBuildTitle").textContent="템플릿 편집 화면을 생성하고 있습니다.";el("templateEditorBuildMessage").textContent="선택한 디자인과 12개월 페이지를 편집 가능한 개체로 구성합니다.";el("templateEditorBuildActions").classList.add("hidden");setTemplateEditorBuildProgress(0,"준비 중")}
