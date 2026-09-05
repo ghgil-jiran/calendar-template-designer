@@ -68,8 +68,9 @@ test('library thumbnails cannot restore an earlier editor state', () => {
 test('public landing presents the template studio without a calendar creation entry', () => {
   const html = studioHtml;
   const landing = html.match(/<div id="entryScreen"[\s\S]*?<div id="designerHome"/)?.[0] || '';
-  assert.match(landing, /모든 시간을/);
-  assert.match(landing, /원하는 달력 디자인으로/);
+  assert.match(landing, /사용자의 아이디어가 디자인이 되고/);
+  assert.match(landing, /디자인이 실제 제품이 되는 순간까지/);
+  assert.match(landing, /사용자 서비스와 템플릿 에디터를 연결하며 더 나은 달력 제작 경험을 만들어갑니다/);
   assert.match(landing, /UNIVERSAL CALENDAR DESIGN STUDIO/);
   assert.match(landing, /템플릿 라이브러리/);
   assert.match(landing, /새 템플릿 만들기/);
