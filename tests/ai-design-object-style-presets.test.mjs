@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+await import('../apps/designer-studio/ai-design/design-object-style-presets@0.1.0.js');
+const api=globalThis.ACDLDesignObjectStylePresets;
+function project(){return {template:{resources:{colorTheme:{},fontTheme:{}},settings:{},masters:{calendar:{design:{}}},masterElements:{back:[{id:'mini',type:'mini-calendar',style:{}},{id:'planner',type:'memo',memoLayout:'weekly',style:{}}]}},book:{monthlyStyleOverrides:Array.from({length:12},(_,index)=>({monthKey:`m${index+1}`,tokens:{}})),elementsByPage:{cover:[{id:'year',type:'text',role:'year',style:{}},{id:'photo',type:'image-frame',role:'school-building',style:{}}]}}}}
+
+test('six design styles provide calendar, frame, mini-calendar and planner presets',()=>{assert.deepEqual(Object.keys(api.presets),['editorial','seasonal-watercolor','geometry','photo-story','student-playful','premium-minimal']);Object.values(api.presets).forEach(preset=>{assert.ok(preset.calendar.monthTitleStyle);assert.ok(preset.frame.stroke);assert.equal(typeof preset.mini.background,'boolean');assert.ok(preset.planner.background)})});
+test('selected style updates real editable objects and monthly calendar master',()=>{const draft=project(),result=api.apply(draft,{styleId:'geometry',expression:{seasonal:'high'}});assert.equal(result.schemaVersion,'ai-design-object-style-application.v1');assert.equal(draft.template.masters.calendar.design.gridStyle,'detached-cards');assert.equal(draft.book.elementsByPage.cover[0].style.fontFamily,'Arial');assert.equal(draft.book.elementsByPage.cover[1].style.stroke,'#1769e0');assert.equal(draft.template.masterElements.back[0].style.gridLine,true);assert.equal(draft.template.masterElements.back[1].style.borderRadius,0);assert.equal(new Set(draft.book.monthlyStyleOverrides.map(item=>item.tokens.primary)).size,3);assert.equal(draft.template.settings.aiDesignObjectStyleApplication.editable,true)});
