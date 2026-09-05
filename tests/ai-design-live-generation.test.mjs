@@ -84,5 +84,6 @@ test('AI generation controls render independently from the Vault connection cont
   assert.match(html,/id="aiDesignLiveQuality"/);
   assert.match(html,/applyAICoverLayout/);
   assert.match(html,/layoutApplied/);
-  assert.match(html,/selected\.generatedRole==="cover"\?new Set\(\["cover-front"\]\)/);
+  assert.match(html,/const generatedRole=selected\.generatedRole\|\|"cover"/);
+  assert.match(html,/roleMap=\{cover:\["cover-front"\],annual:\["cover-back","poster-annual"\]/);
 });

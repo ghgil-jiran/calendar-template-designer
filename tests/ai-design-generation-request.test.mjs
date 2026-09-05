@@ -49,7 +49,15 @@ test('AI settings summary reads the current pageInstances structure', () => {
 test('new-template completion applies the selected sample only to a separate draft project', () => {
   const html = fs.readFileSync(new URL('index.html', root), 'utf8');
   assert.match(html, /function applyAIDesignSampleDraft\(session\)/);
+  assert.match(html, /function prepareNeutralAIDesignBase\(\)/);
+  assert.match(html, /schemaVersion:"ai-design-neutral-base\.v1"/);
+  assert.match(html, /item\?\.role==="background-decoration"/);
+  assert.match(html, /preservedResources:true,contentRolesPreserved:true/);
+  assert.match(html, /const generatedRole=selected\.generatedRole\|\|"cover"/);
+  assert.match(html, /cover:\["cover-front"\]/);
+  assert.doesNotMatch(html, /selected\.generatedRole==="cover"\?new Set\(\["cover-front"\]\):new Set\(\["cover-front","cover-back","monthly-front"/);
   assert.match(html, /role:"ai-design-background"/);
+  assert.match(html, /project\.template\.aiDesignDraft\.neutralBase=prepareNeutralAIDesignBase\(\)/);
   assert.match(html, /project\.template\.aiDesignDraft\.status="sample-applied"/);
   assert.match(html, /selected\.generated\?"live-ai-generation":"bundled-ai-sample"/);
 });
