@@ -63,4 +63,5 @@ test('AI generation controls render independently from the Vault connection cont
   assert.match(html,/closest\?\.\("#generateLiveAIDesignBtn"\)/);
   assert.match(html,/if\(!el\("aiDesignOpenAIKey"\)\)/);
   assert.match(html,/if\(!el\("generateLiveAIDesignBtn"\)\)/);
+  assert.match(html,/function escapeHtml\(value\)\{return v21Escape\(value\)\}/);
 });
