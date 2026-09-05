@@ -1,5 +1,5 @@
 (function(root){
- const VERSION=Object.freeze({module:'1.3.0',promptSet:'school-calendar-design@0.5.0',styleProfile:'school-calendar-styles@0.1.0',pageRules:'calendar-page-rules@0.4.0',qualityProfile:'print-safe-quality@0.1.0'});
+ const VERSION=Object.freeze({module:'1.4.0',promptSet:'school-calendar-design@0.6.0',styleProfile:'school-calendar-styles@0.1.0',pageRules:'calendar-page-rules@0.5.0',qualityProfile:'print-safe-quality@0.1.0'});
  const ROLE_LABELS=Object.freeze({cover:'표지',annual:'연력','school-symbols':'학교 상징·간지',month:'월력','month-back':'월력 뒷면','back-cover':'뒷표지'});
  const MONTH_BACK_COMPONENT_LABELS=Object.freeze({'image':'이미지','current-calendar':'뒷면 월력','previous-mini-calendar':'전달 미니 월력','next-mini-calendar':'다음 달 미니 월력','planner-monthly-goal':'월 목표','planner-checklist':'할 일 리스트','planner-weekly':'주별 계획','memo':'메모','month-date-strip':'월력 띠력'});
  function projectPages(project){return project?.book?.pageInstances||project?.book?.pages||[]}

@@ -32,7 +32,7 @@ test('AI generation request keeps the source template read-only and separates ou
 
 test('AI module manifest resolves every independently versioned rule file', () => {
   const manifest = JSON.parse(fs.readFileSync(new URL('ai-design/module-manifest.json', root)));
-  assert.equal(manifest.version, '1.3.0');
+  assert.equal(manifest.version, '1.4.0');
   assert.equal(manifest.storagePolicy.publishedPackage, 'read-only');
   for (const relative of Object.values(manifest.rules)) assert.ok(fs.existsSync(new URL(`ai-design/${relative}`, root)), relative);
 });
@@ -53,7 +53,7 @@ test('AI settings summary reads the current pageInstances structure', () => {
   const settings = loadScript('ai-design-settings.js', 'ACDLAIDesignSettings');
   const summary = settings.summary({book:{pageInstances:[{role:'cover-front'},{role:'monthly-front'}]},productType:{category:'desk',pageSize:{width:260,height:180,unit:'mm'}},settings:{year:2027,startMonth:3}});
   assert.equal(summary.pageCount, 2);
-  assert.match(summary.versions.promptSet, /@0\.5\.0$/);
+  assert.match(summary.versions.promptSet, /@0\.6\.0$/);
 });
 
 test('new-template completion applies the selected sample only to a separate draft project', () => {

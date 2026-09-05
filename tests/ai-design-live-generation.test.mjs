@@ -16,14 +16,24 @@ test('live image prompt protects editable calendar and school data', () => {
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.5.0.js');
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.5.0');
+  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.6.0.js');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.6.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','school-symbols','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
     assert.match(prompt,/Never rasterize editable content/i);
     assert.match(prompt,new RegExp(`Page role: ${prompts.ROLE_PROMPTS[pageRole].label}`));
   }
+});
+
+test('prompt carries the design rhythm, month-back variation, decoration and material axes',()=>{
+  const designSpec={schemaVersion:'ai-design-spec.v1',version:'0.2.0',styleId:'photo-story',pageTypes:{'month-back':'photo-collage'},expression:{decoration:'medium',photoMode:'photo',seasonal:'high',density:'medium',variationRhythm:'story',monthBackVariation:'alternating',decorationFamily:'postmark',material:'ivory-paper'},protectedContent:['calendar-data']};
+  const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month-back',request:{designSpec}}));
+  assert.match(prompt,/Monthly rhythm: .*month-to-month narrative/);
+  assert.match(prompt,/Month-back variation: mirror .* odd and even months/);
+  assert.match(prompt,/Decoration family: .*postmark-inspired shapes/);
+  assert.match(prompt,/Material: warm ivory paper/);
+  assert.match(prompt,/designer will make the final composition/i);
 });
 
 test('design spec selects role-specific composition guidance without rasterizing editable content',()=>{

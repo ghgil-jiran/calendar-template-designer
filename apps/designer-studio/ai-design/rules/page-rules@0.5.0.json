@@ -1,0 +1,21 @@
+{
+  "id": "calendar-page-rules",
+  "version": "0.5.0",
+  "promptSet": "school-calendar-design@0.6.0",
+  "designSpec": "ai-design-spec.v1@0.2.0",
+  "designSet": {
+    "proposalCount": 2,
+    "keepConsistent": ["visual-language", "editable-content-boundaries", "print-safety"],
+    "variationRhythms": ["uniform", "color", "seasonal", "alternating", "story"],
+    "monthBackVariations": ["fixed", "alternating", "cycle"]
+  },
+  "roles": {
+    "cover": {"editable": ["year", "title", "school-photo", "school-logo", "school-information"]},
+    "annual": {"editable": ["year", "annual-calendar", "holiday-information"]},
+    "school-symbols": {"editable": ["school-logo", "school-name", "motto", "school-song", "school-tree", "school-flower"]},
+    "month": {"editable": ["month", "year", "weekday", "date-grid", "school-event", "mini-calendar", "school-logo", "slogan"]},
+    "month-back": {"editable": ["image-frame", "current-calendar", "adjacent-mini-calendar", "planner", "memo", "date-strip"], "designerFinishesComposition": true},
+    "back-cover": {"editable": ["school-name", "school-logo", "address", "phone", "fax", "website"]}
+  },
+  "forbid": ["rasterized-editable-content", "invented-school-identity", "decoration-over-protected-region"]
+}
