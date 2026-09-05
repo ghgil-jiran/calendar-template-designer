@@ -20,6 +20,7 @@ test('Vercel static output contains editor, design tokens, and both package type
   await build();
   for (const path of [
     'index.html',
+    'designer-studio-core.css',
     'canvas-selection.js',
     'desk-academic-shadow-renderer.js',
     'apps/designer-studio/index.html',
@@ -33,6 +34,8 @@ test('Vercel static output contains editor, design tokens, and both package type
   const config = JSON.parse(await readFile(resolve(root, 'vercel.json'), 'utf8'));
   assert.equal(config.outputDirectory, 'public');
   const html = await readFile(resolve(output, 'index.html'), 'utf8');
+  assert.ok(Buffer.byteLength(html) < 750_000, 'deployed HTML must stay below the static response safety limit');
+  assert.match(html, /designer-studio-core\.css/);
   for (const [, path] of html.matchAll(/(?:src|href)="\.\/([^"?#]+)"/g)) {
     await access(resolve(output, path));
   }
