@@ -5,10 +5,13 @@
   return value;
  }
  async function request(url,options={}){
-  const response=await root.fetch(url,{...options,headers:{'Content-Type':'application/json',Authorization:`Bearer ${token()}`,...options.headers}});
-  const body=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(body?.error?.message||body?.message||'AI 디자인 연결 요청에 실패했습니다.');
-  return body;
+  const controller=new AbortController(),timeout=root.setTimeout(()=>controller.abort(),15000);
+  try{
+   const response=await root.fetch(url,{...options,signal:controller.signal,headers:{'Content-Type':'application/json',Authorization:`Bearer ${token()}`,...options.headers}});
+   const body=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(body?.error?.message||body?.message||'AI 디자인 연결 요청에 실패했습니다.');
+   return body;
+  }catch(error){if(error?.name==='AbortError')throw new Error('연결 확인 시간이 초과됐습니다. Supabase 설정을 확인해 주세요.');throw error}finally{root.clearTimeout(timeout)}
  }
  async function generate(input){
   return request('/api/ai-design-generate',{method:'POST',body:JSON.stringify(input)});

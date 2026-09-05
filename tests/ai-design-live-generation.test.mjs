@@ -19,7 +19,7 @@ test('live generation input rejects unknown styles and long instructions', () =>
 
 test('browser client keeps the API key server-side and sends the admin token', async () => {
   const source=fs.readFileSync(new URL('../apps/designer-studio/ai-design-client.js',import.meta.url),'utf8');let call;
-  const context={window:null,ACDLTemplateRemotePersistence:{accessToken:()=> 'admin-token'},fetch:async(url,options)=>{call={url,options};return {ok:true,json:async()=>({asset:{dataUrl:'data:image/webp;base64,AA=='}})}}};context.window=context;vm.createContext(context);vm.runInContext(source,context);
+  const context={window:null,AbortController,setTimeout,clearTimeout,ACDLTemplateRemotePersistence:{accessToken:()=> 'admin-token'},fetch:async(url,options)=>{call={url,options};return {ok:true,json:async()=>({asset:{dataUrl:'data:image/webp;base64,AA=='}})}}};context.window=context;vm.createContext(context);vm.runInContext(source,context);
   await context.ACDLAIDesignClient.generate({styleKey:'balanced'});
   assert.equal(call.url,'/api/ai-design-generate');
   assert.equal(call.options.headers.Authorization,'Bearer admin-token');
@@ -28,7 +28,7 @@ test('browser client keeps the API key server-side and sends the admin token', a
 
 test('browser client stores a submitted key only through the authenticated config endpoint', async () => {
   const source=fs.readFileSync(new URL('../apps/designer-studio/ai-design-client.js',import.meta.url),'utf8');let call;
-  const context={window:null,ACDLTemplateRemotePersistence:{accessToken:()=> 'admin-token'},fetch:async(url,options)=>{call={url,options};return {ok:true,json:async()=>({configured:true,storage:'supabase-vault'})}}};context.window=context;vm.createContext(context);vm.runInContext(source,context);
+  const context={window:null,AbortController,setTimeout,clearTimeout,ACDLTemplateRemotePersistence:{accessToken:()=> 'admin-token'},fetch:async(url,options)=>{call={url,options};return {ok:true,json:async()=>({configured:true,storage:'supabase-vault'})}}};context.window=context;vm.createContext(context);vm.runInContext(source,context);
   await context.ACDLAIDesignClient.saveApiKey('sk-private-test-value');
   assert.equal(call.url,'/api/ai-design-config');
   assert.equal(call.options.method,'PUT');
@@ -41,4 +41,13 @@ test('generation endpoint reads the OpenAI key from Supabase Vault', () => {
   const source=fs.readFileSync(new URL('../api/ai-design-generate.js',import.meta.url),'utf8');
   assert.match(source,/readOpenAIKey/);
   assert.doesNotMatch(source,/process\.env\.OPENAI_API_KEY/);
+});
+
+test('dynamic Vault save control uses delegated click and a request timeout', () => {
+  const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
+  const client=fs.readFileSync(new URL('../apps/designer-studio/ai-design-client.js',import.meta.url),'utf8');
+  assert.match(html,/closest\?\.\("#saveAIDesignOpenAIKeyBtn"\)/);
+  assert.match(html,/e\.key==="Enter"&&e\.target\?\.id==="aiDesignOpenAIKey"/);
+  assert.match(client,/controller\.abort\(\),15000/);
+  assert.match(client,/연결 확인 시간이 초과됐습니다/);
 });
