@@ -37,6 +37,13 @@ test('design spec selects role-specific composition guidance without rasterizing
   assert.match(prompt,/Never rasterize editable content/);
 });
 
+test('generation response preserves the role-specific design contract for comparison',()=>{
+  const source=fs.readFileSync(new URL('../api/ai-design-generate.js',import.meta.url),'utf8');
+  assert.match(source,/designContext:input\.designSpec/);
+  assert.match(source,/styleId:input\.designSpec\.styleId/);
+  assert.match(source,/pageTypeId:input\.designSpec\.pageTypeId/);
+});
+
 test('live generation input rejects unknown styles and long instructions', () => {
   assert.throws(()=>validateGenerationInput({styleKey:'unknown'}),/지원하지 않는/);
   assert.equal(validateGenerationInput({styleKey:'balanced',pageRole:'month'}).pageRole,'month');
@@ -110,6 +117,12 @@ test('AI generation controls render independently from the Vault connection cont
   assert.match(html,/applyAICoverLayout/);
   assert.match(html,/layoutApplied/);
   assert.match(html,/const AI_DESIGN_ROLE_MAP=\{cover:\["cover-front"\],annual:\["cover-back","poster-annual"\],"school-symbols"/);
+  assert.doesNotMatch(html,/item\.pagePlans\.filter\(plan=>\['cover','month','month-back'\]/);
+  assert.match(html,/item\.pagePlans\.map\(plan=>aiPagePreviewMarkup\(item,plan\)\)/);
+  assert.match(html,/실제 AI 생성 자산 · 6개 역할 완성/);
+  assert.match(html,/designStyleId:designContext\.styleId/);
+  assert.match(html,/pageTypeId:designContext\.pageTypeId/);
+  assert.match(html,/metadata\.promptVersion/);
 });
 
 test('live AI results stay hidden until generation finishes and the user opens them', () => {
