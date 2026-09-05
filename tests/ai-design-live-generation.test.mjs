@@ -51,3 +51,16 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
   assert.match(client,/controller\.abort\(\),15000/);
   assert.match(client,/연결 확인 시간이 초과됐습니다/);
 });
+
+test('AI generation controls render independently from the Vault connection controls', () => {
+  const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
+  assert.match(html,/실제 AI 디자인 생성/);
+  assert.match(html,/생성할 디자인 스타일/);
+  assert.match(html,/단정한 균형형/);
+  assert.match(html,/사계절 연결형/);
+  assert.match(html,/사진 중심 브랜드형/);
+  assert.match(html,/학생 친화 포인트형/);
+  assert.match(html,/closest\?\.\("#generateLiveAIDesignBtn"\)/);
+  assert.match(html,/if\(!el\("aiDesignOpenAIKey"\)\)/);
+  assert.match(html,/if\(!el\("generateLiveAIDesignBtn"\)\)/);
+});
