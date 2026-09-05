@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-await import('../apps/designer-studio/ai-design/design-type-catalog@0.1.0.js');
-await import('../apps/designer-studio/ai-design/design-spec@0.1.0.js');
+await import('../apps/designer-studio/ai-design/design-type-catalog@0.2.0.js');
+await import('../apps/designer-studio/ai-design/design-spec@0.2.0.js');
 await import('../apps/designer-studio/ai-design/design-layout-application@0.1.0.js');
 
 const api=globalThis.ACDLDesignLayoutApplication,specApi=globalThis.ACDLDesignSpec,catalog=globalThis.ACDLDesignTypeCatalog;

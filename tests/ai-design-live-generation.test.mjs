@@ -130,7 +130,7 @@ test('live AI results stay hidden until generation finishes and the user opens t
   assert.match(html,/aiDesignGenerationState="idle"/);
   assert.match(html,/aiDesignResultsRevealed=false/);
   assert.match(html,/aiDesignGenerationState!=="complete"\|\|!aiDesignMockSession\|\|!aiDesignResultsRevealed/);
-  assert.match(html,/sampleActions\.classList\.toggle\("hidden",!\["complete","expanding"\]\.includes\(aiDesignGenerationState\)\)/);
+  assert.match(html,/sampleActions\.classList\.toggle\("hidden",aiDesignGenerationState!=="complete"\)/);
   assert.match(html,/class="ai-live-progress" role="status" aria-live="polite"/);
   assert.match(html,/디자인 페이지 \$\{current\}\/\$\{total\} 생성 중/);
   assert.match(html,/aiDesignGenerationState="complete";renderAIDesignGenerationState\(\{total:count\}\);renderAIDesignMockSession\(\)/);
@@ -144,7 +144,12 @@ test('the selected representative set expands to eleven remaining monthly front 
   assert.match(html,/pending\.length\*2/);
   assert.match(html,/Promise\.all\(\["month","month-back"\]/);
   assert.match(html,/ai-design-monthly-expansion\.v1/);
-  assert.match(html,/나머지 11개월 생성 후 편집 시작/);
+  assert.match(html,/월력 전체 생성/);
+  assert.match(html,/aiMonthlyExpansionState="generating"/);
+  assert.match(html,/function generateAllAIDesignMonths\(\)/);
+  assert.match(html,/function startTemplateEditorAfterGeneration\(\)/);
+  assert.match(html,/newTemplateEnterEditorBtn"\)\.addEventListener\("click",startTemplateEditorAfterGeneration\)/);
+  assert.doesNotMatch(html,/async function startTemplateEditorAfterGeneration\(\)[\s\S]*?await expandSelectedAIDesignMonths\(\)/);
   assert.match(html,/selected\.monthlyAssets\?all/);
   assert.match(html,/monthlyAppliedPages/);
   assert.match(html,/pages=selected\.monthlyAssets\?all/);
