@@ -1,0 +1,27 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import { buildImagePrompt, validateGenerationInput } from '../api/ai-design-generate.js';
+
+test('live image prompt protects editable calendar and school data', () => {
+  const input=validateGenerationInput({styleKey:'seasonal',palette:['#315e9e','#ffffff'],request:{conditions:{schoolLevel:'middle',decorationDensity:'low',photoMode:'mixed',seasonalVariation:'high',instruction:'봄 느낌을 유지'},versions:{promptSet:'school-calendar-prompt@0.1.0'}}});
+  const prompt=buildImagePrompt(input);
+  assert.match(prompt,/no letters, words, numbers, dates, calendar grids/i);
+  assert.match(prompt,/never invent or alter a school photo or logo/i);
+  assert.match(prompt,/#315e9e/);
+});
+
+test('live generation input rejects unknown styles and long instructions', () => {
+  assert.throws(()=>validateGenerationInput({styleKey:'unknown'}),/지원하지 않는/);
+  assert.throws(()=>validateGenerationInput({styleKey:'balanced',request:{conditions:{instruction:'가'.repeat(501)}}}),/500자/);
+});
+
+test('browser client keeps the API key server-side and sends the admin token', async () => {
+  const source=fs.readFileSync(new URL('../apps/designer-studio/ai-design-client.js',import.meta.url),'utf8');let call;
+  const context={window:null,ACDLTemplateRemotePersistence:{accessToken:()=> 'admin-token'},fetch:async(url,options)=>{call={url,options};return {ok:true,json:async()=>({asset:{dataUrl:'data:image/webp;base64,AA=='}})}}};context.window=context;vm.createContext(context);vm.runInContext(source,context);
+  await context.ACDLAIDesignClient.generate({styleKey:'balanced'});
+  assert.equal(call.url,'/api/ai-design-generate');
+  assert.equal(call.options.headers.Authorization,'Bearer admin-token');
+  assert.doesNotMatch(source,/OPENAI_API_KEY/);
+});
