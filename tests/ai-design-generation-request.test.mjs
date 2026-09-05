@@ -27,9 +27,29 @@ test('AI module manifest resolves every independently versioned rule file', () =
   for (const relative of Object.values(manifest.rules)) assert.ok(fs.existsSync(new URL(`ai-design/${relative}`, root)), relative);
 });
 
+test('actual AI sample assets are versioned, text-free review inputs', () => {
+  const manifest = JSON.parse(fs.readFileSync(new URL('ai-design/sample-assets/manifest.json', root)));
+  assert.equal(manifest.version, '0.1.0');
+  assert.equal(manifest.policy.containsEditableCalendarText, false);
+  assert.equal(manifest.assets.length, 4);
+  for (const asset of manifest.assets) {
+    assert.ok(fs.existsSync(new URL(`ai-design/sample-assets/${asset.file}`, root)), asset.file);
+    assert.equal(asset.quality.forbiddenText, 'pass');
+  }
+  assert.equal(manifest.rejected[0].rule, 'preserve-school-photo-and-symbol');
+});
+
 test('AI settings summary reads the current pageInstances structure', () => {
   const settings = loadScript('ai-design-settings.js', 'ACDLAIDesignSettings');
   const summary = settings.summary({book:{pageInstances:[{role:'cover-front'},{role:'monthly-front'}]},productType:{category:'desk',pageSize:{width:260,height:180,unit:'mm'}},settings:{year:2027,startMonth:3}});
   assert.equal(summary.pageCount, 2);
   assert.match(summary.versions.promptSet, /@0\.1\.0$/);
+});
+
+test('new-template completion applies the selected sample only to a separate draft project', () => {
+  const html = fs.readFileSync(new URL('index.html', root), 'utf8');
+  assert.match(html, /function applyAIDesignSampleDraft\(session\)/);
+  assert.match(html, /role:"ai-design-background"/);
+  assert.match(html, /project\.template\.aiDesignDraft\.status="sample-applied"/);
+  assert.match(html, /type:"bundled-ai-sample"/);
 });

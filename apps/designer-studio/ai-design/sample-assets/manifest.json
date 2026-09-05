@@ -1,0 +1,22 @@
+{
+  "id": "ai-design-sample-assets",
+  "version": "0.1.0",
+  "generatedAt": "2026-09-05",
+  "generator": "OpenAI built-in image generation",
+  "policy": {
+    "purpose": "pre-integration sample review",
+    "containsEditableCalendarText": false,
+    "publishedPackageMutation": false,
+    "rgbOriginalPreserved": true,
+    "cmykSoftProof": "pending"
+  },
+  "assets": [
+    {"id": "brand-editorial@0.1.0", "file": "brand-editorial-v0.1.png", "style": "balanced", "size": [1536, 1024], "quality": {"forbiddenText": "pass", "whitespace": "pass", "safeArea": "pass"}},
+    {"id": "seasonal-watercolor@0.1.0", "file": "seasonal-watercolor-v0.1.png", "style": "seasonal", "size": [1536, 1024], "quality": {"forbiddenText": "pass", "whitespace": "pass", "safeArea": "pass"}},
+    {"id": "photo-frame@0.1.0", "file": "photo-frame-v0.1.png", "style": "photo-brand", "size": [1536, 1024], "quality": {"forbiddenText": "pass", "photoPlaceholder": "pass", "safeArea": "pass"}},
+    {"id": "student-collage@0.1.0", "file": "student-collage-v0.1.png", "style": "student-friendly", "size": [1536, 1024], "quality": {"forbiddenText": "pass", "whitespace": "pass", "safeArea": "pass"}}
+  ],
+  "rejected": [
+    {"reason": "generated-school-photo-inside-frame", "rule": "preserve-school-photo-and-symbol"}
+  ]
+}
