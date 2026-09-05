@@ -13,16 +13,23 @@ function loadScript(name, globalName) {
 
 test('AI generation request keeps the source template read-only and separates output groups', () => {
   const api = loadScript('ai-design-generation-request.js', 'ACDLAIDesignGenerationRequest');
-  const request = api.buildRequest({project:{book:{id:'book.demo'},productType:{category:'desk',pageSize:{width:260,height:180,unit:'mm'}},settings:{year:2027,startMonth:3}},conditions:{variantCount:3},reference:{templateId:'template.demo',readOnly:true,aspects:['layout'],pages:[{role:'month',pageId:'month.3'}]}});
+  const request = api.buildRequest({project:{book:{id:'book.demo'},productType:{category:'desk',pageSize:{width:260,height:180,unit:'mm'}},settings:{year:2027,startMonth:3}},conditions:{variantCount:3,monthBackComponents:['image','previous-mini-calendar','planner-weekly','unknown']},reference:{templateId:'template.demo',readOnly:true,aspects:['layout'],pages:[{role:'month',pageId:'month.3'}]}});
   assert.equal(request.referenceTemplate.readOnly, true);
   assert.equal(request.outputContract.applyMode, 'separate-draft');
   assert.deepEqual([...request.outputContract.groups], ['assets','objectStyles','layouts','pageResults','qualityChecks']);
   assert.ok(request.outputContract.forbiddenRasterText.includes('date'));
+  assert.equal(request.source.months.length, 12);
+  assert.equal(request.outputContract.designSet.monthFrontResults, 12);
+  assert.equal(request.outputContract.designSet.monthBackResults, 12);
+  assert.equal(request.outputContract.designSet.uniqueMonthBackIllustration, true);
+  assert.deepEqual([...request.conditions.monthBackComposition.components], ['image','previous-mini-calendar','planner-weekly']);
+  assert.equal(request.conditions.monthBackComposition.ignoreReferenceComposition, true);
+  assert.deepEqual([...request.outputContract.designSet.monthBackComponents], ['image','previous-mini-calendar','planner-weekly']);
 });
 
 test('AI module manifest resolves every independently versioned rule file', () => {
   const manifest = JSON.parse(fs.readFileSync(new URL('ai-design/module-manifest.json', root)));
-  assert.equal(manifest.version, '1.1.0');
+  assert.equal(manifest.version, '1.2.0');
   assert.equal(manifest.storagePolicy.publishedPackage, 'read-only');
   for (const relative of Object.values(manifest.rules)) assert.ok(fs.existsSync(new URL(`ai-design/${relative}`, root)), relative);
 });
@@ -43,7 +50,7 @@ test('AI settings summary reads the current pageInstances structure', () => {
   const settings = loadScript('ai-design-settings.js', 'ACDLAIDesignSettings');
   const summary = settings.summary({book:{pageInstances:[{role:'cover-front'},{role:'monthly-front'}]},productType:{category:'desk',pageSize:{width:260,height:180,unit:'mm'}},settings:{year:2027,startMonth:3}});
   assert.equal(summary.pageCount, 2);
-  assert.match(summary.versions.promptSet, /@0\.2\.1$/);
+  assert.match(summary.versions.promptSet, /@0\.3\.0$/);
 });
 
 test('new-template completion applies the selected sample only to a separate draft project', () => {
@@ -64,4 +71,8 @@ test('new-template completion applies the selected sample only to a separate dra
   assert.match(html, /project\.template\.aiDesignDraft\.neutralBase=prepareNeutralAIDesignBase\(aiDesignMockSession\)/);
   assert.match(html, /project\.template\.aiDesignDraft\.status="sample-applied"/);
   assert.match(html, /selected\.generated\?"live-ai-generation":"bundled-ai-sample"/);
+  assert.match(html, /data-ai-month-back-component="image"/);
+  assert.match(html, /data-ai-month-back-component="current-calendar"/);
+  assert.match(html, /data-ai-month-back-component="month-date-strip"/);
+  assert.match(html, /monthBackComponents=\[\.\.\.document\.querySelectorAll\("\[data-ai-month-back-component\]:checked"\)\]/);
 });
