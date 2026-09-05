@@ -9,6 +9,7 @@ globalThis.localStorage = {
 };
 await import('../apps/designer-studio/wizard-flow.js');
 const wizard = globalThis.ACDLDesignerStudioWizard;
+const studioHtml = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css', import.meta.url), 'utf8');
 
 test('a fresh wizard does not choose a type or template', () => {
   values.clear();
@@ -26,13 +27,13 @@ test('changing type clears a template selected for the previous type', () => {
 });
 
 test('designer entry opens the selection home before setup', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /if\(source==='entry'\)\{el\('designerHome'\)\.classList\.remove\('hidden'\);return;\}/);
   assert.doesNotMatch(html, /if\(source==='entry'\)\{el\('setup'\)\.classList\.remove\('hidden'\);return;\}/);
 });
 
 test('template choices are not rendered preselected', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.doesNotMatch(html, /class="template-choice selected"/);
   assert.doesNotMatch(runtime, /index===0\?'selected'/);
@@ -45,14 +46,14 @@ test('template click persists the choice before refreshing wizard actions', () =
 });
 
 test('returning home clears the previous editor project', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /function showEntry\(\)\{clearNewTemplateBase\(\);beginProjectTransition\(\{clearProject:true\}\)/);
   assert.match(html, /function clearNewTemplateBase\(\)\{window\.ACDLNewTemplateBaseProject=null;window\.ACDLNewTemplateBaseRecord=null;el\("setupType"\)\.disabled=false\}/);
   assert.match(html, /function beginProjectTransition\(\{clearProject=false\}=\{\}\)/);
 });
 
 test('template switching ignores stale async loads', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /const transitionId=beginProjectTransition\(\{clearProject:true\}\)/);
   assert.match(html, /if\(!isCurrentProjectTransition\(transitionId\)\)return;/);
 });
@@ -65,7 +66,7 @@ test('library thumbnails cannot restore an earlier editor state', () => {
 });
 
 test('public landing presents the template studio without a calendar creation entry', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   const landing = html.match(/<div id="entryScreen"[\s\S]*?<div id="designerHome"/)?.[0] || '';
   assert.match(landing, /모든 시간을/);
   assert.match(landing, /원하는 달력 디자인으로/);
@@ -77,7 +78,7 @@ test('public landing presents the template studio without a calendar creation en
 });
 
 test('public landing explains the editor beyond academic calendars', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   const landing = html.match(/<div id="entryScreen"[\s\S]*?<div id="designerHome"/)?.[0] || '';
   assert.match(landing, /모든 형태의 달력/);
   assert.match(landing, /풍부한 디자인 요소/);
@@ -88,7 +89,7 @@ test('public landing explains the editor beyond academic calendars', () => {
 });
 
 test('public landing has a compact JIRANTECH footer with related services', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   const landing = html.match(/<div id="entryScreen"[\s\S]*?<div id="designerHome"/)?.[0] || '';
   assert.match(landing, /class="landing-footer"/);
   assert.match(landing, /href="https:\/\/jirantech\.com\/"/);
@@ -99,14 +100,14 @@ test('public landing has a compact JIRANTECH footer with related services', () =
 });
 
 test('calendar type rules disable unsupported insert controls', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /setRule\('userFrontInsertField','userFrontInserts',d\.frontInsert!==false/);
   assert.match(html, /setRule\('userRearInsertField','userRearInserts',d\.rearInsert!==false/);
   assert.match(html, /if\(!enabled\)input\.value='0'/);
 });
 
 test('template settings persist against the current template id', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /const id=project\.template\?\.id/);
   assert.match(html, /saveTemplateProjectData\(id,window\.ACDLPersistenceProject\.clone\(project\)\)/);
   assert.match(html, /persistAfter\('saveSchoolInfoBtn','학교 정보 및 에셋'\)/);
@@ -114,7 +115,7 @@ test('template settings persist against the current template id', () => {
 });
 
 test('system templates retain their source while editing and save as a custom latest record', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /project\.template\.librarySource=t\.source\|\|project\.template\.librarySource\|\|"local"/);
   assert.match(html, /project\.template\.librarySource="local"/);
   assert.match(html, /source:"local"/);
@@ -122,7 +123,7 @@ test('system templates retain their source while editing and save as a custom la
 });
 
 test('reopened remote templates keep the identity needed to create the next version', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /project\.template\.remoteId=t\.remoteId\|\|t\.id/);
   assert.match(html, /project\.template\.remoteStableKey=t\.stableKey/);
   assert.match(html, /project\.template\.remoteVersionNumber=Number\(t\.version\)/);
@@ -130,12 +131,12 @@ test('reopened remote templates keep the identity needed to create the next vers
 });
 
 test('sample schedule registration uses the same primary action style', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /id="resourceScheduleUploadBtn" class="save"/);
 });
 
 test('system templates expose editable calendar structure defaults', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /id="resourceCalendarYear" type="number" min="2020" max="2100"/);
   assert.match(html, /id="resourceStartMonth"><\/select>/);
   assert.match(html, /id="resourceFrontInserts"><\/select>/);
@@ -145,21 +146,21 @@ test('system templates expose editable calendar structure defaults', () => {
 });
 
 test('insert defaults follow calendar type capability instead of template contents', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /d\.frontInsert!==false/);
   assert.match(html, /d\.rearInsert!==false/);
   assert.match(html, /사용자는 달력을 만들 때 앞·뒤 간지 수, 5×7·6×7 월력/);
 });
 
 test('mini calendar wording applies to both five and six row calendars', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.doesNotMatch(html, /5×7 빈 셀에 (?:전달·다음 달 )?미니 월력/);
   assert.match(html, /빈 날짜 셀에 이전·다음 달 미니 월력 표시/);
   assert.match(html, /월력 그리드의 빈 날짜 셀에 이전 달과 다음 달의 미니 월력을 표시합니다/);
 });
 
 test('monthly-back mini calendars expose independent month-title and weekend styles', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /빈 날짜 셀용 미니 월력과 별개의 독립 디자인 개체/);
   assert.match(html, /id="miniMonthLabelStyle"/);
   assert.match(html, /id="miniTitleSize"/);
@@ -170,14 +171,14 @@ test('monthly-back mini calendars expose independent month-title and weekend sty
 });
 
 test('image-based school asset slots do not render fixed role captions', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /\["image","image-text"\]\.includes\(SEMANTIC_DEFS\[item\.role\]\?\.kind\)\)item\.showCaption=false/);
   assert.match(html, /item\.showCaption===true\?/);
   assert.match(html, /semantic-empty-visual non-output editor-only/);
 });
 
 test('template thumbnails support uploaded artwork and page fallbacks', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(html, /id="resourceThumbnailInput"/);
   assert.match(html, /project\.template\.thumbnail=\{kind:'upload'/);
@@ -197,7 +198,7 @@ test('template thumbnails support uploaded artwork and page fallbacks', () => {
 });
 
 test('template library uses unified controls and calendar product thumbnails', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(html, /grid-template-columns:repeat\(auto-fill,minmax\(268px,300px\)\)/);
   assert.match(html, /\.library-tab,\.library-type-filter,\.library-state-group \[data-library-state\],\.library-edition-group select/);
@@ -216,7 +217,7 @@ test('template library uses unified controls and calendar product thumbnails', (
 });
 
 test('template lifecycle separates status, standard, design editing and settings', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(html, /id="saveTemplateStandard"/);
   assert.match(html, /id="libraryStandardFilter"/);
@@ -237,7 +238,7 @@ test('template lifecycle separates status, standard, design editing and settings
 });
 
 test('insert sidebar separates and collapses utility controls when an object category opens', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /id="insertSidebarUtilities"/);
   assert.match(html, /id="toggleInsertSidebarUtilities"/);
   assert.match(html, /setUtilitiesCollapsed\(true\)/);
@@ -258,7 +259,7 @@ test('remote template cards expose restore history without the unreliable previe
 });
 
 test('new template setup omits file loading and cancel returns to the library', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.doesNotMatch(html, /id="setupLoadBtn"/);
   assert.match(html, /window\.ACDLReturnToLibraryOnSaveCancel=true/);
   assert.match(html, /if\(!window\.ACDLReturnToLibraryOnSaveCancel\)return/);
@@ -266,7 +267,7 @@ test('new template setup omits file loading and cancel returns to the library', 
 });
 
 test('landing uses the requested service title and planner cover', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(html, /우리학교인쇄 CALENDAR EDITOR/);
   assert.doesNotMatch(html, /Universal Calendar Design Lab/);
   assert.doesNotMatch(html, /<div class="landing-process">/);
@@ -311,7 +312,7 @@ test('prototype system bases are archived and hidden from the default active vie
 
 test('new desk planner standard is visible as a separate 2028 draft system base', () => {
   const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.match(catalog, /tpl-2028-desk-planner-standard-01[^\n]+name:"\[학사달력\] 탁상형 검토 01 - 월별 플래너"[^\n]+status:"draft"[^\n]+template:"desk-sample-6"/);
   assert.match(catalog, /features:\["6번 원본 재현","28면 구성","월별 파스텔 색상","월 목표·할 일","5주 계획·메모","사용자 편집 보호"\]/);
   assert.match(catalog, /pageSummary:"총 28면 · 표지 1면 · 간지 2면 · 월력 24면 · 뒷표지 1면"/);
@@ -342,14 +343,14 @@ test('sample 3 image mini-calendar review is a separate draft system base', () =
 });
 
 test('template library entry and save do not reference the removed legacy filter state', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   assert.doesNotMatch(html, /activeLibraryFilter/);
   assert.match(html, /designerHomeLibrary[^\n]+renderTemplateLibrary\('all'\)/);
   assert.match(html, /if\(isStandard\|\|state==="published"\|\|state==="archived"\)/);
 });
 
 test('library project opening waits for package loading and clears stale schedule settings', () => {
-  const html = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+  const html = studioHtml;
   const openStart = html.indexOf('async function openDesignerProjectFromRecord(t)');
   const openEnd = html.indexOf('function closeTemplateLibrary()', openStart);
   const openSource = html.slice(openStart, openEnd);

@@ -28,7 +28,7 @@ assert.equal(visibleSameDate.length, 3);
 assert.deepEqual(visibleSameDate.map(segment => segment.lane).sort(), [1, 2, 3]);
 assert.equal(layout.hiddenByDate['2028-03-05'], 1);
 
-const studio = await readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+const studio = await readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+await readFile(new URL('../apps/designer-studio/designer-studio-core.css', import.meta.url), 'utf8');
 const projectDocument = await readFile(new URL('../apps/designer-studio/project-document.js', import.meta.url), 'utf8');
 assert.match(studio, /buildCalendarScheduleLanes/);
 assert.match(studio, /const displayEvents=window\.ACDLCalendarDomain\.assignCalendarScheduleColors/);

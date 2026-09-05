@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const studio = readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+const studio = readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+readFileSync(new URL('../apps/designer-studio/designer-studio-core.css', import.meta.url), 'utf8');
 
 assert.match(studio, /class="tool-group toolbar-insert-tools" aria-label="개체 삽입"/);
 assert.match(studio, /\.icon-toolbar \.toolbar-insert-tools,\.icon-toolbar \.toolbar-scope\{display:none!important\}/);

@@ -5,7 +5,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 
 const htmlPath = path.resolve('apps/designer-studio/index.html');
-const html = fs.readFileSync(htmlPath, 'utf8');
+const html = fs.readFileSync(htmlPath, 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/designer-studio-core.css'), 'utf8');
 const projectDocument = fs.readFileSync(path.resolve('apps/designer-studio/project-document.js'), 'utf8');
 
 test('new template setup covers the editor chrome and remains scrollable on short screens', () => {
