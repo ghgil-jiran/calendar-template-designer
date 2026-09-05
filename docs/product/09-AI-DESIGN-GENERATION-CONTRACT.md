@@ -54,7 +54,9 @@ API 상시 연결 전에 동일 금지 조건으로 실제 AI 생성 자산 4종
 
 ### 동적 단일 자산 생성
 
-`POST /api/ai-design-generate`는 Master Admin 세션과 `OPENAI_API_KEY`가 모두 있을 때만 실행한다. 브라우저는 생성 요청 계약, 스타일 ID와 템플릿 색상만 전달하며 API 키를 보관하지 않는다. 서버는 금지 텍스트·학교 사진 및 로고 보호·중앙 정보 영역 확보 조건을 다시 조합해 이미지 모델에 전달한다.
+`POST /api/ai-design-generate`는 Master Admin 세션과 Supabase Vault의 `ai_design_openai_api_key`가 모두 있을 때만 실행한다. 브라우저는 생성 요청 계약, 스타일 ID와 템플릿 색상만 전달하며 API 키를 보관하지 않는다. 서버는 금지 텍스트·학교 사진 및 로고 보호·중앙 정보 영역 확보 조건을 다시 조합해 이미지 모델에 전달한다.
+
+키 등록도 ⑨단계의 Master Admin 전용 `PUT /api/ai-design-config`를 통해서만 수행한다. 서버가 Vault 저장 함수를 호출하며, 응답은 연결 여부만 반환하고 키 원문·일부 문자열·지문을 반환하지 않는다. Vault 저장·조회 함수는 `public`, `anon`, `authenticated` 실행 권한을 회수하고 `service_role`에만 허용한다.
 
 첫 검증 범위는 호출당 `1536×1024` 저품질 WebP 배경 1개다. 생성 결과는 기존 스타일 시안을 교체해 비교한 뒤 사용자가 선택해야만 별도 초안에 적용한다. 생성 응답의 금지 텍스트·안전 영역 결과는 자동 합격으로 간주하지 않고 `review-required`로 시작한다.
 

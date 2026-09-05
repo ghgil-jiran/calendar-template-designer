@@ -1,6 +1,13 @@
 # Handoff
 
-## 2026-09-03 최신 인수인계
+## 2026-09-05 최신 인수인계
+
+- 현재 최우선은 `AI 디자인 에디터 v1.1`의 실제 생성 검증이다. 과거 검토 02 완성 항목을 현재 우선 작업으로 사용하지 않는다.
+- `새 템플릿 만들기 → 상품·페이지 구성 → 템플릿 설정 ①~⑨` 중 ⑨ AI 디자인 생성에 실제 단일 배경 생성과 별도 초안 적용이 연결돼 있다.
+- 회사 OpenAI API 키는 ⑨단계에서 Master Admin이 직접 등록하며 Supabase Vault에 암호화 저장한다.
+- 실제 등록 전에 `supabase/migrations/202609050001_ai_design_openai_vault.sql`을 해당 Supabase 프로젝트에 한 번 적용해야 한다.
+
+## 2026-09-03 이전 인수인계
 
 - 템플릿 에디터 안정 기준: `main@2671761`, Vercel Production 배포 성공, 전체 Studio 테스트 189개 통과.
 - 범용 달력 랜딩, Master Admin 이메일·비밀번호 로그인, Supabase `template_admins` 등록까지 완료했다.

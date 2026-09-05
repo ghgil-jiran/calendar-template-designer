@@ -25,3 +25,20 @@ test('browser client keeps the API key server-side and sends the admin token', a
   assert.equal(call.options.headers.Authorization,'Bearer admin-token');
   assert.doesNotMatch(source,/process\.env|sk-[a-z0-9]/i);
 });
+
+test('browser client stores a submitted key only through the authenticated config endpoint', async () => {
+  const source=fs.readFileSync(new URL('../apps/designer-studio/ai-design-client.js',import.meta.url),'utf8');let call;
+  const context={window:null,ACDLTemplateRemotePersistence:{accessToken:()=> 'admin-token'},fetch:async(url,options)=>{call={url,options};return {ok:true,json:async()=>({configured:true,storage:'supabase-vault'})}}};context.window=context;vm.createContext(context);vm.runInContext(source,context);
+  await context.ACDLAIDesignClient.saveApiKey('sk-private-test-value');
+  assert.equal(call.url,'/api/ai-design-config');
+  assert.equal(call.options.method,'PUT');
+  assert.equal(call.options.headers.Authorization,'Bearer admin-token');
+  assert.deepEqual(JSON.parse(call.options.body),{apiKey:'sk-private-test-value'});
+  assert.doesNotMatch(source,/localStorage|sessionStorage|indexedDB/);
+});
+
+test('generation endpoint reads the OpenAI key from Supabase Vault', () => {
+  const source=fs.readFileSync(new URL('../api/ai-design-generate.js',import.meta.url),'utf8');
+  assert.match(source,/readOpenAIKey/);
+  assert.doesNotMatch(source,/process\.env\.OPENAI_API_KEY/);
+});
