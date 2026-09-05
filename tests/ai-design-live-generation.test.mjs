@@ -87,3 +87,14 @@ test('AI generation controls render independently from the Vault connection cont
   assert.match(html,/const generatedRole=selected\.generatedRole\|\|"cover"/);
   assert.match(html,/AI_DESIGN_ROLE_MAP=\{cover:\["cover-front"\],annual:\["cover-back","poster-annual"\]/);
 });
+
+test('live AI results stay hidden until every cover variant finishes', () => {
+  const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
+  assert.match(html,/aiDesignGenerationState="idle"/);
+  assert.match(html,/aiDesignGenerationState!=="complete"\|\|!aiDesignMockSession/);
+  assert.match(html,/sampleActions\.classList\.toggle\("hidden",aiDesignGenerationState!=="complete"\)/);
+  assert.match(html,/class="ai-live-progress" role="status" aria-live="polite"/);
+  assert.match(html,/표지 시안 \$\{current\}\/\$\{total\} 생성 중/);
+  assert.match(html,/aiDesignGenerationState="complete";renderAIDesignGenerationState\(\{total:count\}\);renderAIDesignMockSession\(\)/);
+  assert.match(html,/aiDesignGenerationState="failed"/);
+});
