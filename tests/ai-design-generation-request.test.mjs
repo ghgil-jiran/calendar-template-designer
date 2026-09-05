@@ -72,7 +72,8 @@ test('new-template completion applies the selected sample only to a separate dra
   assert.doesNotMatch(html, /selected\.generatedRole==="cover"\?new Set\(\["cover-front"\]\):new Set\(\["cover-front","cover-back","monthly-front"/);
   assert.match(html, /role:"ai-design-background"/);
   assert.match(html, /project\.template\.aiDesignDraft\.neutralBase=prepareNeutralAIDesignBase\(aiDesignMockSession\)/);
-  assert.match(html, /project\.template\.aiDesignDraft\.status="sample-applied"/);
+  assert.match(html, /project\.template\.aiDesignDraft\.quality=\{\.\.\.qualityReport,regeneration\}/);
+  assert.match(html, /qualityReport\.status==='failed'\?"quality-review-required":"sample-applied"/);
   assert.match(html, /selected\.generated\?"live-ai-generation":"bundled-ai-sample"/);
   assert.match(html, /data-ai-month-back-component="image"/);
   assert.match(html, /data-ai-month-back-component="current-calendar"/);

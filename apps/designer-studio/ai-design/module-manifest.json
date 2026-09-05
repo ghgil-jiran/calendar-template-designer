@@ -14,5 +14,6 @@
   "designLayoutApplication": "design-layout-application@0.1.0.js",
   "designObjectStyles": "design-object-style-presets@0.1.0.js",
   "designSetExpansion": "design-set-expansion@0.1.0.js",
+  "designQuality": "design-quality@0.1.0.js",
   "storagePolicy": {"applyMode": "separate-draft", "publishedPackage": "read-only"}
 }
