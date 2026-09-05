@@ -77,6 +77,26 @@ test('project images become stable asset references and hydrate with signed URLs
   assert.equal(resaved.cover.image, 'acdl-asset://11111111-1111-4111-8111-111111111111');
 });
 
+test('AI design draft, quality report and regenerated backgrounds survive remote save and reopen', async () => {
+  let sequence = 0;
+  const api = runtime({ fetch: async path => {
+    if (path === '/api/template-assets') return { ok: true, status: 201, json: async () => ({ asset: { id: `11111111-1111-4111-8111-${String(++sequence).padStart(12, '0')}` } }) };
+    if (path.startsWith('/api/template-assets?ids=')) {
+      const ids = decodeURIComponent(path.split('ids=')[1]).split(',');
+      return { ok: true, status: 200, json: async () => ({ assets: ids.map(id => ({ id, url: `https://signed.example/${id}.webp` })) }) };
+    }
+    throw new Error(`unexpected ${path}`);
+  }});
+  const project = { template: { aiDesignDraft: { status: 'sample-applied', quality: { schemaVersion: 'ai-design-quality.v1@0.1.0', pageCount: 28, regeneration: { completed: 1 } }, selectedVariant: { assetsByRole: { cover: 'data:image/webp;base64,Y292ZXI=' } } }, resources: { aiDesignAssets: [{ id: 'cover', src: 'data:image/webp;base64,Y292ZXI=' }] } }, book: { pageInstances: Array.from({ length: 28 }, (_, index) => ({ id: `page-${index + 1}` })), elementsByPage: { 'page-1': [{ role: 'ai-design-background', src: 'data:image/webp;base64,Y292ZXI=' }] } } };
+  const prepared = await api.prepareProjectData(project);
+  assert.match(prepared.book.elementsByPage['page-1'][0].src, /^acdl-asset:\/\//);
+  assert.equal(prepared.template.aiDesignDraft.quality.pageCount, 28);
+  const reopened = await api.hydrateProjectData(prepared);
+  assert.match(reopened.book.elementsByPage['page-1'][0].src, /^https:\/\/signed\.example\//);
+  assert.equal(reopened.template.aiDesignDraft.status, 'sample-applied');
+  assert.equal(reopened.template.aiDesignDraft.quality.regeneration.completed, 1);
+});
+
 test('a historical version hydrates private asset references for preview', async () => {
   const api = runtime({ fetch: async path => {
     assert.match(path, /^\/api\/template-assets\?ids=/);

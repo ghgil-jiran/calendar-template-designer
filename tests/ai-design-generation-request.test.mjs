@@ -74,6 +74,10 @@ test('new-template completion applies the selected sample only to a separate dra
   assert.match(html, /project\.template\.aiDesignDraft\.neutralBase=prepareNeutralAIDesignBase\(aiDesignMockSession\)/);
   assert.match(html, /project\.template\.aiDesignDraft\.quality=\{\.\.\.qualityReport,regeneration\}/);
   assert.match(html, /qualityReport\.status==='failed'\?"quality-review-required":"sample-applied"/);
+  assert.match(html, /project\.template\.aiDesignDraft\.session=structuredClone\(aiDesignMockSession\)/);
+  assert.match(html, /project\.template\.aiDesignDraft\.selectedVariant=structuredClone\(selected\)/);
+  assert.match(html, /resources\?\.aiDesignAssets/);
+  assert.match(html, /resource\.src=result\.asset\.dataUrl/);
   assert.match(html, /selected\.generated\?"live-ai-generation":"bundled-ai-sample"/);
   assert.match(html, /data-ai-month-back-component="image"/);
   assert.match(html, /data-ai-month-back-component="current-calendar"/);
