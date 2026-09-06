@@ -37,6 +37,12 @@ test('remote library keeps standard separate from publishing state', async () =>
   assert.equal(record.isStandard, true);
 });
 
+test('remote load returns a hydrated editor copy and keeps canonical asset markers for local recovery',async()=>{
+ const marker='acdl-asset://11111111-1111-4111-8111-111111111111',api=runtime({fetch:async path=>path.startsWith('/api/template-assets?')?{ok:true,status:200,json:async()=>({assets:[{id:marker.slice('acdl-asset://'.length),url:'https://signed.example/current.webp'}]})}:{ok:true,status:200,json:async()=>({version:{projectData:{template:{resources:{aiDesignAssets:[{id:'bg',src:marker}]}},book:{elementsByPage:{page:[{id:'background',role:'ai-design-background',assetId:'bg'}]}}}}})}}),result=await api.load('template-1');
+ assert.equal(result.version.projectData.template.resources.aiDesignAssets[0].src,'https://signed.example/current.webp');
+ assert.equal(result.version.storedProjectData.template.resources.aiDesignAssets[0].src,marker);
+});
+
 test('remote save sends project data through the protected Vercel API', async () => {
   let request;
   const api = runtime({ fetch: async (path, options) => {

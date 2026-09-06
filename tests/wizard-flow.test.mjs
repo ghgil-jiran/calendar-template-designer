@@ -69,7 +69,9 @@ test('library thumbnails cannot restore an earlier editor state', () => {
 test('library edit and clone entry report loading stages without querying IndexedDB with an empty id', () => {
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(studioHtml, /if\(id===undefined\|\|id===null\|\|id==='\'\)return null/);
-  assert.match(studioHtml, /if\(t\.projectData\)[\s\S]{0,350}else if\(t\.id\)/);
+  assert.match(studioHtml, /if\(t\.projectData\)[\s\S]+ACDLTemplateProjectLoader\.prepare[\s\S]+else if\(t\.id\)/);
+  assert.match(studioHtml, /beginProjectTransition\(\{clearProject:false\}\)/);
+  assert.match(studioHtml, /result\.version\.storedProjectData\|\|data/);
   assert.match(runtime, /id='templateOpenProgress'/);
   assert.match(runtime, /브라우저 저장본 확인/);
   assert.match(runtime, /원격 템플릿 다운로드/);

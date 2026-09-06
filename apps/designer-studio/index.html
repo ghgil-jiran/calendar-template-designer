@@ -3,7 +3,7 @@
 <script src="./ai-design/design-type-catalog@0.2.0.js"></script><script src="./ai-design/design-spec@0.2.0.js"></script><script src="./ai-design/design-layout-application@0.1.0.js"></script><script src="./ai-design/design-object-style-presets@0.2.0.js"></script><script src="./ai-design/design-set-expansion@0.1.0.js"></script><script src="./ai-design/design-quality@0.1.0.js"></script><script src="./ai-design-settings.js"></script><script src="./ai-design-generation-request.js"></script><script src="./ai-design-client.js"></script>
 <title>Calendar Template Designer v2.0 Alpha</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><link rel="stylesheet" href="./desk-academic-shadow-renderer.css"><link rel="stylesheet" href="./schedule-api-client.css"><script src="./calendar-domain-bridge.js"></script><script src="./project-document.js"></script><script src="./canvas-geometry.js"></script><script src="./canvas-selection.js"></script><script src="./canvas-gesture.js"></script><script src="./canvas-input.js"></script><script src="./editor-canvas-fit.js"></script><script src="./inspector-form.js"></script><script src="./inspector-graphic.js"></script><script src="./inspector-element.js"></script><script src="./preview-state.js"></script><script src="./persistence-history.js"></script><script src="./persistence-project.js"></script><script src="./persistence-indexeddb.js"></script><script src="./dataset-domain-bridge.js"></script><script src="./user-service-dataset-bridge.js"></script><script src="./user-service-asset-resolver.js"></script><script src="./desk-academic-page-adapter.js"></script><script src="./integration-parity-bridge.js"></script><script src="./runtime-project-adapter.js"></script><script src="./template-package-loader.js"></script><script src="./desk-academic-package-runtime.js"></script><script src="./desk-academic-shadow-renderer.js"></script><script src="./desk-academic-visual-parity.js"></script><script src="./desk-academic-print-parity.js"></script><script src="./user-service-shadow-session.js"></script><script src="./user-service-shadow-diagnostics.js"></script><script src="./template-catalog.js"></script>
 <script src="./calendar-preset-catalog.js"></script><script src="./package-project-adapter.js"></script>
-<script src="./wizard-flow.js"></script><script src="./admin-auth.js"></script><script src="./template-remote-persistence.js"></script>
+<script src="./wizard-flow.js"></script><script src="./admin-auth.js"></script><script src="./template-remote-persistence.js"></script><script src="./template-project-loader.js"></script>
 <link rel="stylesheet" href="./designer-studio-core.css"></head><body>
 <style id="admin-landing-styles">
 .entry-shell.admin-landing{display:block;overflow:auto;padding:0;background:radial-gradient(circle at 78% 18%,rgba(59,130,246,.13),transparent 30%),linear-gradient(145deg,#f8fafc 0,#eef4ff 55%,#f8fafc 100%)}
@@ -2100,8 +2100,10 @@ async function loadTemplateProjectData(id,{onProgress}={}){
  if(id===undefined||id===null||id==='')return null;
  onProgress?.({phase:'local',completed:0,total:1});
  const local=(await templateProjectDatabase.get(ACDL_STORE,id))?.data,remote=window.ACDLTemplateRemotePersistence,isRemoteId=/^[0-9a-f-]{36}$/i.test(String(id));onProgress?.({phase:'local',completed:1,total:1});
- if(!remote?.isRemote?.()||!isRemoteId){const localCopy=local?structuredClone(local):null;return window.ACDLProjectDocument?.migrateProject?.(localCopy)?.project||localCopy}
- try{const result=await remote.load(id,{onProgress}),data=result?.version?.projectData;if(!data)throw new Error("원격 템플릿에 저장된 문서가 없습니다.");onProgress?.({phase:'validate',completed:0,total:1});remote.assertAIDesignIntegrity?.(data);await saveTemplateProjectData(id,data);onProgress?.({phase:'validate',completed:1,total:1});return window.ACDLProjectDocument?.migrateProject?.(structuredClone(data))?.project||data}catch(error){console.warn("원격 템플릿 불러오기 실패",error);const localCopy=local?structuredClone(local):null;if(localCopy){try{onProgress?.({phase:'recovery',completed:0,total:1});const hydrated=await remote.hydrateProjectData(localCopy,{onProgress});remote.assertAIDesignIntegrity?.(hydrated);onProgress?.({phase:'recovery',completed:1,total:1});showEditorToast?.("원격 저장본을 불러오지 못해 이 브라우저의 최근 복구본을 열었습니다.");return window.ACDLProjectDocument?.migrateProject?.(hydrated)?.project||hydrated}catch(localError){console.warn("로컬 템플릿 복구본도 불완전합니다.",localError)}}throw error}
+ const loader=window.ACDLTemplateProjectLoader;
+ const prepare=data=>loader.prepare(data,{hydrate:remote?.isRemote?.()?remote.hydrateProjectData:null,migrate:window.ACDLProjectDocument?.migrateProject,assertIntegrity:remote?.assertAIDesignIntegrity,onProgress});
+ if(!remote?.isRemote?.()||!isRemoteId)return local?prepare(local):null;
+ try{const result=await remote.load(id,{onProgress}),data=result?.version?.projectData;if(!data)throw new Error("원격 템플릿에 저장된 문서가 없습니다.");onProgress?.({phase:'validate',completed:0,total:1});const prepared=await loader.prepare(data,{migrate:window.ACDLProjectDocument?.migrateProject,assertIntegrity:remote.assertAIDesignIntegrity,onProgress});await saveTemplateProjectData(id,result.version.storedProjectData||data);onProgress?.({phase:'validate',completed:1,total:1});return prepared}catch(error){console.warn("원격 템플릿 불러오기 실패",error);if(local){try{onProgress?.({phase:'recovery',completed:0,total:1});const recovered=await prepare(local);onProgress?.({phase:'recovery',completed:1,total:1});showEditorToast?.("원격 저장본을 불러오지 못해 이 브라우저의 최근 복구본을 열었습니다.");return recovered}catch(localError){console.warn("로컬 템플릿 복구본도 불완전합니다.",localError)}}throw error}
 }
 async function refreshRemoteTemplateLibrary(){
  const remote=window.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return false;
@@ -2166,14 +2168,14 @@ Object.defineProperty(window,'userWizardStep',{get:()=>userWizardStep,set:value=
 async function openDesignerProjectFromRecord(t){
  if(!t)return;
  const openProgress=window.ACDLTemplateOpenProgress;openProgress?.start?.('edit',t.name);
- const transitionId=beginProjectTransition({clearProject:true});
+ const transitionId=beginProjectTransition({clearProject:false});
  appMode="designer";
  document.body.classList.remove("user-mode");
  el("entryScreen").classList.add("hidden");
  el("setup").classList.add("hidden");
  el("userSetup").classList.add("hidden");
  let nextProject=null;
- try{if(t.projectData){openProgress?.update?.({phase:'document',completed:0,total:1});nextProject=typeof t.projectData==="string"?JSON.parse(t.projectData):structuredClone(t.projectData);openProgress?.update?.({phase:'document',completed:1,total:1})}else if(t.id){const stored=await loadTemplateProjectData(t.id,{onProgress:detail=>openProgress?.update?.(detail)});if(stored)nextProject=structuredClone(stored)}else throw new Error('불러올 템플릿 식별자와 문서가 없습니다.')}catch(error){openProgress?.fail?.(error);throw error}
+ try{if(t.projectData){const data=typeof t.projectData==="string"?JSON.parse(t.projectData):t.projectData,remote=window.ACDLTemplateRemotePersistence;nextProject=await window.ACDLTemplateProjectLoader.prepare(data,{hydrate:remote?.isRemote?.()?remote.hydrateProjectData:null,migrate:window.ACDLProjectDocument?.migrateProject,assertIntegrity:remote?.assertAIDesignIntegrity,onProgress:detail=>openProgress?.update?.(detail)})}else if(t.id){const stored=await loadTemplateProjectData(t.id,{onProgress:detail=>openProgress?.update?.(detail)});if(stored)nextProject=structuredClone(stored)}else throw new Error('불러올 템플릿 식별자와 문서가 없습니다.')}catch(error){openProgress?.fail?.(error);throw error}
  if(!isCurrentProjectTransition(transitionId))return;
  project=nextProject;
  if(!project){
