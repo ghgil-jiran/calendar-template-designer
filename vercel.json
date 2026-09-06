@@ -2,6 +2,16 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "node \"$(git rev-parse --show-toplevel)/scripts/build-vercel-static.mjs\"",
   "outputDirectory": "public",
+  "headers": [
+    {
+      "source": "/apps/designer-studio/(.*)\\.js",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    },
+    {
+      "source": "/",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+    }
+  ],
   "rewrites": [
     {
       "source": "/",

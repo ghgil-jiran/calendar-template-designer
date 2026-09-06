@@ -390,8 +390,13 @@ test('local studio server handles the browser favicon request without a 404', ()
 
 test('local and deployed entry points include the shared project asset resolver',()=>{
  const server=fs.readFileSync(new URL('../tools/serve-designer-studio.mjs',import.meta.url),'utf8');
- assert.match(studioHtml,/src="\.\/project-asset-resolver\.js"/);
+ assert.match(studioHtml,/src="\.\/project-asset-resolver\.js\?v=20260906\.3"/);
  assert.match(server,/\['\/project-asset-resolver\.js', 'apps\/designer-studio\/project-asset-resolver\.js'\]/);
+});
+
+test('critical template recovery modules use a deployment cache version',()=>{
+ assert.match(studioHtml,/template-remote-persistence\.js\?v=20260906\.3/);
+ assert.match(studioHtml,/template-project-loader\.js\?v=20260906\.3/);
 });
 
 test('cloning a saved template preserves its pages instead of rebuilding the basic layout', () => {
