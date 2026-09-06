@@ -17,13 +17,21 @@
   if(type==='desk'&&project?.template?.aiDesignDraft)return 28;
   return null
  }
- async function prepare(projectData,{hydrate,migrate,assertIntegrity,onProgress}={}){
+ async function prepare(projectData,{hydrate,migrate,assertIntegrity,onProgress,allowAssetFallback=false}={}){
   if(!projectData)throw invalid('불러올 템플릿 문서가 없습니다.');
   onProgress?.({phase:'document',completed:0,total:1});
   let project=structuredClone(projectData);
-  if(typeof hydrate==='function')project=await hydrate(project,{onProgress});
   if(typeof migrate==='function')project=migrate(project)?.project||project;
-  if(typeof assertIntegrity==='function')assertIntegrity(project);
+  const assetResolver=(typeof window!=='undefined'?window:globalThis).ACDLProjectAssetResolver;assetResolver?.normalize?.(project);
+  validate(project,{expectedPageCount:expectedPageCount(project)});
+  if(typeof hydrate==='function'){
+   try{project=await hydrate(project,{onProgress})}
+   catch(error){if(!allowAssetFallback)throw error;project.template||={};project.template.assetRecovery={status:'pending',code:error?.code||'ASSET_RECOVERY_FAILED',message:error?.message||String(error)}}
+  }
+  if(typeof assertIntegrity==='function'){
+   try{assertIntegrity(project)}
+   catch(error){if(!allowAssetFallback)throw error;project.template||={};project.template.assetRecovery={status:'pending',code:error?.code||'AI_DESIGN_INCOMPLETE',message:error?.message||String(error)}}
+  }
   validate(project,{expectedPageCount:expectedPageCount(project)});
   onProgress?.({phase:'document',completed:1,total:1});
   return project

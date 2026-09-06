@@ -1,5 +1,5 @@
 export type Unit = "mm" | "pt" | "px";
-export type ObjectKind = "text" | "image" | "image-frame" | "shape" | "calendar" | "calendar-grid" | "event-list" | "memo" | "group";
+export type ObjectKind = "text" | "image" | "image-frame" | "shape" | "calendar" | "calendar-grid" | "mini-calendar" | "mini-calendar-prev" | "mini-calendar-next" | "month-date-strip" | "event-list" | "memo" | "semantic-object" | "group";
 export interface Size { width:number; height:number; unit:Unit; }
 export interface Rect { x:number; y:number; width:number; height:number; }
 export interface TemplateObject { id:string; type:ObjectKind|string; frame:Rect; binding?:string; value?:unknown; style?:Record<string,unknown>; children?:TemplateObject[]; visible?:boolean; zIndex?:number; rotation?:number; opacity?:number; }

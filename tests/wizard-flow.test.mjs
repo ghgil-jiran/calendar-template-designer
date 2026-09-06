@@ -60,10 +60,9 @@ test('template switching ignores stale async loads', () => {
 
 test('library thumbnails cannot restore an earlier editor state', () => {
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
-  assert.match(runtime, /let thumbnailQueue=Promise\.resolve\(\)/);
-  assert.match(runtime, /el\('templateLibraryModal'\)\?\.classList\.contains\('hidden'\)/);
-  assert.match(runtime, /if\(!host\.isConnected\|\|el\('templateLibraryModal'\)\?\.classList\.contains\('hidden'\)\|\|\(navigation&&!navigation\.isCurrent\(transitionId\)\)\)return;/);
-  assert.match(runtime, /original&&\(!navigation\|\|navigation\.isCurrent\(transitionId\)\)/);
+  assert.match(runtime, /function hydrateThumbnails\(list\)/);
+  assert.match(runtime, /host\.dataset\.rendered='fallback'/);
+  assert.doesNotMatch(runtime, /function hydrateThumbnails\(list\).*renderActualThumbnail\(record,host\)/);
 });
 
 test('library edit and clone entry report loading stages without querying IndexedDB with an empty id', () => {
@@ -71,7 +70,8 @@ test('library edit and clone entry report loading stages without querying Indexe
   assert.match(studioHtml, /if\(id===undefined\|\|id===null\|\|id==='\'\)return null/);
   assert.match(studioHtml, /if\(t\.projectData\)[\s\S]+ACDLTemplateProjectLoader\.prepare[\s\S]+else if\(t\.id\)/);
   assert.match(studioHtml, /beginProjectTransition\(\{clearProject:false\}\)/);
-  assert.match(studioHtml, /result\.version\.storedProjectData\|\|data/);
+  assert.match(studioHtml, /result\?\.version\?\.storedProjectData\|\|result\?\.version\?\.projectData/);
+  assert.match(studioHtml, /allowAssetFallback:true/);
   assert.match(runtime, /id='templateOpenProgress'/);
   assert.match(runtime, /브라우저 저장본 확인/);
   assert.match(runtime, /원격 템플릿 다운로드/);
@@ -386,6 +386,12 @@ test('local studio server handles the browser favicon request without a 404', ()
   const server = fs.readFileSync(new URL('../tools/serve-designer-studio.mjs', import.meta.url), 'utf8');
   assert.match(server, /url\.pathname === '\/favicon\.ico'/);
   assert.match(server, /res\.writeHead\(204/);
+});
+
+test('local and deployed entry points include the shared project asset resolver',()=>{
+ const server=fs.readFileSync(new URL('../tools/serve-designer-studio.mjs',import.meta.url),'utf8');
+ assert.match(studioHtml,/src="\.\/project-asset-resolver\.js"/);
+ assert.match(server,/\['\/project-asset-resolver\.js', 'apps\/designer-studio\/project-asset-resolver\.js'\]/);
 });
 
 test('cloning a saved template preserves its pages instead of rebuilding the basic layout', () => {

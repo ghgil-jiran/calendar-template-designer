@@ -185,7 +185,7 @@
   finally{if(original&&(!navigation||navigation.isCurrent(transitionId))){project=original.project;selectedPageId=original.selectedPageId;selectedElementId=original.selectedElementId;selectedElementScope=original.selectedElementScope;calendarEditing=original.calendarEditing;history=original.history;future=original.future;if(project)render()}}
  }
  function renderActualThumbnail(record,host){const key=`${record.id}:${record.version}:${record.updatedAt}`,cached=thumbnailMarkupCache.get(key);if(cached&&host){host.innerHTML=cached;host.dataset.rendered='true';return Promise.resolve()}thumbnailQueue=thumbnailQueue.then(()=>renderActualThumbnailNow(record,host)).catch(error=>console.warn('Template thumbnail queue failed',record.id,error));return thumbnailQueue}
- function hydrateThumbnails(list){list.forEach(record=>{const host=document.querySelector(`[data-library-thumbnail="${CSS.escape(record.id)}"]`);renderActualThumbnail(record,host)})}
+ function hydrateThumbnails(list){list.forEach(record=>{const host=document.querySelector(`[data-library-thumbnail="${CSS.escape(record.id)}"]`);if(!host)return;const uploaded=record.thumbnail?.kind==='upload'?record.thumbnail:null;if(uploaded?.dataUrl){host.innerHTML=`<img class="library-uploaded-thumbnail" src="${uploaded.dataUrl}" alt="${escape(record.name)} 대표 이미지">`;host.dataset.rendered='true'}else{host.querySelector('.thumbnail-placeholder')?.remove();host.dataset.rendered='fallback'}})}
  function editionOptions(){
   return [...new Set(records().map(record=>Number(record.edition)))].filter(Number).sort((a,b)=>b-a);
  }

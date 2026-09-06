@@ -6,8 +6,8 @@ export class LayoutEngine {
   const diagnostics:RuntimeDiagnostic[]=[];const frame=this.normalizeFrame(object.frame);const next={...object,frame,style:{...object.style}};
   if(frame.x+frame.width>pageSize.width||frame.y+frame.height>pageSize.height||frame.x<0||frame.y<0)diagnostics.push({severity:"warning",code:"OBJECT_OUT_OF_BOUNDS",message:"개체가 페이지 영역을 벗어납니다.",pageId,objectId:object.id});
   if(next.type==="text"&&typeof next.payload==="string")this.fitText(next,diagnostics,pageId);
-  if(next.type==="image")this.normalizeImage(next);
-  if(next.type==="calendar")this.normalizeCalendar(next);
+  if(next.type==="image"||next.type==="image-frame")this.normalizeImage(next);
+  if(["calendar","calendar-grid","mini-calendar","mini-calendar-prev","mini-calendar-next"].includes(next.type))this.normalizeCalendar(next);
   return {object:next,diagnostics};
  }
  private normalizeFrame(f:Rect):Rect{return{x:Number.isFinite(f.x)?f.x:0,y:Number.isFinite(f.y)?f.y:0,width:Math.max(0,Number.isFinite(f.width)?f.width:0),height:Math.max(0,Number.isFinite(f.height)?f.height:0)}}

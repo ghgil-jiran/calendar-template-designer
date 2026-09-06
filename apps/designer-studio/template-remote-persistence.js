@@ -13,12 +13,12 @@
  function visit(value,callback){if(typeof value==='string'){callback(value);return}if(Array.isArray(value)){value.forEach(item=>visit(item,callback));return}if(value&&typeof value==='object')Object.values(value).forEach(item=>visit(item,callback))}
  function replace(value,replacements){if(typeof value==='string')return replacements.get(value)||value;if(Array.isArray(value))return value.map(item=>replace(item,replacements));if(value&&typeof value==='object'){for(const key of Object.keys(value))value[key]=replace(value[key],replacements);return value}return value}
  function materializeAIDesignBackgrounds(projectData){
-  const resources=projectData?.template?.resources?.aiDesignAssets||[],byId=new Map(resources.map(item=>[item.id,item.src]));
+  root.ACDLProjectAssetResolver?.normalize?.(projectData);const store=projectData?.template?.resources||{},resources=[...(store.assets||[]),...(store.aiDesignAssets||[])],byId=new Map(resources.map(item=>[item.id,item.src]));
   Object.values(projectData?.book?.elementsByPage||{}).flat().filter(item=>item?.role==='ai-design-background').forEach(item=>{const resourceId=item.assetId||item.aiDesign?.resourceId;if(!item.src&&resourceId&&byId.get(resourceId))item.src=byId.get(resourceId)});
   return projectData
  }
  function aiDesignIntegrity(projectData){
-  const resources=projectData?.template?.resources?.aiDesignAssets||[],backgrounds=Object.values(projectData?.book?.elementsByPage||{}).flat().filter(item=>item?.role==='ai-design-background'),byId=new Map(resources.map(item=>[item.id,item]));
+  root.ACDLProjectAssetResolver?.normalize?.(projectData);const store=projectData?.template?.resources||{},resources=[...(store.assets||[]),...(store.aiDesignAssets||[])],backgrounds=Object.values(projectData?.book?.elementsByPage||{}).flat().filter(item=>item?.role==='ai-design-background'),byId=new Map(resources.map(item=>[item.id,item]));
   const unresolved=backgrounds.filter(item=>{const resourceId=item.assetId||item.aiDesign?.resourceId;return !item.src&&!(resourceId&&byId.get(resourceId)?.src)});
   const draftStatus=String(projectData?.template?.aiDesignDraft?.status||''),expectsBackgrounds=Boolean(resources.length||draftStatus.includes('applied')||draftStatus.includes('complete'));
   return {expectsBackgrounds,resourceCount:resources.length,backgroundCount:backgrounds.length,resolvedBackgroundCount:backgrounds.length-unresolved.length,unresolvedBackgroundIds:unresolved.map(item=>item.id||'(unknown)')}
@@ -41,7 +41,7 @@
   const hydrated=materializeAIDesignBackgrounds(replace(copy,replacements));onProgress?.({phase:'asset-resolve',completed:ids.size,total:ids.size});return assertAIDesignIntegrity(hydrated);
  }
  async function list(){const body=await request('/api/templates');return (body.templates||[]).map(record)}
- async function load(id,{onProgress}={}){onProgress?.({phase:'remote',completed:0,total:1});const result=await request(`/api/templates?id=${encodeURIComponent(id)}`);onProgress?.({phase:'remote',completed:1,total:1});if(result?.version?.projectData){const storedProjectData=structuredClone(result.version.projectData);result.version.projectData=await hydrateProjectData(storedProjectData,{onProgress});result.version.storedProjectData=storedProjectData}return result}
+ async function load(id,{onProgress,deferAssets=false}={}){onProgress?.({phase:'remote',completed:0,total:1});const result=await request(`/api/templates?id=${encodeURIComponent(id)}`);onProgress?.({phase:'remote',completed:1,total:1});if(result?.version?.projectData){const storedProjectData=structuredClone(result.version.projectData);result.version.storedProjectData=storedProjectData;if(!deferAssets)result.version.projectData=await hydrateProjectData(storedProjectData,{onProgress})}return result}
  async function save(input,options={}){const projectData=await prepareProjectData(input.projectData,options);options.onProgress?.({phase:'version',completed:1,total:1});const result=await request('/api/templates',{method:'POST',body:JSON.stringify({...input,projectData})});options.onProgress?.({phase:'complete',completed:1,total:1});return result}
  async function saveDraft(input){const projectData=await prepareProjectData(input.projectData);return request('/api/template-drafts',{method:'PUT',body:JSON.stringify({...input,projectData})})}
  async function versions(templateId){return request(`/api/template-versions?templateId=${encodeURIComponent(templateId)}`)}

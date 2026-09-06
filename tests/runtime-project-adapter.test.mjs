@@ -4,7 +4,8 @@ import test from 'node:test';
 import vm from 'node:vm';
 
 const source=fs.readFileSync(new URL('../apps/designer-studio/runtime-project-adapter.js',import.meta.url),'utf8');
-const context={};vm.createContext(context);vm.runInContext(source,context);
+const assetSource=fs.readFileSync(new URL('../apps/designer-studio/project-asset-resolver.js',import.meta.url),'utf8');
+const context={};vm.createContext(context);vm.runInContext(assetSource,context);vm.runInContext(source,context);
 
 test('runtime project adapter accepts a supplied Dataset without changing the project',()=>{
  const dataset={school:{name:'샘플 학교'},calendar:{year:2027},monthlyQuotes:{'2027-03':{text:'봄'}}};
@@ -24,6 +25,39 @@ test('runtime project adapter keeps academic composition separate from Dataset s
  const adapted=adapter.adaptDeskAcademic(project,dataset);
  assert.equal(adapted.dataset,dataset);
  assert.equal(adapted.composition.complete,true);
+});
+
+test('runtime project adapter resolves an AI background through the shared project asset registry',()=>{
+ const dataset={calendar:{},monthlyQuotes:{},assets:[]};
+ const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{buildRuntimeDataset:()=>dataset,resolvePageBinding:path=>path},parity:{buildDeskAcademicSurfacePlan:()=>[]},pageAdapter:{compose:()=>({pages:[],complete:true})}});
+ const project={productType:{category:'desk',pageSize:{width:260,height:180}},settings:{year:2027},template:{id:'desk',masterElements:{},resources:{aiDesignAssets:[{id:'ai-cover',kind:'image',src:'https://assets.example/cover.webp'}]}},book:{pageInstances:[{id:'cover',role:'cover-front'}],elementsByPage:{cover:[{id:'bg',type:'image',role:'ai-design-background',assetId:'ai-cover',x:0,y:0,width:100,height:100}]}}};
+ context.ACDLProjectAssetResolver.normalize(project);
+ const adapted=adapter.adapt(project,undefined,dataset),background=adapted.template.pages[0].objects[0];
+ assert.equal(background.value.assetId,'ai-cover');
+ assert.equal(background.value.src,'https://assets.example/cover.webp');
+ assert.equal(background.value.assetRef.ref,'template');
+ assert.equal(background.value.assetRef.id,'ai-cover');
+});
+
+test('runtime project adapter normalizes design-type aliases and supplies page-aware widget values',()=>{
+ const dataset={calendar:{},monthlyQuotes:{}};
+ const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{buildRuntimeDataset:()=>dataset,resolvePageBinding:path=>path},parity:{buildDeskAcademicSurfacePlan:()=>[]},pageAdapter:{compose:()=>({pages:[],complete:true})}});
+ const elements=[
+  {id:'frame',type:'frame',x:0,y:0,width:20,height:20,src:'/sample.jpg'},
+  {id:'current',type:'mini-calendar',x:0,y:20,width:20,height:20},
+  {id:'previous',type:'mini-calendar-prev',x:20,y:20,width:20,height:20},
+  {id:'next',type:'mini-calendar-next',x:40,y:20,width:20,height:20},
+  {id:'strip',type:'month-date-strip',x:0,y:40,width:80,height:10},
+  {id:'memo',type:'memo',memoLayout:'checklist',title:'TO DO',itemCount:7,x:0,y:50,width:30,height:30}
+ ];
+ const project={productType:{category:'desk',pageSize:{width:260,height:180}},settings:{year:2027},template:{id:'desk',masterElements:{},masters:{}},book:{pageInstances:[{id:'march',role:'monthly-back',calendarYear:2027,calendarMonth:3}],elementsByPage:{march:elements}}};
+ const objects=adapter.adapt(project).template.pages[0].objects,index=id=>objects.find(item=>item.id===id);
+ assert.equal(index('frame').type,'image-frame');
+ assert.deepEqual(JSON.parse(JSON.stringify(index('current').value)),{year:2027,month:3,showWeekday:true,showDate:true});
+ assert.equal(index('previous').value.month,2);
+ assert.equal(index('next').value.month,4);
+ assert.equal(index('strip').value.month,3);
+ assert.deepEqual(JSON.parse(JSON.stringify(index('memo').value)),{layout:'checklist',title:'TO DO',lineCount:8,itemCount:7,weekCount:5,showMemo:true});
 });
 
 test('runtime project adapter blocks invalid user service Dataset before composition',()=>{

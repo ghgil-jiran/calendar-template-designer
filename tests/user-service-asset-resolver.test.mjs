@@ -11,6 +11,11 @@ test('resolves url assets without storage access', async () => {
   assert.equal(reads, 0);
 });
 
+test('resolves template-owned AI assets through the shared asset registry',async()=>{
+ const resolver=factory.create({getTemplateAsset:async id=>({id,src:'https://assets.example/ai-cover.webp'})});
+ assert.equal(await resolver.resolve({ref:'template',id:'ai-cover'}),'https://assets.example/ai-cover.webp');
+});
+
 test('prefers calendar-uploads dataUrl and caches the resolved id', async () => {
   let reads = 0;
   const resolver = factory.create({ getAsset: async id => { reads++; return { id, dataUrl: 'data:image/png;base64,local' }; } });

@@ -155,7 +155,8 @@ export function normalizeCalendarEvent(value:unknown):CalendarEventData{
 }
 export function validateCalendarEvent(event:CalendarEventData):string[]{const errors:string[]=[];if(!event.id)errors.push("event.id.required");if(!event.title)errors.push("event.title.required");if(!isoDate.test(event.startDate))errors.push("event.startDate.invalid");if(!isoDate.test(event.endDate))errors.push("event.endDate.invalid");if(isoDate.test(event.startDate)&&isoDate.test(event.endDate)&&event.endDate<event.startDate)errors.push("event.range.invalid");return errors;}
 
-export interface AssetReference{id:string;kind:"image";src:string;widthPx?:number;heightPx?:number;mimeType?:string;alt?:string;}
+export type AssetRef={ref:"idb";id:string}|{ref:"url";src:string}|{ref:"template";id:string};
+export interface AssetReference{id:string;kind:"image";src:string;widthPx?:number;heightPx?:number;mimeType?:string;alt?:string;origin?:"ai-generated"|"editor"|"user";}
 export interface ImageFrameValue{assetId:string;fit:"cover"|"contain"|"fill";focalPoint:{x:number;y:number};crop?:{x:number;y:number;width:number;height:number};}
 export function normalizeImageFrameValue(value:unknown):ImageFrameValue{const source=recordValue(value);const focal=recordValue(source.focalPoint);return {assetId:textValue(source.assetId)??"",fit:source.fit==="contain"||source.fit==="fill"?source.fit:"cover",focalPoint:{x:Math.max(0,Math.min(1,Number(focal.x??.5))),y:Math.max(0,Math.min(1,Number(focal.y??.5)))},crop:source.crop as ImageFrameValue["crop"]};}
 

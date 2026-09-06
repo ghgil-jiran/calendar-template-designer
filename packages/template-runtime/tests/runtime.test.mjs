@@ -63,3 +63,16 @@ test("runtime keeps six-row placement separate from the sample 3 presentation pr
   assert.equal(payload.calendarPreset.presetId,"segmented-underline");
   assert.deepEqual(payload.calendarLayout.regions,{titlePercent:21,weekdayPercent:4,dateGridPercent:75});
 });
+
+test("runtime resolves AI design widgets into renderer-ready payloads",()=>{
+ const widgetTemplate={...template,pages:[{id:"back",role:"monthly-back",size:{width:260,height:180,unit:"mm"},objects:[
+  {id:"mini",type:"mini-calendar-prev",frame:{x:0,y:0,width:60,height:50},value:{year:2027,month:2}},
+  {id:"strip",type:"month-date-strip",frame:{x:0,y:55,width:260,height:20},value:{year:2027,month:3}},
+  {id:"memo",type:"memo",frame:{x:0,y:80,width:100,height:80},value:{layout:"checklist",title:"TO DO",itemCount:7}}
+ ]}]};
+ const result=new TemplateRuntime().execute(widgetTemplate,{schemaVersion:"1.0"});
+ assert.equal(result.hasErrors,false);
+ assert.equal(result.document.pages[0].objects[0].payload.cells.length,35);
+ assert.equal(result.document.pages[0].objects[1].payload.days.length,31);
+ assert.equal(result.document.pages[0].objects[2].payload.title,"TO DO");
+});

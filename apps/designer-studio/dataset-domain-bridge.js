@@ -116,6 +116,7 @@
       },
       monthlyImages: { ...(book.monthlyImages || {}) },
       monthlyQuotes: { ...(book.monthlyQuotes || {}) },
+      assets: root.ACDLProjectAssetResolver?.runtimeAssets(project) || [...(project.template?.resources?.sampleAssets || [])],
       variables: { settings }
     };
   }

@@ -2,7 +2,8 @@
   function isAssetRef(value) {
     return Boolean(value && typeof value === 'object' && (
       (value.ref === 'idb' && typeof value.id === 'string' && value.id.length > 0) ||
-      (value.ref === 'url' && typeof value.src === 'string' && value.src.length > 0)
+      (value.ref === 'url' && typeof value.src === 'string' && value.src.length > 0) ||
+      (value.ref === 'template' && typeof value.id === 'string' && value.id.length > 0)
     ));
   }
 
@@ -10,11 +11,13 @@
     const getAsset = options.getAsset;
     const cloudAssetUrl = options.cloudAssetUrl;
     const cloudAssetExists = options.cloudAssetExists;
+    const getTemplateAsset = options.getTemplateAsset;
     const cache = new Map();
 
     async function resolve(ref) {
       if (!isAssetRef(ref)) return null;
       if (ref.ref === 'url') return ref.src;
+      if (ref.ref === 'template') {const value=typeof getTemplateAsset==='function'?await getTemplateAsset(ref.id):null;return typeof value==='string'?value:value?.src||null}
       if (cache.has(ref.id)) return cache.get(ref.id);
       const pending = (async () => {
         if (typeof getAsset === 'function') {

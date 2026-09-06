@@ -43,6 +43,16 @@ test('remote load returns a hydrated editor copy and keeps canonical asset marke
  assert.equal(result.version.storedProjectData.template.resources.aiDesignAssets[0].src,marker);
 });
 
+test('deferred remote load returns canonical pages without making asset resolution block the editor',async()=>{
+ let assetRequests=0;
+ const marker='acdl-asset://11111111-1111-4111-8111-111111111111';
+ const api=runtime({fetch:async path=>{if(path.startsWith('/api/template-assets'))assetRequests+=1;return {ok:true,status:200,json:async()=>({version:{projectData:{template:{resources:{aiDesignAssets:[{id:'bg',src:marker}]}},book:{pageInstances:[{id:'page'}],elementsByPage:{page:[{role:'ai-design-background',assetId:'bg'}]}}}}})}}});
+ const result=await api.load('template-1',{deferAssets:true});
+ assert.equal(result.version.projectData.template.resources.aiDesignAssets[0].src,marker);
+ assert.equal(result.version.storedProjectData.template.resources.aiDesignAssets[0].src,marker);
+ assert.equal(assetRequests,0);
+});
+
 test('remote save sends project data through the protected Vercel API', async () => {
   let request;
   const api = runtime({ fetch: async (path, options) => {

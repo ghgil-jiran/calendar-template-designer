@@ -7,7 +7,8 @@ const remote=fs.readFileSync(new URL('../apps/designer-studio/template-remote-pe
 
 test('step 10 keeps one AI draft through save, library reopen and version restore paths',()=>{
  assert.match(html,/remote\.save\(\{templateId:project\.template\.remoteId\|\|null/);
- assert.match(html,/remote\.load\(id,\{onProgress\}\)/);
+ assert.match(html,/remote\.load\(id,\{onProgress,deferAssets:true\}\)/);
+ assert.match(html,/allowAssetFallback:true/);
  assert.match(remote,/async function hydrateVersion\(version\)/);
  assert.match(remote,/async function restore\(templateId,versionId,saveNote\)/);
  assert.match(html,/project\.template\.aiDesignDraft\.quality=/);
