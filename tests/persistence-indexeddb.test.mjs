@@ -26,6 +26,7 @@ test("indexeddb persistence preserves configured database and store contracts",a
  const value={id:"template-1",data:{version:"2.18.0"}};
  assert.equal(await storage.put("templates",value),value);
  assert.equal(await storage.get("templates","template-1"),value);
+ assert.equal(await storage.get("templates",null),undefined);
  assert.deepEqual(api.created,["templates","recovery"]);
  assert.equal(storage.databaseName,"acdl-test");
  assert.equal(storage.version,1);

@@ -17,6 +17,17 @@
  const versionHistoryCache=new Map();
  let pendingClone=null;
 
+ function installTemplateOpenProgress(){
+  const overlay=document.createElement('div');overlay.id='templateOpenProgress';overlay.className='template-open-progress hidden';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-live','polite');overlay.innerHTML='<div class="template-open-progress-card"><div class="template-open-spinner" aria-hidden="true"></div><div><strong id="templateOpenProgressTitle">템플릿을 불러오고 있습니다.</strong><p id="templateOpenProgressMessage">저장 위치를 확인하고 있습니다.</p></div><span id="templateOpenProgressPercent">0%</span><div class="template-open-progress-track"><div id="templateOpenProgressBar"></div></div><ol id="templateOpenProgressSteps"><li data-open-step="local">브라우저 저장본 확인</li><li data-open-step="remote">원격 템플릿 다운로드</li><li data-open-step="asset-resolve">AI 이미지 자산 복원</li><li data-open-step="validate">문서 무결성 검사</li><li data-open-step="render">편집 화면 구성</li></ol></div>';document.body.appendChild(overlay);
+  const weights={local:10,remote:35,'asset-scan':40,'asset-resolve':70,validate:85,recovery:75,document:70,render:95,complete:100},labels={local:'브라우저 저장본을 확인하고 있습니다.',remote:'원격 템플릿 문서를 다운로드하고 있습니다.','asset-scan':'저장된 AI 이미지 목록을 확인하고 있습니다.','asset-resolve':'AI 이미지 자산을 복원하고 있습니다.',validate:'페이지와 AI 디자인의 무결성을 검사하고 있습니다.',recovery:'브라우저 복구본을 확인하고 있습니다.',document:'복제할 템플릿 문서를 준비하고 있습니다.',render:'페이지와 편집 개체를 구성하고 있습니다.',complete:'편집 화면 준비가 완료되었습니다.'};
+  let timer=0;
+  const update=({phase='local',completed=0,total=1}={})=>{const base=weights[phase]??5,next=phase==='asset-resolve'&&total?40+(completed/total)*30:base,percent=Math.max(0,Math.min(100,Math.round(next)));el('templateOpenProgressMessage').textContent=labels[phase]||'템플릿을 준비하고 있습니다.';el('templateOpenProgressPercent').textContent=`${percent}%`;el('templateOpenProgressBar').style.width=`${percent}%`;overlay.querySelectorAll('[data-open-step]').forEach(step=>{const stepWeight=weights[step.dataset.openStep]||0;step.classList.toggle('done',stepWeight<percent);step.classList.toggle('active',step.dataset.openStep===phase)})};
+  const start=(kind,name)=>{clearTimeout(timer);el('templateOpenProgressTitle').textContent=kind==='clone'?'새 템플릿의 기준을 불러오고 있습니다.':'템플릿 편집 화면을 준비하고 있습니다.';el('templateOpenProgressMessage').textContent=name?`${name} 저장 위치를 확인하고 있습니다.`:'저장 위치를 확인하고 있습니다.';overlay.classList.remove('hidden','error');update({phase:'local'})};
+  const complete=()=>{update({phase:'complete',completed:1,total:1});timer=setTimeout(()=>overlay.classList.add('hidden'),350)};
+  const fail=error=>{overlay.classList.add('error');el('templateOpenProgressTitle').textContent='템플릿을 열지 못했습니다.';el('templateOpenProgressMessage').textContent=error?.message||String(error);el('templateOpenProgressPercent').textContent='오류';timer=setTimeout(()=>overlay.classList.add('hidden'),3500)};
+  window.ACDLTemplateOpenProgress=Object.freeze({start,update,complete,fail});
+ }
+
  function escape(value){return typeof v21Escape==='function'?v21Escape(value):String(value??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]))}
  function readCustomTypes(){try{const value=JSON.parse(localStorage.getItem(typeKey)||'null');return Array.isArray(value)?value:[]}catch{return[]}}
  function allTypes(){
@@ -157,14 +168,14 @@
   if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(fit);observer.observe(host);host._thumbnailObserver?.disconnect?.();host._thumbnailObserver=observer}
  }
  async function renderActualThumbnailNow(record,host){
-  if(!host||host.dataset.rendered==='true')return;
+  if(!host||host.dataset.rendered==='true'||el('templateLibraryModal')?.classList.contains('hidden'))return;
   const navigation=window.ACDLProjectNavigation;
   const transitionId=navigation?.current?.();
   let original=null;
   try{
    original={project,selectedPageId,selectedElementId,selectedElementScope,calendarEditing,history,future};
    let source=await loadTemplateProjectData(record.id);
-   if(!host.isConnected||(navigation&&!navigation.isCurrent(transitionId)))return;
+   if(!host.isConnected||el('templateLibraryModal')?.classList.contains('hidden')||(navigation&&!navigation.isCurrent(transitionId)))return;
    const uploaded=source?.template?.thumbnail?.kind==='upload'?source.template.thumbnail:record.thumbnail?.kind==='upload'?record.thumbnail:null;
    if(uploaded?.dataUrl){host.innerHTML=`<img class="library-uploaded-thumbnail" src="${uploaded.dataUrl}" alt="${escape(record.name)} 대표 이미지">`;host.dataset.rendered='true';return}
    if(!source){const preset=(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[]).find(item=>item.recommended)||(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[])[0];source=makeProject({type:record.type,year:record.edition,startMonth:3,template:record.packageVersion?'school-basic':record.template,frontInsertCount:record.packageVersion?0:1,rearInsertCount:0,calendarRows:record.packageVersion?5:6,weekStart:'sunday',showAdjacentMiniCalendars:true,posterColumns:4,sizePresetId:preset?.id});if(record.packageVersion)source=await window.ACDLPackageProjectAdapter.loadAndApply(source,record.packageBase)}
@@ -193,8 +204,8 @@
   const countText=listCount==null?records().filter(filterActive).length:listCount;
   summary.textContent=`${scopeText} · ${countText}개 템플릿 · Edition ${el('libraryEditionFilter')?.value||'all'}`;
  }
- async function projectForRecord(record){
-  let source=await loadTemplateProjectData(record.id);
+ async function projectForRecord(record,{onProgress}={}){
+  let source=await loadTemplateProjectData(record.id,{onProgress});
   if(source)return structuredClone(source);
   const preset=(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[]).find(item=>item.recommended)||(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[])[0];
   source=makeProject({type:record.type,year:record.edition,startMonth:3,template:record.packageVersion?'school-basic':record.template,frontInsertCount:record.packageVersion?0:1,rearInsertCount:0,calendarRows:record.packageVersion?5:6,weekStart:'sunday',showAdjacentMiniCalendars:true,posterColumns:4,sizePresetId:preset?.id});
@@ -202,9 +213,10 @@
  }
  async function startNewFrom(record){
   if(!record)return;
-  const source=await projectForRecord(record);pendingClone={record,source};
+  const progress=window.ACDLTemplateOpenProgress;progress?.start?.('clone',record.name);
+  let source;try{source=await projectForRecord(record,{onProgress:detail=>progress?.update?.(detail)});progress?.update?.({phase:'validate',completed:1,total:1})}catch(error){progress?.fail?.(error);throw error}pendingClone={record,source};
   el('cloneTemplateName').value=`${record.name} 복사본`;el('cloneTemplateDescription').value=record.description||'';el('cloneTemplateEdition').value=record.edition;el('cloneTemplateStartMonth').value=source.settings?.startMonth||3;
-  el('templateLibraryModal').classList.add('hidden');el('templateCloneDialog').classList.remove('hidden')
+  el('templateLibraryModal').classList.add('hidden');el('templateCloneDialog').classList.remove('hidden');progress?.complete?.()
  }
  function clonedProject(source,record,values){
   const copy=structuredClone(source);copy.template||={};copy.template.id=null;delete copy.template.remoteId;delete copy.template.remoteStableKey;delete copy.template.remoteVersionNumber;copy.template.librarySource='local';copy.template.derivedFromTemplateId=record.id;copy.template.cloneProvenance={sourceTemplateId:record.id,sourceVersion:Number(record.version)||null,clonedAt:new Date().toISOString(),designPreserved:true};copy.template.metadata={...(copy.template.metadata||{}),name:values.name,description:values.description,edition:values.edition,state:'draft',isStandard:false};
@@ -258,7 +270,7 @@
   } else {
     grid.innerHTML=list.length?list.map(cardMarkup).join(''):`<div class="library-empty-state"><strong>${activeTypeFilter==='all'?'등록된 템플릿이 없습니다.':`${escape(label(activeTypeFilter))}에 등록된 템플릿이 없습니다.`}</strong><p>새 템플릿을 만들어 보세요.</p></div>`;
     grid.querySelectorAll('[data-library-use]').forEach(button=>button.addEventListener('click',()=>startNewFrom(records().find(record=>record.id===button.dataset.libraryUse)).catch(error=>showEditorToast(error?.message||'새 템플릿 설정을 시작하지 못했습니다.'))));
-    grid.querySelectorAll('[data-library-edit]').forEach(button=>button.addEventListener('click',()=>{const source=records().find(record=>record.id===button.dataset.libraryEdit);if(source&&!source.isStandard)openDesignerProjectFromRecord(source)}));
+    grid.querySelectorAll('[data-library-edit]').forEach(button=>button.addEventListener('click',()=>{const source=records().find(record=>record.id===button.dataset.libraryEdit);if(source&&!source.isStandard)openDesignerProjectFromRecord(source).catch(error=>showEditorToast(error?.message||'템플릿 편집 화면을 열지 못했습니다.'))}));
     grid.querySelectorAll('[data-library-settings]').forEach(button=>button.addEventListener('click',()=>openSettings(records().find(record=>record.id===button.dataset.librarySettings))));
     grid.querySelectorAll('[data-library-history]').forEach(button=>button.addEventListener('click',()=>toggleVersionHistory(button)));
     hydrateThumbnails(list);
@@ -277,7 +289,7 @@
  window.renderUserTemplateChoices=renderUserChoices;renderUserTemplateChoices=renderUserChoices;
  window.applyCalendarType=type=>{oldApplyType(type);selectedCalendarType=type;el('selectedTypeLabel')&&(el('selectedTypeLabel').textContent=label(type));renderTypeChoices();renderUserChoices()};applyCalendarType=window.applyCalendarType;
  window.ACDLTemplateCatalog={allTypes,records,typeMeta,renderTypeChoices,renderTypeFilters};
- ensureTypeOptions();renderTypeChoices();renderTypeFilters();renderUserChoices();installTemplateSaveProgress();installCloneDialog();
+ ensureTypeOptions();renderTypeChoices();renderTypeFilters();renderUserChoices();installTemplateSaveProgress();installCloneDialog();installTemplateOpenProgress();
  document.querySelectorAll('[data-library-state]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-library-state]').forEach(x=>x.classList.toggle('active',x===button));activeLibraryState=button.dataset.libraryState;setTimeout(()=>renderLibrary(button.dataset.libraryState),0)}));
  el('libraryStandardFilter')?.addEventListener('click',event=>{activeStandardOnly=!activeStandardOnly;event.currentTarget.classList.toggle('active',activeStandardOnly);event.currentTarget.setAttribute('aria-pressed',String(activeStandardOnly));renderLibrary(activeLibraryState)});
  document.querySelectorAll('[data-library-scope]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-library-scope]').forEach(x=>x.classList.toggle('active',x===button));activeLibraryScope=button.dataset.libraryScope;setTimeout(()=>renderLibrary(activeLibraryState),0)}));

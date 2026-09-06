@@ -61,8 +61,21 @@ test('template switching ignores stale async loads', () => {
 test('library thumbnails cannot restore an earlier editor state', () => {
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(runtime, /let thumbnailQueue=Promise\.resolve\(\)/);
-  assert.match(runtime, /if\(!host\.isConnected\|\|\(navigation&&!navigation\.isCurrent\(transitionId\)\)\)return;/);
+  assert.match(runtime, /el\('templateLibraryModal'\)\?\.classList\.contains\('hidden'\)/);
+  assert.match(runtime, /if\(!host\.isConnected\|\|el\('templateLibraryModal'\)\?\.classList\.contains\('hidden'\)\|\|\(navigation&&!navigation\.isCurrent\(transitionId\)\)\)return;/);
   assert.match(runtime, /original&&\(!navigation\|\|navigation\.isCurrent\(transitionId\)\)/);
+});
+
+test('library edit and clone entry report loading stages without querying IndexedDB with an empty id', () => {
+  const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
+  assert.match(studioHtml, /if\(id===undefined\|\|id===null\|\|id==='\'\)return null/);
+  assert.match(studioHtml, /if\(t\.projectData\)[\s\S]{0,350}else if\(t\.id\)/);
+  assert.match(runtime, /id='templateOpenProgress'/);
+  assert.match(runtime, /브라우저 저장본 확인/);
+  assert.match(runtime, /원격 템플릿 다운로드/);
+  assert.match(runtime, /AI 이미지 자산 복원/);
+  assert.match(runtime, /문서 무결성 검사/);
+  assert.match(runtime, /편집 화면 구성/);
 });
 
 test('public landing presents the template studio without a calendar creation entry', () => {

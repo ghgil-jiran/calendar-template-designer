@@ -31,15 +31,17 @@
   await Promise.all(Array.from({length:Math.min(Math.max(1,Number(concurrency)||1),total||1)},worker));
   return assertAIDesignIntegrity(replace(copy,replacements));
  }
- async function hydrateProjectData(projectData){
-  const copy=structuredClone(projectData),ids=new Set();visit(copy,value=>{const match=value.match(/^acdl-asset:\/\/([0-9a-f-]{36})$/i);if(match)ids.add(match[1])});if(!ids.size)return assertAIDesignIntegrity(materializeAIDesignBackgrounds(copy));
+ async function hydrateProjectData(projectData,{onProgress}={}){
+  onProgress?.({phase:'asset-scan',completed:0,total:1});
+  const copy=structuredClone(projectData),ids=new Set();visit(copy,value=>{const match=value.match(/^acdl-asset:\/\/([0-9a-f-]{36})$/i);if(match)ids.add(match[1])});if(!ids.size){onProgress?.({phase:'asset-resolve',completed:0,total:0});return assertAIDesignIntegrity(materializeAIDesignBackgrounds(copy))}
+  onProgress?.({phase:'asset-resolve',completed:0,total:ids.size});
   const result=await request(`/api/template-assets?ids=${encodeURIComponent([...ids].join(','))}`),replacements=new Map();
   (result.assets||[]).forEach(asset=>{const marker=`acdl-asset://${asset.id}`;replacements.set(marker,asset.url);signedToMarker.set(asset.url,marker)});
   const missing=[...ids].filter(id=>!replacements.has(`acdl-asset://${id}`));if(missing.length)throw Object.assign(new Error(`저장된 이미지 자산 ${missing.length}개를 불러오지 못했습니다.`),{code:'TEMPLATE_ASSETS_MISSING',missingAssetIds:missing});
-  const hydrated=materializeAIDesignBackgrounds(replace(copy,replacements));return assertAIDesignIntegrity(hydrated);
+  const hydrated=materializeAIDesignBackgrounds(replace(copy,replacements));onProgress?.({phase:'asset-resolve',completed:ids.size,total:ids.size});return assertAIDesignIntegrity(hydrated);
  }
  async function list(){const body=await request('/api/templates');return (body.templates||[]).map(record)}
- async function load(id){const result=await request(`/api/templates?id=${encodeURIComponent(id)}`);if(result?.version?.projectData)result.version.projectData=await hydrateProjectData(result.version.projectData);return result}
+ async function load(id,{onProgress}={}){onProgress?.({phase:'remote',completed:0,total:1});const result=await request(`/api/templates?id=${encodeURIComponent(id)}`);onProgress?.({phase:'remote',completed:1,total:1});if(result?.version?.projectData)result.version.projectData=await hydrateProjectData(result.version.projectData,{onProgress});return result}
  async function save(input,options={}){const projectData=await prepareProjectData(input.projectData,options);options.onProgress?.({phase:'version',completed:1,total:1});const result=await request('/api/templates',{method:'POST',body:JSON.stringify({...input,projectData})});options.onProgress?.({phase:'complete',completed:1,total:1});return result}
  async function saveDraft(input){const projectData=await prepareProjectData(input.projectData);return request('/api/template-drafts',{method:'PUT',body:JSON.stringify({...input,projectData})})}
  async function versions(templateId){return request(`/api/template-versions?templateId=${encodeURIComponent(templateId)}`)}

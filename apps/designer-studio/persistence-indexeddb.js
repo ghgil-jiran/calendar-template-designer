@@ -15,6 +15,7 @@
    transaction.onerror=()=>{db.close();reject(transaction.error)};
   })}
   async function get(store,key){const db=await open();return new Promise((resolve,reject)=>{
+   if(key===undefined||key===null||key===''){db.close();resolve(undefined);return}
    const transaction=db.transaction(store,"readonly"),request=transaction.objectStore(store).get(key);
    request.onsuccess=()=>{db.close();resolve(request.result)};
    request.onerror=()=>{db.close();reject(request.error)};
