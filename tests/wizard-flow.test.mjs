@@ -286,7 +286,8 @@ test('desk 1.4.0 is the exact published canonical system base', () => {
   assert.match(catalog, /description:\"총 28면 · 표지 1면 · 간지 2면 · 월력 24면 · 뒷표지 1면 — 연력 \/ 학교상징 \/ 월별 이미지·월력·미니월력\"/);
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(runtime, /async function startNewFrom\(record\)/);
-  assert.match(runtime, /window\.ACDLNewTemplateBaseProject=source/);
+  assert.match(runtime, /pendingClone=\{record,source\}/);
+  assert.match(runtime, /현재 디자인·페이지·Master·편집 개체·AI 이미지를 그대로 복제/);
   assert.doesNotMatch(runtime, /연결 작업본 만들기/);
 });
 

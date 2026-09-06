@@ -15,6 +15,7 @@
  let thumbnailQueue=Promise.resolve();
  const thumbnailMarkupCache=new Map();
  const versionHistoryCache=new Map();
+ let pendingClone=null;
 
  function escape(value){return typeof v21Escape==='function'?v21Escape(value):String(value??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]))}
  function readCustomTypes(){try{const value=JSON.parse(localStorage.getItem(typeKey)||'null');return Array.isArray(value)?value:[]}catch{return[]}}
@@ -201,8 +202,19 @@
  }
  async function startNewFrom(record){
   if(!record)return;
-  const source=await projectForRecord(record);window.ACDLNewTemplateBaseProject=source;window.ACDLNewTemplateBaseRecord=record;
-  el('templateLibraryModal').classList.add('hidden');el('setup').classList.remove('hidden');el('setupType').value=record.type;el('setupType').dispatchEvent(new Event('change'));el('setupType').disabled=true;el('setupYear').value=record.edition;el('setupMonth').value=source.settings?.startMonth||3;el('setupCalendarRows').value=String(source.settings?.calendarRows||6);el('setupWeekStart').value=source.settings?.weekStart||'sunday';el('setupAdjacentMiniCalendars').checked=source.settings?.showAdjacentMiniCalendars!==false;el('setupFrontInserts').value=String(source.settings?.frontInsertCount||0);el('setupRearInserts').value=String(source.settings?.rearInsertCount||0);el('setupSize').value=source.settings?.sizePreset?.id||el('setupSize').value;el('setupTemplate').value=source.template?.preset||record.template||'school-basic';window.ACDLTemplateTypeRules?.applySetupTypeRules?.();showEditorToast(`${record.name}을 기준으로 새 템플릿 설정을 시작합니다.`)
+  const source=await projectForRecord(record);pendingClone={record,source};
+  el('cloneTemplateName').value=`${record.name} 복사본`;el('cloneTemplateDescription').value=record.description||'';el('cloneTemplateEdition').value=record.edition;el('cloneTemplateStartMonth').value=source.settings?.startMonth||3;
+  el('templateLibraryModal').classList.add('hidden');el('templateCloneDialog').classList.remove('hidden')
+ }
+ function clonedProject(source,record,values){
+  const copy=structuredClone(source);copy.template||={};copy.template.id=null;delete copy.template.remoteId;delete copy.template.remoteStableKey;delete copy.template.remoteVersionNumber;copy.template.librarySource='local';copy.template.derivedFromTemplateId=record.id;copy.template.cloneProvenance={sourceTemplateId:record.id,sourceVersion:Number(record.version)||null,clonedAt:new Date().toISOString(),designPreserved:true};copy.template.metadata={...(copy.template.metadata||{}),name:values.name,description:values.description,edition:values.edition,state:'draft',isStandard:false};
+  if(copy.template.aiDesignDraft){const draft=copy.template.aiDesignDraft;delete draft.session;delete draft.selectedVariant;draft.cloneState='applied-design-preserved';draft.clonedFrom={templateId:record.id,version:Number(record.version)||null}}
+  copy.settings={...(copy.settings||{}),year:values.edition,startMonth:values.startMonth};return copy
+ }
+ function installCloneDialog(){
+  const dialog=document.createElement('div');dialog.id='templateCloneDialog';dialog.className='template-save-dialog hidden';dialog.innerHTML='<div class="template-save-card"><h2>이 템플릿으로 새로 만들기</h2><p>현재 디자인·페이지·Master·편집 개체·AI 이미지를 그대로 복제합니다.</p><label>새 템플릿 이름<input id="cloneTemplateName"></label><label>설명<textarea id="cloneTemplateDescription" rows="3"></textarea></label><label>Edition 및 달력 연도<input id="cloneTemplateEdition" type="number" min="2000" max="2200"></label><label>시작월<select id="cloneTemplateStartMonth"></select></label><div class="template-save-actions"><button id="cancelTemplateCloneBtn">취소</button><button id="confirmTemplateCloneBtn" class="primary">복제하여 편집 시작</button></div></div>';document.body.appendChild(dialog);el('cloneTemplateStartMonth').innerHTML=Array.from({length:12},(_,index)=>`<option value="${index+1}">${index+1}월</option>`).join('');
+  el('cancelTemplateCloneBtn').onclick=()=>{pendingClone=null;dialog.classList.add('hidden');el('templateLibraryModal').classList.remove('hidden')};
+  el('confirmTemplateCloneBtn').onclick=async()=>{if(!pendingClone)return;const {record,source}=pendingClone,name=el('cloneTemplateName').value.trim()||`${record.name} 복사본`,description=el('cloneTemplateDescription').value.trim(),edition=Number(el('cloneTemplateEdition').value)||record.edition,startMonth=Number(el('cloneTemplateStartMonth').value)||source.settings?.startMonth||3,copy=clonedProject(source,record,{name,description,edition,startMonth});pendingClone=null;dialog.classList.add('hidden');await openDesignerProjectFromRecord({...record,id:null,remoteId:null,stableKey:null,source:'local',name,description,edition,state:'draft',isStandard:false,projectData:copy});window.rebuildProjectFromBasicSettings?.({year:edition,startMonth,frontInsertCount:copy.settings?.frontInsertCount||0,rearInsertCount:copy.settings?.rearInsertCount||0,calendarRows:copy.settings?.calendarRows||6,weekStart:copy.settings?.weekStart||'sunday',showAdjacentMiniCalendars:copy.settings?.showAdjacentMiniCalendars!==false,calendarData:copy.settings?.calendarData});window.ACDLResetAIDesignCloneRuntime?.();window.render?.();showEditorToast(`${record.name}의 디자인을 보존한 새 템플릿을 만들었습니다.`)}
  }
  function openSettings(record){
   if(!record)return;const dialog=el('templateSaveDialog');dialog.dataset.mode='settings';dialog.dataset.recordId=record.id;el('templateSaveDialogTitle').textContent='템플릿 설정';el('templateSaveDialogHelp').textContent='디자인은 변경하지 않고 라이브러리 관리 정보만 저장합니다.';el('saveTemplateName').value=record.name;el('saveTemplateDescription').value=record.description||'';el('saveTemplateEdition').value=record.edition;el('saveTemplateState').value=record.state;el('saveTemplateStandard').checked=record.isStandard===true;el('templateSaveFeedback').className='save-feedback hidden';dialog.classList.remove('hidden')
@@ -222,7 +234,7 @@
   if(remote?.isRemote?.()){const result=await remote.save({templateId:record.remoteId||(/^[0-9a-f-]{36}$/i.test(String(record.id))?record.id:null),stableKey:record.stableKey||record.catalogId||record.id,name:values.name||record.name,description:values.description||'',edition:Number(values.edition)||record.edition,state:values.state,isStandard:values.isStandard===true,productType:record.type,templateKey:record.template,saveKind:values.state==='published'?'publish':'manual',saveNote:'라이브러리 설정 변경',schemaVersion:'2.0',projectData});saved=normalize({...record,...result.template,id:result.template.id,remoteId:result.template.id,stableKey:result.template.stableKey,name:result.template.name,description:result.template.description,edition:result.template.edition,state:result.template.state,status:result.template.state,isStandard:result.template.isStandard,type:result.template.productType,template:result.template.templateKey,version:result.template.latestVersionNumber,storage:'supabase',source:'local',catalogId:record.catalogId||record.id},'local');await saveTemplateProjectData(saved.id,projectData)}else await saveTemplateProjectData(saved.id,projectData);
   const list=oldLibrary().filter(item=>item.id!==record.id&&item.id!==saved.id&&item.stableKey!==saved.stableKey);saveRecords([saved,...list]);renderLibrary(activeLibraryState);renderUserChoices();showEditorToast('템플릿 설정을 저장했습니다.');return saved
  }
- window.ACDLTemplateLibrarySettings=Object.freeze({open:openSettings,save:saveSettings,startNewFrom});
+ window.ACDLTemplateLibrarySettings=Object.freeze({open:openSettings,save:saveSettings,startNewFrom,clonedProject});
  function filterActive(record){
   if(activeLibraryScope==='base'&&record.source!=='catalog')return false;
   if(activeLibraryScope==='custom'&&record.source!=='local')return false;
@@ -264,7 +276,7 @@
  window.renderUserTemplateChoices=renderUserChoices;renderUserTemplateChoices=renderUserChoices;
  window.applyCalendarType=type=>{oldApplyType(type);selectedCalendarType=type;el('selectedTypeLabel')&&(el('selectedTypeLabel').textContent=label(type));renderTypeChoices();renderUserChoices()};applyCalendarType=window.applyCalendarType;
  window.ACDLTemplateCatalog={allTypes,records,typeMeta,renderTypeChoices,renderTypeFilters};
- ensureTypeOptions();renderTypeChoices();renderTypeFilters();renderUserChoices();installTemplateSaveProgress();
+ ensureTypeOptions();renderTypeChoices();renderTypeFilters();renderUserChoices();installTemplateSaveProgress();installCloneDialog();
  document.querySelectorAll('[data-library-state]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-library-state]').forEach(x=>x.classList.toggle('active',x===button));activeLibraryState=button.dataset.libraryState;setTimeout(()=>renderLibrary(button.dataset.libraryState),0)}));
  el('libraryStandardFilter')?.addEventListener('click',event=>{activeStandardOnly=!activeStandardOnly;event.currentTarget.classList.toggle('active',activeStandardOnly);event.currentTarget.setAttribute('aria-pressed',String(activeStandardOnly));renderLibrary(activeLibraryState)});
  document.querySelectorAll('[data-library-scope]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-library-scope]').forEach(x=>x.classList.toggle('active',x===button));activeLibraryScope=button.dataset.libraryScope;setTimeout(()=>renderLibrary(activeLibraryState),0)}));

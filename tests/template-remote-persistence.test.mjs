@@ -97,6 +97,10 @@ test('AI design draft, quality report and regenerated backgrounds survive remote
   assert.equal(reopened.template.aiDesignDraft.quality.regeneration.completed, 1);
 });
 
+test('resource-only AI backgrounds are materialized before remote save and reopen',async()=>{
+ const api=runtime({fetch:async path=>path==='/api/template-assets'?{ok:true,status:201,json:async()=>({asset:{id:'11111111-1111-4111-8111-111111111111'}})}:{ok:true,status:200,json:async()=>({assets:[{id:'11111111-1111-4111-8111-111111111111',url:'https://signed.example/background.webp'}]})}}),project={template:{resources:{aiDesignAssets:[{id:'ai-cover',src:'data:image/webp;base64,Y292ZXI='}]}},book:{elementsByPage:{cover:[{role:'ai-design-background',assetId:'ai-cover'}]}}},prepared=await api.prepareProjectData(project);assert.match(prepared.book.elementsByPage.cover[0].src,/^acdl-asset:\/\//);const reopened=await api.hydrateProjectData(prepared);assert.equal(reopened.book.elementsByPage.cover[0].src,'https://signed.example/background.webp')
+});
+
 test('a historical version hydrates private asset references for preview', async () => {
   const api = runtime({ fetch: async path => {
     assert.match(path, /^\/api\/template-assets\?ids=/);

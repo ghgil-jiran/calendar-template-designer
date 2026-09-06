@@ -12,8 +12,13 @@
  function record(item){return {id:item.id,remoteId:item.id,stableKey:item.stableKey,name:item.name,description:item.description,edition:item.edition,state:item.state,isStandard:item.isStandard===true,type:item.productType,template:item.templateKey,version:item.latestVersionNumber,updatedAt:item.updatedAt,storage:'supabase',source:'local'}}
  function visit(value,callback){if(typeof value==='string'){callback(value);return}if(Array.isArray(value)){value.forEach(item=>visit(item,callback));return}if(value&&typeof value==='object')Object.values(value).forEach(item=>visit(item,callback))}
  function replace(value,replacements){if(typeof value==='string')return replacements.get(value)||value;if(Array.isArray(value))return value.map(item=>replace(item,replacements));if(value&&typeof value==='object'){for(const key of Object.keys(value))value[key]=replace(value[key],replacements);return value}return value}
+ function materializeAIDesignBackgrounds(projectData){
+  const resources=projectData?.template?.resources?.aiDesignAssets||[],byId=new Map(resources.map(item=>[item.id,item.src]));
+  Object.values(projectData?.book?.elementsByPage||{}).flat().filter(item=>item?.role==='ai-design-background').forEach(item=>{const resourceId=item.assetId||item.aiDesign?.resourceId;if(!item.src&&resourceId&&byId.get(resourceId))item.src=byId.get(resourceId)});
+  return projectData
+ }
  async function prepareProjectData(projectData){
-  const copy=structuredClone(projectData),images=new Set();visit(copy,value=>{if(value.startsWith('data:image/'))images.add(value)});const replacements=new Map(signedToMarker);
+  const copy=materializeAIDesignBackgrounds(structuredClone(projectData)),images=new Set();visit(copy,value=>{if(value.startsWith('data:image/'))images.add(value)});const replacements=new Map(signedToMarker);
   for(const dataUrl of images){const result=await request('/api/template-assets',{method:'POST',body:JSON.stringify({dataUrl})});replacements.set(dataUrl,`acdl-asset://${result.asset.id}`)}
   return replace(copy,replacements);
  }
@@ -30,5 +35,5 @@
  async function hydrateVersion(version){return version?.projectData?{...version,projectData:await hydrateProjectData(version.projectData)}:version}
  async function restore(templateId,versionId,saveNote){return request('/api/template-restore',{method:'POST',body:JSON.stringify({templateId,versionId,saveNote})})}
  async function packagePreflight(templateId){return request(`/api/template-package-preflight?templateId=${encodeURIComponent(templateId)}`)}
- root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,prepareProjectData,hydrateProjectData});
+ root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,materializeAIDesignBackgrounds,prepareProjectData,hydrateProjectData});
 })(window);
