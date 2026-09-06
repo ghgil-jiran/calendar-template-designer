@@ -4,6 +4,7 @@ import {
   assertInternalAccess,
   listTemplates,
   readTemplateAsset,
+  resolveTemplateAssetsByPaths,
   saveDraft,
   saveVersion,
   storeTemplateAsset,
@@ -113,4 +114,9 @@ test('private image bytes are read through the authenticated server boundary',as
     throw new Error(`unexpected ${url}`)
   };
   const asset=await readTemplateAsset('11111111-1111-4111-8111-111111111111');assert.equal(asset.mimeType,'image/png');assert.equal(asset.bytes.toString(),'abc')
+});
+
+test('legacy storage paths resolve to stable private asset ids',async()=>{
+ globalThis.fetch=async url=>{assert.match(url,/storage_path=in\.\(sha256%2Flegacy\.webp\)/);return response([{id:'11111111-1111-4111-8111-111111111111',storage_path:'sha256/legacy.webp',mime_type:'image/webp',byte_size:10}])};
+ const [asset]=await resolveTemplateAssetsByPaths(['sha256/legacy.webp']);assert.equal(asset.id,'11111111-1111-4111-8111-111111111111');assert.equal(asset.storagePath,'sha256/legacy.webp')
 });

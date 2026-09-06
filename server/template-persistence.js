@@ -69,6 +69,12 @@ export async function resolveTemplateAssets(ids){
   return Promise.all(rows.map(signedAsset));
 }
 
+export async function resolveTemplateAssetsByPaths(paths){
+  const unique=[...new Set((Array.isArray(paths)?paths:[]).map(value=>String(value||'').trim()).filter(value=>value.startsWith('sha256/')&&value.length<180))];if(!unique.length)return [];
+  const rows=await supabaseRequest(`template_assets?select=*&storage_bucket=eq.${ASSET_BUCKET}&storage_path=in.(${unique.map(encodeURIComponent).join(',')})`);
+  return rows.map(row=>({id:row.id,storagePath:row.storage_path,mimeType:row.mime_type,byteSize:Number(row.byte_size)}));
+}
+
 export async function readTemplateAsset(id){
   if(!/^[0-9a-f-]{36}$/i.test(String(id||'')))throw Object.assign(new Error('Invalid asset id'),{statusCode:400,code:'INVALID_ASSET_ID'});
   const rows=await supabaseRequest(`template_assets?select=*&id=eq.${encodeURIComponent(id)}&limit=1`),row=rows[0];

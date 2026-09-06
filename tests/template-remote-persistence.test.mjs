@@ -136,6 +136,15 @@ test('a historical version hydrates private asset references for preview', async
   assert.match(version.projectData.image, /^blob:template-asset-/);
 });
 
+test('legacy Supabase signed URLs are migrated back through the private asset boundary',async()=>{
+ const old='https://project.supabase.co/storage/v1/object/sign/template-assets/sha256/legacy.webp?token=expired';
+ const api=runtime({fetch:async path=>{
+  if(path.startsWith('/api/template-assets?paths='))return {ok:true,status:200,json:async()=>({assets:[{id:'11111111-1111-4111-8111-111111111111',storagePath:'sha256/legacy.webp'}]})};
+  throw new Error(`unexpected ${path}`)
+ }}),reopened=await api.hydrateProjectData({template:{resources:{aiDesignAssets:[{id:'legacy',src:old}]}},book:{elementsByPage:{page:[{role:'ai-design-background',assetId:'legacy',src:old}]}}});
+ assert.match(reopened.template.resources.aiDesignAssets[0].src,/^blob:template-asset-/);assert.match(reopened.book.elementsByPage.page[0].src,/^blob:template-asset-/);assert.equal(api.legacyStoragePath(old),'sha256/legacy.webp')
+});
+
 
 test('the Supabase access token reaches the Authorization header unchanged', async () => {
   const accessToken = 'signed.supabase.jwt';

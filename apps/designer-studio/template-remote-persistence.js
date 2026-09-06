@@ -17,6 +17,10 @@
  function record(item){return {id:item.id,remoteId:item.id,stableKey:item.stableKey,name:item.name,description:item.description,edition:item.edition,state:item.state,isStandard:item.isStandard===true,type:item.productType,template:item.templateKey,version:item.latestVersionNumber,updatedAt:item.updatedAt,storage:'supabase',source:'local'}}
  function visit(value,callback){if(typeof value==='string'){callback(value);return}if(Array.isArray(value)){value.forEach(item=>visit(item,callback));return}if(value&&typeof value==='object')Object.values(value).forEach(item=>visit(item,callback))}
  function replace(value,replacements){if(typeof value==='string')return replacements.get(value)||value;if(Array.isArray(value))return value.map(item=>replace(item,replacements));if(value&&typeof value==='object'){for(const key of Object.keys(value))value[key]=replace(value[key],replacements);return value}return value}
+ function legacyStoragePath(value){
+  if(typeof value!=='string'||!value.includes('/storage/v1/object/sign/template-assets/'))return null;
+  try{const path=new URL(value).pathname,prefix='/storage/v1/object/sign/template-assets/';if(!path.startsWith(prefix))return null;return path.slice(prefix.length).split('/').map(decodeURIComponent).join('/')}catch(_){return null}
+ }
  function materializeAIDesignBackgrounds(projectData){
   root.ACDLProjectAssetResolver?.normalize?.(projectData);const store=projectData?.template?.resources||{},resources=[...(store.assets||[]),...(store.aiDesignAssets||[])],byId=new Map(resources.map(item=>[item.id,item.src]));
   Object.values(projectData?.book?.elementsByPage||{}).flat().filter(item=>item?.role==='ai-design-background').forEach(item=>{const resourceId=item.assetId||item.aiDesign?.resourceId;if(!item.src&&resourceId&&byId.get(resourceId))item.src=byId.get(resourceId)});
@@ -38,12 +42,13 @@
  }
  async function hydrateProjectData(projectData,{onProgress}={}){
   onProgress?.({phase:'asset-scan',completed:0,total:1});
-  const copy=structuredClone(projectData),ids=new Set();visit(copy,value=>{const match=value.match(/^acdl-asset:\/\/([0-9a-f-]{36})$/i);if(match)ids.add(match[1])});if(!ids.size){onProgress?.({phase:'asset-resolve',completed:0,total:0});return assertAIDesignIntegrity(materializeAIDesignBackgrounds(copy))}
-  onProgress?.({phase:'asset-resolve',completed:0,total:ids.size});
-  const result=await request(`/api/template-assets?ids=${encodeURIComponent([...ids].join(','))}`),replacements=new Map();
+  const copy=structuredClone(projectData),ids=new Set(),legacyUrls=new Map();visit(copy,value=>{const match=value.match(/^acdl-asset:\/\/([0-9a-f-]{36})$/i);if(match)ids.add(match[1]);else{const path=legacyStoragePath(value);if(path)legacyUrls.set(value,path)}});if(!ids.size&&!legacyUrls.size){onProgress?.({phase:'asset-resolve',completed:0,total:0});return assertAIDesignIntegrity(materializeAIDesignBackgrounds(copy))}
+  onProgress?.({phase:'asset-resolve',completed:0,total:ids.size+legacyUrls.size});
+  const result=ids.size?await request(`/api/template-assets?ids=${encodeURIComponent([...ids].join(','))}`):{assets:[]},replacements=new Map();
   await Promise.all((result.assets||[]).map(async asset=>{const marker=`acdl-asset://${asset.id}`,url=await assetObjectUrl(asset.id);replacements.set(marker,url);signedToMarker.set(url,marker)}));
-  const missing=[...ids].filter(id=>!replacements.has(`acdl-asset://${id}`));if(missing.length)throw Object.assign(new Error(`저장된 이미지 자산 ${missing.length}개를 불러오지 못했습니다.`),{code:'TEMPLATE_ASSETS_MISSING',missingAssetIds:missing});
-  const hydrated=materializeAIDesignBackgrounds(replace(copy,replacements));onProgress?.({phase:'asset-resolve',completed:ids.size,total:ids.size});return assertAIDesignIntegrity(hydrated);
+  if(legacyUrls.size){const paths=[...new Set(legacyUrls.values())],legacy=await request(`/api/template-assets?paths=${paths.map(encodeURIComponent).join(',')}`),byPath=new Map((legacy.assets||[]).map(asset=>[asset.storagePath,asset]));await Promise.all([...legacyUrls].map(async([oldUrl,path])=>{const asset=byPath.get(path);if(!asset)return;const marker=`acdl-asset://${asset.id}`,url=await assetObjectUrl(asset.id);replacements.set(oldUrl,url);signedToMarker.set(url,marker)}))}
+  const missing=[...ids].filter(id=>!replacements.has(`acdl-asset://${id}`)),missingLegacy=[...legacyUrls].filter(([url])=>!replacements.has(url));if(missing.length||missingLegacy.length)throw Object.assign(new Error(`저장된 이미지 자산 ${missing.length+missingLegacy.length}개를 불러오지 못했습니다.`),{code:'TEMPLATE_ASSETS_MISSING',missingAssetIds:missing,missingStoragePaths:missingLegacy.map(([,path])=>path)});
+  const hydrated=materializeAIDesignBackgrounds(replace(copy,replacements));onProgress?.({phase:'asset-resolve',completed:ids.size+legacyUrls.size,total:ids.size+legacyUrls.size});return assertAIDesignIntegrity(hydrated);
  }
  async function list(){const body=await request('/api/templates');return (body.templates||[]).map(record)}
  async function load(id,{onProgress,deferAssets=false}={}){onProgress?.({phase:'remote',completed:0,total:1});const result=await request(`/api/templates?id=${encodeURIComponent(id)}`);onProgress?.({phase:'remote',completed:1,total:1});if(result?.version?.projectData){const storedProjectData=structuredClone(result.version.projectData);result.version.storedProjectData=storedProjectData;if(!deferAssets)result.version.projectData=await hydrateProjectData(storedProjectData,{onProgress})}return result}
@@ -53,5 +58,5 @@
  async function hydrateVersion(version){return version?.projectData?{...version,projectData:await hydrateProjectData(version.projectData)}:version}
  async function restore(templateId,versionId,saveNote){return request('/api/template-restore',{method:'POST',body:JSON.stringify({templateId,versionId,saveNote})})}
  async function packagePreflight(templateId){return request(`/api/template-package-preflight?templateId=${encodeURIComponent(templateId)}`)}
- root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareProjectData,hydrateProjectData,assetObjectUrl});
+ root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareProjectData,hydrateProjectData,assetObjectUrl,legacyStoragePath});
 })(window);
