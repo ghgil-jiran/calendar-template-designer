@@ -31,7 +31,11 @@
       const date = new Date(`${event.startDate}T00:00:00`);
       const last = new Date(`${event.endDate || event.startDate}T00:00:00`);
       while (date <= last) {
-        (grouped[dateKey(date)] ||= []).push(event);
+        const bucket = (grouped[dateKey(date)] ||= []);
+        const normalizedTitle = String(event.title || '').replace(/[\s·ㆍ・]+/g, '').toLowerCase();
+        const duplicate = bucket.some(item => String(item.title || '').replace(/[\s·ㆍ・]+/g, '').toLowerCase() === normalizedTitle
+          && item.startDate === event.startDate && (item.endDate || item.startDate) === (event.endDate || event.startDate));
+        if (!duplicate) bucket.push(event);
         date.setDate(date.getDate() + 1);
       }
     });

@@ -32,7 +32,7 @@ test('AI generation request keeps the source template read-only and separates ou
 
 test('AI module manifest resolves every independently versioned rule file', () => {
   const manifest = JSON.parse(fs.readFileSync(new URL('ai-design/module-manifest.json', root)));
-  assert.equal(manifest.version, '1.4.0');
+  assert.equal(manifest.version, '1.5.0');
   assert.equal(manifest.storagePolicy.publishedPackage, 'read-only');
   for (const relative of Object.values(manifest.rules)) assert.ok(fs.existsSync(new URL(`ai-design/${relative}`, root)), relative);
 });
@@ -53,7 +53,7 @@ test('AI settings summary reads the current pageInstances structure', () => {
   const settings = loadScript('ai-design-settings.js', 'ACDLAIDesignSettings');
   const summary = settings.summary({book:{pageInstances:[{role:'cover-front'},{role:'monthly-front'}]},productType:{category:'desk',pageSize:{width:260,height:180,unit:'mm'}},settings:{year:2027,startMonth:3}});
   assert.equal(summary.pageCount, 2);
-  assert.match(summary.versions.promptSet, /@0\.6\.0$/);
+  assert.match(summary.versions.promptSet, /@0\.7\.0$/);
 });
 
 test('new-template completion applies the selected sample only to a separate draft project', () => {
@@ -74,8 +74,10 @@ test('new-template completion applies the selected sample only to a separate dra
   assert.match(html, /project\.template\.aiDesignDraft\.neutralBase=prepareNeutralAIDesignBase\(aiDesignMockSession\)/);
   assert.match(html, /project\.template\.aiDesignDraft\.quality=\{\.\.\.qualityReport,regeneration\}/);
   assert.match(html, /qualityReport\.status==='failed'\?"quality-review-required":"sample-applied"/);
-  assert.match(html, /project\.template\.aiDesignDraft\.session=structuredClone\(aiDesignMockSession\)/);
-  assert.match(html, /project\.template\.aiDesignDraft\.selectedVariant=structuredClone\(selected\)/);
+  assert.match(html, /createDraft\(aiDesignMockSession\)\.session/);
+  assert.match(html, /createDraft\(aiDesignMockSession\)\.selectedVariant/);
+  assert.match(html, /locked:true,selectable:false/);
+  assert.match(html, /assetId:asset\.id/);
   assert.match(html, /resources\?\.aiDesignAssets/);
   assert.match(html, /resource\.src=result\.asset\.dataUrl/);
   assert.match(html, /selected\.generated\?"live-ai-generation":"bundled-ai-sample"/);

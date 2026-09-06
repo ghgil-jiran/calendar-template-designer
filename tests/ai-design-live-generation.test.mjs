@@ -11,17 +11,18 @@ test('live image prompt protects editable calendar and school data', () => {
   assert.match(prompt,/never invent or embed a school photo/i);
   assert.match(prompt,/#315e9e/);
   assert.match(prompt,/Page role: 표지/);
-  assert.match(prompt,/empty photo-frame/i);
+  assert.match(prompt,/Never create photo frames/i);
   assert.match(prompt,/editable year and title/i);
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.6.0.js');
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.6.0');
+  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.7.0.js');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.7.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','school-symbols','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
     assert.match(prompt,/Never rasterize editable content/i);
+    assert.match(prompt,/Never create photo frames, cards, panels, dividers/i);
     assert.match(prompt,new RegExp(`Page role: ${prompts.ROLE_PROMPTS[pageRole].label}`));
   }
 });
@@ -33,14 +34,14 @@ test('prompt carries the design rhythm, month-back variation, decoration and mat
   assert.match(prompt,/Month-back variation: mirror .* odd and even months/);
   assert.match(prompt,/Decoration family: .*postmark-inspired shapes/);
   assert.match(prompt,/Material: warm ivory paper/);
-  assert.match(prompt,/designer will make the final composition/i);
+  assert.match(prompt,/designer will create the complete composition/i);
 });
 
 test('design spec selects role-specific composition guidance without rasterizing editable content',()=>{
   const designSpec={schemaVersion:'ai-design-spec.v1',version:'0.1.0',styleId:'geometry',pageTypes:{month:'split-calendar-image'},expression:{decoration:'high',photoMode:'mixed',seasonal:'high',density:'medium'},protectedContent:['calendar-data','event-text']};
   const input=validateGenerationInput({styleKey:'balanced',pageRole:'month',request:{designSpec}}),prompt=buildImagePrompt(input);
   assert.equal(input.designSpec.pageTypeId,'split-calendar-image');
-  assert.match(prompt,/Selected editable composition: split-calendar-image/);
+  assert.match(prompt,/editable composition is split-calendar-image/);
   assert.match(prompt,/vertical image field beside the calendar grid/);
   assert.match(prompt,/modern geometry/);
   assert.match(prompt,/Protected content contract: calendar-data, event-text/);

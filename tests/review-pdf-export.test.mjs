@@ -24,3 +24,11 @@ test('review PDF reuses clean preview clones and restores editor state',()=>{
  assert.match(html,/window\.print\(\)/);
  assert.match(html,/setTimeout\(cleanup,0\)/);
 });
+
+test('review PDF compresses AI backgrounds and hides empty image instructions',()=>{
+ assert.match(html,/optimizeReviewBackgrounds/);
+ assert.match(html,/toDataURL\('image\/jpeg',\.72\)/);
+ assert.match(html,/data-element-role="ai-design-background"/);
+ assert.match(html,/frame-placeholder non-output editor-only/);
+ assert.match(html,/frame-shell\.empty-frame/);
+});

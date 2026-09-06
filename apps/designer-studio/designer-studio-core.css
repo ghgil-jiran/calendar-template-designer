@@ -26,6 +26,8 @@
 .element-toolbar .scope select{height:31px;width:auto;padding:0 7px}
 .free-layer{position:absolute;inset:0;pointer-events:none;z-index:20}
 .free-element{position:absolute;border:2px solid transparent;pointer-events:auto;cursor:move;min-width:16px;min-height:12px;overflow:visible}
+.free-element[data-element-role="ai-design-background"]{pointer-events:none!important;cursor:default!important;z-index:0!important}
+.frame-shell.empty-frame{background:repeating-linear-gradient(135deg,rgba(226,232,240,.34) 0,rgba(226,232,240,.34) 8px,rgba(255,255,255,.22) 8px,rgba(255,255,255,.22) 16px)!important}
 .free-element.active{border-color:var(--accent);box-shadow:0 0 0 1px white inset}
 .free-element.master-element.active{border-style:dashed}
 .free-text{width:100%;height:100%;display:flex;padding:5px;white-space:pre-wrap;overflow:hidden}
@@ -99,6 +101,8 @@
  body.review-pdf-printing .review-pdf-sheet{position:relative;box-sizing:border-box;overflow:hidden;break-after:page;page-break-after:always;background:#fff}
  body.review-pdf-printing .review-pdf-sheet:last-child{break-after:auto;page-break-after:auto}
  body.review-pdf-printing .review-pdf-sheet>.page{position:relative!important;inset:auto!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;transform:none!important;zoom:1!important;box-shadow:none!important;border-radius:0!important;overflow:hidden!important}
+ body.review-pdf-printing .frame-placeholder{display:none!important}
+ body.review-pdf-printing .frame-shell.empty-frame{background:transparent!important}
 }
 .review-pdf-root{display:none}
 

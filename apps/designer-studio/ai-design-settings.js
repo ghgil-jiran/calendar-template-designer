@@ -1,5 +1,5 @@
 (function(root){
- const VERSION=Object.freeze({module:'1.4.0',promptSet:'school-calendar-design@0.6.0',styleProfile:'school-calendar-styles@0.1.0',pageRules:'calendar-page-rules@0.5.0',qualityProfile:'print-safe-quality@0.1.0'});
+ const VERSION=Object.freeze({module:'1.5.0',promptSet:'school-calendar-design@0.7.0',styleProfile:'school-calendar-styles@0.1.0',pageRules:'calendar-page-rules@0.6.0',qualityProfile:'print-safe-quality@0.1.0'});
  const ROLE_LABELS=Object.freeze({cover:'표지',annual:'연력','school-symbols':'학교 상징·간지',month:'월력','month-back':'월력 뒷면','back-cover':'뒷표지'});
  const MONTH_BACK_COMPONENT_LABELS=Object.freeze({'image':'이미지','current-calendar':'뒷면 월력','previous-mini-calendar':'전달 미니 월력','next-mini-calendar':'다음 달 미니 월력','planner-monthly-goal':'월 목표','planner-checklist':'할 일 리스트','planner-weekly':'주별 계획','memo':'메모','month-date-strip':'월력 띠력'});
  function projectPages(project){return project?.book?.pageInstances||project?.book?.pages||[]}
@@ -40,6 +40,16 @@
  function selectMonthBackLayout(session,variantId,layoutId){return {...session,variants:session.variants.map(variant=>variant.id!==variantId?variant:{...variant,selectedMonthBackLayoutId:layoutId,monthBackLayouts:variant.monthBackLayouts.map(layout=>({...layout,selected:layout.id===layoutId}))})}}
  function regeneratePage(session,variantId,role){return {...session,variants:session.variants.map(variant=>variant.id!==variantId?variant:{...variant,pagePlans:variant.pagePlans.map(plan=>plan.role!==role?plan:{...plan,revision:plan.revision+1,status:'mock-regenerated'})})}}
  function canEnterEditor(session){const selected=session?.variants?.find(item=>item.id===session.selectedVariantId);if(!selected)return false;return !session.conditions?.monthBackComposition?.components?.length||!!selected.selectedMonthBackLayoutId}
- function createDraft(session,createdAt=new Date().toISOString()){if(!canEnterEditor(session))throw new Error('AI design proposal selection is required');const selected=session.variants.find(item=>item.id===session.selectedVariantId);return {schemaVersion:'ai-design-draft.v0',status:'selected-not-applied',createdAt,session:JSON.parse(JSON.stringify(session)),selectedVariant:JSON.parse(JSON.stringify(selected))}}
+ function omitAssetPayloads(value){
+  if(Array.isArray(value))return value.map(omitAssetPayloads);
+  if(!value||typeof value!=='object')return value;
+  const output={};
+  for(const [key,entry] of Object.entries(value)){
+   if(['sampleAsset','assetsByRole','monthlyAssets'].includes(key))continue;
+   output[key]=omitAssetPayloads(entry);
+  }
+  return output;
+ }
+ function createDraft(session,createdAt=new Date().toISOString()){if(!canEnterEditor(session))throw new Error('AI design proposal selection is required');const selected=session.variants.find(item=>item.id===session.selectedVariantId);return {schemaVersion:'ai-design-draft.v1',status:'selected-not-applied',createdAt,assetStorage:'template.resources.aiDesignAssets',session:omitAssetPayloads(session),selectedVariant:omitAssetPayloads(selected)}}
  root.ACDLAIDesignSettings=Object.freeze({VERSION,ROLE_LABELS,MONTH_BACK_COMPONENT_LABELS,MONTH_BACK_LAYOUTS,VARIANT_BLUEPRINTS,PAGE_PLAN_BLUEPRINTS,pageRoles,summary,monthlyVariations,monthBackLayouts,createSession,selectVariant,selectMonthBackLayout,regeneratePage,canEnterEditor,createDraft});
 })(typeof window==='undefined'?globalThis:window);

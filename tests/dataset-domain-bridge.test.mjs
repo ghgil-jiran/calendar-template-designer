@@ -50,6 +50,12 @@ assert.deepEqual(Object.keys(grouped), [
 ]);
 assert.equal(grouped['2027-03-03'][0], opening);
 assert.equal(grouped['2027-03-07'][0], counseling);
+const duplicateHolidays = groupEventsByDate([
+  { id: 'holiday-a', title: '어린이날', startDate: '2027-05-05' },
+  { id: 'holiday-b', title: '어린이 날', startDate: '2027-05-05' },
+  { id: 'holiday-c', title: '어린이날', startDate: '2027-05-05', endDate: '2027-05-05' }
+]);
+assert.equal(duplicateHolidays['2027-05-05'].length, 1);
 assert.deepEqual(groupEventsByDate(), {});
 
 assert.equal(monthKey(2027, 3), '2027-03');
