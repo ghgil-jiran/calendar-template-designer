@@ -32,7 +32,7 @@ test('AI generation request keeps the source template read-only and separates ou
 
 test('AI module manifest resolves every independently versioned rule file', () => {
   const manifest = JSON.parse(fs.readFileSync(new URL('ai-design/module-manifest.json', root)));
-  assert.equal(manifest.version, '1.5.0');
+  assert.equal(manifest.version, '1.6.0');
   assert.equal(manifest.storagePolicy.publishedPackage, 'read-only');
   for (const relative of Object.values(manifest.rules)) assert.ok(fs.existsSync(new URL(`ai-design/${relative}`, root)), relative);
 });

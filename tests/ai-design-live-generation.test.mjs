@@ -109,8 +109,8 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
 
 test('AI generation controls render independently from the Vault connection controls', () => {
   const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
-  assert.match(html,/실제 AI 대표 디자인 세트 생성/);
-  assert.match(html,/디자인 스타일/);
+  assert.match(html,/실제 AI 대표 디자인 생성/);
+  assert.match(html,/앞 단계 디자인 스타일/);
   assert.match(html,/단정한 균형형/);
   assert.match(html,/사계절 연결형/);
   assert.match(html,/사진 중심 브랜드형/);
@@ -119,7 +119,8 @@ test('AI generation controls render independently from the Vault connection cont
   assert.match(html,/if\(!el\("aiDesignOpenAIKey"\)\)/);
   assert.match(html,/if\(!el\("generateLiveAIDesignBtn"\)\)/);
   assert.match(html,/function escapeHtml\(value\)\{return v21Escape\(value\)\}/);
-  assert.match(html,/대표 디자인 세트 2개 생성/);
+  assert.match(html,/대표 디자인 1개 생성/);
+  assert.match(html,/count=1/);
   assert.match(html,/for\(let variantIndex=0;variantIndex<count;variantIndex\+=1\)/);
   assert.match(html,/for\(const pageRole of roles\)/);
   assert.match(html,/pageRole,variantIndex/);
@@ -136,17 +137,33 @@ test('AI generation controls render independently from the Vault connection cont
   assert.match(html,/metadata\.promptVersion/);
 });
 
-test('live AI results stay hidden until generation finishes and the user opens them', () => {
+test('one live AI result opens automatically and waits for explicit selection', () => {
   const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
   assert.match(html,/aiDesignGenerationState="idle"/);
   assert.match(html,/aiDesignResultsRevealed=false/);
   assert.match(html,/aiDesignGenerationState!=="complete"\|\|!aiDesignMockSession\|\|!aiDesignResultsRevealed/);
-  assert.match(html,/sampleActions\.classList\.toggle\("hidden",aiDesignGenerationState!=="complete"\)/);
+  assert.match(html,/sampleActions\.classList\.add\("hidden"\)/);
   assert.match(html,/class="ai-live-progress" role="status" aria-live="polite"/);
-  assert.match(html,/디자인 페이지 \$\{current\}\/\$\{total\} 생성 중/);
-  assert.match(html,/aiDesignGenerationState="complete";renderAIDesignGenerationState\(\{total:count\}\);renderAIDesignMockSession\(\)/);
-  assert.match(html,/function showCompletedAIDesignResults\(\)\{[^}]*aiDesignResultsRevealed=true;renderAIDesignMockSession\(\)/);
+  assert.match(html,/대표 페이지 \$\{current\}\/\$\{total\} 생성 중/);
+  assert.match(html,/aiDesignGenerationState="complete";aiDesignResultsRevealed=true/);
+  assert.match(html,/이 디자인으로 진행/);
+  assert.match(html,/대표 디자인 1개 생성 완료/);
   assert.match(html,/aiDesignGenerationState="failed"/);
+});
+
+test('AI setup is initialized from the saved design type specification',()=>{
+  const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
+  const css=fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css',import.meta.url),'utf8');
+  assert.match(html,/function initializeAIDesignFromDesignSpec\(\)/);
+  assert.match(html,/aiDesignInputSignature!==signature/);
+  assert.match(html,/aiDesignGenerationState="idle"/);
+  assert.match(html,/aiDesignDecorationDensity:spec\.expression\.decoration/);
+  assert.match(html,/aiDesignPhotoMode:spec\.expression\.photoMode/);
+  assert.match(html,/aiDesignSeasonalVariation:spec\.expression\.seasonal/);
+  assert.match(html,/대표 디자인 미리보기/);
+  assert.match(css,/\.ai-design-proposal-grid\{grid-template-columns:minmax\(0,1fr\)\}/);
+  assert.match(css,/\.ai-page-preview\{height:150px/);
+  assert.doesNotMatch(html,/다시 설정하기/);
 });
 
 test('the selected representative set expands to eleven remaining monthly front and back assets', () => {

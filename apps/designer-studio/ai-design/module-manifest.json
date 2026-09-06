@@ -1,6 +1,6 @@
 {
   "id": "ai-design-editor",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "host": "calendar-template-editor@1.3",
   "entryStep": "template-settings.ai-design",
   "rules": {
