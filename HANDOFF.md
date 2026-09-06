@@ -1,5 +1,17 @@
 # Handoff
 
+## 2026-09-06 AI 생성 이미지 저장·재열기 Production 최종 성공
+
+- Production에서 기존 AI 생성 템플릿의 `편집`과 `이 템플릿으로 새로 만들기`를 모두 최종 확인했다.
+- 페이지 선택, AI 생성 이미지 표시, 초안 저장이 정상 동작한다. 이미지 요청은 `/api/template-assets?content=<asset-id>`로 처리되며 사용자 캡처에서 전체 요청이 HTTP 200이고 브라우저 `blob:` URL로 정상 변환되는 것을 확인했다.
+- 반복 실패의 최종 원인은 공통 Runtime의 달력·이미지 개체 누락이 아니라, 과거 저장본에 남은 Supabase 비공개 Storage 서명 URL이었다. 서명 URL은 만료되고 브라우저가 외부 응답을 ORB로 차단하므로 재열기 때 이미지를 직접 복원할 수 없었다.
+- 신규 저장본은 `acdl-asset://<id>` 영구 참조를 사용한다. 기존 저장본은 열 때 과거 서명 URL에서 `storage_path`를 추출하고, DB의 `template_assets` 레코드와 자산 ID를 찾아 동일 출처 인증 API로 내려받은 뒤 `blob:` URL로 표시한다. 다음 저장부터는 영구 참조로 자동 전환한다.
+- 관련 API는 `ids`, `paths`, `content` 세 경로를 지원한다. 브라우저가 Supabase 서명 URL을 직접 요청하지 않는 것이 정상 기준이다.
+- 최종 운영 커밋은 `3d50d94d838813c3a3bde472777b104e89207613` (`fix: migrate legacy signed template assets`)이다. 선행 수정은 `aeea6c98b990b14c9413a3d2083cd2ecbaf34a47`과 캐시 무효화 `a6c204caeee3f8646970f3924e6e14aa16f28a52`다.
+- 전체 `npm run build`, Studio 회귀검사 293/293, Sprint 2 제품 검사, 인라인 스크립트 24개가 통과했다. Production에서도 `legacyStoragePath`와 `template-assets?paths`가 배포된 것을 확인했다.
+- 회귀 확인 기준: 기존 템플릿 `편집` 및 `이 템플릿으로 새로 만들기`에서 이미지·페이지 이동·저장·검토용 PDF를 확인하고, Network에 외부 Supabase URL의 `ERR_BLOCKED_BY_ORB`가 없어야 한다.
+- 다음 구조개선 우선순위: 약 714KB의 거대한 `apps/designer-studio/index.html` 실행 코드를 AI 디자인 생성·월력 렌더링·개체 편집·미리보기/PDF·템플릿 라이브러리 모듈로 단계적으로 분리한다. 화면 동작을 바꾸지 않으면서 저장·배포 속도와 수정 안정성을 높이는 작업이다.
+
 ## 2026-09-06 템플릿 라이브러리 저장본 복원 수정
 
 - `편집`과 `이 템플릿으로 새로 만들기`의 문서 준비를 `template-project-loader.js`로 통일했다.
