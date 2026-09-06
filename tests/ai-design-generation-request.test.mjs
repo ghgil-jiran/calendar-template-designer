@@ -57,7 +57,7 @@ test('AI settings summary reads the current pageInstances structure', () => {
 });
 
 test('new-template completion applies the selected sample only to a separate draft project', () => {
-  const html = fs.readFileSync(new URL('index.html', root), 'utf8')+fs.readFileSync(new URL('features/ai-design-runtime.js', root), 'utf8');
+  const html = fs.readFileSync(new URL('index.html', root), 'utf8')+fs.readFileSync(new URL('features/studio-runtime-core.js', root), 'utf8')+fs.readFileSync(new URL('features/ai-design-runtime.js', root), 'utf8');
   assert.match(html, /function applyAIDesignSampleDraft\(session\)/);
   assert.match(html, /function prepareNeutralAIDesignBase\(session\)/);
   assert.match(html, /schemaVersion:"ai-design-neutral-base\.v1"/);

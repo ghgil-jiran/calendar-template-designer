@@ -92,7 +92,7 @@ test('browser client stores a submitted key only through the authenticated confi
   assert.doesNotMatch(source,/localStorage|sessionStorage|indexedDB/);
 });
 
-const studioSource=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8')+fs.readFileSync(new URL('../apps/designer-studio/features/ai-design-runtime.js',import.meta.url),'utf8');
+const studioSource=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8')+fs.readFileSync(new URL('../apps/designer-studio/features/studio-runtime-core.js',import.meta.url),'utf8')+fs.readFileSync(new URL('../apps/designer-studio/features/ai-design-runtime.js',import.meta.url),'utf8');
 
 test('generation endpoint reads the OpenAI key from Supabase Vault', () => {
   const source=fs.readFileSync(new URL('../api/ai-design-generate.js',import.meta.url),'utf8');
@@ -158,7 +158,7 @@ test('one live AI result opens automatically and waits for explicit selection', 
 
 test('AI setup is initialized from the saved design type specification',()=>{
   const html=studioSource;
-  const css=fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css',import.meta.url),'utf8');
+  const css=fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css',import.meta.url),'utf8')+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-overrides.css',import.meta.url),'utf8');
   assert.match(html,/function initializeAIDesignFromDesignSpec\(\)/);
   assert.match(html,/aiDesignInputSignature!==signature/);
   assert.match(html,/aiDesignGenerationState="idle"/);

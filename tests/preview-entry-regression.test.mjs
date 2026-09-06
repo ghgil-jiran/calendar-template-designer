@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const html = readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+const html = readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+readFileSync(new URL('../apps/designer-studio/features/studio-runtime-core.js', import.meta.url), 'utf8');
 const previewState = readFileSync(new URL('../apps/designer-studio/preview-state.js', import.meta.url), 'utf8');
 
 test('preview controls are rebound once after legacy listeners are registered', () => {

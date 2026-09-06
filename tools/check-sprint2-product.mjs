@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 const readSource = path => fs.readFileSync(new URL(path, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
-const html=readSource('../apps/designer-studio/index.html')+readSource('../apps/designer-studio/features/object-editing.js');
+const html=readSource('../apps/designer-studio/index.html')+readSource('../apps/designer-studio/features/studio-runtime-core.js')+readSource('../apps/designer-studio/features/object-editing.js');
 const selectionModule=readSource('../apps/designer-studio/canvas-selection.js');
 const inputModule=readSource('../apps/designer-studio/canvas-input.js');
 const start=html.lastIndexOf('startElementPointer=function(e)');

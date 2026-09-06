@@ -4,6 +4,7 @@ import vm from 'node:vm';
 const file = new URL('../apps/designer-studio/index.html', import.meta.url);
 const html = fs.readFileSync(file, 'utf8');
 const featureFiles = [
+  '../apps/designer-studio/features/studio-runtime-core.js',
   '../apps/designer-studio/features/ai-design-runtime.js',
   '../apps/designer-studio/features/calendar-rendering.js',
   '../apps/designer-studio/features/object-editing.js',
@@ -37,6 +38,10 @@ for (const [index, code] of scripts.entries()) {
     console.error(`Inline script ${index + 1} 구문 검사 실패`);
     throw error;
   }
+}
+for (const relative of featureFiles) {
+  const code = fs.readFileSync(new URL(relative, import.meta.url), 'utf8');
+  new vm.Script(code, { filename: relative });
 }
 const release = html.match(/window\.ACDL_RELEASE=([^;]+);/);
 if (!release) throw new Error('ACDL_RELEASE 메타데이터가 없습니다.');

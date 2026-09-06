@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/object-editing.js'), 'utf8');
+const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/studio-runtime-core.js'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/object-editing.js'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/designer-studio-overrides.css'), 'utf8');
 
 test('editor columns keep independent scrolling inside the viewport', () => {
   assert.match(html, /\.insert-sidebar-host>\.drawer-body\{[^}]*overflow-y:auto[^}]*scrollbar-gutter:stable/);

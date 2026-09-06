@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/object-editing.js'), 'utf8');
+const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/studio-runtime-core.js'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/object-editing.js'), 'utf8');
 const datasetBridge = fs.readFileSync(path.resolve('apps/designer-studio/dataset-domain-bridge.js'), 'utf8');
 const runtimeAdapter = fs.readFileSync(path.resolve('apps/designer-studio/runtime-project-adapter.js'), 'utf8');
 
