@@ -1353,13 +1353,14 @@ function renderPage(){
   }
  }
  renderFreeElements(page);
- const monthTitleNode=page.querySelector(".calendar-region .month-title");
- if(monthTitleNode)monthTitleNode.addEventListener("click",e=>{
-  if(calendarEditing)return;
-  e.stopPropagation();calendarEditing=true;selectedElementId=null;selectedElementScope=null;render();
-  showEditorToast("월력을 선택했습니다. 테두리 조절점이나 Inspector에서 크기를 변경하세요.")
- });
- page.querySelectorAll("[data-date]").forEach(c=>c.addEventListener("click",e=>{e.stopPropagation();selectedDate=c.dataset.date;renderPage();renderInspector()}));
+ const selectMonthlyCalendar=e=>{
+  if(calendarEditing)return false;
+  e?.stopPropagation();calendarEditing=true;selectedElementId=null;selectedElementScope=null;render();
+  showEditorToast("월력을 선택했습니다. 테두리 조절점이나 Inspector에서 크기를 변경하세요.");return true
+ };
+ const calendarRegionNode=page.querySelector(".calendar-region");
+ if(calendarRegionNode)calendarRegionNode.addEventListener("click",e=>{if(!e.target.closest("[data-date]"))selectMonthlyCalendar(e)});
+ page.querySelectorAll("[data-date]").forEach(c=>c.addEventListener("click",e=>{if(selectMonthlyCalendar(e))return;e.stopPropagation();selectedDate=c.dataset.date;renderPage();renderInspector()}));
 }
 function dateEvents(){return selectedDate?project.book.events.filter(ev=>selectedDate>=ev.startDate&&selectedDate<=(ev.endDate||ev.startDate)):[]}
 
@@ -2821,7 +2822,7 @@ function graphicMarkup(view){
 }
 const v28RenderFreeElements=renderFreeElements;
 renderFreeElements=function(pageNode){
- let layer=document.createElement("div");layer.className="free-layer";
+ let backgroundLayer=document.createElement("div");backgroundLayer.className="ai-background-layer";let layer=document.createElement("div");layer.className="free-layer";
  allVisibleElements().forEach(view=>{
   const box=document.createElement("div");box.className=`free-element ${view._scope==="master"?"master-element":""} ${view.id===selectedElementId&&view._scope===selectedElementScope?"active":""}`;box.dataset.elementId=view.id;box.dataset.scope=view._scope;box.dataset.elementType=view.type;box.dataset.elementRole=view.role||"";box.style.left=view.x+"%";box.style.top=view.y+"%";box.style.width=view.width+"%";box.style.height=view.height+"%";box.style.zIndex=view.zIndex||1;
   if(["shape","vector","image-frame"].includes(view.type))box.innerHTML=graphicMarkup(view);
@@ -2830,8 +2831,8 @@ renderFreeElements=function(pageNode){
   else if(view.type==="text"){const t=document.createElement("div");t.className="free-text";t.textContent=resolveTextContent(view,selectedPage());applyTextElementStyles(t,view);box.appendChild(t)}
   else if(resolveElementImageSource(view)){const img=document.createElement("img"),s=view.imageStyle||{};img.className="free-image";img.src=resolveElementImageSource(view);img.alt=view.alt||"사용자 이미지";img.style.objectFit=view.fit||"cover";img.style.opacity=view.opacity??1;img.style.filter=`brightness(${s.brightness??100}%) contrast(${s.contrast??100}%) saturate(${s.saturation??100}%)`;img.style.transform=`scaleX(${s.flipX?-1:1}) scaleY(${s.flipY?-1:1})`;box.appendChild(img)}else{const empty=document.createElement("div");empty.className="free-image empty";empty.textContent="이미지를 선택하세요";box.appendChild(empty)}
   if(view.id===selectedElementId&&view._scope===selectedElementScope&&!preview){const lab=document.createElement("span");lab.className="elem-label";lab.textContent=view._scope==="master"?"MASTER":"PAGE";box.appendChild(lab);["e","s","se"].forEach(pos=>{const h=document.createElement("span");h.className="elem-handle "+pos;h.dataset.handle=pos;box.appendChild(h)})}
-  if(view.role!=="ai-design-background")box.addEventListener("pointerdown",startElementPointer);if(view.type==="image-frame")box.addEventListener("dblclick",e=>{e.stopPropagation();pendingImageElementId=view.id;pendingImageElementScope=view._scope;el("frameImageInput").value="";el("frameImageInput").click()});layer.appendChild(box)
- });pageNode.appendChild(layer)
+  if(view.role!=="ai-design-background")box.addEventListener("pointerdown",startElementPointer);if(view.type==="image-frame")box.addEventListener("dblclick",e=>{e.stopPropagation();pendingImageElementId=view.id;pendingImageElementScope=view._scope;el("frameImageInput").value="";el("frameImageInput").click()});(view.role==="ai-design-background"?backgroundLayer:layer).appendChild(box)
+ });if(backgroundLayer.childElementCount)pageNode.appendChild(backgroundLayer);pageNode.appendChild(layer)
 };
 function permissionHTML(item){const p=item.permissions||{};return `<div class="section element-inspector"><div class="inspector-group"><div class="inspector-group-title"><span>사용자 편집 권한</span><small>Designer only</small></div><div class="permission-grid">${[["move","이동"],["resize","크기"],["rotate","회전"],["color","색상"],["replaceImage","이미지 교체"],["delete","삭제"]].map(([k,n])=>`<label><input type="checkbox" data-permission="${k}" ${p[k]!==false?"checked":""}>${n} 허용</label>`).join("")}</div><button id="applyGraphicPermissions" class="action">권한 저장</button></div></div>`}
 function graphicShadowFields(style={}){return `<div class="grid2"><label>그림자<select id="graphicShadow"><option value="false" ${!style.shadow?"selected":""}>없음</option><option value="true" ${style.shadow?"selected":""}>표시</option></select></label><label>흐림<input id="graphicShadowBlur" type="number" min="0" max="50" value="${style.shadowBlur||0}"></label><label>가로 이동<input id="graphicShadowX" type="number" min="-50" max="50" value="${style.shadowX||0}"></label><label>세로 이동<input id="graphicShadowY" type="number" min="-50" max="50" value="${style.shadowY||0}"></label></div><label class="vector-color-swatch"><input id="graphicShadowColor" type="color" value="${style.shadowColor||"#000000"}"><span>그림자 색</span></label>`}

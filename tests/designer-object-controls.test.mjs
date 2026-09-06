@@ -8,6 +8,11 @@ assert.match(studio, /\.icon-toolbar \.toolbar-insert-tools,\.icon-toolbar \.too
 assert.match(studio, /preserveAspectRatio="none"/);
 assert.match(studio, /class="frame-placeholder non-output editor-only">이미지를 선택하세요/);
 assert.match(studio, /cls=`frame-shell frame-\$\{view\.frameType\|\|"rect"\} \$\{im\.src\?"":"empty-frame"\}`/);
+assert.match(studio, /\.ai-background-layer\{[^}]*z-index:1/);
+assert.match(studio, /\.calendar-region\{[^}]*z-index:5/);
+assert.match(studio, /\.free-layer\{[^}]*z-index:20/);
+assert.match(studio, /if\(selectMonthlyCalendar\(e\)\)return/);
+assert.match(studio, /if\(!e\.target\.closest\("\[data-date\]"\)\)selectMonthlyCalendar\(e\)/);
 assert.match(studio, /id="frameBrightness"/);
 assert.match(studio, /id="graphicShadowBlur"/);
 assert.match(studio, /editor-bleed-visible/);

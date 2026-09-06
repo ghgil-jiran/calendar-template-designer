@@ -78,6 +78,8 @@ test('new-template completion applies the selected sample only to a separate dra
   assert.match(html, /createDraft\(aiDesignMockSession\)\.selectedVariant/);
   assert.match(html, /locked:true,selectable:false/);
   assert.match(html, /assetId:asset\.id/);
+  assert.match(html, /view\.role==="ai-design-background"\?backgroundLayer:layer/);
+  assert.match(html, /backgroundLayer\.className="ai-background-layer"/);
   assert.match(html, /resources\?\.aiDesignAssets/);
   assert.match(html, /resource\.src=result\.asset\.dataUrl/);
   assert.match(html, /selected\.generated\?"live-ai-generation":"bundled-ai-sample"/);

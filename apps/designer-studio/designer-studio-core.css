@@ -24,9 +24,10 @@
 .element-toolbar button.primary{background:var(--accent);color:white;border-color:var(--accent)}
 .element-toolbar .scope{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
 .element-toolbar .scope select{height:31px;width:auto;padding:0 7px}
+.ai-background-layer{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
 .free-layer{position:absolute;inset:0;pointer-events:none;z-index:20}
 .free-element{position:absolute;border:2px solid transparent;pointer-events:auto;cursor:move;min-width:16px;min-height:12px;overflow:visible}
-.free-element[data-element-role="ai-design-background"]{pointer-events:none!important;cursor:default!important;z-index:0!important}
+.ai-background-layer .free-element[data-element-role="ai-design-background"]{pointer-events:none!important;cursor:default!important;z-index:0!important}
 .frame-shell.empty-frame{background:repeating-linear-gradient(135deg,rgba(226,232,240,.34) 0,rgba(226,232,240,.34) 8px,rgba(255,255,255,.22) 8px,rgba(255,255,255,.22) 16px)!important}
 .free-element.active{border-color:var(--accent);box-shadow:0 0 0 1px white inset}
 .free-element.master-element.active{border-style:dashed}
