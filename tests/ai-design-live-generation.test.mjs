@@ -194,6 +194,10 @@ test('the selected representative set expands to eleven remaining monthly front 
   assert.doesNotMatch(html,/async function startTemplateEditorAfterGeneration\(\)[\s\S]*?await expandSelectedAIDesignMonths\(\)/);
   assert.match(html,/selected\.monthlyAssets\?all/);
   assert.match(html,/monthlyAppliedPages/);
+  assert.match(html,/const AI_MONTH_BACK_SAMPLE_PHOTOS=Object\.freeze\(\[/);
+  assert.match(html,/binding:"calendar\.monthlyImages\.current"/);
+  assert.match(html,/sampleFallback:true/);
+  assert.match(html,/protectedCalendarClearArea:true/);
   assert.match(html,/pages=selected\.monthlyAssets\?all/);
   assert.match(html,/ACDLDesignSetExpansion\.createReport\(project,selected\)/);
   assert.match(html,/setExpansion\.status!=="complete"/);

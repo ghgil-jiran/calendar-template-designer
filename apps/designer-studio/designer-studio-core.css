@@ -103,7 +103,9 @@
  body.review-pdf-printing .review-pdf-sheet:last-child{break-after:auto;page-break-after:auto}
  body.review-pdf-printing .review-pdf-sheet>.page{position:relative!important;inset:auto!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;transform:none!important;zoom:1!important;box-shadow:none!important;border-radius:0!important;overflow:hidden!important}
  body.review-pdf-printing .frame-placeholder{display:none!important}
- body.review-pdf-printing .frame-shell.empty-frame{background:transparent!important}
+body.review-pdf-printing .frame-shell.empty-frame{background:transparent!important}
+body.review-pdf-printing .frame-shell.empty-frame .frame-outline{display:none!important}
+body.review-pdf-printing .free-element[data-element-role="ai-month-back-component"] .widget-mini-calendar{background:rgba(255,255,255,.97);box-shadow:0 0 0 5px rgba(255,255,255,.78)}
 }
 .review-pdf-root{display:none}
 
@@ -132,6 +134,7 @@
 .semantic-logo .semantic-media{height:100%}
 .semantic-motto{justify-content:center;align-items:center;text-align:center;padding:14px}
 .semantic-song .semantic-media{min-height:55%}
+.semantic-song .semantic-media img{object-fit:contain;background:#fff;filter:contrast(1.12);image-rendering:auto}
 .semantic-role-badge{position:absolute;left:4px;top:4px;background:rgba(28,40,58,.76);color:white;border-radius:4px;padding:2px 5px;font-size:8px;pointer-events:none;z-index:8}
 .content-lock{cursor:default}
 .mode-notice{padding:8px;border-radius:7px;background:#f3f6fa;color:#596579;font-size:10px;line-height:1.45;margin-bottom:8px}

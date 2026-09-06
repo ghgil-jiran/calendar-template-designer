@@ -32,3 +32,10 @@ test('review PDF compresses AI backgrounds and hides empty image instructions',(
  assert.match(html,/frame-placeholder non-output editor-only/);
  assert.match(html,/frame-shell\.empty-frame/);
 });
+
+test('review PDF removes empty frame outlines and protects mini-calendar readability',()=>{
+  const css=fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css',import.meta.url),'utf8');
+  assert.match(css,/review-pdf-printing \.frame-shell\.empty-frame \.frame-outline\{display:none!important\}/);
+  assert.match(css,/data-element-role="ai-month-back-component"\] \.widget-mini-calendar\{background:rgba\(255,255,255,\.97\)/);
+  assert.match(css,/\.semantic-song \.semantic-media img\{object-fit:contain/);
+});
