@@ -1,7 +1,8 @@
 # 달력 템플릿 에디터 구조 분리 계획
 
-- 문서 상태: Phase 1 기준
-- 기준 소스: `main`의 `d5784ae` (PR #5 병합본)
+- 문서 상태: 기존 장기 구조 계획 · 최신 실행 지도는 `06-DESIGNER-STUDIO-CODE-MAP-20260906.md`
+- 최초 기준 소스: `main`의 `d5784ae` (PR #5 병합본)
+- 최신 구조개선 기준선: `main@99aaf67a1e93b59fcdb8672480119ffdf8c310ba`
 - 대상 화면: `apps/designer-studio/index.html`
 - 우선 대상: 탁상형 학사달력 1종
 
