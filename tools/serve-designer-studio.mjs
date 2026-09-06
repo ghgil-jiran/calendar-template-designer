@@ -7,7 +7,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const portArgIndex = process.argv.indexOf('--port');
 const portArg = portArgIndex >= 0 ? process.argv[portArgIndex + 1] : undefined;
 const port = Number(portArg || process.env.PORT || 3000);
-const mime = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json; charset=utf-8', '.svg':'image/svg+xml', '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg' };
+const mime = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json; charset=utf-8', '.svg':'image/svg+xml', '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.webp':'image/webp' };
 const studioEntry = 'apps/designer-studio/index.html';
 const studioAssetAliases = new Map([
   ['/calendar-domain-bridge.js', 'apps/designer-studio/calendar-domain-bridge.js'],
@@ -67,7 +67,11 @@ const server = createServer(async (req,res)=>{
     if (url.pathname === '/favicon.ico') {
       res.writeHead(204, {'cache-control':'public, max-age=86400'});res.end();return;
     }
-    const rel = url.pathname === '/' || legacyEntryPaths.has(url.pathname) ? studioEntry : studioAssetAliases.get(url.pathname) || url.pathname.replace(/^\//,'');
+    const requestRel = url.pathname.replace(/^\//,'');
+    const sharedRootPath = /^(?:api|apps|design-system|packages)\//.test(requestRel);
+    const rel = url.pathname === '/' || legacyEntryPaths.has(url.pathname)
+      ? studioEntry
+      : studioAssetAliases.get(url.pathname) || (sharedRootPath ? requestRel : `apps/designer-studio/${requestRel}`);
     const file = normalize(join(root, rel));
     if (!file.startsWith(normalize(root))) throw new Error('invalid path');
     const data = await readFile(file);

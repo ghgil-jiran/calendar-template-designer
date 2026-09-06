@@ -388,6 +388,14 @@ test('local studio server handles the browser favicon request without a 404', ()
   assert.match(server, /res\.writeHead\(204/);
 });
 
+test('local studio server resolves extracted feature files from the Designer Studio directory', () => {
+  const server = fs.readFileSync(new URL('../tools/serve-designer-studio.mjs', import.meta.url), 'utf8');
+  assert.match(server, /`apps\/designer-studio\/\$\{requestRel\}`/);
+  assert.match(server, /\.webp':'image\/webp'/);
+  assert.match(studioHtml, /features\/ai-design-runtime\.js\?v=20260906\.1/);
+  assert.match(studioHtml, /features\/template-settings-library\.js\?v=20260906\.1/);
+});
+
 test('local and deployed entry points include the shared project asset resolver',()=>{
  const server=fs.readFileSync(new URL('../tools/serve-designer-studio.mjs',import.meta.url),'utf8');
  assert.match(studioHtml,/src="\.\/project-asset-resolver\.js\?v=20260906\.4"/);
