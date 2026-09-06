@@ -396,6 +396,14 @@ test('local studio server resolves extracted feature files from the Designer Stu
   assert.match(studioHtml, /features\/template-settings-library\.js\?v=20260906\.1/);
 });
 
+test('local studio server proxies authenticated API requests to Production', () => {
+  const server = fs.readFileSync(new URL('../tools/serve-designer-studio.mjs', import.meta.url), 'utf8');
+  assert.match(server, /ACDL_DEV_API_ORIGIN \|\| 'https:\/\/calendar-template-designer\.vercel\.app'/);
+  assert.match(server, /url\.pathname\.startsWith\('\/api\/'\)/);
+  assert.match(server, /\['accept', 'authorization', 'content-type'\]/);
+  assert.match(server, /redirect: 'manual'/);
+});
+
 test('local and deployed entry points include the shared project asset resolver',()=>{
  const server=fs.readFileSync(new URL('../tools/serve-designer-studio.mjs',import.meta.url),'utf8');
  assert.match(studioHtml,/src="\.\/project-asset-resolver\.js\?v=20260906\.4"/);

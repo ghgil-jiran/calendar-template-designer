@@ -7,6 +7,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const portArgIndex = process.argv.indexOf('--port');
 const portArg = portArgIndex >= 0 ? process.argv[portArgIndex + 1] : undefined;
 const port = Number(portArg || process.env.PORT || 3000);
+const apiOrigin = String(process.env.ACDL_DEV_API_ORIGIN || 'https://calendar-template-designer.vercel.app').replace(/\/$/, '');
 const mime = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json; charset=utf-8', '.svg':'image/svg+xml', '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.webp':'image/webp' };
 const studioEntry = 'apps/designer-studio/index.html';
 const studioAssetAliases = new Map([
@@ -67,6 +68,30 @@ const server = createServer(async (req,res)=>{
     if (url.pathname === '/favicon.ico') {
       res.writeHead(204, {'cache-control':'public, max-age=86400'});res.end();return;
     }
+    if (url.pathname.startsWith('/api/')) {
+      const chunks = [];
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        for await (const chunk of req) chunks.push(chunk);
+      }
+      const body = chunks.length ? Buffer.concat(chunks) : undefined;
+      const headers = {};
+      for (const name of ['accept', 'authorization', 'content-type']) {
+        if (req.headers[name]) headers[name] = req.headers[name];
+      }
+      const upstream = await fetch(`${apiOrigin}${url.pathname}${url.search}`, {
+        method: req.method,
+        headers,
+        body,
+        redirect: 'manual'
+      });
+      const data = Buffer.from(await upstream.arrayBuffer());
+      res.writeHead(upstream.status, {
+        'content-type': upstream.headers.get('content-type') || 'application/json; charset=utf-8',
+        'cache-control': 'no-store'
+      });
+      res.end(data);
+      return;
+    }
     const requestRel = url.pathname.replace(/^\//,'');
     const sharedRootPath = /^(?:api|apps|design-system|packages)\//.test(requestRel);
     const rel = url.pathname === '/' || legacyEntryPaths.has(url.pathname)
@@ -78,4 +103,7 @@ const server = createServer(async (req,res)=>{
     res.writeHead(200, {'content-type': mime[extname(file)] || 'application/octet-stream', 'cache-control':'no-store'});res.end(data);
   } catch (error) { res.writeHead(404, {'content-type':'text/plain; charset=utf-8'});res.end('Not found'); }
 });
-server.listen(port,'127.0.0.1',()=>console.log(`Designer Studio: http://localhost:${port}`));
+server.listen(port,'127.0.0.1',()=>{
+  console.log(`Designer Studio: http://localhost:${port}`);
+  console.log(`Designer Studio API proxy: ${apiOrigin}`);
+});
