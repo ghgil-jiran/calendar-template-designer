@@ -28,6 +28,13 @@ async function storageRequest(path,options={}){
   return body;
 }
 
+async function storageBinaryRequest(path){
+  const {url,key}=supabaseConfig();
+  const response=await fetch(`${url}/storage/v1/${path}`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
+  if(!response.ok){const error=new Error('Supabase asset download failed');error.statusCode=502;error.code='SUPABASE_STORAGE_FAILED';error.storageStatus=response.status;throw error}
+  return {bytes:Buffer.from(await response.arrayBuffer()),mimeType:response.headers.get('content-type')||'application/octet-stream'};
+}
+
 function decodeDataUrl(value){
   if(typeof value!=='string'||!value.startsWith('data:image/'))throw Object.assign(new Error('Invalid image data'),{statusCode:400,code:'INVALID_IMAGE'});
   const match=value.match(/^data:([^;,]+)(;base64)?,(.*)$/s);if(!match||!ALLOWED_IMAGE_TYPES.has(match[1]))throw Object.assign(new Error('Unsupported image type'),{statusCode:400,code:'INVALID_IMAGE'});
@@ -60,6 +67,14 @@ export async function resolveTemplateAssets(ids){
   const unique=[...new Set((Array.isArray(ids)?ids:[]).filter(id=>/^[0-9a-f-]{36}$/i.test(id)))];if(!unique.length)return [];
   const rows=await supabaseRequest(`template_assets?select=*&id=in.(${unique.map(encodeURIComponent).join(',')})`);
   return Promise.all(rows.map(signedAsset));
+}
+
+export async function readTemplateAsset(id){
+  if(!/^[0-9a-f-]{36}$/i.test(String(id||'')))throw Object.assign(new Error('Invalid asset id'),{statusCode:400,code:'INVALID_ASSET_ID'});
+  const rows=await supabaseRequest(`template_assets?select=*&id=eq.${encodeURIComponent(id)}&limit=1`),row=rows[0];
+  if(!row)throw Object.assign(new Error('Asset not found'),{statusCode:404,code:'ASSET_NOT_FOUND'});
+  const result=await storageBinaryRequest(`object/${encodeURIComponent(row.storage_bucket)}/${row.storage_path.split('/').map(encodeURIComponent).join('/')}`);
+  return {...result,mimeType:row.mime_type||result.mimeType,byteSize:Number(row.byte_size)};
 }
 
 function collectAssetIds(value,result=new Set()){

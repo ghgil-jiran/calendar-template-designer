@@ -7,7 +7,9 @@ const source = await readFile(new URL('../apps/designer-studio/template-remote-p
 
 function runtime({ hostname = 'templates.example.com', fetch, accessToken = 'admin-jwt' } = {}) {
   const values = new Map();
-  const window = { location: { hostname }, sessionStorage: { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) }, ACDLAdminAuth: { accessToken: () => accessToken, signOut() {} }, fetch };
+  let blobSequence=0;class BrowserURL extends URL{}BrowserURL.createObjectURL=()=>`blob:template-asset-${++blobSequence}`;
+  const browserFetch=async(path,options)=>String(path).startsWith('/api/template-assets?content=')?{ok:true,status:200,blob:async()=>new Blob(['image'])}:fetch(path,options);
+  const window = { location: { hostname }, URL:BrowserURL, sessionStorage: { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) }, ACDLAdminAuth: { accessToken: () => accessToken, signOut() {} }, fetch:browserFetch };
   vm.runInNewContext(source, { window, URL, console, structuredClone });
   return window.ACDLTemplateRemotePersistence;
 }
@@ -39,7 +41,7 @@ test('remote library keeps standard separate from publishing state', async () =>
 
 test('remote load returns a hydrated editor copy and keeps canonical asset markers for local recovery',async()=>{
  const marker='acdl-asset://11111111-1111-4111-8111-111111111111',api=runtime({fetch:async path=>path.startsWith('/api/template-assets?')?{ok:true,status:200,json:async()=>({assets:[{id:marker.slice('acdl-asset://'.length),url:'https://signed.example/current.webp'}]})}:{ok:true,status:200,json:async()=>({version:{projectData:{template:{resources:{aiDesignAssets:[{id:'bg',src:marker}]}},book:{elementsByPage:{page:[{id:'background',role:'ai-design-background',assetId:'bg'}]}}}}})}}),result=await api.load('template-1');
- assert.equal(result.version.projectData.template.resources.aiDesignAssets[0].src,'https://signed.example/current.webp');
+ assert.match(result.version.projectData.template.resources.aiDesignAssets[0].src,/^blob:template-asset-/);
  assert.equal(result.version.storedProjectData.template.resources.aiDesignAssets[0].src,marker);
 });
 
@@ -88,7 +90,7 @@ test('project images become stable asset references and hydrate with signed URLs
   const prepared = await api.prepareProjectData({ cover: { image: 'data:image/png;base64,YWJj' } });
   assert.equal(prepared.cover.image, 'acdl-asset://11111111-1111-4111-8111-111111111111');
   const hydrated = await api.hydrateProjectData(prepared);
-  assert.equal(hydrated.cover.image, 'https://signed.example/image.png');
+  assert.match(hydrated.cover.image, /^blob:template-asset-/);
   const resaved = await api.prepareProjectData(hydrated);
   assert.equal(resaved.cover.image, 'acdl-asset://11111111-1111-4111-8111-111111111111');
 });
@@ -108,16 +110,16 @@ test('AI design draft, quality report and regenerated backgrounds survive remote
   assert.match(prepared.book.elementsByPage['page-1'][0].src, /^acdl-asset:\/\//);
   assert.equal(prepared.template.aiDesignDraft.quality.pageCount, 28);
   const reopened = await api.hydrateProjectData(prepared);
-  assert.match(reopened.book.elementsByPage['page-1'][0].src, /^https:\/\/signed\.example\//);
+  assert.match(reopened.book.elementsByPage['page-1'][0].src, /^blob:template-asset-/);
   assert.equal(reopened.template.aiDesignDraft.status, 'sample-applied');
   assert.equal(reopened.template.aiDesignDraft.quality.regeneration.completed, 1);
 });
 
 test('resource-only AI backgrounds are materialized before remote save and reopen',async()=>{
- const api=runtime({fetch:async path=>path==='/api/template-assets'?{ok:true,status:201,json:async()=>({asset:{id:'11111111-1111-4111-8111-111111111111'}})}:{ok:true,status:200,json:async()=>({assets:[{id:'11111111-1111-4111-8111-111111111111',url:'https://signed.example/background.webp'}]})}}),project={template:{resources:{aiDesignAssets:[{id:'ai-cover',src:'data:image/webp;base64,Y292ZXI='}]}},book:{elementsByPage:{cover:[{role:'ai-design-background',assetId:'ai-cover'}]}}},prepared=await api.prepareProjectData(project);assert.match(prepared.book.elementsByPage.cover[0].src,/^acdl-asset:\/\//);const reopened=await api.hydrateProjectData(prepared);assert.equal(reopened.book.elementsByPage.cover[0].src,'https://signed.example/background.webp')
+ const api=runtime({fetch:async path=>path==='/api/template-assets'?{ok:true,status:201,json:async()=>({asset:{id:'11111111-1111-4111-8111-111111111111'}})}:{ok:true,status:200,json:async()=>({assets:[{id:'11111111-1111-4111-8111-111111111111',url:'https://signed.example/background.webp'}]})}}),project={template:{resources:{aiDesignAssets:[{id:'ai-cover',src:'data:image/webp;base64,Y292ZXI='}]}},book:{elementsByPage:{cover:[{role:'ai-design-background',assetId:'ai-cover'}]}}},prepared=await api.prepareProjectData(project);assert.match(prepared.book.elementsByPage.cover[0].src,/^acdl-asset:\/\//);const reopened=await api.hydrateProjectData(prepared);assert.match(reopened.book.elementsByPage.cover[0].src,/^blob:template-asset-/)
 });
 
-test('an already-saved resource-only AI background is repaired while reopening',async()=>{const api=runtime({fetch:async()=>({ok:true,status:200,json:async()=>({assets:[{id:'11111111-1111-4111-8111-111111111111',url:'https://signed.example/existing.webp'}]})})}),stored={template:{resources:{aiDesignAssets:[{id:'ai-cover',src:'acdl-asset://11111111-1111-4111-8111-111111111111'}]}},book:{elementsByPage:{cover:[{role:'ai-design-background',assetId:'ai-cover'}]}}},reopened=await api.hydrateProjectData(stored);assert.equal(reopened.book.elementsByPage.cover[0].src,'https://signed.example/existing.webp')});
+test('an already-saved resource-only AI background is repaired while reopening',async()=>{const api=runtime({fetch:async()=>({ok:true,status:200,json:async()=>({assets:[{id:'11111111-1111-4111-8111-111111111111',url:'https://signed.example/existing.webp'}]})})}),stored={template:{resources:{aiDesignAssets:[{id:'ai-cover',src:'acdl-asset://11111111-1111-4111-8111-111111111111'}]}},book:{elementsByPage:{cover:[{role:'ai-design-background',assetId:'ai-cover'}]}}},reopened=await api.hydrateProjectData(stored);assert.match(reopened.book.elementsByPage.cover[0].src,/^blob:template-asset-/)});
 
 test('an applied AI draft cannot silently reopen without its background resources',async()=>{const api=runtime({fetch:async()=>{throw new Error('must not fetch')}}),stored={template:{aiDesignDraft:{status:'sample-applied'},resources:{}},book:{elementsByPage:{cover:[]}}};await assert.rejects(()=>api.hydrateProjectData(stored),error=>error.code==='AI_DESIGN_INCOMPLETE')});
 
@@ -131,7 +133,7 @@ test('a historical version hydrates private asset references for preview', async
     return { ok: true, status: 200, json: async () => ({ assets: [{ id: '11111111-1111-4111-8111-111111111111', url: 'https://signed.example/history.png' }] }) };
   }});
   const version = await api.hydrateVersion({ id: 'v1', projectData: { image: 'acdl-asset://11111111-1111-4111-8111-111111111111' } });
-  assert.equal(version.projectData.image, 'https://signed.example/history.png');
+  assert.match(version.projectData.image, /^blob:template-asset-/);
 });
 
 

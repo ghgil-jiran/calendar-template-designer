@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   assertInternalAccess,
   listTemplates,
+  readTemplateAsset,
   saveDraft,
   saveVersion,
   storeTemplateAsset,
@@ -103,4 +104,13 @@ test('image assets upload once by content hash and return a private signed URL',
 
 test('unsupported asset types are rejected before storage access', async () => {
   await assert.rejects(() => storeTemplateAsset('data:text/plain;base64,YWJj'), error => error.code === 'INVALID_IMAGE');
+});
+
+test('private image bytes are read through the authenticated server boundary',async()=>{
+  globalThis.fetch=async url=>{
+    if(url.includes('/rest/v1/template_assets?select=*&id=eq.'))return response([{id:'11111111-1111-4111-8111-111111111111',storage_bucket:'template-assets',storage_path:'sha256/image.png',mime_type:'image/png',byte_size:3}]);
+    if(url.includes('/storage/v1/object/template-assets/'))return {ok:true,status:200,headers:new Headers({'content-type':'image/png'}),arrayBuffer:async()=>Buffer.from('abc')};
+    throw new Error(`unexpected ${url}`)
+  };
+  const asset=await readTemplateAsset('11111111-1111-4111-8111-111111111111');assert.equal(asset.mimeType,'image/png');assert.equal(asset.bytes.toString(),'abc')
 });

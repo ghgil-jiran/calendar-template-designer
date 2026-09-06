@@ -9,6 +9,11 @@
   if(!response.ok){if(response.status===401)root.ACDLAdminAuth?.signOut?.();throw Object.assign(new Error(response.status===401?'로그인이 만료되었습니다. 다시 로그인해주세요.':response.status===403?'Master Admin 권한이 필요합니다.':response.status===503?'원격 저장 환경 설정이 필요합니다.':'원격 저장 요청에 실패했습니다.'),{code:body.error||'REMOTE_REQUEST_FAILED',status:response.status})}
   return body;
  }
+ async function assetObjectUrl(id){
+  const token=accessToken(),response=await root.fetch(`/api/template-assets?content=${encodeURIComponent(id)}`,{headers:{Authorization:`Bearer ${token}`}});
+  if(!response.ok)throw Object.assign(new Error('저장된 이미지 자산을 불러오지 못했습니다.'),{code:'TEMPLATE_ASSET_DOWNLOAD_FAILED',status:response.status});
+  return root.URL.createObjectURL(await response.blob())
+ }
  function record(item){return {id:item.id,remoteId:item.id,stableKey:item.stableKey,name:item.name,description:item.description,edition:item.edition,state:item.state,isStandard:item.isStandard===true,type:item.productType,template:item.templateKey,version:item.latestVersionNumber,updatedAt:item.updatedAt,storage:'supabase',source:'local'}}
  function visit(value,callback){if(typeof value==='string'){callback(value);return}if(Array.isArray(value)){value.forEach(item=>visit(item,callback));return}if(value&&typeof value==='object')Object.values(value).forEach(item=>visit(item,callback))}
  function replace(value,replacements){if(typeof value==='string')return replacements.get(value)||value;if(Array.isArray(value))return value.map(item=>replace(item,replacements));if(value&&typeof value==='object'){for(const key of Object.keys(value))value[key]=replace(value[key],replacements);return value}return value}
@@ -36,7 +41,7 @@
   const copy=structuredClone(projectData),ids=new Set();visit(copy,value=>{const match=value.match(/^acdl-asset:\/\/([0-9a-f-]{36})$/i);if(match)ids.add(match[1])});if(!ids.size){onProgress?.({phase:'asset-resolve',completed:0,total:0});return assertAIDesignIntegrity(materializeAIDesignBackgrounds(copy))}
   onProgress?.({phase:'asset-resolve',completed:0,total:ids.size});
   const result=await request(`/api/template-assets?ids=${encodeURIComponent([...ids].join(','))}`),replacements=new Map();
-  (result.assets||[]).forEach(asset=>{const marker=`acdl-asset://${asset.id}`;replacements.set(marker,asset.url);signedToMarker.set(asset.url,marker)});
+  await Promise.all((result.assets||[]).map(async asset=>{const marker=`acdl-asset://${asset.id}`,url=await assetObjectUrl(asset.id);replacements.set(marker,url);signedToMarker.set(url,marker)}));
   const missing=[...ids].filter(id=>!replacements.has(`acdl-asset://${id}`));if(missing.length)throw Object.assign(new Error(`저장된 이미지 자산 ${missing.length}개를 불러오지 못했습니다.`),{code:'TEMPLATE_ASSETS_MISSING',missingAssetIds:missing});
   const hydrated=materializeAIDesignBackgrounds(replace(copy,replacements));onProgress?.({phase:'asset-resolve',completed:ids.size,total:ids.size});return assertAIDesignIntegrity(hydrated);
  }
@@ -48,5 +53,5 @@
  async function hydrateVersion(version){return version?.projectData?{...version,projectData:await hydrateProjectData(version.projectData)}:version}
  async function restore(templateId,versionId,saveNote){return request('/api/template-restore',{method:'POST',body:JSON.stringify({templateId,versionId,saveNote})})}
  async function packagePreflight(templateId){return request(`/api/template-package-preflight?templateId=${encodeURIComponent(templateId)}`)}
- root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareProjectData,hydrateProjectData});
+ root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareProjectData,hydrateProjectData,assetObjectUrl});
 })(window);

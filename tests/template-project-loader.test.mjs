@@ -17,10 +17,12 @@ test('saved template preparation rejects an empty page collection before editor 
  await assert.rejects(()=>runtime().prepare(broken),error=>error.code==='TEMPLATE_PROJECT_INVALID'&&/페이지/.test(error.message));
 });
 
-test('saved AI desk templates reject partial page collections before preview and PDF',async()=>{
+test('saved templates open their actual page collection when an old declaration is stale',async()=>{
  const broken=project();broken.book.pageInstances.pop();
- await assert.rejects(()=>runtime().prepare(broken),error=>error.code==='TEMPLATE_PROJECT_INVALID'&&error.details.expectedPageCount===28);
+ const prepared=await runtime().prepare(broken);assert.equal(prepared.book.pageInstances.length,27);assert.equal(prepared.template.pageRecovery.status,'opened-with-actual-pages');
 });
+
+test('saved pages recover a missing element collection instead of losing editor entry',async()=>{const broken=project();delete broken.book.elementsByPage;const prepared=await runtime().prepare(broken);assert.equal(Object.keys(prepared.book.elementsByPage).length,28)});
 
 test('complete pages still open when private image recovery temporarily fails',async()=>{
  const prepared=await runtime().prepare(project(),{hydrate:async()=>{throw Object.assign(new Error('signed url failed'),{code:'SIGNED_URL_FAILED'})},assertIntegrity:()=>{throw Object.assign(new Error('image missing'),{code:'AI_DESIGN_INCOMPLETE'})},allowAssetFallback:true});
