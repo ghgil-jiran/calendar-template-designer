@@ -232,7 +232,8 @@ test('template lifecycle separates status, standard, design editing and settings
   assert.doesNotMatch(runtime, /data-library-copy/);
   assert.doesNotMatch(runtime, /data-library-state-change/);
   assert.match(runtime, /status:result\.template\.state/);
-  assert.match(runtime, /라이브러리에 저장하는 중입니다\. 잠시만 기다려 주세요\./);
+  assert.match(runtime, /저장할 템플릿을 준비하고 있습니다\./);
+  assert.match(runtime, /AI 이미지 \$\{completed\}\/\$\{total\} 저장 중/);
   assert.match(runtime, /confirmButton\.disabled=true;cancelButton\.disabled=true;confirmButton\.textContent='저장 중…'/);
   assert.match(runtime, /dialog\.setAttribute\('aria-busy','true'\)/);
   assert.match(runtime, /feedback\.classList\.contains\('error'\)\)finish\(\)/);

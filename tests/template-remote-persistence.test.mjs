@@ -103,6 +103,8 @@ test('resource-only AI backgrounds are materialized before remote save and reope
 
 test('an already-saved resource-only AI background is repaired while reopening',async()=>{const api=runtime({fetch:async()=>({ok:true,status:200,json:async()=>({assets:[{id:'11111111-1111-4111-8111-111111111111',url:'https://signed.example/existing.webp'}]})})}),stored={template:{resources:{aiDesignAssets:[{id:'ai-cover',src:'acdl-asset://11111111-1111-4111-8111-111111111111'}]}},book:{elementsByPage:{cover:[{role:'ai-design-background',assetId:'ai-cover'}]}}},reopened=await api.hydrateProjectData(stored);assert.equal(reopened.book.elementsByPage.cover[0].src,'https://signed.example/existing.webp')});
 
+test('image uploads use bounded concurrency and report save progress',async()=>{let active=0,maxActive=0,sequence=0;const progress=[],api=runtime({fetch:async path=>{if(path==='/api/template-assets'){active++;maxActive=Math.max(maxActive,active);await new Promise(resolve=>setTimeout(resolve,5));active--;return {ok:true,status:201,json:async()=>({asset:{id:`11111111-1111-4111-8111-${String(++sequence).padStart(12,'0')}`}})}}return {ok:true,status:201,json:async()=>({template:{id:'t1'},version:{versionNumber:1}})}}}),images=Array.from({length:8},(_,index)=>`data:image/png;base64,${Buffer.from(String(index)).toString('base64')}`);await api.save({projectData:{images}},{concurrency:4,onProgress:value=>progress.push(value)});assert.equal(maxActive,4);assert.equal(progress.findLast(item=>item.phase==='assets').completed,8);assert.equal(progress.at(-1).phase,'complete')});
+
 test('a historical version hydrates private asset references for preview', async () => {
   const api = runtime({ fetch: async path => {
     assert.match(path, /^\/api\/template-assets\?ids=/);
