@@ -372,3 +372,10 @@ test('local studio server handles the browser favicon request without a 404', ()
   assert.match(server, /url\.pathname === '\/favicon\.ico'/);
   assert.match(server, /res\.writeHead\(204/);
 });
+
+test('cloning a saved template preserves its pages instead of rebuilding the basic layout', () => {
+  const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
+  const handler = runtime.slice(runtime.indexOf("el('confirmTemplateCloneBtn').onclick"), runtime.indexOf("function openSettings", runtime.indexOf("el('confirmTemplateCloneBtn').onclick")));
+  assert.doesNotMatch(handler, /rebuildProjectFromBasicSettings/);
+  assert.match(runtime, /designPreserved:true/);
+});

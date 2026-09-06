@@ -2092,9 +2092,7 @@ async function saveTemplateProjectData(id,data){await templateProjectDatabase.pu
 async function loadTemplateProjectData(id){
  const local=(await templateProjectDatabase.get(ACDL_STORE,id))?.data,remote=window.ACDLTemplateRemotePersistence,isRemoteId=/^[0-9a-f-]{36}$/i.test(String(id));
  if(!remote?.isRemote?.()||!isRemoteId){const localCopy=local?structuredClone(local):null;return window.ACDLProjectDocument?.migrateProject?.(localCopy)?.project||localCopy}
- try{const result=await remote.load(id),data=result?.version?.projectData;if(data){await saveTemplateProjectData(id,data);return window.ACDLProjectDocument?.migrateProject?.(structuredClone(data))?.project||data}}catch(error){console.warn("원격 템플릿 불러오기 실패",error)}
- const localCopy=local?structuredClone(local):null;
- return window.ACDLProjectDocument?.migrateProject?.(localCopy)?.project||localCopy;
+ try{const result=await remote.load(id),data=result?.version?.projectData;if(!data)throw new Error("원격 템플릿에 저장된 문서가 없습니다.");remote.assertAIDesignIntegrity?.(data);await saveTemplateProjectData(id,data);return window.ACDLProjectDocument?.migrateProject?.(structuredClone(data))?.project||data}catch(error){console.warn("원격 템플릿 불러오기 실패",error);const localCopy=local?structuredClone(local):null;if(localCopy){try{const hydrated=await remote.hydrateProjectData(localCopy);remote.assertAIDesignIntegrity?.(hydrated);showEditorToast?.("원격 저장본을 불러오지 못해 이 브라우저의 최근 복구본을 열었습니다.");return window.ACDLProjectDocument?.migrateProject?.(hydrated)?.project||hydrated}catch(localError){console.warn("로컬 템플릿 복구본도 불완전합니다.",localError)}}throw error}
 }
 async function refreshRemoteTemplateLibrary(){
  const remote=window.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return false;
@@ -2165,7 +2163,7 @@ async function openDesignerProjectFromRecord(t){
  el("setup").classList.add("hidden");
  el("userSetup").classList.add("hidden");
  let nextProject=null;
- try{const stored=await loadTemplateProjectData(t.id);if(stored)nextProject=structuredClone(stored);else if(t.projectData)nextProject=typeof t.projectData==="string"?JSON.parse(t.projectData):structuredClone(t.projectData)}catch(_){nextProject=null}
+ try{const stored=await loadTemplateProjectData(t.id);if(stored)nextProject=structuredClone(stored);else if(t.projectData)nextProject=typeof t.projectData==="string"?JSON.parse(t.projectData):structuredClone(t.projectData)}catch(error){throw error}
  if(!isCurrentProjectTransition(transitionId))return;
  project=nextProject;
  if(!project){

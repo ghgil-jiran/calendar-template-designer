@@ -17,17 +17,26 @@
   Object.values(projectData?.book?.elementsByPage||{}).flat().filter(item=>item?.role==='ai-design-background').forEach(item=>{const resourceId=item.assetId||item.aiDesign?.resourceId;if(!item.src&&resourceId&&byId.get(resourceId))item.src=byId.get(resourceId)});
   return projectData
  }
+ function aiDesignIntegrity(projectData){
+  const resources=projectData?.template?.resources?.aiDesignAssets||[],backgrounds=Object.values(projectData?.book?.elementsByPage||{}).flat().filter(item=>item?.role==='ai-design-background'),byId=new Map(resources.map(item=>[item.id,item]));
+  const unresolved=backgrounds.filter(item=>{const resourceId=item.assetId||item.aiDesign?.resourceId;return !item.src&&!(resourceId&&byId.get(resourceId)?.src)});
+  const draftStatus=String(projectData?.template?.aiDesignDraft?.status||''),expectsBackgrounds=Boolean(resources.length||draftStatus.includes('applied')||draftStatus.includes('complete'));
+  return {expectsBackgrounds,resourceCount:resources.length,backgroundCount:backgrounds.length,resolvedBackgroundCount:backgrounds.length-unresolved.length,unresolvedBackgroundIds:unresolved.map(item=>item.id||'(unknown)')}
+ }
+ function assertAIDesignIntegrity(projectData){const integrity=aiDesignIntegrity(projectData);if(integrity.expectsBackgrounds&&(!integrity.resourceCount||!integrity.backgroundCount||integrity.resolvedBackgroundCount!==integrity.backgroundCount))throw Object.assign(new Error('AI 디자인 배경이 완전하지 않아 템플릿을 저장하거나 열 수 없습니다.'),{code:'AI_DESIGN_INCOMPLETE',integrity});return projectData}
  async function prepareProjectData(projectData,{onProgress,concurrency=4}={}){
-  const copy=materializeAIDesignBackgrounds(structuredClone(projectData)),images=new Set();visit(copy,value=>{if(value.startsWith('data:image/'))images.add(value)});const replacements=new Map(signedToMarker);
+  const copy=assertAIDesignIntegrity(materializeAIDesignBackgrounds(structuredClone(projectData))),images=new Set();visit(copy,value=>{if(value.startsWith('data:image/'))images.add(value)});const replacements=new Map(signedToMarker);
   const pending=[...images],total=pending.length;let completed=0,next=0;onProgress?.({phase:'assets',completed,total});
   const worker=async()=>{while(next<total){const index=next++,dataUrl=pending[index],result=await request('/api/template-assets',{method:'POST',body:JSON.stringify({dataUrl})});replacements.set(dataUrl,`acdl-asset://${result.asset.id}`);completed+=1;onProgress?.({phase:'assets',completed,total})}};
   await Promise.all(Array.from({length:Math.min(Math.max(1,Number(concurrency)||1),total||1)},worker));
-  return replace(copy,replacements);
+  return assertAIDesignIntegrity(replace(copy,replacements));
  }
  async function hydrateProjectData(projectData){
-  const copy=structuredClone(projectData),ids=new Set();visit(copy,value=>{const match=value.match(/^acdl-asset:\/\/([0-9a-f-]{36})$/i);if(match)ids.add(match[1])});if(!ids.size)return copy;
+  const copy=structuredClone(projectData),ids=new Set();visit(copy,value=>{const match=value.match(/^acdl-asset:\/\/([0-9a-f-]{36})$/i);if(match)ids.add(match[1])});if(!ids.size)return assertAIDesignIntegrity(materializeAIDesignBackgrounds(copy));
   const result=await request(`/api/template-assets?ids=${encodeURIComponent([...ids].join(','))}`),replacements=new Map();
-  (result.assets||[]).forEach(asset=>{const marker=`acdl-asset://${asset.id}`;replacements.set(marker,asset.url);signedToMarker.set(asset.url,marker)});return materializeAIDesignBackgrounds(replace(copy,replacements));
+  (result.assets||[]).forEach(asset=>{const marker=`acdl-asset://${asset.id}`;replacements.set(marker,asset.url);signedToMarker.set(asset.url,marker)});
+  const missing=[...ids].filter(id=>!replacements.has(`acdl-asset://${id}`));if(missing.length)throw Object.assign(new Error(`저장된 이미지 자산 ${missing.length}개를 불러오지 못했습니다.`),{code:'TEMPLATE_ASSETS_MISSING',missingAssetIds:missing});
+  const hydrated=materializeAIDesignBackgrounds(replace(copy,replacements));return assertAIDesignIntegrity(hydrated);
  }
  async function list(){const body=await request('/api/templates');return (body.templates||[]).map(record)}
  async function load(id){const result=await request(`/api/templates?id=${encodeURIComponent(id)}`);if(result?.version?.projectData)result.version.projectData=await hydrateProjectData(result.version.projectData);return result}
@@ -37,5 +46,5 @@
  async function hydrateVersion(version){return version?.projectData?{...version,projectData:await hydrateProjectData(version.projectData)}:version}
  async function restore(templateId,versionId,saveNote){return request('/api/template-restore',{method:'POST',body:JSON.stringify({templateId,versionId,saveNote})})}
  async function packagePreflight(templateId){return request(`/api/template-package-preflight?templateId=${encodeURIComponent(templateId)}`)}
- root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,materializeAIDesignBackgrounds,prepareProjectData,hydrateProjectData});
+ root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareProjectData,hydrateProjectData});
 })(window);
