@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const source = readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+const source = readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+readFileSync(new URL('../apps/designer-studio/features/object-editing.js', import.meta.url), 'utf8');
 
 test('annual event list supports limited and full display modes', () => {
   assert.match(source, /id="eventListDisplayMode"/);

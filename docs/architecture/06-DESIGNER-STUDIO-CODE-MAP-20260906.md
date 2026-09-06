@@ -175,6 +175,23 @@ Production HTML은 기준 커밋과 같은 714,352 bytes이며 HTTP 200으로 �
 4. 기존 DOM ID와 이벤트 순서는 유지한다.
 5. 분리 완료 전에는 기존 함수 이름을 얇은 호환 wrapper로 남긴다.
 
-## 다음 실행 단위
+## 1차 구조 분리 결과
 
-첫 실제 이동은 AI 디자인 생성 묶음이다. 먼저 현재 AI 진입·확장·실패 복구 특성 테스트를 보강하고, 해당 함수만 새 파일로 이동한 뒤 공통 통과 절차를 수행한다. 월력 렌더링은 AI 묶음의 Production 확인이 끝난 뒤 시작한다.
+2026-09-06 작업 브랜치에서 화면과 데이터 계약을 변경하지 않고 다음 실행 코드를 이동했다.
+
+| 파일 | 크기 | 역할 |
+|---|---:|---|
+| `index.html` | 494,181 bytes | DOM, 공통 상태, bootstrap과 아직 분리하지 않은 호환 코드 |
+| `features/ai-design-runtime.js` | 64,569 bytes | AI 디자인 생성·적용·확장·품질 검사·편집 진입 |
+| `features/calendar-rendering.js` | 8,701 bytes | 월력 그리드·공공 달력·기간 일정·미니 월력 계산 |
+| `features/object-editing.js` | 116,271 bytes | 개체 렌더·선택·포인터 조작·Inspector·페이지 렌더 |
+| `features/preview-pdf.js` | 6,079 bytes | 현재/전체 미리보기와 페이지 품질 확인 |
+| `features/template-settings-library.js` | 25,063 bytes | 템플릿 설정 폼과 라이브러리 저장·복원 핵심 |
+
+- `index.html`은 기준선 714,352 bytes에서 494,181 bytes로 약 31% 감소했다.
+- 새 기능 파일은 공통 기반 모듈이 모두 로드된 뒤, 기존 인라인 bootstrap보다 먼저 실행된다.
+- 문자열 기반 회귀 테스트는 실제 기능 파일까지 함께 읽도록 변경했다.
+- `check-studio`는 HTML 단일 크기 대신 HTML과 기능 파일 전체의 필수 Runtime을 검사한다.
+- 전체 `npm run build`, Studio 293개 테스트, Sprint 2 제품 회귀 검사, 24개 인라인 스크립트 구문 검사를 통과했다.
+
+다음 검증 단계는 브라우저에서 기존 템플릿 열기, AI 생성 후 편집 진입, 월력 표시, 개체 편집, 전체 미리보기, 템플릿 저장·재열기를 순서대로 확인하는 것이다.

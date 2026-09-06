@@ -3,6 +3,15 @@ import vm from 'node:vm';
 
 const file = new URL('../apps/designer-studio/index.html', import.meta.url);
 const html = fs.readFileSync(file, 'utf8');
+const featureFiles = [
+  '../apps/designer-studio/features/ai-design-runtime.js',
+  '../apps/designer-studio/features/calendar-rendering.js',
+  '../apps/designer-studio/features/object-editing.js',
+  '../apps/designer-studio/features/preview-pdf.js',
+  '../apps/designer-studio/features/template-settings-library.js'
+];
+const featureSource = featureFiles.map(relative => fs.readFileSync(new URL(relative, import.meta.url), 'utf8')).join('\n');
+const studioSource = `${html}\n${featureSource}`;
 const requiredRuntimeMarkers = [
   'const SIZE_PRESETS=',
   'function makeProject(opts)',
@@ -10,11 +19,11 @@ const requiredRuntimeMarkers = [
   'function setUserWizardStep(step)',
   'window.resolveTextContent=resolveTextContent'
 ];
-if (html.startsWith('Warning: truncated output') || html.length < 500_000) {
-  throw new Error(`Designer Studio HTML이 불완전합니다: ${html.length} bytes`);
+if (html.startsWith('Warning: truncated output') || studioSource.length < 500_000) {
+  throw new Error(`Designer Studio 소스가 불완전합니다: ${studioSource.length} bytes`);
 }
 for (const marker of requiredRuntimeMarkers) {
-  if (!html.includes(marker)) throw new Error(`Designer Studio 필수 Runtime 누락: ${marker}`);
+  if (!studioSource.includes(marker)) throw new Error(`Designer Studio 필수 Runtime 누락: ${marker}`);
 }
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
   .map((match) => match[1])

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8');
+const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/object-editing.js'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/template-settings-library.js'), 'utf8');
 
 test('the shared editor header keeps context and one workspace navigation row', () => {
   assert.match(html, /id="appBrand"[^>]*>우리학교인쇄 CALENDAR EDITOR/);

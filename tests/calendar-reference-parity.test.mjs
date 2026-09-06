@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const studio = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+const studio = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')
+  + fs.readFileSync(new URL('../apps/designer-studio/features/calendar-rendering.js', import.meta.url), 'utf8')
+  + fs.readFileSync(new URL('../apps/designer-studio/features/object-editing.js', import.meta.url), 'utf8');
 const client = fs.readFileSync(new URL('../apps/designer-studio/schedule-api-client.js', import.meta.url), 'utf8');
 const proxy = fs.readFileSync(new URL('../api/calendar-reference.js', import.meta.url), 'utf8');
 
