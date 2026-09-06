@@ -3,7 +3,7 @@ import test from 'node:test';
 
 await import('../apps/designer-studio/editor-canvas-fit.js');
 
-const { fixedCanvasViewport } = globalThis.ACDLEditorCanvasFit;
+const { clampCanvasScale, fixedCanvasViewport } = globalThis.ACDLEditorCanvasFit;
 
 test('desk editor keeps one design canvas across browser widths', () => {
   const wide = fixedCanvasViewport({ pageWidth: 260, pageHeight: 180, availableWidth: 1000, availableHeight: 700 });
@@ -11,9 +11,15 @@ test('desk editor keeps one design canvas across browser widths', () => {
   assert.equal(wide.designWidth, 850);
   assert.equal(narrow.designWidth, 850);
   assert.equal(wide.designHeight, narrow.designHeight);
-  assert.equal(wide.scale, 1);
+  assert.ok(wide.scale > 1);
   assert.equal(narrow.scale, .55);
   assert.equal(narrow.displayWidth, 467.50000000000006);
+});
+
+test('manual canvas zoom is constrained to the supported 50–150 percent range', () => {
+  assert.equal(clampCanvasScale(.2), .5);
+  assert.equal(clampCanvasScale(1.1), 1.1);
+  assert.equal(clampCanvasScale(2), 1.5);
 });
 
 test('portrait products keep their fixed design canvas and fit both axes', () => {

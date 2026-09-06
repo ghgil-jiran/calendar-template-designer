@@ -155,6 +155,13 @@
   <button class="icon-tool" data-menu-action="align-bottom" title="페이지 아래쪽 맞춤"><span class="tool-icon">⇣</span><span class="tool-label">아래쪽</span></button>
  </div>
  <div class="toolbar-spacer"></div>
+ <div class="canvas-zoom-controls" role="group" aria-label="화면 크기 조절">
+  <button id="canvasZoomOutBtn" class="canvas-zoom-step" type="button" title="화면 축소" aria-label="화면 축소">−</button>
+  <input id="canvasZoomRange" type="range" min="50" max="150" step="5" value="100" aria-label="화면 배율">
+  <button id="canvasZoomInBtn" class="canvas-zoom-step" type="button" title="화면 확대" aria-label="화면 확대">＋</button>
+  <button id="canvasZoomPercentBtn" class="canvas-zoom-percent" type="button" title="화면 맞춤으로 전환">100%</button>
+  <button id="canvasFitBtn" class="canvas-fit-button active" type="button" aria-pressed="true">화면 맞춤</button>
+ </div>
  <div class="toolbar-scope"><label for="elementScope">추가 범위</label><select id="elementScope"><option value="page">현재 페이지</option><option value="master">같은 Master 전체</option></select></div>
  <input id="elementImageInput" class="hidden" type="file" accept="image/*"><input id="frameImageInput" class="hidden" type="file" accept="image/*"><input id="semanticImageInput" class="hidden" type="file" accept="image/*">
  <div class="hidden" aria-hidden="true"><button id="contentMode">이전 콘텐츠 모드</button><button id="templateMode">템플릿 설계</button><span id="modeHelp"></span><button id="previewBtn">현재 페이지 미리보기</button></div>
@@ -4297,11 +4304,25 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .workspace>.center .canvas-wrap{justify-content:flex-start}
 .editor-page-viewport{position:relative;flex:0 0 auto;margin-inline:auto;transform:none}
 .editor-page-viewport>.page{position:absolute!important;left:0!important;top:0!important;max-width:none!important;transform-origin:top left!important}
+.canvas-zoom-controls{display:flex;flex:0 0 auto;align-items:center;align-self:center;gap:5px;padding:4px 6px;border:1px solid #d7dfeb;border-radius:8px;background:#f8fafc}
+.canvas-zoom-controls button{height:28px;min-height:28px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#334155;font-size:10px;font-weight:800}
+.canvas-zoom-controls button:hover{border-color:#93b4e3;background:#eff6ff;color:#1d4ed8}
+.canvas-zoom-step{width:28px;padding:0;font-size:15px!important}.canvas-zoom-percent{width:46px;padding:0 5px;font-variant-numeric:tabular-nums}.canvas-fit-button{padding:0 9px;white-space:nowrap}
+.canvas-fit-button.active{border-color:#2563eb!important;background:#2563eb!important;color:#fff!important}
+#canvasZoomRange{width:88px;height:4px;margin:0 2px;accent-color:#2563eb;cursor:pointer}
+@media(max-width:1280px){#canvasZoomRange{width:64px}.canvas-fit-button{width:28px;padding:0;font-size:0!important}.canvas-fit-button::after{content:'맞춤';font-size:9px}}
 </style>
 <script id="editor-page-auto-fit-runtime">
 (()=>{
  const page=()=>document.getElementById('page'),viewport=()=>document.getElementById('editorPageViewport'),canvas=()=>document.querySelector('.workspace>.center .canvas-wrap');
- let frame=0;
+ let frame=0,mode='fit',manualScale=1;
+ const clamp=value=>window.ACDLEditorCanvasFit.clampCanvasScale(value,.5,1.5);
+ function updateControls(scale){
+  const percent=Math.round(scale*100),range=document.getElementById('canvasZoomRange'),percentButton=document.getElementById('canvasZoomPercentBtn'),fitButton=document.getElementById('canvasFitBtn');
+  if(range)range.value=String(Math.round(percent/5)*5);
+  if(percentButton)percentButton.textContent=`${percent}%`;
+  if(fitButton){fitButton.classList.toggle('active',mode==='fit');fitButton.setAttribute('aria-pressed',String(mode==='fit'))}
+ }
  function fitEditorPageToViewport(){
   frame=0;
   const node=page(),frameNode=viewport(),host=canvas(),size=typeof project!=='undefined'?project?.productType?.pageSize:null;
@@ -4309,20 +4330,28 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
   const width=Number(size.width),height=Number(size.height);
   if(!(width>0&&height>0)||host.clientWidth<1||host.clientHeight<1)return;
   const style=getComputedStyle(host),horizontalPadding=parseFloat(style.paddingLeft||0)+parseFloat(style.paddingRight||0),verticalPadding=parseFloat(style.paddingTop||0)+parseFloat(style.paddingBottom||0);
-  const availableWidth=Math.max(240,host.clientWidth-horizontalPadding-12),availableHeight=Math.max(240,host.clientHeight-verticalPadding-12),fit=window.ACDLEditorCanvasFit.fixedCanvasViewport({pageWidth:width,pageHeight:height,availableWidth,availableHeight});
-  node.style.width=`${fit.designWidth}px`;node.style.height=`${fit.designHeight}px`;node.style.transform=`scale(${fit.scale})`;
-  frameNode.style.width=`${fit.displayWidth}px`;frameNode.style.height=`${fit.displayHeight}px`;
-  frameNode.dataset.canvasScale=fit.scale.toFixed(4);frameNode.dataset.designWidth=String(fit.designWidth);frameNode.dataset.designHeight=fit.designHeight.toFixed(4);
+  const availableWidth=Math.max(240,host.clientWidth-horizontalPadding-12),availableHeight=Math.max(240,host.clientHeight-verticalPadding-12),fit=window.ACDLEditorCanvasFit.fixedCanvasViewport({pageWidth:width,pageHeight:height,availableWidth,availableHeight}),scale=mode==='fit'?fit.scale:clamp(manualScale);
+  node.style.width=`${fit.designWidth}px`;node.style.height=`${fit.designHeight}px`;node.style.transform=`scale(${scale})`;
+  frameNode.style.width=`${fit.designWidth*scale}px`;frameNode.style.height=`${fit.designHeight*scale}px`;
+  frameNode.dataset.canvasScale=scale.toFixed(4);frameNode.dataset.canvasZoomMode=mode;frameNode.dataset.designWidth=String(fit.designWidth);frameNode.dataset.designHeight=fit.designHeight.toFixed(4);
   node.dataset.fitAxis=fit.fitAxis;
+  updateControls(scale);
  }
  function scheduleFit(){if(frame)cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>requestAnimationFrame(fitEditorPageToViewport))}
+ function setManualScale(scale){mode='manual';manualScale=clamp(scale);scheduleFit()}
+ function setFitMode(){mode='fit';scheduleFit()}
  const priorRenderPage=window.renderPage;
  if(typeof priorRenderPage==='function')window.renderPage=function(){const result=priorRenderPage.apply(this,arguments);scheduleFit();return result};
  const host=canvas();
  if(host&&'ResizeObserver'in window)new ResizeObserver(scheduleFit).observe(host);
  window.addEventListener('resize',scheduleFit,{passive:true});
  window.visualViewport?.addEventListener('resize',scheduleFit,{passive:true});
- window.ACDLEditorPageFit=Object.freeze({fit:fitEditorPageToViewport,schedule:scheduleFit,designSize:()=>{const node=viewport();return node?{width:Number(node.dataset.designWidth),height:Number(node.dataset.designHeight),scale:Number(node.dataset.canvasScale)}:null}});
+ document.getElementById('canvasZoomRange')?.addEventListener('input',event=>setManualScale(Number(event.currentTarget.value)/100));
+ document.getElementById('canvasZoomOutBtn')?.addEventListener('click',()=>setManualScale((Number(viewport()?.dataset.canvasScale)||1)-.05));
+ document.getElementById('canvasZoomInBtn')?.addEventListener('click',()=>setManualScale((Number(viewport()?.dataset.canvasScale)||1)+.05));
+ document.getElementById('canvasZoomPercentBtn')?.addEventListener('click',setFitMode);
+ document.getElementById('canvasFitBtn')?.addEventListener('click',setFitMode);
+ window.ACDLEditorPageFit=Object.freeze({fit:fitEditorPageToViewport,schedule:scheduleFit,setFit:setFitMode,setScale:setManualScale,state:()=>({mode,scale:Number(viewport()?.dataset.canvasScale)||manualScale}),designSize:()=>{const node=viewport();return node?{width:Number(node.dataset.designWidth),height:Number(node.dataset.designHeight),scale:Number(node.dataset.canvasScale)}:null}});
  scheduleFit();
 })();
 </script>

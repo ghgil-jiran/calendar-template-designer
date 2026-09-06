@@ -1,5 +1,11 @@
 (function (root) {
-  function fixedCanvasViewport({ pageWidth, pageHeight, availableWidth, availableHeight, minimumScale = .55 }) {
+  function clampCanvasScale(value, minimumScale = .5, maximumScale = 1.5) {
+    const scale = Number(value);
+    if (!Number.isFinite(scale)) throw new TypeError('A finite canvas scale is required.');
+    return Math.min(maximumScale, Math.max(minimumScale, scale));
+  }
+
+  function fixedCanvasViewport({ pageWidth, pageHeight, availableWidth, availableHeight, minimumScale = .55, maximumScale = 1.5 }) {
     const width = Number(pageWidth);
     const height = Number(pageHeight);
     if (!(width > 0 && height > 0)) throw new TypeError('A positive print page size is required.');
@@ -9,7 +15,7 @@
     const widthScale = Number(availableWidth) * .94 / designWidth;
     const heightScale = Number(availableHeight) * .94 / designHeight;
     const fitScale = landscape ? widthScale : Math.min(widthScale, heightScale);
-    const scale = Math.min(1, Math.max(minimumScale, fitScale));
+    const scale = clampCanvasScale(fitScale, minimumScale, maximumScale);
     return Object.freeze({
       designWidth,
       designHeight,
@@ -20,5 +26,5 @@
     });
   }
 
-  root.ACDLEditorCanvasFit = Object.freeze({ fixedCanvasViewport });
+  root.ACDLEditorCanvasFit = Object.freeze({ clampCanvasScale, fixedCanvasViewport });
 })(typeof window !== 'undefined' ? window : globalThis);
