@@ -1,6 +1,6 @@
 (function(root){
  const signedToMarker=new Map();
- const isRemote=()=>!['localhost','127.0.0.1',''].includes(root.location?.hostname||'');
+ const isRemote=()=>root.ACDL_LOCAL_API_PROXY===true||!['localhost','127.0.0.1',''].includes(root.location?.hostname||'');
  const accessToken=()=>root.ACDLAdminAuth?.accessToken?.()||'';
  async function request(path,options={}){
   if(!isRemote())throw Object.assign(new Error('로컬 환경에서는 브라우저 저장을 사용합니다.'),{code:'REMOTE_DISABLED'});

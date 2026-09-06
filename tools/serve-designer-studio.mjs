@@ -99,7 +99,10 @@ const server = createServer(async (req,res)=>{
       : studioAssetAliases.get(url.pathname) || (sharedRootPath ? requestRel : `apps/designer-studio/${requestRel}`);
     const file = normalize(join(root, rel));
     if (!file.startsWith(normalize(root))) throw new Error('invalid path');
-    const data = await readFile(file);
+    let data = await readFile(file);
+    if (rel === studioEntry) {
+      data = Buffer.from(data.toString('utf8').replace('<head>', '<head><script>window.ACDL_LOCAL_API_PROXY=true</script>'));
+    }
     res.writeHead(200, {'content-type': mime[extname(file)] || 'application/octet-stream', 'cache-control':'no-store'});res.end(data);
   } catch (error) { res.writeHead(404, {'content-type':'text/plain; charset=utf-8'});res.end('Not found'); }
 });
