@@ -6,6 +6,7 @@ const {
   createDefaultSchoolProfile,
   ensureSchoolProfile,
   groupEventsByDate,
+  displayEvent,
   monthKey,
   resolvePageBinding,
   buildSchoolContact,
@@ -56,6 +57,10 @@ const duplicateHolidays = groupEventsByDate([
   { id: 'holiday-c', title: '어린이날', startDate: '2027-05-05', endDate: '2027-05-05' }
 ]);
 assert.equal(duplicateHolidays['2027-05-05'].length, 1);
+assert.equal(displayEvent({ title: '노동절 · 노동절' }).title, '노동절');
+assert.equal(displayEvent({ title: '어린이날 · 어린이 날' }).title, '어린이날');
+assert.equal(displayEvent({ title: '노동절 · 근로자의 날' }).title, '노동절');
+assert.equal(displayEvent({ title: '스승의 날 · 세종대왕 나신 날' }).title, '스승의 날 · 세종대왕 나신 날');
 assert.deepEqual(groupEventsByDate(), {});
 
 assert.equal(monthKey(2027, 3), '2027-03');

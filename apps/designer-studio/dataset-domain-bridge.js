@@ -24,6 +24,27 @@
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
+  function eventTitleKey(value) {
+    return String(value || '')
+      .replace(/노동절/g, '근로자의날')
+      .replace(/[\s()]+/g, '')
+      .toLowerCase();
+  }
+
+  // 한 일정 제목 안에 공공 달력명과 사용자 일정명이 함께 합쳐져도
+  // 같은 명칭을 두 번 인쇄하지 않는다. 저장 원본은 그대로 둔다.
+  function displayEvent(event) {
+    const parts = String(event?.title || '').split(/\s*[·ㆍ・]\s*/).filter(Boolean);
+    const seen = new Set();
+    const title = parts.filter(part => {
+      const key = eventTitleKey(part);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).join(' · ');
+    return title === event?.title ? event : { ...event, title };
+  }
+
   // 저장된 일정 객체를 복제하거나 고치지 않고, 화면 표시용 날짜 인덱스만 만든다.
   function groupEventsByDate(events) {
     const grouped = {};
@@ -32,10 +53,11 @@
       const last = new Date(`${event.endDate || event.startDate}T00:00:00`);
       while (date <= last) {
         const bucket = (grouped[dateKey(date)] ||= []);
-        const normalizedTitle = String(event.title || '').replace(/[\s·ㆍ・]+/g, '').toLowerCase();
-        const duplicate = bucket.some(item => String(item.title || '').replace(/[\s·ㆍ・]+/g, '').toLowerCase() === normalizedTitle
+        const visibleEvent = displayEvent(event);
+        const normalizedTitle = eventTitleKey(visibleEvent.title).replace(/[·ㆍ・]+/g, '');
+        const duplicate = bucket.some(item => eventTitleKey(item.title).replace(/[·ㆍ・]+/g, '') === normalizedTitle
           && item.startDate === event.startDate && (item.endDate || item.startDate) === (event.endDate || event.startDate));
-        if (!duplicate) bucket.push(event);
+        if (!duplicate) bucket.push(visibleEvent);
         date.setDate(date.getDate() + 1);
       }
     });
@@ -102,6 +124,7 @@
     createDefaultSchoolProfile,
     ensureSchoolProfile,
     groupEventsByDate,
+    displayEvent,
     monthKey,
     resolvePageBinding,
     buildSchoolContact,

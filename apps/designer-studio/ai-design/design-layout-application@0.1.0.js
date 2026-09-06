@@ -7,11 +7,11 @@
  });
  const layouts={
   cover:{
-   'large-photo':{image:[15,12,70,55],year:[35,70,30,12],identity:[15,84,70,9]},
-   'photo-collage':{image:[8,12,55,62],year:[67,20,25,15],identity:[67,42,25,27]},
-   typography:{image:[58,48,34,34],year:[10,18,70,30],identity:[10,70,42,18]},
-   illustration:{image:[48,12,44,72],year:[10,22,34,22],identity:[10,60,34,22]},
-   split:{image:[8,12,56,76],year:[68,20,24,18],identity:[68,55,24,28]}
+   'large-photo':{image:[15,10,70,50],year:[35,63,30,12],identity:[15,77,70,18]},
+   'photo-collage':{image:[8,10,55,58],year:[67,18,25,15],identity:[67,40,25,45]},
+   typography:{image:[58,46,34,32],year:[10,16,70,27],identity:[10,63,42,28]},
+   illustration:{image:[48,10,44,68],year:[10,20,34,20],identity:[10,55,34,36]},
+   split:{image:[8,10,56,74],year:[68,18,24,16],identity:[68,49,24,42]}
   },
   annual:{
    'balanced-4x3':{title:[34,4,32,13],calendar:[7,20,86,72],info:[7,93,86,4]},
@@ -20,10 +20,10 @@
    'split-info':{title:[7,7,58,12],calendar:[7,23,62,67],info:[73,23,20,67]}
   },
   'school-symbols':{
-   'editorial-cards':{hero:[6,10,27,28],primary:[36,10,58,28],secondary:[6,43,88,48]},
-   'section-panels':{hero:[6,10,20,80],primary:[29,10,65,35],secondary:[29,49,65,41]},
-   'heritage-document':{hero:[39,8,22,20],primary:[12,32,76,25],secondary:[12,61,76,30]},
-   'symbol-photo':{hero:[6,10,50,80],primary:[60,10,34,30],secondary:[60,44,34,46]}
+   'editorial-cards':{title:[8,7,84,9],hero:[6,20,22,25],primary:[32,20,62,35],secondary:[6,60,88,32]},
+   'section-panels':{title:[8,7,84,9],hero:[6,20,20,72],primary:[30,20,64,34],secondary:[30,59,64,33]},
+   'heritage-document':{title:[8,7,84,9],hero:[39,20,22,18],primary:[12,42,76,22],secondary:[12,68,76,24]},
+   'symbol-photo':{title:[8,7,84,9],hero:[6,20,46,72],primary:[57,20,37,28],secondary:[57,53,37,39]}
   },
   month:{
    'calendar-led':{calendar:[5,16,90,79],title:[5,5,90,10]},
@@ -53,13 +53,19 @@
   const gap=items.length>1?1.5:0,h=Math.max(3,(zone[3]-gap*(items.length-1))/items.length);
   items.forEach((item,index)=>Object.assign(item,{x:zone[0],y:zone[1]+index*(h+gap),width:zone[2],height:h,zIndex:Math.max(2,Number(item.zIndex)||2)}))
  }
+ function distributeGrid(items,zone){
+  if(!items.length||!zone)return;
+  const columns=Math.min(2,items.length),rows=Math.ceil(items.length/columns),gap=2;
+  const width=(zone[2]-gap*(columns-1))/columns,height=(zone[3]-gap*(rows-1))/rows;
+  items.forEach((item,index)=>Object.assign(item,{x:zone[0]+index%columns*(width+gap),y:zone[1]+Math.floor(index/columns)*(height+gap),width,height,zIndex:Math.max(2,Number(item.zIndex)||2)}))
+ }
  function classify(role,item){
   const token=`${item.role||''} ${item.type||''} ${item.id||''}`.toLowerCase();
   if(item.role==='ai-design-background'||token.includes('background-decoration'))return 'background';
   if(role==='annual')return token.includes('year-calendar')?'calendar':token.includes('year')||token.includes('title')?'title':'info';
   if(role==='month')return token.includes('image')||token.includes('photo')?'image':token.includes('month-title')||token.includes('month-number')?'title':'support';
   if(role==='month-back')return token.includes('image')||token.includes('photo')?'image':token.includes('calendar')||token.includes('date-strip')?'calendar':'support';
-  if(role==='school-symbols')return token.includes('logo')||token.includes('building')?'hero':token.includes('motto')||token.includes('song')?'primary':'secondary';
+  if(role==='school-symbols')return token.includes('symbols-title')||token.includes('insert-title')?'title':token.includes('logo')||token.includes('building')?'hero':token.includes('motto')||token.includes('song')?'primary':'secondary';
   if(role==='cover')return token.includes('image')||token.includes('photo')||token.includes('building')?'image':token.includes('year')?'year':'identity';
   if(role==='back-cover')return token.includes('image')||token.includes('photo')||token.includes('building')?'image':'identity';
   return 'support'
@@ -68,7 +74,7 @@
   const profile=layouts[role]?.[typeId];if(!profile)return null;
   const elements=project.book?.elementsByPage?.[page.id]||[],groups={};
   elements.forEach(item=>{const group=classify(role,item);if(group==='background')return;(groups[group]||=[]).push(item)});
-  Object.entries(groups).forEach(([group,items])=>distribute(items,profile[group]||profile.support||profile.identity));
+  Object.entries(groups).forEach(([group,items])=>role==='school-symbols'&&group==='secondary'?distributeGrid(items,profile[group]):distribute(items,profile[group]||profile.support||profile.identity));
   if(role==='month'){
    page.overrides=page.overrides||{};page.overrides.calendarRegion=box(profile.calendar);page.overrides.monthTitleRegion=box(profile.title);
    project.template.masters=project.template.masters||{};project.template.masters.calendar=project.template.masters.calendar||{};

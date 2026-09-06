@@ -1,7 +1,7 @@
 {
   "id": "calendar-page-rules",
   "version": "0.6.0",
-  "promptSet": "school-calendar-design@0.7.0",
+  "promptSet": "school-calendar-design@0.7.1",
   "designSpec": "ai-design-spec.v1@0.2.0",
   "designSet": {
     "proposalCount": 2,
