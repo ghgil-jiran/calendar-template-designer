@@ -147,8 +147,10 @@ test('one live AI result opens automatically and waits for explicit selection', 
   assert.match(html,/class="ai-live-progress" role="status" aria-live="polite"/);
   assert.match(html,/대표 페이지 \$\{current\}\/\$\{total\} 생성 중/);
   assert.match(html,/aiDesignGenerationState="complete";aiDesignResultsRevealed=true/);
-  assert.match(html,/이 디자인으로 진행/);
-  assert.match(html,/대표 디자인 1개 생성 완료/);
+  assert.match(html,/선택하기/);
+  assert.match(html,/대표 디자인 생성 완료 · 선택 대기/);
+  assert.match(html,/대표 디자인 다시 생성하기/);
+  assert.match(html,/function regenerateRepresentativeAIDesign\(\)/);
   assert.match(html,/aiDesignGenerationState="failed"/);
 });
 
@@ -163,7 +165,10 @@ test('AI setup is initialized from the saved design type specification',()=>{
   assert.match(html,/aiDesignSeasonalVariation:spec\.expression\.seasonal/);
   assert.match(html,/대표 디자인 미리보기/);
   assert.match(css,/\.ai-design-proposal-grid\{grid-template-columns:minmax\(0,1fr\)\}/);
-  assert.match(css,/\.ai-page-preview\{height:150px/);
+  assert.match(css,/\.ai-page-preview\{position:relative;height:190px/);
+  assert.match(html,/function renderGeneratedAIDesignPreviews\(\)/);
+  assert.doesNotMatch(html,/class="ai-preview-title"/);
+  assert.doesNotMatch(html,/class="ai-preview-grid"/);
   assert.doesNotMatch(html,/다시 설정하기/);
 });
 
@@ -171,7 +176,10 @@ test('the selected representative set expands to eleven remaining monthly front 
   const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
   assert.match(html,/monthlyVariations:structuredClone\(sessionVariant\.monthlyVariations\|\|prepared\.designSet\?\.monthlyVariations\|\|\[\]\)/);
   assert.match(html,/function expandSelectedAIDesignMonths\(\)/);
-  assert.match(html,/pending\.length\*2/);
+  assert.match(html,/total=variations\.length\*2/);
+  assert.match(html,/12개월·24개 월력 자산/);
+  assert.match(html,/월력 자산 \$\{current\}\/\$\{total\} 생성 중/);
+  assert.doesNotMatch(html,/월력 전체 생성 \$\{current\}\/\$\{total\}/);
   assert.match(html,/const pending=variations\.filter\(item=>!selected\.monthlyAssets\?\.\[item\.key\]\?\.month\|\|!selected\.monthlyAssets\?\.\[item\.key\]\?\.\["month-back"\]\)/);
   assert.match(html,/generatedMonthCount!==12/);
   assert.match(html,/function aiMonthlyAssetCoverage\(selected=selectedAIDesignVariant\(\)\)/);
