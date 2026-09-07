@@ -4,12 +4,26 @@ import vm from 'node:vm';
 const file = new URL('../apps/designer-studio/index.html', import.meta.url);
 const html = fs.readFileSync(file, 'utf8');
 const featuresDirectory = new URL('../apps/designer-studio/features/', import.meta.url);
+const runtimeManifest = JSON.parse(fs.readFileSync(new URL('runtime-load-manifest.json', featuresDirectory), 'utf8'));
 const featureFiles = fs.readdirSync(featuresDirectory)
   .filter((name) => name.endsWith('.js'))
   .sort()
   .map((name) => `../apps/designer-studio/features/${name}`);
 const featureSource = featureFiles.map(relative => fs.readFileSync(new URL(relative, import.meta.url), 'utf8')).join('\n');
 const studioSource = `${html}\n${featureSource}`;
+if (runtimeManifest.schemaVersion !== 'designer-studio-runtime-load.v1') {
+  throw new Error(`Designer Studio Runtime manifest 버전 오류: ${runtimeManifest.schemaVersion}`);
+}
+let previousRuntimeIndex = -1;
+for (const entry of runtimeManifest.entries) {
+  const runtimePath = new URL(entry.file, featuresDirectory);
+  if (!fs.existsSync(runtimePath)) throw new Error(`Designer Studio Runtime 파일 누락: ${entry.file}`);
+  const marker = `./features/${entry.file}`;
+  const runtimeIndex = html.indexOf(marker);
+  if (runtimeIndex < 0) throw new Error(`Designer Studio Runtime 로드 누락: ${entry.file}`);
+  if (runtimeIndex <= previousRuntimeIndex) throw new Error(`Designer Studio Runtime 로드 순서 오류: ${entry.file}`);
+  previousRuntimeIndex = runtimeIndex;
+}
 const requiredRuntimeMarkers = [
   'const SIZE_PRESETS=',
   'function makeProject(opts)',
