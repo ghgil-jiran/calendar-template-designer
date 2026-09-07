@@ -28,6 +28,16 @@
   if(previewType==='page'){exitPreviewMode();render();return}
   enterPagePreview();
  }
+ function goPreviewPage(delta){
+  if(!project)return;
+  const pages=availablePreviewPages();if(!pages.length)return;
+  const current=pages.findIndex(page=>page.id===selectedPageId);
+  const index=(Math.max(0,current)+delta+pages.length)%pages.length;
+  selectedPageId=pages[index].id;selectedElementId=null;selectedElementScope=null;
+  render();$('pagePreviewName').textContent=pages[index].label||pages[index].role||`${index+1}페이지`;
+ }
+ function returnToEditor(){exitPreviewMode();render()}
+ function closeTemplatePreview(){closeFullPreview()}
  function enterFullPreview(){
   const pages=availablePreviewPages();
   if(!pages.length){showEditorToast('미리보기할 페이지가 없습니다.');return}
@@ -37,6 +47,11 @@
 
  replacePreviewButton('previewBtn',togglePagePreview);
  replacePreviewButton('fullPreviewBtn',enterFullPreview);
+ replacePreviewButton('returnToEditBtn',returnToEditor);
+ replacePreviewButton('previewPrevPageBtn',()=>goPreviewPage(-1));
+ replacePreviewButton('previewNextPageBtn',()=>goPreviewPage(1));
+ replacePreviewButton('closeFullPreviewBtn',closeTemplatePreview);
  bindPreviewMenuAction('preview-page',togglePagePreview);
- window.ACDLPreviewEntry={availablePreviewPages,enterPagePreview,enterFullPreview};
+ document.addEventListener('keydown',event=>{if(event.key!=='Escape'||!previewType)return;event.preventDefault();exitPreviewMode();render()});
+ window.ACDLPreviewEntry={availablePreviewPages,enterPagePreview,enterFullPreview,goPreviewPage,returnToEditor};
 })();

@@ -169,13 +169,6 @@ let newTemplateSetupInProgress=false;
 function createFromSetup(){beginProjectTransition({clearProject:true});const opts={type:el("setupType").value,year:Number(el("setupYear").value),startMonth:Number(el("setupMonth").value),template:el("setupTemplate").value,frontInsertCount:Number(el("setupFrontInserts").value),rearInsertCount:Number(el("setupRearInserts").value),calendarRows:Number(el("setupCalendarRows").value),weekStart:el("setupWeekStart").value,showAdjacentMiniCalendars:el("setupAdjacentMiniCalendars").checked,posterColumns:Number(el("setupPosterColumns").value||4),sizePresetId:el("setupSize").value};const base=window.ACDLNewTemplateBaseProject?structuredClone(window.ACDLNewTemplateBaseProject):null;project=base||makeProject(opts);if(base){rebuildProjectFromBasicSettings({year:opts.year,startMonth:opts.startMonth,frontInsertCount:opts.frontInsertCount,rearInsertCount:opts.rearInsertCount,calendarRows:opts.calendarRows,weekStart:opts.weekStart,showAdjacentMiniCalendars:opts.showAdjacentMiniCalendars,calendarData:project.settings?.calendarData});project.template.derivedFromTemplateId=window.ACDLNewTemplateBaseRecord?.id||null}project.template.id=null;delete project.template.remoteId;delete project.template.remoteStableKey;delete project.template.remoteVersionNumber;project.template.librarySource="local";project.template.metadata={...(project.template.metadata||{}),name:base?`${window.ACDLNewTemplateBaseRecord?.name||"표준 템플릿"} 기반 새 템플릿`:"새 템플릿",description:"",edition:opts.year,state:"draft",isStandard:false};project.template.preset=project.template.preset||opts.template;clearNewTemplateBase();selectedPageId=project.book.pageInstances[0].id;selectedElementId=null;selectedElementScope=null;history=[];future=[];aiDesignMockSession=null;newTemplateSetupInProgress=true;el("setup").classList.add("hidden");setEditorContext("새 템플릿 만들기");render();openResourceModal("basic")}
 el("createBtn").addEventListener("click",createFromSetup);el("newBtn").addEventListener("click",()=>{resetEditorViewState();el("setup").classList.remove("hidden")});
 el("templateMode").addEventListener("click",()=>showEditorToast("현재 템플릿 설계 모드입니다."));
-el("previewBtn").addEventListener("click",()=>{
- if(previewType==="page"){exitPreviewMode();render();return}
- exitPreviewMode();preview=true;previewType="page";document.body.classList.add("preview-only");el("previewBtn").textContent="편집으로 돌아가기";el("previewBtn").classList.add("active");render();
-});
-el("fullPreviewBtn").addEventListener("click",openFullPreview);
-el("closeFullPreviewBtn").addEventListener("click",closeFullPreview);
-document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(previewType){e.preventDefault();exitPreviewMode();render()}});
 el("undoBtn").addEventListener("click",()=>{if(!history.length)return;future.push(__historyString(project));project=__historyParse(history.pop());if(!project.book.pageInstances.some(p=>p.id===selectedPageId))selectedPageId=project.book.pageInstances[0].id;markDirty();render();window.__acdlUpdateMemoryMonitor?.()});
 el("redoBtn").addEventListener("click",()=>{if(!future.length)return;history.push(__historyString(project));project=__historyParse(future.pop());markDirty();render();window.__acdlUpdateMemoryMonitor?.()});
 el("publishBtn")?.addEventListener("click",exportTemplatePackage);
@@ -312,10 +305,6 @@ el("newBtn").addEventListener("click",()=>{if(appMode==="user"){openDesignerStud
 const originalEnterDesigner=enterDesigner;enterDesigner=function(){originalEnterDesigner();updateRoleIndicator()};
 const originalEnterUser=enterUser;enterUser=function(){originalEnterUser();updateRoleIndicator()};
 const originalCreateUserCalendar=createUserCalendar;createUserCalendar=function(){originalCreateUserCalendar();updateRoleIndicator()};
-function currentPageIndex(){return project?.book?.pageInstances?.findIndex(p=>p.id===selectedPageId)??-1}
-function goPreviewPage(delta){if(!project)return;const pages=project.book.pageInstances||[];let i=currentPageIndex();if(i<0)return;i=(i+delta+pages.length)%pages.length;selectedPageId=pages[i].id;selectedElementId=null;selectedElementScope=null;render();const p=pages[i];el("pagePreviewName").textContent=p?.label||p?.role||`${i+1}페이지`}
-el("returnToEditBtn")?.addEventListener("click",()=>{exitPreviewMode();render()});el("previewPrevPageBtn")?.addEventListener("click",()=>goPreviewPage(-1));el("previewNextPageBtn")?.addEventListener("click",()=>goPreviewPage(1));
-const oldPreviewClick=el("previewBtn").onclick;el("previewBtn").addEventListener("click",()=>{setTimeout(()=>{if(previewType==="page"){const p=project?.book?.pageInstances?.find(x=>x.id===selectedPageId);el("pagePreviewName").textContent=p?.label||p?.role||""}},0)});
 let selectedCalendarType="";
 function updateWizardActions(){
  const hasSelectedTemplate=!!selectedUserTemplate.template&&selectedUserTemplate.type===selectedCalendarType;
@@ -1102,4 +1091,3 @@ const v33OldRender=typeof window.render==='function'?window.render:render; if(ty
   window.addEventListener('error',()=>{if(previewType==='template')hardResetPreviewState()});
   window.addEventListener('unhandledrejection',()=>{if(previewType==='template')hardResetPreviewState()});
 })();
-
