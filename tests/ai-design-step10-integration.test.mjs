@@ -1,8 +1,9 @@
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8')+fs.readFileSync(new URL('../apps/designer-studio/features/studio-runtime-core.js',import.meta.url),'utf8')+fs.readFileSync(new URL('../apps/designer-studio/features/ai-design-runtime.js',import.meta.url),'utf8')+fs.readFileSync(new URL('../apps/designer-studio/features/template-settings-library.js',import.meta.url),'utf8');
+const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8')+readStudioFeatureSource();
 const remote=fs.readFileSync(new URL('../apps/designer-studio/template-remote-persistence.js',import.meta.url),'utf8');
 
 test('step 10 keeps one AI draft through save, library reopen and version restore paths',()=>{

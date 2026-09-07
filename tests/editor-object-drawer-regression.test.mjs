@@ -1,9 +1,10 @@
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/studio-runtime-core.js'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/object-editing.js'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/designer-studio-overrides.css'), 'utf8');
+const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+readStudioFeatureSource()+fs.readFileSync(path.resolve('apps/designer-studio/designer-studio-overrides.css'), 'utf8');
 
 test('editor columns keep independent scrolling inside the viewport', () => {
   assert.match(html, /\.insert-sidebar-host>\.drawer-body\{[^}]*overflow-y:auto[^}]*scrollbar-gutter:stable/);
@@ -28,7 +29,7 @@ test('page navigation is a horizontal role-colored dock below the center canvas'
 });
 
 test('editor page zoom preserves a fixed print-layout canvas while only the viewport scales', () => {
-  assert.match(html, /id="editor-page-auto-fit-runtime"/);
+  assert.match(html, /data-runtime-source="editor-page-auto-fit-runtime"/);
   assert.match(html, /id="editorPageViewport" class="editor-page-viewport"/);
   assert.match(html, /id="canvasZoomRange" type="range" min="50" max="150" step="5"/);
   assert.match(html, /id="canvasZoomPercentBtn"/);

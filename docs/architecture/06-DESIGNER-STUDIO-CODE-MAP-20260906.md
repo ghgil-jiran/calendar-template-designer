@@ -211,3 +211,20 @@ Production HTML은 기준 커밋과 같은 714,352 bytes이며 HTTP 200으로 �
 - 가장 큰 인라인 실행 블록은 동일 위치의 외부 Runtime 파일로 이동했다.
 - 특성 테스트는 HTML과 이동된 Runtime/CSS를 함께 읽도록 변경했다.
 - 다음 이동 대상은 HTML에 남은 버전별 호환 Runtime이다. DOM 삽입 지점 사이의 실행 순서를 먼저 고정한 뒤 기능 소유 모듈로 흡수한다.
+
+## 3차 구조 분리 결과
+
+2026-09-07 작업 브랜치에서 `index.html`에 남아 있던 v32~v37.1, RC4·RC5, Sprint 2, 서비스 Shell, 관리자 랜딩, 자동 맞춤, 검토 PDF와 템플릿 설정 갱신 Runtime을 기능 소유 파일로 이동했다.
+
+| 파일 | 크기 | 역할 |
+|---|---:|---|
+| `index.html` | 82,113 bytes | DOM 골격과 외부 Runtime 로드 순서 |
+| `features/object-editing-*.js` | 기능별 분리 | v32 권한, Sprint 2 입력, v38 작업공간, 페이지 자동 맞춤 |
+| `features/template-settings-*.js` | 기능별 분리 | 사용자 설정, v36~v37.1 유형, 규칙 저장과 설정 화면 갱신 |
+| `features/preview-*.js` | 기능별 분리 | RC4·RC5 Runtime, 미리보기 진입과 검토 PDF |
+| `features/studio-*.js` / Shell Runtime | 기능별 분리 | 메모리·안정화·릴리스 정보, 진입·관리자 랜딩 |
+
+- 23개 인라인 Runtime의 원문을 변경하지 않고 같은 DOM 위치의 외부 `<script>`로 교체해 감싸기와 이벤트 등록 순서를 유지했다.
+- `index.html`은 최초 714,352 bytes에서 82,113 bytes로 약 88.5% 감소했고 인라인 실행 스크립트는 0개가 됐다.
+- Studio 특성 검사는 특정 파일 목록 대신 `features/*.js` 전체를 읽으므로 이후 소유 파일 추가에도 같은 회귀 계약을 검사한다.
+- 원본 커밋과 이동된 23개 블록의 본문 일치 검사, 전체 빌드, Studio 회귀검사 296개와 Sprint 2 제품 검사를 통과했다.

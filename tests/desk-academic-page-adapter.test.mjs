@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 
 await import('../apps/designer-studio/desk-academic-page-adapter.js');
 await import('../apps/designer-studio/integration-parity-bridge.js');
@@ -44,7 +45,7 @@ assert.deepEqual(missing.missing, [
   { index: 11, role: 'monthly-photo-memo', monthKey: '2027-07', sourceRole: 'monthly-back' }
 ]);
 
-const html = await import('node:fs/promises').then(async fs => (await fs.readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8'))+(await fs.readFile(new URL('../apps/designer-studio/features/studio-runtime-core.js', import.meta.url), 'utf8')));
+const html = await import('node:fs/promises').then(async fs => (await fs.readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8'))+readStudioFeatureSource());
 const runtimeAdapter = await import('node:fs/promises').then(fs => fs.readFile(new URL('../apps/designer-studio/runtime-project-adapter.js', import.meta.url), 'utf8'));
 assert.match(html, /function adaptDeskAcademic\(project,datasetOverride\)/);
 assert.match(runtimeAdapter, /adapt\(project,composition\.pages,datasetOverride\)/);

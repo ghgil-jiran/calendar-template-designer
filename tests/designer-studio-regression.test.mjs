@@ -3,13 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 
 const htmlPath = path.resolve('apps/designer-studio/index.html');
 const html = fs.readFileSync(htmlPath, 'utf8')
-  + fs.readFileSync(path.resolve('apps/designer-studio/features/studio-runtime-core.js'), 'utf8')
-  + fs.readFileSync(path.resolve('apps/designer-studio/features/calendar-rendering.js'), 'utf8')
-  + fs.readFileSync(path.resolve('apps/designer-studio/features/object-editing.js'), 'utf8')
-  + fs.readFileSync(path.resolve('apps/designer-studio/features/template-settings-library.js'), 'utf8')
+  + readStudioFeatureSource()
   + fs.readFileSync(path.resolve('apps/designer-studio/designer-studio-core.css'), 'utf8')
   + fs.readFileSync(path.resolve('apps/designer-studio/designer-studio-overrides.css'), 'utf8');
 const projectDocument = fs.readFileSync(path.resolve('apps/designer-studio/project-document.js'), 'utf8');

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 
 await import('../apps/designer-studio/calendar-domain-bridge.js');
 
@@ -29,9 +30,7 @@ assert.deepEqual(visibleSameDate.map(segment => segment.lane).sort(), [1, 2, 3])
 assert.equal(layout.hiddenByDate['2028-03-05'], 1);
 
 const studio = await readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')
-  + await readFile(new URL('../apps/designer-studio/features/studio-runtime-core.js', import.meta.url), 'utf8')
-  + await readFile(new URL('../apps/designer-studio/features/calendar-rendering.js', import.meta.url), 'utf8')
-  + await readFile(new URL('../apps/designer-studio/features/object-editing.js', import.meta.url), 'utf8')
+  + readStudioFeatureSource()
   + await readFile(new URL('../apps/designer-studio/designer-studio-core.css', import.meta.url), 'utf8')
   + await readFile(new URL('../apps/designer-studio/designer-studio-overrides.css', import.meta.url), 'utf8');
 const projectDocument = await readFile(new URL('../apps/designer-studio/project-document.js', import.meta.url), 'utf8');

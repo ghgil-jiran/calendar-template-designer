@@ -3,14 +3,11 @@ import vm from 'node:vm';
 
 const file = new URL('../apps/designer-studio/index.html', import.meta.url);
 const html = fs.readFileSync(file, 'utf8');
-const featureFiles = [
-  '../apps/designer-studio/features/studio-runtime-core.js',
-  '../apps/designer-studio/features/ai-design-runtime.js',
-  '../apps/designer-studio/features/calendar-rendering.js',
-  '../apps/designer-studio/features/object-editing.js',
-  '../apps/designer-studio/features/preview-pdf.js',
-  '../apps/designer-studio/features/template-settings-library.js'
-];
+const featuresDirectory = new URL('../apps/designer-studio/features/', import.meta.url);
+const featureFiles = fs.readdirSync(featuresDirectory)
+  .filter((name) => name.endsWith('.js'))
+  .sort()
+  .map((name) => `../apps/designer-studio/features/${name}`);
 const featureSource = featureFiles.map(relative => fs.readFileSync(new URL(relative, import.meta.url), 'utf8')).join('\n');
 const studioSource = `${html}\n${featureSource}`;
 const requiredRuntimeMarkers = [
@@ -30,7 +27,6 @@ const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
   .map((match) => match[1])
   .filter((code) => code.trim());
 
-if (!scripts.length) throw new Error('Inline script를 찾지 못했습니다.');
 for (const [index, code] of scripts.entries()) {
   try {
     new vm.Script(code, { filename: `designer-studio-inline-${index + 1}.js` });
@@ -43,7 +39,7 @@ for (const relative of featureFiles) {
   const code = fs.readFileSync(new URL(relative, import.meta.url), 'utf8');
   new vm.Script(code, { filename: relative });
 }
-const release = html.match(/window\.ACDL_RELEASE=([^;]+);/);
+const release = studioSource.match(/window\.ACDL_RELEASE=([^;]+);/);
 if (!release) throw new Error('ACDL_RELEASE 메타데이터가 없습니다.');
 console.log(`Designer Studio inline scripts: ${scripts.length} PASS`);
 console.log(`Release metadata: ${release[1]}`);

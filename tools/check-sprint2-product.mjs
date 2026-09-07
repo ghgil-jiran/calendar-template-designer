@@ -1,6 +1,12 @@
 import fs from 'node:fs';
 const readSource = path => fs.readFileSync(new URL(path, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
-const html=readSource('../apps/designer-studio/index.html')+readSource('../apps/designer-studio/features/studio-runtime-core.js')+readSource('../apps/designer-studio/features/object-editing.js');
+const featuresDirectory = new URL('../apps/designer-studio/features/', import.meta.url);
+const featureSource = fs.readdirSync(featuresDirectory)
+  .filter(name => name.endsWith('.js'))
+  .sort()
+  .map(name => fs.readFileSync(new URL(name, featuresDirectory), 'utf8'))
+  .join('\n');
+const html=readSource('../apps/designer-studio/index.html')+featureSource;
 const selectionModule=readSource('../apps/designer-studio/canvas-selection.js');
 const inputModule=readSource('../apps/designer-studio/canvas-input.js');
 const start=html.lastIndexOf('startElementPointer=function(e)');

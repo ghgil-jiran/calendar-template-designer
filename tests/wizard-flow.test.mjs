@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 
 const values = new Map();
 globalThis.localStorage = {
@@ -9,7 +10,7 @@ globalThis.localStorage = {
 };
 await import('../apps/designer-studio/wizard-flow.js');
 const wizard = globalThis.ACDLDesignerStudioWizard;
-const studioHtml = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+fs.readFileSync(new URL('../apps/designer-studio/features/studio-runtime-core.js', import.meta.url), 'utf8')+fs.readFileSync(new URL('../apps/designer-studio/features/ai-design-runtime.js', import.meta.url), 'utf8')+fs.readFileSync(new URL('../apps/designer-studio/features/object-editing.js', import.meta.url), 'utf8')+fs.readFileSync(new URL('../apps/designer-studio/features/template-settings-library.js', import.meta.url), 'utf8')+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css', import.meta.url), 'utf8')+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-overrides.css', import.meta.url), 'utf8');
+const studioHtml = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+readStudioFeatureSource()+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css', import.meta.url), 'utf8')+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-overrides.css', import.meta.url), 'utf8');
 
 test('a fresh wizard does not choose a type or template', () => {
   values.clear();

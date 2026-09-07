@@ -1,9 +1,10 @@
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/studio-runtime-core.js'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/object-editing.js'), 'utf8');
+const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+readStudioFeatureSource();
 
 test('cover text renders its element font size before the cover master default', () => {
   const renderers = html.match(/applyTextElementStyles\(t,view\)/g) || [];

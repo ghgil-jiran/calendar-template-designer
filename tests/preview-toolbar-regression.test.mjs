@@ -1,9 +1,10 @@
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/features/studio-runtime-core.js'), 'utf8')+fs.readFileSync(path.resolve('apps/designer-studio/designer-studio-overrides.css'), 'utf8');
+const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+readStudioFeatureSource()+fs.readFileSync(path.resolve('apps/designer-studio/designer-studio-overrides.css'), 'utf8');
 
 test('page and full previews preserve the shared editor header and use a unified toolbar', () => {
   const appHeader = html.indexOf('<header class="app-header">');

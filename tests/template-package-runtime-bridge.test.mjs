@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 import {
   assembleTemplatePackage,
   buildDeskAcademicPackageDocument,
@@ -115,7 +116,7 @@ assert.equal(printParity.contractReady, true);
 assert.equal(printParity.outputApproved, false);
 assert.deepEqual(printParity.blockers, ['REFERENCE_PDF_NOT_ATTACHED', 'RUNTIME_PDF_NOT_GENERATED', 'PREFLIGHT_NOT_VERIFIED']);
 
-const html = await readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+await readFile(new URL('../apps/designer-studio/features/studio-runtime-core.js', import.meta.url), 'utf8');
+const html = await readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+readStudioFeatureSource();
 assert.match(html, /lastDeskAcademicPackageDocument/);
 assert.match(html, /lastDeskAcademicShadowRender/);
 assert.match(html, /lastDeskAcademicVisualParity/);
