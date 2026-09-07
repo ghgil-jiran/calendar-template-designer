@@ -234,6 +234,16 @@ test('template library labels remote and browser-only records explicitly', () =>
   assert.match(runtime, /const remoteHistory=remoteStored/);
 });
 
+test('template settings require a separate irreversible confirmation before permanent deletion',()=>{
+  const runtime=fs.readFileSync(path.resolve('apps/designer-studio/template-library-runtime.js'),'utf8');
+  assert.match(html,/id="deleteTemplatePermanentlyBtn"[^>]*>템플릿 삭제</);
+  assert.match(runtime,/role="alertdialog"/);
+  assert.match(runtime,/이 템플릿과 모든 버전 이력은 복구할 수 없습니다/);
+  assert.match(runtime,/await remote\.remove\(/);
+  assert.match(runtime,/await deleteTemplateProjectData\(target\.id\)/);
+  assert.match(runtime,/deletedCatalogKeys\.has\(record\.stableKey\|\|record\.id\)/);
+});
+
 test('published and standard templates are protected while new templates keep their origin', () => {
   const runtime = fs.readFileSync(path.resolve('apps/designer-studio/template-library-runtime.js'), 'utf8');
   assert.match(runtime, /const locked=record\.isStandard===true/);

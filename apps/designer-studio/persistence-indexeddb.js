@@ -20,7 +20,14 @@
    request.onsuccess=()=>{db.close();resolve(request.result)};
    request.onerror=()=>{db.close();reject(request.error)};
   })}
-  return Object.freeze({databaseName,version,stores:Object.freeze({...stores}),open,put,get})
+  async function remove(store,key){const db=await open();return new Promise((resolve,reject)=>{
+   if(key===undefined||key===null||key===''){db.close();resolve(false);return}
+   const transaction=db.transaction(store,"readwrite");
+   transaction.objectStore(store).delete(key);
+   transaction.oncomplete=()=>{db.close();resolve(true)};
+   transaction.onerror=()=>{db.close();reject(transaction.error)};
+  })}
+  return Object.freeze({databaseName,version,stores:Object.freeze({...stores}),open,put,get,remove})
  }
  root.ACDLPersistenceIndexedDB=Object.freeze({createDatabase})
 })(typeof window!=="undefined"?window:globalThis);

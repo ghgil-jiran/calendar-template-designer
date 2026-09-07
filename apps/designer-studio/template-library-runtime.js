@@ -16,6 +16,12 @@
  const thumbnailMarkupCache=new Map();
  const versionHistoryCache=new Map();
  let pendingClone=null;
+ const catalogDeletionStorageKey='acdl.deletedTemplateCatalogKeys.v1';
+ function readCatalogDeletions(){try{const values=JSON.parse(localStorage.getItem(catalogDeletionStorageKey)||'[]');return new Set(Array.isArray(values)?values:[])}catch{return new Set()}}
+ let deletedCatalogKeys=readCatalogDeletions();
+ function replaceCatalogDeletions(values){deletedCatalogKeys=new Set((Array.isArray(values)?values:[]).filter(Boolean));localStorage.setItem(catalogDeletionStorageKey,JSON.stringify([...deletedCatalogKeys]))}
+ function hideCatalogKey(value){if(!value)return;deletedCatalogKeys.add(value);localStorage.setItem(catalogDeletionStorageKey,JSON.stringify([...deletedCatalogKeys]))}
+ window.ACDLTemplateCatalogDeletions=Object.freeze({replace:replaceCatalogDeletions,hide:hideCatalogKey,list:()=>[...deletedCatalogKeys]});
 
  function installTemplateOpenProgress(){
   const overlay=document.createElement('div');overlay.id='templateOpenProgress';overlay.className='template-open-progress hidden';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-live','polite');overlay.innerHTML='<div class="template-open-progress-card"><div class="template-open-spinner" aria-hidden="true"></div><div><strong id="templateOpenProgressTitle">템플릿을 불러오고 있습니다.</strong><p id="templateOpenProgressMessage">저장 위치를 확인하고 있습니다.</p></div><span id="templateOpenProgressPercent">0%</span><div class="template-open-progress-track"><div id="templateOpenProgressBar"></div></div><ol id="templateOpenProgressSteps"><li data-open-step="local">브라우저 저장본 확인</li><li data-open-step="remote">원격 템플릿 다운로드</li><li data-open-step="asset-resolve">AI 이미지 자산 복원</li><li data-open-step="validate">문서 무결성 검사</li><li data-open-step="render">편집 화면 구성</li></ol></div>';document.body.appendChild(overlay);
@@ -81,7 +87,7 @@
   };
  }
  function records(){
-  const map=new Map((catalog.templates||[]).map(record=>[record.id,normalize(record,'catalog')]));
+  const map=new Map((catalog.templates||[]).filter(record=>!deletedCatalogKeys.has(record.stableKey||record.id)).map(record=>[record.id,normalize(record,'catalog')]));
   oldLibrary().map(record=>normalize(record,'local')).forEach(record=>{
    const catalogMatch=[...map.values()].find(item=>item.source==='catalog'&&(item.id===record.stableKey||item.stableKey===record.stableKey));
    if(catalogMatch){map.delete(catalogMatch.id);map.set(record.id,normalize({...catalogMatch,...record,catalogId:catalogMatch.id,source:'catalog'},'catalog'));return}
@@ -229,7 +235,27 @@
   el('confirmTemplateCloneBtn').onclick=async()=>{if(!pendingClone)return;const {record,source}=pendingClone,name=el('cloneTemplateName').value.trim()||`${record.name} 복사본`,description=el('cloneTemplateDescription').value.trim(),edition=Number(el('cloneTemplateEdition').value)||record.edition,startMonth=Number(el('cloneTemplateStartMonth').value)||source.settings?.startMonth||3,copy=clonedProject(source,record,{name,description,edition,startMonth});pendingClone=null;dialog.classList.add('hidden');await openDesignerProjectFromRecord({...record,id:null,remoteId:null,stableKey:null,source:'local',name,description,edition,state:'draft',isStandard:false,projectData:copy});window.ACDLResetAIDesignCloneRuntime?.();window.render?.();showEditorToast(`${record.name}의 디자인을 보존한 새 템플릿을 만들었습니다.`)}
  }
  function openSettings(record){
-  if(!record)return;const dialog=el('templateSaveDialog');dialog.dataset.mode='settings';dialog.dataset.recordId=record.id;el('templateSaveDialogTitle').textContent='템플릿 설정';el('templateSaveDialogHelp').textContent='디자인은 변경하지 않고 라이브러리 관리 정보만 저장합니다.';el('saveTemplateName').value=record.name;el('saveTemplateDescription').value=record.description||'';el('saveTemplateEdition').value=record.edition;el('saveTemplateState').value=record.state;el('saveTemplateStandard').checked=record.isStandard===true;el('templateSaveFeedback').className='save-feedback hidden';dialog.classList.remove('hidden')
+  if(!record)return;const dialog=el('templateSaveDialog');dialog.dataset.mode='settings';dialog.dataset.recordId=record.id;el('templateSaveDialogTitle').textContent='템플릿 설정';el('templateSaveDialogHelp').textContent='디자인은 변경하지 않고 라이브러리 관리 정보만 저장합니다.';el('saveTemplateName').value=record.name;el('saveTemplateDescription').value=record.description||'';el('saveTemplateEdition').value=record.edition;el('saveTemplateState').value=record.state;el('saveTemplateStandard').checked=record.isStandard===true;el('templateSaveFeedback').className='save-feedback hidden';el('deleteTemplatePermanentlyBtn')?.classList.remove('hidden');dialog.classList.remove('hidden')
+ }
+ function installPermanentDeleteDialog(){
+  const button=el('deleteTemplatePermanentlyBtn');if(!button)return;
+  const dialog=document.createElement('div');dialog.id='templatePermanentDeleteDialog';dialog.className='template-save-dialog hidden';dialog.innerHTML='<div class="template-save-card template-delete-card" role="alertdialog" aria-modal="true" aria-labelledby="templateDeleteTitle" aria-describedby="templateDeleteDescription"><h2 id="templateDeleteTitle">템플릿을 완전히 삭제할까요?</h2><p id="templateDeleteDescription">이 템플릿과 모든 버전 이력은 복구할 수 없습니다. 다른 템플릿에서 사용하지 않는 전용 이미지도 함께 삭제됩니다.</p><div class="template-delete-target"><span>삭제 대상</span><strong id="templateDeleteTarget"></strong></div><div id="templateDeleteFeedback" class="save-feedback hidden"></div><div class="template-save-actions"><button id="cancelTemplateDeleteBtn" type="button">취소</button><button id="confirmTemplateDeleteBtn" class="danger" type="button">완전히 삭제</button></div></div>';document.body.appendChild(dialog);
+  let target=null;
+  const close=()=>{if(dialog.getAttribute('aria-busy')==='true')return;dialog.classList.add('hidden');target=null};
+  button.onclick=()=>{const record=records().find(item=>item.id===el('templateSaveDialog')?.dataset.recordId);if(!record)return;target=record;el('templateDeleteTarget').textContent=record.name;el('templateDeleteFeedback').className='save-feedback hidden';el('templateSaveDialog').classList.add('hidden');dialog.classList.remove('hidden');el('cancelTemplateDeleteBtn').focus()};
+  el('cancelTemplateDeleteBtn').onclick=()=>{close();el('templateSaveDialog').classList.remove('hidden')};
+  el('confirmTemplateDeleteBtn').onclick=async()=>{
+   if(!target)return;const confirmButton=el('confirmTemplateDeleteBtn'),cancelButton=el('cancelTemplateDeleteBtn'),feedback=el('templateDeleteFeedback'),remote=window.ACDLTemplateRemotePersistence,hideCatalog=target.source==='catalog'||Boolean(target.catalogId),remoteId=target.remoteId||(/^[0-9a-f-]{36}$/i.test(String(target.id))?target.id:null);
+   dialog.setAttribute('aria-busy','true');confirmButton.disabled=true;cancelButton.disabled=true;confirmButton.textContent='삭제 중…';feedback.className='save-feedback info';feedback.textContent='템플릿과 버전 이력을 삭제하고 있습니다.';
+   try{
+    if(remote?.isRemote?.())await remote.remove({templateId:remoteId,stableKey:target.stableKey||target.catalogId||target.id,hideCatalog});
+    if(hideCatalog)hideCatalogKey(target.stableKey||target.catalogId||target.id);
+    await deleteTemplateProjectData(target.id);if(remoteId&&remoteId!==target.id)await deleteTemplateProjectData(remoteId);
+    const remaining=oldLibrary().filter(item=>item.id!==target.id&&item.id!==remoteId&&item.stableKey!==(target.stableKey||target.id));saveRecords(remaining);versionHistoryCache.delete(target.id);if(remoteId)versionHistoryCache.delete(remoteId);
+    dialog.classList.add('hidden');el('templateSaveDialog').classList.add('hidden');target=null;renderLibrary(activeLibraryState);renderUserChoices();showEditorToast('템플릿을 완전히 삭제했습니다.');
+   }catch(error){feedback.className='save-feedback error';feedback.textContent=error?.message||'템플릿을 삭제하지 못했습니다.'}
+   finally{dialog.removeAttribute('aria-busy');confirmButton.disabled=false;cancelButton.disabled=false;confirmButton.textContent='완전히 삭제'}
+  };
  }
  function installTemplateSaveProgress(){
   const dialog=el('templateSaveDialog'),confirmButton=el('confirmTemplateSaveBtn'),cancelButton=el('cancelTemplateSaveBtn'),feedback=el('templateSaveFeedback');
@@ -290,7 +316,7 @@
  window.renderUserTemplateChoices=renderUserChoices;renderUserTemplateChoices=renderUserChoices;
  window.applyCalendarType=type=>{oldApplyType(type);selectedCalendarType=type;el('selectedTypeLabel')&&(el('selectedTypeLabel').textContent=label(type));renderTypeChoices();renderUserChoices()};applyCalendarType=window.applyCalendarType;
  window.ACDLTemplateCatalog={allTypes,records,typeMeta,renderTypeChoices,renderTypeFilters};
- ensureTypeOptions();renderTypeChoices();renderTypeFilters();renderUserChoices();installTemplateSaveProgress();installCloneDialog();installTemplateOpenProgress();
+ ensureTypeOptions();renderTypeChoices();renderTypeFilters();renderUserChoices();installTemplateSaveProgress();installCloneDialog();installPermanentDeleteDialog();installTemplateOpenProgress();
  document.querySelectorAll('[data-library-state]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-library-state]').forEach(x=>x.classList.toggle('active',x===button));activeLibraryState=button.dataset.libraryState;setTimeout(()=>renderLibrary(button.dataset.libraryState),0)}));
  el('libraryStandardFilter')?.addEventListener('click',event=>{activeStandardOnly=!activeStandardOnly;event.currentTarget.classList.toggle('active',activeStandardOnly);event.currentTarget.setAttribute('aria-pressed',String(activeStandardOnly));renderLibrary(activeLibraryState)});
  document.querySelectorAll('[data-library-scope]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-library-scope]').forEach(x=>x.classList.toggle('active',x===button));activeLibraryScope=button.dataset.libraryScope;setTimeout(()=>renderLibrary(activeLibraryState),0)}));

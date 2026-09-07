@@ -394,7 +394,7 @@ test('local studio server resolves extracted feature files from the Designer Stu
   assert.match(server, /`apps\/designer-studio\/\$\{requestRel\}`/);
   assert.match(server, /\.webp':'image\/webp'/);
   assert.match(studioHtml, /features\/ai-design-runtime\.js\?v=20260906\.1/);
-  assert.match(studioHtml, /features\/template-settings-library\.js\?v=20260907\.2/);
+  assert.match(studioHtml, /features\/template-settings-library\.js\?v=20260907\.3/);
 });
 
 test('local studio server proxies authenticated API requests to Production', () => {
@@ -413,7 +413,7 @@ test('local and deployed entry points include the shared project asset resolver'
 });
 
 test('critical template recovery modules use a deployment cache version',()=>{
- assert.match(studioHtml,/template-remote-persistence\.js\?v=20260906\.4/);
+ assert.match(studioHtml,/template-remote-persistence\.js\?v=20260907\.1/);
  assert.match(studioHtml,/template-project-loader\.js\?v=20260906\.4/);
 });
 
