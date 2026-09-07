@@ -21,6 +21,7 @@ test('Vercel static output contains editor, design tokens, and both package type
   for (const path of [
     'index.html',
     'designer-studio-core.css',
+    'designer-studio-overrides.css',
     'canvas-selection.js',
     'desk-academic-shadow-renderer.js',
     'apps/designer-studio/index.html',

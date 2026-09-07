@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 
 const values = new Map();
 globalThis.localStorage = {
@@ -9,7 +10,7 @@ globalThis.localStorage = {
 };
 await import('../apps/designer-studio/wizard-flow.js');
 const wizard = globalThis.ACDLDesignerStudioWizard;
-const studioHtml = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css', import.meta.url), 'utf8');
+const studioHtml = fs.readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+readStudioFeatureSource()+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css', import.meta.url), 'utf8')+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-overrides.css', import.meta.url), 'utf8');
 
 test('a fresh wizard does not choose a type or template', () => {
   values.clear();
@@ -386,6 +387,23 @@ test('local studio server handles the browser favicon request without a 404', ()
   const server = fs.readFileSync(new URL('../tools/serve-designer-studio.mjs', import.meta.url), 'utf8');
   assert.match(server, /url\.pathname === '\/favicon\.ico'/);
   assert.match(server, /res\.writeHead\(204/);
+});
+
+test('local studio server resolves extracted feature files from the Designer Studio directory', () => {
+  const server = fs.readFileSync(new URL('../tools/serve-designer-studio.mjs', import.meta.url), 'utf8');
+  assert.match(server, /`apps\/designer-studio\/\$\{requestRel\}`/);
+  assert.match(server, /\.webp':'image\/webp'/);
+  assert.match(studioHtml, /features\/ai-design-runtime\.js\?v=20260906\.1/);
+  assert.match(studioHtml, /features\/template-settings-library\.js\?v=20260906\.1/);
+});
+
+test('local studio server proxies authenticated API requests to Production', () => {
+  const server = fs.readFileSync(new URL('../tools/serve-designer-studio.mjs', import.meta.url), 'utf8');
+  assert.match(server, /ACDL_DEV_API_ORIGIN \|\| 'https:\/\/calendar-template-designer\.vercel\.app'/);
+  assert.match(server, /url\.pathname\.startsWith\('\/api\/'\)/);
+  assert.match(server, /window\.ACDL_LOCAL_API_PROXY=true/);
+  assert.match(server, /\['accept', 'authorization', 'content-type'\]/);
+  assert.match(server, /redirect: 'manual'/);
 });
 
 test('local and deployed entry points include the shared project asset resolver',()=>{

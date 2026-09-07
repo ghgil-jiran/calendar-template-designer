@@ -1,9 +1,10 @@
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8');
+const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+readStudioFeatureSource()+fs.readFileSync(path.resolve('apps/designer-studio/designer-studio-overrides.css'), 'utf8');
 
 test('the shared editor header keeps context and one workspace navigation row', () => {
   assert.match(html, /id="appBrand"[^>]*>우리학교인쇄 CALENDAR EDITOR/);

@@ -1,14 +1,27 @@
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const html = readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+const html = readFileSync(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+readStudioFeatureSource();
 const previewState = readFileSync(new URL('../apps/designer-studio/preview-state.js', import.meta.url), 'utf8');
+const previewEntry = readFileSync(new URL('../apps/designer-studio/features/preview-entry-runtime.js', import.meta.url), 'utf8');
+const runtimeCore = readFileSync(new URL('../apps/designer-studio/features/studio-runtime-core.js', import.meta.url), 'utf8');
 
 test('preview controls are rebound once after legacy listeners are registered', () => {
-  assert.match(html, /id="preview-entry-runtime"/);
+  assert.match(html, /preview-entry-runtime\.js\?v=20260907\.3" data-runtime-source="preview-entry-runtime"/);
   assert.match(html, /replacePreviewButton\('previewBtn',togglePagePreview\)/);
   assert.match(html, /replacePreviewButton\('fullPreviewBtn',enterFullPreview\)/);
+  assert.match(html, /bindPreviewMenuAction\('preview-page',togglePagePreview\)/);
+  assert.match(html, /button\.onclick=null/);
+  assert.match(previewEntry, /replacePreviewButton\('returnToEditBtn',returnToEditor\)/);
+  assert.match(previewEntry, /replacePreviewButton\('previewPrevPageBtn',\(\)=>goPreviewPage\(-1\)\)/);
+  assert.match(previewEntry, /replacePreviewButton\('previewNextPageBtn',\(\)=>goPreviewPage\(1\)\)/);
+  assert.match(previewEntry, /replacePreviewButton\('closeFullPreviewBtn',closeTemplatePreview\)/);
+  assert.doesNotMatch(runtimeCore, /function goPreviewPage\(/);
+  assert.doesNotMatch(runtimeCore, /el\("previewBtn"\)\.addEventListener/);
+  assert.doesNotMatch(runtimeCore, /fullPreviewBtn'\)\?\.addEventListener/);
+  assert.match(runtimeCore, /\[data-menu-action\]:not\(\[data-menu-action\^="preview-"\]\)/);
 });
 
 test('both preview modes use the current project page collection', () => {

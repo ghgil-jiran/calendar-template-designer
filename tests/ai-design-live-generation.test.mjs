@@ -1,3 +1,4 @@
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -92,6 +93,8 @@ test('browser client stores a submitted key only through the authenticated confi
   assert.doesNotMatch(source,/localStorage|sessionStorage|indexedDB/);
 });
 
+const studioSource=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8')+readStudioFeatureSource();
+
 test('generation endpoint reads the OpenAI key from Supabase Vault', () => {
   const source=fs.readFileSync(new URL('../api/ai-design-generate.js',import.meta.url),'utf8');
   assert.match(source,/readOpenAIKey/);
@@ -99,7 +102,7 @@ test('generation endpoint reads the OpenAI key from Supabase Vault', () => {
 });
 
 test('dynamic Vault save control uses delegated click and a request timeout', () => {
-  const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
+  const html=studioSource;
   const client=fs.readFileSync(new URL('../apps/designer-studio/ai-design-client.js',import.meta.url),'utf8');
   assert.match(html,/closest\?\.\("#saveAIDesignOpenAIKeyBtn"\)/);
   assert.match(html,/e\.key==="Enter"&&e\.target\?\.id==="aiDesignOpenAIKey"/);
@@ -109,7 +112,7 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
 });
 
 test('AI generation controls render independently from the Vault connection controls', () => {
-  const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
+  const html=studioSource;
   assert.match(html,/실제 AI 대표 디자인 생성/);
   assert.match(html,/앞 단계 디자인 스타일/);
   assert.match(html,/단정한 균형형/);
@@ -139,7 +142,7 @@ test('AI generation controls render independently from the Vault connection cont
 });
 
 test('one live AI result opens automatically and waits for explicit selection', () => {
-  const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
+  const html=studioSource;
   assert.match(html,/aiDesignGenerationState="idle"/);
   assert.match(html,/aiDesignResultsRevealed=false/);
   assert.match(html,/aiDesignGenerationState!=="complete"\|\|!aiDesignMockSession\|\|!aiDesignResultsRevealed/);
@@ -155,8 +158,8 @@ test('one live AI result opens automatically and waits for explicit selection', 
 });
 
 test('AI setup is initialized from the saved design type specification',()=>{
-  const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
-  const css=fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css',import.meta.url),'utf8');
+  const html=studioSource;
+  const css=fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css',import.meta.url),'utf8')+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-overrides.css',import.meta.url),'utf8');
   assert.match(html,/function initializeAIDesignFromDesignSpec\(\)/);
   assert.match(html,/aiDesignInputSignature!==signature/);
   assert.match(html,/aiDesignGenerationState="idle"/);
@@ -173,7 +176,7 @@ test('AI setup is initialized from the saved design type specification',()=>{
 });
 
 test('the selected representative set expands to eleven remaining monthly front and back assets', () => {
-  const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
+  const html=studioSource;
   assert.match(html,/monthlyVariations:structuredClone\(sessionVariant\.monthlyVariations\|\|prepared\.designSet\?\.monthlyVariations\|\|\[\]\)/);
   assert.match(html,/function expandSelectedAIDesignMonths\(\)/);
   assert.match(html,/total=variations\.length\*2/);

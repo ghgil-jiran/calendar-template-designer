@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 
 await import('../apps/designer-studio/schedule-file-parser.js');
 
@@ -23,7 +24,7 @@ assert.match(text, /2일 : 과학의 날/);
 const xml = '<worksheet><sheetData><row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="inlineStr"><is><t>개학식</t></is></c></row></sheetData></worksheet>';
 assert.deepEqual(worksheetRows(xml, ['3일']), [['3일', '개학식']]);
 
-const studio = await readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8');
+const studio = await readFile(new URL('../apps/designer-studio/index.html', import.meta.url), 'utf8')+readStudioFeatureSource();
 assert.match(studio, /schedule-file-parser\.js/);
 assert.match(studio, /ACDLScheduleFileParser\.extractText\(file,year\)/);
 assert.match(studio, /accept="\.xlsx,\.csv,\.txt"/);

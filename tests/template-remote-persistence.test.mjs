@@ -5,17 +5,21 @@ import vm from 'node:vm';
 
 const source = await readFile(new URL('../apps/designer-studio/template-remote-persistence.js', import.meta.url), 'utf8');
 
-function runtime({ hostname = 'templates.example.com', fetch, accessToken = 'admin-jwt' } = {}) {
+function runtime({ hostname = 'templates.example.com', fetch, accessToken = 'admin-jwt', localApiProxy = false } = {}) {
   const values = new Map();
   let blobSequence=0;class BrowserURL extends URL{}BrowserURL.createObjectURL=()=>`blob:template-asset-${++blobSequence}`;
   const browserFetch=async(path,options)=>String(path).startsWith('/api/template-assets?content=')?{ok:true,status:200,blob:async()=>new Blob(['image'])}:fetch(path,options);
-  const window = { location: { hostname }, URL:BrowserURL, sessionStorage: { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) }, ACDLAdminAuth: { accessToken: () => accessToken, signOut() {} }, fetch:browserFetch };
+  const window = { location: { hostname }, ACDL_LOCAL_API_PROXY:localApiProxy, URL:BrowserURL, sessionStorage: { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) }, ACDLAdminAuth: { accessToken: () => accessToken, signOut() {} }, fetch:browserFetch };
   vm.runInNewContext(source, { window, URL, console, structuredClone });
   return window.ACDLTemplateRemotePersistence;
 }
 
 test('remote persistence stays disabled on the local editor', () => {
   assert.equal(runtime({ hostname: 'localhost' }).isRemote(), false);
+});
+
+test('remote persistence is enabled when the local server provides its Production API proxy', () => {
+  assert.equal(runtime({ hostname: 'localhost', localApiProxy:true }).isRemote(), true);
 });
 
 test('remote library uses one latest record per template', async () => {

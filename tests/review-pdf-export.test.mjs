@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 
-const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8')+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css',import.meta.url),'utf8');
+const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8')+readStudioFeatureSource()+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css',import.meta.url),'utf8')+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-overrides.css',import.meta.url),'utf8');
 
 test('template menu exposes a review PDF export distinct from package output',()=>{
  assert.match(html,/id="reviewPdfBtn">검토용 PDF 저장</);

@@ -1,9 +1,10 @@
+import { readStudioFeatureSource } from './studio-feature-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8');
+const html = fs.readFileSync(path.resolve('apps/designer-studio/index.html'), 'utf8')+readStudioFeatureSource();
 const datasetBridge = fs.readFileSync(path.resolve('apps/designer-studio/dataset-domain-bridge.js'), 'utf8');
 const runtimeAdapter = fs.readFileSync(path.resolve('apps/designer-studio/runtime-project-adapter.js'), 'utf8');
 
