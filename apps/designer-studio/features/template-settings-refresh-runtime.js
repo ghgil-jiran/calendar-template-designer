@@ -1,4 +1,22 @@
 (()=>{
+ const $=id=>document.getElementById(id),TYPE_KEY='acdl.calendarTypeDefinitions.v37';
+ function definitions(){try{const stored=JSON.parse(localStorage.getItem(TYPE_KEY)||'null');if(Array.isArray(stored)&&stored.length)return stored}catch(_){}return Array.isArray(window.ACDLCalendarTypeDefinitions)?window.ACDLCalendarTypeDefinitions:[]}
+ function definition(type){return definitions().find(item=>item.id===type)||({desk:{frontInsert:true,rearInsert:true,startMonth:true},wall:{frontInsert:true,rearInsert:false,startMonth:true},poster:{frontInsert:false,rearInsert:false,startMonth:true},postcard:{frontInsert:true,rearInsert:true,startMonth:true}}[type]||{})}
+ function setRule(fieldId,inputId,enabled,message){const field=$(fieldId),input=$(inputId);if(!field||!input)return;input.disabled=!enabled;if(!enabled)input.value='0';field.classList.toggle('type-rule-disabled',!enabled);const note=field.querySelector('.type-rule-note');if(note)note.textContent=!enabled?message:''}
+ function applyUserTypeRules(){const type=selectedUserTemplate?.type||selectedCalendarType;if(!type)return;const d=definition(type);setRule('userFrontInsertField','userFrontInserts',d.frontInsert!==false,'이 달력 유형에서는 앞 간지를 사용하지 않습니다.');setRule('userRearInsertField','userRearInserts',d.rearInsert!==false,'이 달력 유형에서는 뒤 간지를 사용하지 않습니다.');const start=$('userStartMonth');if(start){start.disabled=d.startMonth===false;if(start.disabled)start.value='1'}}
+ function applySetupTypeRules(){const type=$('setupType')?.value;if(!type)return;const d=definition(type);const pairs=[['setupFrontInserts',d.frontInsert!==false],['setupRearInserts',d.rearInsert!==false],['setupMonth',d.startMonth!==false]];pairs.forEach(([id,enabled])=>{const input=$(id);if(!input)return;input.disabled=!enabled;if(!enabled)input.value=id==='setupMonth'?'1':'0';const field=input.closest('.setup-field');field?.classList.toggle('type-rule-disabled',!enabled)})}
+ async function persistCurrentTemplateSettings(label){if(!project||appMode!=='designer')return false;const id=project.template?.id;if(!id){showEditorToast(`${label}을 현재 문서에 반영했습니다. 템플릿 저장을 눌러 라이브러리에 등록하세요.`);return false}try{await saveTemplateProjectData(id,window.ACDLPersistenceProject.clone(project));stable();showEditorToast(`${label}을 현재 템플릿에 저장했습니다.`);return true}catch(error){console.error('Template settings persistence failed',error);showEditorToast(`${label} 저장에 실패했습니다.`);return false}}
+ function persistAfter(id,label,delay=0){$(id)?.addEventListener('click',()=>setTimeout(()=>persistCurrentTemplateSettings(label),delay))}
+ persistAfter('saveBasicResourceBtn','기본 설정');persistAfter('saveSchoolInfoBtn','학교 정보 및 에셋');persistAfter('saveColorThemeBtn','색상 테마');persistAfter('saveFontThemeBtn','폰트 테마');persistAfter('saveMasterSettingsBtn','Master 기본값');persistAfter('saveExportSettingsBtn','출력 설정');persistAfter('resetResourceAssetsBtn','학교 이미지 에셋',50);
+ $('resourceAssetInput')?.addEventListener('change',()=>{[250,800,1600].forEach(delay=>setTimeout(()=>persistCurrentTemplateSettings('샘플 이미지 에셋'),delay))});
+ $('resourceScheduleInput')?.addEventListener('change',()=>{[300,1000,2200].forEach(delay=>setTimeout(()=>persistCurrentTemplateSettings('샘플 일정 파일'),delay))});
+ $('setupType')?.addEventListener('change',applySetupTypeRules);
+ document.addEventListener('click',event=>{if(event.target.closest('[data-calendar-type],[data-user-template],[data-library-edit],[data-library-use]'))setTimeout(()=>{applyUserTypeRules();applySetupTypeRules()},0)});
+ const priorStep=window.setUserWizardStep||setUserWizardStep;window.setUserWizardStep=setUserWizardStep=function(step){const result=priorStep(step);applyUserTypeRules();return result};
+ window.ACDLTemplateTypeRules={definition,applyUserTypeRules,applySetupTypeRules,persistCurrentTemplateSettings};applySetupTypeRules();applyUserTypeRules();
+})();
+
+(()=>{
  const $=id=>document.getElementById(id),nav=document.querySelector('.resource-side'),main=document.querySelector('.resource-main');if(!nav||!main)return;
  const menu=[['basic','① 기본 설정'],['school','② 학교 정보 및 에셋'],['schedule','③ 일정 등록'],['colors','④ 색상·폰트 테마'],['masters','⑤ Master 관리'],['export','⑥ 출력 설정'],['graphics','⑦ 그래픽 라이브러리'],['design-types','⑧ 디자인 유형 설정'],['ai-design','⑨ AI 디자인 생성']];
  nav.innerHTML=menu.map(([key,label],index)=>`<button class="${index===0?'active':''}" data-resource-page="${key}">${label}</button>`).join('');nav.addEventListener('click',event=>{const button=event.target.closest('[data-resource-page]');if(button)switchResourcePage(button.dataset.resourcePage)});
