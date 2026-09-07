@@ -33,6 +33,10 @@ test('validation enforces production size and allowed ranges',()=>{
  const type=domain.definition('desk-standard');type.productionSize.width=100;type.ranges.frontInsert={min:4,max:2};const result=domain.validate(type);assert.equal(result.valid,false);assert.equal(result.errors.length,2);
 });
 
+test('blank type cannot be saved without a required page role',()=>{
+ const type=domain.definition('desk-standard');for(const key of Object.keys(type.policies))type.policies[key]='unsupported';const result=domain.validate(type);assert.equal(result.valid,false);assert.match(result.errors.join(' '),/필수 페이지 정책/);
+});
+
 test('template validation uses the captured type range and required monthly surfaces',()=>{
  const type=domain.definition('desk-standard'),pages=[...Array.from({length:12},(_,index)=>({id:`f${index}`,role:'monthly-front'})),...Array.from({length:12},(_,index)=>({id:`b${index}`,role:'monthly-back'}))],project={settings:{monthCount:12,startMonth:3,frontInsertCount:1,rearInsertCount:0},productType:{pageSize:{width:260,height:180}},book:{pageInstances:pages}};assert.equal(domain.validateProject(project,type).valid,true);project.settings.startMonth=2;project.book.pageInstances.pop();const result=domain.validateProject(project,type);assert.equal(result.valid,false);assert.equal(result.errors.length,2)
 });
