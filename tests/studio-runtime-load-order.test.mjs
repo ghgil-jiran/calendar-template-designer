@@ -23,6 +23,7 @@ test('compatibility runtimes keep their recorded owner and browser load order', 
   });
   assert.ok(positions.every(position => position >= 0));
   assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
+  assert.ok(html.indexOf('./template-year-synchronizer.js') < html.indexOf('./template-library-runtime.js'));
   assert.ok(html.indexOf('id=\"typeManagerOverlay\"') < html.indexOf('./features/template-settings-workspace-runtime.js'));
-  assert.match(templateSettingsLibrary, /window\\.addEventListener\\('DOMContentLoaded',initializeTemplateSettingsLibrary/);
+  assert.match(templateSettingsLibrary, /window\.addEventListener\('DOMContentLoaded',initializeTemplateSettingsLibrary/);
 });
