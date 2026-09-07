@@ -1,8 +1,7 @@
 {
   "schemaVersion": "designer-studio-runtime-load.v1",
   "entries": [
-    { "source": "entry-navigation-bootstrap", "file": "shell-navigation-bootstrap.js", "owner": "shell" },
-    { "source": "designer-home-navigation-bootstrap", "file": "designer-home-navigation-bootstrap.js", "owner": "shell" },
+    { "source": "entry-navigation-bootstrap + designer-home-navigation-bootstrap", "file": "shell-navigation-bootstrap.js", "owner": "shell" },
     { "source": "v32-workspace-permissions", "file": "object-editing-compat-v32.js", "owner": "object-editing" },
     { "source": "workspace-settings-runtime", "file": "template-settings-workspace-runtime.js", "owner": "template-settings" },
     { "source": "v35-final-fixes", "file": "studio-compat-v35.js", "owner": "studio-runtime" },

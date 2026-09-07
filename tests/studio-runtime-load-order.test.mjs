@@ -8,7 +8,7 @@ const manifest = JSON.parse(fs.readFileSync(new URL('features/runtime-load-manif
 
 test('compatibility runtimes keep their recorded owner and browser load order', () => {
   assert.equal(manifest.schemaVersion, 'designer-studio-runtime-load.v1');
-  assert.equal(manifest.entries.length, 23);
+  assert.equal(manifest.entries.length, 22);
   assert.deepEqual([...new Set(manifest.entries.map(entry => entry.owner))].sort(), [
     'object-editing',
     'preview-pdf',

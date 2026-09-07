@@ -238,3 +238,5 @@ Production HTML은 기준 커밋과 같은 714,352 bytes이며 HTTP 200으로 �
 - `check-studio`가 manifest 버전, 파일 존재 여부, `index.html` 로드 여부와 상대 순서를 검사한다.
 - 독립 회귀검사가 23개 항목과 소유 기능 집합을 고정한다.
 - 이 계약이 유지되는 동안 다음 통합은 한 소유 기능씩 진행하며 함수 감싸기 순서를 명시적으로 대체한다.
+
+첫 통합으로 연속 실행되던 `entry-navigation-bootstrap`과 `designer-home-navigation-bootstrap`을 `shell-navigation-bootstrap.js` 하나로 합쳤다. 두 이벤트 등록 순서와 DOM 실행 위치는 유지했으며 manifest 항목은 23개에서 22개로 줄었다.
