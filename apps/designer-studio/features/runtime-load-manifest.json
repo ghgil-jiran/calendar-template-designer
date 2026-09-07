@@ -16,8 +16,7 @@
     { "source": "service-shell-runtime", "file": "service-shell-runtime.js", "owner": "shell" },
     { "source": "template-rules-persistence-runtime", "file": "template-settings-rules-persistence.js", "owner": "template-settings" },
     { "source": "preview-entry-runtime", "file": "preview-entry-runtime.js", "owner": "preview-pdf" },
-    { "source": "workspace-layout-v38-runtime", "file": "object-editing-workspace-layout-v38.js", "owner": "object-editing" },
-    { "source": "editor-page-auto-fit-runtime", "file": "object-editing-page-auto-fit.js", "owner": "object-editing" },
+    { "source": "workspace-layout-v38-runtime + editor-page-auto-fit-runtime", "file": "object-editing-workspace-layout-v38.js", "owner": "object-editing" },
     { "source": "review-pdf-export-runtime", "file": "preview-pdf-review-export.js", "owner": "preview-pdf" },
     { "source": "admin-landing-runtime", "file": "admin-landing-runtime.js", "owner": "shell" },
     { "source": "template-settings-refresh-runtime", "file": "template-settings-refresh-runtime.js", "owner": "template-settings" }

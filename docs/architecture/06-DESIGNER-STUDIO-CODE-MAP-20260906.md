@@ -247,3 +247,5 @@ Production HTML은 기준 커밋과 같은 714,352 bytes이며 HTTP 200으로 �
 - 미리보기/PDF: RC4 Runtime 연결 + RC5 비교 미리보기
 
 각 파일은 원문 본문을 같은 순서로 이어 붙였고 로드 위치도 유지했다. manifest 항목은 22개에서 20개로 줄었으며 본문 결합 일치 검사와 전체 빌드, Studio 회귀검사 297개를 통과했다.
+
+세 번째 통합으로 연속 실행되던 v38 작업공간 레이아웃과 편집 페이지 자동 맞춤 Runtime을 `object-editing-workspace-layout-v38.js` 하나로 합쳤다. 원문과 로드 위치를 유지했고 manifest 항목은 20개에서 19개로 줄었다.

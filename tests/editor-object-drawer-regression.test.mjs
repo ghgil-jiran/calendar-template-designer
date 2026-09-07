@@ -29,7 +29,7 @@ test('page navigation is a horizontal role-colored dock below the center canvas'
 });
 
 test('editor page zoom preserves a fixed print-layout canvas while only the viewport scales', () => {
-  assert.match(html, /data-runtime-source="editor-page-auto-fit-runtime"/);
+  assert.match(html, /data-runtime-source="workspace-layout-v38-runtime editor-page-auto-fit-runtime"/);
   assert.match(html, /id="editorPageViewport" class="editor-page-viewport"/);
   assert.match(html, /id="canvasZoomRange" type="range" min="50" max="150" step="5"/);
   assert.match(html, /id="canvasZoomPercentBtn"/);
