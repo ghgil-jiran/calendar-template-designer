@@ -7,6 +7,12 @@
   clean.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();handler()});
   return clean;
  }
+ function bindPreviewMenuAction(action,handler){
+  const button=document.querySelector(`[data-menu-action="${action}"]`);if(!button)return null;
+  button.onclick=null;
+  button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();handler()});
+  return button;
+ }
  function availablePreviewPages(){return window.ACDLPreviewState.pages(project)}
  function enterPagePreview(){
   const pages=availablePreviewPages();
@@ -31,5 +37,6 @@
 
  replacePreviewButton('previewBtn',togglePagePreview);
  replacePreviewButton('fullPreviewBtn',enterFullPreview);
+ bindPreviewMenuAction('preview-page',togglePagePreview);
  window.ACDLPreviewEntry={availablePreviewPages,enterPagePreview,enterFullPreview};
 })();
