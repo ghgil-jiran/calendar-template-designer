@@ -363,7 +363,7 @@ el("confirmTemplateSaveBtn")?.addEventListener("click",async ()=>{
   normalizeElementData();ensureV22Metadata();
   const name=el("saveTemplateName").value.trim()||"이름 없는 템플릿",description=el("saveTemplateDescription").value.trim(),edition=Number(el("saveTemplateEdition").value)||2027,state=el("saveTemplateState").value,isStandard=el("saveTemplateStandard").checked;
   const id=project.template.id||("tpl-"+Date.now()),stableKey=project.template.remoteStableKey||id;project.template.id=id;
-  Object.assign(project.template.metadata,{name,description,edition,state,isStandard});project.settings.year=edition;
+  Object.assign(project.template.metadata,{name,description,edition,state,isStandard});window.ACDLTemplateYearSynchronizer.synchronize(project,{year:edition,startMonth:project.settings.startMonth||3});
   const projectCopy=window.ACDLPersistenceProject.clone(project);await saveTemplateProjectData(id,projectCopy);let savedId=id,remoteSaved=false,remoteError=null,remoteVersion=Number(project.template.remoteVersionNumber)||0;
   const remote=window.ACDLTemplateRemotePersistence;
   if(remote?.isRemote?.())try{const result=await remote.save({templateId:project.template.remoteId||null,stableKey,name,description,edition,state,isStandard,productType:project.productType?.category||project.settings?.type||"desk",templateKey:project.template?.preset||project.settings?.template||"school-basic",saveKind:state==="published"?"publish":"manual",saveNote:`${name} 저장`,schemaVersion:"2.0",projectData:projectCopy},{onProgress:window.ACDLTemplateSaveProgress});savedId=result.template.id;remoteVersion=result.version.versionNumber;remoteSaved=true;project.template.id=savedId;project.template.remoteId=savedId;project.template.remoteStableKey=result.template.stableKey;project.template.remoteVersionNumber=remoteVersion;await saveTemplateProjectData(savedId,window.ACDLPersistenceProject.clone(project))}catch(error){remoteError=error;console.warn("원격 템플릿 저장 실패",error)}
@@ -525,6 +525,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
 
   function deepClone(v){return typeof structuredClone==='function'?structuredClone(v):JSON.parse(JSON.stringify(v))}
   function syncTemplateCalendarDates(prj,year,startMonth){
+    if(window.ACDLTemplateYearSynchronizer){window.ACDLTemplateYearSynchronizer.synchronize(prj,{year,startMonth});return}
     const pages=prj.book?.pageInstances||[], fronts=pages.filter(page=>page.role==='monthly-front'), backs=pages.filter(page=>page.role==='monthly-back');
     fronts.forEach((page,index)=>{const d=new Date(year,startMonth-1+index,1);page.calendarYear=d.getFullYear();page.calendarMonth=d.getMonth()+1;page.monthKey=`${page.calendarYear}-${String(page.calendarMonth).padStart(2,'0')}`;page.pairId=`month-pair.${page.monthKey}`});
     backs.forEach((page,index)=>{const front=fronts[index];if(front){page.calendarYear=front.calendarYear;page.calendarMonth=front.calendarMonth;page.monthKey=front.monthKey;page.pairId=front.pairId}});
