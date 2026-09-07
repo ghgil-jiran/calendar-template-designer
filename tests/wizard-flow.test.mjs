@@ -94,14 +94,14 @@ test('public landing presents the template studio without a calendar creation en
   assert.doesNotMatch(landing, /새 달력 만들기/);
 });
 
-test('public landing explains the editor beyond academic calendars', () => {
+test('public landing explains the editor around production-supported calendar families', () => {
   const html = studioHtml;
   const landing = html.match(/<div id="entryScreen"[\s\S]*?<div id="designerHome"/)?.[0] || '';
-  assert.match(landing, /모든 형태의 달력/);
+  assert.match(landing, /실제 제작 가능한 달력/);
   assert.match(landing, /풍부한 디자인 요소/);
   assert.match(landing, /디자인을 템플릿으로/);
   assert.match(landing, /화면부터 인쇄까지/);
-  assert.match(landing, /기업·학교·개인 포토 달력/);
+  assert.match(landing, /탁상달력, 벽걸이형, 한 장 포스터형/);
   assert.doesNotMatch(html, /transform:rotate\(-1\.4deg\)/);
 });
 
