@@ -1,5 +1,15 @@
 # Work Context
 
+## 템플릿 Edition·달력 연도 동기화 구현 · 2026-09-07
+
+- 템플릿 라이브러리 `[설정]`에서 Edition을 바꾸면 카드 메타데이터만 갱신되고 저장 프로젝트의 `settings.year`와 월별 페이지 날짜가 유지되던 문제를 수정했다.
+- 공통 `template-year-synchronizer.js`가 `template.metadata.edition`, `project.settings.year`, 월력 앞·뒷면의 `calendarYear`·`calendarMonth`·`monthKey`·`pairId`를 한 번에 맞춘다.
+- 월별 이미지·이미지 자산·명언·스타일 키와 학사일정 날짜도 새 학사연도 순서로 이동한다. 2월 29일은 대상 연도에 맞게 마지막 유효 날짜로 보정한다.
+- 페이지 배열과 ID, Master, 개체별 위치·크기·스타일·override, AI 자산 ID와 `acdl-asset://` 참조는 재생성하지 않고 그대로 보존한다.
+- 라이브러리 설정 저장, 편집 화면 저장, `이 템플릿으로 새로 만들기`, 사용자 달력 설정 적용이 같은 동기화 경로를 사용한다.
+- PR #15를 `main`에 병합했고 Production 기준은 `main@2f81017`이다. 전체 build, Studio 300/300, Sprint 2 및 전체 패키지 검사가 통과했다.
+- Production에서 초기 화면, 새 모듈 HTTP 200, 앱 오류 화면 없음과 제품 콘솔 오류 없음을 확인했다. 다음 확인은 실제 저장 템플릿의 Edition 변경 → 편집 재진입 → 표지·연력·월력·미니월력 → 현재/전체 미리보기 → 검토 PDF 순서다.
+
 ## Designer Studio 구조 개선 완료 · 2026-09-07
 
 - 기준선 `main@99aaf67`에서 시작한 구조 개선을 작업 브랜치 `refactor/designer-structure-20260906`에서 완료했다.
