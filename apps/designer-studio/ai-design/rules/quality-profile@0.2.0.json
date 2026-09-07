@@ -1,0 +1,8 @@
+{
+  "id": "print-safe-quality",
+  "version": "0.2.0",
+  "context": "calendar-type-snapshot",
+  "designChecks": ["required-role-coverage", "calendar-readability", "required-space", "decoration-density", "page-set-consistency", "seasonal-continuity", "protected-asset-integrity", "forbidden-raster-text"],
+  "printChecks": ["finished-size", "production-size", "orientation", "binding-edge", "trim-and-bleed", "safe-area-mm", "configured-effective-resolution", "gamut-risk", "thin-line", "small-text", "transparency"],
+  "pipeline": {"sourceAssets": "RGB-high-resolution-retained", "softProof": "before-design-approval", "finalConversion": "output-stage-only", "finalFormat": "PDF/X-4", "preflight": true}
+}

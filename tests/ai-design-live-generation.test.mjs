@@ -17,8 +17,8 @@ test('live image prompt protects editable calendar and school data', () => {
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.7.1.js');
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.7.1');
+  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.8.0.js');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.8.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','school-symbols','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
@@ -179,15 +179,15 @@ test('the selected representative set expands to eleven remaining monthly front 
   const html=studioSource;
   assert.match(html,/monthlyVariations:structuredClone\(sessionVariant\.monthlyVariations\|\|prepared\.designSet\?\.monthlyVariations\|\|\[\]\)/);
   assert.match(html,/function expandSelectedAIDesignMonths\(\)/);
-  assert.match(html,/total=variations\.length\*2/);
+  assert.match(html,/total=variations\.length\*monthlyRoles\.length/);
   assert.match(html,/12개월·24개 월력 자산/);
   assert.match(html,/월력 자산 \$\{current\}\/\$\{total\} 생성 중/);
   assert.doesNotMatch(html,/월력 전체 생성 \$\{current\}\/\$\{total\}/);
-  assert.match(html,/const pending=variations\.filter\(item=>!selected\.monthlyAssets\?\.\[item\.key\]\?\.month\|\|!selected\.monthlyAssets\?\.\[item\.key\]\?\.\["month-back"\]\)/);
+  assert.match(html,/const pending=variations\.filter\(item=>monthlyRoles\.some\(role=>!selected\.monthlyAssets\?\.\[item\.key\]\?\.\[role\]\)\)/);
   assert.match(html,/generatedMonthCount!==12/);
   assert.match(html,/function aiMonthlyAssetCoverage\(selected=selectedAIDesignVariant\(\)\)/);
   assert.match(html,/coverage\.expected===12&&coverage\.complete===12/);
-  assert.match(html,/Promise\.all\(\["month","month-back"\]/);
+  assert.match(html,/Promise\.all\(monthlyRoles/);
   assert.match(html,/ai-design-monthly-expansion\.v1/);
   assert.match(html,/월력 전체 생성/);
   assert.match(html,/aiMonthlyExpansionState="generating"/);
