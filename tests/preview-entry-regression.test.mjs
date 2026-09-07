@@ -7,7 +7,7 @@ const html = readFileSync(new URL('../apps/designer-studio/index.html', import.m
 const previewState = readFileSync(new URL('../apps/designer-studio/preview-state.js', import.meta.url), 'utf8');
 
 test('preview controls are rebound once after legacy listeners are registered', () => {
-  assert.match(html, /data-runtime-source="preview-entry-runtime"/);
+  assert.match(html, /preview-entry-runtime\.js\?v=20260907\.2" data-runtime-source="preview-entry-runtime"/);
   assert.match(html, /replacePreviewButton\('previewBtn',togglePagePreview\)/);
   assert.match(html, /replacePreviewButton\('fullPreviewBtn',enterFullPreview\)/);
   assert.match(html, /bindPreviewMenuAction\('preview-page',togglePagePreview\)/);
