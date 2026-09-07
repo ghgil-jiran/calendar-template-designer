@@ -150,6 +150,8 @@ function renderUserTemplateChoices(){
  grid.querySelectorAll("[data-user-template]").forEach(btn=>btn.addEventListener("click",()=>{grid.querySelectorAll("[data-user-template]").forEach(x=>x.classList.remove("selected"));btn.classList.add("selected");selectedUserTemplate={template:btn.dataset.userTemplate,type:btn.dataset.userType,libraryId:btn.dataset.userLibraryId};renderUserSizeOptions();updateWizardActions()}));
  if(selectedCalendarType)applyCalendarType(selectedCalendarType);else updateWizardActions();
 }
-function initializeTemplateSettingsLibrary(){updateRoleIndicator();renderUserTemplateChoices();updateWizardActions()}\nif(typeof el==='function')initializeTemplateSettingsLibrary();\nelse window.addEventListener('DOMContentLoaded',initializeTemplateSettingsLibrary,{once:true});
+function initializeTemplateSettingsLibrary(){updateRoleIndicator();renderUserTemplateChoices();updateWizardActions()}
+if(typeof el==='function')initializeTemplateSettingsLibrary();
+else window.addEventListener('DOMContentLoaded',initializeTemplateSettingsLibrary,{once:true});
 
 // v23 school profile, schedule import and designer navigation enhancements
