@@ -1,5 +1,6 @@
 (function(root){
  const signedToMarker=new Map();
+ let deletedCatalogKeys=[];
  const isRemote=()=>root.ACDL_LOCAL_API_PROXY===true||!['localhost','127.0.0.1',''].includes(root.location?.hostname||'');
  const accessToken=()=>root.ACDLAdminAuth?.accessToken?.()||'';
  async function request(path,options={}){
@@ -50,7 +51,7 @@
   const missing=[...ids].filter(id=>!replacements.has(`acdl-asset://${id}`)),missingLegacy=[...legacyUrls].filter(([url])=>!replacements.has(url));if(missing.length||missingLegacy.length)throw Object.assign(new Error(`저장된 이미지 자산 ${missing.length+missingLegacy.length}개를 불러오지 못했습니다.`),{code:'TEMPLATE_ASSETS_MISSING',missingAssetIds:missing,missingStoragePaths:missingLegacy.map(([,path])=>path)});
   const hydrated=materializeAIDesignBackgrounds(replace(copy,replacements));onProgress?.({phase:'asset-resolve',completed:ids.size+legacyUrls.size,total:ids.size+legacyUrls.size});return assertAIDesignIntegrity(hydrated);
  }
- async function list(){const body=await request('/api/templates');return (body.templates||[]).map(record)}
+ async function list(){const body=await request('/api/templates');deletedCatalogKeys=Array.isArray(body.deletedCatalogKeys)?body.deletedCatalogKeys:[];return (body.templates||[]).map(record)}
  async function load(id,{onProgress,deferAssets=false}={}){onProgress?.({phase:'remote',completed:0,total:1});const result=await request(`/api/templates?id=${encodeURIComponent(id)}`);onProgress?.({phase:'remote',completed:1,total:1});if(result?.version?.projectData){const storedProjectData=structuredClone(result.version.projectData);result.version.storedProjectData=storedProjectData;if(!deferAssets)result.version.projectData=await hydrateProjectData(storedProjectData,{onProgress})}return result}
  async function save(input,options={}){const projectData=await prepareProjectData(input.projectData,options);options.onProgress?.({phase:'version',completed:1,total:1});const result=await request('/api/templates',{method:'POST',body:JSON.stringify({...input,projectData})});options.onProgress?.({phase:'complete',completed:1,total:1});return result}
  async function saveDraft(input){const projectData=await prepareProjectData(input.projectData);return request('/api/template-drafts',{method:'PUT',body:JSON.stringify({...input,projectData})})}
@@ -58,5 +59,6 @@
  async function hydrateVersion(version){return version?.projectData?{...version,projectData:await hydrateProjectData(version.projectData)}:version}
  async function restore(templateId,versionId,saveNote){return request('/api/template-restore',{method:'POST',body:JSON.stringify({templateId,versionId,saveNote})})}
  async function packagePreflight(templateId){return request(`/api/template-package-preflight?templateId=${encodeURIComponent(templateId)}`)}
- root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareProjectData,hydrateProjectData,assetObjectUrl,legacyStoragePath});
+ async function remove({templateId=null,stableKey,hideCatalog=false}){return request('/api/templates',{method:'DELETE',body:JSON.stringify({templateId,stableKey,hideCatalog})})}
+ root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,remove,deletedCatalogKeys:()=>[...deletedCatalogKeys],toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareProjectData,hydrateProjectData,assetObjectUrl,legacyStoragePath});
 })(window);

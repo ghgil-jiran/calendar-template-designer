@@ -35,6 +35,12 @@ async function storageBinaryRequest(path){
   return {bytes:Buffer.from(await response.arrayBuffer()),mimeType:response.headers.get('content-type')||'application/octet-stream'};
 }
 
+async function deleteStorageObjects(bucket,paths){
+  const prefixes=[...new Set(paths.filter(Boolean))];
+  if(!prefixes.length)return;
+  await storageRequest(`object/${encodeURIComponent(bucket)}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes})});
+}
+
 function decodeDataUrl(value){
   if(typeof value!=='string'||!value.startsWith('data:image/'))throw Object.assign(new Error('Invalid image data'),{statusCode:400,code:'INVALID_IMAGE'});
   const match=value.match(/^data:([^;,]+)(;base64)?,(.*)$/s);if(!match||!ALLOWED_IMAGE_TYPES.has(match[1]))throw Object.assign(new Error('Unsupported image type'),{statusCode:400,code:'INVALID_IMAGE'});
@@ -209,6 +215,35 @@ export async function listTemplates() {
   const versions = ids.length ? await supabaseRequest(`template_versions?select=id,project_data&id=in.(${ids.map(encodeURIComponent).join(',')})`) : [];
   const standardByVersion = new Map(versions.map(version => [version.id, version.project_data?.template?.metadata?.isStandard === true]));
   return rows.map(row => rowToLibraryItem(row, standardByVersion.get(row.latest_version_id)));
+}
+
+export async function listDeletedCatalogKeys(){
+  try{
+    const rows=await supabaseRequest('template_catalog_deletions?select=stable_key&order=deleted_at.desc');
+    return rows.map(row=>row.stable_key);
+  }catch(error){
+    if(error?.code==='SUPABASE_REQUEST_FAILED')return [];
+    throw error;
+  }
+}
+
+export async function deleteTemplate(input){
+  const body=input&&typeof input==='object'?input:{};
+  const templateId=body.templateId?requiredText(body.templateId,'templateId',80):null;
+  const stableKey=requiredText(body.stableKey,'stableKey',160);
+  const hideCatalog=body.hideCatalog===true;
+  if(!templateId&&!hideCatalog)throw Object.assign(new Error('Template id is required'),{statusCode:400,code:'INVALID_REQUEST'});
+  const result=firstRow(await supabaseRequest('rpc/delete_template_permanently',{method:'POST',body:JSON.stringify({p_template_id:templateId,p_stable_key:stableKey,p_hide_catalog:hideCatalog})}));
+  const orphanAssets=Array.isArray(result?.orphanAssets)?result.orphanAssets:[];
+  const byBucket=new Map();
+  orphanAssets.forEach(asset=>{const bucket=asset.storage_bucket||ASSET_BUCKET;if(!byBucket.has(bucket))byBucket.set(bucket,[]);byBucket.get(bucket).push(asset.storage_path)});
+  const removedAssetIds=[];
+  for(const [bucket,paths] of byBucket){
+    await deleteStorageObjects(bucket,paths);
+    const ids=orphanAssets.filter(asset=>(asset.storage_bucket||ASSET_BUCKET)===bucket).map(asset=>asset.id);
+    removedAssetIds.push(...ids);
+  }
+  return {deleted:true,templateDeleted:result?.templateDeleted===true,catalogHidden:result?.catalogHidden===true,removedAssetCount:removedAssetIds.length,stableKey};
 }
 
 export async function getTemplate(templateId) {

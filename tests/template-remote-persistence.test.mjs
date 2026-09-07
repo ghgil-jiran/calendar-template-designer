@@ -36,6 +36,18 @@ test('remote library uses one latest record per template', async () => {
   assert.equal(calls[0].options.headers.Authorization, 'Bearer admin-jwt');
 });
 
+test('remote library exposes deleted built-in catalog keys',async()=>{
+  const api=runtime({fetch:async()=>({ok:true,status:200,json:async()=>({templates:[],deletedCatalogKeys:['built-in-01']})})});
+  await api.list();assert.deepEqual([...api.deletedCatalogKeys()],['built-in-01']);
+});
+
+test('remote permanent deletion uses the authenticated templates endpoint',async()=>{
+  let request;
+  const api=runtime({fetch:async(path,options)=>{request={path,options};return {ok:true,status:200,json:async()=>({deleted:true})}}});
+  await api.remove({templateId:'template-1',stableKey:'desk-01',hideCatalog:true});
+  assert.equal(request.path,'/api/templates');assert.equal(request.options.method,'DELETE');assert.deepEqual(JSON.parse(request.options.body),{templateId:'template-1',stableKey:'desk-01',hideCatalog:true});
+});
+
 test('remote library keeps standard separate from publishing state', async () => {
   const api = runtime({ fetch: async () => ({ ok: true, status: 200, json: async () => ({ templates: [{ id: 't1', stableKey: 'desk-01', name: '기준 템플릿', description: '', edition: 2028, state: 'ready', isStandard: true, productType: 'desk', templateKey: 'desk-standard', latestVersionNumber: 3, updatedAt: '2026-09-04T00:00:00Z' }] }) }) });
   const [record] = await api.list();

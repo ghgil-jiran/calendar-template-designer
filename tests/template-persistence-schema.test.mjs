@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const migrationUrl = new URL('../supabase/migrations/202608240001_template_persistence.sql', import.meta.url);
 const architectureUrl = new URL('../docs/architecture/06-TEMPLATE-PERSISTENCE.md', import.meta.url);
+const deleteMigrationUrl = new URL('../supabase/migrations/202609070002_permanent_template_delete.sql', import.meta.url);
 
 test('template persistence keeps one library row and separate immutable versions', async () => {
   const sql = await readFile(migrationUrl, 'utf8');
@@ -29,4 +30,13 @@ test('persistence document records latest-only library behavior', async () => {
   assert.match(document, /라이브러리에는 템플릿별 최신본 한 개만 표시/);
   assert.match(document, /자동저장은 버전을 계속 만들지 않고/);
   assert.match(document, /복원하면 과거 기록을 수정하지 않고 새 최신 버전/);
+});
+
+test('permanent template deletion keeps a catalog tombstone and selects only orphaned assets',async()=>{
+  const sql=await readFile(deleteMigrationUrl,'utf8');
+  assert.match(sql,/create table if not exists public\.template_catalog_deletions/);
+  assert.match(sql,/delete from public\.template_versions where template_id = p_template_id/);
+  assert.match(sql,/not exists \(select 1 from public\.template_version_assets link where link\.asset_id = asset\.id\)/);
+  assert.match(sql,/delete from public\.template_assets asset/);
+  assert.match(sql,/current_setting\('app\.permanent_template_delete'/);
 });

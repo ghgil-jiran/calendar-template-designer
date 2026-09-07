@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   assertInternalAccess,
+  deleteTemplate,
   listTemplates,
   readTemplateAsset,
   resolveTemplateAssetsByPaths,
@@ -81,6 +82,27 @@ test('autosave upserts one draft without creating a version', async () => {
   };
   const draft = await saveDraft({ templateId: 't1', schemaVersion: '2.0', projectData: { id: 'draft' } });
   assert.equal(draft.template_id, 't1');
+});
+
+test('permanent deletion removes only assets no longer referenced by another template',async()=>{
+  const calls=[];
+  globalThis.fetch=async(url,options={})=>{
+    calls.push({url,options});
+    if(url.endsWith('/rest/v1/rpc/delete_template_permanently'))return response({templateDeleted:true,catalogHidden:false,orphanAssets:[{id:'11111111-1111-4111-8111-111111111111',storage_bucket:'template-assets',storage_path:'sha256/orphan.webp'}]});
+    if(url.endsWith('/storage/v1/object/template-assets'))return response([]);
+    throw new Error(`unexpected ${url}`);
+  };
+  const result=await deleteTemplate({templateId:'22222222-2222-4222-8222-222222222222',stableKey:'custom-template',hideCatalog:false});
+  assert.equal(result.deleted,true);assert.equal(result.removedAssetCount,1);
+  const storageDelete=calls.find(call=>call.url.includes('/storage/v1/object/template-assets'));
+  assert.equal(storageDelete.options.method,'DELETE');assert.deepEqual(JSON.parse(storageDelete.options.body).prefixes,['sha256/orphan.webp']);
+  assert.equal(calls.some(call=>call.url.includes('/rest/v1/template_assets?id=in.')),false);
+});
+
+test('catalog-only deletion records a tombstone without requiring a project id',async()=>{
+  globalThis.fetch=async(url,options)=>{assert.match(url,/rpc\/delete_template_permanently$/);assert.equal(JSON.parse(options.body).p_hide_catalog,true);return response({templateDeleted:false,catalogHidden:true,orphanAssets:[]})};
+  const result=await deleteTemplate({stableKey:'built-in-template',hideCatalog:true});
+  assert.equal(result.catalogHidden,true);assert.equal(result.templateDeleted,false);
 });
 
 test('invalid save metadata is rejected before a database request', () => {
