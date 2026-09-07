@@ -240,3 +240,10 @@ Production HTML은 기준 커밋과 같은 714,352 bytes이며 HTTP 200으로 �
 - 이 계약이 유지되는 동안 다음 통합은 한 소유 기능씩 진행하며 함수 감싸기 순서를 명시적으로 대체한다.
 
 첫 통합으로 연속 실행되던 `entry-navigation-bootstrap`과 `designer-home-navigation-bootstrap`을 `shell-navigation-bootstrap.js` 하나로 합쳤다. 두 이벤트 등록 순서와 DOM 실행 위치는 유지했으며 manifest 항목은 23개에서 22개로 줄었다.
+
+두 번째 통합으로 같은 소유 기능에서 연속 실행되던 두 묶음을 합쳤다.
+
+- 템플릿 설정: v37 유형 관리자 + v37.1 Release Candidate 보정
+- 미리보기/PDF: RC4 Runtime 연결 + RC5 비교 미리보기
+
+각 파일은 원문 본문을 같은 순서로 이어 붙였고 로드 위치도 유지했다. manifest 항목은 22개에서 20개로 줄었으며 본문 결합 일치 검사와 전체 빌드, Studio 회귀검사 297개를 통과했다.
