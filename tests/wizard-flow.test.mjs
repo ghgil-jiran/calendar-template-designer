@@ -394,7 +394,7 @@ test('local studio server resolves extracted feature files from the Designer Stu
   assert.match(server, /`apps\/designer-studio\/\$\{requestRel\}`/);
   assert.match(server, /\.webp':'image\/webp'/);
   assert.match(studioHtml, /features\/ai-design-runtime\.js\?v=20260906\.1/);
-  assert.match(studioHtml, /features\/template-settings-library\.js\?v=20260907\.1/);
+  assert.match(studioHtml, /features\/template-settings-library\.js\?v=20260907\.2/);
 });
 
 test('local studio server proxies authenticated API requests to Production', () => {
