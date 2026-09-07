@@ -409,6 +409,7 @@
 })();
 
 (()=>{
+ if(window.ACDLCalendarTypeDomain)return;
  const $=id=>document.getElementById(id),KEY='acdl.calendarTypeDefinitions.v37';
  const objectLabels={text:'텍스트',image:'이미지',shape:'도형',vector:'벡터',frame:'사진 프레임','school-object':'학교 개체','monthly-calendar':'월력','year-calendar':'연간 달력','monthly-schedule':'해당 월 일정','event-list':'전체 학사일정',memo:'메모'};
  const allObjects=Object.keys(objectLabels);
@@ -446,6 +447,7 @@
 })();
 
 (()=>{
+ if(window.ACDLCalendarTypeDomain)return;
  const $=id=>document.getElementById(id),KEY='acdl.calendarTypeDefinitions.v37',DESK_SAMPLE_MIGRATION_KEY='acdl.deskSamples.v2';
  const starterCatalog=[
   {id:'desk-sample-6',name:'탁상형 6번 · 월별 플래너형'},

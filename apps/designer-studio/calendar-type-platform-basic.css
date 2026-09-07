@@ -1,0 +1,39 @@
+.calendar-type-context-card {
+  border-color: #bfdbfe;
+  background: linear-gradient(135deg, #eff6ff, #fff);
+}
+
+.calendar-type-context-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.calendar-type-context-head > div > span { color: #2563eb; font-size: 10px; font-weight: 800; }
+.calendar-type-context-head h4 { margin: 4px 0; font-size: 19px; }
+.calendar-type-context-head p { margin: 0; color: #64748b; font-size: 11px; }
+
+.calendar-type-context-spec {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.calendar-type-context-spec > div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.calendar-type-context-spec span { color: #64748b; font-size: 9px; }
+.calendar-type-context-spec strong { color: #172b48; font-size: 11px; }
+
+@media (max-width: 900px) {
+  .calendar-type-context-head { display: grid; }
+  .calendar-type-context-spec { grid-template-columns: 1fr 1fr; }
+}

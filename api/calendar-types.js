@@ -1,0 +1,3 @@
+import { assertInternalAccess, readJson, sendError, sendJson } from '../server/template-persistence.js';
+import { listCalendarTypes, saveCalendarType } from '../server/calendar-type-persistence.js';
+export default async function handler(request,response){try{await assertInternalAccess(request);if(request.method==='GET')return sendJson(response,200,{types:await listCalendarTypes()});if(request.method==='POST')return sendJson(response,200,{type:await saveCalendarType(await readJson(request))});response.setHeader('Allow','GET, POST');return sendJson(response,405,{error:'METHOD_NOT_ALLOWED'})}catch(error){return sendError(response,error)}}
