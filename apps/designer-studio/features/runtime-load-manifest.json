@@ -6,12 +6,11 @@
     { "source": "workspace-settings-runtime + v35-final-fixes + v36-template-data-platform + v361-memory-runtime + v362-type-runtime + v363-stability-runtime + v37-type-manager-runtime + v371-release-candidate-runtime", "file": "template-settings-workspace-runtime.js", "owner": "template-settings" },
     { "source": "rc2-release-marker + rc4-runtime-integration + rc5-parity-preview", "file": "preview-runtime-integration-rc4.js", "owner": "preview-pdf" },
     { "source": "sprint2-product-integration", "file": "object-editing-sprint2-runtime.js", "owner": "object-editing" },
-    { "source": "service-shell-runtime", "file": "service-shell-runtime.js", "owner": "shell" },
+    { "source": "service-shell-runtime + admin-landing-runtime", "file": "service-shell-runtime.js", "owner": "shell" },
     { "source": "template-rules-persistence-runtime", "file": "template-settings-rules-persistence.js", "owner": "template-settings" },
     { "source": "preview-entry-runtime", "file": "preview-entry-runtime.js", "owner": "preview-pdf" },
     { "source": "workspace-layout-v38-runtime + editor-page-auto-fit-runtime", "file": "object-editing-workspace-layout-v38.js", "owner": "object-editing" },
     { "source": "review-pdf-export-runtime", "file": "preview-pdf-review-export.js", "owner": "preview-pdf" },
-    { "source": "admin-landing-runtime", "file": "admin-landing-runtime.js", "owner": "shell" },
     { "source": "template-settings-refresh-runtime", "file": "template-settings-refresh-runtime.js", "owner": "template-settings" }
   ]
 }
