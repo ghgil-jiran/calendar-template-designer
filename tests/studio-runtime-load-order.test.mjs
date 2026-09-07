@@ -8,12 +8,11 @@ const manifest = JSON.parse(fs.readFileSync(new URL('features/runtime-load-manif
 
 test('compatibility runtimes keep their recorded owner and browser load order', () => {
   assert.equal(manifest.schemaVersion, 'designer-studio-runtime-load.v1');
-  assert.equal(manifest.entries.length, 19);
+  assert.equal(manifest.entries.length, 12);
   assert.deepEqual([...new Set(manifest.entries.map(entry => entry.owner))].sort(), [
     'object-editing',
     'preview-pdf',
     'shell',
-    'studio-runtime',
     'template-settings'
   ]);
   const positions = manifest.entries.map(entry => {
