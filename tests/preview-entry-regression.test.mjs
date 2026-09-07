@@ -20,6 +20,8 @@ test('preview controls are rebound once after legacy listeners are registered', 
   assert.match(previewEntry, /replacePreviewButton\('closeFullPreviewBtn',closeTemplatePreview\)/);
   assert.doesNotMatch(runtimeCore, /function goPreviewPage\(/);
   assert.doesNotMatch(runtimeCore, /el\("previewBtn"\)\.addEventListener/);
+  assert.doesNotMatch(runtimeCore, /fullPreviewBtn'\)\?\.addEventListener/);
+  assert.match(runtimeCore, /\[data-menu-action\]:not\(\[data-menu-action\^="preview-"\]\)/);
 });
 
 test('both preview modes use the current project page collection', () => {

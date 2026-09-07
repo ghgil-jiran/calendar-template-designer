@@ -264,3 +264,4 @@ Production HTML은 기준 커밋과 같은 714,352 bytes이며 HTTP 200으로 �
 - 서비스 처음 화면 복귀와 관리자 로그인·로그아웃을 `service-shell-runtime.js`로 통합했다.
 - 달력 유형 규칙, 설정별 원격 저장, 디자인 유형·에셋·일정 설정 화면 초기화를 `template-settings-refresh-runtime.js`로 통합했다.
 - 호환 Runtime manifest는 12개에서 10개로 줄었으며, 각 통합 단계에서 전체 빌드와 Studio 회귀검사 297개를 유지했다.
+- `preview-entry-runtime.js`가 미리보기 메뉴와 버튼을 단독 소유하므로 Core와 v37 설정 Runtime에 남아 있던 도달 불가능한 중복 이벤트 등록을 제거했다. 검토용 PDF는 작업공간 자동 맞춤 이후에 초기화되는 기존 순서를 유지하기 위해 독립 Runtime으로 남겼다.

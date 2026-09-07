@@ -124,8 +124,6 @@
     const restored=window.ACDLPreviewState.restore(project,saved);selectedPageId=restored.pageId;selectedElementId=restored.elementId;selectedElementScope=restored.scope;calendarEditing=restored.calendarEditing;preview=restored.preview;previewType=restored.previewType;try{render()}catch(err){console.error(err)}
     preview=true;previewType='template';$('fullPreviewSummary').textContent=`${project.book.pageInstances.length}개 페이지${failed?` · ${failed}개 오류`:''} · 독립 렌더링 미리보기`;$('fullPreviewOverlay').classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>grid.querySelectorAll('.full-preview-card:not(.preview-error-card)').forEach(card=>fitFullPreviewPage(card.querySelector('.preview-only-page'),card.querySelector('.full-preview-stage'),Number($('previewZoom')?.value||100)))));
   };
-  $('fullPreviewBtn')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();window.openFullPreview()},true);
-
   setTimeout(()=>{markPosterSpecificFields();refreshUserOptionVisibility();if(project?.mode==='calendar-workspace')$('templateSettingsBtn').textContent='달력 설정'},0);
   const oldRender=window.render;window.render=function(){const r=oldRender.apply(this,arguments);if(project?.mode==='calendar-workspace')$('templateSettingsBtn').textContent='달력 설정';return r};
 })();
@@ -258,7 +256,6 @@
  async function saveRecovery(){const currentProject=typeof window.project!=='undefined'&&window.project?window.project:(typeof project!=='undefined'?project:null);if(!currentProject)return;try{const record=window.ACDLPersistenceProject.createRecoveryRecord(currentProject,window.selectedPageId||selectedPageId,{compact:typeof __compactHistoryValue==='function'?__compactHistoryValue:undefined});await txPut('recovery',record);const remote=window.ACDLTemplateRemotePersistence,remoteId=currentProject.template?.remoteId;if(remoteId&&remote?.hasSession?.())remote.saveDraft({templateId:remoteId,schemaVersion:'2.0',projectData:record.project}).catch(error=>console.warn('원격 자동저장 실패',error));const s=document.getElementById('saveStatus');if(s&&s.textContent.includes('변경'))s.title='자동 복구본이 저장되었습니다.'}catch(err){console.warn('자동 복구 저장 실패',err)}}
  setInterval(saveRecovery,30000);window.addEventListener('beforeunload',()=>{saveRecovery()});
  const oldRender=typeof window.render==='function'?window.render:null;if(oldRender)window.render=function(){const r=oldRender.apply(this,arguments);requestAnimationFrame(update);return r};
- const closeBtn=document.getElementById('closeFullPreviewBtn');closeBtn?.addEventListener('click',()=>{document.getElementById('fullPreviewGrid')?.replaceChildren();document.getElementById('previewFocusBody')?.replaceChildren();update()});
 })();
 
 (()=>{
