@@ -75,6 +75,7 @@ async function generateLiveAIDesignSample(){
  const button=el("generateLiveAIDesignBtn"),styleKey=el("aiDesignLiveStyle")?.value||"balanced",quality=el("aiDesignLiveQuality")?.value||"low",count=1;let roles=[],total=0;
  try{
   button.disabled=true;aiDesignGenerationState="generating";aiDesignResultsRevealed=false;aiDesignMockSession=null;renderAIDesignGenerationState({current:0,total,message:"대표 디자인 세트 생성 요청을 준비하고 있습니다."});renderAIDesignMockSession();
+  const liveSpec=window.ACDLDesignSpec.read(project,window.ACDLDesignTypeCatalog);window.ACDLDesignLayoutApplication.apply(project,liveSpec);
   const prepared=prepareAIDesignMockSession({reveal:false});if(!prepared)throw new Error("AI 생성 조건을 준비하지 못했습니다.");roles=prepared.generationRequest?.generationContext?.enabledRoles||["cover","annual","divider","month","month-back","back-cover"];const contextRoles=prepared.generationRequest?.generationContext?.roles||[];total=roles.reduce((sum,role)=>sum+(role==="divider"?Math.max(1,contextRoles.find(item=>item.role===role)?.targets?.length||0):1),0);if(!total)throw new Error("현재 달력 유형에서 생성할 페이지 역할이 없습니다.");
   const colors=project.template?.resources?.colorTheme||{},sessionVariant=prepared.variants.find(item=>item.key===styleKey)||prepared.variants[0],blueprint=window.ACDLAIDesignSettings.VARIANT_BLUEPRINTS.find(item=>item.key===styleKey)||sessionVariant,variants=[];let completed=0;
   for(let variantIndex=0;variantIndex<count;variantIndex+=1){

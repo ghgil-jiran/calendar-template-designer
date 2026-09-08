@@ -9,7 +9,7 @@ function fixture(){
  const pageInstances=[{id:'cover',role:'cover-front'},{id:'annual',role:'cover-back'},{id:'symbols',role:'front-insert-front',semanticPageRole:'school-symbols'}],elementsByPage={},monthlyVariations=[],monthlyAssets={};
  for(let index=0;index<12;index+=1){const key=monthKey(index);monthlyVariations.push({key});monthlyAssets[key]={month:`asset-month-${key}`,'month-back':`asset-back-${key}`,metadata:{}};pageInstances.push({id:`front-${key}`,role:'monthly-front',monthKey:key,calendarYear:Number(key.slice(0,4)),calendarMonth:Number(key.slice(5))},{id:`back-${key}`,role:'monthly-back',monthKey:key,calendarYear:Number(key.slice(0,4)),calendarMonth:Number(key.slice(5))})}
  pageInstances.push({id:'closing',role:'back-cover-front'});
- const selected={monthlyVariations,monthlyAssets,assetsByRole:{cover:'cover-asset',annual:'annual-asset','school-symbols':'symbols-asset','back-cover':'closing-asset'}};
+ const selected={monthlyVariations,monthlyAssets,assetsByRole:{cover:'cover-asset',annual:'annual-asset',divider:'symbols-asset','back-cover':'closing-asset'}};
  pageInstances.forEach(page=>{const role=api().generatedRole(page),key=api().monthKey(page);elementsByPage[page.id]=[{role:'ai-design-background',aiDesign:{assetId:`asset-${page.id}`,generatedRole:role,...(key?{monthKey:key}:{})}}]});
  return {project:{book:{pageInstances,elementsByPage}},selected};
 }
