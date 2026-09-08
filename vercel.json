@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node \"$(git rev-parse --show-toplevel)/scripts/build-vercel-static.mjs\"",
+  "buildCommand": "node scripts/build-vercel-static.mjs",
   "outputDirectory": "public",
   "headers": [
     {
