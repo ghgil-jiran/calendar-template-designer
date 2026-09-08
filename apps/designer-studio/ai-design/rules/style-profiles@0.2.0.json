@@ -1,0 +1,13 @@
+{
+  "id": "school-calendar-styles",
+  "version": "0.2.0",
+  "profiles": [
+    {"id": "classic-texture", "name": "클래식 텍스처", "signature": "아이보리 종이·네이비와 앤티크 골드 선·미세한 엠보싱", "exclude": ["watercolor", "playful-icons", "large-geometric-planes"]},
+    {"id": "watercolor-soft", "name": "수채화 & 소프트 드로잉", "signature": "백색 수채화지·투명 식물 번짐·부드러운 안료 경계", "exclude": ["hard-geometry", "archive-stamps", "digital-gradient"]},
+    {"id": "modern-geometry", "name": "모던 그래픽 & 셰이프", "signature": "쿨 라이트그레이·정밀한 반투명 면·비대칭 편집 리듬", "exclude": ["paper-aging", "watercolor", "traditional-ornament"]},
+    {"id": "seasonal-gradient", "name": "사계절 그라디언트", "signature": "저대비 파스텔 메시·하나의 연속적인 색 흐름·현대적 깊이", "exclude": ["botanical-clipart", "paper-grain", "hard-panels"]},
+    {"id": "traditional-korean", "name": "전통 단청 & 문양", "signature": "한지 섬유·절제된 수묵·저채도 전통 선 리듬", "exclude": ["generic-east-asian-symbols", "red-seal", "calligraphy"]},
+    {"id": "academic-nordic", "name": "아카데믹 노르딕", "signature": "샌드 재생지·세이지와 포레스트그린·차분한 교육 편집 분위기", "exclude": ["primary-colors", "archive-stamps", "watercolor-florals"]},
+    {"id": "classic-archive", "name": "클래식 아카이브", "signature": "버건디 양장천·따뜻한 기록지·무문자 카탈로그 흔적", "exclude": ["readable-stamps", "sepia-photo", "playful-icons"]}
+  ]
+}

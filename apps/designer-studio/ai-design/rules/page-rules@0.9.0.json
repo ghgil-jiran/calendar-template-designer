@@ -1,7 +1,7 @@
 {
   "id": "calendar-page-rules",
-  "version": "0.8.0",
-  "promptSet": "school-calendar-design@0.9.0",
+  "version": "0.9.0",
+  "promptSet": "school-calendar-design@0.11.0",
   "generationContext": "ai-generation-context.v2@0.2.0",
   "roleSelection": "calendar-type-policy-and-existing-pages",
   "monthlyExpansion": "enabled-monthly-roles-only",
@@ -13,5 +13,7 @@
     "month-back": {"policy": "monthlyBack", "repeatBy": "month", "editable": ["image-frame", "current-calendar", "adjacent-mini-calendar", "planner", "memo", "date-strip"], "designerFinishesComposition": true},
     "back-cover": {"policy": "backCover", "editable": ["school-name", "school-logo", "address", "phone", "fax", "website"]}
   },
-  "forbid": ["unsupported-page-role-generation", "rasterized-editable-content", "invented-school-identity", "decoration-over-protected-region"]
+  "protectedRegionPolicy": {"paddingPercent": 2, "coordinateSpace": "page-percent", "pageSpecific": true, "maxRegions": 40},
+  "monthlyVariationAxes": ["color-balance", "edge-composition", "motif-silhouette", "decoration-scale", "photo-frame-treatment"],
+  "forbid": ["unsupported-page-role-generation", "rasterized-editable-content", "invented-school-identity", "decoration-over-protected-region", "functional-looking-placeholder", "binding-hardware"]
 }

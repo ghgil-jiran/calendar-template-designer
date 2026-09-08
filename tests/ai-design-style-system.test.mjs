@@ -14,6 +14,8 @@ test('desk style catalog exposes seven template-editable styles and one flexible
  assert.equal(saved.styleSnapshots.find(item=>item.id==='modern-geometry').name,'학교 전용 모던');assert.equal(specApi.read(structuredClone(project),catalog).commonGuideline,'현재 템플릿 공통 지침');
 });
 
+test('versioned style profiles document seven mutually distinct visual signatures',()=>{const profiles=JSON.parse(fs.readFileSync(new URL('../apps/designer-studio/ai-design/rules/style-profiles@0.2.0.json',import.meta.url)));assert.equal(profiles.profiles.length,7);assert.equal(new Set(profiles.profiles.map(item=>item.signature)).size,7);assert.ok(profiles.profiles.every(item=>item.exclude.length>=3))});
+
 test('actual divider pages become separate generation targets without a fixed 28-page assumption',()=>{
  const api=load('../apps/designer-studio/ai-design/ai-generation-context@0.2.0.js','ACDLAIGenerationContext'),pages=[{id:'cover',role:'cover-front'},{id:'insert-a',role:'front-insert-front',semanticPageRole:'school-symbols'},{id:'insert-b',role:'rear-insert-back',semanticPageRole:'divider'},{id:'month',role:'monthly-front'}],project={productType:{category:'desk'},template:{calendarTypeSnapshot:{definition:{id:'desk-standard',family:{id:'desk'},finishedSize:{width:260,height:180},productionSize:{width:266,height:186},binding:{edge:'top',method:'wire-o'}}},resources:{exportSettings:{bleed:3}}},book:{pageInstances:pages,elementsByPage:{'insert-a':[{role:'school-song'}],'insert-b':[{role:'history'}]}}};
  const context=api.build(project),divider=context.roles.find(item=>item.role==='divider');assert.equal(divider.targets.length,2);assert.deepEqual(divider.targets.map(item=>item.pageId),['insert-a','insert-b']);assert.equal(api.plan(context,{monthCount:12}).generationCount,15);

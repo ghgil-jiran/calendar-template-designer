@@ -17,8 +17,8 @@ test('live image prompt protects editable calendar and school data', () => {
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.9.0.js');
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.10.0');
+  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.11.0.js');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.11.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','divider','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
@@ -43,8 +43,25 @@ test('prompt carries independent monthly color, composition, motif, photo and de
 
 test('seven design styles keep distinct non-negotiable signatures and monthly variation does not rely on season alone',()=>{
  const styleIds=['classic-texture','watercolor-soft','modern-geometry','seasonal-gradient','traditional-korean','academic-nordic','classic-archive'];
- const signatures=new Set(styleIds.map(styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthColorVariation:'monthly',monthCompositionVariation:'monthly',monthMotifVariation:'monthly',monthDecorationVariation:'balanced'},protectedContent:['calendar-data']};const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2027,month:9,season:'autumn'},request:{designSpec}}));assert.match(prompt,/Non-negotiable style signature/);assert.match(prompt,/Do not rely on season alone/);assert.match(prompt,/Concrete monthly art direction/);return prompt.match(/Non-negotiable style signature: (.*?)\. Audience/)?.[1]||prompt}));
+ const signatures=new Set(styleIds.map(styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthColorVariation:'monthly',monthCompositionVariation:'monthly',monthMotifVariation:'monthly',monthDecorationVariation:'balanced'},protectedContent:['calendar-data']};const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2027,month:9,season:'autumn'},request:{designSpec}}));assert.match(prompt,/Non-negotiable style signature/);assert.match(prompt,/Do not rely on season alone/);assert.match(prompt,/Concrete month-specific art direction/);return prompt.match(/Non-negotiable style signature: (.*?)\. Audience/)?.[1]||prompt}));
  assert.equal(signatures.size,7);
+});
+
+test('each month receives independent five-axis direction instead of a season-only variation',()=>{
+ const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'modern-geometry',styleSnapshots:[{id:'modern-geometry',name:'Modern Geometry',guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthColorVariation:'monthly',monthCompositionVariation:'monthly',monthMotifVariation:'monthly',monthDecorationVariation:'balanced'},protectedContent:['calendar-data']};
+ const prompts=[3,4,5].map(month=>buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2028,month,season:'spring'},request:{designSpec}})));
+ assert.equal(new Set(prompts.map(prompt=>prompt.match(/color balance (.*?); edge composition/)?.[1])).size,3);
+ assert.equal(new Set(prompts.map(prompt=>prompt.match(/edge composition (.*?); abstract motif/)?.[1])).size,3);
+ assert.equal(new Set(prompts.map(prompt=>prompt.match(/abstract motif (.*?); decorative scale/)?.[1])).size,3);
+ prompts.forEach(prompt=>assert.match(prompt,/differ in at least three of these five visible axes/i));
+});
+
+test('protected regions are bounded and become hard exclusion zones',()=>{
+ const input=validateGenerationInput({styleKey:'balanced',pageRole:'month',protectedRegions:[{role:'date-grid',x:-5,y:12.345,width:120,height:80},{role:'invalid',x:10,y:10,width:0,height:4}]});
+ assert.deepEqual(input.protectedRegions,[{role:'date-grid',x:0,y:12.35,width:100,height:80}]);
+ const prompt=buildImagePrompt(input);
+ assert.match(prompt,/Hard exclusion zones including safety padding/);
+ assert.match(prompt,/no motif, line, border, frame, texture focal point, fake content, or tonal transition may cross them/i);
 });
 
 test('design spec selects role-specific composition guidance without rasterizing editable content',()=>{
