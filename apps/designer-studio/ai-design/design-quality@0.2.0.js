@@ -1,8 +1,8 @@
 (function(root){
  const VERSION='ai-design-quality.v1@0.2.0',SAFE_MARGIN=3,MIN_DRAFT_DPI=144,REGENERABLE=new Set(['forbidden-text','duplicate-asset','visual-inconsistency']);
- const ROLE_BY_PAGE=Object.freeze({'cover-front':'cover','cover-back':'annual','poster-annual':'annual','school-symbols':'school-symbols','front-insert-front':'school-symbols','monthly-front':'month','monthly-back':'month-back','back-cover-front':'back-cover','back-cover-back':'back-cover'});
+ const ROLE_BY_PAGE=Object.freeze({'cover-front':'cover','cover-back':'annual','poster-annual':'annual','school-symbols':'divider','front-insert-front':'divider','front-insert-back':'divider','rear-insert-front':'divider','rear-insert-back':'divider','monthly-front':'month','monthly-back':'month-back','back-cover-front':'back-cover','back-cover-back':'back-cover'});
  function monthKey(page){return page?.monthKey||(page?.calendarYear&&page?.calendarMonth?`${page.calendarYear}-${String(page.calendarMonth).padStart(2,'0')}`:null)}
- function generatedRole(page){return page?.semanticPageRole==='school-symbols'?'school-symbols':ROLE_BY_PAGE[page?.role]||null}
+ function generatedRole(page){return ['school-symbols','divider'].includes(page?.semanticPageRole)?'divider':ROLE_BY_PAGE[page?.role]||null}
  function metadataFor(selected,page,role){return ['month','month-back'].includes(role)?selected?.monthlyAssets?.[monthKey(page)]?.metadata?.[role]||{}:selected?.assetMetadataByRole?.[role]||{}}
  function assetFor(selected,page,role){return ['month','month-back'].includes(role)?selected?.monthlyAssets?.[monthKey(page)]?.[role]||null:selected?.assetsByRole?.[role]||null}
  function frame(item){const value=item?.framePct||item;if(![value?.x,value?.y,value?.width,value?.height].every(Number.isFinite))return null;return {x:value.x,y:value.y,width:value.width,height:value.height}}

@@ -1,0 +1,22 @@
+(function(root){
+ const VERSION='0.3.0',SCHEMA_VERSION='ai-design-spec.v2',RESOURCE_KEY='aiDesignSpec';
+ const expressionDefaults=Object.freeze({variationRhythm:'seasonal',monthBackPhoto:'use',monthBackSeason:'seasonal'});
+ const protectedContent=Object.freeze(['calendar-data','school-text','school-logo','school-photos','event-text']);
+ function clone(value){return JSON.parse(JSON.stringify(value))}
+ function allowed(value,items,fallback){return items.includes(value)?value:fallback}
+ function optionIds(catalog,key){return (catalog.expressionOptions?.[key]||[]).map(option=>option[0])}
+ function defaultStyleSnapshot(catalog){return (catalog.styles||[]).map(style=>({id:style.id,name:style.name,description:style.description,colors:[...(style.colors||[])],guidance:Object.fromEntries(Object.entries(style.guidance||{}).map(([role,value])=>[role,{description:value?.[0]||'',keywords:value?.[1]||'',forbidden:''}]))}))}
+ function normalizeSnapshots(input,catalog){const defaults=defaultStyleSnapshot(catalog),source=Array.isArray(input)?input:[];return defaults.map(base=>{const saved=source.find(item=>item?.id===base.id)||{},guidance={};Object.keys(catalog.roles||{}).forEach(role=>{const legacyRole=role==='divider'?'school-symbols':role,entry=saved.guidance?.[role]||saved.guidance?.[legacyRole]||base.guidance[role]||{};guidance[role]={description:String(entry.description||''),keywords:String(entry.keywords||''),forbidden:String(entry.forbidden||'')}});return {...base,name:String(saved.name||base.name),description:String(saved.description||base.description),colors:Array.isArray(saved.colors)&&saved.colors.length?saved.colors.slice(0,4):base.colors,guidance}})}
+ function normalize(input={},catalog=root.ACDLDesignTypeCatalog){
+  if(!catalog)throw new Error('Design type catalog is required');
+  const styles=catalog.styles||[],roles=catalog.roles||{},sourceRoles={...(input.pageTypes||{})},expression=input.expression||{};
+  if(!sourceRoles.divider&&sourceRoles['school-symbols'])sourceRoles.divider=sourceRoles['school-symbols'];
+  const pageTypes=Object.fromEntries(Object.entries(roles).map(([role,meta])=>{const values=(meta.options||[]).map(option=>option[0]);return [role,allowed(sourceRoles[role],values,values[0]||'')]}));
+  const styleSnapshots=normalizeSnapshots(input.styleSnapshots,catalog),styleIds=styleSnapshots.map(style=>style.id);
+  return {schemaVersion:SCHEMA_VERSION,version:VERSION,catalog:{id:catalog.id,version:catalog.version},scope:'desk-first',intent:'editable-start-for-designer',commonGuideline:String(input.commonGuideline||catalog.commonGuideline?.text||''),styleId:allowed(input.styleId,styleIds,styles[0]?.id||''),styleSnapshots,pageTypes,expression:{variationRhythm:allowed(expression.variationRhythm,optionIds(catalog,'variationRhythm'),expressionDefaults.variationRhythm),monthBackPhoto:allowed(expression.monthBackPhoto,optionIds(catalog,'monthBackPhoto'),expression.photoMode==='illustration'?'none':expressionDefaults.monthBackPhoto),monthBackSeason:allowed(expression.monthBackSeason,optionIds(catalog,'monthBackSeason'),expression.seasonal==='low'?'subtle':expressionDefaults.monthBackSeason)},protectedContent:[...protectedContent]};
+ }
+ function read(project,catalog=root.ACDLDesignTypeCatalog){return normalize(project?.template?.settings?.[RESOURCE_KEY]||{},catalog)}
+ function write(project,input,catalog=root.ACDLDesignTypeCatalog){if(!project?.template)throw new Error('Template project is required');project.template.settings=project.template.settings||{};project.template.settings[RESOURCE_KEY]=normalize(input,catalog);return project.template.settings[RESOURCE_KEY]}
+ function selectedStyle(spec){return spec?.styleSnapshots?.find(style=>style.id===spec.styleId)||null}
+ root.ACDLDesignSpec=Object.freeze({VERSION,SCHEMA_VERSION,RESOURCE_KEY,clone,normalize,read,write,selectedStyle});
+})(typeof window!=='undefined'?window:globalThis);

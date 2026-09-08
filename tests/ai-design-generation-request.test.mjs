@@ -32,7 +32,7 @@ test('AI generation request keeps the source template read-only and separates ou
 
 test('AI module manifest resolves every independently versioned rule file', () => {
   const manifest = JSON.parse(fs.readFileSync(new URL('ai-design/module-manifest.json', root)));
-  assert.equal(manifest.version, '1.7.0');
+  assert.equal(manifest.version, '1.8.0');
   assert.equal(manifest.storagePolicy.publishedPackage, 'read-only');
   for (const relative of Object.values(manifest.rules)) assert.ok(fs.existsSync(new URL(`ai-design/${relative}`, root)), relative);
 });
@@ -68,7 +68,8 @@ test('new-template completion applies the selected sample only to a separate dra
   assert.match(html, /generatedRoles=selected\?\.assetsByRole\?Object\.keys\(selected\.assetsByRole\)/);
   assert.doesNotMatch(html, /project\.template\.masterElements\[masterId\]=kept/);
   assert.match(html, /const AI_DESIGN_ROLE_MAP=\{cover:\["cover-front"\]/);
-  assert.match(html, /"school-symbols":\["school-symbols","front-insert-front"\]/);
+  assert.match(html, /divider:\["school-symbols","front-insert-front","front-insert-back","rear-insert-front","rear-insert-back"\]/);
+  assert.match(html, /Object\.entries\(selected\.assetsByPage\|\|\{\}\)/);
   assert.doesNotMatch(html, /selected\.generatedRole==="cover"\?new Set\(\["cover-front"\]\):new Set\(\["cover-front","cover-back","monthly-front"/);
   assert.match(html, /role:"ai-design-background"/);
   assert.match(html, /project\.template\.aiDesignDraft\.neutralBase=prepareNeutralAIDesignBase\(aiDesignMockSession\)/);

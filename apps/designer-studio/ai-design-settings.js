@@ -1,6 +1,6 @@
 (function(root){
  const VERSION=Object.freeze({module:'1.7.0',promptSet:'school-calendar-design@0.8.0',styleProfile:'school-calendar-styles@0.1.0',pageRules:'calendar-page-rules@0.7.0',qualityProfile:'print-safe-quality@0.2.0',generationContext:'ai-generation-context.v1@0.1.0'});
- const ROLE_LABELS=Object.freeze({cover:'표지',annual:'연력','school-symbols':'학교 상징·간지',month:'월력','month-back':'월력 뒷면','back-cover':'뒷표지'});
+ const ROLE_LABELS=Object.freeze({cover:'표지',annual:'표지 뒷면·연력',divider:'간지','school-symbols':'간지',month:'월력 앞면','month-back':'월력 뒷면','back-cover':'뒷표지'});
  const MONTH_BACK_COMPONENT_LABELS=Object.freeze({'image':'이미지','current-calendar':'뒷면 월력','previous-mini-calendar':'전달 미니 월력','next-mini-calendar':'다음 달 미니 월력','planner-monthly-goal':'월 목표','planner-checklist':'할 일 리스트','planner-weekly':'주별 계획','memo':'메모','month-date-strip':'월력 띠력'});
  function projectPages(project){return project?.book?.pageInstances||project?.book?.pages||[]}
  function pageRoles(project){const roles=[];projectPages(project).forEach(page=>{const role=page.semanticPageRole||page.role||page.pageRole;if(role&&!roles.includes(role))roles.push(role)});return roles}
@@ -14,7 +14,7 @@
  const PAGE_PLAN_BLUEPRINTS=Object.freeze([
   {role:'cover',label:'표지',assetSlots:['전체·부분 배경','독립 일러스트','사진 프레임'],editableObjects:['연도','학교명','교표'],layout:'사진·제목·학교 정보의 표지 위계'},
   {role:'annual',label:'연력',assetSlots:['연력 프레임','코너 장식','옅은 패턴'],editableObjects:['연도','12개월 월력','공휴일'],layout:'연간 정보가 먼저 읽히는 넓은 격자'},
-  {role:'school-symbols',label:'학교 상징',assetSlots:['정보 구획 배경','구분선','상징 프레임'],editableObjects:['교표','교훈','교가','교목','교화'],layout:'학교 상징별 독립 정보 영역'},
+  {role:'divider',label:'간지',assetSlots:['간지 배경','가장자리 장식','구분 포인트'],editableObjects:['교표','교훈','교가','교목','교화','연혁','안내'],layout:'실제 간지 용도에 맞춘 독립 정보 영역'},
   {role:'month',label:'월력',assetSlots:['12개월 개별 배경 톤','월 표시 강조색','계절 일러스트','격자 주변 패턴'],editableObjects:['월·요일·날짜','학사일정','미니월력','교훈·교표'],layout:'달력 격자를 보호하면서 월별 색상과 계절 포인트를 변주',variationPolicy:'one-result-per-month'},
   {role:'month-back',label:'월력 뒷면',assetSlots:['12개월 개별 일러스트','사진 프레임','미니월력 프레임','메모 장식'],editableObjects:['미니월력','띠 월력','플래너·체크리스트·메모'],layout:'플래너 구조를 보호하고 월마다 독립 일러스트 하나를 배치',variationPolicy:'one-independent-illustration-per-month'},
   {role:'back-cover',label:'뒷표지',assetSlots:['정보 프레임','브랜드 패턴','마감 장식'],editableObjects:['학교명','주소','연락처','교표'],layout:'표지와 연결되는 마감 및 학교 정보'}

@@ -1,8 +1,8 @@
 (function(root){
  const VERSION='ai-design-set-expansion.v1@0.2.0';
- const ROLE_BY_PAGE=Object.freeze({'cover-front':'cover','cover-back':'annual','poster-annual':'annual','school-symbols':'school-symbols','front-insert-front':'school-symbols','monthly-front':'month','monthly-back':'month-back','back-cover-front':'back-cover','back-cover-back':'back-cover'});
+ const ROLE_BY_PAGE=Object.freeze({'cover-front':'cover','cover-back':'annual','poster-annual':'annual','school-symbols':'divider','front-insert-front':'divider','front-insert-back':'divider','rear-insert-front':'divider','rear-insert-back':'divider','monthly-front':'month','monthly-back':'month-back','back-cover-front':'back-cover','back-cover-back':'back-cover'});
  function monthKey(page){return page?.monthKey||(page?.calendarYear&&page?.calendarMonth?`${page.calendarYear}-${String(page.calendarMonth).padStart(2,'0')}`:null)}
- function generatedRole(page){return page?.semanticPageRole==='school-symbols'?'school-symbols':ROLE_BY_PAGE[page?.role]||null}
+ function generatedRole(page){return ['school-symbols','divider'].includes(page?.semanticPageRole)?'divider':ROLE_BY_PAGE[page?.role]||null}
  function expectedAsset(selected,page,role){if(role==='month'||role==='month-back')return selected?.monthlyAssets?.[monthKey(page)]?.[role]||null;return selected?.assetsByRole?.[role]||null}
  function appliedBackground(project,page,role){return (project?.book?.elementsByPage?.[page.id]||[]).find(item=>item.role==='ai-design-background'&&item.aiDesign?.generatedRole===role&&(!['month','month-back'].includes(role)||item.aiDesign?.monthKey===monthKey(page)))||null}
  function createReport(project,selected){
