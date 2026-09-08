@@ -14,6 +14,11 @@ test('desk generation context enables all roles present in its page structure',(
  assert.deepEqual([...result.enabledRoles],['cover','annual','school-symbols','month','month-back','back-cover']);
  assert.deepEqual([...result.monthlyRoles],['month','month-back']);
  assert.equal(result.print.bleedMm,3);
+ const plan=api().plan(result,{monthCount:12,quality:'low'});
+ assert.equal(plan.representativeCount,6);
+ assert.equal(plan.monthlyAssetCount,24);
+ assert.equal(plan.generationCount,28);
+ assert.equal(plan.estimatedCostUsd,0.364);
 });
 
 test('poster generation context enables only annual',()=>{
@@ -21,6 +26,13 @@ test('poster generation context enables only annual',()=>{
  const result=api().build(project(definition,[{id:'annual',role:'poster-annual'}]));
  assert.deepEqual([...result.enabledRoles],['annual']);
  assert.deepEqual([...result.monthlyRoles],[]);
+ const plan=api().plan(result,{monthCount:12,quality:'medium'});
+ assert.equal(plan.familyId,'single-sheet');
+ assert.equal(plan.representativeCount,1);
+ assert.equal(plan.monthCount,0);
+ assert.equal(plan.monthlyAssetCount,0);
+ assert.equal(plan.generationCount,1);
+ assert.equal(plan.estimatedCostUsd,0.05);
 });
 
 test('wall generation context does not invent an absent optional month back',()=>{
@@ -28,4 +40,8 @@ test('wall generation context does not invent an absent optional month back',()=
  const result=api().build(project(definition,[{id:'cover',role:'cover-front'},{id:'month',role:'monthly-front'},{id:'annual',role:'annual'}]));
  assert.deepEqual([...result.enabledRoles],['cover','annual','month']);
  assert.deepEqual([...result.monthlyRoles],['month']);
+ const plan=api().plan(result,{monthCount:12,quality:'low'});
+ assert.equal(plan.representativeCount,3);
+ assert.equal(plan.monthlyAssetCount,12);
+ assert.equal(plan.generationCount,14);
 });

@@ -135,7 +135,7 @@ test('AI generation controls render independently from the Vault connection cont
   assert.match(html,/const AI_DESIGN_ROLE_MAP=\{cover:\["cover-front"\],annual:\["cover-back","poster-annual"\],"school-symbols"/);
   assert.doesNotMatch(html,/item\.pagePlans\.filter\(plan=>\['cover','month','month-back'\]/);
   assert.match(html,/item\.pagePlans\.map\(plan=>aiPagePreviewMarkup\(item,plan\)\)/);
-  assert.match(html,/실제 AI 생성 자산 · 6개 역할 완성/);
+  assert.match(html,/실제 AI 생성 자산 · \$\{item\.pagePlans\.length\}개 역할 완성/);
   assert.match(html,/designStyleId:designContext\.styleId/);
   assert.match(html,/pageTypeId:designContext\.pageTypeId/);
   assert.match(html,/metadata\.promptVersion/);
@@ -180,13 +180,13 @@ test('the selected representative set expands to eleven remaining monthly front 
   assert.match(html,/monthlyVariations:structuredClone\(sessionVariant\.monthlyVariations\|\|prepared\.designSet\?\.monthlyVariations\|\|\[\]\)/);
   assert.match(html,/function expandSelectedAIDesignMonths\(\)/);
   assert.match(html,/total=variations\.length\*monthlyRoles\.length/);
-  assert.match(html,/12개월·24개 월력 자산/);
+  assert.match(html,/generatedMonthCount\*monthlyRoles\.length/);
   assert.match(html,/월력 자산 \$\{current\}\/\$\{total\} 생성 중/);
   assert.doesNotMatch(html,/월력 전체 생성 \$\{current\}\/\$\{total\}/);
   assert.match(html,/const pending=variations\.filter\(item=>monthlyRoles\.some\(role=>!selected\.monthlyAssets\?\.\[item\.key\]\?\.\[role\]\)\)/);
-  assert.match(html,/generatedMonthCount!==12/);
+  assert.match(html,/generatedMonthCount!==variations\.length/);
   assert.match(html,/function aiMonthlyAssetCoverage\(selected=selectedAIDesignVariant\(\)\)/);
-  assert.match(html,/coverage\.expected===12&&coverage\.complete===12/);
+  assert.match(html,/coverage\.complete===coverage\.expected/);
   assert.match(html,/Promise\.all\(monthlyRoles/);
   assert.match(html,/ai-design-monthly-expansion\.v1/);
   assert.match(html,/월력 전체 생성/);
@@ -205,4 +205,17 @@ test('the selected representative set expands to eleven remaining monthly front 
   assert.match(html,/ACDLDesignSetExpansion\.createReport\(project,selected\)/);
   assert.match(html,/setExpansion\.status!=="complete"/);
   assert.match(html,/designSpecVersion:metadata\.designSpecVersion/);
+});
+
+test('AI generation UI follows the enabled role and monthly role contract',()=>{
+  const html=studioSource;
+  assert.doesNotMatch(html,/6개 대표 페이지/);
+  assert.doesNotMatch(html,/실제 페이지 6개/);
+  assert.match(html,/context\.monthlyRoles\.includes\("month-back"\)/);
+  assert.match(html,/monthBack\.classList\.toggle\("hidden",!hasMonthBack\)/);
+  assert.match(html,/section\.classList\.toggle\("hidden",!plan\.monthlyRoles\.length\)/);
+  assert.match(html,/대표 디자인을 생성하면 \$\{plan\.representativeCount\}개 대표 페이지/);
+  assert.match(html,/plan\.monthlyAssetCount/);
+  assert.match(html,/aiCostText\(plan\)/);
+  assert.match(html,/const primaryRole=roles\[0\]/);
 });
