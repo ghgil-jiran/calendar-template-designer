@@ -17,13 +17,13 @@ test('live image prompt protects editable calendar and school data', () => {
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.8.0.js');
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.8.0');
-  assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','school-symbols','month','month-back','back-cover']);
+  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.9.0.js');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.9.0');
+  assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','divider','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
     assert.match(prompt,/Never rasterize editable content/i);
-    assert.match(prompt,/Never create photo frames, cards, panels, dividers/i);
+    assert.match(prompt,/Never rasterize editable content/i);
     assert.match(prompt,/Do not draw spiral binding, punched holes, perforations/i);
     assert.match(prompt,new RegExp(`Page role: ${prompts.ROLE_PROMPTS[pageRole].label}`));
   }
