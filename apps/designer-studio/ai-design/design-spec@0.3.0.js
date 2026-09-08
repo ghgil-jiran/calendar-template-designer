@@ -2,6 +2,7 @@
  const VERSION='0.3.0',SCHEMA_VERSION='ai-design-spec.v2',RESOURCE_KEY='aiDesignSpec';
  const expressionDefaults=Object.freeze({variationRhythm:'seasonal',monthBackPhoto:'use',monthBackSeason:'seasonal'});
  const protectedContent=Object.freeze(['calendar-data','school-text','school-logo','school-photos','event-text']);
+ const dividerObjectIds=Object.freeze(['school-name','school-building','school-logo','school-motto','school-song','school-tree','school-flower','image-slot','annual-calendar','mini-calendar','schedule-list','title','body']);
  function clone(value){return JSON.parse(JSON.stringify(value))}
  function allowed(value,items,fallback){return items.includes(value)?value:fallback}
  function optionIds(catalog,key){return (catalog.expressionOptions?.[key]||[]).map(option=>option[0])}
@@ -13,10 +14,11 @@
   if(!sourceRoles.divider&&sourceRoles['school-symbols'])sourceRoles.divider=sourceRoles['school-symbols'];
   const pageTypes=Object.fromEntries(Object.entries(roles).map(([role,meta])=>{const values=(meta.options||[]).map(option=>option[0]);return [role,allowed(sourceRoles[role],values,values[0]||'')]}));
   const styleSnapshots=normalizeSnapshots(input.styleSnapshots,catalog),styleIds=styleSnapshots.map(style=>style.id);
-  return {schemaVersion:SCHEMA_VERSION,version:VERSION,catalog:{id:catalog.id,version:catalog.version},scope:'desk-first',intent:'editable-start-for-designer',commonGuideline:String(input.commonGuideline||catalog.commonGuideline?.text||''),styleId:allowed(input.styleId,styleIds,styles[0]?.id||''),styleSnapshots,pageTypes,expression:{variationRhythm:allowed(expression.variationRhythm,optionIds(catalog,'variationRhythm'),expressionDefaults.variationRhythm),monthBackPhoto:allowed(expression.monthBackPhoto,optionIds(catalog,'monthBackPhoto'),expression.photoMode==='illustration'?'none':expressionDefaults.monthBackPhoto),monthBackSeason:allowed(expression.monthBackSeason,optionIds(catalog,'monthBackSeason'),expression.seasonal==='low'?'subtle':expressionDefaults.monthBackSeason)},protectedContent:[...protectedContent]};
+  const dividerPages=Object.fromEntries(Object.entries(input.dividerPages||{}).map(([pageId,entry])=>[pageId,{purpose:String(entry?.purpose||'free'),layoutId:allowed(entry?.layoutId,(roles.divider?.options||[]).map(option=>option[0]),pageTypes.divider),objects:[...new Set((entry?.objects||[]).filter(id=>dividerObjectIds.includes(id)))]}]));
+  return {schemaVersion:SCHEMA_VERSION,version:VERSION,catalog:{id:catalog.id,version:catalog.version},scope:'desk-first',intent:'editable-start-for-designer',commonGuideline:String(input.commonGuideline||catalog.commonGuideline?.text||''),styleId:allowed(input.styleId,styleIds,styles[0]?.id||''),styleSnapshots,pageTypes,dividerPages,expression:{variationRhythm:allowed(expression.variationRhythm,optionIds(catalog,'variationRhythm'),expressionDefaults.variationRhythm),monthBackPhoto:allowed(expression.monthBackPhoto,optionIds(catalog,'monthBackPhoto'),expression.photoMode==='illustration'?'none':expressionDefaults.monthBackPhoto),monthBackSeason:allowed(expression.monthBackSeason,optionIds(catalog,'monthBackSeason'),expression.seasonal==='low'?'subtle':expressionDefaults.monthBackSeason)},protectedContent:[...protectedContent]};
  }
  function read(project,catalog=root.ACDLDesignTypeCatalog){return normalize(project?.template?.settings?.[RESOURCE_KEY]||{},catalog)}
  function write(project,input,catalog=root.ACDLDesignTypeCatalog){if(!project?.template)throw new Error('Template project is required');project.template.settings=project.template.settings||{};project.template.settings[RESOURCE_KEY]=normalize(input,catalog);return project.template.settings[RESOURCE_KEY]}
  function selectedStyle(spec){return spec?.styleSnapshots?.find(style=>style.id===spec.styleId)||null}
- root.ACDLDesignSpec=Object.freeze({VERSION,SCHEMA_VERSION,RESOURCE_KEY,clone,normalize,read,write,selectedStyle});
+ root.ACDLDesignSpec=Object.freeze({VERSION,SCHEMA_VERSION,RESOURCE_KEY,dividerObjectIds,clone,normalize,read,write,selectedStyle});
 })(typeof window!=='undefined'?window:globalThis);

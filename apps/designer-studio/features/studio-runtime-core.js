@@ -96,7 +96,7 @@ function renderNavigator(){
  else project.book.pageInstances.forEach(p=>nav.appendChild(pageButton(p)));
 }
 function pageNavigationKind(p){if(/^back-cover/.test(p.role))return"back-cover";if(/^cover/.test(p.role))return"cover";if(/^monthly/.test(p.role)||p.role==="poster-annual")return"month";return"insert"}
-function pageButton(p){const b=document.createElement("button"),parity=Number(p.number)%2?"odd":"even",kind=pageNavigationKind(p);b.className=`page-btn page-${parity} page-kind-${kind} ${p.id===selectedPageId?"active":""}`;b.dataset.pageId=p.id;b.dataset.pageParity=parity;b.dataset.pageKind=kind;b.innerHTML=`<span><strong>${p.number}면</strong><small>${roleLabel(p)}</small></span>`;b.addEventListener("click",()=>{if(p.id!==selectedPageId&&!confirmDiscardInspectorChanges())return;inspectorDirty=false;inspectorNotice={type:"ready",message:"설정을 변경하면 저장 버튼이 활성화됩니다."};selectedPageId=p.id;selectedDate=null;selectedElementId=null;selectedElementScope=null;semanticImageDraft=null;semanticImageDraftElementId=null;calendarEditing=false;render()});return b}
+function pageButton(p){const b=document.createElement("button"),parity=Number(p.number)%2?"odd":"even",kind=pageNavigationKind(p);b.className=`page-btn page-${parity} page-kind-${kind} ${p.id===selectedPageId?"active":""}`;b.dataset.pageId=p.id;b.dataset.pageParity=parity;b.dataset.pageKind=kind;b.innerHTML=`<span><strong>${p.number}면</strong><small>${roleLabel(p)}</small></span>`;b.addEventListener("click",()=>{if(p.id===selectedPageId||!confirmDiscardInspectorChanges())return;inspectorDirty=false;inspectorNotice={type:"ready",message:"설정을 변경하면 저장 버튼이 활성화됩니다."};selectedPageId=p.id;selectedDate=null;selectedElementId=null;selectedElementScope=null;semanticImageDraft=null;semanticImageDraftElementId=null;calendarEditing=false;document.querySelectorAll('.page-btn.active').forEach(node=>node.classList.remove('active'));b.classList.add('active');renderPage();applyThemeTokens();renderInspector();renderObjectRecommendations();window.updateRoleIndicator?.()});return b}
 function groupedEvents(){return window.ACDLDatasetDomain.groupEventsByDate(project.book.events)}
 
 
@@ -551,6 +551,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
       if(item.binding==='school.address')item.content=school.address||item.content;
       if(item.binding==='school.website')item.content=school.website||item.content;
       if(item.binding==='school.contacts')item.content=(school.contacts||[]).map(contact=>[contact.label,contact.phone,contact.fax&&`팩스 ${contact.fax}`].filter(Boolean).join(' ')).filter(Boolean).join(' · ')||[school.phone,school.fax&&`팩스 ${school.fax}`].filter(Boolean).join(' · ')||item.content;
+      if(item.binding==='calendar.year')item.content=String(prj.settings?.year||item.content||'');
       if(item.binding==='school.profile.motto.description')item.content=school.profile?.motto?.description||item.content;
       if(item.binding==='school.profile.song.description')item.content=school.profile?.song?.description||item.content;
     });
