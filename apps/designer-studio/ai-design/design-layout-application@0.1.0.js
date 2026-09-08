@@ -1,7 +1,7 @@
 (function(root){
  const VERSION='0.1.0',SCHEMA_VERSION='ai-design-layout-application.v1';
  const PAGE_ROLE_MAP=Object.freeze({
-  cover:['cover-front'],annual:['cover-back','poster-annual'],
+  cover:['cover-front','cover-continuation'],annual:['cover-back','poster-annual'],
   divider:['school-symbols','front-insert-front','front-insert-back','rear-insert-front','rear-insert-back'],month:['monthly-front'],
   'month-back':['monthly-back'],'back-cover':['back-cover-front','back-cover-back']
  });

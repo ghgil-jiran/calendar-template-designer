@@ -22,6 +22,8 @@ test('desk generation context enables all roles present in its page structure',(
  assert.equal(plan.estimatedCostUsd,0.364);
 });
 
+test('optional annual generation follows the saved semantic purpose of the physical cover-back surface',()=>{const definition={id:'desk-standard',family:{id:'desk'},finishedSize:{width:260,height:180},productionSize:{width:266,height:186},policies:{cover:'required',annualSingle:'optional',backCover:'required'}},value=project(definition,[{id:'front',role:'cover-front'},{id:'back',role:'cover-back',semanticPageRole:'cover-continuation'},{id:'closing',role:'back-cover-back'}]),result=api().build(value);assert.equal(result.roles.find(item=>item.role==='annual').enabled,false);assert.deepEqual([...result.roles.find(item=>item.role==='cover').pageIds],['front','back']);assert.ok(!result.enabledRoles.includes('annual'))});
+
 test('surface audit rejects unknown and unintended empty fixed surfaces while allowing an explicit blank divider',()=>{
  const definition={id:'desk-standard',family:{id:'desk'},finishedSize:{width:260,height:180,unit:'mm'},productionSize:{width:266,height:186,unit:'mm'},policies:{cover:'required',monthlyFront:'required'}};
  const value=project(definition,[{id:'cover',role:'cover-front'},{id:'mystery',role:'unknown'},{id:'blank',role:'front-insert-front'}]);
