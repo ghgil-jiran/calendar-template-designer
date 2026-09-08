@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
-function api(){const source=fs.readFileSync(new URL('../apps/designer-studio/ai-design/design-set-expansion@0.1.0.js',import.meta.url),'utf8'),context={};context.window=context;vm.createContext(context);vm.runInContext(source,context);return context.ACDLDesignSetExpansion}
+function api(){const source=fs.readFileSync(new URL('../apps/designer-studio/ai-design/design-set-expansion@0.2.0.js',import.meta.url),'utf8'),context={};context.window=context;vm.createContext(context);vm.runInContext(source,context);return context.ACDLDesignSetExpansion}
 function monthKey(index){const date=new Date(2027,2+index,1);return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`}
 function fixture(){
  const pageInstances=[{id:'cover',role:'cover-front'},{id:'annual',role:'cover-back'},{id:'symbols',role:'front-insert-front',semanticPageRole:'school-symbols'}],elementsByPage={},monthlyVariations=[],monthlyAssets={};
@@ -16,7 +16,7 @@ function fixture(){
 
 test('selected design set expansion covers all twelve monthly pairs and representative roles',()=>{
  const {project,selected}=fixture(),report=api().createReport(project,selected);
- assert.equal(report.schemaVersion,'ai-design-set-expansion.v1@0.1.0');
+ assert.equal(report.schemaVersion,'ai-design-set-expansion.v1@0.2.0');
  assert.equal(report.status,'complete');
  assert.equal(report.expectedMonthCount,12);
  assert.equal(report.generatedMonthlyAssetCount,24);
