@@ -86,5 +86,5 @@ test('new-template completion applies the selected sample only to a separate dra
   assert.match(html, /data-ai-month-back-component="image"/);
   assert.match(html, /data-ai-month-back-component="current-calendar"/);
   assert.match(html, /data-ai-month-back-component="month-date-strip"/);
-  assert.match(html, /monthBackComponents=\[\.\.\.document\.querySelectorAll\("\[data-ai-month-back-component\]:checked"\)\]/);
+  assert.match(html, /context\.monthlyRoles\.includes\("month-back"\)\?\[\.\.\.document\.querySelectorAll\("\[data-ai-month-back-component\]:checked"\)\]/);
 });
