@@ -23,3 +23,8 @@ test('prompt prioritizes saved page guidance and the concrete divider instance',
  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'modern-geometry',commonGuideline:'CURRENT TEMPLATE RULES FIRST',styleSnapshots:[{id:'modern-geometry',name:'학교 전용 모던',guidance:{divider:{description:'THIS DIVIDER DESCRIPTION',keywords:'unique quiet edge',forbidden:'busy center'}}}],pageTypes:{divider:'content-led'},pageInstance:{position:'rear',surface:'back',contentPurpose:'school-history',index:2,total:3},expression:{variationRhythm:'story',monthBackPhoto:'use',monthBackSeason:'subtle'},protectedContent:['school-text']};
  const input=validateGenerationInput({styleKey:'balanced',pageRole:'divider',request:{designSpec}}),prompt=buildImagePrompt(input);assert.equal(input.designSpec.pageInstance.index,2);assert.match(prompt,/CURRENT TEMPLATE RULES FIRST/);assert.match(prompt,/THIS DIVIDER DESCRIPTION/);assert.match(prompt,/unique quiet edge/);assert.match(prompt,/rear/);assert.match(prompt,/school-history/);assert.match(prompt,/Never rasterize editable content/);
 });
+
+test('new style editor preserves page composition and preview while removing obsolete expression controls',()=>{
+ const source=fs.readFileSync(new URL('../apps/designer-studio/features/template-settings-refresh-runtime.js',import.meta.url),'utf8');
+ assert.match(source,/pageTypeCard/);assert.match(source,/2\. 페이지별 시작 구성/);assert.match(source,/6\. 조합 미리보기/);assert.match(source,/4\. 월력 디자인 변화/);assert.match(source,/dividerSelect\.dataset\.designPageType='divider'/);assert.match(source,/expression:current\.expression/);assert.match(source,/if\(\/\^1\\\.\|\^3\\\.\|\^4\\\.\//);
+});
