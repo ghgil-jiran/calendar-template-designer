@@ -34,36 +34,37 @@ test('prompt carries independent monthly color, composition, motif, photo and de
   const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month-back',request:{designSpec}}));
   assert.match(prompt,/Monthly rhythm: .*month-to-month narrative/);
   assert.match(prompt,/Color variation: cycle through the selected palette/);
-  assert.match(prompt,/Composition variation: alternate two edge-decoration compositions/);
-  assert.match(prompt,/Motif variation: use a distinct text-free motif/);
-  assert.match(prompt,/Decoration variation: use richer decoration only outside every protected region/);
+  assert.match(prompt,/Composition variation: alternate two full-page composition systems/);
+  assert.match(prompt,/Motif variation: use a distinct text-free illustrated or abstract subject/);
+  assert.match(prompt,/Decoration variation: use layered artwork with focal detail outside protected regions/);
   assert.match(prompt,/Month-back photo: use/);
-  assert.match(prompt,/designer will place all functional components as editable objects/i);
+  assert.match(prompt,/following components will be added later as editable objects|never create calendar data/i);
 });
 
 test('ten design styles keep distinct non-negotiable signatures and monthly variation does not rely on season alone',()=>{
  const styleIds=['classic-texture','watercolor-soft','modern-geometry','seasonal-gradient','traditional-korean','academic-nordic','classic-archive','full-surface-geometry','public-domain-masters','school-photo-album'];
- const signatures=new Set(styleIds.map(styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthColorVariation:'monthly',monthCompositionVariation:'monthly',monthMotifVariation:'monthly',monthDecorationVariation:'balanced'},protectedContent:['calendar-data']};const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2027,month:9,season:'autumn'},request:{designSpec}}));assert.match(prompt,/Non-negotiable style signature/);assert.match(prompt,/Do not rely on season alone/);assert.match(prompt,/Concrete month-specific art direction/);return prompt.match(/Non-negotiable style signature: (.*?)\. Audience/)?.[1]||prompt}));
+ const signatures=new Set(styleIds.map(styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthColorVariation:'monthly',monthCompositionVariation:'monthly',monthMotifVariation:'monthly',monthDecorationVariation:'balanced'},protectedContent:['calendar-data']};const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2027,month:9,season:'autumn'},request:{designSpec}}));assert.match(prompt,/Non-negotiable style signature/);assert.match(prompt,/Season supports the narrative/);assert.match(prompt,/Concrete month-specific art direction/);assert.match(prompt,/Authoritative style-and-page art direction/);return prompt.match(/Non-negotiable style signature: (.*?)\. Do not borrow/)?.[1]||prompt}));
  assert.equal(signatures.size,10);
 });
 
-test('new creative prompt signatures move beyond edge decoration without inventing copyrighted art or school photos',()=>{const promptFor=styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{'month-back':{}}}],pageTypes:{'month-back':'photo-collage'},expression:{monthBackPhoto:'use'},protectedContent:['school-photos']};return buildImagePrompt(validateGenerationInput({styleKey:'photo',pageRole:'month-back',month:{year:2028,month:5},request:{designSpec}}))};assert.match(promptFor('full-surface-geometry'),/not an edge-decoration style|avoid border-only decoration/i);assert.match(promptFor('public-domain-masters'),/never copy a specific painting/i);assert.match(promptFor('school-photo-album'),/never invent or embed photographs/i)});
+test('new creative prompt signatures move beyond edge decoration without inventing copyrighted art or school photos',()=>{const promptFor=styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{'month-back':{}}}],pageTypes:{'month-back':'photo-collage'},expression:{monthBackPhoto:'use'},protectedContent:['school-photos']};return buildImagePrompt(validateGenerationInput({styleKey:'photo',pageRole:'month-back',month:{year:2028,month:5},request:{designSpec}}))};assert.match(promptFor('full-surface-geometry'),/prohibit border-only decoration/i);assert.match(promptFor('public-domain-masters'),/never copy a specific artwork/i);assert.match(promptFor('school-photo-album'),/never invent or embed the protected school photographs/i)});
 
 test('each month receives independent five-axis direction instead of a season-only variation',()=>{
  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'modern-geometry',styleSnapshots:[{id:'modern-geometry',name:'Modern Geometry',guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthColorVariation:'monthly',monthCompositionVariation:'monthly',monthMotifVariation:'monthly',monthDecorationVariation:'balanced'},protectedContent:['calendar-data']};
  const prompts=[3,4,5].map(month=>buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2028,month,season:'spring'},request:{designSpec}})));
- assert.equal(new Set(prompts.map(prompt=>prompt.match(/color balance (.*?); edge composition/)?.[1])).size,3);
- assert.equal(new Set(prompts.map(prompt=>prompt.match(/edge composition (.*?); abstract motif/)?.[1])).size,3);
- assert.equal(new Set(prompts.map(prompt=>prompt.match(/abstract motif (.*?); decorative scale/)?.[1])).size,3);
+ assert.equal(new Set(prompts.map(prompt=>prompt.match(/color balance (.*?); full-page composition/)?.[1])).size,3);
+ assert.equal(new Set(prompts.map(prompt=>prompt.match(/full-page composition (.*?); illustrated or abstract subject vocabulary/)?.[1])).size,3);
+ assert.equal(new Set(prompts.map(prompt=>prompt.match(/illustrated or abstract subject vocabulary (.*?); visual scale/)?.[1])).size,3);
  prompts.forEach(prompt=>assert.match(prompt,/differ in at least three of these five visible axes/i));
 });
 
-test('protected regions are bounded and become hard exclusion zones',()=>{
+test('protected regions are bounded and become low-contrast readability zones',()=>{
  const input=validateGenerationInput({styleKey:'balanced',pageRole:'month',protectedRegions:[{role:'date-grid',x:-5,y:12.345,width:120,height:80},{role:'invalid',x:10,y:10,width:0,height:4}]});
  assert.deepEqual(input.protectedRegions,[{role:'date-grid',x:0,y:12.35,width:100,height:80}]);
  const prompt=buildImagePrompt(input);
- assert.match(prompt,/Hard exclusion zones including safety padding/);
- assert.match(prompt,/no motif, line, border, frame, texture focal point, fake content, or tonal transition may cross them/i);
+ assert.match(prompt,/Protected readability zones including safety padding/);
+ assert.match(prompt,/continue only low-contrast background color, soft atmosphere, broad tonal fields, or non-focal shapes/i);
+ assert.match(prompt,/Do not leave visible rectangular cutouts/i);
 });
 
 test('design spec selects role-specific composition guidance without rasterizing editable content',()=>{
