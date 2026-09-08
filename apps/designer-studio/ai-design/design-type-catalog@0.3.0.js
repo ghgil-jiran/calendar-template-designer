@@ -1,7 +1,7 @@
 (function(root){
  const commonGuideline={
   title:'탁상달력 공통 AI 이미지 생성 및 디자인 지침',
-  text:'학교 전경 사진, 학사 일정, 교가, 연혁 등 실제 학교 콘텐츠가 중심입니다. AI는 266×186mm 제작 크기(260×180mm 재단, 사방 3mm 도련)에 맞는 배경·질감·가장자리 장식만 생성합니다. 정보 페이지는 고명도·저채도·낮은 대비를 유지하고 중앙 콘텐츠 영역을 비웁니다. 날짜, 월력, 학사일정, 학교 정보, 로고, 교훈과 읽을 수 있는 문자·숫자는 생성하지 않습니다. 표지와 뒷표지는 선택 스타일에 따라 더 강한 색을 사용할 수 있지만 편집 개체의 가독성과 제본 안전 영역을 지켜야 합니다.',
+  text:'학교 전경 사진, 학사 일정, 교가, 연혁 등 실제 학교 콘텐츠가 중심입니다. AI는 266×186mm 제작 크기(260×180mm 재단, 사방 3mm 도련)에 맞는 배경·질감·추상 면 구성·일러스트·장식을 생성합니다. 스타일은 전체 세트의 조형 언어를 정하고, 일러스트 강도와 사진 중심 구성은 실제 페이지별 지침으로 정합니다. 날짜, 월력, 학사일정, 학교 정보, 로고, 교훈과 읽을 수 있는 문자·숫자는 생성하지 않습니다. 기능 개체 보호 영역은 낮은 대비와 충분한 가독성을 유지하고 제본 안전 영역을 지켜야 합니다.',
   lockedRules:['finished-size-260x180mm','production-size-266x186mm','bleed-3mm','editable-content-not-rasterized','binding-safe-area','actual-page-structure-first']
  };
  const pageGuidance=(cover,annual,divider,month,monthBack,backCover)=>({cover,annual,divider,month,'month-back':monthBack,'back-cover':backCover});
@@ -54,7 +54,28 @@
    ['간지마다 위치가 다른 무문자 스탬프 형태와 기록지 질감','archival paper texture, abstract text-free stamp edge motif, unique divider variation'],
    ['밝은 기록지 바탕과 구석의 작은 무문자 도장 형태','light archival paper, tiny abstract text-free corner stamp, clear calendar field'],
    ['바랜 기록지 질감과 사진 영역 바깥의 얇은 아카이브 포인트','soft archival paper, restrained edge marks, plain photo and planner regions'],
-   ['표지의 버건디를 낮은 강도로 반복한 기록물 마감','muted archival closing surface, restrained burgundy edge accent, clear information field'])}
+   ['표지의 버건디를 낮은 강도로 반복한 기록물 마감','muted archival closing surface, restrained burgundy edge accent, clear information field'])},
+  {id:'full-surface-geometry',name:'전면 기하학 컴포지션',description:'큰 색면과 곡선이 페이지 전체 구도를 만드는 그래픽 스타일',colors:['#173f5f','#4ea5a8','#f2c14e','#f7f5ef'],guidance:pageGuidance(
+   ['넓은 비대칭 색면과 원호가 표지 전체를 가로지르는 강한 그래픽 구성','bold full-surface geometric composition, broad cropped planes and arcs, protected title and photo zones remain readable'],
+   ['저대비 대형 면 분할을 연력 뒤로 배치하되 월력 정보 영역은 균일하게 유지','large low-contrast geometric field divisions across the surface, calm annual-calendar zones'],
+   ['간지별 콘텐츠 보호 영역 사이의 여백에 서로 다른 대형 원·사선·면을 배치','page-specific large geometric illustration occupying available negative space between protected divider objects'],
+   ['달력 격자 뒤에는 낮은 대비의 넓은 색면, 외곽에는 월별로 다른 크롭 도형','broad low-contrast color fields behind the page, distinct cropped geometry outside the calendar grid'],
+   ['사진과 플래너 사이 남는 공간을 연결하는 대형 기하학 리듬','photo-led full-surface geometric composition connecting available negative spaces without drawing functional panels'],
+   ['표지의 대형 면 구성을 단순화해 이어지는 그래픽 마감','simplified full-surface geometric continuation with a calm school-information zone'])},
+  {id:'public-domain-masters',name:'퍼블릭 도메인 명화 모티프',description:'저작권이 만료된 미술사의 색채·붓질·구도를 현대적으로 재해석',colors:['#315b73','#d9a441','#8d5b4c','#f2ead8'],guidance:pageGuidance(
+   ['인상주의의 빛, 후기인상주의의 리듬, 장식미술의 색면을 혼합한 독창적 회화 배경','original painterly composition informed by public-domain Impressionist light, Post-Impressionist rhythm, and decorative color fields'],
+   ['아주 옅은 캔버스 질감과 추상적인 빛의 흐름만 남겨 연력 가독성 확보','very pale painterly canvas with abstract light movement and a calm annual field'],
+   ['간지 목적에 맞춰 정물·정원·하늘·건축 리듬을 비재현적 회화 모티프로 변주','original page-specific painterly illustration inspired by public-domain art movements, fitted around protected divider content'],
+   ['월력 영역 밖에 작은 회화적 장면 또는 붓질 덩어리를 월별로 다르게 배치','distinct monthly painterly vignette or brushwork mass outside the protected calendar field'],
+   ['학교 사진과 어울리는 캔버스·갤러리 배경과 월별 회화적 색면','gallery-like painterly backdrop for school photos, with original monthly brushwork in available space'],
+   ['표지의 회화적 색과 붓질을 낮은 강도로 반복해 마감','quiet painterly closing surface echoing the cover palette'])},
+  {id:'school-photo-album',name:'학교 포토앨범',description:'많은 학교 사진을 간지와 월력 뒷면의 주인공으로 만드는 스타일',colors:['#314a5f','#b7835a','#d8d2c4','#f7f4ee'],guidance:pageGuidance(
+   ['대표 학교 사진을 돋보이게 하는 고급 사진집 표지 배경과 절제된 인화지 레이어','premium photo-book cover background, layered photographic paper and quiet editorial depth around protected school photos'],
+   ['앨범 앞장처럼 깨끗한 무광지와 작은 사진 인덱스 색상만 사용','clean matte album paper with tiny text-free index accents and an open annual field'],
+   ['간지의 실제 사진 수와 위치에 맞춘 인화지·마운트보드·테이프 질감의 갤러리 배경','photo-rich divider gallery background using varied print-paper, mount-board, and text-free tape details around protected image regions'],
+   ['월력 앞면은 사진집 계열의 종이·색상만 공유하고 달력 가독성을 최우선','quiet photo-book paper and color language with no invented photo frame on the calendar front'],
+   ['월별 학교 사진을 중심으로 서로 다른 앨범 배경·인화지 겹침·갤러리 벽 질감 적용','photo-dominant month-back album scene with varied print-paper layers and gallery surfaces around actual protected photo regions'],
+   ['마지막 학교 사진과 연락처를 위한 차분한 사진집 뒷장','quiet photo-book closing page with protected final photo and school-information areas'])}
  ];
  const roles={
   cover:{label:'표지',objects:'연도 · 학교 사진 · 교표 · 학교명·주소',use:'첫 인상과 학교 정체성을 보여주는 면',caution:'학교 콘텐츠와 문자는 별도 편집 개체로 유지',layout:'split-cover',options:[['large-photo','대형 학교 사진형'],['photo-collage','사진 콜라주형'],['typography','타이포그래피 중심형'],['illustration','일러스트 중심형'],['split','사진·정보 분할형']]},

@@ -41,11 +41,13 @@ test('prompt carries independent monthly color, composition, motif, photo and de
   assert.match(prompt,/designer will place all functional components as editable objects/i);
 });
 
-test('seven design styles keep distinct non-negotiable signatures and monthly variation does not rely on season alone',()=>{
- const styleIds=['classic-texture','watercolor-soft','modern-geometry','seasonal-gradient','traditional-korean','academic-nordic','classic-archive'];
+test('ten design styles keep distinct non-negotiable signatures and monthly variation does not rely on season alone',()=>{
+ const styleIds=['classic-texture','watercolor-soft','modern-geometry','seasonal-gradient','traditional-korean','academic-nordic','classic-archive','full-surface-geometry','public-domain-masters','school-photo-album'];
  const signatures=new Set(styleIds.map(styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthColorVariation:'monthly',monthCompositionVariation:'monthly',monthMotifVariation:'monthly',monthDecorationVariation:'balanced'},protectedContent:['calendar-data']};const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2027,month:9,season:'autumn'},request:{designSpec}}));assert.match(prompt,/Non-negotiable style signature/);assert.match(prompt,/Do not rely on season alone/);assert.match(prompt,/Concrete month-specific art direction/);return prompt.match(/Non-negotiable style signature: (.*?)\. Audience/)?.[1]||prompt}));
- assert.equal(signatures.size,7);
+ assert.equal(signatures.size,10);
 });
+
+test('new creative prompt signatures move beyond edge decoration without inventing copyrighted art or school photos',()=>{const promptFor=styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{'month-back':{}}}],pageTypes:{'month-back':'photo-collage'},expression:{monthBackPhoto:'use'},protectedContent:['school-photos']};return buildImagePrompt(validateGenerationInput({styleKey:'photo',pageRole:'month-back',month:{year:2028,month:5},request:{designSpec}}))};assert.match(promptFor('full-surface-geometry'),/not an edge-decoration style|avoid border-only decoration/i);assert.match(promptFor('public-domain-masters'),/never copy a specific painting/i);assert.match(promptFor('school-photo-album'),/never invent or embed photographs/i)});
 
 test('each month receives independent five-axis direction instead of a season-only variation',()=>{
  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'modern-geometry',styleSnapshots:[{id:'modern-geometry',name:'Modern Geometry',guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthColorVariation:'monthly',monthCompositionVariation:'monthly',monthMotifVariation:'monthly',monthDecorationVariation:'balanced'},protectedContent:['calendar-data']};

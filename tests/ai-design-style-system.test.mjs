@@ -6,15 +6,17 @@ import {buildImagePrompt,validateGenerationInput} from '../api/ai-design-generat
 
 function load(relative,name,context={}){context.window=context;vm.createContext(context);vm.runInContext(fs.readFileSync(new URL(relative,import.meta.url),'utf8'),context);return context[name]}
 
-test('desk style catalog exposes seven template-editable styles and one flexible divider role',()=>{
+test('desk style catalog exposes ten template-editable styles and one flexible divider role',()=>{
  const context={},catalog=load('../apps/designer-studio/ai-design/design-type-catalog@0.3.0.js','ACDLDesignTypeCatalog',context),specApi=load('../apps/designer-studio/ai-design/design-spec@0.3.0.js','ACDLDesignSpec',context);
- assert.equal(catalog.scope,'desk-first');assert.equal(catalog.styles.length,7);assert.deepEqual(Object.keys(catalog.roles),['cover','annual','divider','month','month-back','back-cover']);
+ assert.equal(catalog.scope,'desk-first');assert.equal(catalog.styles.length,10);assert.deepEqual(Object.keys(catalog.roles),['cover','annual','divider','month','month-back','back-cover']);
  assert.deepEqual(Object.keys(catalog.expressionOptions),['variationRhythm','monthColorVariation','monthCompositionVariation','monthMotifVariation','monthDecorationVariation','monthBackPhoto','monthBackSeason']);
  const project={template:{settings:{}}},saved=specApi.write(project,{styleId:'modern-geometry',commonGuideline:'현재 템플릿 공통 지침',styleSnapshots:[{id:'modern-geometry',name:'학교 전용 모던',guidance:{divider:{description:'간지 설명',keywords:'unique edge',forbidden:'letters'}}}]},catalog);
  assert.equal(saved.styleSnapshots.find(item=>item.id==='modern-geometry').name,'학교 전용 모던');assert.equal(specApi.read(structuredClone(project),catalog).commonGuideline,'현재 템플릿 공통 지침');
 });
 
-test('versioned style profiles document seven mutually distinct visual signatures',()=>{const profiles=JSON.parse(fs.readFileSync(new URL('../apps/designer-studio/ai-design/rules/style-profiles@0.2.0.json',import.meta.url)));assert.equal(profiles.profiles.length,7);assert.equal(new Set(profiles.profiles.map(item=>item.signature)).size,7);assert.ok(profiles.profiles.every(item=>item.exclude.length>=3))});
+test('versioned style profiles document ten mutually distinct visual signatures',()=>{const profiles=JSON.parse(fs.readFileSync(new URL('../apps/designer-studio/ai-design/rules/style-profiles@0.2.0.json',import.meta.url)));assert.equal(profiles.profiles.length,10);assert.equal(new Set(profiles.profiles.map(item=>item.signature)).size,10);assert.ok(profiles.profiles.every(item=>item.exclude.length>=3))});
+
+test('new creative styles keep role-specific full-surface, copyright-safe, and photo-led directions',()=>{const catalog=load('../apps/designer-studio/ai-design/design-type-catalog@0.3.0.js','ACDLDesignTypeCatalog',{}),byId=Object.fromEntries(catalog.styles.map(item=>[item.id,item]));assert.match(byId['full-surface-geometry'].guidance.cover[1],/full-surface/);assert.match(byId['public-domain-masters'].guidance.divider[1],/public-domain/);assert.match(byId['school-photo-album'].guidance['month-back'][1],/photo-dominant/);assert.match(byId['school-photo-album'].description,/간지와 월력 뒷면/)});
 
 test('actual divider pages become separate generation targets without a fixed 28-page assumption',()=>{
  const api=load('../apps/designer-studio/ai-design/ai-generation-context@0.2.0.js','ACDLAIGenerationContext'),pages=[{id:'cover',role:'cover-front'},{id:'insert-a',role:'front-insert-front',semanticPageRole:'school-symbols'},{id:'insert-b',role:'rear-insert-back',semanticPageRole:'divider'},{id:'month',role:'monthly-front'}],project={productType:{category:'desk'},template:{calendarTypeSnapshot:{definition:{id:'desk-standard',family:{id:'desk'},finishedSize:{width:260,height:180},productionSize:{width:266,height:186},binding:{edge:'top',method:'wire-o'}}},resources:{exportSettings:{bleed:3}}},book:{pageInstances:pages,elementsByPage:{'insert-a':[{role:'school-song'}],'insert-b':[{role:'history'}]}}};
