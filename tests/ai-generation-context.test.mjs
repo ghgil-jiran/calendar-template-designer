@@ -22,6 +22,18 @@ test('desk generation context enables all roles present in its page structure',(
  assert.equal(plan.estimatedCostUsd,0.364);
 });
 
+test('surface audit rejects unknown and unintended empty fixed surfaces while allowing an explicit blank divider',()=>{
+ const definition={id:'desk-standard',family:{id:'desk'},finishedSize:{width:260,height:180,unit:'mm'},productionSize:{width:266,height:186,unit:'mm'},policies:{cover:'required',monthlyFront:'required'}};
+ const value=project(definition,[{id:'cover',role:'cover-front'},{id:'mystery',role:'unknown'},{id:'blank',role:'front-insert-front'}]);
+ value.book.elementsByPage={cover:[],mystery:[],blank:[]};
+ value.template.settings={aiDesignSpec:{dividerPages:{blank:{purpose:'blank'}}}};
+ const audit=api().surfaceAudit(value);
+ assert.deepEqual([...audit.unassignedPageIds],['mystery']);
+ assert.deepEqual([...audit.unintendedEmptyPageIds],['cover']);
+ assert.equal(audit.surfaces.find(item=>item.pageId==='blank').explicitBlank,true);
+ assert.equal(audit.valid,false);
+});
+
 test('poster generation context is blocked while the feature is desk-only',()=>{
  const definition={id:'poster-standard',family:{id:'single-sheet'},orientation:'portrait',printSides:'simplex',binding:{edge:'none',method:'none'},finishedSize:{width:420,height:594,unit:'mm'},productionSize:{width:426,height:600,unit:'mm'},policies:{cover:'unsupported',annualSingle:'required',monthlyFront:'unsupported',monthlyBack:'unsupported',backCover:'unsupported'},pageRules:[{role:'annual'}]};
  const result=api().build(project(definition,[{id:'annual',role:'poster-annual'}]));

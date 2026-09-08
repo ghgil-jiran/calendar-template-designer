@@ -18,7 +18,7 @@ test('live image prompt protects editable calendar and school data', () => {
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
   const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.9.0.js');
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.9.0');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.10.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','divider','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
@@ -39,6 +39,12 @@ test('prompt carries independent monthly color, composition, motif, photo and de
   assert.match(prompt,/Decoration variation: use richer decoration only outside every protected region/);
   assert.match(prompt,/Month-back photo: use/);
   assert.match(prompt,/designer will place all functional components as editable objects/i);
+});
+
+test('seven design styles keep distinct non-negotiable signatures and monthly variation does not rely on season alone',()=>{
+ const styleIds=['classic-texture','watercolor-soft','modern-geometry','seasonal-gradient','traditional-korean','academic-nordic','classic-archive'];
+ const signatures=new Set(styleIds.map(styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthColorVariation:'monthly',monthCompositionVariation:'monthly',monthMotifVariation:'monthly',monthDecorationVariation:'balanced'},protectedContent:['calendar-data']};const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2027,month:9,season:'autumn'},request:{designSpec}}));assert.match(prompt,/Non-negotiable style signature/);assert.match(prompt,/Do not rely on season alone/);assert.match(prompt,/Concrete monthly art direction/);return prompt.match(/Non-negotiable style signature: (.*?)\. Audience/)?.[1]||prompt}));
+ assert.equal(signatures.size,7);
 });
 
 test('design spec selects role-specific composition guidance without rasterizing editable content',()=>{
@@ -183,7 +189,7 @@ test('the selected representative set expands to eleven remaining monthly front 
   assert.match(html,/function expandSelectedAIDesignMonths\(\)/);
   assert.match(html,/total=variations\.length\*monthlyRoles\.length/);
   assert.match(html,/generatedMonthCount\*monthlyRoles\.length/);
-  assert.match(html,/월력 자산 \$\{current\}\/\$\{total\} 생성 중/);
+  assert.match(html,/월별 디자인 자산 \$\{current\}\/\$\{total\} 생성 중/);
   assert.doesNotMatch(html,/월력 전체 생성 \$\{current\}\/\$\{total\}/);
   assert.match(html,/const pending=variations\.filter\(item=>monthlyRoles\.some\(role=>!selected\.monthlyAssets\?\.\[item\.key\]\?\.\[role\]\)\)/);
   assert.match(html,/generatedMonthCount!==variations\.length/);

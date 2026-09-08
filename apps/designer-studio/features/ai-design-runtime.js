@@ -46,22 +46,22 @@ function renderAIMonthlyExpansionState({current=0,total=0,message=""}={}){
  const percent=complete?100:total?Math.round(current/total*100):0;
  if(button){
   button.disabled=!ready||busy||complete;
-  button.textContent=complete?"월력 전체 생성 완료":busy?"월력 전체 생성 중…":"월력 전체 생성";
+  button.textContent=complete?"월별 디자인 전체 생성 완료":busy?"월별 디자인 전체 생성 중…":"월별 디자인 전체 생성";
  }
  if(!status)return;
  let title="생성 대기";
   let detail=plan.monthlyRoles.includes("month-back")?"먼저 디자인 세트와 월력 뒷면 배치안을 선택해 주세요.":"먼저 디자인 세트를 선택해 주세요.";
  if(complete){
-   title=`${coverage.expected}개월·${coverage.assetCount}개 월력 자산 생성 완료`;
+   title=`${coverage.expected}개월·${coverage.assetCount}개 월별 디자인 자산 생성 완료`;
    detail=`${aiRoleLabels(coverage.roles).join(" · ")} 자산이 준비되었습니다. 템플릿 편집 화면을 시작할 수 있습니다.`;
  }else if(busy){
-  title=`월력 자산 ${current}/${total} 생성 중`;
+  title=`월별 디자인 자산 ${current}/${total} 생성 중`;
    detail=`${aiRoleLabels(coverage.roles).join(" · ")} ${coverage.assetCount}개 자산만 집계합니다.`;
  }else if(aiMonthlyExpansionState==="failed"){
-  title="월력 전체 생성 실패";
-  detail="오류 내용을 확인한 뒤 월력 전체 생성을 다시 실행해 주세요.";
+  title="월별 디자인 전체 생성 실패";
+  detail="오류 내용을 확인한 뒤 월별 디자인 전체 생성을 다시 실행해 주세요.";
  }else if(ready){
-  detail="월력 전체 생성 버튼을 눌러 주세요.";
+  detail="월별 디자인 전체 생성 버튼을 눌러 주세요.";
  }
  if(message)detail=message;
  status.innerHTML=`<strong>${escapeHtml(title)}</strong><span>${escapeHtml(detail)}</span><div class="ai-live-progress-track"><div class="ai-live-progress-bar" style="width:${percent}%"></div></div>`;
@@ -76,7 +76,7 @@ async function generateLiveAIDesignSample(){
  try{
   button.disabled=true;aiDesignGenerationState="generating";aiDesignResultsRevealed=false;aiDesignMockSession=null;renderAIDesignGenerationState({current:0,total,message:"대표 디자인 세트 생성 요청을 준비하고 있습니다."});renderAIDesignMockSession();
   const liveSpec=window.ACDLDesignSpec.read(project,window.ACDLDesignTypeCatalog);window.ACDLDesignLayoutApplication.apply(project,liveSpec);
-  const prepared=prepareAIDesignMockSession({reveal:false});if(!prepared)throw new Error("AI 생성 조건을 준비하지 못했습니다.");roles=prepared.generationRequest?.generationContext?.enabledRoles||["cover","annual","divider","month","month-back","back-cover"];const contextRoles=prepared.generationRequest?.generationContext?.roles||[];total=roles.reduce((sum,role)=>sum+(role==="divider"?Math.max(1,contextRoles.find(item=>item.role===role)?.targets?.length||0):1),0);if(!total)throw new Error("현재 달력 유형에서 생성할 페이지 역할이 없습니다.");
+  const prepared=prepareAIDesignMockSession({reveal:false});if(!prepared)throw new Error("AI 생성 조건을 준비하지 못했습니다.");const surfaceAudit=prepared.generationRequest?.generationContext?.surfaceAudit;if(surfaceAudit&&!surfaceAudit.valid){const problems=[surfaceAudit.unassignedPageIds?.length?`역할 미지정 ${surfaceAudit.unassignedPageIds.length}면`:"",surfaceAudit.unintendedEmptyPageIds?.length?`기능 개체 없음 ${surfaceAudit.unintendedEmptyPageIds.length}면`:""].filter(Boolean).join(" · ");throw new Error(`페이지 구성 확인이 필요합니다: ${problems}. 빈 페이지는 간지 구성에서 명시적으로 선택해 주세요.`)}roles=prepared.generationRequest?.generationContext?.enabledRoles||["cover","annual","divider","month","month-back","back-cover"];const contextRoles=prepared.generationRequest?.generationContext?.roles||[];total=roles.reduce((sum,role)=>sum+(role==="divider"?Math.max(1,contextRoles.find(item=>item.role===role)?.targets?.length||0):1),0);if(!total)throw new Error("현재 달력 유형에서 생성할 페이지 역할이 없습니다.");
   const colors=project.template?.resources?.colorTheme||{},sessionVariant=prepared.variants.find(item=>item.key===styleKey)||prepared.variants[0],blueprint=window.ACDLAIDesignSettings.VARIANT_BLUEPRINTS.find(item=>item.key===styleKey)||sessionVariant,variants=[];let completed=0;
   for(let variantIndex=0;variantIndex<count;variantIndex+=1){
    const assetsByRole={},assetMetadataByRole={},assetsByPage={},assetMetadataByPage={};
