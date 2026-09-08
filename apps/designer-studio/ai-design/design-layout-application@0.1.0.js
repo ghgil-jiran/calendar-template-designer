@@ -47,12 +47,25 @@
    'minimal-brand':{image:[62,55,28,30],identity:[10,20,45,55]}
   }
  };
+ const clone=value=>JSON.parse(JSON.stringify(value));
+ const text=(id,role,binding,content)=>({id,type:'text',role,binding,x:10,y:10,width:30,height:7,zIndex:3,content,style:{fontSize:12,textAlign:'left',background:false,color:'#17202e'}});
+ const semantic=(id,role,binding,name)=>({id,type:'semantic-object',role,binding,bindingEnabled:true,fallbackToSample:true,x:10,y:10,width:30,height:24,zIndex:2,showCaption:!['school-building','school-logo','school-song'].includes(role),sampleContent:{name,description:'',image:''},style:{}});
+ function scaffold(role,page,project){
+  const year=String(project.settings?.year||new Date().getFullYear()),startMonth=Number(project.settings?.startMonth||3),items={
+   cover:[semantic('ai.cover.building','school-building','school.profile.building','학교 전경'),text('ai.cover.year','year','calendar.year',year),semantic('ai.cover.logo','school-logo','school.profile.logo','교표'),text('ai.cover.school','school-name','school.name','학교명'),text('ai.cover.english','school-english-name','school.englishName','SCHOOL NAME'),text('ai.cover.slogan','school-slogan','school.slogan','학교 슬로건'),text('ai.cover.address','school-contact','school.address','학교 주소'),text('ai.cover.contacts','school-contact','school.contacts','학교 연락처')],
+   annual:[text('ai.annual.year','year','calendar.year',year),{id:'ai.annual.calendar',type:'year-calendar',role:'year-calendar',x:8,y:20,width:84,height:70,zIndex:2,startMonth,monthCount:12,columns:4,rowsMode:'inherit',showWeekdayHeader:true,style:{}}],
+   divider:[text('ai.divider.title','symbols-title',null,'우리학교 상징'),semantic('ai.divider.building','school-building','school.profile.building','학교 전경'),semantic('ai.divider.motto','school-motto','school.profile.motto','교훈'),semantic('ai.divider.song','school-song','school.profile.song','교가'),semantic('ai.divider.tree','school-tree','school.profile.tree','교목'),semantic('ai.divider.flower','school-flower','school.profile.flower','교화')],
+   'back-cover':[semantic('ai.back.building','school-building','school.profile.building','학교 전경'),text('ai.back.year','year','calendar.year',year),semantic('ai.back.logo','school-logo','school.profile.logo','교표'),text('ai.back.school','school-name','school.name','학교명'),text('ai.back.english','school-english-name','school.englishName','SCHOOL NAME'),text('ai.back.address','school-contact','school.address','학교 주소'),text('ai.back.contacts','school-contact','school.contacts','학교 연락처'),text('ai.back.website','school-contact','school.website','학교 홈페이지')]
+  }[role]||[];
+  const elements=project.book.elementsByPage[page.id]||=[];
+  items.forEach(item=>{const exists=elements.some(existing=>item.binding&&existing.binding===item.binding||item.role!=='school-contact'&&existing.role===item.role);if(!exists)elements.push(clone({...item,id:`${item.id}.${page.id}`}))});
+ }
  function pageRole(page){return Object.entries(PAGE_ROLE_MAP).find(([,roles])=>roles.includes(page.role)||(page.semanticPageRole&&roles.includes(page.semanticPageRole)))?.[0]||null}
  function box(value){return {x:value[0],y:value[1],width:value[2],height:value[3]}}
  function distribute(items,zone){
   if(!items.length||!zone)return;
   const gap=items.length>1?1.5:0,h=Math.max(3,(zone[3]-gap*(items.length-1))/items.length);
-  items.forEach((item,index)=>Object.assign(item,{x:zone[0],y:zone[1]+index*(h+gap),width:zone[2],height:h,zIndex:Math.max(2,Number(item.zIndex)||2)}))
+  items.forEach((item,index)=>{const y=zone[1]+index*(h+gap);Object.assign(item,{x:zone[0],y,width:zone[2],height:Math.min(h,zone[1]+zone[3]-y),zIndex:Math.max(2,Number(item.zIndex)||2)})})
  }
  function distributeGrid(items,zone){
   if(!items.length||!zone)return;
@@ -73,6 +86,7 @@
  }
  function applyPage(project,page,role,typeId){
   const profile=layouts[role]?.[typeId];if(!profile)return null;
+  scaffold(role,page,project);
   const elements=project.book?.elementsByPage?.[page.id]||[],groups={};
   elements.forEach(item=>{const group=classify(role,item);if(group==='background')return;(groups[group]||=[]).push(item)});
   Object.entries(groups).forEach(([group,items])=>role==='divider'&&['symbols','secondary'].includes(group)?distributeGrid(items,profile[group]||profile.secondary):distribute(items,profile[group]||profile.primary||profile.support||profile.identity));
