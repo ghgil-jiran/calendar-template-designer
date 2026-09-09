@@ -13,19 +13,41 @@
   ];
   const deskSixReviewAssets = [
     { id: 'asset.sample.desk-6.building', name: '지란중학교 전경', role: 'school-building', binding: 'school.profile.building', kind: '학교 전경', image: 'assets/sample-school/jiran-building.webp' },
-    { id: 'asset.sample.desk-6.logo', name: '지란중학교 교표 연결', role: 'school-logo', binding: 'school.profile.logo', kind: '교표', image: 'assets/sample-school/jiran-logo-composite.svg' },
+    { id: 'asset.sample.desk-6.logo', name: '지란중학교 교표', role: 'school-logo', binding: 'school.profile.logo', kind: '교표', image: 'assets/sample-school/jiran-logo.webp' },
     { id: 'asset.sample.desk-6.song', name: '지란중학교 교가', role: 'school-song', binding: 'school.profile.song', kind: '교가', image: 'assets/sample-school/jiran-song.webp' },
-    { id: 'asset.sample.desk-6.tree', name: '은행나무', role: 'school-tree', binding: 'school.profile.tree', kind: '교목', image: 'assets/sample-school/jiran-tree.webp' },
-    { id: 'asset.sample.desk-6.flower', name: '장미', role: 'school-flower', binding: 'school.profile.flower', kind: '교화', image: 'assets/sample-school/jiran-flower.webp' }
+    { id: 'asset.sample.desk-6.tree', name: '목련나무', role: 'school-tree', binding: 'school.profile.tree', kind: '교목', image: 'assets/sample-school/jiran-tree.webp' },
+    { id: 'asset.sample.desk-6.flower', name: '개나리', role: 'school-flower', binding: 'school.profile.flower', kind: '교화', image: 'assets/sample-school/jiran-flower.webp' }
   ];
   const deskSixReviewProfile = {
     building: { name: '지란중학교', description: '학교 전경', image: 'assets/sample-school/jiran-building.webp', assetId: 'asset.sample.desk-6.building' },
-    logo: { name: '지란중학교 교표 연결', description: '', image: 'assets/sample-school/jiran-logo-composite.svg', assetId: 'asset.sample.desk-6.logo' },
-    motto: { name: '교훈', description: '슬기롭게, 화목하게, 튼튼하게', image: '' },
+    logo: { name: '지란중학교 교표', description: '', image: 'assets/sample-school/jiran-logo.webp', assetId: 'asset.sample.desk-6.logo' },
+    motto: { name: '교훈', description: '바르게 배우고 함께 성장하자', image: '' },
     song: { name: '교가', description: '지란중학교 교가', image: 'assets/sample-school/jiran-song.webp', assetId: 'asset.sample.desk-6.song' },
-    tree: { name: '은행나무', description: '풍경을 아름답게 함\n중요한 가구재로 쓰임', image: 'assets/sample-school/jiran-tree.webp', assetId: 'asset.sample.desk-6.tree' },
-    flower: { name: '장미', description: '고상한 품위와 아름다움\n순결, 정열, 위엄', image: 'assets/sample-school/jiran-flower.webp', assetId: 'asset.sample.desk-6.flower' }
+    tree: { name: '목련나무', description: '희망과 성장을 상징하는 교목', image: 'assets/sample-school/jiran-tree.webp', assetId: 'asset.sample.desk-6.tree' },
+    flower: { name: '개나리', description: '밝은 배움과 새로운 시작을 상징하는 교화', image: 'assets/sample-school/jiran-flower.webp', assetId: 'asset.sample.desk-6.flower' }
   };
+  const defaultSchoolData = Object.freeze({
+    name: '지란중학교',
+    englishName: 'JIRAN MIDDLE SCHOOL',
+    slogan: '배움으로 성장하고 함께 미래를 여는 학교',
+    address: '경기도 성남시 수정구 금토로80번길 37 알파니티타워 WEST 10층',
+    phone: '031-608-9724',
+    fax: '031-608-9724',
+    website: 'www.jirantech.com'
+  });
+
+  function applyNewTemplateSampleDefaults(project) {
+    project.template.resources.sampleAssets = deskSixReviewAssets.map(asset => ({ ...asset }));
+    project.book.school = {
+      ...defaultSchoolData,
+      contacts: [
+        { label: '교무실', phone: '031-608-9724', fax: '031-608-9724' },
+        { label: '행정실', phone: '031-608-9724', fax: '031-608-9724' }
+      ],
+      profile: Object.fromEntries(Object.entries(deskSixReviewProfile).map(([key, value]) => [key, { ...value }]))
+    };
+    return project;
+  }
   const deskSixBackgroundPresets = {
     cover: { id: 'background.desk-6.cover', name: '6번 표지 청록 블록', roles: ['cover-front'], parts: [[4,9,89,27,'#3bbcd124'],[-3,31,15,22,'#3bbcd117'],[86,22,14,23,'#3bbcd114'],[8,48,82,18,'#3bbcd118'],[84,55,18,18,'#3bbcd114'],[-2,86,15,18,'#316cbe12'],[92,76,11,21,'#3bbcd117']] },
     yearly: { id: 'background.desk-6.yearly', name: '6번 연력 흰 패널', roles: ['cover-back'], parts: [[82,5,20,22,'#3bbcd11a'],[-2,22,14,25,'#3bbcd114'],[84,49,18,22,'#3bbcd117'],[-2,70,16,28,'#3bbcd114'],[6,10,88,83,'#fffffff8']] },
@@ -63,7 +85,7 @@
     const school = project.book.school;
     if (!school.name || school.name === '샘플 학교' || school.name === '학교명 미입력') school.name = '지란중학교';
     if (!school.englishName || school.englishName === 'SAMPLE SCHOOL') school.englishName = 'JIRAN MIDDLE SCHOOL';
-    if (!school.slogan || school.slogan === '배움으로 성장하고 함께 미래를 여는 학교') school.slogan = '슬기롭게, 화목하게, 튼튼하게';
+    if (!school.slogan) school.slogan = defaultSchoolData.slogan;
     if (!school.address) school.address = '경기도 성남시 수정구 금토로80번길 37 인피니티타워 WEST 10층';
     if (!school.phone) school.phone = '031-608-9735';
     if (!school.fax) school.fax = '031-608-9735';
@@ -698,6 +720,7 @@
     const preset = dependencies.sizePresets[options.type]?.find(item => item.id === options.sizePresetId);
     if (!preset) throw new RangeError(`Unknown size preset: ${options.type}/${options.sizePresetId}`);
     const project = { format: 'acdl-project', version: '2.18.0', settings: { ...options, calendarRows: Number(options.calendarRows || 6), weekStart: options.weekStart || 'sunday', showAdjacentMiniCalendars: options.showAdjacentMiniCalendars !== false, sizePreset: { id: preset.id, label: preset.label, width: preset.width, height: preset.height } }, productType: { id: isDesk ? 'desk-landscape-duplex' : isPoster ? 'poster-annual-single' : 'wall-portrait-single', category: options.type, duplex: isDesk, pageSize: { width: preset.width, height: preset.height, unit: 'mm' } }, template: { id: `template.${options.template}`, revision: 1, resources: { sampleAssetLibraryVersion: 2, sampleAssets: [], colorTheme: { primary: '#315e9e', secondary: '#667085', accent: '#4777bd', holiday: '#d92d20', weekend: '#175cd3', background: '#ffffff', line: '#d7dce5' }, fontTheme: { title: 'Arial', body: 'Arial', calendar: 'Arial', event: 'Arial', fallback: '"Noto Sans KR", sans-serif' }, eventCategories: [{ id: 'holiday', name: '공휴일', color: '#d92d20', priority: 100 }, { id: 'school', name: '학교 행사', color: '#4777bd', priority: 70 }, { id: 'education', name: '교육', color: '#7f56d9', priority: 60 }, { id: 'student', name: '학생', color: '#039855', priority: 50 }, { id: 'safety', name: '안전', color: '#dc6803', priority: 80 }, { id: 'vacation', name: '방학', color: '#0891b2', priority: 90 }], exportSettings: { format: 'pdf', dpi: 300, bleed: 3, cropMarks: true, colorMode: 'cmyk', pageRange: 'all', imageQuality: 'high', guides: false } }, masters: { calendar: { eventMaxVisiblePerDay: 2, monthTitleSize: 22, showAdjacentMonths: true, calendarRegion: { x: 5, y: 16, width: 90, height: 79 }, rangeEventStyle: { enabled: true, labelMode: 'first', labelPosition: 'inside', barHeight: 11, laneGap: 2, maxLanes: 4, continuationStyle: 'arrow', overflowStyle: 'count' } }, cover: { titleSize: 34 } }, masterElements: {} }, book: { id: `book.${options.type}.${options.year}.${String(options.startMonth).padStart(2, '0')}`, school: { name: '샘플 학교', englishName: 'SAMPLE SCHOOL', slogan: '배움으로 성장하고 함께 미래를 여는 학교', address: '', phone: '', website: '' }, sheets: [], pageInstances: [], events: [], elementsByPage: {} } };
+    applyNewTemplateSampleDefaults(project);
     if (isPoster) {
       project.book.pageInstances.push({ id: 'page.poster.annual', number: 1, side: 'front', role: 'poster-annual', masterId: 'master.poster.annual', calendarYear: options.year, calendarMonth: null, overrides: {} });
     } else if (isDesk) {

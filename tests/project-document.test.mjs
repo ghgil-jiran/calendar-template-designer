@@ -19,6 +19,13 @@ assert.equal(desk.book.pageInstances.length, 30);
 assert.deepEqual(desk.book.pageInstances.slice(0, 4).map(page => page.role), ['cover-front', 'cover-back', 'front-insert-front', 'front-insert-back']);
 assert.equal(desk.book.pageInstances[4].calendarYear, 2027);
 assert.equal(desk.book.pageInstances[4].calendarMonth, 3);
+assert.equal(desk.book.school.name, '지란중학교');
+assert.equal(desk.book.school.englishName, 'JIRAN MIDDLE SCHOOL');
+assert.equal(desk.book.school.profile.motto.description, '바르게 배우고 함께 성장하자');
+assert.equal(desk.book.school.address, '경기도 성남시 수정구 금토로80번길 37 알파니티타워 WEST 10층');
+assert.equal(desk.book.school.website, 'www.jirantech.com');
+assert.equal(desk.template.resources.sampleAssets.length, 5);
+assert.match(desk.book.school.profile.logo.image, /jiran-logo\.webp$/);
 
 const representative = globalThis.ACDLProjectDocument.createProject({ ...base, type: 'desk', template: 'desk-sample-6', sizePresetId: 'desk-standard' }, dependencies);
 assert.equal(representative.template.pageComposition.pageCount, 28);
@@ -62,17 +69,16 @@ assert.equal(representative.template.resources.sampleAssets.length, 5);
 assert.deepEqual(new Set(representative.template.resources.sampleAssets.map(item => item.role)), new Set(['school-building', 'school-logo', 'school-song', 'school-tree', 'school-flower']));
 assert.equal(representative.book.school.name, '지란중학교');
 assert.equal(representative.book.school.englishName, 'JIRAN MIDDLE SCHOOL');
-assert.equal(representative.book.school.profile.tree.name, '은행나무');
-assert.equal(representative.book.school.profile.flower.name, '장미');
+assert.equal(representative.book.school.profile.tree.name, '목련나무');
+assert.equal(representative.book.school.profile.flower.name, '개나리');
 assert.deepEqual(representative.book.school.contacts, [
-  { label: '교무실', phone: '031-608-9735', fax: '' },
-  { label: '행정실', phone: '031-608-9735', fax: '' },
-  { label: '팩스', phone: '', fax: '031-608-9735' }
+  { label: '교무실', phone: '031-608-9724', fax: '031-608-9724' },
+  { label: '행정실', phone: '031-608-9724', fax: '031-608-9724' }
 ]);
 assert.match(representative.book.school.profile.building.image, /jiran-building\.webp$/);
 assert.match(representative.book.elementsByPage['surface.1.front'].find(item => item.role === 'school-building').sampleContent.image, /jiran-building\.webp$/);
 assert.match(representative.book.elementsByPage['surface.14.back'].find(item => item.role === 'school-building').sampleContent.image, /jiran-building\.webp$/);
-assert.match(representative.book.elementsByPage['surface.14.back'].find(item => item.role === 'school-logo').sampleContent.image, /jiran-logo-composite\.svg$/);
+assert.match(representative.book.elementsByPage['surface.14.back'].find(item => item.role === 'school-logo').sampleContent.image, /jiran-logo\.webp$/);
 assert.match(representative.book.elementsByPage['surface.2.front'].find(item => item.role === 'school-song').sampleContent.image, /jiran-song\.webp$/);
 assert.equal(representative.book.elementsByPage['surface.2.front'].find(item => item.role === 'school-song').showCaption, false);
 assert.equal(representative.book.elementsByPage['surface.1.front'].find(item => item.role === 'year').format, 'year-plain');
