@@ -1,0 +1,13 @@
+{
+  "id": "school-calendar-styles",
+  "version": "0.3.0",
+  "principle": "shape-system-before-material",
+  "profiles": [
+    {"id":"editorial-graphic","name":"에디토리얼 그래픽","signature":"비대칭 컬럼·짧은 선·대담한 색면 크롭·타이포그래피용 여백의 문화 포스터 리듬","exclude":["generated-text","paper-props","repeated-diagonal","ornamental-border"]},
+    {"id":"campus-documentary","name":"캠퍼스 다큐멘터리","signature":"실제 학교 사진을 주인공으로 유지하는 색상 분위기·크롭 리듬·기록형 표식","exclude":["generated-photo","fake-caption","photo-frame-raster","nostalgic-album"]},
+    {"id":"modular-color-system","name":"모듈러 컬러 시스템","signature":"달력과 정렬되는 명확한 색상 블록·구조적 비례·반복 간격 체계","exclude":["nature-motif","paper-texture","faux-ui","functional-grid"]},
+    {"id":"contemporary-illustration","name":"컨템퍼러리 일러스트레이션","signature":"고정된 인물 비례·선·면·팔레트로 표현한 현대 학교생활 평면 일러스트","exclude":["photorealism","watercolor","cute-mascot","stock-character"]},
+    {"id":"digital-aura-motion","name":"디지털 오라 & 모션","signature":"넓은 정지 공간과 방향성 있는 저채도 빛·운동 궤적의 대비","exclude":["static-stock-gradient","glass-card","neon-rainbow","repeated-diagonal"]},
+    {"id":"korean-modern-graphic","name":"한국적 모던 그래픽","signature":"조각보 면 분할·창살 비례·먹선 운동을 재료감 없이 추상화한 평면 그래픽","exclude":["hanji-texture","old-paper","traditional-prop","calligraphy"]}
+  ]
+}

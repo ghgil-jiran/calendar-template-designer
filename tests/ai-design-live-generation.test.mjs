@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { buildImagePrompt, validateGenerationInput } from '../api/ai-design-generate.js';
-const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.12.0.js');
+const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.13.0.js');
 
 test('live image prompt protects editable calendar and school data', () => {
   const input=validateGenerationInput({styleKey:'seasonal',palette:['#315e9e','#ffffff'],request:{conditions:{schoolLevel:'middle',decorationDensity:'low',photoMode:'mixed',seasonalVariation:'high',instruction:'봄 느낌을 유지'},versions:{promptSet:'school-calendar-prompt@0.1.0'}}});
@@ -18,7 +18,7 @@ test('live image prompt protects editable calendar and school data', () => {
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.12.0');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.13.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','divider','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
@@ -30,7 +30,7 @@ test('versioned prompt set defines a distinct contract for every representative 
 });
 
 test('prompt separates month-front and month-back visual modes',()=>{
-  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'warm-neutral-mocha',styleSnapshots:[{id:'warm-neutral-mocha',name:'Warm Neutral Mocha',guidance:{'month-back':{description:'archival paper',keywords:'burgundy book-cloth',forbidden:'fake text'}}}],pageTypes:{'month-back':'photo-collage'},pageSettings:{monthBackMediaMode:'sample-replaceable'},expression:{monthFrontMode:'color-only',monthBackMode:'photo-editorial'},protectedContent:['calendar-data']};
+  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'campus-documentary',styleSnapshots:[{id:'campus-documentary',name:'Campus Documentary',guidance:{'month-back':{description:'real school photography first',keywords:'documentary markers',forbidden:'fake text'}}}],pageTypes:{'month-back':'photo-collage'},pageSettings:{monthBackMediaMode:'sample-replaceable'},expression:{monthFrontMode:'color-only',monthBackMode:'photo-editorial'},protectedContent:['calendar-data']};
   const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month-back',request:{designSpec}}));
   assert.match(prompt,/Month-front visual mode: color-only/);
   assert.match(prompt,/Month-back visual mode: photo-editorial/);
@@ -40,18 +40,26 @@ test('prompt separates month-front and month-back visual modes',()=>{
 });
 
 test('six design styles keep distinct non-negotiable signatures and a restrained front mode',()=>{
- const styleIds=['warm-neutral-mocha','modern-sage-eco','soft-pastel-watercolor','clear-ui-line','traditional-hanji-tone','trendy-mesh-aura'];
+ const styleIds=['editorial-graphic','campus-documentary','modular-color-system','contemporary-illustration','digital-aura-motion','korean-modern-graphic'];
  const signatures=new Set(styleIds.map(styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-only',monthBackMode:'auto-match'},protectedContent:['calendar-data']};const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2027,month:9,season:'autumn'},request:{designSpec}}));assert.match(prompt,/Non-negotiable style signature/);assert.match(prompt,/Month-front rule: Keep the month front almost plain/);assert.match(prompt,/Style-and-page direction/);return prompt.match(/Non-negotiable style signature: (.*?)\. Do not borrow/)?.[1]||prompt}));
  assert.equal(signatures.size,6);
 });
 
-test('new style prompts reject rasterized UI and dated decoration',()=>{const promptFor=styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{'month-back':{}}}],pageTypes:{'month-back':'photo-collage'},expression:{monthBackPhoto:'use'},protectedContent:['school-photos']};return buildImagePrompt(validateGenerationInput({styleKey:'photo',pageRole:'month-back',month:{year:2028,month:5},request:{designSpec}}))};assert.match(promptFor('warm-neutral-mocha'),/avoid vintage book styling/i);assert.match(promptFor('clear-ui-line'),/never generate interface controls/i);assert.match(promptFor('trendy-mesh-aura'),/avoid neon saturation/i)});
+test('new shape-system prompts reject old materials, fake photos, and repeated diagonals',()=>{const promptFor=styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{'month-back':{}}}],pageTypes:{'month-back':'photo-collage'},expression:{monthBackMode:'photo-editorial'},protectedContent:['school-photos']};return buildImagePrompt(validateGenerationInput({styleKey:'photo',pageRole:'month-back',month:{year:2028,month:5},request:{designSpec}}))};assert.match(promptFor('editorial-graphic'),/repeated diagonal template/i);assert.match(promptFor('campus-documentary'),/Never generate, reconstruct, or simulate a school photograph/i);assert.match(promptFor('korean-modern-graphic'),/no Hanji texture/i)});
 
 test('month fronts vary one selected axis without forcing five simultaneous changes',()=>{
- const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'clear-ui-line',styleSnapshots:[{id:'clear-ui-line',name:'Clear UI Line',guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-only',monthBackMode:'auto-match'},protectedContent:['calendar-data']};
+ const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'modular-color-system',styleSnapshots:[{id:'modular-color-system',name:'Modular Color System',guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-only',monthBackMode:'auto-match'},protectedContent:['calendar-data']};
  const prompts=[3,4,5].map(month=>buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2028,month,season:'spring'},request:{designSpec}})));
  assert.equal(new Set(prompts.map(prompt=>prompt.match(/Suggested palette step: (.*?)\./)?.[1])).size,3);
  prompts.forEach(prompt=>{assert.match(prompt,/Keep the month front almost plain/);assert.match(prompt,/Do not also vary composition, motif, scale, and decoration/)});
+});
+
+test('month front keeps the editable grid transparent over one continuous background',()=>{
+ const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'editorial-graphic',styleSnapshots:[{id:'editorial-graphic',name:'Editorial Graphic',guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-accent',monthBackMode:'auto-match'},protectedContent:['calendar-data']};
+ const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2028,month:3},request:{designSpec}}));
+ assert.match(prompt,/calendar object and its grid must remain transparent/i);
+ assert.match(prompt,/continuous pale background pass underneath it/i);
+ assert.match(prompt,/without creating a white rectangle, card, panel/i);
 });
 
 test('protected regions are bounded and become low-contrast readability zones',()=>{
@@ -63,16 +71,16 @@ test('protected regions are bounded and become low-contrast readability zones',(
  assert.match(prompt,/Do not leave visible rectangular cutouts/i);
 });
 test('month-back prompts enforce one cohesive series and geometry stays abstract',()=>{
- const monthBack=prompts.buildPrompt({pageRole:'month-back',palette:['#123456'],variantDirection:'cohesive',month:{year:2027,month:5},designSpec:{styleId:'clear-ui-line',pageTypeId:'image-calendar',expression:{}},protectedRegions:[]});
+ const monthBack=prompts.buildPrompt({pageRole:'month-back',palette:['#123456'],variantDirection:'cohesive',month:{year:2027,month:5},designSpec:{styleId:'modular-color-system',pageTypeId:'image-calendar',expression:{}},protectedRegions:[]});
  assert.match(monthBack,/one coherent series/);
  assert.match(monthBack,/match the artwork to the saved page type/);
  assert.match(monthBack,/replaceable sample-photo frames visually dominant/);
- assert.match(monthBack,/Line and modular rhythm remain decorative background language only/);
+ assert.match(monthBack,/Lines, columns, and modules remain decorative background language only/);
  assert.match(monthBack,/Never rasterize a calendar grid/);
 });
 
 test('design spec selects role-specific composition guidance without rasterizing editable content',()=>{
-  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'clear-ui-line',styleSnapshots:[{id:'clear-ui-line',name:'Clear UI Line',guidance:{month:{description:'modern geometry',keywords:'low-opacity geometric edge shapes',forbidden:'functional-looking regions'}}}],pageTypes:{month:'split-calendar-image'},expression:{variationRhythm:'composition',monthColorVariation:'monthly',monthCompositionVariation:'alternating',monthMotifVariation:'subtle',monthDecorationVariation:'rich',monthBackPhoto:'use',monthBackSeason:'subtle'},protectedContent:['calendar-data','event-text']};
+  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'modular-color-system',styleSnapshots:[{id:'modular-color-system',name:'Modular Color System',guidance:{month:{description:'modern geometry',keywords:'low-opacity geometric edge shapes',forbidden:'functional-looking regions'}}}],pageTypes:{month:'split-calendar-image'},expression:{monthFrontMode:'color-accent',monthBackMode:'auto-match'},protectedContent:['calendar-data','event-text']};
   const input=validateGenerationInput({styleKey:'balanced',pageRole:'month',request:{designSpec}}),prompt=buildImagePrompt(input);
   assert.equal(input.designSpec.pageTypeId,'split-calendar-image');
   assert.match(prompt,/editable composition is split-calendar-image/);

@@ -1,53 +1,53 @@
 (function(root){
  const commonGuideline={
   title:'탁상달력 공통 AI 이미지 생성 및 디자인 지침',
-  text:'AI 출력 캔버스는 도련까지 채우되 그림이 화면 전체를 채울 필요는 없습니다. 넓은 여백, 부분 색면, 대각선 면, 한쪽 띠, 작은 크롭 포인트를 적극 허용합니다. 학교 전경 사진, 학사 일정, 교가, 연혁 등 실제 학교 콘텐츠가 중심이며 AI는 현대적인 배경·색면·질감·일러스트만 생성합니다. 월력 앞면은 달력 가독성을 최우선으로 하고 색상이나 작은 장식만 절제해 변화시킵니다. 월력 뒷면은 선택한 구성과 사진 사용 방식에 맞춰 별도로 설계합니다. 실제 개체 보호 좌표가 항상 우선하며 날짜, 격자, 헤더, 플래너, 사진 프레임, 학교 정보, 로고, 교훈과 읽을 수 있는 문자·숫자는 생성하지 않습니다. 간지는 같은 스타일을 유지하면서 실제 순번·앞뒤·용도마다 서로 다른 이미지로 생성합니다.',
+  text:'AI 출력 캔버스는 도련까지 채우되 그림이 화면 전체를 채울 필요는 없습니다. 넓은 여백과 수평·수직 색면, 모듈, 곡선, 원형 흐름, 작은 크롭 포인트 중 페이지에 맞는 한 가지 조형 문법을 선택합니다. 대각선은 필요한 경우에만 제한적으로 사용하고 세트 전체에 반복하지 않습니다. 학교 전경 사진, 학사 일정, 교가, 연혁 등 실제 학교 콘텐츠가 중심이며 AI는 현대적인 배경·색면·그래픽·일러스트만 생성합니다. 월력 앞면은 달력 가독성을 최우선으로 하고, 투명한 월력 격자 아래로 연속 배경이 보이도록 하며 색상이나 작은 장식만 절제해 변화시킵니다. 월력 뒷면은 선택한 구성과 사진 사용 방식에 맞춰 별도로 설계합니다. 실제 개체 보호 좌표가 항상 우선하며 날짜, 격자, 헤더, 플래너, 사진 프레임, 학교 정보, 로고, 교훈과 읽을 수 있는 문자·숫자는 생성하지 않습니다. 간지는 같은 스타일을 유지하면서 실제 순번·앞뒤·용도마다 서로 다른 이미지로 생성합니다.',
   lockedRules:['finished-size-260x180mm','production-size-266x186mm','bleed-3mm','editable-content-not-rasterized','binding-safe-area','actual-page-structure-first']
  };
  const pageGuidance=(cover,annual,divider,month,monthBack,backCover)=>({cover,annual,divider,month,'month-back':monthBack,'back-cover':backCover});
  const styles=[
-  {id:'warm-neutral-mocha',name:'웜 뉴트럴 & 모카',description:'모카·샌드 베이지의 따뜻하고 현대적인 에디토리얼 스타일',colors:['#f4eee7','#a88772','#cbb9aa','#4c4743'],guidance:pageGuidance(
-   ['모카와 샌드 베이지의 비대칭 대형 색면, 린넨 입자는 깊이만 보조','warm mocha and sand editorial composition, broad asymmetric tonal fields, subtle linen grain, no complete border'],
-   ['오프화이트 바탕을 가로지르는 아주 옅은 모카 색면과 방향성','off-white surface, pale mocha tonal flow behind the annual overview, no grid or header bar'],
-   ['모카·웜 토프·무드 베이지를 순번별로 변주한 독립적 빛과 패브릭 구도','unique divider composition in mocha, warm taupe or mood beige, soft studio light, purpose-led crop'],
-   ['차분한 오프화이트 위에 월마다 위치가 달라지는 모카 색면과 미세한 선 리듬','calm off-white ground, month-specific mocha field and non-functional fine-line rhythm, no calendar grid'],
-   ['같은 소재와 조명으로 이어지는 에디토리얼 정물 또는 추상 장면','cohesive mocha editorial still-life or abstract scene around protected components, no frames or cards'],
-   ['표지의 모카 색면을 축소·반전한 조용한 마감 구도','quiet closing composition transforming the cover mocha fields, calm school-information zones'])},
-  {id:'soft-pastel-watercolor',name:'소프트 파스텔 수채화',description:'맑은 파스텔 안료와 현대적인 여백을 조합한 수채화 스타일',colors:['#fbf7f4','#e7cbd2','#c9dfda','#c9d9ec'],guidance:pageGuidance(
-   ['연분홍·민트·세룰리안의 넓고 투명한 흐름과 큰 크롭','cold-press watercolor paper, broad transparent pastel wash path, modern asymmetric crop, calm title zones'],
-   ['흰 화지 위에 연력 뒤로 이어지는 아주 옅은 수평 안료 흐름','clean white watercolor paper, very pale horizontal pigment flow, calm annual field'],
-   ['봄·여름·가을·겨울 색조와 용도에 따라 달라지는 독립적 수채화 장면','unique purpose-led divider scene, pastel watercolor gradient and gesture varied by season, not botanical by default'],
-   ['월마다 다른 날씨·학교생활 소재를 담은 절제된 붓질과 넓은 여백','bright white paper, restrained month-specific watercolor gesture or school-life motif, no calendar grid'],
-   ['동일한 화법으로 이어지는 월별 학교생활·날씨 장면과 파스텔 흐름','cohesive watercolor school-life or weather scene around protected components, no visible boxes'],
-   ['가장자리에 절제된 수채화 번짐으로 표지와 연결','subtle watercolor edge accent, clean center and lower information field'])},
-  {id:'clear-ui-line',name:'클리어 UI & 캐주얼 라인',description:'앱의 정돈감을 차용한 가벼운 선과 모듈형 공간 구성',colors:['#f4f5f5','#33465b','#aeb9c4','#d9dde2'],guidance:pageGuidance(
-   ['무광 라이트 그레이와 비대칭 대형 선·원·모듈 리듬','matte light grey, modern asymmetric line system and cropped geometric rhythm, no faux UI'],
-   ['연력의 읽기 흐름을 보조하는 옅은 방향선과 모듈 간격','subtle directional line rhythm supporting the overview, no grid, cards, or interface controls'],
-   ['네이비·그레이 인덱스 축의 위치·방향·크기를 간지별로 다르게 구성','unique divider composition using a muted navy or grey index axis, varied position and scale, no text'],
-   ['측면 인덱스 리듬과 투명한 대형 아웃라인 형태, 숫자는 생성하지 않음','matte off-white, side-index rhythm and large abstract outline form, no numbers, UI, or calendar grid'],
-   ['편집 개체 사이를 연결하는 캐주얼 선과 낮은 대비의 모듈형 색면','casual line network and muted modular color fields around protected components, no panels or cards'],
-   ['라이트 그레이 바탕과 절제된 하단 마감선','minimal light grey background, subtle closing divider, clear school-information area'])},
-  {id:'trendy-mesh-aura',name:'트렌디 매시 & 오라',description:'저채도 파스텔 오로라와 부드러운 디지털 깊이의 유스 스타일',colors:['#fbf7e8','#f1d5c5','#d9d4ea','#cfe0e5'],guidance:pageGuidance(
-   ['버터 옐로우·소프트 라벤더·파스텔 오렌지의 전면 오라 흐름','edge-to-edge low-chroma mesh aura, butter yellow, soft lavender and pastel orange, calm focal zones'],
-   ['오프화이트 바탕을 가로지르는 매우 옅은 파스텔 스펙트럼','off-white ground with a very pale horizontal aura flow, calm annual field, no header strip'],
-   ['간지 목적과 순번마다 다른 오라의 중심·방향·색 조합','unique full-surface divider aura with varied light center, direction and palette, no translucent card'],
-   ['순백색 바탕과 월마다 다른 위치의 얇고 부드러운 그라디언트 흐름','pure white ground with a month-specific soft gradient flow, no calendar framework'],
-   ['오라의 빛 흐름이 개체 사이를 연결하되 카드나 프레임은 만들지 않음','cohesive aura scene flowing around protected components, no frosted card, glass UI, or frames'],
-   ['표지와 연결되는 파스텔 메시와 안정적인 하단 단색 영역','soft mesh gradient, muted lower finish, clear information field'])},
-  {id:'traditional-hanji-tone',name:'단정 한지 & 닥종이',description:'닥종이 섬유와 절제된 먹선·전통 리듬의 현대적 재해석',colors:['#f0e6d2','#69735f','#a56e5d','#c8b590'],guidance:pageGuidance(
-   ['연베이지 닥종이와 현대적으로 크롭한 창살·조각보 선 리듬','Korean Hanji fibers, contemporary cropped lattice or jogakbo line rhythm, restrained muted palette, no ornate border'],
-   ['연베이지 한지 위에 넓고 옅은 먹 안개와 방향성 있는 선','pale Hanji, broad faint ink mist and directional line cadence, calm annual field'],
-   ['용도별로 수묵 안개·산세·바람·창살·조각보를 다르게 해석','unique purpose-led Korean ink, mist, mountain, wind, lattice or jogakbo divider composition'],
-   ['따뜻한 한지 바탕과 월별로 다른 먹선·비단색 리듬','warm Hanji with restrained month-specific ink or silk-color rhythm, no calendar grid'],
-   ['동일한 현대 수묵 화법의 학교생활 또는 자연 장면을 개체 주변에 구성','cohesive contemporary Korean ink scene around protected components, subtle jogakbo planes, no frames'],
-   ['한지 바탕과 하단의 아주 얇은 쑥색·다홍색 띠','Hanji paper, very thin muted traditional ribbon at bottom, clean closing field'])},
-  {id:'modern-sage-eco',name:'모던 세이지 & 에코',description:'세이지 그린과 크림 아이보리의 산뜻한 북유럽 에코 스타일',colors:['#f3efe6','#9eab96','#526b5d','#c9c0aa'],guidance:pageGuidance(
-   ['크림 재생지와 세이지의 비대칭 색면, 추상 자연선이 만드는 현대적 표지','cream recycled paper, broad asymmetric sage field, abstract nature line, Scandinavian editorial minimalism'],
-   ['밝은 아이보리 위에 옅은 세이지 흐름과 자연스러운 공간 리듬','bright ivory, pale sage spatial flow and quiet natural rhythm, calm annual field'],
-   ['식물 선화에 한정하지 않고 성장·연결·배움·환경을 간지별 추상화','unique divider illustration of growth, connection, learning or environment in muted sage, not leaf corners'],
-   ['아이보리와 세이지의 낮은 대비 색면, 학교생활·날씨 모티프를 월별 변주','ivory and sage low-contrast field with month-specific school-life or weather motif, no calendar grid'],
-   ['세이지·샌드·우드 계열로 통일한 친환경 학교생활 일러스트 장면','cohesive Scandinavian eco school-life illustration around protected components, no photo frames'],
-   ['샌드 베이지 바탕과 하단의 얇은 포레스트 그린 선','sand recycled paper, thin forest-green closing line, clear school-information field'])},
+  {id:'editorial-graphic',name:'에디토리얼 그래픽',description:'비대칭 컬럼·선·색면과 과감한 크롭으로 만드는 문화 포스터형 조형 시스템',colors:['#f7f5ef','#1f3557','#de5b4f','#e8b84a'],guidance:pageGuidance(
+   ['타이포그래피와 학교 사진이 들어갈 자리를 전제로 한 비대칭 컬럼·선·색면','contemporary editorial graphic system, asymmetric columns, rules and cropped color fields, designed for later bold typography and school photography, no generated text'],
+   ['12개월 정보 흐름을 보조하는 넓은 여백과 짧은 선·색면의 편집 리듬','large clean negative space with sparse editorial rules and color fields supporting the annual overview, no grid or header bar'],
+   ['간지 목적마다 컬럼 폭·색면 크롭·선의 방향을 새롭게 조합한 문화 포스터형 구성','unique culture-poster-like divider using varied column proportions, cropped color fields and directional rules, no typography'],
+   ['투명한 월력 격자 아래로 이어지는 밝은 바탕과 한 가지 작은 편집 포인트','bright continuous ground visible beneath the transparent calendar grid, with only one restrained editorial accent per month'],
+   ['사진·플래너·일러스트 구성에 맞춰 컬럼·선·색면이 개체 사이를 연결하는 편집 구성','editorial columns, rules and color fields connecting the selected editable components without drawing frames or cards'],
+   ['표지의 컬럼과 색면 비례를 변형해 학교 정보가 선명한 마감 구성','closing composition transforming the cover column and color-field proportions around calm school-information zones'])},
+  {id:'campus-documentary',name:'캠퍼스 다큐멘터리',description:'실제 학교 사진을 주인공으로 두고 캡션 리듬·표식·색 보정 분위기만 더하는 사진 시스템',colors:['#f5f6f3','#244b62','#d6a34a','#bf584c'],guidance:pageGuidance(
+   ['실제 학교 사진을 크게 보여줄 여백과 다큐멘터리 표식·짧은 선의 절제된 배경','documentary layout prepared for a real school photograph, sparse registration-like graphic marks and short rules, no invented photo or text'],
+   ['연력 정보를 방해하지 않는 밝은 바탕과 작은 사진기록형 색상 표식','bright unobtrusive ground with a few small documentary color markers, no grid, photo, or caption text'],
+   ['실제 학교 자료와 사진을 주인공으로 두는 기록물 편집 리듬, AI 사진 생성 금지','documentary divider atmosphere framing later real school assets through sparse marks and color rhythm, never generate a photograph'],
+   ['투명한 월력 격자 뒤의 깨끗한 바탕에 월별 작은 기록 색상 또는 표식만 변화','clean ground visible through the transparent calendar grid, only one small month-specific documentary color marker'],
+   ['사용자·학교 사진이 항상 주인공이고 AI는 색상 분위기와 그래픽 표식만 제공','real replaceable school photography remains dominant; AI provides only restrained color atmosphere, crop guidance and documentary graphic marks'],
+   ['표지의 기록형 표식과 색상 체계를 축소해 학교 정보 중심으로 마감','quiet documentary closing field with sparse marks and clear school-information space, no invented photograph'])},
+  {id:'modular-color-system',name:'모듈러 컬러 시스템',description:'월력 격자와 결합되는 색상 블록과 구조적 비례로 월별 차이를 만드는 시스템',colors:['#f6f7f3','#2458a6','#e55445','#e5b72f'],guidance:pageGuidance(
+   ['단단한 비례의 모듈 색면과 넓은 밝은 공간이 만드는 현대적 브랜드 표지','modern brand composition using proportioned modular color fields and large bright space, no paper objects or faux UI'],
+   ['연력 배열과 충돌하지 않는 저대비 모듈 간격과 작은 색상 블록','low-contrast modular spacing and sparse color blocks supporting the annual overview, no grid or panels'],
+   ['목적별로 면적 비율·결합 방식·색상 순서를 달리한 독립적 모듈 구성','unique divider built from a different modular proportion, connection rule and color sequence, no text'],
+   ['투명한 월력 격자 아래에 보이는 단색 바탕과 한두 개의 구조적 색상 블록','solid light ground visible beneath the transparent calendar grid with one or two structural color blocks only'],
+   ['사진·플래너·메모 개체의 실제 비례와 정렬축을 이어주는 모듈형 색면','modular fields aligned to actual editable components without outlining, imitating, or enclosing them'],
+   ['표지의 모듈 비례를 단순화한 강한 브랜드 마감과 정보 여백','simplified closing arrangement of the cover modular proportions with clear school-information space'])},
+  {id:'contemporary-illustration',name:'컨템퍼러리 일러스트레이션',description:'학생·수업·과학·음악·스포츠를 단순한 현대적 형태로 표현하는 고정 화법',colors:['#f7f4ea','#3678b8','#e96b55','#e6b94d'],guidance:pageGuidance(
+   ['단순한 인체·학교생활 형태와 대담한 크롭, 일관된 평면 벡터 화법','contemporary flat editorial illustration with simplified school-life forms, bold crop and consistent shape language, no photorealism'],
+   ['연력 바깥의 작은 추상 교육 모티프와 넓은 밝은 공간','large bright annual field with a few small abstract learning motifs in one fixed illustration language'],
+   ['배움·공동체·음악·과학·스포츠를 간지 목적에 맞게 해석한 독립 장면','unique purpose-led illustration of learning, community, music, science or sport in the same strict flat style'],
+   ['투명한 월력 격자 밖 실제 빈칸에만 놓이는 하나의 작은 현대 일러스트','one small contemporary illustration only in genuine unused space, with the transparent calendar grid remaining dominant'],
+   ['월별 독립 학교생활 장면을 같은 인물 비례·선·면·팔레트로 유지','cohesive monthly school-life illustration series using identical figure proportions, line weight, shape grammar and palette'],
+   ['표지 장면의 형태와 색을 축약한 작은 마감 일러스트','small closing illustration resolving the cover shapes and colors around clear school information'])},
+  {id:'digital-aura-motion',name:'디지털 오라 & 모션',description:'저채도 빛의 방향성과 운동감으로 청소년의 속도와 에너지를 표현하는 디지털 시스템',colors:['#f6f7fb','#596bd6','#78c9d2','#f0a36b'],guidance:pageGuidance(
+   ['한 방향으로 흐르는 오라와 속도감 있는 빛의 궤적, 넓은 정지 공간','directional low-chroma aura and restrained motion trails balanced by large still space, no glass card or UI'],
+   ['연간 흐름을 암시하는 아주 옅은 빛의 이동과 깨끗한 정보 공간','very pale directional light movement suggesting a year-long flow, clean annual field, no panel'],
+   ['간지 목적마다 속도·궤적·빛의 중심을 다르게 설계한 독립적 오라','unique divider aura with purpose-specific velocity, trajectory and light center, no repeated diagonal template'],
+   ['투명한 월력 격자 아래로 이어지는 거의 흰 바탕과 작은 빛의 방향 변화','near-white ground visible through the transparent calendar grid with one subtle monthly motion cue'],
+   ['개체 사이의 이동 방향을 연결하는 저채도 오라와 부드러운 운동 궤적','low-chroma aura and soft motion trajectory connecting actual components, no white cards, UI or frames'],
+   ['표지의 운동감을 감속시켜 하나의 조용한 빛으로 닫는 구성','closing aura that decelerates the cover motion into one quiet light field'])},
+  {id:'korean-modern-graphic',name:'한국적 모던 그래픽',description:'조각보 면 분할·창살 비례·먹선 운동을 재료감 없이 현대적으로 추상화한 시스템',colors:['#f5f2ea','#24505b','#c8574e','#d6a33e'],guidance:pageGuidance(
+   ['조각보 면 분할과 창살 비례, 한 번의 먹선 운동을 평면 그래픽으로 추상화','contemporary Korean graphic abstraction using jogakbo plane division, lattice proportion and one kinetic ink-like line, no paper texture'],
+   ['연력 배열을 받치는 절제된 한국적 비례와 옅은 면 분할','restrained Korean proportional rhythm and pale plane division supporting the annual overview, no traditional object'],
+   ['간지 목적마다 조각보 비례·창살 간격·먹선 운동의 조합을 다르게 구성','unique divider varying jogakbo proportion, lattice interval and kinetic ink-line movement, no heritage decoration'],
+   ['투명한 월력 격자 아래 밝은 바탕과 한 가지 절제된 면 분할 또는 선 운동','bright ground visible beneath the transparent calendar grid with one restrained plane division or line movement'],
+   ['편집 개체의 실제 축에 반응하는 현대적 조각보 면과 유연한 먹선 운동','modern jogakbo planes and kinetic ink-like lines responding to actual editable axes, no frames or traditional props'],
+   ['표지의 한국적 비례와 선 운동을 압축한 단정한 마감','clean closing composition compressing the cover Korean proportions and line movement'])},
  ];
  const roles={
   cover:{label:'표지',objects:'연도 · 학교 사진 · 교표 · 학교명·주소',use:'첫 인상과 학교 정체성을 보여주는 면',caution:'학교 콘텐츠와 문자는 별도 편집 개체로 유지',layout:'split-cover',options:[['large-photo','대형 학교 사진형'],['photo-collage','사진 콜라주형'],['typography','타이포그래피 중심형'],['illustration','일러스트 중심형'],['split','사진·정보 분할형']]},

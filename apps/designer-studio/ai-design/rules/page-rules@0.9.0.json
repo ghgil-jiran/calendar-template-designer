@@ -1,7 +1,7 @@
 {
   "id": "calendar-page-rules",
   "version": "0.9.0",
-  "promptSet": "school-calendar-design@0.12.0",
+  "promptSet": "school-calendar-design@0.13.0",
   "generationContext": "ai-generation-context.v2@0.2.0",
   "roleSelection": "calendar-type-policy-and-existing-pages",
   "monthlyExpansion": "enabled-monthly-roles-only",
