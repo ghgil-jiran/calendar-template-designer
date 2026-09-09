@@ -147,7 +147,8 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
   assert.match(html,/closest\?\.\("#saveAIDesignOpenAIKeyBtn"\)/);
   assert.match(html,/e\.key==="Enter"&&e\.target\?\.id==="aiDesignOpenAIKey"/);
   assert.match(client,/controller\.abort\(\),timeoutMs/);
-  assert.match(client,/JSON\.stringify\(input\)\},70000/);
+  assert.match(client,/JSON\.stringify\(input\),signal:options\.signal\},70000/);
+  assert.match(client,/AIGenerationCancelledError/);
   assert.match(client,/연결 확인 시간이 초과됐습니다/);
 });
 
@@ -219,7 +220,7 @@ test('AI setup is initialized from the saved design type specification',()=>{
 test('the selected representative set expands to eleven remaining monthly front and back assets', () => {
   const html=studioSource;
   assert.match(html,/monthlyVariations:structuredClone\(sessionVariant\.monthlyVariations\|\|prepared\.designSet\?\.monthlyVariations\|\|\[\]\)/);
-  assert.match(html,/function expandSelectedAIDesignMonths\(\)/);
+  assert.match(html,/function expandSelectedAIDesignMonths\(signal=null\)/);
   assert.match(html,/total=variations\.length\*monthlyRoles\.length/);
   assert.match(html,/generatedMonthCount\*monthlyRoles\.length/);
   assert.match(html,/월별 디자인 자산 \$\{current\}\/\$\{total\} 생성 중/);
