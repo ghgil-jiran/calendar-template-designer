@@ -13,3 +13,9 @@ test("project persistence keeps clone, hash, and recovery records deterministic"
  assert.equal(JSON.stringify(record),JSON.stringify({id:"latest",project:{book:{id:"calendar-1"}},selectedPageId:"page-1",updatedAt:"2026-08-17T12:00:00.000Z"}));
  assert.equal(persistence.createRecoveryRecord(project,"",{now:()=>new Date(0)}).selectedPageId,null);
 });
+test("project hash compacts embedded image payloads without changing persistence",()=>{
+ const image=`data:image/png;base64,${"a".repeat(700)}tail`,project={image,nested:{value:"kept"}};
+ assert.ok(persistence.hash(project).length<image.length);
+ assert.equal(persistence.clone(project).image,image);
+ assert.notEqual(persistence.hash(project),persistence.hash({image:`data:image/png;base64,${"b".repeat(700)}tail`}));
+});

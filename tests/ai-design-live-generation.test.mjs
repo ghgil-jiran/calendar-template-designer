@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { buildImagePrompt, validateGenerationInput } from '../api/ai-design-generate.js';
+const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.11.0.js');
 
 test('live image prompt protects editable calendar and school data', () => {
   const input=validateGenerationInput({styleKey:'seasonal',palette:['#315e9e','#ffffff'],request:{conditions:{schoolLevel:'middle',decorationDensity:'low',photoMode:'mixed',seasonalVariation:'high',instruction:'봄 느낌을 유지'},versions:{promptSet:'school-calendar-prompt@0.1.0'}}});
@@ -17,7 +18,6 @@ test('live image prompt protects editable calendar and school data', () => {
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.11.0.js');
   assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.11.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','divider','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
@@ -65,6 +65,14 @@ test('protected regions are bounded and become low-contrast readability zones',(
  assert.match(prompt,/Protected readability zones including safety padding/);
  assert.match(prompt,/continue only low-contrast background color, soft atmosphere, broad tonal fields, or non-focal shapes/i);
  assert.match(prompt,/Do not leave visible rectangular cutouts/i);
+});
+test('month-back prompts enforce one cohesive series and geometry stays abstract',()=>{
+ const monthBack=prompts.buildPrompt({pageRole:'month-back',palette:['#123456'],variantDirection:'cohesive',month:{year:2027,month:5},designSpec:{styleId:'full-surface-geometry',pageTypeId:'image-calendar',expression:{}},protectedRegions:[]});
+ assert.match(monthBack,/one deliberately art-directed series/);
+ assert.match(monthBack,/same medium, rendering technique/);
+ assert.match(monthBack,/without jumping among unrelated stock-photo subjects/);
+ assert.match(monthBack,/Geometry remains the primary subject/);
+ assert.match(monthBack,/Do not turn the page into a generic scenic illustration/);
 });
 
 test('design spec selects role-specific composition guidance without rasterizing editable content',()=>{
