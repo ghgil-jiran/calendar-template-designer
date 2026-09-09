@@ -1,81 +1,53 @@
 (function(root){
  const commonGuideline={
   title:'탁상달력 공통 AI 이미지 생성 및 디자인 지침',
-  text:'학교 전경 사진, 학사 일정, 교가, 연혁 등 실제 학교 콘텐츠가 중심입니다. AI는 266×186mm 제작 크기(260×180mm 재단, 사방 3mm 도련)에 맞는 배경·질감·추상 면 구성·일러스트·장식을 생성합니다. 스타일은 전체 세트의 조형 언어를 정하고, 일러스트 강도와 사진 중심 구성은 실제 페이지별 지침으로 정합니다. 날짜, 월력, 학사일정, 학교 정보, 로고, 교훈과 읽을 수 있는 문자·숫자는 생성하지 않습니다. 기능 개체 보호 영역은 낮은 대비와 충분한 가독성을 유지하고 제본 안전 영역을 지켜야 합니다.',
+  text:'학교 전경 사진, 학사 일정, 교가, 연혁 등 실제 학교 콘텐츠가 중심입니다. AI는 266×186mm 제작 크기(260×180mm 재단, 사방 3mm 도련)에 맞는 현대적인 배경·색면·질감·일러스트를 생성합니다. 저채도 뉴트럴과 부드러운 파스텔을 기본으로 하되 인쇄물의 구분감은 유지합니다. 월력·연력처럼 정보가 많은 면은 중앙 약 70%를 차분하게 설계하되, 실제 개체 보호 좌표가 항상 우선합니다. 표지·간지·월력 뒷면은 페이지 전체를 활용할 수 있습니다. 날짜, 격자, 헤더, 플래너, 사진 프레임, 학교 정보, 로고, 교훈과 읽을 수 있는 문자·숫자는 생성하지 않습니다. 간지는 같은 스타일을 유지하면서 실제 순번·앞뒤·용도마다 서로 다른 이미지로 생성합니다.',
   lockedRules:['finished-size-260x180mm','production-size-266x186mm','bleed-3mm','editable-content-not-rasterized','binding-safe-area','actual-page-structure-first']
  };
  const pageGuidance=(cover,annual,divider,month,monthBack,backCover)=>({cover,annual,divider,month,'month-back':monthBack,'back-cover':backCover});
  const styles=[
-  {id:'classic-texture',name:'클래식 텍스처',description:'고급 종이 질감과 미세한 테두리',colors:['#f4efe5','#173b63','#b49a67'],guidance:pageGuidance(
-   ['엠보싱 아이보리 종이와 가장자리의 얇은 네이비·금빛 선','fine textured ivory paper, subtle felt grain, restrained double edge line, empty content field'],
-   ['무광 베이지 그레이 종이와 상단의 은은한 음각선','matte beige grey paper, subtle debossed top accent, clear annual-calendar field'],
-   ['차분한 아이보리 종이와 가장자리의 미세한 프레임 장식','warm ivory paper, faint edge accent, unique divider variation, empty content field'],
-   ['눈이 편안한 오프화이트 종이와 매우 절제된 가장자리 포인트','matte off-white paper, sparse charcoal edge accent, unobstructed calendar field'],
-   ['샌드 베이지 종이 질감과 사진 영역을 방해하지 않는 가장자리 음영','warm sand paper texture, subtle gallery mood, empty photo and planner regions'],
-   ['표지와 같은 엠보싱 질감, 하단 학교 정보 영역은 비움','textured ivory paper, restrained closing edge line, clear lower information field'])},
-  {id:'watercolor-soft',name:'수채화 & 소프트 드로잉',description:'투명한 수채화 번짐과 식물 실루엣',colors:['#f7edf0','#cfe5dc','#b8cceb'],guidance:pageGuidance(
-   ['수채화 화지의 모서리에만 연분홍·민트 번짐','watercolor paper, transparent pastel wash at corners and edges, empty center'],
-   ['흰 화지와 하단 가장자리의 옅은 파스텔 띠','clean white watercolor paper, faint pastel wash on bottom edge, open annual field'],
-   ['상단 또는 모서리의 서로 다른 수채화 터치와 식물 실루엣','delicate botanical watercolor edge motif, low opacity, unique divider brush variation'],
-   ['순백 화지와 월 제목 영역 바깥의 얇은 계절 붓 터치','bright white paper, single seasonal watercolor edge stroke, clear calendar field'],
-   ['엷은 파스텔 번짐, 사진·플래너 영역은 단색으로 비움','soft full-page watercolor atmosphere, plain protected content regions, no visible boxes'],
+  {id:'warm-neutral-mocha',name:'웜 뉴트럴 & 모카',description:'모카·샌드 베이지의 따뜻하고 현대적인 에디토리얼 스타일',colors:['#f4eee7','#a88772','#cbb9aa','#4c4743'],guidance:pageGuidance(
+   ['모카와 샌드 베이지의 비대칭 대형 색면, 린넨 입자는 깊이만 보조','warm mocha and sand editorial composition, broad asymmetric tonal fields, subtle linen grain, no complete border'],
+   ['오프화이트 바탕을 가로지르는 아주 옅은 모카 색면과 방향성','off-white surface, pale mocha tonal flow behind the annual overview, no grid or header bar'],
+   ['모카·웜 토프·무드 베이지를 순번별로 변주한 독립적 빛과 패브릭 구도','unique divider composition in mocha, warm taupe or mood beige, soft studio light, purpose-led crop'],
+   ['차분한 오프화이트 위에 월마다 위치가 달라지는 모카 색면과 미세한 선 리듬','calm off-white ground, month-specific mocha field and non-functional fine-line rhythm, no calendar grid'],
+   ['같은 소재와 조명으로 이어지는 에디토리얼 정물 또는 추상 장면','cohesive mocha editorial still-life or abstract scene around protected components, no frames or cards'],
+   ['표지의 모카 색면을 축소·반전한 조용한 마감 구도','quiet closing composition transforming the cover mocha fields, calm school-information zones'])},
+  {id:'soft-pastel-watercolor',name:'소프트 파스텔 수채화',description:'맑은 파스텔 안료와 현대적인 여백을 조합한 수채화 스타일',colors:['#fbf7f4','#e7cbd2','#c9dfda','#c9d9ec'],guidance:pageGuidance(
+   ['연분홍·민트·세룰리안의 넓고 투명한 흐름과 큰 크롭','cold-press watercolor paper, broad transparent pastel wash path, modern asymmetric crop, calm title zones'],
+   ['흰 화지 위에 연력 뒤로 이어지는 아주 옅은 수평 안료 흐름','clean white watercolor paper, very pale horizontal pigment flow, calm annual field'],
+   ['봄·여름·가을·겨울 색조와 용도에 따라 달라지는 독립적 수채화 장면','unique purpose-led divider scene, pastel watercolor gradient and gesture varied by season, not botanical by default'],
+   ['월마다 다른 날씨·학교생활 소재를 담은 절제된 붓질과 넓은 여백','bright white paper, restrained month-specific watercolor gesture or school-life motif, no calendar grid'],
+   ['동일한 화법으로 이어지는 월별 학교생활·날씨 장면과 파스텔 흐름','cohesive watercolor school-life or weather scene around protected components, no visible boxes'],
    ['가장자리에 절제된 수채화 번짐으로 표지와 연결','subtle watercolor edge accent, clean center and lower information field'])},
-  {id:'modern-geometry',name:'모던 그래픽 & 셰이프',description:'라이트 그레이와 낮은 대비의 기하학 선',colors:['#eef1f4','#536579','#aab8c7'],guidance:pageGuidance(
-   ['라이트 그레이 바탕과 가장자리의 반투명 원·선','light grey background, low-opacity geometric edge shapes, spacious center'],
-   ['미세한 대각선 패턴을 외곽에만 적용','subtle diagonal line pattern at outer edges, clean annual content field'],
-   ['얇은 네이비·그레이 인덱스 바를 위치만 달리해 적용','thin muted index bar at page edge, unique position for each divider, open center'],
-   ['무광 라이트 그레이와 구석의 작은 기하학 포인트','matte light grey, sparse geometric corner accent, unobstructed calendar field'],
-   ['낮은 대비의 투톤 배경, 편집 개체 영역은 명확히 비움','soft muted two-tone background, plain protected photo and planner regions'],
+  {id:'clear-ui-line',name:'클리어 UI & 캐주얼 라인',description:'앱의 정돈감을 차용한 가벼운 선과 모듈형 공간 구성',colors:['#f4f5f5','#33465b','#aeb9c4','#d9dde2'],guidance:pageGuidance(
+   ['무광 라이트 그레이와 비대칭 대형 선·원·모듈 리듬','matte light grey, modern asymmetric line system and cropped geometric rhythm, no faux UI'],
+   ['연력의 읽기 흐름을 보조하는 옅은 방향선과 모듈 간격','subtle directional line rhythm supporting the overview, no grid, cards, or interface controls'],
+   ['네이비·그레이 인덱스 축의 위치·방향·크기를 간지별로 다르게 구성','unique divider composition using a muted navy or grey index axis, varied position and scale, no text'],
+   ['측면 인덱스 리듬과 투명한 대형 아웃라인 형태, 숫자는 생성하지 않음','matte off-white, side-index rhythm and large abstract outline form, no numbers, UI, or calendar grid'],
+   ['편집 개체 사이를 연결하는 캐주얼 선과 낮은 대비의 모듈형 색면','casual line network and muted modular color fields around protected components, no panels or cards'],
    ['라이트 그레이 바탕과 절제된 하단 마감선','minimal light grey background, subtle closing divider, clear school-information area'])},
-  {id:'seasonal-gradient',name:'사계절 그라디언트',description:'계절색이 부드럽게 이어지는 파스텔 메시',colors:['#f3d8d2','#d9e8cf','#d6e0f3'],guidance:pageGuidance(
-   ['사계절색이 매우 부드럽게 섞인 파스텔 오로라','soft pastel mesh gradient, seasonal spectrum, calm center, low contrast'],
-   ['오프화이트 바탕과 얇은 수평 2톤 그라디언트','off-white paper, faint horizontal two-tone gradient at edge, annual field clear'],
-   ['간지마다 다른 계절 조합의 얇은 그라디언트 띠','thin seasonal gradient strip, unique palette for each divider, high-legibility center'],
-   ['미색 바탕과 상단 외곽의 얇은 월별 그라디언트','warm white background, thin seasonal gradient edge accent, clear calendar field'],
-   ['부드러운 계절 그라디언트, 모든 편집 개체 영역은 평온하게 유지','soft seasonal gradient atmosphere, plain protected regions, no glass UI panels'],
+  {id:'trendy-mesh-aura',name:'트렌디 매시 & 오라',description:'저채도 파스텔 오로라와 부드러운 디지털 깊이의 유스 스타일',colors:['#fbf7e8','#f1d5c5','#d9d4ea','#cfe0e5'],guidance:pageGuidance(
+   ['버터 옐로우·소프트 라벤더·파스텔 오렌지의 전면 오라 흐름','edge-to-edge low-chroma mesh aura, butter yellow, soft lavender and pastel orange, calm focal zones'],
+   ['오프화이트 바탕을 가로지르는 매우 옅은 파스텔 스펙트럼','off-white ground with a very pale horizontal aura flow, calm annual field, no header strip'],
+   ['간지 목적과 순번마다 다른 오라의 중심·방향·색 조합','unique full-surface divider aura with varied light center, direction and palette, no translucent card'],
+   ['순백색 바탕과 월마다 다른 위치의 얇고 부드러운 그라디언트 흐름','pure white ground with a month-specific soft gradient flow, no calendar framework'],
+   ['오라의 빛 흐름이 개체 사이를 연결하되 카드나 프레임은 만들지 않음','cohesive aura scene flowing around protected components, no frosted card, glass UI, or frames'],
    ['표지와 연결되는 파스텔 메시와 안정적인 하단 단색 영역','soft mesh gradient, muted lower finish, clear information field'])},
-  {id:'traditional-korean',name:'전통 단청 & 문양',description:'한지 질감과 절제된 한국 전통 문양',colors:['#efe4cf','#66745a','#a96655'],guidance:pageGuidance(
-   ['한지 섬유 질감과 네 모서리의 톤다운 전통 문양','Korean Hanji paper texture, muted traditional corner motif, empty center'],
-   ['연베이지 한지와 외곽의 아주 옅은 먹선','beige Hanji paper, faint outer ink line, clear annual field'],
-   ['간지마다 다른 수묵 안개·창살·조각보 선 모티프','subtle Korean ink wash or lattice edge motif, unique divider variation, warm Hanji'],
-   ['따뜻한 한지 바탕과 상단 가장자리의 단순 전통 띠','warm beige Hanji, minimal traditional edge pattern, unobstructed calendar field'],
-   ['은은한 조각보 톤앤톤 면감, 편집 영역은 비움','muted Korean Jogakbo tone-on-tone texture, plain protected content regions'],
+  {id:'traditional-hanji-tone',name:'단정 한지 & 닥종이',description:'닥종이 섬유와 절제된 먹선·전통 리듬의 현대적 재해석',colors:['#f0e6d2','#69735f','#a56e5d','#c8b590'],guidance:pageGuidance(
+   ['연베이지 닥종이와 현대적으로 크롭한 창살·조각보 선 리듬','Korean Hanji fibers, contemporary cropped lattice or jogakbo line rhythm, restrained muted palette, no ornate border'],
+   ['연베이지 한지 위에 넓고 옅은 먹 안개와 방향성 있는 선','pale Hanji, broad faint ink mist and directional line cadence, calm annual field'],
+   ['용도별로 수묵 안개·산세·바람·창살·조각보를 다르게 해석','unique purpose-led Korean ink, mist, mountain, wind, lattice or jogakbo divider composition'],
+   ['따뜻한 한지 바탕과 월별로 다른 먹선·비단색 리듬','warm Hanji with restrained month-specific ink or silk-color rhythm, no calendar grid'],
+   ['동일한 현대 수묵 화법의 학교생활 또는 자연 장면을 개체 주변에 구성','cohesive contemporary Korean ink scene around protected components, subtle jogakbo planes, no frames'],
    ['한지 바탕과 하단의 아주 얇은 쑥색·다홍색 띠','Hanji paper, very thin muted traditional ribbon at bottom, clean closing field'])},
-  {id:'academic-nordic',name:'아카데믹 노르딕',description:'샌드 베이지와 세이지 그린의 차분한 조합',colors:['#ded3bd','#93a28c','#315b4a'],guidance:pageGuidance(
-   ['재생지 질감과 하단의 포레스트 그린 선','recycled sand paper texture, thin forest-green bottom accent, Nordic minimalism'],
-   ['매트한 세이지 바탕과 넓은 정보 여백','matte pale sage background, calm Nordic educational mood, open annual field'],
-   ['샌드 베이지와 세이지 계열의 위치가 다른 미니멀 바','sand paper, muted Nordic edge bar, unique color and position per divider'],
-   ['부드러운 린넨 미색과 따뜻한 우드 브라운 포인트','soft ivory linen texture, sparse warm wood accent, clear calendar field'],
-   ['샌드 베이지·세이지의 부드러운 수평 톤 변화','soft sand and sage tonal background, plain photo and planner regions'],
+  {id:'modern-sage-eco',name:'모던 세이지 & 에코',description:'세이지 그린과 크림 아이보리의 산뜻한 북유럽 에코 스타일',colors:['#f3efe6','#9eab96','#526b5d','#c9c0aa'],guidance:pageGuidance(
+   ['크림 재생지와 세이지의 비대칭 색면, 추상 자연선이 만드는 현대적 표지','cream recycled paper, broad asymmetric sage field, abstract nature line, Scandinavian editorial minimalism'],
+   ['밝은 아이보리 위에 옅은 세이지 흐름과 자연스러운 공간 리듬','bright ivory, pale sage spatial flow and quiet natural rhythm, calm annual field'],
+   ['식물 선화에 한정하지 않고 성장·연결·배움·환경을 간지별 추상화','unique divider illustration of growth, connection, learning or environment in muted sage, not leaf corners'],
+   ['아이보리와 세이지의 낮은 대비 색면, 학교생활·날씨 모티프를 월별 변주','ivory and sage low-contrast field with month-specific school-life or weather motif, no calendar grid'],
+   ['세이지·샌드·우드 계열로 통일한 친환경 학교생활 일러스트 장면','cohesive Scandinavian eco school-life illustration around protected components, no photo frames'],
    ['샌드 베이지 바탕과 하단의 얇은 포레스트 그린 선','sand recycled paper, thin forest-green closing line, clear school-information field'])},
-  {id:'classic-archive',name:'클래식 아카이브',description:'양장본과 기록물에서 가져온 절제된 깊이감',colors:['#6b2638','#d8c7a5','#39404a'],guidance:pageGuidance(
-   ['버건디 양장 질감을 사용하되 텍스트 영역은 평온하게 비움','deep muted burgundy book-cloth texture, subtle debossed edge detail, clear central title field'],
-   ['따뜻한 미색 기록지와 옅은 아카이브 테두리','warm archival paper, faint catalog edge marks without text, open annual field'],
-   ['간지마다 위치가 다른 무문자 스탬프 형태와 기록지 질감','archival paper texture, abstract text-free stamp edge motif, unique divider variation'],
-   ['밝은 기록지 바탕과 구석의 작은 무문자 도장 형태','light archival paper, tiny abstract text-free corner stamp, clear calendar field'],
-   ['바랜 기록지 질감과 사진 영역 바깥의 얇은 아카이브 포인트','soft archival paper, restrained edge marks, plain photo and planner regions'],
-   ['표지의 버건디를 낮은 강도로 반복한 기록물 마감','muted archival closing surface, restrained burgundy edge accent, clear information field'])},
-  {id:'full-surface-geometry',name:'전면 기하학 컴포지션',description:'큰 색면과 곡선이 페이지 전체 구도를 만드는 그래픽 스타일',colors:['#173f5f','#4ea5a8','#f2c14e','#f7f5ef'],guidance:pageGuidance(
-   ['넓은 비대칭 색면과 원호가 표지 전체를 가로지르는 강한 그래픽 구성','bold full-surface geometric composition, broad cropped planes and arcs, protected title and photo zones remain readable'],
-   ['저대비 대형 면 분할을 연력 뒤로 배치하되 월력 정보 영역은 균일하게 유지','large low-contrast geometric field divisions across the surface, calm annual-calendar zones'],
-   ['간지별 콘텐츠 보호 영역 사이의 여백에 서로 다른 대형 원·사선·면을 배치','page-specific large geometric illustration occupying available negative space between protected divider objects'],
-   ['달력 격자 뒤에는 낮은 대비의 넓은 색면, 외곽에는 월별로 다른 크롭 도형','broad low-contrast color fields behind the page, distinct cropped geometry outside the calendar grid'],
-   ['사진과 플래너 사이 남는 공간을 연결하는 대형 기하학 리듬','photo-led full-surface geometric composition connecting available negative spaces without drawing functional panels'],
-   ['표지의 대형 면 구성을 단순화해 이어지는 그래픽 마감','simplified full-surface geometric continuation with a calm school-information zone'])},
-  {id:'public-domain-masters',name:'퍼블릭 도메인 명화 모티프',description:'저작권이 만료된 미술사의 색채·붓질·구도를 현대적으로 재해석',colors:['#315b73','#d9a441','#8d5b4c','#f2ead8'],guidance:pageGuidance(
-   ['인상주의의 빛, 후기인상주의의 리듬, 장식미술의 색면을 혼합한 독창적 회화 배경','original painterly composition informed by public-domain Impressionist light, Post-Impressionist rhythm, and decorative color fields'],
-   ['아주 옅은 캔버스 질감과 추상적인 빛의 흐름만 남겨 연력 가독성 확보','very pale painterly canvas with abstract light movement and a calm annual field'],
-   ['간지 목적에 맞춰 정물·정원·하늘·건축 리듬을 비재현적 회화 모티프로 변주','original page-specific painterly illustration inspired by public-domain art movements, fitted around protected divider content'],
-   ['월력 영역 밖에 작은 회화적 장면 또는 붓질 덩어리를 월별로 다르게 배치','distinct monthly painterly vignette or brushwork mass outside the protected calendar field'],
-   ['학교 사진과 어울리는 캔버스·갤러리 배경과 월별 회화적 색면','gallery-like painterly backdrop for school photos, with original monthly brushwork in available space'],
-   ['표지의 회화적 색과 붓질을 낮은 강도로 반복해 마감','quiet painterly closing surface echoing the cover palette'])},
-  {id:'school-photo-album',name:'학교 포토앨범',description:'많은 학교 사진을 간지와 월력 뒷면의 주인공으로 만드는 스타일',colors:['#314a5f','#b7835a','#d8d2c4','#f7f4ee'],guidance:pageGuidance(
-   ['대표 학교 사진을 돋보이게 하는 고급 사진집 표지 배경과 절제된 인화지 레이어','premium photo-book cover background, layered photographic paper and quiet editorial depth around protected school photos'],
-   ['앨범 앞장처럼 깨끗한 무광지와 작은 사진 인덱스 색상만 사용','clean matte album paper with tiny text-free index accents and an open annual field'],
-   ['간지의 실제 사진 수와 위치에 맞춘 인화지·마운트보드·테이프 질감의 갤러리 배경','photo-rich divider gallery background using varied print-paper, mount-board, and text-free tape details around protected image regions'],
-   ['월력 앞면은 사진집 계열의 종이·색상만 공유하고 달력 가독성을 최우선','quiet photo-book paper and color language with no invented photo frame on the calendar front'],
-   ['월별 학교 사진을 중심으로 서로 다른 앨범 배경·인화지 겹침·갤러리 벽 질감 적용','photo-dominant month-back album scene with varied print-paper layers and gallery surfaces around actual protected photo regions'],
-   ['마지막 학교 사진과 연락처를 위한 차분한 사진집 뒷장','quiet photo-book closing page with protected final photo and school-information areas'])}
  ];
  const roles={
   cover:{label:'표지',objects:'연도 · 학교 사진 · 교표 · 학교명·주소',use:'첫 인상과 학교 정체성을 보여주는 면',caution:'학교 콘텐츠와 문자는 별도 편집 개체로 유지',layout:'split-cover',options:[['large-photo','대형 학교 사진형'],['photo-collage','사진 콜라주형'],['typography','타이포그래피 중심형'],['illustration','일러스트 중심형'],['split','사진·정보 분할형']]},
