@@ -75,7 +75,7 @@ function __compactHistoryValue(value){return __historyCodec.compact(value)}
 function __restoreHistoryValue(value){return __historyCodec.restore(value)}
 function __historyString(value){return __historyCodec.stringify(value)}
 function __historyParse(text){return __historyCodec.parse(text)}
-function snapshot(){history.push(__historyString(project));if(history.length>12)history.shift();future=[];markDirty();window.__acdlUpdateMemoryMonitor?.()}
+function snapshot(){history.push(__historyString(project));if(history.length>12)history.shift();future=[];markDirty()}
 function markDirty(){el("undoBtn").disabled=!history.length;el("redoBtn").disabled=!future.length}
 function stable(){savedHash=window.ACDLPersistenceProject.hash(project)}
 function selectedPage(){return project.book.pageInstances.find(p=>p.id===selectedPageId)}

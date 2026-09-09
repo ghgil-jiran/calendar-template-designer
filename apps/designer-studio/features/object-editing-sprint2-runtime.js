@@ -43,18 +43,20 @@
  startElementPointer=function(e){
   const box=e.currentTarget;let id=box.dataset.elementId,scope=box.dataset.scope,item=getItem(id,scope);if(!item||item.locked)return;
   e.preventDefault();e.stopPropagation();if((id!==selectedElementId||scope!==selectedElementScope)&&!confirmDiscardInspectorChanges())return;
-  const usePageOverride=scope==='master'&&el('elementScope')?.value==='page';snapshot();
-  if(usePageOverride){const target=ensureCurrentPageEditTarget(id,scope);id=target.id;scope=target.scope;item=target.item;selectOnly(id,scope);if(target.created)showEditorToast('현재 페이지만 수정합니다. 같은 Master의 다른 페이지는 유지됩니다.')}
-  else{const multi=e.shiftKey||e.ctrlKey||e.metaKey;if(multi)toggleSelection(id,scope);else if(!selection.has(key(id,scope)))selectOnly(id,scope);else setPrimary(id,scope)}
+  const usePageOverride=scope==='master'&&el('elementScope')?.value==='page',multi=e.shiftKey||e.ctrlKey||e.metaKey,wasSelected=selection.has(key(id,scope));
+  let snapshotTaken=false;
+  if(usePageOverride){snapshot();snapshotTaken=true;const target=ensureCurrentPageEditTarget(id,scope);id=target.id;scope=target.scope;item=target.item;selectOnly(id,scope);if(target.created)showEditorToast('현재 페이지만 수정합니다. 같은 Master의 다른 페이지는 유지됩니다.')}
+  else{if(multi)toggleSelection(id,scope);else if(!wasSelected)selectOnly(id,scope);else setPrimary(id,scope)}
   inspectorDirty=false;inspectorNotice={type:'ready',message:'선택한 개체를 Canvas에서 직접 편집할 수 있습니다.'};
   const rect=el('page').getBoundingClientRect(),handle=e.target.dataset.handle||'move';
   gesture=window.ACDLCanvasGesture.begin({pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,handle,rect,views:selectedViews(),primary:{id,scope,item},node:box});
+  gesture.snapshotTaken=snapshotTaken;gesture.needsFullRender=usePageOverride||multi||!wasSelected||selectedViews().length>1;
   releasePointer=window.ACDLCanvasInput.capturePointer(box,e.pointerId,{move:moveElementPointer,end:endElementPointer});box.classList.add('s2-selected');
  };
  moveElementPointer=function(e){
-  if(!gesture)return;const p=window.ACDLCanvasGesture.update(gesture,{clientX:e.clientX,clientY:e.clientY,shiftKey:e.shiftKey}),n=gesture.node;n.style.left=p.x+'%';n.style.top=p.y+'%';n.style.width=p.width+'%';n.style.height=p.height+'%';n.style.transform=`rotate(${p.rotation||0}deg)`;
+  if(!gesture)return;if(!gesture.snapshotTaken){const dx=(e.clientX-gesture.startX)/gesture.rect.width*100,dy=(e.clientY-gesture.startY)/gesture.rect.height*100;if(Math.abs(dx)<=.05&&Math.abs(dy)<=.05)return;snapshot();gesture.snapshotTaken=true}const p=window.ACDLCanvasGesture.update(gesture,{clientX:e.clientX,clientY:e.clientY,shiftKey:e.shiftKey}),n=gesture.node;n.style.left=p.x+'%';n.style.top=p.y+'%';n.style.width=p.width+'%';n.style.height=p.height+'%';n.style.transform=`rotate(${p.rotation||0}deg)`;
  };
- endElementPointer=function(e){if(!gesture)return;const g=gesture,result=window.ACDLCanvasGesture.finish(g);releasePointer?.(e.pointerId);releasePointer=null;if(result.discardSnapshot){history.pop();el('undoBtn').disabled=!history.length}gesture=null;markDirty();inspectorNotice={type:'success',message:result.message};render()};
+ endElementPointer=function(e){if(!gesture)return;const g=gesture,result=window.ACDLCanvasGesture.finish(g);releasePointer?.(e.pointerId);releasePointer=null;if(result.discardSnapshot&&g.snapshotTaken){history.pop();el('undoBtn').disabled=!history.length}gesture=null;markDirty();inspectorNotice={type:'success',message:result.message};if(g.needsFullRender||!result.changed)render();else{renderInspector();renderObjectRecommendations()}};
  document.addEventListener('pointerdown',e=>{if(!project||preview)return;const page=e.target.closest('#page');if(page&&!e.target.closest('.free-element')&&!e.target.closest('.s2-selection-toolbar')&&!e.target.closest('.calendar-region')){clearSelection();render()}},true);
  document.addEventListener('keydown',e=>{if(!project||preview)return;const views=selectedViews(),command=window.ACDLCanvasInput.keyboardCommand(e,document.activeElement?.tagName,views.length>0);if(!command)return;e.preventDefault();
   if(command.type==='select-all'){const last=selection.replace(allVisibleElements().map(v=>({id:v.id,scope:v._scope})));if(last)setPrimary(last.id,last.scope);render();return}

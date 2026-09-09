@@ -1,19 +1,18 @@
 (function (root) {
   function createHistoryCodec() {
     const binaryPool = new Map();
+    const binaryRefs = new Map();
     let binarySequence = 0;
 
     function compact(value) {
       const seen = new WeakSet();
       function walk(current) {
         if (typeof current === 'string' && current.startsWith('data:') && current.length > 2048) {
-          let key;
-          for (const [candidate, stored] of binaryPool) {
-            if (stored === current) { key = candidate; break; }
-          }
+          let key = binaryRefs.get(current);
           if (!key) {
             key = `bin-${++binarySequence}`;
             binaryPool.set(key, current);
+            binaryRefs.set(current, key);
           }
           return { __acdlBinaryRef: key };
         }
