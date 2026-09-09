@@ -1,6 +1,6 @@
 import { assertInternalAccess, readJson, sendError, sendJson } from '../server/template-persistence.js';
 import { readOpenAIKey } from '../server/ai-secret-store.js';
-import { PROMPT_SET_ID, ROLE_DIRECTIONS, ROLE_PROMPTS, buildPrompt } from '../apps/designer-studio/ai-design/prompts/school-calendar-design@0.13.0.js';
+import { PROMPT_SET_ID, ROLE_DIRECTIONS, ROLE_PROMPTS, buildPrompt } from '../apps/designer-studio/ai-design/prompts/school-calendar-design@0.14.0.js';
 
 const STYLE_NAMES={balanced:'단정한 균형형',seasonal:'사계절 연결형',photo:'사진 중심 브랜드형',playful:'학생 친화 포인트형'};
 const LEVEL_NAMES={all:'학교급 공통',elementary:'초등학교',middle:'중학교',high:'고등학교'};

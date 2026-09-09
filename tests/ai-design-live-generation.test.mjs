@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { buildImagePrompt, validateGenerationInput } from '../api/ai-design-generate.js';
-const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.13.0.js');
+const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.14.0.js');
 
 test('live image prompt protects editable calendar and school data', () => {
   const input=validateGenerationInput({styleKey:'seasonal',palette:['#315e9e','#ffffff'],request:{conditions:{schoolLevel:'middle',decorationDensity:'low',photoMode:'mixed',seasonalVariation:'high',instruction:'봄 느낌을 유지'},versions:{promptSet:'school-calendar-prompt@0.1.0'}}});
@@ -18,7 +18,7 @@ test('live image prompt protects editable calendar and school data', () => {
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.13.0');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.14.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','divider','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
@@ -60,6 +60,27 @@ test('month front keeps the editable grid transparent over one continuous backgr
  assert.match(prompt,/calendar object and its grid must remain transparent/i);
  assert.match(prompt,/continuous pale background pass underneath it/i);
  assert.match(prompt,/without creating a white rectangle, card, panel/i);
+});
+
+test('system composition selects only the active monthly rule instead of stacking generic themes',()=>{
+ const base={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'editorial-graphic',styleSnapshots:[{id:'editorial-graphic',name:'Editorial Graphic',guidance:{month:{description:'editorial month'},'month-back':{description:'editorial back'}}}],pageSettings:{monthBackMediaMode:'sample-replaceable'},protectedContent:['calendar-data']};
+ const front=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2028,month:4,season:'spring'},request:{designSpec:{...base,commonGuideline:'USER COMMON THEME',pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-only',monthBackMode:'auto-match'}}}}));
+ assert.match(front,/page-role-composition@0\.1\.0/);
+ assert.match(front,/exactly one selected variation mode/);
+ assert.match(front,/Do not use flowers, leaves, trees, or seasonal nature as an automatic filler/);
+ assert.doesNotMatch(front,/USER COMMON THEME/);
+ assert.doesNotMatch(front,/Suggested subject vocabulary/);
+ const back=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month-back',month:{year:2028,month:4,season:'spring'},request:{designSpec:{...base,pageTypes:{'month-back':'image-calendar'},expression:{monthFrontMode:'color-only',monthBackMode:'photo-minimal'}}}}));
+ assert.match(back,/Do not create a full scene behind the components/);
+ assert.doesNotMatch(back,/Suggested subject vocabulary/);
+ const illustrated=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month-back',month:{year:2028,month:4,season:'spring'},request:{designSpec:{...base,pageSettings:{monthBackMediaMode:'template-design'},pageTypes:{'month-back':'illustration-led'},expression:{monthFrontMode:'color-only',monthBackMode:'illustration-series'}}}}));
+ assert.match(illustrated,/only as optional inspiration rather than a required monthly theme/);
+});
+
+test('month generation protects the structural calendar master in addition to editable objects',()=>{
+ const runtime=fs.readFileSync(new URL('../apps/designer-studio/features/ai-design-runtime.js',import.meta.url),'utf8');
+ assert.match(runtime,/role:"monthly-calendar-master",\.\.\.calendarRegion\(\)/);
+ assert.match(runtime,/\[\.\.\.structural,\.\.\.elements\.filter/);
 });
 
 test('protected regions are bounded and become low-contrast readability zones',()=>{
