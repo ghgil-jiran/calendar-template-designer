@@ -1,5 +1,5 @@
 (function(root){
- const VERSION=Object.freeze({module:'2.0.0',promptSet:'school-calendar-design@0.11.0',styleProfile:'school-calendar-styles@0.2.0',pageRules:'calendar-page-rules@0.9.0',qualityProfile:'print-safe-quality@0.2.0',generationContext:'ai-generation-context.v2@0.2.0'});
+ const VERSION=Object.freeze({module:'2.0.0',promptSet:'school-calendar-design@0.12.0',styleProfile:'school-calendar-styles@0.2.0',pageRules:'calendar-page-rules@0.9.0',qualityProfile:'print-safe-quality@0.2.0',generationContext:'ai-generation-context.v2@0.2.0'});
  const ROLE_LABELS=Object.freeze({cover:'표지',annual:'연력',divider:'간지','school-symbols':'간지',month:'월력 앞면','month-back':'월력 뒷면','back-cover':'뒷표지'});
  const MONTH_BACK_COMPONENT_LABELS=Object.freeze({'image':'이미지','current-calendar':'뒷면 월력','previous-mini-calendar':'전달 미니 월력','next-mini-calendar':'다음 달 미니 월력','planner-monthly-goal':'월 목표','planner-checklist':'할 일 리스트','planner-weekly':'주별 계획','memo':'메모','month-date-strip':'월력 띠력'});
  function projectPages(project){return project?.book?.pageInstances||project?.book?.pages||[]}

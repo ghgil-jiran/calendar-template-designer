@@ -38,7 +38,8 @@
    'large-image':{image:[5,8,90,65],calendar:[5,77,44,18],support:[52,77,43,18]},
    'photo-collage':{image:[5,10,60,80],calendar:[69,10,26,38],support:[69,52,26,38]},
    planner:{image:[5,10,30,38],calendar:[5,52,30,38],support:[39,10,56,80]},
-   'memo-calendar':{image:[5,10,38,80],calendar:[47,10,48,35],support:[47,49,48,41]}
+   'memo-calendar':{image:[5,10,38,80],calendar:[47,10,48,35],support:[47,49,48,41]},
+   'illustration-led':{calendar:[64,10,31,50],support:[64,65,31,25]}
   },
   'back-cover':{
    'school-info':{image:[6,10,38,80],identity:[48,10,46,80]},
