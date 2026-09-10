@@ -45,7 +45,7 @@ test('six design styles keep distinct non-negotiable signatures and a restrained
  assert.equal(signatures.size,6);
 });
 
-test('new shape-system prompts reject old materials, fake photos, and repeated diagonals',()=>{const promptFor=styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{'month-back':{}}}],pageTypes:{'month-back':'photo-collage'},expression:{monthBackMode:'photo-editorial'},protectedContent:['school-photos']};return buildImagePrompt(validateGenerationInput({styleKey:'photo',pageRole:'month-back',month:{year:2028,month:5},request:{designSpec}}))};assert.match(promptFor('editorial-graphic'),/repeated diagonal template/i);assert.match(promptFor('campus-documentary'),/Never generate, reconstruct, or simulate a school photograph/i);assert.match(promptFor('korean-modern-graphic'),/no Hanji texture/i)});
+test('new shape-system prompts reject old materials, fake photos, and repeated diagonals',()=>{const promptFor=styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{'month-back':{}}}],pageTypes:{'month-back':'photo-collage'},expression:{monthBackMode:'photo-editorial'},protectedContent:['school-photos']};return buildImagePrompt(validateGenerationInput({styleKey:'photo',pageRole:'month-back',month:{year:2028,month:5},request:{designSpec}}))};assert.match(promptFor('editorial-graphic'),/repeated diagonal template/i);const campus=promptFor('campus-documentary');assert.match(campus,/Never generate, reconstruct, or simulate a school photograph/i);assert.match(campus,/No visible paper, paint, watercolor, brushwork, grain/i);assert.match(campus,/Do not generate pencils, pens, notebooks/i);assert.match(campus,/never repeat one identical top rule-and-dot template/i);assert.match(promptFor('korean-modern-graphic'),/no Hanji texture/i)});
 
 test('month fronts vary one selected axis without forcing five simultaneous changes',()=>{
  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'modular-color-system',styleSnapshots:[{id:'modular-color-system',name:'Modular Color System',guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-only',monthBackMode:'auto-match'},protectedContent:['calendar-data']};
@@ -84,12 +84,26 @@ test('month generation protects the structural calendar master in addition to ed
 });
 
 test('protected regions are bounded and become low-contrast readability zones',()=>{
- const input=validateGenerationInput({styleKey:'balanced',pageRole:'month',protectedRegions:[{role:'date-grid',x:-5,y:12.345,width:120,height:80},{role:'invalid',x:10,y:10,width:0,height:4}]});
- assert.deepEqual(input.protectedRegions,[{role:'date-grid',x:0,y:12.35,width:100,height:80}]);
+ const input=validateGenerationInput({styleKey:'balanced',pageRole:'month',protectedRegions:[{role:'date-grid',objectType:'calendar-information',importance:'critical',protection:'strict',readability:'essential',overlapPolicy:'low-contrast-background-only',footprint:'dominant',shape:'rectangle',areaPercent:80,safetyPadding:2.5,x:-5,y:12.345,width:120,height:80},{role:'invalid',x:10,y:10,width:0,height:4}]});
+ assert.deepEqual(input.protectedRegions,[{role:'date-grid',objectType:'calendar-information',importance:'critical',protection:'strict',readability:'essential',overlapPolicy:'low-contrast-background-only',footprint:'dominant',shape:'rectangle',areaPercent:80,safetyPadding:2.5,planned:false,x:0,y:12.35,width:100,height:80}]);
  const prompt=buildImagePrompt(input);
- assert.match(prompt,/Protected readability zones including safety padding/);
- assert.match(prompt,/continue only low-contrast background color, soft atmosphere, broad tonal fields, or non-focal shapes/i);
- assert.match(prompt,/Do not leave visible rectangular cutouts/i);
+ assert.match(prompt,/Editable object composition contract/);
+ assert.match(prompt,/type=calendar-information, importance=critical/);
+ assert.match(prompt,/main composition anchors are date-grid/i);
+ assert.match(prompt,/Strict zones permit only continuous low-contrast background/i);
+ assert.match(prompt,/Never turn any coordinates into visible cutouts/i);
+});
+
+test('editor derives object-specific spatial semantics before requesting an image',()=>{
+ const runtime=fs.readFileSync(new URL('../apps/designer-studio/features/ai-design-runtime.js',import.meta.url),'utf8');
+ assert.match(runtime,/function aiObjectSpatialTraits\(item\)/);
+ assert.match(runtime,/objectType:calendar\?"calendar-information":planner\?"planner-functional"/);
+ assert.match(runtime,/importance,protection,readability,overlapPolicy/);
+ assert.match(runtime,/areaPercent:Number\(area\.toFixed\(2\)\)/);
+ assert.match(runtime,/footprint:area>=45\?"dominant"/);
+ assert.match(runtime,/function aiPlannedMonthBackRegions\(variant\)/);
+ assert.match(runtime,/pageRole==="month-back"\?aiPlannedMonthBackRegions\(sessionVariant\):\[\]/);
+ assert.match(runtime,/aiProtectedRegions\(pageRole,pageId,planned\)/);
 });
 test('month-back prompts enforce one cohesive series and geometry stays abstract',()=>{
  const monthBack=prompts.buildPrompt({pageRole:'month-back',palette:['#123456'],variantDirection:'cohesive',month:{year:2027,month:5},designSpec:{styleId:'modular-color-system',pageTypeId:'image-calendar',expression:{}},protectedRegions:[]});
@@ -262,6 +276,9 @@ test('the selected representative set expands to eleven remaining monthly front 
   assert.match(html,/monthlyAppliedPages/);
   assert.match(html,/const AI_MONTH_BACK_SAMPLE_PHOTOS=Object\.freeze\(\[/);
   assert.match(html,/"calendar\.monthlyImages\.current"/);
+  assert.match(html,/bindings=\{image:"calendar\.monthlyImages\.current","image-2":"","image-3":""\}/);
+  assert.match(html,/seasonGroup=Math\.floor\(pageIndex\/3\)\*3/);
+  assert.doesNotMatch(html,/"image-2":"calendar\.monthlyImages\.2"/);
   assert.match(html,/sampleFallback:true/);
   assert.match(html,/protectedCalendarClearArea:true/);
   assert.match(html,/pages=selected\.monthlyAssets\?all/);

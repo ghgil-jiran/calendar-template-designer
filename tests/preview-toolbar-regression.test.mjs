@@ -16,7 +16,7 @@ test('page and full previews preserve the shared editor header and use a unified
   assert.match(html, /\.preview-only \.workspace-menubar\{display:flex\}/);
   assert.match(html, /\.full-preview-overlay\{top:92px\}/);
   assert.match(html, /\.preview-toolbar button,#closeFullPreviewBtn\{/);
-  assert.match(html, /designer-studio-overrides\.css\?v=20260908\.2/);
+  assert.match(html, /designer-studio-overrides\.css\?v=20260910\.2/);
   assert.match(html, /\.preview-only \.workspace>\.insert-sidebar,\.preview-only \.workspace>\.page-dock,\.preview-only \.workspace>\.right\{display:none!important\}/);
   assert.match(html, /\.preview-only \.workspace>\.center\{display:flex!important;grid-column:1!important;grid-row:1!important/);
 });

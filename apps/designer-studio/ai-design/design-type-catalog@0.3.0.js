@@ -14,7 +14,7 @@
    ['사진·플래너·일러스트 구성에 맞춰 컬럼·선·색면이 개체 사이를 연결하는 편집 구성','editorial columns, rules and color fields connecting the selected editable components without drawing frames or cards'],
    ['표지의 컬럼과 색면 비례를 변형해 학교 정보가 선명한 마감 구성','closing composition transforming the cover column and color-field proportions around calm school-information zones'])},
   {id:'campus-documentary',name:'캠퍼스 다큐멘터리',description:'실제 학교 사진을 주인공으로 두고 캡션 리듬·표식·색 보정 분위기만 더하는 사진 시스템',colors:['#f5f6f3','#244b62','#d6a34a','#bf584c'],guidance:pageGuidance(
-   ['실제 학교 사진을 크게 보여줄 여백과 다큐멘터리 표식·짧은 선의 절제된 배경','documentary layout prepared for a real school photograph, sparse registration-like graphic marks and short rules, no invented photo or text'],
+   ['실제 학교 사진을 크게 보여줄 여백과 다큐멘터리 표식·짧은 선의 절제된 배경','documentary layout prepared for a real school photograph, flat vector color fields with a few simple dots or short rules, no invented photo, text, physical prop, texture, or registration mark'],
    ['연력 정보를 방해하지 않는 밝은 바탕과 작은 사진기록형 색상 표식','bright unobtrusive ground with a few small documentary color markers, no grid, photo, or caption text'],
    ['실제 학교 자료와 사진을 주인공으로 두는 기록물 편집 리듬, AI 사진 생성 금지','documentary divider atmosphere framing later real school assets through sparse marks and color rhythm, never generate a photograph'],
    ['투명한 월력 격자 뒤의 깨끗한 바탕에 월별 작은 기록 색상 또는 표식만 변화','clean ground visible through the transparent calendar grid, only one small month-specific documentary color marker'],
@@ -50,7 +50,7 @@
    ['표지의 한국적 비례와 선 운동을 압축한 단정한 마감','clean closing composition compressing the cover Korean proportions and line movement'])},
  ];
  const roles={
-  cover:{label:'표지',objects:'연도 · 학교 사진 · 교표 · 학교명·주소',use:'첫 인상과 학교 정체성을 보여주는 면',caution:'학교 콘텐츠와 문자는 별도 편집 개체로 유지',layout:'split-cover',options:[['large-photo','대형 학교 사진형'],['photo-collage','사진 콜라주형'],['typography','타이포그래피 중심형'],['illustration','일러스트 중심형'],['split','사진·정보 분할형']]},
+  cover:{label:'표지',objects:'연도 · 학교 사진 · 교표 · 학교명·주소',use:'대표 사진의 위치를 기준으로 실제 표지 구도를 선택하는 면',caution:'학교 사진과 모든 문자는 별도 교체·편집 개체로 유지',layout:'cover-photo-position',options:[['center-photo','중앙 사진형'],['left-photo','왼쪽 사진형'],['right-photo','오른쪽 사진형'],['free','자유 구성형 · 대표 사진 없음 포함']]},
   annual:{label:'표지 뒷면·연력',objects:'연도 · 12개월 월력 · 월 이름 · 주말 색상',use:'학사연도 전체 흐름을 확인하는 정보 면',caution:'12개월 정보 영역을 이미지에 그리지 않음',layout:'annual-grid',options:[['balanced-4x3','4×3 균형형'],['open-grid','넓은 여백 격자형'],['header-band','상단 연도 띠형'],['split-info','월력·정보 분할형']]},
   divider:{label:'간지',objects:'학교 상징 · 교가 · 연혁 · 안내 · 선택 콘텐츠',use:'실제 템플릿에 추가된 모든 간지에 공통 스타일을 적용',caution:'간지 수를 고정하지 않고 위치·순번·앞뒤·용도에 따라 각각 생성',layout:'divider-content',options:[['content-led','콘텐츠 중심형'],['song-led-split','교가 우선형'],['editorial-cards','에디토리얼형'],['heritage-document','기록 문서형'],['open-gallery','여백 갤러리형']]},
   month:{label:'월력 앞면',objects:'월 제목 · 요일 · 날짜 격자 · 일정 · 미니 월력',use:'가독성이 가장 중요한 월별 핵심 면',caution:'월력과 날짜를 이미지에 생성하지 않음',layout:'month-calendar',options:[['calendar-led','달력 중심형'],['large-month-number','대형 월 숫자형'],['top-image-band','상단 이미지 띠형'],['split-calendar-image','이미지·달력 분할형'],['open-editorial','여백 중심 에디토리얼형']]},

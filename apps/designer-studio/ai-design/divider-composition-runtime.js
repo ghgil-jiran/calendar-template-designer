@@ -1,16 +1,10 @@
 (function(root){
  const PRESETS=Object.freeze([
-  {id:'school-introduction',label:'학교 소개',layoutId:'content-led',objects:['title','school-building','school-logo','school-name','body'],imageSource:'school-assets',fallback:'free'},
-  {id:'school-symbols',label:'학교 상징',layoutId:'song-led-split',objects:['title','school-logo','school-motto','school-song','school-tree','school-flower'],imageSource:'school-assets',fallback:'school-introduction'},
-  {id:'annual-calendar',label:'연력',layoutId:'heritage-document',objects:['title','annual-calendar'],imageSource:'none',fallback:'free'},
-  {id:'academic-schedule',label:'학사일정',layoutId:'editorial-cards',objects:['title','schedule-list'],imageSource:'none',fallback:'yearly-plan'},
-  {id:'school-history',label:'학교 연혁',layoutId:'content-led',objects:['title','history-list'],imageSource:'none',fallback:'free'},
-  {id:'education-vision',label:'교육 목표/비전',layoutId:'editorial-cards',objects:['title','vision','body'],imageSource:'none',fallback:'free'},
-  {id:'user-image',label:'사용자 이미지 중심',layoutId:'open-gallery',objects:['title','image-slot'],imageSource:'user-assets',fallback:'free'},
-  {id:'yearly-plan',label:'Yearly Plan',layoutId:'editorial-cards',objects:['title','yearly-plan'],imageSource:'none',fallback:'free'},
-  {id:'yearly-checklist',label:'Yearly Checklist',layoutId:'editorial-cards',objects:['title','yearly-checklist'],imageSource:'none',fallback:'free'},
-  {id:'free',label:'자유 구성',layoutId:'open-gallery',objects:['title','body','image-slot'],imageSource:'user-assets',fallback:'blank'},
-  {id:'blank',label:'빈 페이지',layoutId:'open-gallery',objects:[],imageSource:'none',fallback:null}
+  {id:'school-symbols',label:'학교 상징',layoutId:'song-led-split',objects:['school-logo','school-motto','school-song','school-tree','school-flower'],imageSource:'school-assets',fallback:'free'},
+  {id:'school-introduction',label:'학교 소개',layoutId:'content-led',objects:['school-building','school-logo','school-name','body'],imageSource:'school-assets',fallback:'free'},
+  {id:'yearly-plan',label:'Yearly Plan',layoutId:'editorial-cards',objects:['yearly-plan'],imageSource:'none',fallback:'free'},
+  {id:'annual-calendar',label:'연력',layoutId:'heritage-document',objects:['annual-calendar'],imageSource:'none',fallback:'free'},
+  {id:'free',label:'사용자 정의',layoutId:'open-gallery',objects:[],imageSource:'user-assets',fallback:null}
  ]);
  const OBJECTS=Object.freeze([['title','제목'],['body','본문'],['school-name','학교명'],['school-building','학교 사진'],['school-logo','교표'],['school-motto','교훈'],['school-song','교가'],['school-tree','교목'],['school-flower','교화'],['image-slot','사용자 이미지'],['annual-calendar','연간 월력'],['mini-calendar','미니 월력'],['schedule-list','일정 목록'],['history-list','학교 연혁'],['vision','교육 목표/비전'],['yearly-plan','Yearly Plan'],['yearly-checklist','Yearly Checklist']]);
  const IMAGE_SOURCES=Object.freeze([['school-assets','학교 정보 및 에셋'],['user-assets','사용자 등록 이미지'],['template-assets','템플릿 그래픽 라이브러리'],['none','이미지 사용 안 함']]);
