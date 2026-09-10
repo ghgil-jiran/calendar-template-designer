@@ -45,7 +45,7 @@ test('six design styles keep distinct non-negotiable signatures and a restrained
  assert.equal(signatures.size,6);
 });
 
-test('new shape-system prompts reject old materials, fake photos, and repeated diagonals',()=>{const promptFor=styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{'month-back':{}}}],pageTypes:{'month-back':'photo-collage'},expression:{monthBackMode:'photo-editorial'},protectedContent:['school-photos']};return buildImagePrompt(validateGenerationInput({styleKey:'photo',pageRole:'month-back',month:{year:2028,month:5},request:{designSpec}}))};assert.match(promptFor('editorial-graphic'),/repeated diagonal template/i);assert.match(promptFor('campus-documentary'),/Never generate, reconstruct, or simulate a school photograph/i);assert.match(promptFor('korean-modern-graphic'),/no Hanji texture/i)});
+test('new shape-system prompts reject old materials, fake photos, and repeated diagonals',()=>{const promptFor=styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{'month-back':{}}}],pageTypes:{'month-back':'photo-collage'},expression:{monthBackMode:'photo-editorial'},protectedContent:['school-photos']};return buildImagePrompt(validateGenerationInput({styleKey:'photo',pageRole:'month-back',month:{year:2028,month:5},request:{designSpec}}))};assert.match(promptFor('editorial-graphic'),/repeated diagonal template/i);const campus=promptFor('campus-documentary');assert.match(campus,/Never generate, reconstruct, or simulate a school photograph/i);assert.match(campus,/Do not generate physical or illustrated props such as pencils, pens, notebooks/i);assert.match(campus,/Do not simulate crop marks, registration marks, labels, captions, tape, or photo corners/i);assert.match(promptFor('korean-modern-graphic'),/no Hanji texture/i)});
 
 test('month fronts vary one selected axis without forcing five simultaneous changes',()=>{
  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'modular-color-system',styleSnapshots:[{id:'modular-color-system',name:'Modular Color System',guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-only',monthBackMode:'auto-match'},protectedContent:['calendar-data']};
@@ -276,6 +276,9 @@ test('the selected representative set expands to eleven remaining monthly front 
   assert.match(html,/monthlyAppliedPages/);
   assert.match(html,/const AI_MONTH_BACK_SAMPLE_PHOTOS=Object\.freeze\(\[/);
   assert.match(html,/"calendar\.monthlyImages\.current"/);
+  assert.match(html,/bindings=\{image:"calendar\.monthlyImages\.current","image-2":"","image-3":""\}/);
+  assert.match(html,/seasonGroup=Math\.floor\(pageIndex\/3\)\*3/);
+  assert.doesNotMatch(html,/"image-2":"calendar\.monthlyImages\.2"/);
   assert.match(html,/sampleFallback:true/);
   assert.match(html,/protectedCalendarClearArea:true/);
   assert.match(html,/pages=selected\.monthlyAssets\?all/);
