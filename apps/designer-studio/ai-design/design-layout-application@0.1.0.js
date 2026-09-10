@@ -28,7 +28,11 @@
    'song-led-split':{title:[8,7,84,9],hero:[8,20,14,20],motto:[25,20,25,20],symbols:[8,45,42,47],song:[55,20,39,72]},
    'editorial-cards':{title:[8,7,84,9],hero:[6,20,22,25],motto:[31,20,20,25],song:[55,20,39,35],symbols:[6,60,88,32]},
    'heritage-document':{title:[8,7,84,9],hero:[39,20,22,18],motto:[39,20,22,18],song:[12,42,76,22],symbols:[12,68,76,24]},
-   'open-gallery':{title:[8,7,84,9],hero:[8,22,50,68],motto:[63,22,29,18],song:[63,44,29,46],symbols:[63,44,29,46]}
+   'open-gallery':{title:[8,7,84,9],hero:[8,22,50,68],motto:[63,22,29,18],song:[63,44,29,46],symbols:[63,44,29,46]},
+   'individual-cards':{title:[8,6,84,9],hero:[6,19,12,16],motto:[6,19,42,20],symbols:[6,44,42,48],song:[53,19,41,73]},
+   'split-panels':{title:[8,6,84,9],hero:[6,19,12,16],motto:[7,21,39,18],symbols:[7,44,39,45],song:[52,18,42,74]},
+   'open-editorial':{title:[8,6,84,9],hero:[7,19,11,15],motto:[7,20,40,17],symbols:[7,43,40,47],song:[53,19,40,72]},
+   'ruled-editorial':{title:[8,6,84,9],hero:[7,19,11,15],motto:[7,20,40,17],symbols:[7,43,40,47],song:[53,19,40,72]}
   },
   month:{
    'calendar-led':{calendar:[5,11,90,84],title:[5,3,90,7]},
@@ -92,6 +96,24 @@
   const width=(zone[2]-gap*(columns-1))/columns,height=(zone[3]-gap*(rows-1))/rows;
   items.forEach((item,index)=>Object.assign(item,{x:zone[0]+index%columns*(width+gap),y:zone[1]+Math.floor(index/columns)*(height+gap),width,height,zIndex:Math.max(2,Number(item.zIndex)||2)}))
  }
+ function applySchoolSymbolLayout(elements,typeId){
+  if(!['individual-cards','split-panels','open-editorial','ruled-editorial'].includes(typeId))return;
+  const byRole=role=>elements.find(item=>item.role===role),title=byRole('symbols-title'),logo=byRole('school-logo'),motto=byRole('school-motto'),song=byRole('school-song'),symbols=['school-tree','school-flower'].map(byRole).filter(Boolean),hasSong=Boolean(song);
+  if(title)Object.assign(title,{x:8,y:6,width:84,height:9});
+  if(logo)Object.assign(logo,{x:7,y:6,width:10,height:10,imageFit:'contain',cropAllowed:false});
+  const left=hasSong?[7,20,40,70]:[8,20,84,70],songZone=[53,18,40,74];
+  if(motto)Object.assign(motto,{x:left[0],y:left[1],width:left[2],height:hasSong?18:20});
+  const symbolZone=[left[0],left[1]+(motto?24:0),left[2],left[3]-(motto?24:0)];
+  distributeGrid(symbols,symbolZone);
+  if(song)Object.assign(song,{x:songZone[0],y:songZone[1],width:songZone[2],height:songZone[3],imageFit:'contain',cropAllowed:false,minimumReadableSizeMm:{width:90,height:95},contentPriority:'readability-first'});
+  const presentation={
+   'individual-cards':{containerStyle:'individual-card',sectionDivider:'none'},
+   'split-panels':{containerStyle:'split-panel',sectionDivider:'panel-gap'},
+   'open-editorial':{containerStyle:'none',sectionDivider:'none'},
+   'ruled-editorial':{containerStyle:'none',sectionDivider:'title-rule'}
+  }[typeId];
+  [motto,song,...symbols].filter(Boolean).forEach(item=>{item.style=item.style||{};item.style.containerStyle=presentation.containerStyle;item.style.sectionDivider=presentation.sectionDivider;item.editablePresentation=true});
+ }
  function classify(role,item){
   const token=`${item.role||''} ${item.type||''} ${item.id||''}`.toLowerCase();
   if(item.role==='ai-design-background'||token.includes('background-decoration'))return 'background';
@@ -109,6 +131,7 @@
   const elements=project.book?.elementsByPage?.[page.id]||[],groups={};
   elements.forEach(item=>{const group=classify(role,item);if(group==='background')return;(groups[group]||=[]).push(item)});
  Object.entries(groups).forEach(([group,items])=>role==='divider'&&['symbols','secondary'].includes(group)?distributeGrid(items,profile[group]||profile.secondary):distribute(items,profile[group]||profile.primary||profile.support||profile.identity));
+  if(role==='divider')applySchoolSymbolLayout(elements,typeId);
   if(role==='divider'&&elements.some(item=>item.type==='event-list'&&item.role==='schedule-list')){
    const title=elements.find(item=>classify(role,item)==='title'),schedule=elements.find(item=>item.type==='event-list'&&item.role==='schedule-list');
    if(title)Object.assign(title,{x:8,y:7,width:84,height:9});
@@ -139,7 +162,7 @@
    project.template.masters=project.template.masters||{};project.template.masters.calendar=project.template.masters.calendar||{};
    project.template.masters.calendar.calendarRegion=box(profile.calendar);
   }
-  const protectedObjects=elements.filter(item=>classify(role,item)!=='background').map(item=>({id:item.id,role:item.role||item.type,x:item.x,y:item.y,width:item.width,height:item.height,importance:['year','school-logo','school-name','school-building'].includes(item.role)?'high':'normal',readability:item.type==='text'||item.type==='year-calendar'?'required':'visual',padding:2}));
+  const protectedObjects=elements.filter(item=>classify(role,item)!=='background').map(item=>({id:item.id,role:item.role||item.type,x:item.x,y:item.y,width:item.width,height:item.height,importance:['year','school-logo','school-name','school-building','school-song'].includes(item.role)?'high':'normal',readability:item.type==='text'||item.type==='year-calendar'||item.role==='school-song'?'required':'visual',padding:item.role==='school-song'?3:2,containerStyle:item.style?.containerStyle||'none',sectionDivider:item.style?.sectionDivider||'none'}));
   page.aiDesignLayout={schemaVersion:SCHEMA_VERSION,version:VERSION,designRole:role,typeId,layoutId:composition?.layoutId||null,editable:true,protectedObjects};
   return {pageId:page.id,role,typeId,elementCount:elements.filter(item=>classify(role,item)!=='background').length}
  }
