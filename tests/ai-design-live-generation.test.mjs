@@ -84,12 +84,26 @@ test('month generation protects the structural calendar master in addition to ed
 });
 
 test('protected regions are bounded and become low-contrast readability zones',()=>{
- const input=validateGenerationInput({styleKey:'balanced',pageRole:'month',protectedRegions:[{role:'date-grid',x:-5,y:12.345,width:120,height:80},{role:'invalid',x:10,y:10,width:0,height:4}]});
- assert.deepEqual(input.protectedRegions,[{role:'date-grid',x:0,y:12.35,width:100,height:80}]);
+ const input=validateGenerationInput({styleKey:'balanced',pageRole:'month',protectedRegions:[{role:'date-grid',objectType:'calendar-information',importance:'critical',protection:'strict',readability:'essential',overlapPolicy:'low-contrast-background-only',footprint:'dominant',shape:'rectangle',areaPercent:80,safetyPadding:2.5,x:-5,y:12.345,width:120,height:80},{role:'invalid',x:10,y:10,width:0,height:4}]});
+ assert.deepEqual(input.protectedRegions,[{role:'date-grid',objectType:'calendar-information',importance:'critical',protection:'strict',readability:'essential',overlapPolicy:'low-contrast-background-only',footprint:'dominant',shape:'rectangle',areaPercent:80,safetyPadding:2.5,planned:false,x:0,y:12.35,width:100,height:80}]);
  const prompt=buildImagePrompt(input);
- assert.match(prompt,/Protected readability zones including safety padding/);
- assert.match(prompt,/continue only low-contrast background color, soft atmosphere, broad tonal fields, or non-focal shapes/i);
- assert.match(prompt,/Do not leave visible rectangular cutouts/i);
+ assert.match(prompt,/Editable object composition contract/);
+ assert.match(prompt,/type=calendar-information, importance=critical/);
+ assert.match(prompt,/main composition anchors are date-grid/i);
+ assert.match(prompt,/Strict zones permit only continuous low-contrast background/i);
+ assert.match(prompt,/Never turn any coordinates into visible cutouts/i);
+});
+
+test('editor derives object-specific spatial semantics before requesting an image',()=>{
+ const runtime=fs.readFileSync(new URL('../apps/designer-studio/features/ai-design-runtime.js',import.meta.url),'utf8');
+ assert.match(runtime,/function aiObjectSpatialTraits\(item\)/);
+ assert.match(runtime,/objectType:calendar\?"calendar-information":planner\?"planner-functional"/);
+ assert.match(runtime,/importance,protection,readability,overlapPolicy/);
+ assert.match(runtime,/areaPercent:Number\(area\.toFixed\(2\)\)/);
+ assert.match(runtime,/footprint:area>=45\?"dominant"/);
+ assert.match(runtime,/function aiPlannedMonthBackRegions\(variant\)/);
+ assert.match(runtime,/pageRole==="month-back"\?aiPlannedMonthBackRegions\(sessionVariant\):\[\]/);
+ assert.match(runtime,/aiProtectedRegions\(pageRole,pageId,planned\)/);
 });
 test('month-back prompts enforce one cohesive series and geometry stays abstract',()=>{
  const monthBack=prompts.buildPrompt({pageRole:'month-back',palette:['#123456'],variantDirection:'cohesive',month:{year:2027,month:5},designSpec:{styleId:'modular-color-system',pageTypeId:'image-calendar',expression:{}},protectedRegions:[]});

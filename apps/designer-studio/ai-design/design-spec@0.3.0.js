@@ -6,7 +6,7 @@
  const dividerImageSources=Object.freeze(['school-assets','user-assets','template-assets','none']);
  const monthBackComponentIds=Object.freeze(['image','current-calendar','previous-mini-calendar','next-mini-calendar','planner-monthly-goal','planner-checklist','planner-weekly','memo','month-date-strip']);
  const defaultMonthBackComponents=Object.freeze(['image','current-calendar','previous-mini-calendar','next-mini-calendar','planner-checklist','memo']);
- const legacyStyleMap=Object.freeze({'warm-neutral-mocha':'editorial-graphic','soft-pastel-watercolor':'contemporary-illustration','clear-ui-line':'modular-color-system','trendy-mesh-aura':'digital-aura-motion','traditional-hanji-tone':'korean-modern-graphic','modern-sage-eco':'modular-color-system'});
+ const legacyStyleMap=Object.freeze({editorial:'editorial-graphic','seasonal-watercolor':'contemporary-illustration',geometry:'modular-color-system','photo-story':'campus-documentary','student-playful':'contemporary-illustration','premium-minimal':'editorial-graphic','warm-neutral-mocha':'editorial-graphic','soft-pastel-watercolor':'contemporary-illustration','clear-ui-line':'modular-color-system','trendy-mesh-aura':'digital-aura-motion','traditional-hanji-tone':'korean-modern-graphic','modern-sage-eco':'modular-color-system'});
  function clone(value){return JSON.parse(JSON.stringify(value))}
  function allowed(value,items,fallback){return items.includes(value)?value:fallback}
  function optionIds(catalog,key){return (catalog.expressionOptions?.[key]||[]).map(option=>option[0])}
