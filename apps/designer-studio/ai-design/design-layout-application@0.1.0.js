@@ -102,7 +102,19 @@
   scaffold(role,page,project,typeId);
   const elements=project.book?.elementsByPage?.[page.id]||[],groups={};
   elements.forEach(item=>{const group=classify(role,item);if(group==='background')return;(groups[group]||=[]).push(item)});
-  Object.entries(groups).forEach(([group,items])=>role==='divider'&&['symbols','secondary'].includes(group)?distributeGrid(items,profile[group]||profile.secondary):distribute(items,profile[group]||profile.primary||profile.support||profile.identity));
+ Object.entries(groups).forEach(([group,items])=>role==='divider'&&['symbols','secondary'].includes(group)?distributeGrid(items,profile[group]||profile.secondary):distribute(items,profile[group]||profile.primary||profile.support||profile.identity));
+  if(role==='divider'&&elements.some(item=>item.type==='event-list'&&item.role==='schedule-list')){
+   const title=elements.find(item=>classify(role,item)==='title'),schedule=elements.find(item=>item.type==='event-list'&&item.role==='schedule-list');
+   if(title)Object.assign(title,{x:8,y:7,width:84,height:9});
+   Object.assign(schedule,{x:8,y:20,width:84,height:70,fontSize:9,minFontSize:7,maxItems:60,contentPriority:'readability-first'});
+  }
+  if(role==='cover'){
+   const zone=profile.identity||[15,77,70,18],identity=(groups.identity||[]).filter(item=>item.role!=='school-logo'),logo=(groups.identity||[]).find(item=>item.role==='school-logo');
+   if(logo){Object.assign(logo,{x:zone[0],y:zone[1],width:Math.min(22,zone[2]*.28),height:Math.min(14,zone[3]),imageFit:'contain',cropAllowed:false});}
+   const textX=logo?zone[0]+Math.min(25,zone[2]*.32):zone[0],textWidth=logo?Math.max(10,zone[2]-Math.min(25,zone[2]*.32)):zone[2],gap=.8,height=Math.max(2.4,(zone[3]-gap*Math.max(0,identity.length-1))/Math.max(1,identity.length));
+   identity.forEach((item,index)=>{Object.assign(item,{x:textX,y:zone[1]+index*(height+gap),width:textWidth,height:Math.min(height,zone[1]+zone[3]-(zone[1]+index*(height+gap)))});item.style=item.style||{};item.style.fontSize=Math.min(Number(item.style.fontSize)||12,item.role==='school-name'?16:item.role==='school-english-name'?9:7)});
+  }
+  elements.filter(item=>item.role==='school-logo').forEach(item=>{item.imageFit='contain';item.cropAllowed=false});
   if(role==='divider')elements.filter(item=>classify(role,item)==='song').forEach(item=>{item.imageFit='contain';item.minimumReadableSizeMm={width:90,height:95};item.contentPriority='readability-first';item.cropAllowed=false});
   if(role==='month'){
    page.overrides=page.overrides||{};page.overrides.calendarRegion=box(profile.calendar);page.overrides.monthTitleRegion=box(profile.title);

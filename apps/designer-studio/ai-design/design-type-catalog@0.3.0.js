@@ -14,7 +14,7 @@
    ['사진·플래너·일러스트 구성에 맞춰 컬럼·선·색면이 개체 사이를 연결하는 편집 구성','editorial columns, rules and color fields connecting the selected editable components without drawing frames or cards'],
    ['표지의 컬럼과 색면 비례를 변형해 학교 정보가 선명한 마감 구성','closing composition transforming the cover column and color-field proportions around calm school-information zones'])},
   {id:'campus-documentary',name:'캠퍼스 다큐멘터리',description:'실제 학교 사진을 주인공으로 두고 캡션 리듬·표식·색 보정 분위기만 더하는 사진 시스템',colors:['#f5f6f3','#244b62','#d6a34a','#bf584c'],guidance:pageGuidance(
-   ['실제 학교 사진을 크게 보여줄 여백과 다큐멘터리 표식·짧은 선의 절제된 배경','documentary layout prepared for a real school photograph, sparse registration-like graphic marks and short rules, no invented photo or text'],
+   ['실제 학교 사진을 크게 보여줄 여백과 다큐멘터리 표식·짧은 선의 절제된 배경','documentary layout prepared for a real school photograph, flat vector color fields with a few simple dots or short rules, no invented photo, text, physical prop, texture, or registration mark'],
    ['연력 정보를 방해하지 않는 밝은 바탕과 작은 사진기록형 색상 표식','bright unobtrusive ground with a few small documentary color markers, no grid, photo, or caption text'],
    ['실제 학교 자료와 사진을 주인공으로 두는 기록물 편집 리듬, AI 사진 생성 금지','documentary divider atmosphere framing later real school assets through sparse marks and color rhythm, never generate a photograph'],
    ['투명한 월력 격자 뒤의 깨끗한 바탕에 월별 작은 기록 색상 또는 표식만 변화','clean ground visible through the transparent calendar grid, only one small month-specific documentary color marker'],
