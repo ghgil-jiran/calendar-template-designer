@@ -190,7 +190,7 @@ test('monthly-back mini calendars expose independent month-title and weekend sty
 test('image-based school asset slots do not render fixed role captions', () => {
   const html = studioHtml;
   assert.match(html, /\["image","image-text"\]\.includes\(SEMANTIC_DEFS\[item\.role\]\?\.kind\)\)item\.showCaption=false/);
-  assert.match(html, /item\.showCaption===true\?/);
+  assert.match(html, /item\.showCaption===true\|\|item\.showTitle!==false\?/);
   assert.match(html, /semantic-empty-visual non-output editor-only/);
 });
 
