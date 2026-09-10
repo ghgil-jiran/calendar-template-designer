@@ -114,6 +114,18 @@
   }[typeId];
   [motto,song,...symbols].filter(Boolean).forEach(item=>{item.style=item.style||{};item.style.containerStyle=presentation.containerStyle;item.style.sectionDivider=presentation.sectionDivider;item.editablePresentation=true});
  }
+ function applyMonthHeaderLayout(elements,layoutId,page,project){
+  const profiles={
+   'distributed-header':{title:[36,3,28,9],calendar:[5,15,90,80],left:[5,3,27,9],right:[68,3,27,9]},
+   'center-title-school-left':{title:[37,3,30,9],calendar:[5,15,90,80],left:[5,3,28,9],right:[70,3,25,9]},
+   'center-title-block':{title:[38,1,24,12],calendar:[5,15,90,80],left:[5,4,27,8],right:[68,4,27,8]},
+   'left-title-split':{title:[5,3,25,9],calendar:[5,15,90,80],left:[34,3,28,9],right:[68,3,27,9]}
+  },profile=profiles[layoutId]||profiles['distributed-header'],byRole=role=>elements.filter(item=>item.role===role),identity=[...byRole('school-logo'),...byRole('school-name')],message=[...byRole('school-motto'),...byRole('school-slogan')],photos=byRole('monthly-extra-image'),left=layoutId==='center-title-school-left'?identity:message,right=layoutId==='center-title-school-left'?[...message,...photos]:[...identity,...photos];
+  distribute(left,profile.left);distribute(right,profile.right);
+  identity.filter(item=>item.role==='school-logo').forEach(item=>{item.imageFit='contain';item.cropAllowed=false});
+  page.overrides=page.overrides||{};page.overrides.calendarRegion=box(profile.calendar);page.overrides.monthTitleRegion=box(profile.title);
+  project.template.masters=project.template.masters||{};project.template.masters.calendar=project.template.masters.calendar||{};project.template.masters.calendar.calendarRegion=box(profile.calendar);
+ }
  function classify(role,item){
   const token=`${item.role||''} ${item.type||''} ${item.id||''}`.toLowerCase();
   if(item.role==='ai-design-background'||token.includes('background-decoration'))return 'background';
@@ -158,9 +170,9 @@
   elements.filter(item=>item.role==='school-logo').forEach(item=>{item.imageFit='contain';item.cropAllowed=false});
   if(role==='divider')elements.filter(item=>classify(role,item)==='song').forEach(item=>{item.imageFit='contain';item.minimumReadableSizeMm={width:90,height:95};item.contentPriority='readability-first';item.cropAllowed=false});
   if(role==='month'){
-   page.overrides=page.overrides||{};page.overrides.calendarRegion=box(profile.calendar);page.overrides.monthTitleRegion=box(profile.title);
-   project.template.masters=project.template.masters||{};project.template.masters.calendar=project.template.masters.calendar||{};
-   project.template.masters.calendar.calendarRegion=box(profile.calendar);
+   const selected=composition?.components||[],legacyContact=elements.filter(item=>String(item.id||'').startsWith('ai.month.')&&['school.address','school.contacts','school.website'].includes(item.binding));legacyContact.forEach(item=>elements.splice(elements.indexOf(item),1));
+   if(selected.includes('school-name')&&!elements.some(item=>item.role==='school-name'))elements.push(text(`ai.month.school.${page.id}`,'school-name','school.name',''));
+   applyMonthHeaderLayout(elements,composition?.layoutId,page,project);
   }
   const protectedObjects=elements.filter(item=>classify(role,item)!=='background').map(item=>({id:item.id,role:item.role||item.type,x:item.x,y:item.y,width:item.width,height:item.height,importance:['year','school-logo','school-name','school-building','school-song'].includes(item.role)?'high':'normal',readability:item.type==='text'||item.type==='year-calendar'||item.role==='school-song'?'required':'visual',padding:item.role==='school-song'?3:2,containerStyle:item.style?.containerStyle||'none',sectionDivider:item.style?.sectionDivider||'none'}));
   page.aiDesignLayout={schemaVersion:SCHEMA_VERSION,version:VERSION,designRole:role,typeId,layoutId:composition?.layoutId||null,editable:true,protectedObjects};
