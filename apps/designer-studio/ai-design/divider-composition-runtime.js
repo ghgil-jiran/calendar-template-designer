@@ -5,7 +5,8 @@
   {id:'yearly-plan',label:'Yearly Plan',layoutId:'editorial-cards',objects:['yearly-plan'],imageSource:'none',fallback:'free'},
   {id:'annual-calendar',label:'연력',layoutId:'heritage-document',objects:['annual-calendar'],imageSource:'none',fallback:'free'},
   {id:'academic-schedule',label:'학사일정',layoutId:'editorial-cards',objects:['title','schedule-list'],imageSource:'none',fallback:'free'},
-  {id:'free',label:'사용자 정의',layoutId:'open-gallery',objects:[],imageSource:'user-assets',fallback:null}
+  {id:'free',label:'사용자 정의',layoutId:'open-gallery',objects:[],imageSource:'user-assets',fallback:null},
+  {id:'blank',label:'빈 페이지',layoutId:'open-gallery',objects:[],imageSource:'none',fallback:null}
  ]);
  const OBJECTS=Object.freeze([['title','제목'],['body','본문'],['school-name','학교명'],['school-building','학교 사진'],['school-logo','교표'],['school-motto','교훈'],['school-song','교가'],['school-tree','교목'],['school-flower','교화'],['image-slot','사용자 이미지'],['annual-calendar','연간 월력'],['mini-calendar','미니 월력'],['schedule-list','일정 목록'],['history-list','학교 연혁'],['vision','교육 목표/비전'],['yearly-plan','Yearly Plan'],['yearly-checklist','Yearly Checklist']]);
  const IMAGE_SOURCES=Object.freeze([['school-assets','학교 정보 및 에셋'],['user-assets','사용자 등록 이미지'],['template-assets','템플릿 그래픽 라이브러리'],['none','이미지 사용 안 함']]);
@@ -55,7 +56,7 @@
  function surfaceKey(page){return `${page.role}:${Number(page.insertIndex)||0}`}
  function capture(project,spec=current()){const pages=project?.book?.pageInstances||[];return Object.fromEntries(pages.flatMap(page=>spec.dividerPages?.[page.id]?[[surfaceKey(page),spec.dividerPages[page.id]]]:[]))}
  function restore(project,spec,snapshot={}){spec.dividerPages=Object.fromEntries((project?.book?.pageInstances||[]).flatMap(page=>snapshot[surfaceKey(page)]?[[page.id,snapshot[surfaceKey(page)]]]:[]));return spec}
- function applyToPages(project,spec=current()){const semantics={'annual-calendar':'yearly-calendar','school-symbols':'school-symbols','school-introduction':'divider','yearly-plan':'divider','academic-schedule':'divider',free:'divider'};(project?.book?.pageInstances||[]).forEach(page=>{const entry=spec.dividerPages?.[page.id];if(!entry)return;page.contentPurpose=entry.purpose;page.semanticPageRole=semantics[entry.purpose]||'divider'});return project}
+ function applyToPages(project,spec=current()){const semantics={'annual-calendar':'yearly-calendar','school-symbols':'school-symbols','school-introduction':'divider','yearly-plan':'divider','academic-schedule':'divider',free:'divider',blank:'blank'};(project?.book?.pageInstances||[]).forEach(page=>{const entry=spec.dividerPages?.[page.id];if(!entry)return;page.contentPurpose=entry.purpose;page.semanticPageRole=semantics[entry.purpose]||'divider'});return project}
  document.addEventListener('change',event=>{
   const card=event.target.closest?.('[data-divider-page]');if(!card)return;
   const spec=collect(),pageId=card.dataset.dividerPage;
