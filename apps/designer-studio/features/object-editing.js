@@ -424,22 +424,617 @@ function renderSemanticObject(item){
  if(role==="school-logo")return `<div class="semantic-object semantic-logo"><div class="semantic-media">${image}</div></div>`;
  if(layout==="desk-six-symbol-card"){
   if(role==="school-motto")return `<div class="semantic-object desk-six-symbol-card semantic-motto"><strong style="font-size:${item.style?.titleSize||15}px">${item.titleOverride||d.name||"êµí›ˆ"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
-  return `<div class="semantic-object desk-~;Û]m¢G§²ÚîÆ­yÒ’ ôğ½Íµ…±°øğ½‘¥Øù€¤¹©½¥¸ œœ¤èœñ‘¥Ø±…ÍÌô‰‘•Í¥¸µÑåÁ”µÕ¹ÍÕÁÁ½ÉÑ•ˆû¶b²z°$ƒ®RS²zC²vàƒ²*“¶²vğƒªÎƒ®>¶fS®*Pƒ¶²®.³®‚—²^C®0ƒ²‚²j§®B§®.#®.¸ğ½‘¥Øøô(€™Õ¹Ñ¥½¸İÉ¥Ñ•MÁ•Œ¡ÍÁ•Œ±±…‰•°¥í‘•Í¥¹MÁ•Á¤¹İÉ¥Ñ”¡ÁÉ½©•Ğ±ÍÁ•Œ±‘•Í¥¹QåÁ•…Ñ…±½œ¤íµ…É­¥ÉÑä ¤íÉ•¹‘•É•Í¥¹MÁ•MÑ…ÑÕÌ¡±…‰•±ñğŸ¶b²z°ƒ¶s¶R3®šÿ²^@ƒ²‚²z—®B œ¤íİ¥¹‘½Ü¹1Q•µÁ±…Ñ•QåÁ•IÕ±•Ìü¹Á•ÉÍ¥ÍÑÕÉÉ•¹ÑQ•µÁ±…Ñ•M•ÑÑ¥¹Ìü¸¡±…‰•±ñğ$ƒ®RS²zC²vàƒ²*“¶²vğœ¥ô(€Á…•M•ÑÑ¥¹Ì¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ¡…¹”œ±•Ù•¹Ğôùí½¹ÍĞÍ•±•Ğõ•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ m‘…Ñ„µ‘•Í¥¸µÁ…”µÑåÁ•tœ¤í¥˜ …Í•±•Ğ¥É•ÑÕÉ¸í½¹ÍĞÍÁ•ŒõÕÉÉ•¹ÑMÁ•Œ ¤±É½±”õÍ•±•Ğ¹‘…Ñ…Í•Ğ¹‘•Í¥¹A…•QåÁ”íÍÁ•Œ¹Á…•QåÁ•ÍmÉ½±•tõÍ•±•Ğ¹Ù…±Õ”í¥˜¡É½±”ôôôµ½¹Ñ µ‰…¬œ¥íÍÁ•Œ¹Á…•M•ÑÑ¥¹Ìõì¸¸¸¡ÍÁ•Œ¹Á…•M•ÑÑ¥¹Íññíô¤±µ½¹Ñ¡	…­½µÁ½¹•¹ÑÌél¸¸¸¡5=9Q!}	-}U1QMmÍ•±•Ğ¹Ù…±Õ•uññ‘•Í¥¹MÁ•Á¤¹‘•™…Õ±Ñ5½¹Ñ¡	…­½µÁ½¹•¹ÑÍññmt¥t±µ½¹Ñ¡	…­ÕÍÑ½µ¥é•é™…±Í”±µ½¹Ñ¡	…­5•‘¥…5½‘”éÍ•±•Ğ¹Ù…±Õ”ôôô¥±±ÕÍÑÉ…Ñ¥½¸µ±•œüÑ•µÁ±…Ñ”µ‘•Í¥¸œéÍÁ•Œ¹Á…•M•ÑÑ¥¹Ìü¹µ½¹Ñ¡	…­5•‘¥…5½‘•ñğÍ…µÁ±”µÉ•Á±…•…‰±”õõİÉ¥Ñ•MÁ•Œ¡ÍÁ•Œ°Ÿ¶:c²vÓ²®Îƒ².s²zDƒªÖ³²Äœ¤íÉ•¹‘•É•Í¥¹QåÁ••Ñ…¥±Ì ¤íÉ•¹‘•ÉA…•M•ÑÑ¥¹Ì ¤íÉ•¹‘•ÉY¥ÍÕ…±5½‘•…É‘Ì ¥ô¤ì(€Á…¹•°¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ¡…¹”œ±•Ù•¹Ğôùí½¹ÍĞÍ•±•Ğõ•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ m‘…Ñ„µ‘•Í¥¸µÁ…”µÑåÁ•tœ¤í¥˜ …Í•±•Ğ¥É•ÑÕÉ¸í½¹ÍĞÍÁ•ŒõÕÉÉ•¹ÑMÁ•Œ ¤íÍÁ•Œ¹Á…•QåÁ•ÍmÍ•±•Ğ¹‘…Ñ…Í•Ğ¹‘•Í¥¹A…•QåÁ•tõÍ•±•Ğ¹Ù…±Õ”í¥˜¡Í•±•Ğ¹‘…Ñ…Í•Ğ¹‘•Í¥¹A…•QåÁ”ôôôµ½¹Ñ µ‰…¬œ˜˜…ÍÁ•Œ¹Á…•M•ÑÑ¥¹Ìü¹µ½¹Ñ¡	…­ÕÍÑ½µ¥é•¥ÍÁ•Œ¹Á…•M•ÑÑ¥¹Ìõíµ½¹Ñ¡	…­½µÁ½¹•¹ÑÌél¸¸¸¡5=9Q!}	-}U1QMmÍ•±•Ğ¹Ù…±Õ•uññ‘•Í¥¹MÁ•Á¤¹‘•™…Õ±Ñ5½¹Ñ¡	…­½µÁ½¹•¹ÑÍññmt¥t±µ½¹Ñ¡	…­ÕÍÑ½µ¥é•é™…±Í•ôíİÉ¥Ñ•MÁ•Œ¡ÍÁ•Œ°Ÿ¶:c²vÓ²®Îƒ².s²zDƒªÖ³²Äœ¤íÉ•¹‘•É•Í¥¹QåÁ••Ñ…¥±Ì ¤íÕÁ‘…Ñ••Í¥¹QåÁ•AÉ•Ù¥•Ü ¤íÉ•¹‘•ÉA…•M•ÑÑ¥¹Ì ¥ô¤ì(€™Õ¹Ñ¥½¸É•¹‘•ÉMÑå±•…É‘Ì ¥í½¹ÍĞÍÁ•ŒõÕÉÉ•¹ÑMÁ•Œ ¤±¡½ÍĞô •‘¥Ñ…‰±••Í¥¹MÑå±•É¥œ¤ì ‘•Í¥¹½µµ½¹Õ¥‘•±¥¹”œ¤¹Ù…±Õ”õÍÁ•Œ¹½µµ½¹Õ¥‘•±¥¹”í¡½ÍĞ¹¥¹¹•É!Q50õÍÁ•Œ¹ÍÑå±•M¹…ÁÍ¡½ÑÌ¹µ…À¡ÍÑå±”ôù€ñ…ÉÑ¥±”±…ÍÌô‰‘•Í¥¸µ¡½¥”µ…É•‘¥Ñ…‰±”µ‘•Í¥¸µ…É‘íÍÑå±”¹¥ôôõÍÁ•Œ¹ÍÑå±•%üœÍ•±•Ñ•œèœôˆ‘…Ñ„µÍÑå±”µ¥ôˆ‘íØÈÅÍ…Á”¡ÍÑå±”¹¥¥ôˆøñ‘¥Ø±…ÍÌô‰‘•Í¥¸µÍÑå±”µÍİ…Ñ¡•Ìˆø‘íÍÑå±”¹½±½ÉÌ¹µ…À¡½±½Èôù€ñ¤ÍÑå±”ô‰‰…­É½Õ¹è‘íØÈÅÍ…Á”¡½±½È¥ôˆøğ½¤ù€¤¹©½¥¸ œœ¥ôğ½‘¥ØøñÍÑÉ½¹œø‘íØÈÅÍ…Á”¡ÍÑå±”¹¹…µ”¥ôğ½ÍÑÉ½¹œøñÍÁ…¸ø‘íØÈÅÍ…Á”¡ÍÑå±”¹‘•ÍÉ¥ÁÑ¥½¸¥ôğ½ÍÁ…¸øñ‘¥Ø±…ÍÌô‰‘•Í¥¸µÍÑå±”µ…Éµ…Ñ¥½¹Ìˆøñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µÍ•±•Ğµ‘•Í¥¸µÍÑå±”ôˆ‘íØÈÅÍ…Á”¡ÍÑå±”¹¥¥ôˆø‘íÍÑå±”¹¥ôôõÍÁ•Œ¹ÍÑå±•%üŸ²ƒ¶w®B œèŸ²vĞƒ²*“¶²vğƒ²ƒ¶tôğ½‰ÕÑÑ½¸øñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ•‘¥Ğµ‘•Í¥¸µÍÑå±”ôˆ‘íØÈÅÍ…Á”¡ÍÑå±”¹¥¥ôˆû¶:ã²Dğ½‰ÕÑÑ½¸øğ½‘¥Øøğ½…ÉÑ¥±”ù€¤¹©½¥¸ œœ¤íÉ•¹‘•ÉÑÕ…±A…•Ì ¤íÉ•¹‘•ÉY¥ÍÕ…±5½‘•…É‘Ì ¥ô(€™Õ¹Ñ¥½¸ÍÑ½É•I½±•É…™Ğ ¥í¥˜ …İ½É­¥¹MÑå±”¥É•ÑÕÉ¸íİ½É­¥¹MÑå±”¹Õ¥‘…¹•m•‘¥Ñ¥¹I½±•tõí‘•ÍÉ¥ÁÑ¥½¸è ‘•Í¥¹MÑå±•I½±••ÍÉ¥ÁÑ¥½¸œ¤¹Ù…±Õ”¹ÑÉ¥´ ¤±­•åİ½É‘Ìè ‘•Í¥¹MÑå±•I½±•-•åİ½É‘Ìœ¤¹Ù…±Õ”¹ÑÉ¥´ ¤±™½É‰¥‘‘•¸è ‘•Í¥¹MÑå±•I½±•½É‰¥‘‘•¸œ¤¹Ù…±Õ”¹ÑÉ¥´ ¥õô(€™Õ¹Ñ¥½¸É•¹‘•ÉI½±•‘¥Ñ½È ¥í½¹ÍĞÉ½±•Ìõ=‰©•Ğ¹­•åÌ¡‘•Í¥¹QåÁ•…Ñ…±½œ¹É½±•Ì¤±•¹ÑÉäõİ½É­¥¹MÑå±”¹Õ¥‘…¹•m•‘¥Ñ¥¹I½±•uññíôì ‘•Í¥¹MÑå±•I½±•Q…‰Ìœ¤¹¥¹¹•É!Q50õÉ½±•Ì¹µ…À¡É½±”ôù€ñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ•‘¥ĞµÍÑå±”µÉ½±”ôˆ‘íÉ½±•ôˆ±…ÍÌôˆ‘íÉ½±”ôôõ•‘¥Ñ¥¹I½±”ü…Ñ¥Ù”œèœôˆø‘íØÈÅÍ…Á”¡‘•Í¥¹QåÁ•…Ñ…±½œ¹É½±•ÍmÉ½±•t¹±…‰•°¥ôğ½‰ÕÑÑ½¸ù€¤¹©½¥¸ œœ¤ì ‘•Í¥¹MÑå±•I½±••ÍÉ¥ÁÑ¥½¸œ¤¹Ù…±Õ”õ•¹ÑÉä¹‘•ÍÉ¥ÁÑ¥½¹ñğœœì ‘•Í¥¹MÑå±•I½±•-•åİ½É‘Ìœ¤¹Ù…±Õ”õ•¹ÑÉä¹­•åİ½É‘Íñğœœì ‘•Í¥¹MÑå±•I½±•½É‰¥‘‘•¸œ¤¹Ù…±Õ”õ•¹ÑÉä¹™½É‰¥‘‘•¹ñğœô(€™Õ¹Ñ¥½¸½Á•¹MÑå±•‘¥Ñ½È¡ÍÑå±•%¥í½¹ÍĞÍ½ÕÉ”õÕÉÉ•¹ÑMÁ•Œ ¤¹ÍÑå±•M¹…ÁÍ¡½ÑÌ¹™¥¹¡ÍÑå±”ôùÍÑå±”¹¥ôôõÍÑå±•%¤í¥˜ …Í½ÕÉ”¥É•ÑÕÉ¸í•‘¥Ñ¥¹MÑå±•%õÍÑå±•%í•‘¥Ñ¥¹I½±”ô½Ù•Èœíİ½É­¥¹MÑå±”õ)M=8¹Á…ÉÍ”¡)M=8¹ÍÑÉ¥¹¥™ä¡Í½ÕÉ”¤¤ì ‘•Í¥¹MÑå±•‘¥Ñ½ÉQ¥Ñ±”œ¤¹Ñ•áÑ½¹Ñ•¹Ğõ€‘íÍ½ÕÉ”¹¹…µ•ôƒ¶:ã²E€ì ‘•Í¥¹MÑå±•‘¥Ñ9…µ”œ¤¹Ù…±Õ”õÍ½ÕÉ”¹¹…µ”ì ‘•Í¥¹MÑå±•‘¥Ñ•ÍÉ¥ÁÑ¥½¸œ¤¹Ù…±Õ”õÍ½ÕÉ”¹‘•ÍÉ¥ÁÑ¥½¸íÉ•¹‘•ÉI½±•‘¥Ñ½È ¤íµ½‘…°¹±…ÍÍ1¥ÍĞ¹É•µ½Ù” ¡¥‘‘•¸œ¥ô(€™Õ¹Ñ¥½¸±½Í•MÑå±•‘¥Ñ½È ¥íµ½‘…°¹±…ÍÍ1¥ÍĞ¹…‘ ¡¥‘‘•¸œ¤í•‘¥Ñ¥¹MÑå±•%õ¹Õ±°íİ½É­¥¹MÑå±”õ¹Õ±±ô(€Á…¹•°¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ¡…¹”œ±•Ù•¹Ğôù•Ù•¹Ğ¹ÍÑ½ÁAÉ½Á……Ñ¥½¸ ¤¤íÁ…¹•°¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ±•Ù•¹Ğôù•Ù•¹Ğ¹ÍÑ½ÁAÉ½Á……Ñ¥½¸ ¤¤ì(€Á…¹•°¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ±•Ù•¹Ğôùí½¹ÍĞÍ•±•Ğõ•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ m‘…Ñ„µÍ•±•Ğµ‘•Í¥¸µÍÑå±•tœ¤±•‘¥Ğõ•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ m‘…Ñ„µ•‘¥Ğµ‘•Í¥¸µÍÑå±•tœ¤±µ½‘”õ•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ m‘…Ñ„µ‘•Í¥¸µÙ¥ÍÕ…°µµ½‘•tœ¤í¥˜¡Í•±•Ğ¥í½¹ÍĞÍÁ•ŒõÕÉÉ•¹ÑMÁ•Œ ¤íÍÁ•Œ¹ÍÑå±•%õÍ•±•Ğ¹‘…Ñ…Í•Ğ¹Í•±•Ñ•Í¥¹MÑå±”íİÉ¥Ñ•MÁ•Œ¡ÍÁ•Œ°Ÿ®RS²zC²vàƒ²*“¶²vğƒ²ƒ¶tœ¤íÉ•¹‘•ÉMÑå±•…É‘Ì ¥õ•±Í”¥˜¡•‘¥Ğ¥½Á•¹MÑå±•‘¥Ñ½È¡•‘¥Ğ¹‘…Ñ…Í•Ğ¹•‘¥Ñ•Í¥¹MÑå±”¤í•±Í”¥˜¡µ½‘”¥í½¹ÍĞÍÁ•ŒõÕÉÉ•¹ÑMÁ•Œ ¤íÍÁ•Œ¹•áÁÉ•ÍÍ¥½¹mµ½‘”¹‘…Ñ…Í•Ğ¹‘•Í¥¹Y¥ÍÕ…±5½‘•tõµ½‘”¹‘…Ñ…Í•Ğ¹Ù…±Õ”íİÉ¥Ñ•MÁ•Œ¡ÍÁ•Œ±µ½‘”¹‘…Ñ…Í•Ğ¹‘•Í¥¹Y¥ÍÕ…±5½‘”ôôôµ½¹Ñ¡É½¹Ñ5½‘”œüŸ²nS®‚”ƒ²V{®¦Ğƒ®RS²zC²vàƒ®Î¶fPœèŸ²nS®‚”ƒ®Jß®¦Ğƒ®RS²zC²vàƒ®Î¶fPœ¤íÉ•¹‘•ÉY¥ÍÕ…±5½‘•…É‘Ì ¥õô¤ì(€€ Í…Ù••Í¥¹½µµ½¹Õ¥‘•±¥¹•	Ñ¸œ¤¹½¹±¥¬ô ¤ôùí½¹ÍĞÍÁ•ŒõÕÉÉ•¹ÑMÁ•Œ ¤íÍÁ•Œ¹½µµ½¹Õ¥‘•±¥¹”ô ‘•Í¥¹½µµ½¹Õ¥‘•±¥¹”œ¤¹Ù…±Õ”¹ÑÉ¥´ ¤íİÉ¥Ñ•MÁ•Œ¡ÍÁ•Œ°ŸªÎ×¶Ô$ƒ®RS²zC²vàƒ²²æ œ¤íÉ•¹‘•ÉMÑå±•…É‘Ì ¥ôì(€€ Í…Ù••Í¥¹5½¹Ñ¡=ÁÑ¥½¹Í	Ñ¸œ¤¹½¹±¥¬ô ¤ôùí½¹ÍĞÍÁ•ŒõÕÉÉ•¹ÑMÁ•Œ ¤íÍÁ•Œ¹•áÁÉ•ÍÍ¥½¸õíÙ…É¥…Ñ¥½¹I¡åÑ¡´è ‘•Í¥¹5½¹Ñ¡Y…É¥…Ñ¥½¹I¡åÑ¡´œ¤¹Ù…±Õ”±µ½¹Ñ¡½±½ÉY…É¥…Ñ¥½¸è ‘•Í¥¹5½¹Ñ¡½±½ÉY…É¥…Ñ¥½¸œ¤¹Ù…±Õ”±µ½¹Ñ¡½µÁ½Í¥Ñ¥½¹Y…É¥…Ñ¥½¸è ‘•Í¥¹5½¹Ñ¡½µÁ½Í¥Ñ¥½¹Y…É¥…Ñ¥½¸œ¤¹Ù…±Õ”±µ½¹Ñ¡5½Ñ¥™Y…É¥…Ñ¥½¸è ‘•Í¥¹5½¹Ñ¡5½Ñ¥™Y…É¥…Ñ¥½¸œ¤¹Ù…±Õ”±µ½¹Ñ¡•½É…Ñ¥½¹Y…É¥…Ñ¥½¸è ‘•Í¥¹5½¹Ñ¡•½É…Ñ¥½¹Y…É¥…Ñ¥½¸œ¤¹Ù…±Õ”±µ½¹Ñ¡	…­A¡½Ñ¼è ‘•Í¥¹5½¹Ñ¡	…­A¡½Ñ¼œ¤¹Ù…±Õ”±µ½¹Ñ¡	…­M•…Í½¸è ‘•Í¥¹5½¹Ñ¡	…­M•…Í½¸œ¤¹Ù…±Õ•ôíİÉ¥Ñ•MÁ•Œ¡ÍÁ•Œ°Ÿ²nS®‚”ƒ®RS²zC²vàƒ®Î¶fPœ¤íÉ•¹‘•ÉMÑå±•…É‘Ì ¥ôì(€µ½‘…°¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ±•Ù•¹Ğôùí¥˜¡•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ m‘…Ñ„µ±½Í”µ‘•Í¥¸µÍÑå±•tœ¥ññ•Ù•¹Ğ¹Ñ…É•Ğôôõµ½‘…°¥í±½Í•MÑå±•‘¥Ñ½È ¤íÉ•ÑÕÉ¹õ½¹ÍĞÉ½±”õ•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ m‘…Ñ„µ•‘¥ĞµÍÑå±”µÉ½±•tœ¤í¥˜¡É½±”¥íÍÑ½É•I½±•É…™Ğ ¤í•‘¥Ñ¥¹I½±”õÉ½±”¹‘…Ñ…Í•Ğ¹•‘¥ÑMÑå±•I½±”íÉ•¹‘•ÉI½±•‘¥Ñ½È ¥õô¤ì(€€ Í…Ù••Í¥¹MÑå±•	Ñ¸œ¤¹½¹±¥¬ô ¤ôùíÍÑ½É•I½±•É…™Ğ ¤í½¹ÍĞÍÁ•ŒõÕÉÉ•¹ÑMÁ•Œ ¤±¥¹‘•àõÍÁ•Œ¹ÍÑå±•M¹…ÁÍ¡½ÑÌ¹™¥¹‘%¹‘•à¡ÍÑå±”ôùÍÑå±”¹¥ôôõ•‘¥Ñ¥¹MÑå±•%¤íİ½É­¥¹MÑå±”¹¹…µ”ô ‘•Í¥¹MÑå±•‘¥Ñ9…µ”œ¤¹Ù…±Õ”¹ÑÉ¥´ ¥ññİ½É­¥¹MÑå±”¹¹…µ”íİ½É­¥¹MÑå±”¹‘•ÍÉ¥ÁÑ¥½¸ô ‘•Í¥¹MÑå±•‘¥Ñ•ÍÉ¥ÁÑ¥½¸œ¤¹Ù…±Õ”¹ÑÉ¥´ ¥ññİ½É­¥¹MÑå±”¹‘•ÍÉ¥ÁÑ¥½¸í¥˜¡¥¹‘•àøôÀ¥ÍÁ•Œ¹ÍÑå±•M¹…ÁÍ¡½ÑÍm¥¹‘•átõİ½É­¥¹MÑå±”íİÉ¥Ñ•MÁ•Œ¡ÍÁ•Œ±€‘íİ½É­¥¹MÑå±”¹¹…µ•ôƒ²*“¶²vñ€¤í±½Í•MÑå±•‘¥Ñ½È ¤íÉ•¹‘•ÉMÑå±•…É‘Ì ¥ôì(€É•¹‘•ÉMÑå±•…É‘Ì ¤íİ¥¹‘½Ü¹1•Í­MÑå±•‘¥Ñ½ÈõíÉ•¹‘•ÈéÉ•¹‘•ÉMÑå±•…É‘Íôì(ô(¥¹ÍÑ…±±•Í­MÑå±•‘¥Ñ½È ¤ì(½¹ÍĞÍ¡½½°õ‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È m‘…Ñ„µÉ•Í½ÕÉ”µ½¹Ñ•¹Ğô‰Í¡½½°‰tœ¤±½±½ÉÌõ‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È m‘…Ñ„µÉ•Í½ÕÉ”µ½¹Ñ•¹Ğô‰½±½ÉÌ‰tœ¤±™½¹ÑÌõ‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È m‘…Ñ„µÉ•Í½ÕÉ”µ½¹Ñ•¹Ğô‰™½¹ÑÌ‰tœ¤±•Ù•¹ÑÌõ‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È m‘…Ñ„µÉ•Í½ÕÉ”µ½¹Ñ•¹Ğô‰•Ù•¹ÑÌ‰tœ¤ì(¥˜¡½±½ÉÌ˜™™½¹ÑÌ¥í½±½ÉÌ¹ÅÕ•ÉåM•±•Ñ½È  Ìœ¤¹Ñ•áÑ½¹Ñ•¹ĞôŸ²'²
-ß¶>Ã¶*àƒ¶3® œí½±½ÉÌ¹ÅÕ•ÉåM•±•Ñ½È œéÍ½Á”ø¹É•Í½ÕÉ”µ‘•ÍÉ¥ÁÑ¥½¸œ¤¹Ñ•áÑ½¹Ñ•¹ĞôŸ¶s¶R3®šüƒ²‚²ÊÓ²^C²pƒªÎ×²rƒ¶Vc®*Pƒ²'²ªÎğƒªâªòÓ²vƒ¶Vpƒ¶fS®¦Ó²^C²pƒ²“²‚W¶V§®.#®.¸œí½¹ÍĞ™½¹Ñ…Éõ™½¹ÑÌ¹ÅÕ•ÉåM•±•Ñ½È œ¹Í•ÑÑ¥¹Ìµ…Éœ¤í¥˜¡™½¹Ñ…É¥í™½¹Ñ…É¹±…ÍÍ1¥ÍĞ¹…‘ Ñ¡•µ”µ½µ‰¥¹•µ…Éœ¤í½±½ÉÌ¹…ÁÁ•¹‘¡¥±¡™½¹Ñ…É¥õ™½¹ÑÌ¹É•µ½Ù” ¥ô(¥˜¡Í¡½½°¥íÍ¡½½°¹ÅÕ•ÉåM•±•Ñ½È œéÍ½Á”ù Ìœ¤¹Ñ•áÑ½¹Ñ•¹ĞôŸ¶VgªÖ@ƒ²‚W®ÎĞƒ®Â<ƒ²^C²,œíÍ¡½½°¹ÅÕ•ÉåM•±•Ñ½È œéÍ½Á”ø¹É•Í½ÕÉ”µ‘•ÍÉ¥ÁÑ¥½¸œ¤¹Ñ•áÑ½¹Ñ•¹ĞôŸ¶:ã²DƒªÂ®*—¶Vpƒ¶VgªÖ@ƒ¶7²*“¶*àƒ²‚W®ÎÓ²f ƒ²^·¶Vƒ®Îƒ²c¶R0ƒ²vÓ®¾ã²®–ğƒªÖ³®Ú¶VĞƒªÒ®š³¶V§®.#®.¸œí½¹ÍĞ…É‘Ìõl¸¸¹Í¡½½°¹ÅÕ•ÉåM•±•Ñ½É±° œéÍ½Á”ø¹Í•ÑÑ¥¹Ìµ…Éœ¥t±¥¹™½…Éõ…É‘Ì¹™¥¹¡…Éôù…É¹ÅÕ•ÉåM•±•Ñ½È  Ğœ¤ü¹Ñ•áÑ½¹Ñ•¹Ğ¹¥¹±Õ‘•Ì Ÿ¶VgªÖ@ƒªâÃ®Îàƒ²‚W®ÎĞœ¤¤±…ÍÍ•Ñ…Éõ…É‘Ì¹™¥¹¡…Éôù…É¹ÅÕ•ÉåM•±•Ñ½È  Ğœ¤ü¹Ñ•áÑ½¹Ñ•¹Ğ¹¥¹±Õ‘•Ì Ÿ¶VgªÖ@ƒ²vÓ®¾ã² œ¤¤±Í¡•‘Õ±•…Éõ…É‘Ì¹™¥¹¡…Éôù…É¹ÅÕ•ÉåM•±•Ñ½È  Ğœ¤ü¹Ñ•áÑ½¹Ñ•¹Ğ¹¥¹±Õ‘•Ì Ÿ¶Vg²
-³²vó²‚Tœ¤¤í¥˜¡¥¹™½…É¥í¥¹™½…É¹ÅÕ•ÉåM•±•Ñ½È  Ğœ¤¹Ñ•áÑ½¹Ñ•¹ĞôŸ¶VgªÖ@ƒªâÃ®Îàƒ²‚W®ÎĞƒ®Â<ƒ²c¶R3ªÂHœí¥¹™½…É¹ÅÕ•ÉåM•±•Ñ½È œ¹Í•ÑÑ¥¹ÌµÉ¥œ¤ü¹±…ÍÍ1¥ÍĞ¹…‘ Í¡½½°µÑ•áĞµÉ¥œ¤í½¹ÍĞÍ½¹œõ¥¹™½…É¹ÅÕ•ÉåM•±•Ñ½È œÉ•Í½ÕÉ•M¡½½±M½¹œœ¤ü¹±½Í•ÍĞ ±…‰•°œ¤í¥˜¡Í½¹œ¥Í½¹œ¹±…ÍÍ1¥ÍĞ¹…‘ ¡¥‘‘•¸œ¤í½¹ÍĞ½¹Ñ…Ğõ¥¹™½…É¹ÅÕ•ÉåM•±•Ñ½È œÉ•Í½ÕÉ•½¹Ñ…Ñ‘¥Ñ½Èœ¤ü¹Á…É•¹Ñ±•µ•¹Ğí¥˜¡½¹Ñ…Ğ¥í½¹ÍĞÑ¥Ñ±”õ½¹Ñ…Ğ¹ÅÕ•ÉåM•±•Ñ½È ÍÑÉ½¹œœ¤±…‘õ½¹Ñ…Ğ¹ÅÕ•ÉåM•±•Ñ½È œ…‘‘I•Í½ÕÉ•½¹Ñ…Ñ	Ñ¸œ¤±¡•…õ‘½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ ‘¥Øœ¤í¡•…¹±…ÍÍ9…µ”ôÍ•ÑÑ¥¹ÌµÍ•Ñ¥½¸µ¡•…œí¥˜¡Ñ¥Ñ±”¥¡•…¹…ÁÁ•¹‘¡¥±¡Ñ¥Ñ±”¤í¥˜¡…‘¥¡•…¹…ÁÁ•¹‘¡¥±¡…‘¤í½¹Ñ…Ğ¹ÁÉ•Á•¹¡¡•…¥õõ¥˜¡…ÍÍ•Ñ…É¥í…ÍÍ•Ñ…É¹±…ÍÍ1¥ÍĞ¹…‘ …ÍÍ•Ğµ½¹ÑÉ½±ÌµÍ½ÕÉ”œ¤í…ÍÍ•Ñ…É¹ÅÕ•ÉåM•±•Ñ½È  Ğœ¤¹Ñ•áÑ½¹Ñ•¹ĞôŸ²vÓ®¾ã² ƒ²zC²
-Àƒ®NÇ®†tœí½¹ÍĞ‰Õ¥±‘¥¹œõ…ÍÍ•Ñ…É¹ÅÕ•ÉåM•±•Ñ½È ½ÁÑ¥½¹mÙ…±Õ”ô‰Í¡½½°µ‰Õ¥±‘¥¹œ‰tœ¤í¥˜¡‰Õ¥±‘¥¹œ¥‰Õ¥±‘¥¹œ¹Ñ•áÑ½¹Ñ•¹ĞôŸ¶VgªÖC²‚ªÊô¿¶Fs² œí½¹ÍĞÕÍÑ½´õ…ÍÍ•Ñ…É¹ÅÕ•ÉåM•±•Ñ½È ½ÁÑ¥½¹mÙ…±Õ”ô‰Í¡½½°µÕÍÑ½´µ¥µ…”‰tœ¤í¥˜¡ÕÍÑ½´¥ÕÍÑ½´¹Ñ•áÑ½¹Ñ•¹ĞôŸ²ÚSªÂ ƒ²vÓ®¾ã² ƒ®NÇ®†tõ¥˜¡Í¡•‘Õ±•…É¥Í¡•‘Õ±•…É¹É•µ½Ù” ¤í½¹ÍĞ…ÍÍ•Ñ5…¹…•Èô É•Í½ÕÉ•ÍÍ•Ñ5…¹…•ÉÉ¥œ¤í¥˜¡…ÍÍ•Ñ5…¹…•È¥…ÍÍ•Ñ5…¹…•È¹±…ÍÍ1¥ÍĞ¹…‘ ¡¥‘‘•¸œ¤í½¹ÍĞÉ½ÕÁÌõ‘½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ ‘¥Øœ¤íÉ½ÕÁÌ¹¥ôÍ•ÑÑ¥¹ÍÍÍ•ÑÉ½ÕÁÌœíÉ½ÕÁÌ¹±…ÍÍ9…µ”ôÍ•ÑÑ¥¹Ìµ…É…ÍÍ•ĞµÉ½ÕÁÌœíÉ½ÕÁÌ¹¥¹¹•É!Q50ôœñ‘¥Ø±…ÍÌô‰…ÍÍ•ĞµÉ½ÕÀˆøñ‘¥Ø±…ÍÌô‰…ÍÍ•ĞµÉ½ÕÀµ¡•…ˆøñ‘¥ØøñÍÑÉ½¹œûªâÃ®Îàƒ²c¶R0ƒ²vÓ®¾ã² ğ½ÍÑÉ½¹œøñÍµ…±°û¶:c²vÓ² ƒ²^·¶Vƒ²^@ƒ²^ÃªÊÃ®Bc®*Pƒ®2¶Fpƒ²vÓ®¾ã²®–ğƒ¶V·®ª§®Î®†pƒ®NÇ®†w¶V§®.#®.¸ğ½Íµ…±°øğ½‘¥Øøğ½‘¥Øøñ‘¥Ø¥ô‰ÁÉ¥µ…ÉåÍÍ•ÑI½±•É¥ˆ±…ÍÌô‰…ÍÍ•ĞµÉ½±”µÉ¥ˆøğ½‘¥Øøğ½‘¥Øøñ‘¥Ø±…ÍÌô‰…ÍÍ•ĞµÉ½ÕÀˆøñ‘¥Ø±…ÍÌô‰…ÍÍ•ĞµÉ½ÕÀµ¡•…ˆøñ‘¥ØøñÍÑÉ½¹œû²ÚSªÂ ƒ²vÓ®¾ã² ğ½ÍÑÉ½¹œøñÍµ…±°û¶s¶R3®šüƒ¶:ã²G²zCªÂ ƒ®ÎÓªÒ¶VĞƒ®FCªÎ€ƒ¶:ã²Dƒ¶fS®¦Ó²^C²pƒ²zC²rƒ®†·ªÊ0ƒ²
-³²j§¶V€ƒ²vÓ®¾ã²²z®.#®.¸ğ½Íµ…±°øğ½‘¥Øøñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆ±…ÍÌô‰ÁÉ¥µ…Éäˆ‘…Ñ„µ½Á•¸µ…ÍÍ•ĞµÉ½±”ô‰Í¡½½°µÕÍÑ½´µ¥µ…”ˆû²ÚSªÂ ƒ²vÓ®¾ã² ƒ®NÇ®†tğ½‰ÕÑÑ½¸øğ½‘¥Øøñ‘¥Ø¥ô‰…‘‘¥Ñ¥½¹…±ÍÍ•ÑÉ¥ˆ±…ÍÌô‰…ÍÍ•ĞµÉ½±”µÉ¥ˆøğ½‘¥Øøğ½‘¥ØøœíÍ¡½½°¹…ÁÁ•¹‘¡¥±¡É½ÕÁÌ¥ô(½¹ÍĞÍ¡•‘Õ±”õ‘½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ Í•Ñ¥½¸œ¤íÍ¡•‘Õ±”¹±…ÍÍ9…µ”ôÉ•Í½ÕÉ”µÁ…”œíÍ¡•‘Õ±”¹‘…Ñ…Í•Ğ¹É•Í½ÕÉ•½¹Ñ•¹ĞôÍ¡•‘Õ±”œíÍ¡•‘Õ±”¹¥¹¹•É!Q50ôœñ Ìû²vó²‚Tƒ®NÇ®†tğ½ ÌøñÀ±…ÍÌô‰É•Í½ÕÉ”µ‘•ÍÉ¥ÁÑ¥½¸ˆû¶s¶R3®šÿ²^C²pƒ²
-³²j§¶V€ƒ²c¶R0ƒ²vó²‚W²vƒ®NÇ®†w¶VcªÎ€ƒ®Î¶f`ƒªÊÃªÎó®–ğƒ¶fW²vã¶V§®.#®.¸ğ½Àøñ‘¥Ø±…ÍÌô‰Í•ÑÑ¥¹Ìµ…Éˆøñ‘¥Ø±…ÍÌô‰Í•ÑÑ¥¹ÌµÍ•Ñ¥½¸µ¡•…ˆøñ‘¥Øøñ Ğû®NÇ®†tƒ²vó²‚Tğ½ ĞøñÀ±…ÍÌô‰É•Í½ÕÉ”µ‘•ÍÉ¥ÁÑ¥½¸ˆùa1Mc
-İM[
-İQaPƒ¶23²vó²v`ƒ²vó²‚W²vĞƒ®.³®‚”ƒ®6Ã²vÓ¶Ã®†pƒ®Î¶fc®B§®.#®.¸ğ½Àøğ½‘¥Øøğ½‘¥Øøñ‘¥Ø¥ô‰Í•ÑÑ¥¹ÍM¡•‘Õ±•=Ù•ÉÙ¥•Üˆ±…ÍÌô‰Í¡•‘Õ±”µ½Ù•ÉÙ¥•Üˆøğ½‘¥Øøñ‘¥Ø¥ô‰Í•ÑÑ¥¹ÍM¡•‘Õ±•5½Õ¹Ğˆøğ½‘¥Øøğ½‘¥Øøñ‘•Ñ…¥±Ì±…ÍÌô‰Í•ÑÑ¥¹Ìµ‘¥Í±½ÍÕÉ”ˆøñÍÕµµ…Éäû²vó²‚Tƒ®Ú®–`ƒ²“²‚Tğ½ÍÕµµ…Éäøñ‘¥Ø¥ô‰Í•ÑÑ¥¹ÍÙ•¹Ñ…Ñ•½Éå5½Õ¹Ğˆ±…ÍÌô‰Í•ÑÑ¥¹Ìµ‘¥Í±½ÍÕÉ”µ‰½‘äˆøğ½‘¥Øøğ½‘•Ñ…¥±Ìøœí¥˜¡½±½ÉÌ¥µ…¥¸¹¥¹Í•ÉÑ	•™½É”¡Í¡•‘Õ±”±½±½ÉÌ¤í•±Í”µ…¥¸¹…ÁÁ•¹‘¡¥±¡Í¡•‘Õ±”¤ì(½¹ÍĞÍ½ÕÉ•M¡•‘Õ±”õÍ¡½½°ü¹ÅÕ•ÉåM•±•Ñ½È œ¹Í•ÑÑ¥¹Ìµ…É Ğœ¤ü¹Ñ•áÑ½¹Ñ•¹Ğ¹¥¹±Õ‘•Ì Ÿ¶Vg²
-³²vó²‚Tœ¤ıÍ¡½½°¹ÅÕ•ÉåM•±•Ñ½È œ¹Í•ÑÑ¥¹Ìµ…Éœ¤é¹Õ±°±±•…åM¡•‘Õ±”õl¸¸¹‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° œ¹Í•ÑÑ¥¹Ìµ…Éœ¥t¹™¥¹¡…Éôù…É¹ÅÕ•ÉåM•±•Ñ½È  Ğœ¤ü¹Ñ•áÑ½¹Ñ•¹Ğ¹¥¹±Õ‘•Ì Ÿ¶Vg²
-³²vó²‚Tƒ®6Ã²vÓ¶Àœ¤¤í¥˜¡±•…åM¡•‘Õ±”¤ Í•ÑÑ¥¹ÍM¡•‘Õ±•5½Õ¹Ğœ¤¹…ÁÁ•¹‘¡¥±¡±•…åM¡•‘Õ±”¤í¥˜¡•Ù•¹ÑÌ¥í½¹ÍĞµ½Õ¹Ğô Í•ÑÑ¥¹ÍÙ•¹Ñ…Ñ•½Éå5½Õ¹Ğœ¤íl¸¸¹•Ù•¹ÑÌ¹¡¥±‘É•¹t¹™¥±Ñ•È¡¹½‘”ôø…¹½‘”¹µ…Ñ¡•Ì  Ì°¹É•Í½ÕÉ”µ‘•ÍÉ¥ÁÑ¥½¸œ¤¤¹™½É… ¡¹½‘”ôùµ½Õ¹Ğ¹…ÁÁ•¹‘¡¥±¡¹½‘”¤¤í•Ù•¹ÑÌ¹É•µ½Ù” ¥ô(¥˜ „ É•Í½ÕÉ•M¡•‘Õ±•%¹ÁÕĞœ¤¥ì Í•ÑÑ¥¹ÍM¡•‘Õ±•5½Õ¹Ğœ¤¹¥¹¹•É!Q50ôœñ‘¥Ø±…ÍÌô‰Í¡•‘Õ±”µÍ¡•µ„µÉ¥ˆøñÍÁ…¸û®.£²vğƒ²vó²‚T€ñ½‘”û²nP¿²vğƒ²vó²‚W®ªğ½½‘”øğ½ÍÁ…¸øñÍÁ…¸ûªÖ³ªÂƒ²vó²‚T€ñ½‘”û²nP¿²vğ€´ƒ²nP¿²vğƒ²vó²‚W®ªğ½½‘”øğ½ÍÁ…¸øñÍÁ…¸û¶Vc® ƒ²vó²‚T€ñÍÑÉ½¹œø×ªÂpƒ²vÓ²ƒ¶^#²j¤ğ½ÍÑÉ½¹œøğ½ÍÁ…¸øğ½‘¥Øøñ‘¥Ø±…ÍÌô‰Í¡•‘Õ±”µÕÁ±½…µ…Éˆøñ‘¥ØøñÍÑÉ½¹œ¥ô‰É•Í½ÕÉ•M¡•‘Õ±•¥±•9…µ”ˆû²c¶R0ƒ²vó²‚Tƒ¶23²vğƒ²^²v0ğ½ÍÑÉ½¹œøñÍµ…±°¥ô‰É•Í½ÕÉ•M¡•‘Õ±•¥±•MÑ…ÑÕÌˆùa1Mc
-İM[
-İQaPƒ®NÇ®†tƒªÂ®*”ğ½Íµ…±°øğ½‘¥Øøñ‰ÕÑÑ½¸¥ô‰É•Í½ÕÉ•M¡•‘Õ±•UÁ±½…‘	Ñ¸ˆ±…ÍÌô‰Í…Ù”ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆû²vó²‚Tƒ¶23²vğƒ®NÇ®†tğ½‰ÕÑÑ½¸øñ¥¹ÁÕĞ¥ô‰É•Í½ÕÉ•M¡•‘Õ±•%¹ÁÕĞˆ±…ÍÌô‰¡¥‘‘•¸ˆÑåÁ”ô‰™¥±”ˆ…•ÁĞôˆ¹á±Íà°¹ÍØ°¹ÑáĞˆøğ½‘¥Øøñ‘¥Ø¥ô‰É•Í½ÕÉ•M¡•‘Õ±•AÉ•Ù¥•Üˆ±…ÍÌô‰Í¡•‘Õ±”µÁÉ•Ù¥•Ü¡¥‘‘•¸ˆøğ½‘¥Øøœì É•Í½ÕÉ•M¡•‘Õ±•UÁ±½…‘	Ñ¸œ¤¹½¹±¥¬ô ¤ôø É•Í½ÕÉ•M¡•‘Õ±•%¹ÁÕĞœ¤¹±¥¬ ¤ì É•Í½ÕÉ•M¡•‘Õ±•%¹ÁÕĞœ¤¹½¹¡…¹”õ…Íå¹Œ•Ù•¹Ğôùí½¹ÍĞ™¥±”õ•Ù•¹Ğ¹Ñ…É•Ğ¹™¥±•Ìü¹lÁtí¥˜¡™¥±”¥…İ…¥ĞÉ•¥ÍÑ•ÉM¡•‘Õ±•¥±”¡™¥±”°É•Í½ÕÉ”œ¤íÉ•¹‘•ÉM¡•‘Õ±•=Ù•ÉÙ¥•Ü ¤íİ¥¹‘½Ü¹1Q•µÁ±…Ñ•QåÁ•IÕ±•Ìü¹Á•ÉÍ¥ÍÑÕÉÉ•¹ÑQ•µÁ±…Ñ•M•ÑÑ¥¹Ìü¸ Ÿ²vó²‚Tƒ®NÇ®†tœ¥õô(™Õ¹Ñ¥½¸…ÍÍ•ÑÌ ¥íÉ•ÑÕÉ¸ÑåÁ•½˜ÁÉ½©•ÑM…µÁ±•ÍÍ•ÑÌôôô™Õ¹Ñ¥½¸œıÁÉ½©•ÑM…µÁ±•ÍÍ•ÑÌ ¤éÁÉ½©•Ğü¹Ñ•µÁ±…Ñ”ü¹É•Í½ÕÉ•Ìü¹Í…µÁ±•ÍÍ•ÑÍññmuô(½¹ÍĞÉ½±•ÌõmlÍ¡½½°µ‰Õ¥±‘¥¹œœ°Ÿ¶VgªÖC²‚ªÊô¿¶Fs² t±lÍ¡½½°µ±½¼œ°ŸªÖC¶Fpt±lÍ¡½½°µ™±½İ•Èœ°ŸªÖC¶fPt±lÍ¡½½°µÑÉ•”œ°ŸªÖC®ª¤t±lÍ¡½½°µÍ½¹œœ°ŸªÖCªÂ utì(™Õ¹Ñ¥½¸…ÍÍ•Ñ½È¡É½±”¥í½¹ÍĞ™½Õ¹õ…ÍÍ•ÑÌ ¤¹™¥±Ñ•È¡¥Ñ•´ôù¥Ñ•´¹É½±”ôôõÉ½±”¤íÉ•ÑÕÉ¸É½±”ôôôÍ¡½½°µÕÍÑ½´µ¥µ…”œı™½Õ¹é™½Õ¹¹Í±¥” ´Ä¥ô(™Õ¹Ñ¥½¸…ÍÍ•Ñ…É¡É½±”±±…‰•°±¥Ñ•´¥íÉ•ÑÕÉ¸€ñ…ÉÑ¥±”±…ÍÌô‰…ÍÍ•ĞµÉ½±”µ…Éˆøñ‘¥Ø±…ÍÌô‰…ÍÍ•ĞµÉ½±”µÑ¡Õµˆˆø‘í¥Ñ•´ü¹¥µ…”ı€ñ¥µœÍÉŒôˆ‘í¥Ñ•´¹¥µ…•ôˆ…±Ğôˆˆù€èŸ®¾ã®NÇ®†tôğ½‘¥Øøñ‘¥Ø±…ÍÌô‰…ÍÍ•ĞµÉ½±”µ¥¹™¼ˆøñÍÑÉ½¹œø‘íØÈÅÍ…Á”¡±…‰•°¥ôğ½ÍÑÉ½¹œøñÍµ…±°ø‘íØÈÅÍ…Á”¡¥Ñ•´ü¹¹…µ•ñğŸ®NÇ®†w®Bpƒ²vÓ®¾ã² ƒ²^²v0œ¥ôğ½Íµ…±°øñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ½Á•¸µ…ÍÍ•ĞµÉ½±”ôˆ‘íÉ½±•ôˆø‘í¥Ñ•´üŸªÒ®š°œèŸ®NÇ®†tôğ½‰ÕÑÑ½¸øğ½‘¥Øøğ½…ÉÑ¥±”ùô(™Õ¹Ñ¥½¸É•¹‘•ÉÍÍ•Ñ…É‘Ì ¥í½¹ÍĞÁÉ¥µ…Éäô ÁÉ¥µ…ÉåÍÍ•ÑI½±•É¥œ¤±…‘‘¥Ñ¥½¹…°ô …‘‘¥Ñ¥½¹…±ÍÍ•ÑÉ¥œ¤í¥˜¡ÁÉ¥µ…Éä¥ÁÉ¥µ…Éä¹¥¹¹•É!Q50õÉ½±•Ì¹µ…À ¡mÉ½±”±±…‰•±t¤ôù…ÍÍ•Ñ…É¡É½±”±±…‰•°±…ÍÍ•Ñ½È¡É½±”¥lÁt¤¤¹©½¥¸ œœ¤í½¹ÍĞ•áÑÉ„õ…ÍÍ•Ñ½È Í¡½½°µÕÍÑ½´µ¥µ…”œ¤í¥˜¡…‘‘¥Ñ¥½¹…°¥…‘‘¥Ñ¥½¹…°¹¥¹¹•É!Q50õ•áÑÉ„¹±•¹Ñ ı•áÑÉ„¹µ…À¡¥Ñ•´ôù…ÍÍ•Ñ…É Í¡½½°µÕÍÑ½´µ¥µ…”œ°Ÿ²ÚSªÂ ƒ²vÓ®¾ã² œ±¥Ñ•´¤¤¹©½¥¸ œœ¤èœñ‘¥Ø±…ÍÌô‰…ÍÍ•Ğµ•µÁÑäˆû®NÇ®†w®Bpƒ²ÚSªÂ ƒ²vÓ®¾ã²ªÂ ƒ²^²*×®.#®.¸ğ½‘¥Øøô(½¹ÍĞµ½‘…°õ‘½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ ‘¥Øœ¤íµ½‘…°¹¥ôÍ•ÑÑ¥¹ÍÍÍ•Ñ5½‘…°œíµ½‘…°¹±…ÍÍ9…µ”ô…ÍÍ•Ğµ•‘¥Ñ½Èµµ½‘…°¡¥‘‘•¸œíµ½‘…°¹¥¹¹•É!Q50ôœñ‘¥Ø±…ÍÌô‰…ÍÍ•Ğµ•‘¥Ñ½Èµ‘¥…±½œˆÉ½±”ô‰‘¥…±½œˆ…É¥„µµ½‘…°ô‰ÑÉÕ”ˆøñ‘¥Ø±…ÍÌô‰…ÍÍ•Ğµ•‘¥Ñ½Èµ¡•…ˆøñ Ì¥ô‰Í•ÑÑ¥¹ÍÍÍ•Ñ5½‘…±Q¥Ñ±”ˆû²vÓ®¾ã² ƒ®NÇ®†tğ½ Ìøñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ±½Í”µ…ÍÍ•Ğµµ½‘…°û\ğ½‰ÕÑÑ½¸øğ½‘¥Øøñ‘¥Ø±…ÍÌô‰…ÍÍ•Ğµ•‘¥Ñ½Èµ‰½‘äˆøñ‘¥Ø¥ô‰Í•ÑÑ¥¹ÍÍÍ•ÑAÉ•Ù¥•Üˆ±…ÍÌô‰…ÍÍ•Ğµ•‘¥Ñ½ÈµÁÉ•Ù¥•Üˆû®NÇ®†w®Bpƒ²vÓ®¾ã²ªÂ ƒ²^²*×®.#®.¸ğ½‘¥Øøñ±…‰•°û²zC²
-Àƒ²vÓ®šñ¥¹ÁÕĞ¥ô‰Í•ÑÑ¥¹ÍÍÍ•Ñ9…µ”ˆÁ±…•¡½±‘•Èô‹²vÓ®¾ã² ƒ²vÓ®šˆøğ½±…‰•°øğ½‘¥Øøñ‘¥Ø±…ÍÌô‰…ÍÍ•Ğµ•‘¥Ñ½Èµ…Ñ¥½¹Ìˆøñ‰ÕÑÑ½¸¥ô‰‘•±•Ñ•M•ÑÑ¥¹ÍÍÍ•Ñ	Ñ¸ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ±…ÍÌô‰‘…¹•Èˆû²vÓ®¾ã² ƒ²
-·²‚pğ½‰ÕÑÑ½¸øñ‰ÕÑÑ½¸ÑåÁ”ô‰‰ÕÑÑ½¸ˆ‘…Ñ„µ±½Í”µ…ÍÍ•Ğµµ½‘…°û²Ş£²0ğ½‰ÕÑÑ½¸øñ‰ÕÑÑ½¸¥ô‰¡½½Í•M•ÑÑ¥¹ÍÍÍ•Ñ	Ñ¸ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ±…ÍÌô‰ÁÉ¥µ…Éäˆû²vÓ®¾ã² ƒ²ƒ¶tğ½‰ÕÑÑ½¸øğ½‘¥Øøğ½‘¥Øøœí‘½Õµ•¹Ğ¹‰½‘ä¹…ÁÁ•¹‘¡¥±¡µ½‘…°¤í±•Ğ…Ñ¥Ù•I½±”õ¹Õ±°ì(™Õ¹Ñ¥½¸±½Í•ÍÍ•Ñ5½‘…° ¥íµ½‘…°¹±…ÍÍ1¥ÍĞ¹…‘ ¡¥‘‘•¸œ¤í…Ñ¥Ù•I½±”õ¹Õ±±õ™Õ¹Ñ¥½¸½Á•¹ÍÍ•Ñ5½‘…°¡É½±”¥í…Ñ¥Ù•I½±”õÉ½±”í½¹ÍĞ±…‰•°õÉ½±•Ì¹™¥¹¡¥Ñ•´ôù¥Ñ•µlÁtôôõÉ½±”¤ü¹lÅuñğŸ²ÚSªÂ ƒ²vÓ®¾ã² œ±¥Ñ•´õ…ÍÍ•Ñ½È¡É½±”¥lÁtì Í•ÑÑ¥¹ÍÍÍ•Ñ5½‘…±Q¥Ñ±”œ¤¹Ñ•áÑ½¹Ñ•¹Ğõ€‘í±…‰•±ôƒ²vÓ®¾ã² ƒªÒ®š±€ì Í•ÑÑ¥¹ÍÍÍ•Ñ9…µ”œ¤¹Ù…±Õ”õ¥Ñ•´ü¹¹…µ•ñğœœì Í•ÑÑ¥¹ÍÍÍ•ÑAÉ•Ù¥•Üœ¤¹¥¹¹•É!Q50õ¥Ñ•´ü¹¥µ…”ı€ñ¥µœÍÉŒôˆ‘í¥Ñ•´¹¥µ…•ôˆ…±Ğôˆˆù€èŸ®NÇ®†w®Bpƒ²vÓ®¾ã²ªÂ ƒ²^²*×®.#®.¸œì ‘•±•Ñ•M•ÑÑ¥¹ÍÍÍ•Ñ	Ñ¸œ¤¹‘¥Í…‰±•ô…¥Ñ•´íµ½‘…°¹±…ÍÍ1¥ÍĞ¹É•µ½Ù” ¡¥‘‘•¸œ¥ô(‘½Õµ•¹Ğ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ±•Ù•¹Ğôùí½¹ÍĞ½Á•¸õ•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ m‘…Ñ„µ½Á•¸µ…ÍÍ•ĞµÉ½±•tœ¤í¥˜¡½Á•¸¥í½Á•¹ÍÍ•Ñ5½‘…°¡½Á•¸¹‘…Ñ…Í•Ğ¹½Á•¹ÍÍ•ÑI½±”¤íÉ•ÑÕÉ¹õ¥˜¡•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ m‘…Ñ„µ±½Í”µ…ÍÍ•Ğµµ½‘…±tœ¥ññ•Ù•¹Ğ¹Ñ…É•Ğôôõµ½‘…°¥±½Í•ÍÍ•Ñ5½‘…° ¥ô¤ì(€ ¡½½Í•M•ÑÑ¥¹ÍÍÍ•Ñ	Ñ¸œ¤¹½¹±¥¬ô ¤ôùí¥˜ ……Ñ¥Ù•I½±”¥É•ÑÕÉ¸ì É•Í½ÕÉ•ÍÍ•ÑI½±”œ¤¹Ù…±Õ”õ…Ñ¥Ù•I½±”ì É•Í½ÕÉ•ÍÍ•Ñ9…µ”œ¤¹Ù…±Õ”ô Í•ÑÑ¥¹ÍÍÍ•Ñ9…µ”œ¤¹Ù…±Õ”¹ÑÉ¥´ ¤ì É•Í½ÕÉ•ÍÍ•Ñ%¹ÁÕĞœ¤¹±¥¬ ¥ôì(€ ‘•±•Ñ•M•ÑÑ¥¹ÍÍÍ•Ñ	Ñ¸œ¤¹½¹±¥¬ô ¤ôùí¥˜ ……Ñ¥Ù•I½±”¥É•ÑÕÉ¸í½¹ÍĞ±¥ÍĞõÁÉ½©•Ğ¹Ñ•µÁ±…Ñ”¹É•Í½ÕÉ•Ì¹Í…µÁ±•ÍÍ•ÑÍññmt±¥¹‘•àõ±¥ÍĞ¹™¥¹‘%¹‘•à¡¥Ñ•´ôù¥Ñ•´¹É½±”ôôõ…Ñ¥Ù•I½±”¤í¥˜¡¥¹‘•àğÀ¥É•ÑÕÉ¸íÍ¹…ÁÍ¡½Ğ ¤í½¹ÍĞÉ•µ½Ù•õ±¥ÍĞ¹ÍÁ±¥”¡¥¹‘•à°Ä¥lÁt±­•äõÍ•µ…¹Ñ¥AÉ½™¥±•-•ä¡…Ñ¥Ù•I½±”¤í¥˜¡­•ä˜™ÁÉ½©•Ğ¹‰½½¬¹Í¡½½°¹ÁÉ½™¥±”ü¹m­•åt¥íÁÉ½©•Ğ¹‰½½¬¹Í¡½½°¹ÁÉ½™¥±•m­•åt¹¥µ…”ôœœí‘•±•Ñ”ÁÉ½©•Ğ¹‰½½¬¹Í¡½½°¹ÁÉ½™¥±•m­•åt¹…ÍÍ•Ñ%‘õ•±Í”¥˜¡…Ñ¥Ù•I½±”ôôôÍ¡½½°µÕÍÑ½´µ¥µ…”œ¥ÁÉ½©•Ğ¹‰½½¬¹Í¡½½°¹ÕÍÑ½µÍÍ•ÑÌô¡ÁÉ½©•Ğ¹‰½½¬¹Í¡½½°¹ÕÍÑ½µÍÍ•ÑÍññmt¤¹™¥±Ñ•È¡¥Ñ•´ôù¥Ñ•´¹¥„ôõÉ•µ½Ù•¹¥¤íµ…É­¥ÉÑä ¤íÉ•¹‘•ÉÍÍ•Ñ…É‘Ì ¤íÉ•¹‘•ÉI•¥ÍÑ•É•‘ÍÍ•Ñ1¥‰É…Éä ¤í±½Í•ÍÍ•Ñ5½‘…° ¤íİ¥¹‘½Ü¹1Q•µÁ±…Ñ•QåÁ•IÕ±•Ìü¹Á•ÉÍ¥ÍÑÕÉÉ•¹ÑQ•µÁ±…Ñ•M•ÑÑ¥¹Ìü¸ Ÿ²vÓ®¾ã² ƒ²zC²
-Àƒ²
-·²‚pœ¥ôì(€ É•Í½ÕÉ•ÍÍ•Ñ%¹ÁÕĞœ¤ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ¡…¹”œ° ¤ôùÍ•ÑQ¥µ•½ÕĞ  ¤ôùíÉ•¹‘•ÉÍÍ•Ñ…É‘Ì ¤í±½Í•ÍÍ•Ñ5½‘…° ¥ô°äÀÀ¤¤ì(™Õ¹Ñ¥½¸É•¹‘•ÉM¡•‘Õ±•=Ù•ÉÙ¥•Ü ¥í½¹ÍĞ…±°õÁÉ½©•Ğü¹‰½½¬ü¹•Ù•¹ÑÍññmt±É…¹•Ìõ…±°¹™¥±Ñ•È¡¥Ñ•´ôù¥Ñ•´¹•¹‘…Ñ”˜™¥Ñ•´¹•¹‘…Ñ”„ôõ¥Ñ•´¹ÍÑ…ÉÑ…Ñ”¤¹±•¹Ñ ±Í½ÕÉ”õÁÉ½©•Ğü¹‰½½¬ü¹Í¡•‘Õ±•%µÁ½ÉĞì Í•ÑÑ¥¹ÍM¡•‘Õ±•=Ù•ÉÙ¥•Üœ¤¹¥¹¹•É!Q50õ€ñ‘¥ØøñÍÑÉ½¹œø‘í…±°¹±•¹Ñ¡ôğ½ÍÑÉ½¹œøñÍµ…±°û®NÇ®†tƒ²vó²‚Tğ½Íµ…±°øğ½‘¥Øøñ‘¥ØøñÍÑÉ½¹œø‘íÉ…¹•Íôğ½ÍÑÉ½¹œøñÍµ…±°ûªâÃªÂƒ²vó²‚Tğ½Íµ…±°øğ½‘¥Øøñ‘¥ØøñÍÑÉ½¹œø‘íÍ½ÕÉ”ü¹™¥±•9…µ”üœÄœèœÀôğ½ÍÑÉ½¹œøñÍµ…±°û®NÇ®†tƒ¶23²vğğ½Íµ…±°øğ½‘¥Øùô(½¹ÍĞ‰…Í•Mİ¥Ñ õÍİ¥Ñ¡I•Í½ÕÉ•A…”íÍİ¥Ñ¡I•Í½ÕÉ•A…”õ™Õ¹Ñ¥½¸¡Á…”¥í‰…Í•Mİ¥Ñ ¡Á…”¤í¥˜¡Á…”ôôôÍ¡½½°œ¥É•¹‘•ÉÍÍ•Ñ…É‘Ì ¤í¥˜¡Á…”ôôôÍ¡•‘Õ±”œ¥É•¹‘•ÉM¡•‘Õ±•=Ù•ÉÙ¥•Ü ¤í¥˜¡Á…”ôôô‘•Í¥¸µÑåÁ•Ìœ¥íÉ•ÍÑ½É••Í¥¹MÁ•Œ ¤íİ¥¹‘½Ü¹1•Í­MÑå±•‘¥Ñ½Èü¹É•¹‘•Èü¸ ¥õôì(½¹ÍĞ‰…Í•¹ÍÕÉ”õ•¹ÍÕÉ•%•Í¥¹å¹…µ¥½¹ÑÉ½±Ìí•¹ÍÕÉ•%•Í¥¹å¹…µ¥½¹ÑÉ½±Ìõ™Õ¹Ñ¥½¸ ¥í‰…Í•¹ÍÕÉ” ¤í½¹ÍĞ‰½àõ‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È œ¹…¤µÍ•É•ĞµÍ•ÑÑ¥¹Ìœ¤í¥˜ …‰½áññ‰½à¹‘…Ñ…Í•Ğ¹É•™É•Í¡•¥É•ÑÕÉ¸í‰½à¹‘…Ñ…Í•Ğ¹É•™É•Í¡•ôÑÉÕ”œí‰½à¹¥¹¹•É!Q50ôœñ‘¥Ø±…ÍÌô‰…¤µÍ•É•ĞµÍÑ…ÑÕÌµÉ½Üˆøñ‘¥Ø±…ÍÌô‰…¤µÍ•É•ĞµÍÑ…ÑÕÌµ½ÁäˆøñÍÑÉ½¹œù=Á•¹$A$ƒ²^ÃªÊÀğ½ÍÑÉ½¹œøñÀ¥ô‰…¥•Í¥¹=Á•¹%-•åMÑ…ÑÕÌˆû²^ÃªÊÀƒ²¶s®–ğƒ¶fW²vã¶V§®.#®.“Š˜ğ½Àøğ½‘¥Øøñ‰ÕÑÑ½¸¥ô‰¡…¹•%•Í¥¹=Á•¹%-•å	Ñ¸ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆû¶
-ƒ®ÎªÊôğ½‰ÕÑÑ½¸øğ½‘¥Øøñ‘¥Ø¥ô‰…¥•Í¥¹=Á•¹%-•å¡…¹•½É´ˆ±…ÍÌô‰…¤µÍ•É•Ğµ¡…¹”µ™½É´¡¥‘‘•¸ˆøñ±…‰•°û² =Á•¹$A$ƒ¶
-ñ¥¹ÁÕĞ¥ô‰…¥•Í¥¹=Á•¹%-•äˆÑåÁ”ô‰Á…ÍÍİ½Éˆ…ÕÑ½½µÁ±•Ñ”ô‰¹•ÜµÁ…ÍÍİ½ÉˆÁ±…•¡½±‘•Èô‹² ƒ¶
-“®–ğƒ²z®‚—¶Vc²ã²jPˆøğ½±…‰•°øñ‘¥Ø±…ÍÌô‰…¤µÍ•É•Ğµ¡…¹”µ…Ñ¥½¹Ìˆøñ‰ÕÑÑ½¸¥ô‰…¹•±%•Í¥¹=Á•¹%-•å	Ñ¸ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆû²Ş£²0ğ½‰ÕÑÑ½¸øñ‰ÕÑÑ½¸¥ô‰Í…Ù•%•Í¥¹=Á•¹%-•å	Ñ¸ˆÑåÁ”ô‰‰ÕÑÑ½¸ˆ±…ÍÌô‰ÁÉ¥µ…Éäˆû®ÎªÊôƒ²‚²z”ğ½‰ÕÑÑ½¸øğ½‘¥Øøğ½‘¥ØøœíÉ•™É•Í¡%•Í¥¹=Á•¹%-•åMÑ…ÑÕÌ ¥ôì(‘½Õµ•¹Ğ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ±•Ù•¹Ğôùí¥˜¡•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ œ¡…¹•%•Í¥¹=Á•¹%-•å	Ñ¸œ¤¥ì …¥•Í¥¹=Á•¹%-•å¡…¹•½É´œ¤¹±…ÍÍ1¥ÍĞ¹É•µ½Ù” ¡¥‘‘•¸œ¤ì …¥•Í¥¹=Á•¹%-•äœ¤¹™½ÕÌ ¥õ¥˜¡•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ œ…¹•±%•Í¥¹=Á•¹%-•å	Ñ¸œ¤¥ì …¥•Í¥¹=Á•¹%-•äœ¤¹Ù…±Õ”ôœœì …¥•Í¥¹=Á•¹%-•å¡…¹•½É´œ¤¹±…ÍÍ1¥ÍĞ¹…‘ ¡¥‘‘•¸œ¥õ¥˜¡•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ œÍ…Ù•%•Í¥¹=Á•¹%-•å	Ñ¸œ¤¥Í•ÑQ¥µ•½ÕĞ  ¤ôùí¥˜  …¥•Í¥¹=Á•¹%-•åMÑ…ÑÕÌœ¤ü¹±…ÍÍ1¥ÍĞ¹½¹Ñ…¥¹Ì ½¹¹•Ñ•œ¤¤ …¥•Í¥¹=Á•¹%-•å¡…¹•½É´œ¤ü¹±…ÍÍ1¥ÍĞ¹…‘ ¡¥‘‘•¸œ¥ô°ÄÈÀÀ¥ô¤ì(É•¹‘•ÉÍÍ•Ñ…É‘Ì ¤íÉ•¹‘•ÉM¡•‘Õ±•=Ù•ÉÙ¥•Ü ¤ì)ô¤ ¤ì
+  return `<div class="semantic-object desk-six-symbol-card ${role==="school-song"?"semantic-song":""}">${title}<div class="semantic-media">${image}</div>${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||8}px">${d.description||""}</p>`}</div>`
+ }
+ if(role==="school-motto")return `<div class="semantic-object semantic-motto"><strong style="font-size:${item.style?.titleSize||18}px">${item.titleOverride||d.name||"êµí›ˆ"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
+ if(role==="school-song")return `<div class="semantic-object semantic-song"><div class="semantic-media">${image}</div><div class="semantic-copy">${title}<p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div></div>`;
+ return `<div class="semantic-object ${layout==="image-left"?"semantic-layout-row":""}"><div class="semantic-media">${image}</div>${item.showCaption===true||showTitle?`<div class="semantic-copy" style="text-align:${item.style?.textAlign||"center"}">${title}${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p>`}</div>`:""}</div>`
+}
+function pageRecommendations(p){
+ if(p.role==="cover-front")return ["school-building","school-logo"];
+ if(p.role.includes("front-insert")||p.role.includes("rear-insert"))return ["school-motto","school-flower","school-tree","school-song"];
+ if(p.role==="monthly-front")return ["school-logo"];
+ if(p.role==="monthly-back")return ["school-building"];
+ return ["school-logo","school-motto"]
+}
+function renderObjectRecommendations(){
+ const wrap=el("recommendedObjects");if(!wrap||!project)return;
+ wrap.innerHTML=pageRecommendations(selectedPage()).map(role=>`<button type="button" data-recommend-role="${role}">${semanticRoleLabel(role)}</button>`).join("");
+ wrap.querySelectorAll("[data-recommend-role]").forEach(b=>b.addEventListener("click",()=>createSemanticObject(b.dataset.recommendRole)))
+}
+
+
+function canonicalMasterIdForPage(p){
+ const type=project?.productType?.category||project?.settings?.type;
+ if(type==="postcard"&&p.role==="monthly-front")return "master.postcard.monthly.front";
+ if(type==="wall"&&p.role==="monthly-front")return "master.wall.monthly.front";
+ if(p.role==="monthly-front")return "master.monthly.front";
+ if(p.role==="monthly-back")return "master.monthly.back";
+ return p.masterId||`master.${p.role}`
+}
+function normalizeMonthlyMasterIds(){
+ project.template.masterElements ||= {};
+ project.book.pageInstances.forEach(p=>{
+  if(p.role!=="monthly-front"&&p.role!=="monthly-back")return;
+  const canonical=canonicalMasterIdForPage(p);
+  const legacy=p.masterId;
+  if(legacy&&legacy!==canonical&&project.template.masterElements[legacy]?.length){
+   project.template.masterElements[canonical] ||= [];
+   const existingIds=new Set(project.template.masterElements[canonical].map(x=>x.id));
+   project.template.masterElements[legacy].forEach(item=>{
+    if(!existingIds.has(item.id))project.template.masterElements[canonical].push(item)
+   })
+  }
+  p.masterId=canonical
+ })
+}
+function monthlyPagesForRole(role){
+ return project.book.pageInstances.filter(p=>p.role===role)
+}
+function verifyMonthlyMasterPropagation(role,itemId){
+ const canonical=role==="monthly-back"?"master.monthly.back":"master.monthly.front";
+ const pages=monthlyPagesForRole(role);
+ const masterItems=project.template.masterElements[canonical]||[];
+ return {
+  canonical,
+  pageCount:pages.length,
+  matchingPages:pages.filter(p=>canonicalMasterIdForPage(p)===canonical).length,
+  itemExists:masterItems.some(item=>item.id===itemId)
+ }
+}
+
+function normalizeElementData(){
+ project.book.school ||= {name:"ìƒ˜í”Œ í•™êµ"};
+ project.book.school.name ||= "ìƒ˜í”Œ í•™êµ";
+ project.book.school.englishName ||= "";
+ project.book.school.slogan ||= "ë°°ì›€ìœ¼ë¡œ ì„±ì¥í•˜ê³  í•¨ê»˜ ë¯¸ë˜ë¥¼ ì—¬ëŠ” í•™êµ";
+ project.book.school.address ||= "";
+ project.book.school.phone ||= "";
+ project.book.school.website ||= "";
+ project.settings.calendarRows=Number(project.settings.calendarRows||6);
+ project.settings.showAdjacentMiniCalendars=project.settings.showAdjacentMiniCalendars!==false;
+ normalizeMonthlyMasterIds();
+ project.settings.weekStart=project.settings.weekStart||"sunday";
+ ensureSchoolProfile();
+ project.template.masterElements ||= {};
+ project.book.elementsByPage ||= {};
+ project.book.pageInstances.forEach(p=>{project.book.elementsByPage[p.id] ||= []});
+ ensureMonthlyQuotes();
+ Object.values(project.template.masterElements).flat().forEach(ensureSemanticTemplateData);
+ Object.values(project.book.elementsByPage).flat().forEach(ensureSemanticTemplateData);
+ project.template.editorType="academic-calendar-template-designer";
+ project.template.sampleDataVersion=1;
+ project.template.metadata ||= {name:"í•™êµ í•™ì‚¬ë‹¬ë ¥ í…œí”Œë¦¿",description:"í•™êµìš© í•™ì‚¬ë‹¬ë ¥ í…œí”Œë¦¿",author:"",version:"1.0.0",language:"ko-KR"};
+ project.template.publishing ||= {};
+ project.template.publishing.schemaVersion ||= "template-publishing.v1";
+ project.template.publishing.dataRequirements ||= defaultTemplateInputRequirements();
+ project.template.resources ||= {};
+ normalizeAIDesignBackgrounds();
+ project.template.resources.sampleAssetLibraryVersion=2;
+ project.template.resources.sampleAssets ||= [];
+ project.template.masters.calendar.rangeEventStyle ||= {enabled:true,contractId:"user-service-v1.1",contractRevision:"1.0.0",labelMode:"every",labelPosition:"inside",barHeight:14,laneGap:1,maxLanes:4,continuationStyle:"arrow",overflowStyle:"count"};
+ ensureEditableCover();
+ ensureEditablePoster();
+}
+function normalizeAIDesignBackgrounds(){
+ window.ACDLProjectAssetResolver?.normalize(project);
+ const resources=project?.template?.resources?.aiDesignAssets||[];
+ Object.values(project?.book?.elementsByPage||{}).flat().filter(item=>item?.role==="ai-design-background").forEach(item=>{
+  const resourceId=item.assetId||item.aiDesign?.resourceId||item.aiDesign?.assetId;
+  const resource=resources.find(candidate=>candidate.id===resourceId)||resources.find(candidate=>candidate.src&&candidate.src===item.src);
+  if(resource){item.assetId=resource.id;item.aiDesign={...(item.aiDesign||{}),resourceId:resource.id,sourceAssetId:item.aiDesign?.sourceAssetId||resource.source?.assetId};delete item.src}
+  item.zIndex=0;item.locked=true;item.selectable=false;
+ });
+}
+function pageElements(p=selectedPage()){normalizeElementData();return project.book.elementsByPage[p.id]}
+function masterElements(p=selectedPage()){
+ normalizeElementData();
+ const masterId=canonicalMasterIdForPage(p);
+ p.masterId=masterId;
+ project.template.masterElements[masterId] ||= [];
+ return project.template.masterElements[masterId]
+}
+function isMonthBackCompositionElement(item){return item?.role==="ai-month-back-component"||Boolean(item?.aiDesignComponent)||["image-frame","mini-calendar","mini-calendar-prev","mini-calendar-next","month-date-strip"].includes(item.type)||item.type==="memo"||["monthly-goal","monthly-todo","weekly-planner"].includes(item.role)}
+function allVisibleElements(){const page=selectedPage(),pageItems=pageElements(),shadowed=new Set(pageItems.map(e=>e.shadowOfMasterElementId).filter(Boolean)),hideInheritedDecoration=page.aiDesignBase?.mode==="neutral",replaceMonthBackComposition=page.aiMonthBackComposition?.mode==="generated-layout";return [...masterElements().filter(e=>!shadowed.has(e.id)).filter(e=>!hideInheritedDecoration||!isInheritedDesignDecoration(e)).filter(e=>!replaceMonthBackComposition||!isMonthBackCompositionElement(e)).map(e=>({...e,_scope:"master"})),...pageItems.map(e=>({...e,_scope:"page"}))].sort((a,b)=>(a.zIndex||0)-(b.zIndex||0))}
+function sourceElement(){
+ if(!selectedElementId)return null;
+ const arr=selectedElementScope==="master"?masterElements():pageElements();
+ return arr.find(e=>e.id===selectedElementId)||null
+}
+function ensureCurrentPageEditTarget(id=selectedElementId,scope=selectedElementScope){
+ const original=scope==="master"?masterElements().find(item=>item.id===id):pageElements().find(item=>item.id===id);
+ if(!original||scope!=="master"||el("elementScope")?.value!=="page")return {id,scope,item:original,created:false};
+ const pageItems=pageElements();let pageItem=pageItems.find(item=>item.shadowOfMasterElementId===id),created=false;
+ if(!pageItem){
+  pageItem=typeof structuredClone==="function"?structuredClone(original):JSON.parse(JSON.stringify(original));
+  pageItem.id=`element.page-override.${Date.now()}.${Math.random().toString(36).slice(2,6)}`;
+  pageItem.shadowOfMasterElementId=original.id;pageItem.originScope="master";pageItems.push(pageItem);created=true;
+ }
+ selectedElementId=pageItem.id;selectedElementScope="page";
+ return {id:pageItem.id,scope:"page",item:pageItem,created}
+}
+function maxZ(scope){const arr=scope==="master"?masterElements():pageElements();return arr.reduce((m,e)=>Math.max(m,e.zIndex||0),0)}
+function addElement(type){
+ const scope=el("elementScope").value;const arr=scope==="master"?masterElements():pageElements();
+ const elem={id:`element.${type}.${Date.now()}`,type,x:15,y:18,width:type==="text"?32:38,height:type==="text"?13:28,zIndex:maxZ(scope)+1};
+ if(type==="text")Object.assign(elem,{content:"ìƒˆ í…ìŠ¤íŠ¸",style:{fontSize:18,textAlign:"left",background:false,color:"#17202e"}});
+ else Object.assign(elem,{src:"",alt:"ì¶”ê°€ ì´ë¯¸ì§€",fit:"cover"});
+ snapshot();arr.push(elem);selectedElementId=elem.id;selectedElementScope=scope;pendingImageElementId=type==="image"?elem.id:null;pendingImageElementScope=type==="image"?scope:null;render();
+ if(type==="image")el("elementImageInput").click()
+}
+function resolveElementImageSource(view){
+ const common=window.ACDLProjectAssetResolver?.elementSource(project,view);if(common)return common;
+ if(view?.src)return view.src;
+ const resourceId=view?.assetId||view?.aiDesign?.resourceId;
+ return resourceId?(project?.template?.resources?.aiDesignAssets||[]).find(item=>item.id===resourceId)?.src||"":"";
+}
+function renderFreeElements(pageNode){
+ let layer=document.createElement("div");layer.className="free-layer";
+ allVisibleElements().forEach(view=>{
+  const box=document.createElement("div");box.className=`free-element ${view._scope==="master"?"master-element":""} ${view.id===selectedElementId&&view._scope===selectedElementScope?"active":""}`;
+  box.dataset.elementId=view.id;box.dataset.scope=view._scope;box.dataset.elementType=view.type;box.dataset.elementRole=view.role||"";box.dataset.themeRole=["year","school-name"].includes(view.role)?"title":view.role==="slogan"?"secondary":"body";box.style.left=view.x+"%";box.style.top=view.y+"%";box.style.width=view.width+"%";box.style.height=view.height+"%";box.style.zIndex=view.zIndex||1;box.style.transform=`rotate(${view.rotation||0}deg)`;
+  if(view.role){
+   const badge=document.createElement("span");badge.className="cover-role-badge";badge.textContent={"school-image":"í•™êµ ì „ê²½","year":"ì—°ë„","school-name":"í•™êµëª…","slogan":"ìŠ¬ë¡œê±´"}[view.role]||view.role;box.appendChild(badge)
+  }
+  if(["mini-calendar","mini-calendar-prev","mini-calendar-next","year-calendar","memo","monthly-schedule","event-list","month-date-strip","monthly-quote"].includes(view.type)){
+   box.innerHTML=renderWidgetContent(view,selectedPage())
+  }else if(view.type==="semantic-object"){
+   box.innerHTML=renderSemanticObject(view);
+   const badge=document.createElement("span");badge.className=`semantic-role-badge non-output editor-only ${view.bindingEnabled===false?"binding-off":""}`;badge.textContent=`${semanticRoleLabel(view.role)} Â· ${view.bindingEnabled===false?"ê³ ì •":"ì—°ê²°"}`;box.appendChild(badge)
+  }else if(view.type==="text"){
+   const t=document.createElement("div");t.className="free-text";t.textContent=resolveTextContent(view,selectedPage());applyTextElementStyles(t,view);box.appendChild(t)
+  }else if(resolveElementImageSource(view)){
+   const img=document.createElement("img");img.className="free-image";img.src=resolveElementImageSource(view);img.alt=view.alt||"ì‚¬ìš©ì ì´ë¯¸ì§€";img.style.objectFit=view.fit||"cover";box.appendChild(img)
+  }else{
+   const empty=document.createElement("div");empty.className="free-image empty";empty.textContent="ì´ë¯¸ì§€ë¥¼ ì„ íƒí•˜ì„¸ìš”";box.appendChild(empty)
+  }
+  if(view.id===selectedElementId&&view._scope===selectedElementScope&&!preview){
+   const lab=document.createElement("span");lab.className="elem-label";lab.textContent=view._scope==="master"?"MASTER":"PAGE";box.appendChild(lab);
+   ["e","s","se"].forEach(pos=>{const h=document.createElement("span");h.className="elem-handle "+pos;h.dataset.handle=pos;box.appendChild(h)})
+  }
+  if(view.role!=="ai-design-background")box.addEventListener("pointerdown",startElementPointer);layer.appendChild(box)
+ });pageNode.appendChild(layer)
+}
+function applyTextElementStyles(node,view){
+ const style=view.style||{},size=style.fontSize||project.template.masters.cover.titleSize||18,align=style.textAlign||"left",vertical=style.verticalAlign||"top";
+ node.style.fontSize=size+"px";node.style.setProperty("--element-font-size",String(size));node.style.fontFamily=style.fontFamily||(["year","school-name"].includes(view.role)?"var(--tpl-title-font)":"var(--tpl-body-font)");node.style.fontWeight=String(style.fontWeight||"normal");node.style.fontStyle=style.fontStyle||"normal";node.style.textDecoration=style.textDecoration||"none";node.style.textAlign=align;node.style.justifyContent=align==="center"?"center":align==="right"?"flex-end":"flex-start";node.style.alignItems=vertical==="middle"?"center":vertical==="bottom"?"flex-end":"flex-start";node.style.color=style.color||"#17202e";node.style.letterSpacing=Number(style.letterSpacing||0)+"px";node.style.lineHeight=String(style.lineHeight||1.2);node.style.opacity=String(style.opacity??1);node.style.background=style.background?(style.backgroundColor||"#ffffff"):"transparent";node.style.webkitTextStroke=Number(style.strokeWidth||0)+"px "+(style.strokeColor||"transparent");node.style.textShadow=style.shadow?`${Number(style.shadowX||0)}px ${Number(style.shadowY||0)}px ${Number(style.shadowBlur||0)}px ${style.shadowColor||"#000000"}`:"none"
+}
+function startElementPointer(e){
+ const box=e.currentTarget,id=box.dataset.elementId,scope=box.dataset.scope;
+ e.preventDefault();
+ if((id!==selectedElementId||scope!==selectedElementScope)&&!confirmDiscardInspectorChanges())return;
+ inspectorDirty=false;inspectorNotice={type:"ready",message:"ì„ íƒí•œ ê°œì²´ì˜ ì„¤ì •ì„ ë³€ê²½í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤."};
+ selectedElementId=id;selectedElementScope=scope;
+ let pageOverrideCreated=false;
+ if(scope==="master"&&el("elementScope")?.value==="page"){
+  const masterItem=sourceElement(),pageItems=pageElements(),existing=pageItems.find(item=>item.shadowOfMasterElementId===id);
+  if(existing){selectedElementId=existing.id;selectedElementScope="page"}
+  else if(masterItem){snapshot();const clone=typeof structuredClone==="function"?structuredClone(masterItem):JSON.parse(JSON.stringify(masterItem));clone.id=`element.page-override.${Date.now()}`;clone.shadowOfMasterElementId=masterItem.id;clone.originScope="master";pageItems.push(clone);selectedElementId=clone.id;selectedElementScope="page";pageOverrideCreated=true;showEditorToast("í˜„ì¬ í˜ì´ì§€ ì „ìš© ê°œì²´ë¡œ ë¶„ë¦¬í–ˆìŠµë‹ˆë‹¤.")}
+ }
+ const item=sourceElement();if(!item)return;
+ if(!pageOverrideCreated)snapshot();
+ box.classList.add("active");
+ box.setPointerCapture(e.pointerId);
+ elementDrag={
+  startX:e.clientX,
+  startY:e.clientY,
+  handle:e.target.dataset.handle||"move",
+  original:{...item},
+  pageRect:el("page").getBoundingClientRect(),
+  node:box,
+  changed:false,
+  pageOverrideCreated
+ };
+ box.addEventListener("pointermove",moveElementPointer);
+ box.addEventListener("pointerup",endElementPointer,{once:true});
+ box.addEventListener("pointercancel",endElementPointer,{once:true})
+}
+function moveElementPointer(e){
+ if(!elementDrag)return;
+ const item=sourceElement();if(!item)return;
+ const dx=(e.clientX-elementDrag.startX)/elementDrag.pageRect.width*100;
+ const dy=(e.clientY-elementDrag.startY)/elementDrag.pageRect.height*100;
+ const o=elementDrag.original;
+ if(Math.abs(dx)>.05||Math.abs(dy)>.05)elementDrag.changed=true;
+ if(elementDrag.handle==="move"){item.x=o.x+dx;item.y=o.y+dy}
+ if(elementDrag.handle==="e"||elementDrag.handle==="se")item.width=o.width+dx;
+ if(elementDrag.handle==="s"||elementDrag.handle==="se")item.height=o.height+dy;
+ item.width=Math.max(3,Math.min(100,item.width));
+ item.height=Math.max(3,Math.min(100,item.height));
+ item.x=Math.max(0,Math.min(item.x,100-item.width));
+ item.y=Math.max(0,Math.min(item.y,100-item.height));
+ const node=elementDrag.node;
+ node.style.left=item.x+"%";
+ node.style.top=item.y+"%";
+ node.style.width=item.width+"%";
+ node.style.height=item.height+"%"
+}
+function endElementPointer(e){
+ if(!elementDrag)return;
+ const node=elementDrag.node;
+ try{node.releasePointerCapture(e.pointerId)}catch{}
+ node.removeEventListener("pointermove",moveElementPointer);
+ node.removeEventListener("pointercancel",endElementPointer);
+ const changed=elementDrag.changed,overrideCreated=elementDrag.pageOverrideCreated;
+ elementDrag=null;
+ if(!changed&&!overrideCreated){
+  history.pop();
+  el("undoBtn").disabled=!history.length;
+ }
+ markDirty();
+ inspectorNotice={type:"success",message:overrideCreated?"í˜„ì¬ í˜ì´ì§€ ì „ìš© ê°œì²´ë¡œ ë¶„ë¦¬í–ˆìŠµë‹ˆë‹¤.":changed?"Canvasì—ì„œ ë³€ê²½í•œ ê°œì²´ ìœ„ì¹˜ì™€ í¬ê¸°ë¥¼ ë°˜ì˜í–ˆìŠµë‹ˆë‹¤.":"ê°œì²´ë¥¼ ì„ íƒí–ˆìŠµë‹ˆë‹¤."};
+ render()
+}
+
+function monthlyMasterLabel(p=selectedPage()){
+ return p.role==="monthly-back"?"ëª¨ë“  ì›”ë ¥ ë’·ë©´":"ëª¨ë“  ì›”ë ¥ ì•ë©´"
+}
+function canPromoteSelectedToMonthlyMaster(){
+ const p=selectedPage(),item=sourceElement();
+ return item&&selectedElementScope==="page"&&(p.role==="monthly-front"||p.role==="monthly-back")
+}
+function promoteSelectedToMonthlyMaster(){
+ if(!canPromoteSelectedToMonthlyMaster())return;
+ const p=selectedPage(),role=p.role,pageArr=pageElements(p),idx=pageArr.findIndex(x=>x.id===selectedElementId);
+ if(idx<0)return;
+ snapshot();
+ const item=structuredClone(pageArr[idx]);
+ const targetMasterId=role==="monthly-back"?"master.monthly.back":"master.monthly.front";
+ item.id=`${targetMasterId}.${item.type}.${Date.now()}`;
+ item.masterRole=role;
+ item.masterId=targetMasterId;
+ pageArr.splice(idx,1);
+ project.template.masterElements[targetMasterId] ||= [];
+ project.template.masterElements[targetMasterId].push(item);
+ monthlyPagesForRole(role).forEach(page=>page.masterId=targetMasterId);
+ selectedElementId=item.id;selectedElementScope="master";
+ const verification=verifyMonthlyMasterPropagation(role,item.id);
+ markDirty();
+ inspectorNotice={
+  type:verification.itemExists&&verification.matchingPages===verification.pageCount?"success":"error",
+  message:verification.itemExists&&verification.matchingPages===verification.pageCount
+   ?`${verification.pageCount}ê°œ ${role==="monthly-back"?"ì›”ë ¥ ë’·ë©´":"ì›”ë ¥ ì•ë©´"}ì— ê³µí†µ ì ìš©í–ˆìŠµë‹ˆë‹¤.`
+   :"Master ì ìš© í™•ì¸ ì¤‘ ë¬¸ì œê°€ ë°œê²¬ë˜ì—ˆìŠµë‹ˆë‹¤."
+ };
+ render();
+ showEditorToast(inspectorNotice.message)
+}
+
+function duplicateSelected(){
+ const item=sourceElement();if(!item)return;const scope=selectedElementScope,arr=scope==="master"?masterElements():pageElements();snapshot();const copy=structuredClone(item);copy.id=`element.${item.type}.${Date.now()}`;copy.x=Math.min(item.x+3,100-item.width);copy.y=Math.min(item.y+3,100-item.height);copy.zIndex=maxZ(scope)+1;arr.push(copy);selectedElementId=copy.id;render()
+}
+function deleteSelected(){
+ const item=sourceElement();if(!item)return;snapshot();const arr=selectedElementScope==="master"?masterElements():pageElements();arr.splice(arr.findIndex(e=>e.id===selectedElementId),1);selectedElementId=null;selectedElementScope=null;render()
+}
+function elementInspectorPanels(){
+ const item=sourceElement();
+ const panels={content:"",design:"",layout:""};
+ if(!item)return panels;
+ const roleNames={"school-image":"í•™êµ ì „ê²½ ì´ë¯¸ì§€","year":"ì—°ë„","school-name":"í•™êµëª…","slogan":"í•™êµ ìŠ¬ë¡œê±´"};
+ const roleName=item.type==="semantic-object"?semanticRoleLabel(item.role):roleNames[item.role];
+ const head=`<div class="section element-inspector"><span class="layer-chip">${selectedElementScope==="master"?"Master ê³µí†µ ìš”ì†Œ":"í˜„ì¬ í˜ì´ì§€ ìš”ì†Œ"}${roleName?" Â· "+roleName:""}</span>`;
+ if(item.type==="semantic-object"){
+  ensureSemanticTemplateData(item);
+  const d=semanticData(item),draftImage=semanticImageDraftElementId===item.id?semanticImageDraft:null,previewImage=draftImage||d.image||"";
+  let c=head+`<div class="template-help-card">ì´ ê°œì²´ì—ëŠ” í…œí”Œë¦¿ ì„ íƒ í™”ë©´ì—ì„œ ë³´ì—¬ì¤„ <strong>ìƒ˜í”Œ ì½˜í…ì¸ </strong>ì™€ ì‹¤ì œ í•™êµ ì •ë³´ê°€ ë“¤ì–´ì˜¬ <strong>ë°ì´í„° ì—°ê²°</strong>ì´ í•¨ê»˜ ì €ì¥ë©ë‹ˆë‹¤.</div>`;
+  c+=`<div class="inspector-group"><div class="inspector-group-title"><span>ìƒ˜í”Œ ì½˜í…ì¸ </span><span class="sample-badge">TEMPLATE SAMPLE</span></div>`;
+  if(item.role!=="school-motto")c+=`<label>${semanticRoleLabel(item.role)} ìƒ˜í”Œ ì´ë¯¸ì§€</label><div class="semantic-image-preview">${previewImage?`<img src="${previewImage}" alt="${semanticRoleLabel(item.role)} ìƒ˜í”Œ ì´ë¯¸ì§€">`:"ìƒ˜í”Œ ì´ë¯¸ì§€ë¥¼ ì„ íƒí•˜ì„¸ìš”."}</div><button id="replaceSemanticImage" class="action secondary">${previewImage?"ìƒ˜í”Œ ì´ë¯¸ì§€ êµì²´":"ìƒ˜í”Œ ì´ë¯¸ì§€ ì„ íƒ"}</button>`;
+  if(item.role!=="school-logo"){
+   c+=`<label>${item.role==="school-song"?"ìƒ˜í”Œ êµê°€ ì œëª©":"ìƒ˜í”Œ ëª…ì¹­"}<input id="semanticName" value="${d.name||""}"></label>`;
+   c+=`<label>${item.role==="school-song"?"ìƒ˜í”Œ ì‘ì‚¬Â·ì‘ê³¡/ì„¤ëª…":"ìƒ˜í”Œ ì„¤ëª…"}<textarea id="semanticDescription" rows="4">${d.description||""}</textarea></label>`;
+  }
+  c+=`<button id="applySemanticSample" class="action">ìƒ˜í”Œ ì½˜í…ì¸  ì €ì¥</button></div>`;
+  c+=`<div class="inspector-group"><div class="inspector-group-title"><span>ë°ì´í„° ì—°ê²°</span><span class="${item.bindingEnabled?"binding-badge":"fixed-badge"}">${item.bindingEnabled?"BOUND DATA":"FIXED"}</span></div><label>ê°œì²´ ë™ì‘<select id="semanticBindingMode"><option value="bound" ${item.bindingEnabled?"selected":""}>ì‹¤ì œ í•™êµ ë°ì´í„°ì™€ ì—°ê²°</option><option value="fixed" ${!item.bindingEnabled?"selected":""}>ê³ ì • ì½˜í…ì¸ ë¡œ ì‚¬ìš©</option></select></label><label>ì—°ê²° ëŒ€ìƒ<select id="semanticBindingPath"><option value="${defaultBindingForRole(item.role)}">${semanticRoleLabel(item.role)} Â· ${defaultBindingForRole(item.role)}</option></select></label><div class="binding-path">${item.bindingEnabled?(item.binding||defaultBindingForRole(item.role)):"Binding ì—†ìŒ â€” ìƒ˜í”Œ ì½˜í…ì¸ ê°€ ìµœì¢… ì½˜í…ì¸ ë¡œ ìœ ì§€ë©ë‹ˆë‹¤."}</div><label class="inline-check"><input id="semanticFallback" type="checkbox" ${item.fallbackToSample!==false?"checked":""}><span>ì‹¤ì œ í•™êµ ë°ì´í„°ê°€ ì—†ìœ¼ë©´ ìƒ˜í”Œ ì½˜í…ì¸  í‘œì‹œ</span></label><button id="applySemanticBinding" class="action">ë°ì´í„° ì—°ê²° ì €ì¥</button></div></div>`;
+  panels.content=c;
+  let dsg=head+`<div class="inspector-group"><div class="inspector-group-title"><span>ë ˆì´ì•„ì›ƒê³¼ ìŠ¤íƒ€ì¼</span><small>í‘œí˜„ ë°©ì‹</small></div>`;
+  if(!["school-logo","school-motto"].includes(item.role))dsg+=`<label>ë‚´ë¶€ ë°°ì¹˜<select id="semanticLayout"><option value="image-top" ${item.layoutPreset==="image-top"?"selected":""}>ì´ë¯¸ì§€ ìœ„ Â· ì„¤ëª… ì•„ë˜</option><option value="image-left" ${item.layoutPreset==="image-left"?"selected":""}>ì´ë¯¸ì§€ ì™¼ìª½ Â· ì„¤ëª… ì˜¤ë¥¸ìª½</option></select></label>`;
+  dsg+=`<div class="grid2"><label>ì œëª© í¬ê¸°<input id="semanticTitleSize" type="number" min="8" max="60" value="${item.style?.titleSize||18}"></label><label>ì„¤ëª… í¬ê¸°<input id="semanticDescriptionSize" type="number" min="7" max="32" value="${item.style?.descriptionSize||11}"></label></div><label>í…ìŠ¤íŠ¸ ì •ë ¬<select id="semanticTextAlign"><option value="left" ${item.style?.textAlign==="left"?"selected":""}>ì™¼ìª½</option><option value="center" ${item.style?.textAlign==="center"?"selected":""}>ê°€ìš´ë°</option><option value="right" ${item.style?.textAlign==="right"?"selected":""}>ì˜¤ë¥¸ìª½</option></select></label><button id="applySemanticTemplate" class="action">ë ˆì´ì•„ì›ƒÂ·ìŠ¤íƒ€ì¼ ì €ì¥</button></div></div>`;
+  panels.design=dsg;
+ }else if(item.type==="text"){
+  const boundText=!!item.binding,resolvedText=resolveTextContent(item,selectedPage());
+  const yearFormat=item.binding==="calendar.year"?`<label>ì—°ë„ í˜•ì‹<select id="elemYearFormat"><option value="year-plain" ${!item.format||item.format==="year-plain"?"selected":""}>2028</option><option value="year-ko" ${item.format==="year-ko"?"selected":""}>2028ë…„</option><option value="academic-year" ${item.format==="academic-year"?"selected":""}>2028í•™ë…„ë„</option><option value="year-range" ${item.format==="year-range"?"selected":""}>2028â€“2029</option></select></label>`:"";
+  panels.content=head+`<label>í‘œì‹œ ë°©ì‹<select id="elemTextBinding"><option value="" ${!item.binding?"selected":""}>ê³ ì • í…ìŠ¤íŠ¸ Â· ì•„ë˜ ì…ë ¥ê°’ í‘œì‹œ</option><option value="school.name" ${item.binding==="school.name"?"selected":""}>í•™êµ ì´ë¦„ê³¼ ì—°ê²°</option><option value="school.englishName" ${item.binding==="school.englishName"?"selected":""}>ì˜ë¬¸ í•™êµëª…ê³¼ ì—°ê²°</option><option value="school.slogan" ${item.binding==="school.slogan"?"selected":""}>ìŠ¬ë¡œê±´ê³¼ ì—°ê²°</option><option value="school.address" ${item.binding==="school.address"?"selected":""}>í•™êµ ì£¼ì†Œì™€ ì—°ê²°</option><option value="school.website" ${item.binding==="school.website"?"selected":""}>í™ˆí˜ì´ì§€ì™€ ì—°ê²°</option><option value="school.contacts" ${item.binding==="school.contacts"?"selected":""}>ì—°ë½ì²˜ ëª©ë¡ê³¼ ì—°ê²°</option><option value="school.profile.motto.description" ${item.binding==="school.profile.motto.description"?"selected":""}>êµí›ˆê³¼ ì—°ê²°</option><option value="school.profile.song.description" ${item.binding==="school.profile.song.description"?"selected":""}>êµê°€ ì •ë³´ì™€ ì—°ê²°</option><option value="calendar.year" ${item.binding==="calendar.year"?"selected":""}>ë‹¬ë ¥ ì—°ë„ì™€ ì—°ê²°</option></select></label>${yearFormat}<label>${boundText?"ë°ì´í„°ê°€ ì—†ì„ ë•Œ í‘œì‹œí•  ëŒ€ì²´ í…ìŠ¤íŠ¸":"í‘œì‹œí•  í…ìŠ¤íŠ¸"}<textarea id="elemText" rows="4">${item.content||""}</textarea></label>${boundText?`<div class="binding-path">í˜„ì¬ í™”ë©´ í‘œì‹œ: ${v21Escape(resolvedText||"ì—°ê²° ë°ì´í„° ì—†ìŒ")}</div><div class="hint">ì—°ê²°ëœ í”„ë¡œì íŠ¸ ë°ì´í„°ê°€ ìš°ì„ ì´ë©°, ìœ„ ë¬¸êµ¬ëŠ” ì—°ë„ ë°ì´í„°ê°€ ì—†ì„ ë•Œë§Œ í‘œì‹œë©ë‹ˆë‹¤.</div>`:`<div class="hint">ì…ë ¥í•œ ë¬¸êµ¬ê°€ í¸ì§‘ í™”ë©´ê³¼ ì¶œë ¥ë¬¼ì— ê·¸ëŒ€ë¡œ í‘œì‹œë©ë‹ˆë‹¤.</div>`}<button id="applyTextContent" class="action">í‘œì‹œ ë°©ì‹Â·í…ìŠ¤íŠ¸ ì €ì¥</button></div>`;
+  const s=item.style||{},decoration=String(s.textDecoration||"");
+  panels.design=head+`<div class="inspector-group"><div class="inspector-group-title"><span>ê¸€ê¼´ê³¼ ê¸€ì</span><small>ëª¨ë“  í…ìŠ¤íŠ¸ ê³µí†µ</small></div><label>ê¸€ê¼´<select id="elemFontFamily"><option value="" ${!s.fontFamily?"selected":""}>í…œí”Œë¦¿ ê¸°ë³¸ ê¸€ê¼´</option><option value="Pretendard" ${s.fontFamily==="Pretendard"?"selected":""}>Pretendard</option><option value="Noto Sans KR" ${s.fontFamily==="Noto Sans KR"?"selected":""}>Noto Sans KR</option><option value="Noto Serif KR" ${s.fontFamily==="Noto Serif KR"?"selected":""}>Noto Serif KR</option><option value="Nanum Gothic" ${s.fontFamily==="Nanum Gothic"?"selected":""}>ë‚˜ëˆ”ê³ ë”•</option><option value="Nanum Myeongjo" ${s.fontFamily==="Nanum Myeongjo"?"selected":""}>ë‚˜ëˆ”ëª…ì¡°</option><option value="Arial" ${s.fontFamily==="Arial"?"selected":""}>Arial</option><option value="Times New Roman" ${s.fontFamily==="Times New Roman"?"selected":""}>Times New Roman</option><option value="Playfair Display" ${s.fontFamily==="Playfair Display"?"selected":""}>Playfair Display</option></select></label><div class="grid2"><label>ê¸€ì í¬ê¸°<input id="elemFontSize" type="number" min="1" max="240" step=".5" value="${s.fontSize||18}"></label><label>ê¸€ì êµµê¸°<select id="elemFontWeight">${[100,200,300,400,500,600,700,800,900].map(weight=>`<option value="${weight}" ${Number(s.fontWeight||400)===weight?"selected":""}>${weight}${weight===400?" Â· ë³´í†µ":weight===700?" Â· êµµê²Œ":""}</option>`).join("")}</select></label></div><div class="text-style-checks"><label><input id="elemItalic" type="checkbox" ${s.fontStyle==="italic"?"checked":""}>ê¸°ìš¸ì„</label><label><input id="elemUnderline" type="checkbox" ${decoration.includes("underline")?"checked":""}>ë°‘ì¤„</label><label><input id="elemStrike" type="checkbox" ${decoration.includes("line-through")?"checked":""}>ì·¨ì†Œì„ </label></div><div class="grid2"><label>ê°€ë¡œ ì •ë ¬<select id="elemAlign"><option value="left" ${s.textAlign==="left"?"selected":""}>ì™¼ìª½</option><option value="center" ${s.textAlign==="center"?"selected":""}>ê°€ìš´ë°</option><option value="right" ${s.textAlign==="right"?"selected":""}>ì˜¤ë¥¸ìª½</option><option value="justify" ${s.textAlign==="justify"?"selected":""}>ì–‘ìª½</option></select></label><label>ì„¸ë¡œ ì •ë ¬<select id="elemVerticalAlign"><option value="top" ${!s.verticalAlign||s.verticalAlign==="top"?"selected":""}>ìœ„</option><option value="middle" ${s.verticalAlign==="middle"?"selected":""}>ê°€ìš´ë°</option><option value="bottom" ${s.verticalAlign==="bottom"?"selected":""}>ì•„ë˜</option></select></label><label>ìê°„(px)<input id="elemLetterSpacing" type="number" min="-20" max="100" step=".1" value="${s.letterSpacing||0}"></label><label>í–‰ê°„<input id="elemLineHeight" type="number" min=".5" max="4" step=".05" value="${s.lineHeight||1.2}"></label></div><div class="grid2"><label>ê¸€ììƒ‰<input id="elemColor" type="color" value="${s.color||"#17202e"}"></label><label>ë¶ˆíˆ¬ëª…ë„<input id="elemOpacity" type="number" min="0" max="1" step=".05" value="${s.opacity??1}"></label></div><div class="text-effect-group"><strong>ë°°ê²½</strong><div class="text-style-checks"><label><input id="elemBackground" type="checkbox" ${s.background?"checked":""}>ë°°ê²½ í‘œì‹œ</label></div><label>ë°°ê²½ìƒ‰<input id="elemBackgroundColor" type="color" value="${s.backgroundColor||"#ffffff"}"></label></div><div class="text-effect-group"><strong>ì™¸ê³½ì„ </strong><div class="grid2"><label>ë‘ê»˜(px)<input id="elemStrokeWidth" type="number" min="0" max="10" step=".1" value="${s.strokeWidth||0}"></label><label>ìƒ‰ìƒ<input id="elemStrokeColor" type="color" value="${s.strokeColor||"#ffffff"}"></label></div></div><div class="text-effect-group"><strong>ê·¸ë¦¼ì</strong><div class="text-style-checks"><label><input id="elemShadow" type="checkbox" ${s.shadow?"checked":""}>ê·¸ë¦¼ì í‘œì‹œ</label></div><div class="grid2"><label>X(px)<input id="elemShadowX" type="number" min="-50" max="50" step=".5" value="${s.shadowX||0}"></label><label>Y(px)<input id="elemShadowY" type="number" min="-50" max="50" step=".5" value="${s.shadowY||0}"></label><label>íë¦¼(px)<input id="elemShadowBlur" type="number" min="0" max="50" step=".5" value="${s.shadowBlur||0}"></label><label>ìƒ‰ìƒ<input id="elemShadowColor" type="color" value="${s.shadowColor||"#000000"}"></label></div></div><button id="applyElementStyle" class="action">í…ìŠ¤íŠ¸ ìŠ¤íƒ€ì¼ ì ìš©</button></div></div>`;
+ }else if(item.type==="monthly-quote"){
+  const q=monthlyQuoteForPage(selectedPage()),monthLabel=selectedPage()?.calendarMonth?`${selectedPage().calendarMonth}ì›”`:"í˜„ì¬ ì›”";
+  panels.content=head+`<div class="template-help-card"><strong>${monthLabel} ë¬¸êµ¬</strong>ë§Œ ìˆ˜ì •ë©ë‹ˆë‹¤. ë‹¤ë¥¸ ë‹¬ì˜ ëª…ì–¸ê³¼ Master ë°°ì¹˜Â·ìŠ¤íƒ€ì¼ì€ ê·¸ëŒ€ë¡œ ìœ ì§€ë©ë‹ˆë‹¤.</div><label>ì œëª©<input id="quoteTitle" value="${escapeAttr(q.title||"ì´ ë‹¬ì˜ ëª…ì–¸")}"></label><label>í•œê¸€ ëª…ì–¸<textarea id="quoteKo" rows="4">${v21Escape(q.quoteKo||"")}</textarea></label><label>ì˜ë¬¸ ì›ë¬¸Â·ë²ˆì—­<textarea id="quoteEn" rows="4">${v21Escape(q.quoteEn||"")}</textarea></label><label>ì¶œì²˜<input id="quoteSource" value="${escapeAttr(q.source||"")}"></label><button id="applyMonthlyQuoteContent" class="action">${monthLabel} ëª…ì–¸ ì €ì¥</button></div>`;
+  const s=item.style||{};
+  panels.design=head+`<div class="grid2"><label>ì œëª© í¬ê¸°<input id="quoteTitleSize" type="number" min="7" max="48" value="${s.titleSize||13}"></label><label>í•œê¸€ í¬ê¸°<input id="quoteKoSize" type="number" min="8" max="72" value="${s.quoteKoSize||18}"></label><label>ì˜ë¬¸ í¬ê¸°<input id="quoteEnSize" type="number" min="6" max="48" value="${s.quoteEnSize||10}"></label><label>ì¶œì²˜ í¬ê¸°<input id="quoteSourceSize" type="number" min="6" max="36" value="${s.sourceSize||9}"></label></div><label>ì •ë ¬<select id="quoteAlign"><option value="left" ${s.textAlign==="left"?"selected":""}>ì™¼ìª½</option><option value="center" ${s.textAlign!=="left"&&s.textAlign!=="right"?"selected":""}>ê°€ìš´ë°</option><option value="right" ${s.textAlign==="right"?"selected":""}>ì˜¤ë¥¸ìª½</option></select></label><div class="grid2"><label>ë³¸ë¬¸ ìƒ‰<input id="quoteColor" type="color" value="${s.color||"#17202e"}"></label><label>ì œëª© ìƒ‰<input id="quoteAccentColor" type="color" value="${s.accentColor||"#315e9e"}"></label><label>ë³´ì¡° ìƒ‰<input id="quoteSecondaryColor" type="color" value="${s.secondaryColor||"#667085"}"></label><label>í•­ëª© ê°„ê²©<input id="quoteItemGap" type="number" min="0" max="40" value="${s.itemGap||7}"></label></div><button id="applyMonthlyQuoteStyle" class="action">ëª…ì–¸ ê³µí†µ ìŠ¤íƒ€ì¼ ì €ì¥</button></div>`;
+ }else if(item.type==="memo"){
+  const layout=item.memoLayout||"lines";
+  panels.content=head+`<label>ê°œì²´ ìœ í˜•<select id="memoLayout"><option value="lines" ${layout==="lines"?"selected":""}>ììœ  ë©”ëª¨</option><option value="goal" ${layout==="goal"?"selected":""}>ì›” ëª©í‘œ</option><option value="weekly" ${layout==="weekly"?"selected":""}>ì£¼ê°„ ê³„íš</option><option value="checklist" ${layout==="checklist"?"selected":""}>í•  ì¼</option><option value="yearly-grid" ${layout==="yearly-grid"?"selected":""}>Yearly Plan Â· ì›”ë³„ ê²©ì</option></select></label><label>ì œëª©<input id="widgetTitle" value="${item.title||"ë©”ëª¨"}"></label>${layout==="weekly"?`<label>ì£¼ì°¨ ìˆ˜<input id="memoWeekCount" type="number" min="1" max="5" value="${item.weekCount||5}"></label><label><input id="memoShowMemo" type="checkbox" ${item.showMemo!==false?"checked":""} style="width:auto;height:auto"> ë§ˆì§€ë§‰ ì¹¸ì„ MEMOë¡œ ì‚¬ìš©</label>`:layout==="checklist"?`<label>í•  ì¼ í–‰ ìˆ˜<input id="memoItemCount" type="number" min="1" max="20" value="${item.itemCount||9}"></label>`:layout==="lines"?`<label>ì¤„ ìˆ˜<input id="memoLineCount" type="number" min="3" max="20" value="${item.lineCount||8}"></label>`:layout==="yearly-grid"?`<div class="grid2"><label>ì—´ ìˆ˜<input id="memoYearlyColumns" type="number" min="2" max="6" value="${item.yearlyColumns||4}"></label><label>ì›”ë³„ ë°‘ì¤„ ìˆ˜<input id="memoLinesPerMonth" type="number" min="0" max="12" value="${item.linesPerMonth??4}"></label></div><label>ì›” í‘œì‹œ<select id="memoMonthLabelStyle"><option value="number-en" ${item.monthLabelStyle!=="number-ko"?"selected":""}>3 MAR</option><option value="number-ko" ${item.monthLabelStyle==="number-ko"?"selected":""}>3ì›”</option></select></label>`:""}<div class="hint">ì›”ë ¥ ë’·ë©´ Masterì—ì„œ ì„¤ì •í•˜ë©´ 12ê°œì›”ì— ê³µí†µ ì ìš©ë©ë‹ˆë‹¤. ì‚¬ìš©ì ì„œë¹„ìŠ¤ì—ì„œëŠ” ì´ êµ¬ì¡°ì™€ ì œëª©ì„ í¸ì§‘í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.</div><button id="applyMemoWidget" class="action">í”Œë˜ë„ˆ ì„¤ì • ì ìš©</button></div>`;
+ }
+ else if(item.type==="monthly-schedule")panels.content=head+`<label>ì¼ì • ì œëª©<input id="widgetTitle" value="${item.title||"ì´ë‹¬ì˜ ì¼ì •"}"></label><label>ìµœëŒ€ í‘œì‹œ ì¼ì •<input id="scheduleMaxItems" type="number" min="1" max="30" value="${item.maxItems||10}"></label><button id="applyScheduleWidget" class="action">ì¼ì • ì„¤ì • ì ìš©</button></div>`;
+ else if(item.type==="year-calendar"){
+  panels.content=head+`<label>ì‹œì‘ì›”<input id="yearCalendarStartMonth" type="number" min="1" max="12" value="${item.startMonth||1}"></label><button id="applyYearCalendarContent" class="action">ì—°ê°„ ì›”ë ¥ ì½˜í…ì¸  ì €ì¥</button></div>`;
+  panels.design=head+`<label>ë°°ì—´<select id="yearCalendarColumns"><option value="3" ${item.columns===3?"selected":""}>3ì—´ Ã— 4í–‰</option><option value="4" ${item.columns!==3?"selected":""}>4ì—´ Ã— 3í–‰</option><option value="6" ${item.columns===6?"selected":""}>6ì—´ Ã— 2í–‰</option></select></label><label>ì›” í‘œì‹œ í–‰ ìˆ˜<select id="yearCalendarRowsMode"><option value="inherit" ${(item.rowsMode||"inherit")==="inherit"?"selected":""}>ì›”ë ¥ ì„¤ì • ë”°ë¦„</option><option value="adaptive" ${item.rowsMode==="adaptive"?"selected":""}>ì›”ë³„ ìë™ Â· 5/6ì£¼</option><option value="5" ${item.rowsMode==="5"?"selected":""}>í•­ìƒ 5ì£¼</option><option value="6" ${item.rowsMode==="6"?"selected":""}>í•­ìƒ 6ì£¼</option></select></label><button id="applyYearCalendarLayout" class="action">ì—°ê°„ ì›”ë ¥ ë°°ì—´Â·í–‰ ìˆ˜ ì €ì¥</button></div>`;
+ }else if(item.type==="month-date-strip"){
+  panels.content=head+`<label>ì›” ì—°ê²°<select id="dateStripMonthSource"><option value="page" ${item.monthSource!=="fixed"?"selected":""}>í˜„ì¬ í˜ì´ì§€ ì›” ìë™ ì—°ê²°</option><option value="fixed" ${item.monthSource==="fixed"?"selected":""}>ì—°Â·ì›” ì§ì ‘ ì„ íƒ</option></select></label><div class="grid2"><label>ì—°ë„<input id="dateStripYear" type="number" value="${item.year||project.settings.year}"></label><label>ì›”<input id="dateStripMonth" type="number" min="1" max="12" value="${item.month||project.settings.startMonth||1}"></label></div><label><input id="dateStripShowWeekday" type="checkbox" ${item.showWeekday!==false?"checked":""} style="width:auto;height:auto"> ìš”ì¼(SMTWTFS) í‘œì‹œ</label><label><input id="dateStripShowDate" type="checkbox" ${item.showDate!==false?"checked":""} style="width:auto;height:auto"> ì¼ì í‘œì‹œ</label><button id="applyDateStripContent" class="action">ë‚ ì§œ ë  ì½˜í…ì¸  ì €ì¥</button></div>`;
+  panels.design=head+`<div class="hint">ìš”ì¼ì€ ì˜ë¬¸ í•œ ê¸€ì(SMTWTFS), ë‚ ì§œëŠ” ì•„ë˜ ì¤„ì— í‘œì‹œë©ë‹ˆë‹¤. ì¼ìš”ì¼ê³¼ í† ìš”ì¼ì€ ìë™ êµ¬ë¶„ë©ë‹ˆë‹¤.</div><label><input id="dateStripBackground" type="checkbox" ${item.style?.background!==false?"checked":""} style="width:auto;height:auto"> ë°°ê²½Â·êµ¬ë¶„ì„  í‘œì‹œ</label><button id="applyDateStripDesign" class="action">ë‚ ì§œ ë  ë””ìì¸ ì €ì¥</button></div>`;
+ }else if(item.type==="event-list"){const allMode=item.displayMode==="all";panels.content=head+`<label>ëª©ë¡ ì œëª©<input id="eventListTitle" value="${item.title||"ì „ì²´ í•™ì‚¬ì¼ì •"}"></label><div class="grid2"><label>ì‹œì‘ì›”<input id="eventListStartMonth" type="number" min="1" max="12" value="${item.startMonth||1}"></label><label>í‘œì‹œ ê°œì›”<input id="eventListMonthCount" type="number" min="1" max="24" value="${item.monthCount||12}"></label></div><label>ì¼ì • í‘œì‹œ ë²”ìœ„<select id="eventListDisplayMode"><option value="limit" ${!allMode?"selected":""}>ìµœëŒ€ ê°œìˆ˜ í‘œì‹œ</option><option value="all" ${allMode?"selected":""}>ì „ì²´ ì¼ì • í‘œì‹œ</option></select></label><label id="eventListMaxItemsField" ${allMode?'class="hidden"':''}>ìµœëŒ€ í‘œì‹œ ì¼ì •<input id="eventListMaxItems" type="number" min="1" max="500" value="${item.maxItems||24}"></label><label><input id="eventListShowEndDate" type="checkbox" ${item.showEndDate?"checked":""} style="width:auto;height:auto"> ì¢…ë£Œì¼ í•¨ê»˜ í‘œì‹œ</label><button id="applyEventListWidget" class="action">ì „ì²´ í•™ì‚¬ì¼ì • ì„¤ì • ì ìš©</button></div>`;panels.design=head+`<label>ë‹¨ êµ¬ì„±<select id="eventListColumns"><option value="auto" ${item.columns==="auto"?"selected":""}>ìë™ Â· ê°œì²´ í¬ê¸°ì— ë§ì¶¤</option><option value="1" ${item.columns!=="auto"&&Number(item.columns||1)===1?"selected":""}>1ë‹¨ Â· ì„¸ë¡œ ëª©ë¡</option><option value="2" ${Number(item.columns||1)===2?"selected":""}>2ë‹¨</option><option value="3" ${Number(item.columns||1)===3?"selected":""}>3ë‹¨</option><option value="4" ${Number(item.columns||1)===4?"selected":""}>4ë‹¨</option></select></label><div class="grid2"><label>ê¸°ë³¸ ê¸€ì í¬ê¸°<input id="eventListFontSize" type="number" min="5" max="18" step="0.5" value="${item.fontSize||8}"></label><label>ìµœì†Œ ê¸€ì í¬ê¸°<input id="eventListMinFontSize" type="number" min="5" max="18" step="0.5" value="${item.minFontSize||6}"></label></div><label><input id="eventListAutoShrink" type="checkbox" ${item.autoShrink!==false?"checked":""} style="width:auto;height:auto"> ë‚´ìš©ì— ë§ê²Œ ìë™ ì¶•ì†Œ</label><div class="hint">ìë™ì€ ë¨¼ì € ë‹¨ ìˆ˜ë¥¼ ì¡°ì •í•˜ê³ , í•„ìš”í•  ë•Œë§Œ ì„¤ì •í•œ ìµœì†Œ í¬ê¸°ê¹Œì§€ ê¸€ìë¥¼ ì¤„ì…ë‹ˆë‹¤. ê·¸ë˜ë„ ë„˜ì¹˜ë©´ í¸ì§‘ í™”ë©´ì— ì•ˆë‚´ê°€ í‘œì‹œë©ë‹ˆë‹¤.</div><button id="applyEventListLayout" class="action">ë‹¨ êµ¬ì„±Â·ê¸€ì ì ìš©</button></div>`;}
+ else if(["mini-calendar","mini-calendar-prev","mini-calendar-next"].includes(item.type)){
+  const label=item.type==="mini-calendar-prev"?"ì´ì „ ë‹¬":item.type==="mini-calendar-next"?"ë‹¤ìŒ ë‹¬":"í˜„ì¬ ë‹¬",s=item.style||{};
+  panels.content=head+`<div class="hint">ì´ ê°œì²´ëŠ” ì›”ë ¥ ë’·ë©´ì˜ ${label}ì„ ìë™ í‘œì‹œí•©ë‹ˆë‹¤. ë¹ˆ ë‚ ì§œ ì…€ìš© ë¯¸ë‹ˆ ì›”ë ¥ê³¼ ë³„ê°œì˜ ë…ë¦½ ë””ìì¸ ê°œì²´ì…ë‹ˆë‹¤.</div><label>ì›” í‘œì‹œ í˜•ì‹<select id="miniMonthLabelStyle"><option value="number-en" ${item.monthLabelStyle==="number-en"?"selected":""}>3 MAR Â· ìˆ«ì+ì˜ë¬¸ì›”</option><option value="year-month-ko" ${item.monthLabelStyle!=="number-en"?"selected":""}>2028ë…„ 3ì›”</option></select></label><label><input id="miniShowWeekday" type="checkbox" ${item.showWeekdayHeader!==false?"checked":""} style="width:auto;height:auto"> ìš”ì¼ ë¨¸ë¦¬ê¸€ í‘œì‹œ</label><button id="applyMiniCalendarContent" class="action">ë¯¸ë‹ˆ ì›”ë ¥ ì½˜í…ì¸  ì €ì¥</button></div>`;
+  panels.design=head+`<div class="template-help-card"><strong>ì›” í‘œì‹œë¥¼ í¬í•¨í•œ ë¯¸ë‹ˆ ì›”ë ¥ ìŠ¤íƒ€ì¼</strong>ì›” ì œëª©Â·ìš”ì¼Â·ë‚ ì§œÂ·ì£¼ë§ìƒ‰ê³¼ êµ¬ë¶„ì„ ì„ ì´ ê°œì²´ì— ì €ì¥í•©ë‹ˆë‹¤.</div><div class="grid2"><label>ì›” ì œëª© í¬ê¸°<input id="miniTitleSize" type="number" min="6" max="36" step=".5" value="${s.titleSize||11}"></label><label>ì›” ì œëª© ì •ë ¬<select id="miniTitleAlign"><option value="left" ${s.titleAlign!=="center"&&s.titleAlign!=="right"?"selected":""}>ì™¼ìª½</option><option value="center" ${s.titleAlign==="center"?"selected":""}>ê°€ìš´ë°</option><option value="right" ${s.titleAlign==="right"?"selected":""}>ì˜¤ë¥¸ìª½</option></select></label><label>ì›” ì œëª©ìƒ‰<input id="miniPrimary" type="color" value="${s.primary||"#293878"}"></label><label>ìš”ì¼ìƒ‰<input id="miniWeekdayColor" type="color" value="${s.weekdayColor||"#7a8291"}"></label><label>í‰ì¼ ë‚ ì§œìƒ‰<input id="miniDateColor" type="color" value="${s.dateColor||"#293878"}"></label><label>ì¼ìš”ì¼ìƒ‰<input id="miniSunday" type="color" value="${s.sunday||"#ef3340"}"></label><label>í† ìš”ì¼ìƒ‰<input id="miniSaturday" type="color" value="${s.saturday||"#4777bd"}"></label></div><label><input id="miniGridLine" type="checkbox" ${s.gridLine?"checked":""} style="width:auto;height:auto"> ë‚ ì§œ í–‰ êµ¬ë¶„ì„  í‘œì‹œ</label><button id="applyMiniCalendarStyle" class="action">ë¯¸ë‹ˆ ì›”ë ¥ ìŠ¤íƒ€ì¼ ì €ì¥</button></div>`;
+ }
+ else panels.content=head+`<button id="replaceImageBtn" class="action">ì´ë¯¸ì§€ íŒŒì¼ ì„ íƒ</button><label style="margin-top:8px">ì´ë¯¸ì§€ ë§ì¶¤<select id="elemFit"><option value="cover" ${item.fit==="cover"?"selected":""}>ì˜ì—­ ì±„ìš°ê¸°</option><option value="contain" ${item.fit==="contain"?"selected":""}>ì „ì²´ ì´ë¯¸ì§€ ë³´ê¸°</option></select></label><label>ë¹„ìœ¨ ìœ ì§€<select id="elemLockAspect"><option value="true" ${item.lockAspect!==false?"selected":""}>ìœ ì§€</option><option value="false" ${item.lockAspect===false?"selected":""}>ììœ  ë³€í˜•</option></select></label><div class="grid2"><label>ë°ê¸° %<input id="elemBrightness" type="number" min="0" max="300" value="${item.imageStyle?.brightness??100}"></label><label>ëŒ€ë¹„ %<input id="elemContrast" type="number" min="0" max="300" value="${item.imageStyle?.contrast??100}"></label><label>ì±„ë„ %<input id="elemSaturation" type="number" min="0" max="300" value="${item.imageStyle?.saturation??100}"></label><label>íˆ¬ëª…ë„<input id="elemImageOpacity" type="number" min="0" max="1" step=".05" value="${item.opacity??1}"></label></div><div class="grid2"><label>ì¢Œìš° ë°˜ì „<select id="elemImageFlipX"><option value="false" ${!item.imageStyle?.flipX?"selected":""}>ì•„ë‹ˆì˜¤</option><option value="true" ${item.imageStyle?.flipX?"selected":""}>ì˜ˆ</option></select></label><label>ìƒí•˜ ë°˜ì „<select id="elemImageFlipY"><option value="false" ${!item.imageStyle?.flipY?"selected":""}>ì•„ë‹ˆì˜¤</option><option value="true" ${item.imageStyle?.flipY?"selected":""}>ì˜ˆ</option></select></label></div><label>ëŒ€ì²´ í…ìŠ¤íŠ¸<input id="elemAlt" value="${item.alt||""}"></label><button id="applyImageStyle" class="action">ì´ë¯¸ì§€ ì„¤ì • ì ìš©</button></div>`;
+ panels.layout=head+`<div class="grid2"><label>X (%)<input id="elemX" type="number" step=".5" value="${item.x.toFixed(1)}"></label><label>Y (%)<input id="elemY" type="number" step=".5" value="${item.y.toFixed(1)}"></label><label>í­ (%)<input id="elemW" type="number" step=".5" value="${item.width.toFixed(1)}"></label><label>ë†’ì´ (%)<input id="elemH" type="number" step=".5" value="${item.height.toFixed(1)}"></label></div><button id="applyElementGeometry" class="action secondary">ì¢Œí‘œÂ·í¬ê¸° ì €ì¥</button><div class="row"><button id="sendBackward" class="secondary">ë’¤ë¡œ</button><button id="bringForward" class="secondary">ì•ìœ¼ë¡œ</button></div><div class="row"><button id="duplicateFromInspector" class="secondary">ë³µì œ</button><button id="deleteFromInspector" class="danger">ì‚­ì œ</button></div></div>`;
+ return panels
+}
+function inspectorTabsHTML(){
+ return `<div class="inspector-tabs" role="tablist" aria-label="Inspector ì„¤ì • ë¶„ë¥˜"><button type="button" class="inspector-tab ${inspectorActiveTab==="content"?"active":""}" data-tab="content">ì½˜í…ì¸ </button><button type="button" class="inspector-tab ${inspectorActiveTab==="design"?"active":""}" data-tab="design">ë””ìì¸</button><button type="button" class="inspector-tab ${inspectorActiveTab==="layout"?"active":""}" data-tab="layout">ë°°ì¹˜</button></div>`
+}
+function setupInspectorTabs(){
+ document.querySelectorAll(".inspector-tab").forEach(button=>button.addEventListener("click",()=>{
+  inspectorActiveTab=button.dataset.tab;
+  document.querySelectorAll(".inspector-tab").forEach(node=>node.classList.toggle("active",node.dataset.tab===inspectorActiveTab));
+  document.querySelectorAll(".inspector-tab-panel").forEach(node=>node.classList.toggle("active",node.dataset.panel===inspectorActiveTab));
+ }))
+}
+
+function renderPage(){
+ const p=selectedPage(),page=el("page"),ps=project.productType.pageSize,neutralBase=p.aiDesignBase?.mode==="neutral";page.className=`page ${project.productType.category} ${p.role}-surface ${isInsertPage(p)?"template-insert-page":""} ${p.role==="monthly-back"?"planner-back-surface":""}`;page.dataset.surfaceRole=p.role;page.dataset.standardFamily=project.template?.metadata?.sampleFamily||"";page.dataset.aiDesignBase=neutralBase?"neutral":"inherited";page.dataset.editableBackground=pageElements(p).some(item=>item.role==="background-decoration")?"true":"false";page.style.aspectRatio=`${ps.width}/${ps.height}`;const derivedMonthKey=p.monthKey||p.calendarYear&&p.calendarMonth?`${p.calendarYear}-${String(p.calendarMonth).padStart(2,"0")}`:null,monthlyStyles=project.book.monthlyStyleOverrides||[],monthPageIndex=project.book.pageInstances.filter(item=>item.role==="monthly-front").findIndex(item=>item.id===p.id||item.calendarYear===p.calendarYear&&item.calendarMonth===p.calendarMonth),monthStyle=monthlyStyles.find(item=>item.monthKey===derivedMonthKey)||monthlyStyles[monthPageIndex]||null,monthPrimary=monthStyle?.tokens?.primary||project.template.resources?.colorTheme?.primary||"#315e9e";page.style.setProperty("--month-primary",monthPrimary);page.style.setProperty("--planner-background",monthStyle?.tokens?.plannerBackground||"#eef5f2");page.style.background=p.role==="monthly-back"?(monthStyle?.tokens?.plannerBackground||"#eef5f2"):"#fff";let html='<div class="binding"></div><div class="surface-content">';
+ if(p.role==="monthly-front"){
+  window.ACDLScheduleApiClient?.ensureCalendarReferences?.(project).catch(()=>{});
+  const g=groupedEvents(),max=project.template.masters.calendar.eventMaxVisiblePerDay,title=p.overrides.monthTitle||`${p.calendarYear}ë…„ ${p.calendarMonth}ì›”`,cr=calendarRegion(),rows=calendarRowCountFor(p.calendarYear,p.calendarMonth),grid=calendarGridFor(p.calendarYear,p.calendarMonth,rows),design=project.template.masters.calendar.design||{},vertical=calendarVerticalLayout(design),preset=vertical.preset,presentation=preset?.presentation||design,chrome=calendarChromeLayout(presentation,vertical,cr),monthNames=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"],monthTitleStyles=["number-stack","number-inline","number-only","year-month-korean","month-korean","english-month"],monthTitleStyle=monthTitleStyles.includes(presentation.monthTitleStyle)?presentation.monthTitleStyle:"number-stack",stackTitle=`<span class="month-number">${p.calendarMonth}</span><span class="month-meta"><span>${p.calendarYear}</span><span class="month-en">${monthNames[p.calendarMonth-1]}</span></span>`,inlineTitle=`<span class="month-year">${p.calendarYear}</span><span class="month-number">${p.calendarMonth}</span><span class="month-en">${monthNames[p.calendarMonth-1]}</span>`,titleMarkups={"number-stack":stackTitle,"number-inline":inlineTitle,"number-only":`<span class="month-number">${p.calendarMonth}</span>`,"year-month-korean":`${p.calendarYear}ë…„ ${p.calendarMonth}ì›”`,"month-korean":`${p.calendarMonth}ì›”`,"english-month":`<span class="month-en">${monthNames[p.calendarMonth-1]}</span><span class="month-year">${p.calendarYear}</span>`},titleMarkup=p.overrides.monthTitle?title:titleMarkups[monthTitleStyle],gridClass={"open-rows":"grid-open-rows",minimal:"grid-minimal","detached-cards":"grid-detached-cards",boxed:"grid-boxed"}[presentation.gridStyle]||"grid-boxed",calendarClasses=[presentation.monthTitleAlign==="center"?"month-title-center":"month-title-left",presentation.weekdayStyle==="outlined-pills"?"weekday-outlined-pills":"weekday-filled-tabs",gridClass].join(" "),presetAttr=preset?` data-calendar-preset="${preset.presetId}"`:"",presetVars=preset?`--calendar-cell-padding-x:${presentation.cellPaddingX}mm;--calendar-cell-padding-y:${presentation.cellPaddingY}mm;--calendar-line-width:${presentation.lineWidth}mm;--calendar-line-color:${presentation.lineColor};--calendar-weekday-radius:${presentation.weekdayCornerRadius}mm;--calendar-title-weekday-gap:${presentation.titleWeekdayGap}mm;`:"";
+  html+=`<div id="calendarRegion" class="calendar-region ${calendarClasses} ${calendarEditing?"editing":""}"${presetAttr} data-calendar-composition="${chrome.contract?.schemaVersion||"monthly-calendar-composition.v1"}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%;--calendar-title-share:${vertical.title}%;--calendar-weekday-track:${chrome.weekdayStage}%;--calendar-weekday-grid-gap:${chrome.gridGapMm/Math.max(.01,chrome.trackMm)*100}%;--calendar-title-responsive:${project.template.masters.calendar.monthTitleSize/8.5}cqw;${presetVars}"><div class="month-title ${monthTitleStyle}" style="font-size:${project.template.masters.calendar.monthTitleSize}px;color:var(--month-primary)">${titleMarkup}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
+  weekDayHeaders().forEach(h=>html+=`<div class="cell head">${h}</div>`);
+  const miniCells=project.settings.showAdjacentMiniCalendars?selectAdjacentMiniCells(grid,p.calendarMonth):[];
+  const hiddenScheduleByDate=assignRangeLanes(grid).hiddenByDate||{};
+  grid.forEach((c,cellIndex)=>{
+   const renderDay=(day,extra=false)=>{
+    const hideAdjacent=day.month!==p.calendarMonth&&project.template.masters.calendar.showAdjacentMonths===false;
+    const refs=calendarReferenceForDate(day.date),holiday=refs.holidays.find(item=>item.isHoliday!==false);
+    const auxiliary=[...refs.lunars,...refs.solarTerms].map(item=>item.name).filter(Boolean).join(" / ");
+    const special=[...refs.holidays,...refs.anniversaries].map(item=>item.name).filter(Boolean).join(" Â· ");
+    let part=`<div class="day-block ${extra?"compact-extra":""} ${holiday?"public-holiday":""}" data-date="${day.date}"><div class="day-head-row"><div class="day">${hideAdjacent?"":day.day}</div>`;
+    if(!hideAdjacent&&auxiliary)part+=`<span class="calendar-reference auxiliary" title="${escapeAttr(auxiliary)}">${escapeAttr(auxiliary)}</span>`;
+    part+="</div>";
+    if(!hideAdjacent&&special)part+=`<span class="calendar-reference special" title="${escapeAttr(special)}">${escapeAttr(special)}</span>`;
+    const hiddenCount=Number(hiddenScheduleByDate[day.date]||0);
+    if(!hideAdjacent&&hiddenCount>0)part+=`<span class="calendar-overflow-count" title="í‘œì‹œ ê³µê°„ì„ ë„˜ì€ ì¼ì •">+${hiddenCount}</span>`;
+    return part+"</div>"
+   };
+   const selected=selectedDate===c.date||(c.extra&&selectedDate===c.extra.date);
+   if(miniCells.includes(cellIndex)){const rel=cellIndex===miniCells[0]?-1:1,d=new Date(p.calendarYear,p.calendarMonth-1+rel,1);html+=`<div class="cell mini-host">${renderCellMiniCalendar(d.getFullYear(),d.getMonth()+1)}</div>`;return}
+   html+=`<div class="cell ${c.month!==p.calendarMonth?"adj":""} ${c.dow===0?"sun":c.dow===6?"sat":""} ${selected?"selected":""} ${c.extra?"compact-pair":""}"><div class="day-stack">${renderDay(c)}${c.extra?renderDay(c.extra,true):""}</div></div>`
+  });
+  html+=`</div>${renderRangeEventLayer(grid,rows)}</div></div>`;
+ }else if(p.role==="poster-annual"){
+  if((project.book.elementsByPage?.[p.id]||[]).length===0)html+=`<div class="poster-empty-guide non-output editor-only">ê°œì²´ ì¶”ê°€ì—ì„œ ì—°ê°„ ì›”ë ¥, í•™êµ ì •ë³´, ì¼ì • ëª©ë¡ì„ ë°°ì¹˜í•˜ì„¸ìš”.</div>`;
+ }else if(p.role==="monthly-back"){
+  if(project.template.metadata?.sampleFamily!=="desk-6")html+=`<div class="editor-guide non-output editor-only">${p.calendarYear}ë…„ ${p.calendarMonth}ì›”ì˜ ë’·ë©´</div>`;
+ }else if(p.role.includes("cover-front")){
+  html+=`<div class="cover-art cover-base"></div>`;
+ }else if(p.role.includes("intro-front")){
+  html+=`<div class="cover-art"><h3>${p.overrides.title||"ìš°ë¦¬ í•™êµì˜ í•œ í•´"}</h3><p>${project.book.school.name}</p></div>`;
+ }else if(isInsertPage(p)){
+  const insertKind=p.role.includes("front-insert")?"ì• ê°„ì§€":"ë’¤ ê°„ì§€",side=p.role.endsWith("-back")?"ë’·ë©´":"ì•ë©´";
+  html+=`<div class="template-surface-guide non-output editor-only"><div class="template-surface-guide-inner"><span class="guide-kicker">FREE TEMPLATE SURFACE</span><strong>${insertKind} ${p.insertIndex||1} Â· ${side}</strong><p>ì´ ë¬¸êµ¬ëŠ” ì‹¤ì œ ì¶œë ¥ ì½˜í…ì¸ ê°€ ì•„ë‹Œ í…œí”Œë¦¿ ì œì‘ìš© ì‘ì—…ë©´ ì•ˆë‚´ì…ë‹ˆë‹¤.<br>í•™êµ ê°œì²´, í…ìŠ¤íŠ¸, ì´ë¯¸ì§€ ë“±ì„ ë°°ì¹˜í•´ ì´ ë©´ì˜ êµ¬ì„±ì„ ì„¤ê³„í•˜ì„¸ìš”.</p><div class="guide-meta"><span>ììœ  ë°°ì¹˜</span><span>í˜ì´ì§€ ì „ìš© ê°œì²´</span><span>Master ê°œì²´ ì§€ì›</span></div></div></div>`;
+ }else if(p.role.includes("back-cover-front")){
+  if((project.book.elementsByPage?.[p.id]||[]).length===0)html+=`<div class="cover-art"><h3>${p.overrides.title||"í•¨ê»˜ ë§Œë“  í•™êµì˜ ê¸°ë¡"}</h3><p>${project.book.school.name}</p></div>`;
+ }else if((project.book.elementsByPage?.[p.id]||[]).length===0)html+=`<div class="backface"><div><strong>${roleLabel(p)}</strong><br>ì‹¤ì œ ì¸ì‡„ë˜ëŠ” ë’·ë©´ Surface</div></div>`;
+ html+="</div>";page.innerHTML=html;
+ if(p.role==="monthly-front"){const align=project.template.masters.calendar.calendarOverrides?.monthTitleAlign||project.template.masters.calendar.design?.monthTitleAlign||"left",regionNode=page.querySelector(".calendar-region");regionNode?.classList.remove("month-title-left","month-title-center","month-title-right");regionNode?.classList.add(`month-title-${["left","center","right"].includes(align)?align:"left"}`)}
+ if(p.role==="monthly-front"&&calendarEditing&&!preview){
+  const region=el("calendarRegion");if(region){
+   const label=document.createElement("span");label.className="calendar-region-label";label.textContent="MONTHLY MASTER";region.appendChild(label);
+   const dragBar=document.createElement("span");dragBar.className="calendar-drag-bar";dragBar.dataset.calendarHandle="move";dragBar.textContent="ì›”ë ¥ Master Â· ë“œë˜ê·¸í•˜ì—¬ ì´ë™";region.appendChild(dragBar);
+   ["n","e","s","w","nw","ne","se","sw"].forEach(pos=>{const h=document.createElement("span");h.className="calendar-handle "+pos;h.dataset.calendarHandle=pos;region.appendChild(h)});
+   region.addEventListener("pointerdown",e=>{
+    if(e.target.closest("[data-date]")&&!e.target.dataset.calendarHandle)return;
+    startCalendarPointer(e)
+   })
+  }
+ }
+ renderFreeElements(page);
+ const selectMonthlyCalendar=e=>{
+  if(calendarEditing)return false;
+  e?.stopPropagation();calendarEditing=true;selectedElementId=null;selectedElementScope=null;render();
+  showEditorToast("ì›”ë ¥ì„ ì„ íƒí–ˆìŠµë‹ˆë‹¤. í…Œë‘ë¦¬ ì¡°ì ˆì ì´ë‚˜ Inspectorì—ì„œ í¬ê¸°ë¥¼ ë³€ê²½í•˜ì„¸ìš”.");return true
+ };
+ const calendarRegionNode=page.querySelector(".calendar-region");
+ if(calendarRegionNode)calendarRegionNode.addEventListener("click",e=>{if(!e.target.closest("[data-date]"))selectMonthlyCalendar(e)});
+ page.querySelectorAll("[data-date]").forEach(c=>c.addEventListener("click",e=>{if(selectMonthlyCalendar(e))return;e.stopPropagation();selectedDate=c.dataset.date;renderPage();renderInspector()}));
+}
+function dateEvents(){return selectedDate?project.book.events.filter(ev=>selectedDate>=ev.startDate&&selectedDate<=(ev.endDate||ev.startDate)):[]}
+
+const INSPECTOR_SAVE_MESSAGES={
+ applySemanticSample:"ìƒ˜í”Œ ì½˜í…ì¸ ë¥¼ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applySemanticBinding:"ë°ì´í„° ì—°ê²° ì„¤ì •ì„ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applySemanticTemplate:"ê°œì²´ ë ˆì´ì•„ì›ƒê³¼ ìŠ¤íƒ€ì¼ì„ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applyCalendarRegion:"ì›”ë ¥ ìœ„ì¹˜ì™€ í¬ê¸°ë¥¼ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applyMemoWidget:"ë©”ëª¨ ì„¤ì •ì„ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applyScheduleWidget:"ì¼ì • ìœ„ì ¯ ì„¤ì •ì„ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applyTextContent:"í…ìŠ¤íŠ¸ ì½˜í…ì¸ ë¥¼ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applyElementStyle:"í…ìŠ¤íŠ¸ ë””ìì¸ì„ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applyYearCalendarContent:"ì—°ê°„ ì›”ë ¥ ì½˜í…ì¸ ë¥¼ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applyYearCalendarLayout:"ì—°ê°„ ì›”ë ¥ ë°°ì—´ì„ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applyImageStyle:"ì´ë¯¸ì§€ ì„¤ì •ì„ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applyElementGeometry:"ê°œì²´ ìœ„ì¹˜ì™€ í¬ê¸°ë¥¼ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applyMaster:"ì›”ë ¥ ê¸°ë³¸ ì„¤ì •ì„ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applyRangeEventStyle:"êµ¬ê°„ ì¼ì • ìŠ¤íƒ€ì¼ì„ ì €ì¥í–ˆìŠµë‹ˆë‹¤.",
+ applyCoverMaster:"í‘œì§€ Master ì„¤ì •ì„ ì €ì¥í–ˆìŠµë‹ˆë‹¤."
+};
+const INSPECTOR_SAVE_IDS=Object.keys(INSPECTOR_SAVE_MESSAGES);
+
+function setInspectorNotice(type,message){
+ inspectorNotice={type,message};
+ const node=el("inspectorFeedback");
+ if(node){node.className=`inspector-feedback ${type}`;node.querySelector("span").textContent=message}
+}
+function inspectorContainerFor(button){
+ return button.closest(".inspector-group")||button.closest(".section")||el("inspector")
+}
+function inspectorSignature(container){
+ return window.ACDLInspectorForm.signature(container)
+}
+function validateInspectorContainer(container){
+ return window.ACDLInspectorForm.validate(container)
+}
+function setupInspectorFeedback(){
+ const feedback=el("inspectorFeedback");
+ if(feedback)setInspectorNotice(inspectorNotice.type,inspectorNotice.message);
+ const tracked=[];
+ INSPECTOR_SAVE_IDS.forEach(id=>{
+  const button=el(id);if(!button)return;
+  const container=inspectorContainerFor(button),initial=inspectorSignature(container);
+  button.classList.add("inspector-save");
+  button.dataset.initialSignature=initial;
+  tracked.push({button,container,initial});
+  const update=()=>{
+   const draftChanged=id==="applySemanticSample"&&semanticImageDraftElementId===sourceElement()?.id&&!!semanticImageDraft;
+   const changed=inspectorSignature(container)!==initial||draftChanged;
+   button.classList.toggle("has-changes",changed);
+   container.classList.toggle("is-dirty",changed);
+   inspectorDirty=tracked.some(item=>item.button.classList.contains("has-changes"));
+   if(changed)setInspectorNotice("dirty","ë³€ê²½ì‚¬í•­ì´ ìˆìŠµë‹ˆë‹¤. í•´ë‹¹ ì˜ì—­ì˜ ì €ì¥ ë²„íŠ¼ì„ ëˆŒëŸ¬ ë°˜ì˜í•˜ì„¸ìš”.");
+   else if(!inspectorDirty&&inspectorNotice.type==="dirty")setInspectorNotice("ready","ë³€ê²½ëœ ê°’ì„ ì›ë˜ëŒ€ë¡œ ë˜ëŒë ¸ìŠµë‹ˆë‹¤. ì €ì¥í•  ë‚´ìš©ì´ ì—†ìŠµë‹ˆë‹¤.")
+  };
+  container.querySelectorAll("input,select,textarea").forEach(node=>{
+   node.addEventListener("input",update);
+   node.addEventListener("change",update)
+  });
+  update();
+  button.addEventListener("click",event=>{
+   const validation=validateInspectorContainer(container);
+   if(!validation.valid){
+    event.preventDefault();event.stopImmediatePropagation();
+    setInspectorNotice("error",validation.message);
+    showEditorToast(validation.message);
+    return
+   }
+   const changed=button.classList.contains("has-changes");
+   if(!changed){
+    event.preventDefault();event.stopImmediatePropagation();
+    const message="ë³€ê²½ëœ ë‚´ìš©ì´ ì—†ìŠµë‹ˆë‹¤. ë¨¼ì € ì„¤ì •ê°’ì„ ë³€ê²½í•˜ì„¸ìš”.";
+    setInspectorNotice("info",message);showEditorToast(message);
+    return
+   }
+   inspectorDirty=false;
+   inspectorNotice={type:"success",message:INSPECTOR_SAVE_MESSAGES[id]};
+   setTimeout(()=>showEditorToast("ì €ì¥ë˜ì—ˆìŠµë‹ˆë‹¤."),0);
+  },true)
+ })
+}
+function confirmDiscardInspectorChanges(){
+ if(!inspectorDirty)return true;
+ const ok=confirm("Inspectorì— ì €ì¥í•˜ì§€ ì•Šì€ ë³€ê²½ì‚¬í•­ì´ ìˆìŠµë‹ˆë‹¤.\në³€ê²½ì‚¬í•­ì„ ë²„ë¦¬ê³  ì´ë™í•˜ì‹œê² ìŠµë‹ˆê¹Œ?");
+ if(!ok){
+  setInspectorNotice("dirty","í˜„ì¬ ë³€ê²½ì‚¬í•­ì„ ë¨¼ì € ì €ì¥í•˜ê±°ë‚˜ ì…ë ¥ê°’ì„ ì›ë˜ëŒ€ë¡œ ë˜ëŒë¦¬ì„¸ìš”.");
+  showEditorToast("í˜ì´ì§€ ì´ë™ì„ ì·¨ì†Œí–ˆìŠµë‹ˆë‹¤. Inspector ë³€ê²½ì‚¬í•­ì„ ë¨¼ì € ì €ì¥í•˜ì„¸ìš”.")
+ }
+ return ok
+}
+
+function renderInspector(){
+ const p=selectedPage(),ins=el("inspector"),panels=elementInspectorPanels();
+ let content=panels.content||"",design=panels.design||"",layout=panels.layout||"";
+ if(p.role==="monthly-front"&&calendarEditing){
+  const r=calendarRegion();layout=`<div class="section"><span class="layer-chip">ì›”ë ¥ ì•ë©´ Master Â· ë‹¬ë ¥ ì˜ì—­</span><div class="calendar-master-note">ìœ„ì¹˜ì™€ í¬ê¸° ë³€ê²½ì€ 12ê°œì›” ëª¨ë“  ì›”ë ¥ ì•ë©´ì— ì ìš©ë©ë‹ˆë‹¤. Canvasì˜ íŒŒë€ í…Œë‘ë¦¬ë¥¼ ë“œë˜ê·¸í•˜ê±°ë‚˜ ì•„ë˜ ê°’ì„ ì…ë ¥í•˜ì„¸ìš”.</div><div class="grid2"><label>X (%)<input id="calX" type="number" step=".5" value="${r.x.toFixed(1)}"></label><label>Y (%)<input id="calY" type="number" step=".5" value="${r.y.toFixed(1)}"></label><label>í­ (%)<input id="calW" type="number" step=".5" value="${r.width.toFixed(1)}"></label><label>ë†’ì´ (%)<input id="calH" type="number" step=".5" value="${r.height.toFixed(1)}"></label></div><button id="applyCalendarRegion" class="action">ì›”ë ¥ ìœ„ì¹˜Â·í¬ê¸° ì €ì¥</button><div class="calendar-size-presets"><button id="calendarPresetFull" class="secondary">í¬ê²Œ</button><button id="calendarPresetStandard" class="secondary">ê¸°ë³¸</button><button id="calendarPresetCompact" class="secondary">ì‘ê²Œ</button><button id="calendarPresetCenter" class="secondary">ê°€ìš´ë° ì •ë ¬</button></div><button id="closeCalendarEditing" class="action secondary" style="margin-top:6px">ì›”ë ¥ ì„ íƒ í•´ì œ</button></div>`+layout
+ }
+ if(!sourceElement()){
+  content+=isInsertPage(p)?`<div class="section template-help-card"><strong>${p.role.includes("front-insert")?"ì• ê°„ì§€":"ë’¤ ê°„ì§€"} ììœ  í…œí”Œë¦¿ ë©´</strong><br>ê°€ìš´ë° ì•ˆë‚´ëŠ” í¸ì§‘ í™”ë©´ì—ì„œë§Œ ë³´ì´ë©° ì¶œë ¥ë˜ì§€ ì•ŠìŠµë‹ˆë‹¤. ê°œì²´ë¥¼ ì¶”ê°€í•´ ì´ í˜ì´ì§€ì˜ ì‹¤ì œ í…œí”Œë¦¿ êµ¬ì„±ì„ ë§Œë“œì„¸ìš”.</div>`:`<div class="section template-help-card"><strong>í…œí”Œë¦¿ ì„¤ê³„ ì•ˆë‚´</strong><br>ê°œì²´ë¥¼ ì„ íƒí•˜ë©´ ìƒ˜í”Œ ì½˜í…ì¸ , ì‹¤ì œ í•™êµ ë°ì´í„° Binding, ë ˆì´ì•„ì›ƒì„ íƒ­ìœ¼ë¡œ ë‚˜ëˆ„ì–´ í¸ì§‘í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.</div>`;
+ }
+ if(!sourceElement()){
+ const calendarDesign=project.template.masters.calendar.design||{};
+ const designPreset=calendarDesign.monthTitleStyle==="number-inline"&&calendarDesign.monthTitleAlign==="center"&&calendarDesign.weekdayStyle==="outlined-pills"&&calendarDesign.gridStyle==="open-rows"?"sample-3":calendarDesign.monthTitleStyle!=="number-inline"&&calendarDesign.monthTitleStyle!=="korean-label"&&calendarDesign.monthTitleAlign!=="center"&&calendarDesign.weekdayStyle!=="outlined-pills"&&calendarDesign.gridStyle!=="open-rows"?"sample-6":"custom";
+  design+=`<div class="section designer-only-control"><span class="layer-chip">12ê°œì›” ê³µí†µ ì›”ë ¥ ë””ìì¸</span><label>ë¹ ë¥¸ ë””ìì¸ ì¡°í•©<select id="masterCalendarDesignPreset"><option value="sample-6" ${designPreset==="sample-6"?"selected":""}>6ë²ˆ ì›ë³¸í˜• Â· í° ìˆ«ì/ì±„ì›€ íƒ­/ë°•ìŠ¤ ì…€</option><option value="sample-3" ${designPreset==="sample-3"?"selected":""}>3ë²ˆ ì›ë³¸í˜• Â· ê°€ë¡œ ì œëª©/í…Œë‘ë¦¬ ìš”ì¼/ê°€ë¡œì¤„</option><option value="custom" ${designPreset==="custom"?"selected":""}>ì‚¬ìš©ì ì¡°í•©</option></select></label><label>ì›” í‘œì‹œ í˜•ì‹<select id="masterMonthTitleStyle"><option value="number-stack" ${calendarDesign.monthTitleStyle!=="number-inline"&&calendarDesign.monthTitleStyle!=="korean-label"?"selected":""}>í° ìˆ«ì + ì—°ë„Â·ì˜ë¬¸ì›” Â· 6ë²ˆ ë°©ì‹</option><option value="number-inline" ${calendarDesign.monthTitleStyle==="number-inline"?"selected":""}>ìˆ«ì + ì—°ë„Â·ì˜ë¬¸ì›” ê°€ë¡œí˜• Â· 3ë²ˆ ë°©ì‹</option><option value="korean-label" ${calendarDesign.monthTitleStyle==="korean-label"?"selected":""}>ì—°ë„ë…„ ì›”ì›” í•œê¸€í˜•</option></select></label><label>ì›” í‘œì‹œ ìœ„ì¹˜<select id="masterMonthTitleAlign"><option value="left" ${calendarDesign.monthTitleAlign!=="center"?"selected":""}>ì™¼ìª½ Â· 6ë²ˆ ë°©ì‹</option><option value="center" ${calendarDesign.monthTitleAlign==="center"?"selected":""}>ê°€ìš´ë° Â· 3ë²ˆ ë°©ì‹</option></select></label><label>ìš”ì¼ í‘œì‹œ<select id="masterWeekdayStyle"><option value="filled-tabs" ${calendarDesign.weekdayStyle!=="outlined-pills"?"selected":""}>ì—°ê²°í˜• ì±„ì›€ íƒ­ Â· 6ë²ˆ ë°©ì‹</option><option value="outlined-pills" ${calendarDesign.weekdayStyle==="outlined-pills"?"selected":""}>ë…ë¦½ í…Œë‘ë¦¬ ìº¡ìŠ Â· 3ë²ˆ ë°©ì‹</option></select></label><label>ë‚ ì§œ ê²©ì<select id="masterGridStyle"><option value="boxed" ${calendarDesign.gridStyle==="boxed"||!["open-rows","minimal","detached-cards"].includes(calendarDesign.gridStyle)?"selected":""}>ì „ì²´ ë°•ìŠ¤ ê²©ì Â· 6ë²ˆ ë°©ì‹</option><option value="open-rows" ${calendarDesign.gridStyle==="open-rows"?"selected":""}>ë…ë¦½ ë°‘ì¤„ Â· ì²¨ë¶€ ë””ìì¸ 1</option><option value="minimal" ${calendarDesign.gridStyle==="minimal"?"selected":""}>ë¯¸ë‹ˆë©€ ë¬´ì„  Â· ì²¨ë¶€ ë””ìì¸ 2</option><option value="detached-cards" ${calendarDesign.gridStyle==="detached-cards"?"selected":""}>ê°œë³„ ì‚¬ê° ì…€</option></select></label><label>ì›” ì œëª© í¬ê¸°<input id="masterTitleSize" type="number" min="14" max="36" value="${project.template.masters.calendar.monthTitleSize}"></label><label>ë‹¨ì¼ ì¼ì • í‘œì‹œ ê°œìˆ˜<select id="masterMaxEvents">${[1,2,3,4].map(n=>`<option ${n===project.template.masters.calendar.eventMaxVisiblePerDay?"selected":""}>${n}</option>`).join("")}</select></label><button id="applyMaster" class="action">ì›”ë ¥ ê³µí†µ ë””ìì¸ ì €ì¥</button></div>`;
+ design=design.replace("í° ìˆ«ì + ì—°ë„Â·ì˜ë¬¸ì›” Â· 6ë²ˆ ë°©ì‹","í° ì›” ìˆ«ì + ì—°ë„Â·ì˜ë¬¸ì›” ì„¸ë¡œ").replace("ìˆ«ì + ì—°ë„Â·ì˜ë¬¸ì›” ê°€ë¡œí˜• Â· 3ë²ˆ ë°©ì‹","ì—°ë„ + í° ì›” ìˆ«ì + ì˜ë¬¸ì›” ê°€ë¡œ").replace(/<option value="korean-label"[^>]*>ì—°ë„ë…„ ì›”ì›” í•œê¸€í˜•<\/option>/,`<option value="number-only" ${calendarDesign.monthTitleStyle==="number-only"?"selected":""}>í° ì›” ìˆ«ìë§Œ</option><option value="year-month-korean" ${["year-month-korean","korean-label"].includes(calendarDesign.monthTitleStyle)?"selected":""}>ì—°ë„ë…„ ì›”ì›” í•œê¸€í˜•</option><option value="month-korean" ${calendarDesign.monthTitleStyle==="month-korean"?"selected":""}>ì›”ì›” í•œê¸€í˜•</option><option value="english-month" ${calendarDesign.monthTitleStyle==="english-month"?"selected":""}>ì˜ë¬¸ ì›” + ì—°ë„</option>`).replace(/(<option value="center"[^>]*>ê°€ìš´ë° Â· 3ë²ˆ ë°©ì‹<\/option>)/,`$1<option value="right" ${calendarDesign.monthTitleAlign==="right"?"selected":""}>ì˜¤ë¥¸ìª½</option>`);if(["number-only","year-month-korean","month-korean","english-month"].includes(calendarDesign.monthTitleStyle))design=design.replace(/(<option value="number-stack") selected/,"$1");if(calendarDesign.monthTitleAlign==="right")design=design.replace(/(<option value="left") selected/,"$1");
+ const rs=project.template.masters.calendar.rangeEventStyle;
+ design+=`<div class="section"><span class="layer-chip">êµ¬ê°„ ì¼ì • ìë™ ì¡°íŒ</span><div class="range-event-legend">ì‹œì‘ì¼ê³¼ ì¢…ë£Œì¼ì´ ë‹¤ë¥¸ ì¼ì •ì€ ì£¼ ë‹¨ìœ„ ë§‰ëŒ€ë¡œ ìë™ ë¶„í• í•©ë‹ˆë‹¤. ê²¹ì¹˜ëŠ” ì¼ì •ì€ Laneì— ìë™ ë°°ì¹˜í•˜ê³  ë‹¤ìŒ ì£¼ë‚˜ ë‹¤ë¥¸ ë‹¬ë¡œ ì´ì–´ì§€ëŠ” êµ¬ê°„ë„ í‘œì‹œí•©ë‹ˆë‹¤.</div><div class="range-style-preview"><div class="demo-bar">êµìœ¡ê³¼ì • ì§‘ì¤‘ ìš´ì˜ê¸°ê°„</div></div><label class="inline-check"><input id="rangeEnabled" type="checkbox" ${rs.enabled?"checked":""}><span>êµ¬ê°„ ì¼ì •ì„ ë§‰ëŒ€ í˜•íƒœë¡œ í‘œì‹œ</span></label><div class="range-style-grid"><label>ì¼ì •ëª… í‘œì‹œ<select id="rangeLabelMode"><option value="first" ${rs.labelMode==="first"?"selected":""}>ì²« êµ¬ê°„ë§Œ</option><option value="every" ${rs.labelMode==="every"?"selected":""}>ë§¤ì£¼ ë°˜ë³µ</option><option value="continued" ${rs.labelMode==="continued"?"selected":""}>í›„ì† êµ¬ê°„ì— ê³„ì† í‘œì‹œ</option><option value="none" ${rs.labelMode==="none"?"selected":""}>í‘œì‹œ ì•ˆ í•¨</option></select></label><label>ì¼ì •ëª… ìœ„ì¹˜<select id="rangeLabelPosition"><option value="inside" ${rs.labelPosition==="inside"?"selected":""}>ë§‰ëŒ€ ì•ˆ</option><option value="above" ${rs.labelPosition==="above"?"selected":""}>ë§‰ëŒ€ ìœ„</option></select></label><label>ë§‰ëŒ€ ë†’ì´(px)<input id="rangeBarHeight" type="number" min="6" max="24" value="${rs.barHeight}"></label><label>Lane ê°„ê²©(px)<input id="rangeLaneGap" type="number" min="0" max="10" value="${rs.laneGap}"></label><label>ìµœëŒ€ Lane<input id="rangeMaxLanes" type="number" value="4" readonly><small>ì‚¬ìš©ì ì„œë¹„ìŠ¤ í‘œì¤€ Â· ë‹¨ì¼/ê¸°ê°„ ì¼ì • ê³µí†µ</small></label><label>ì´ˆê³¼ ì¼ì •<select id="rangeOverflowStyle"><option value="count" ${rs.overflowStyle==="count"?"selected":""}>+Nê°œ í‘œì‹œ</option><option value="hide" ${rs.overflowStyle==="hide"?"selected":""}>ìˆ¨ê¹€</option></select></label></div><button id="applyRangeEventStyle" class="action">êµ¬ê°„ ì¼ì • ìŠ¤íƒ€ì¼ ì €ì¥</button></div>`;
+ design+=`<div class="section"><label>í‘œì§€ ì œëª© í¬ê¸°<input id="coverTitleSize" type="number" min="20" max="50" value="${project.template.masters.cover.titleSize}"></label><button id="applyCoverMaster" class="action">í‘œì§€ Master ì„¤ì • ì €ì¥</button></div>`;
+ const validationMessages=validate();
+ if(validationMessages.length)content+=`<div class="section validation warn">${validationMessages.join("<br>")}</div>`;
+ }
+ if(canPromoteSelectedToMonthlyMaster())layout+=`<div class="section master-apply-card"><strong>ì„ íƒ ê°œì²´ë¥¼ Masterë¡œ ì „í™˜</strong><p>í˜„ì¬ í˜ì´ì§€ì˜ ê°œì²´ë¥¼ ì œê±°í•˜ê³  ê°™ì€ ë©´ì„ ì‚¬ìš©í•˜ëŠ” 12ê°œì›” ì „ì²´ì— ê³µí†µìœ¼ë¡œ í‘œì‹œí•©ë‹ˆë‹¤.</p><button id="promoteToMonthlyMaster" class="action">ì„ íƒ ê°œì²´ë¥¼ ${monthlyMasterLabel(p)}ì— ì ìš©</button><div class="master-scope-note">ì ìš© ëŒ€ìƒ: ${canonicalMasterIdForPage(p)} Â· ${monthlyPagesForRole(p.role).length}ê°œ ë©´</div></div>`;
+ else if(sourceElement()&&selectedElementScope==="master"&&(p.role==="monthly-front"||p.role==="monthly-back"))layout+=`<div class="section hint"><strong style="display:block;color:var(--text);margin-bottom:4px">Master ê³µí†µ ê°œì²´</strong>ì´ ê°œì²´ëŠ” ${monthlyMasterLabel(p)} ${monthlyPagesForRole(p.role).length}ê°œ ë©´ì— í‘œì‹œë©ë‹ˆë‹¤. Master ID: ${canonicalMasterIdForPage(p)}. ìƒ˜í”Œ ì½˜í…ì¸ Â·BindingÂ·ë°°ì¹˜ ë³€ê²½ë„ ì „ì²´ í•´ë‹¹ ì›”ì— ë°˜ì˜ë©ë‹ˆë‹¤.</div>`;
+ const empty=tab=>`<div class="inspector-tab-empty">${tab==="content"?"ì„ íƒí•œ ê°œì²´ì˜ ì½˜í…ì¸  ì„¤ì •ì´ ì—†ìŠµë‹ˆë‹¤.":tab==="design"?"ì„ íƒí•œ ê°œì²´ì˜ ë””ìì¸ ì„¤ì •ì´ ì—†ìŠµë‹ˆë‹¤.":"ì„ íƒí•œ ê°œì²´ì˜ ë°°ì¹˜ ì„¤ì •ì´ ì—†ìŠµë‹ˆë‹¤."}</div>`;
+ ins.innerHTML=`${inspectorTabsHTML()}<div class="inspector-tab-panel ${inspectorActiveTab==="content"?"active":""}" data-panel="content">${content||empty("content")}</div><div class="inspector-tab-panel ${inspectorActiveTab==="design"?"active":""}" data-panel="design">${design||empty("design")}</div><div class="inspector-tab-panel ${inspectorActiveTab==="layout"?"active":""}" data-panel="layout">${layout||empty("layout")}</div>`;
+ setupInspectorTabs();bindInspector();setupInspectorFeedback();
+}
+
+function bindInspector(){
+ const bind=(id,fn)=>{if(el(id))el(id).addEventListener("click",fn)};
+ if(project.template?.metadata?.sampleFamily==="desk-6")el("masterCalendarDesignPreset")?.querySelector('option[value="sample-3"]')?.remove();
+ bind("applySemanticSample",()=>{
+  const i=sourceElement();if(!i||i.type!=="semantic-object")return;
+  change(()=>{
+   ensureSemanticTemplateData(i);
+   const next={...(i.sampleContent||{})};
+   if(el("semanticName"))next.name=el("semanticName").value;
+   if(el("semanticDescription"))next.description=el("semanticDescription").value;
+   if(semanticImageDraftElementId===i.id&&semanticImageDraft)next.image=semanticImageDraft;
+   i.sampleContent=next;
+   semanticImageDraft=null;semanticImageDraftElementId=null
+  });
+  showEditorToast("í…œí”Œë¦¿ ìƒ˜í”Œ ì½˜í…ì¸ ë¥¼ ì €ì¥í–ˆìŠµë‹ˆë‹¤.")
+ });
+ bind("applySemanticBinding",()=>{
+  const i=sourceElement();if(!i||i.type!=="semantic-object")return;
+  change(()=>{
+   i.bindingEnabled=el("semanticBindingMode").value==="bound";
+   i.binding=i.bindingEnabled?el("semanticBindingPath").value:null;
+   i.fallbackToSample=el("semanticFallback").checked
+  });
+  showEditorToast(i.bindingEnabled?"ì‹¤ì œ í•™êµ ë°ì´í„° Bindingì„ ì €ì¥í–ˆìŠµë‹ˆë‹¤.":"ê³ ì • ì½˜í…ì¸  ê°œì²´ë¡œ ë³€ê²½í–ˆìŠµë‹ˆë‹¤.")
+ });
+ bind("applySemanticTemplate",()=>change(()=>{
+  const i=sourceElement();i.style||={};
+  if(el("semanticLayout"))i.layoutPreset=el("semanticLayout").value;
+  if(el("semanticShowTitle"))i.showTitle=el("semanticShowTitle").checked;
+  if(el("semanticTitleOverride"))i.titleOverride=el("semanticTitleOverride").value.trim()||semanticRoleLabel(i.role);
+  i.style.titleSize=Number(el("semanticTitleSize").value);
+  i.style.descriptionSize=Number(el("semanticDescriptionSize").value);
+  i.style.textAlign=el("semanticTextAlign").value
+ }));
+ bind("replaceSemanticImage",()=>{pendingSemanticRole=sourceElement()?.role;el("semanticImageInput").click()});
+ bind("applyCalendarRegion",()=>change(()=>{const r=calendarRegion();r.x=Number(el("calX").value);r.y=Number(el("calY").value);r.width=Number(el("calW").value);r.height=Number(el("calH").value);r.width=Math.max(25,Math.min(100,r.width));r.height=Math.max(25,Math.min(100,r.height));r.x=Math.max(0,Math.min(r.x,100-r.width));r.y=Math.max(0,Math.min(r.y,100-r.height))}));
+ bind("resetCalendarRegion",()=>change(()=>project.template.masters.calendar.calendarRegion={x:5,y:16,width:90,height:79}));
+ bind("calendarPresetFull",()=>applyCalendarRegionPreset("full"));
+ bind("calendarPresetStandard",()=>applyCalendarRegionPreset("standard"));
+ bind("calendarPresetCompact",()=>applyCalendarRegionPreset("compact"));
+ bind("calendarPresetCenter",()=>applyCalendarRegionPreset("center"));
+ bind("closeCalendarEditing",()=>{calendarEditing=false;render()});
+ bind("applyMemoWidget",()=>changeElement(i=>{i.memoLayout=el("memoLayout")?.value||"lines";i.title=el("widgetTitle").value;if(el("memoLineCount"))i.lineCount=Number(el("memoLineCount").value);if(el("memoWeekCount"))i.weekCount=Number(el("memoWeekCount").value);if(el("memoShowMemo"))i.showMemo=el("memoShowMemo").checked;if(el("memoItemCount"))i.itemCount=Number(el("memoItemCount").value);if(el("memoYearlyColumns"))i.yearlyColumns=Number(el("memoYearlyColumns").value);if(el("memoLinesPerMonth"))i.linesPerMonth=Number(el("memoLinesPerMonth").value);if(el("memoMonthLabelStyle"))i.monthLabelStyle=el("memoMonthLabelStyle").value}));
+ bind("applyMonthlyQuoteContent",()=>change(()=>{const key=monthlyQuoteKey(selectedPage());if(!key)return;ensureMonthlyQuotes();const current=project.book.monthlyQuotes[key]||{};project.book.monthlyQuotes[key]={...current,title:el("quoteTitle").value.trim()||"ì´ ë‹¬ì˜ ëª…ì–¸",quoteKo:el("quoteKo").value.trim(),quoteEn:el("quoteEn").value.trim(),source:el("quoteSource").value.trim(),sourceStatus:"edited",translationType:current.translationType||"editorial"}}));
+ bind("applyMonthlyQuoteStyle",()=>changeElement(i=>{i.style||={};i.style.titleSize=Number(el("quoteTitleSize").value);i.style.quoteKoSize=Number(el("quoteKoSize").value);i.style.quoteEnSize=Number(el("quoteEnSize").value);i.style.sourceSize=Number(el("quoteSourceSize").value);i.style.textAlign=el("quoteAlign").value;i.style.color=el("quoteColor").value;i.style.accentColor=el("quoteAccentColor").value;i.style.secondaryColor=el("quoteSecondaryColor").value;i.style.itemGap=Number(el("quoteItemGap").value)}));
+ bind("applyYearCalendarContent",()=>change(()=>{const i=sourceElement();i.startMonth=Number(el("yearCalendarStartMonth").value)}));
+ bind("applyYearCalendarLayout",()=>change(()=>{const i=sourceElement();i.columns=Number(el("yearCalendarColumns").value);i.rowsMode=el("yearCalendarRowsMode")?.value||"inherit"}));
+ bind("applyMiniCalendarContent",()=>changeElement(i=>{i.monthLabelStyle=el("miniMonthLabelStyle").value;i.showWeekdayHeader=el("miniShowWeekday").checked}));
+ bind("applyMiniCalendarStyle",()=>changeElement(i=>{i.style||={};i.style.titleSize=Number(el("miniTitleSize").value);i.style.titleAlign=el("miniTitleAlign").value;i.style.primary=el("miniPrimary").value;i.style.weekdayColor=el("miniWeekdayColor").value;i.style.dateColor=el("miniDateColor").value;i.style.sunday=el("miniSunday").value;i.style.saturday=el("miniSaturday").value;i.style.gridLine=el("miniGridLine").checked}));
+ bind("applyScheduleWidget",()=>change(()=>{const i=sourceElement();i.title=el("widgetTitle").value;i.maxItems=Number(el("scheduleMaxItems").value)}));
+ bind("applyEventListWidget",()=>change(()=>{const i=sourceElement();i.title=el("eventListTitle").value;i.startMonth=Number(el("eventListStartMonth").value);i.monthCount=Number(el("eventListMonthCount").value);i.displayMode=el("eventListDisplayMode")?.value||"limit";i.maxItems=Number(el("eventListMaxItems")?.value||i.maxItems||24);i.showEndDate=el("eventListShowEndDate").checked}));
+ bind("applyEventListLayout",()=>change(()=>{const i=sourceElement(),columns=el("eventListColumns").value;i.columns=columns==="auto"?"auto":Number(columns||1);i.fontSize=Number(el("eventListFontSize").value||8);i.minFontSize=Math.min(i.fontSize,Number(el("eventListMinFontSize").value||6));i.autoShrink=el("eventListAutoShrink").checked}));
+ bind("applyDateStripContent",()=>change(()=>{const i=sourceElement();i.monthSource=el("dateStripMonthSource").value;i.year=Number(el("dateStripYear").value);i.month=Number(el("dateStripMonth").value);i.showWeekday=el("dateStripShowWeekday").checked;i.showDate=el("dateStripShowDate").checked}));
+ bind("applyDateStripDesign",()=>change(()=>{const i=sourceElement();i.style||={};i.style.background=el("dateStripBackground").checked}));
+ bind("applyTextContent",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"text-content",{content:el("elemText").value,binding:el("elemTextBinding")?.value});if(item.binding==="calendar.year")item.format=el("elemYearFormat")?.value||"year-plain"}));
+ bind("applyElementStyle",()=>changeElement(item=>window.ACDLInspectorElement.apply(item,"text-style",{fontFamily:el("elemFontFamily").value,fontSize:el("elemFontSize").value,fontWeight:el("elemFontWeight").value,fontStyle:el("elemItalic").checked?"italic":"normal",underline:el("elemUnderline").checked,strike:el("elemStrike").checked,textAlign:el("elemAlign").value,verticalAlign:el("elemVerticalAlign").value,color:el("elemColor").value,letterSpacing:el("elemLetterSpacing").value,lineHeight:el("elemLineHeight").value,opacity:el("elemOpacity").value,background:el("elemBackground").checked,backgroundColor:el("elemBackgroundColor").value,strokeWidth:el("elemStrokeWidth").value,strokeColor:el("elemStrokeColor").value,shadow:el("elemShadow").checked,shadowX:el("elemShadowX").value,shadowY:el("elemShadowY").value,shadowBlur:el("elemShadowBlur").value,shadowColor:el("elemShadowColor").value})));
+ bind("applyImageStyle",()=>changeElement(item=>window.ACDLInspectorElement.apply(item,"image-style",{fit:el("elemFit").value,alt:el("elemAlt").value,lockAspect:el("elemLockAspect")?.value,brightness:el("elemBrightness")?.value,contrast:el("elemContrast")?.value,saturation:el("elemSaturation")?.value,opacity:el("elemImageOpacity")?.value,flipX:el("elemImageFlipX")?.value,flipY:el("elemImageFlipY")?.value})));
+ bind("replaceImageBtn",()=>{pendingImageElementId=selectedElementId;pendingImageElementScope=selectedElementScope;el("elementImageInput").click()});
+ bind("applyElementGeometry",()=>changeElement(item=>window.ACDLInspectorElement.apply(item,"geometry",{x:el("elemX").value,y:el("elemY").value,width:el("elemW").value,height:el("elemH").value})));
+ bind("bringForward",()=>changeElement(item=>item.zIndex=(item.zIndex||0)+1));
+ bind("sendBackward",()=>changeElement(item=>item.zIndex=Math.max(0,(item.zIndex||0)-1)));
+ bind("duplicateFromInspector",duplicateSelected);bind("deleteFromInspector",deleteSelected);
+
+ bind("applyPageTitle",()=>change(()=>selectedPage().overrides.monthTitle=el("pageTitle").value.trim()));
+ bind("applySurfaceTitle",()=>change(()=>selectedPage().overrides.title=el("surfaceTitle").value.trim()));
+ el("masterCalendarDesignPreset")?.addEventListener("change",event=>{let preset=event.target.value;if(project.template?.metadata?.sampleFamily==="desk-6"&&preset==="sample-3"){preset="sample-6";event.target.value=preset;showEditorToast("6ë²ˆ í…œí”Œë¦¿ì—ëŠ” 6ë²ˆ ì›ë³¸í˜• ì¡°í•©ë§Œ ì ìš©í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤. ê°œë³„ ìŠ¤íƒ€ì¼ì€ ì•„ë˜ì—ì„œ ìˆ˜ì •í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.")}const map={"sample-6":{title:"number-stack",align:"left",weekday:"filled-tabs",grid:"boxed"},"sample-3":{title:"number-inline",align:"center",weekday:"outlined-pills",grid:"open-rows"}}[preset];if(!map)return;el("masterMonthTitleStyle").value=map.title;el("masterMonthTitleAlign").value=map.align;el("masterWeekdayStyle").value=map.weekday;el("masterGridStyle").value=map.grid});
+ bind("applyMaster",()=>change(()=>{const calendar=project.template.masters.calendar;calendar.design||={};calendar.design.monthTitleAlign=el("masterMonthTitleAlign")?.value||calendar.design.monthTitleAlign||"left";calendar.design.monthTitleStyle=el("masterMonthTitleStyle")?.value||calendar.design.monthTitleStyle||"number-stack";calendar.design.weekdayStyle=el("masterWeekdayStyle")?.value||calendar.design.weekdayStyle||"filled-tabs";calendar.design.gridStyle=el("masterGridStyle")?.value||calendar.design.gridStyle||"boxed";calendar.design.presetId=el("masterCalendarDesignPreset")?.value||"custom";calendar.design.eventStyle="strong-bars";calendar.calendarOverrides={...(calendar.calendarOverrides||{}),monthTitleAlign:calendar.design.monthTitleAlign,monthTitleStyle:calendar.design.monthTitleStyle,weekdayStyle:calendar.design.weekdayStyle,gridStyle:calendar.design.gridStyle,eventStyle:calendar.design.eventStyle};calendar.monthTitleSize=Number(el("masterTitleSize").value);calendar.eventMaxVisiblePerDay=Number(el("masterMaxEvents").value)}));
+ bind("applyRangeEventStyle",()=>change(()=>{
+  const s=project.template.masters.calendar.rangeEventStyle;
+  s.enabled=el("rangeEnabled").checked;
+  s.labelMode=el("rangeLabelMode").value;
+  s.labelPosition=el("rangeLabelPosition").value;
+  s.barHeight=Number(el("rangeBarHeight").value);
+  s.laneGap=Number(el("rangeLaneGap").value);
+  s.maxLanes=window.ACDLCalendarDomain.SCHEDULE_MAX_LANES;
+  s.overflowStyle=el("rangeOverflowStyle").value
+ }));
+ bind("promoteToMonthlyMaster",promoteSelectedToMonthlyMaster);
+ bind("applyCoverMaster",()=>change(()=>applyCoverTitleSize(Number(el("coverTitleSize").value))));
+ bind("addEvent",()=>openEventDialog());
+ document.querySelectorAll("[data-delete-event]").forEach(b=>b.addEventListener("click",()=>change(()=>project.book.events=project.book.events.filter(e=>e.id!==b.dataset.deleteEvent))));
+ document.querySelectorAll("[data-edit-event]").forEach(b=>b.addEventListener("click",()=>openEventDialog(project.book.events.find(e=>e.id===b.dataset.editEvent))));
+}
