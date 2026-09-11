@@ -32,7 +32,11 @@
    'individual-cards':{title:[8,6,84,9],hero:[6,19,12,16],motto:[6,19,42,20],symbols:[6,44,42,48],song:[53,19,41,73]},
    'split-panels':{title:[8,6,84,9],hero:[6,19,12,16],motto:[7,21,39,18],symbols:[7,44,39,45],song:[52,18,42,74]},
    'open-editorial':{title:[8,6,84,9],hero:[7,19,11,15],motto:[7,20,40,17],symbols:[7,43,40,47],song:[53,19,40,72]},
-   'ruled-editorial':{title:[8,6,84,9],hero:[7,19,11,15],motto:[7,20,40,17],symbols:[7,43,40,47],song:[53,19,40,72]}
+   'ruled-editorial':{title:[8,6,84,9],hero:[7,19,11,15],motto:[7,20,40,17],symbols:[7,43,40,47],song:[53,19,40,72]},
+   'schedule-open-grid':{title:[7,5,86,8],symbols:[5,15,90,80]},
+   'schedule-month-cards':{title:[7,5,86,8],symbols:[5,15,90,80]},
+   'schedule-vertical-groups':{title:[7,5,86,8],symbols:[5,15,90,80]},
+   'schedule-horizontal-groups':{title:[7,5,86,8],symbols:[5,15,90,80]}
   },
   month:{
    'calendar-led':{calendar:[5,11,90,84],title:[5,3,90,7]},
@@ -59,7 +63,7 @@
  const text=(id,role,binding,content)=>({id,type:'text',role,binding,x:10,y:10,width:30,height:7,zIndex:3,content,style:{fontSize:12,textAlign:'left',background:false,color:'#17202e'}});
  const semantic=(id,role,binding,name)=>({id,type:'semantic-object',role,binding,bindingEnabled:true,fallbackToSample:role==='school-building',x:10,y:10,width:30,height:24,zIndex:2,showTitle:['school-motto','school-song','school-tree','school-flower'].includes(role),showCaption:false,sampleContent:{name:'',description:'',image:''},emptyStateLabel:name,replaceable:true,style:{}});
  const imageFrame=(id,role,binding='calendar.monthlyImages.current')=>({id,type:'image-frame',role,x:10,y:10,width:30,height:24,zIndex:2,frameType:'rect',image:{src:'',fit:'cover',scale:1,offsetX:0,offsetY:0,flipX:false,flipY:false,binding},emptyBehavior:'placeholder',replaceable:true,style:{stroke:'#ffffff',strokeWidth:2,background:'#eef2f7'}});
- const eventList=(id,role='schedule-list')=>({id,type:'event-list',role,binding:'calendar.events',x:10,y:20,width:80,height:65,zIndex:2,title:'전체 학사일정',startMonth:1,monthCount:12,displayMode:'all',maxItems:24,showEndDate:true,columns:'auto',fontSize:8,minFontSize:6,autoShrink:true,emptyStatePresentation:'quiet-guide',style:{}});
+ const eventList=(id,role='schedule-list')=>({id,type:'event-list',role,binding:'calendar.events',x:10,y:20,width:80,height:65,zIndex:2,title:'전체 학사일정',startMonth:1,monthCount:12,displayMode:'year-by-month',scheduleLayoutType:'schedule-open-grid',showTitle:false,maxItems:120,showEndDate:true,columns:4,fontSize:8,minFontSize:6,autoShrink:true,emptyStatePresentation:'blank',style:{}});
  const DIVIDER_PRESETS=Object.freeze({
   'school-introduction':['school-building','school-logo','school-name','body'],'school-symbols':['school-logo','school-motto','school-song','school-tree','school-flower'],'annual-calendar':['annual-calendar'],'academic-schedule':['title','schedule-list'],'school-history':['title','history-list'],'education-vision':['title','vision','body'],'user-image':['image-slot'],'yearly-plan':['yearly-plan'],'yearly-checklist':['title','yearly-checklist'],free:[],blank:[]
  });
@@ -151,8 +155,8 @@
   }
   if(role==='divider'&&elements.some(item=>item.type==='event-list'&&item.role==='schedule-list')){
    const title=elements.find(item=>classify(role,item)==='title'),schedule=elements.find(item=>item.type==='event-list'&&item.role==='schedule-list');
-   if(title)Object.assign(title,{x:8,y:7,width:84,height:9});
-   Object.assign(schedule,{x:8,y:20,width:84,height:70,fontSize:9,minFontSize:7,maxItems:60,contentPriority:'readability-first'});
+   if(title)Object.assign(title,{x:7,y:5,width:86,height:8,content:`${project.settings?.year||new Date().getFullYear()}학년도 학사일정`});
+   Object.assign(schedule,{x:5,y:15,width:90,height:80,startMonth:Number(project.settings?.startMonth||3),monthCount:12,displayMode:'year-by-month',scheduleLayoutType:resolvedDividerConfig(project,page).layoutId||'schedule-open-grid',showTitle:false,fontSize:8,minFontSize:6,maxItems:120,contentPriority:'readability-first',emptyStatePresentation:'blank'});
   }
   if(role==='divider'&&elements.some(item=>item.role==='yearly-plan')){
    const title=elements.find(item=>classify(role,item)==='title'),plan=elements.find(item=>item.role==='yearly-plan');

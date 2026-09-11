@@ -4,7 +4,7 @@
   {id:'school-introduction',label:'학교 소개',layoutId:'content-led',objects:['school-building','school-logo','school-name','body'],imageSource:'school-assets',fallback:'free'},
   {id:'yearly-plan',label:'Yearly Plan',layoutId:'editorial-cards',objects:['yearly-plan'],imageSource:'none',fallback:'free'},
   {id:'annual-calendar',label:'연력',layoutId:'heritage-document',objects:['annual-calendar'],imageSource:'none',fallback:'free'},
-  {id:'academic-schedule',label:'학사일정',layoutId:'editorial-cards',objects:['title','schedule-list'],imageSource:'none',fallback:'free'},
+  {id:'academic-schedule',label:'학사일정',layoutId:'schedule-open-grid',objects:['title','schedule-list'],imageSource:'none',fallback:'free'},
   {id:'free',label:'사용자 정의',layoutId:'open-gallery',objects:[],imageSource:'user-assets',fallback:null},
   {id:'blank',label:'빈 페이지',layoutId:'open-gallery',objects:[],imageSource:'none',fallback:null}
  ]);
@@ -16,11 +16,17 @@
   ['open-editorial','오픈형','박스 없이 여백과 정렬로 구분'],
   ['ruled-editorial','구분선형','제목 아래 선으로 단락을 구분']
  ]);
+ const ACADEMIC_SCHEDULE_LAYOUTS=Object.freeze([
+  ['schedule-open-grid','구분 박스 없는 유형','월과 일정을 4×3 배열로 정돈'],
+  ['schedule-month-cards','월별 개별 박스형','12개월을 각각 독립 카드로 구분'],
+  ['schedule-vertical-groups','세로 박스형','세로 박스 4개에 각각 3개월 배치'],
+  ['schedule-horizontal-groups','가로 박스형','가로 박스 3개에 각각 4개월 배치']
+ ]);
  const GENERIC_LAYOUTS=Object.freeze([['content-led','콘텐츠 중심형'],['editorial-cards','에디토리얼형'],['heritage-document','기록 문서형'],['open-gallery','여백 갤러리형']]);
  const defaults=target=>target.sourceRole==='cover-back'?PRESETS[3]:target.sourceRole==='back-cover-front'?PRESETS[0]:target.surface==='back'?PRESETS[0]:PRESETS[1];
  const esc=value=>String(value??'').replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
  const preset=id=>PRESETS.find(item=>item.id===id)||PRESETS.find(item=>item.id==='free');
- const layoutsFor=purpose=>purpose==='school-symbols'?SCHOOL_SYMBOL_LAYOUTS:GENERIC_LAYOUTS;
+ const layoutsFor=purpose=>purpose==='school-symbols'?SCHOOL_SYMBOL_LAYOUTS:purpose==='academic-schedule'?ACADEMIC_SCHEDULE_LAYOUTS:GENERIC_LAYOUTS;
  function projectValue(){return root.project||(typeof project!=='undefined'?project:null)}
  function install(){
   const page=document.querySelector('[data-resource-content="page-settings"]'),mount=document.getElementById('pageSettingsDividerMount');
@@ -46,7 +52,8 @@
   return boxes.map(([id,x,y,widthValue,heightValue])=>({id,x,y,width:widthValue,height:heightValue}));
  }
  function genericBoxes(objects){const count=Math.max(1,objects.length),columns=count>2?2:1,gap=3,width=(86-gap*(columns-1))/columns,rows=Math.ceil(count/columns),height=(74-gap*(rows-1))/rows;return objects.map((id,index)=>({id,x:7+index%columns*(width+gap),y:17+Math.floor(index/columns)*(height+gap),width,height}))}
- function layoutCards(entry){const labels=Object.fromEntries(OBJECTS);return `<div class="divider-layout-options"><strong>3. 대표 배치</strong><div class="ai-layout-grid">${layoutsFor(entry.purpose).map(([id,name,description])=>`<label class="ai-layout-card${entry.layoutId===id?' selected':''}"><input type="radio" name="divider-layout-${esc(entry.pageId)}" value="${id}" data-divider-layout ${entry.layoutId===id?'checked':''}><header><strong>${name}</strong><span>${entry.objects.length}개</span></header><div class="ai-layout-wireframe symbol-layout-${id}">${(entry.purpose==='school-symbols'?symbolBoxes(entry.objects):genericBoxes(entry.objects)).map(box=>`<span class="ai-layout-box layout-${box.id}" style="left:${box.x}%;top:${box.y}%;width:${box.width}%;height:${box.height}%">${labels[box.id]||box.id}</span>`).join('')}</div>${description?`<small>${description}</small>`:''}</label>`).join('')}</div></div>`}
+ function scheduleBoxes(layoutId){if(layoutId==='schedule-vertical-groups')return Array.from({length:4},(_,index)=>({id:`3개월`,x:6+index*22.5,y:18,width:20.5,height:72}));if(layoutId==='schedule-horizontal-groups')return Array.from({length:3},(_,index)=>({id:`4개월`,x:6,y:18+index*25,width:88,height:22}));return Array.from({length:12},(_,index)=>({id:`${index+1}월`,x:6+(index%4)*22.5,y:18+Math.floor(index/4)*25,width:20.5,height:22}))}
+ function layoutCards(entry){const labels=Object.fromEntries(OBJECTS);return `<div class="divider-layout-options"><strong>3. 대표 배치</strong><div class="ai-layout-grid">${layoutsFor(entry.purpose).map(([id,name,description])=>`<label class="ai-layout-card${entry.layoutId===id?' selected':''}"><input type="radio" name="divider-layout-${esc(entry.pageId)}" value="${id}" data-divider-layout ${entry.layoutId===id?'checked':''}><header><strong>${name}</strong><span>${entry.purpose==='academic-schedule'?'12개월':`${entry.objects.length}개`}</span></header><div class="ai-layout-wireframe symbol-layout-${id}">${(entry.purpose==='school-symbols'?symbolBoxes(entry.objects):entry.purpose==='academic-schedule'?scheduleBoxes(id):genericBoxes(entry.objects)).map(box=>`<span class="ai-layout-box layout-${box.id}" style="left:${box.x}%;top:${box.y}%;width:${box.width}%;height:${box.height}%">${labels[box.id]||box.id}</span>`).join('')}</div>${description?`<small>${description}</small>`:''}</label>`).join('')}</div></div>`}
  function render(){
   const host=document.getElementById('dividerCompositionList');if(!host)return;
   const spec=current(),items=targets(),card=document.getElementById('dividerCompositionCard');if(card)card.hidden=!items.length;
@@ -64,5 +71,5 @@
   root.ACDLDesignSpec.write(projectValue(),spec,root.ACDLDesignTypeCatalog);render();
  });
  document.addEventListener('click',event=>{if(event.target.closest?.('[data-resource-page="page-settings"]'))setTimeout(()=>{install();render()},0)});
- install();root.ACDLDividerComposition=Object.freeze({PRESETS,OBJECTS,IMAGE_SOURCES,SCHOOL_SYMBOL_LAYOUTS,render,entryFor,collect,applyToPages,targets,targetLabel,capture,restore,surfaceKey});
+ install();root.ACDLDividerComposition=Object.freeze({PRESETS,OBJECTS,IMAGE_SOURCES,SCHOOL_SYMBOL_LAYOUTS,ACADEMIC_SCHEDULE_LAYOUTS,render,entryFor,collect,applyToPages,targets,targetLabel,capture,restore,surfaceKey});
 })(typeof window==='undefined'?globalThis:window);

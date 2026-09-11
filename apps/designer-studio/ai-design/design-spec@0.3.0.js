@@ -4,7 +4,7 @@
  const protectedContent=Object.freeze(['calendar-data','school-text','school-logo','school-photos','event-text']);
  const dividerObjectIds=Object.freeze(['school-name','school-building','school-logo','school-motto','school-song','school-tree','school-flower','image-slot','annual-calendar','mini-calendar','schedule-list','history-list','vision','yearly-plan','yearly-checklist','title','body']);
  const dividerImageSources=Object.freeze(['school-assets','user-assets','template-assets','none']);
- const dividerLayoutIds=Object.freeze(['content-led','song-led-split','editorial-cards','heritage-document','open-gallery','individual-cards','split-panels','open-editorial','ruled-editorial']);
+ const dividerLayoutIds=Object.freeze(['content-led','song-led-split','editorial-cards','heritage-document','open-gallery','individual-cards','split-panels','open-editorial','ruled-editorial','schedule-open-grid','schedule-month-cards','schedule-vertical-groups','schedule-horizontal-groups']);
  const monthBackComponentIds=Object.freeze(['image','current-calendar','previous-mini-calendar','next-mini-calendar','academic-schedule','planner-daily','planner-monthly-goal','planner-checklist','planner-weekly','memo','month-date-strip']);
  const defaultMonthBackComponents=Object.freeze(['image','current-calendar','previous-mini-calendar','next-mini-calendar','planner-checklist','memo']);
  const backCoverComponents=Object.freeze(['year','school-building','school-logo','school-name','school-english-name','school-slogan','school-address','school-contacts','school-website']);

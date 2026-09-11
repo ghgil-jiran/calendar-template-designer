@@ -178,7 +178,7 @@
   window.renderPage=function(){const r=priorRenderPage.apply(this,arguments);fitEventLists(document);return r};
   const priorOpenFullPreview=window.openFullPreview;
   if(priorOpenFullPreview)window.openFullPreview=function(){const r=priorOpenFullPreview.apply(this,arguments);setTimeout(()=>fitEventLists(document.getElementById('fullPreviewGrid')),30);return r};
-  document.addEventListener('change',event=>{if(event.target?.id==='eventListDisplayMode')document.getElementById('eventListMaxItemsField')?.classList.toggle('hidden',event.target.value==='all')});
+  document.addEventListener('change',event=>{if(event.target?.id==='eventListDisplayMode')document.getElementById('eventListMaxItemsField')?.classList.toggle('hidden',event.target.value!=='limit')});
 })();
 
 (()=>{
