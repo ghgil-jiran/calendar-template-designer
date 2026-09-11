@@ -36,8 +36,10 @@ test('validation enforces production size and allowed ranges',()=>{
 test('desk minimum is 26 surfaces when cover back shares the first monthly back',()=>{
  const type=domain.definition('desk-standard');
  assert.deepEqual(JSON.parse(JSON.stringify(domain.minimumStructure(type))),{surfaceCount:26,sheetCount:13,monthCount:12});
+ assert.equal(domain.normalize(type).policies.backCoverBack,'unsupported');
  type.coverBackMode='separate';
  assert.equal(domain.minimumStructure(type).surfaceCount,28);
+ assert.equal(domain.normalize(type).policies.backCoverBack,'required');
 });
 
 test('desk structural rules block incompatible type policies',()=>{
