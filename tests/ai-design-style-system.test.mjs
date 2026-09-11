@@ -10,9 +10,10 @@ test('desk style catalog exposes six template-editable styles and one flexible d
  const context={},catalog=load('../apps/designer-studio/ai-design/design-type-catalog@0.3.0.js','ACDLDesignTypeCatalog',context),specApi=load('../apps/designer-studio/ai-design/design-spec@0.3.0.js','ACDLDesignSpec',context);
  assert.equal(catalog.scope,'desk-first');assert.equal(catalog.styles.length,6);assert.deepEqual(Object.keys(catalog.roles),['cover','annual','divider','month','month-back','back-cover']);
  assert.deepEqual(Object.keys(catalog.expressionOptions),['monthFrontMode','monthBackMode']);
+ assert.equal(Object.keys(catalog.styleForbidden).length,6);assert.ok(Object.values(catalog.styleForbidden).every(value=>value.length>20));
  assert.equal(catalog.roles['month-back'].options.at(-1)[0],'illustration-led');
  const project={template:{settings:{}}},saved=specApi.write(project,{promptCompositionVersion:'shape-system.v2',styleId:'modular-color-system',commonGuideline:'현재 템플릿 공통 지침',styleSnapshots:[{id:'modular-color-system',name:'학교 전용 모던',guidance:{divider:{description:'간지 설명',keywords:'unique edge',forbidden:'letters'}}}]},catalog);
- assert.equal(saved.styleSnapshots.find(item=>item.id==='modular-color-system').name,'학교 전용 모던');assert.equal(specApi.read(structuredClone(project),catalog).commonGuideline,'현재 템플릿 공통 지침');
+ assert.equal(saved.styleSnapshots.find(item=>item.id==='modular-color-system').name,'학교 전용 모던');assert.match(saved.styleSnapshots.find(item=>item.id==='modular-color-system').forbidden,/수채화/);assert.equal(specApi.read(structuredClone(project),catalog).commonGuideline,'현재 템플릿 공통 지침');
 });
 
 test('versioned style profiles document six mutually distinct visual signatures',()=>{const profiles=JSON.parse(fs.readFileSync(new URL('../apps/designer-studio/ai-design/rules/style-profiles@0.3.0.json',import.meta.url)));assert.equal(profiles.principle,'shape-system-before-material');assert.equal(profiles.profiles.length,6);assert.equal(new Set(profiles.profiles.map(item=>item.signature)).size,6);assert.ok(profiles.profiles.every(item=>item.exclude.length>=3))});
@@ -28,7 +29,7 @@ test('actual divider pages become separate generation targets without a fixed 28
 
 test('prompt prioritizes saved page guidance and the concrete divider instance',()=>{
  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'modular-color-system',commonGuideline:'CURRENT TEMPLATE RULES FIRST',styleSnapshots:[{id:'modular-color-system',name:'학교 전용 모던',guidance:{divider:{description:'THIS DIVIDER DESCRIPTION',keywords:'unique quiet edge',forbidden:'busy center'}}}],pageTypes:{divider:'content-led'},pageInstance:{position:'rear',surface:'back',contentPurpose:'school-history',index:2,total:3},expression:{monthFrontMode:'color-accent',monthBackMode:'auto-match'},protectedContent:['school-text']};
- const input=validateGenerationInput({styleKey:'balanced',pageRole:'divider',request:{designSpec}}),prompt=buildImagePrompt(input);assert.equal(input.designSpec.pageInstance.index,2);assert.match(prompt,/CURRENT TEMPLATE RULES FIRST/);assert.match(prompt,/THIS DIVIDER DESCRIPTION/);assert.match(prompt,/unique quiet edge/);assert.match(prompt,/rear/);assert.match(prompt,/school-history/);assert.match(prompt,/Never rasterize or invent school photos/);
+ const input=validateGenerationInput({styleKey:'balanced',pageRole:'divider',request:{designSpec}}),prompt=buildImagePrompt(input);assert.equal(input.designSpec.pageInstance.index,2);assert.match(prompt,/CURRENT TEMPLATE RULES FIRST/);assert.match(prompt,/THIS DIVIDER DESCRIPTION/);assert.match(prompt,/unique quiet edge/);assert.match(prompt,/rear/);assert.match(prompt,/Protected editable content: school-text/);assert.match(prompt,/Never rasterize or invent school photos/);
 });
 
 test('design type settings remove the duplicate page composition and keep page settings as the source',()=>{

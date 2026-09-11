@@ -1,7 +1,8 @@
 (function(root){
  const commonGuideline={
   title:'탁상달력 공통 AI 이미지 생성 및 디자인 지침',
-  text:'AI 출력 캔버스는 도련까지 채우되 그림이 화면 전체를 채울 필요는 없습니다. 넓은 여백과 수평·수직 색면, 모듈, 곡선, 원형 흐름, 작은 크롭 포인트 중 페이지에 맞는 한 가지 조형 문법을 선택합니다. 대각선은 필요한 경우에만 제한적으로 사용하고 세트 전체에 반복하지 않습니다. 학교 전경 사진, 학사 일정, 교가, 연혁 등 실제 학교 콘텐츠가 중심이며 AI는 현대적인 배경·색면·그래픽·일러스트만 생성합니다. 월력 앞면은 달력 가독성을 최우선으로 하고, 투명한 월력 격자 아래로 연속 배경이 보이도록 하며 색상이나 작은 장식만 절제해 변화시킵니다. 월력 뒷면은 선택한 구성과 사진 사용 방식에 맞춰 별도로 설계합니다. 실제 개체 보호 좌표가 항상 우선하며 날짜, 격자, 헤더, 플래너, 사진 프레임, 학교 정보, 로고, 교훈과 읽을 수 있는 문자·숫자는 생성하지 않습니다. 간지는 같은 스타일을 유지하면서 실제 순번·앞뒤·용도마다 서로 다른 이미지로 생성합니다.',
+  text:'인쇄용 상업 달력에 적합한 현대적이고 정돈된 시각 체계를 만듭니다. 전체 세트는 하나의 색상·형태·선·여백 문법을 공유하되 각 면의 정보 위계가 먼저 읽혀야 합니다. 도련까지 자연스럽게 이어지는 밝고 안정적인 바탕을 사용하고, 장식은 실제 편집 개체보다 앞서지 않도록 절제합니다. 넓은 여백을 적극적으로 사용하며 한 페이지에는 가장 적합한 하나의 주된 조형 흐름만 적용합니다. 화면 시안이 아니라 실제 인쇄물에서 선명하고 세련되게 보이는 색상 대비와 밀도를 유지합니다.',
+  forbidden:'빈티지 문구류, 상장, 기념 앨범, 낡은 종이, 과도한 종이 질감, 네 모서리 장식, 반복 테두리, 의미 없는 꽃·잎 장식, 세트 전체에 반복되는 대각선 구도, 카드형 UI와 웹 화면처럼 보이는 표현',
   lockedRules:['finished-size-260x180mm','production-size-266x186mm','bleed-3mm','editable-content-not-rasterized','binding-safe-area','actual-page-structure-first']
  };
  const pageGuidance=(cover,annual,divider,month,monthBack,backCover)=>({cover,annual,divider,month,'month-back':monthBack,'back-cover':backCover});
@@ -49,6 +50,14 @@
    ['편집 개체의 실제 축에 반응하는 현대적 조각보 면과 유연한 먹선 운동','modern jogakbo planes and kinetic ink-like lines responding to actual editable axes, no frames or traditional props'],
    ['표지의 한국적 비례와 선 운동을 압축한 단정한 마감','clean closing composition compressing the cover Korean proportions and line movement'])},
  ];
+ const styleForbidden=Object.freeze({
+  'editorial-graphic':'수채화 번짐, 손그림 장식, 입체 소품, 감성 문구류, 장식 테두리, 대칭 카드 배열',
+  'campus-documentary':'가짜 사진, 생성된 학교 풍경, 필름 프레임 남용, 스크랩북, 빈티지 기록물, 사진을 대신하는 일러스트 장면',
+  'modular-color-system':'수채화, 손그림, 자연 풍경, 식물 장식, 빛 번짐, 종이 질감, 유기적인 장식 테두리',
+  'contemporary-illustration':'실사 장면, 3D 캐릭터, 유아용 캐릭터, 과도하게 귀여운 표정, 학교급을 특정하는 인물이나 교복',
+  'digital-aura-motion':'유리 카드, 앱 UI, 사이버펑크 네온, 렌즈 플레어, 과도한 그라데이션, 읽기 영역을 가로지르는 빛줄기',
+  'korean-modern-graphic':'한지 질감, 전통 문양 복제, 붓글씨, 민속 소품, 고전 장식 테두리, 궁궐·한옥·산수화 장면'
+ });
  const roles={
   cover:{label:'표지',objects:'연도 · 학교 사진 · 교표 · 학교명·주소',use:'대표 사진의 위치를 기준으로 실제 표지 구도를 선택하는 면',caution:'학교 사진과 모든 문자는 별도 교체·편집 개체로 유지',layout:'cover-photo-position',options:[['center-photo','중앙 사진형'],['left-photo','왼쪽 사진형'],['right-photo','오른쪽 사진형'],['free','자유 구성형 · 대표 사진 없음 포함']]},
   annual:{label:'연력',objects:'연도 · 실제 학사연도 12개월 월력 · 선택 교표',use:'표지 안쪽면·간지·뒷표지 안쪽면에 배치할 수 있는 연간 정보 구성',caution:'연도와 12개월 월력은 필수 편집 개체이며 다음해 월에는 실제 연도를 표시하고 이미지에 굽지 않음',layout:'annual-grid',options:[['open-grid','무박스 그리드형'],['individual-month-boxes','월별 개별 박스형'],['vertical-three-month-groups','세로 3개월 그룹형'],['horizontal-four-month-groups','가로 4개월 그룹형']]},
@@ -57,6 +66,6 @@
   'month-back':{label:'월력 뒷면',objects:'사용자 사진 프레임 · 학교 이미지 · AI 배경 · 월력 · 플래너 · 메모',use:'사진 교체형과 완성 일러스트형을 분명히 나누어 구성',caution:'사용자 사진은 샘플이 든 교체 가능 프레임이며 AI 배경과 별도 개체로 유지',layout:'back-split',options:[['image-calendar','사진+월력형'],['large-image','대형 사진형'],['photo-collage','사진 콜라주형'],['planner','플래너 중심형'],['memo-calendar','메모+미니 월력형'],['illustration-led','일러스트 중심형']]},
   'back-cover':{label:'뒷표지',objects:'연도 · 학교 전경 사진 · 교표 · 학교명 · 주소·연락처',use:'실제 학교 정보와 선택한 대표 개체를 중심으로 달력을 마감하는 면',caution:'학교 전경은 교체 가능한 편집 프레임으로 유지하고 모든 학교 정보의 가독성을 보호',layout:'back-cover-information',options:[['school-information','교표 + 학교 정보형'],['year-school-information','연도 + 교표 + 학교 정보형'],['school-photo-information','연도 + 학교 전경 + 교표 + 학교 정보형']]}
  };
- const catalog=Object.freeze({id:'school-calendar-design-types',version:'0.3.0',schemaVersion:'design-type-catalog.v2',scope:'desk-first',principle:'designer-finished-editable-start',commonGuideline,styles,expressionOptions:Object.freeze({monthFrontMode:[['color-only','색상만 변화'],['color-accent','색상 + 작은 장식'],['small-illustration','빈칸 작은 일러스트'],['alternating-accent','좌우 포인트 교대'],['quarterly-theme','분기별 테마']],monthBackMode:[['auto-match','구성에 맞게 자동 추천'],['photo-minimal','사진 중심 미니멀'],['photo-editorial','사진 중심 에디토리얼'],['functional-calm','기능 개체 중심'],['illustration-series','월별 일러스트 시리즈']]}),roles});
+ const catalog=Object.freeze({id:'school-calendar-design-types',version:'0.3.0',schemaVersion:'design-type-catalog.v2',scope:'desk-first',principle:'designer-finished-editable-start',commonGuideline,styles,styleForbidden,expressionOptions:Object.freeze({monthFrontMode:[['color-only','색상만 변화'],['color-accent','색상 + 작은 장식'],['small-illustration','빈칸 작은 일러스트'],['alternating-accent','좌우 포인트 교대'],['quarterly-theme','분기별 테마']],monthBackMode:[['auto-match','구성에 맞게 자동 추천'],['photo-minimal','사진 중심 미니멀'],['photo-editorial','사진 중심 에디토리얼'],['functional-calm','기능 개체 중심'],['illustration-series','월별 일러스트 시리즈']]}),roles});
  root.ACDLDesignTypeCatalog=catalog;
 })(typeof window==='undefined'?globalThis:window);
