@@ -182,9 +182,17 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
   assert.match(html,/closest\?\.\("#saveAIDesignOpenAIKeyBtn"\)/);
   assert.match(html,/e\.key==="Enter"&&e\.target\?\.id==="aiDesignOpenAIKey"/);
   assert.match(client,/controller\.abort\(\),timeoutMs/);
-  assert.match(client,/JSON\.stringify\(input\),signal:options\.signal\},70000/);
+  assert.match(client,/JSON\.stringify\(input\),signal:options\.signal\},170000/);
   assert.match(client,/AIGenerationCancelledError/);
   assert.match(client,/연결 확인 시간이 초과됐습니다/);
+});
+
+test('AI image generation allows production latency and reports timeouts explicitly',()=>{
+  const endpoint=fs.readFileSync(new URL('../api/ai-design-generate.js',import.meta.url),'utf8');
+  const vercel=JSON.parse(fs.readFileSync(new URL('../vercel.json',import.meta.url),'utf8'));
+  assert.match(endpoint,/AbortSignal\.timeout\(150000\)/);
+  assert.match(endpoint,/AI_IMAGE_TIMEOUT/);
+  assert.equal(vercel.functions['api/ai-design-generate.js'].maxDuration,180);
 });
 
 test('AI generation controls render independently from the Vault connection controls', () => {
