@@ -15,7 +15,7 @@
   }catch(error){if(error?.name==='AbortError'){const stopped=new Error(externalSignal?.aborted?'AI 디자인 생성을 중지했습니다.':'연결 확인 시간이 초과됐습니다. Supabase 설정을 확인해 주세요.');stopped.name=externalSignal?.aborted?'AIGenerationCancelledError':'Error';throw stopped}throw error}finally{root.clearTimeout(timeout);externalSignal?.removeEventListener?.('abort',abortFromOutside)}
  }
  async function generate(input,options={}){
-  return request('/api/ai-design-generate',{method:'POST',body:JSON.stringify(input),signal:options.signal},70000);
+  return request('/api/ai-design-generate',{method:'POST',body:JSON.stringify(input),signal:options.signal},170000);
  }
  async function config(){return request('/api/ai-design-config',{method:'GET'})}
  async function saveApiKey(apiKey){return request('/api/ai-design-config',{method:'PUT',body:JSON.stringify({apiKey})})}
