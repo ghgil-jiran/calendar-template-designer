@@ -1,8 +1,8 @@
 (function(root){
  const VERSION='0.1.0',SCHEMA_VERSION='ai-design-layout-application.v1';
  const PAGE_ROLE_MAP=Object.freeze({
-  cover:['cover-front','cover-continuation'],annual:['cover-back','poster-annual'],
-  divider:['school-symbols','front-insert-front','front-insert-back','rear-insert-front','rear-insert-back'],month:['monthly-front'],
+  cover:['cover-front','cover-continuation'],annual:['cover-back','poster-annual','yearly-calendar'],
+  divider:['divider','school-symbols','front-insert-front','front-insert-back','rear-insert-front','rear-insert-back'],month:['monthly-front'],
   'month-back':['monthly-back'],'back-cover':['back-cover-front','back-cover-back']
  });
  const layouts={
@@ -82,7 +82,7 @@
   if(role==='cover'||role==='back-cover'){const seen=new Map();for(let index=elements.length-1;index>=0;index-=1){const item=elements[index],key=item.binding||(['school-logo','school-building','year','school-name'].includes(item.role)?item.role:null);if(!key)continue;const prior=seen.get(key);if(!prior){seen.set(key,item);continue}const remove=item.id?.startsWith('ai.')?index:prior.id?.startsWith('ai.')?elements.indexOf(prior):-1;if(remove>=0){elements.splice(remove,1);if(remove!==index)seen.set(key,item)}}}
   elements.forEach(item=>{if(item.binding==='calendar.year'){const value=composition||{};item.content=value.yearFormat==='number-calendar'?(value.yearLines==='two'?`${year}\nCALENDAR`:`${year} CALENDAR`):year;item.style=item.style||{};item.style.textAlign=value.yearAlign||'center';item.style.whiteSpace='pre-line';item.style.fontSize=Math.max(18,Number(item.style.fontSize)||0);item.yearFormat=value.yearFormat||'number';item.yearLines=value.yearLines||'one'}if(item.type==='year-calendar'){const value=composition||{};item.startMonth=startMonth;item.monthCount=12;item.columns=4;item.monthLabelStyle=value.annualMonthLabel||'number-ko';item.showWeekdayHeader=value.annualWeekdays!==false;item.layoutType=typeId;item.showTransitionYear=true;item.style=item.style||{};item.style.gridLine=typeId!=='open-grid';item.showHolidayColor=true;item.showWeekendColor=true}});
  }
- function pageRole(page){return Object.entries(PAGE_ROLE_MAP).find(([,roles])=>roles.includes(page.role)||(page.semanticPageRole&&roles.includes(page.semanticPageRole)))?.[0]||null}
+ function pageRole(page){return Object.entries(PAGE_ROLE_MAP).find(([,roles])=>page.semanticPageRole&&roles.includes(page.semanticPageRole))?.[0]||Object.entries(PAGE_ROLE_MAP).find(([,roles])=>roles.includes(page.role))?.[0]||null}
  function box(value){return {x:value[0],y:value[1],width:value[2],height:value[3]}}
  function distribute(items,zone){
   if(!items.length||!zone)return;

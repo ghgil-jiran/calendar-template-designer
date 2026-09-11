@@ -4,6 +4,7 @@
   {id:'school-introduction',label:'학교 소개',layoutId:'content-led',objects:['school-building','school-logo','school-name','body'],imageSource:'school-assets',fallback:'free'},
   {id:'yearly-plan',label:'Yearly Plan',layoutId:'editorial-cards',objects:['yearly-plan'],imageSource:'none',fallback:'free'},
   {id:'annual-calendar',label:'연력',layoutId:'heritage-document',objects:['annual-calendar'],imageSource:'none',fallback:'free'},
+  {id:'academic-schedule',label:'학사일정',layoutId:'editorial-cards',objects:['title','schedule-list'],imageSource:'none',fallback:'free'},
   {id:'free',label:'사용자 정의',layoutId:'open-gallery',objects:[],imageSource:'user-assets',fallback:null}
  ]);
  const OBJECTS=Object.freeze([['title','제목'],['body','본문'],['school-name','학교명'],['school-building','학교 사진'],['school-logo','교표'],['school-motto','교훈'],['school-song','교가'],['school-tree','교목'],['school-flower','교화'],['image-slot','사용자 이미지'],['annual-calendar','연간 월력'],['mini-calendar','미니 월력'],['schedule-list','일정 목록'],['history-list','학교 연혁'],['vision','교육 목표/비전'],['yearly-plan','Yearly Plan'],['yearly-checklist','Yearly Checklist']]);
@@ -15,7 +16,7 @@
   ['ruled-editorial','구분선형','제목 아래 선으로 단락을 구분']
  ]);
  const GENERIC_LAYOUTS=Object.freeze([['content-led','콘텐츠 중심형'],['editorial-cards','에디토리얼형'],['heritage-document','기록 문서형'],['open-gallery','여백 갤러리형']]);
- const defaults=target=>target.surface==='back'?PRESETS[0]:PRESETS[1];
+ const defaults=target=>target.sourceRole==='cover-back'?PRESETS[3]:target.sourceRole==='back-cover-front'?PRESETS[0]:target.surface==='back'?PRESETS[0]:PRESETS[1];
  const esc=value=>String(value??'').replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
  const preset=id=>PRESETS.find(item=>item.id===id)||PRESETS.find(item=>item.id==='free');
  const layoutsFor=purpose=>purpose==='school-symbols'?SCHOOL_SYMBOL_LAYOUTS:GENERIC_LAYOUTS;
@@ -24,10 +25,11 @@
   const page=document.querySelector('[data-resource-content="page-settings"]'),mount=document.getElementById('pageSettingsDividerMount');
   if(!page||document.getElementById('dividerCompositionCard'))return;
   const card=document.createElement('div');card.id='dividerCompositionCard';card.className='ai-divider-composition-options';
-  card.innerHTML='<div class="settings-section-head"><div><h4>간지 페이지 구성</h4><p class="resource-description">1. 구성 형태 → 2. 포함 개체 → 3. 대표 배치 순으로 실제 간지를 설정합니다. 변경 내용은 페이지 설정 저장으로 함께 저장됩니다.</p></div><span class="desk-only-badge">실제 간지 기준</span></div><div id="dividerCompositionList" class="divider-composition-list"></div>';
+  card.innerHTML='<div class="settings-section-head"><div><h4>안쪽면·간지 페이지 구성</h4><p class="resource-description">표지 안쪽면, 간지 앞·뒷면, 뒷표지 안쪽면의 목적과 개체를 실제 면별로 설정합니다.</p></div><span class="desk-only-badge">실제 면 기준</span></div><div id="dividerCompositionList" class="divider-composition-list"></div>';
   if(mount)mount.appendChild(card);else page.appendChild(card);render();
  }
- function targets(){return root.ACDLAIGenerationContext?.build(projectValue())?.roles?.find(role=>role.role==='divider')?.targets||[]}
+ function targets(){const pages=projectValue()?.book?.pageInstances||[];return pages.filter(page=>['cover-back','back-cover-front'].includes(page.role)||/^(front|rear)-insert-(front|back)$/.test(page.role)).map(page=>({pageId:page.id,sourceRole:page.role,position:page.role==='cover-back'?'cover':page.role==='back-cover-front'?'back-cover':page.role.startsWith('rear-')?'rear':'front',surface:page.role.endsWith('-back')?'back':'front',insertIndex:page.insertIndex||null}))}
+ function targetLabel(target){if(target.sourceRole==='cover-back')return '표지 안쪽면';if(target.sourceRole==='back-cover-front')return '뒷표지 안쪽면';return `${target.position==='rear'?'뒤':'앞'} 간지 ${target.insertIndex||1} ${target.surface==='back'?'뒷면':'앞면'}`}
  function current(){return root.ACDLDesignSpec.read(projectValue(),root.ACDLDesignTypeCatalog)}
  function entryFor(target,spec){const base=defaults(target),saved=spec.dividerPages?.[target.pageId]||{},chosen=preset(saved.purpose||base.id),valid=layoutsFor(chosen.id).map(item=>item[0]);return {purpose:chosen.id,layoutId:valid.includes(saved.layoutId)?saved.layoutId:chosen.layoutId,objects:Array.isArray(saved.objects)?saved.objects:chosen.objects,imageSource:saved.imageSource||chosen.imageSource,fallbackPreset:saved.fallbackPreset===undefined?chosen.fallback:saved.fallbackPreset}}
  function presetOptions(selected){return PRESETS.map(item=>`<option value="${item.id}" ${selected===item.id?'selected':''}>${item.label}</option>`).join('')}
@@ -47,9 +49,13 @@
  function render(){
   const host=document.getElementById('dividerCompositionList');if(!host)return;
   const spec=current(),items=targets(),card=document.getElementById('dividerCompositionCard');if(card)card.hidden=!items.length;
-  host.innerHTML=items.length?items.map((target,index)=>{const entry={...entryFor(target,spec),pageId:target.pageId};return `<article class="page-type-card divider-page-composition" data-divider-page="${esc(target.pageId)}"><header><strong>간지 ${index+1}</strong><small>${esc(target.position)} · ${esc(target.surface)} · ${esc(target.pageId)}</small></header><div class="settings-grid"><label>1. 구성 형태<select data-divider-purpose>${presetOptions(entry.purpose)}</select></label><label>이미지 출처<select data-divider-image-source>${IMAGE_SOURCES.map(([id,label])=>`<option value="${id}" ${entry.imageSource===id?'selected':''}>${label}</option>`).join('')}</select></label><label>데이터가 없을 때<select data-divider-fallback>${fallbackOptions(entry.fallbackPreset)}</select></label></div><div class="divider-object-options"><strong>2. 포함 개체</strong><div class="checkbox-grid">${OBJECTS.map(([id,label])=>`<label><input type="checkbox" value="${id}" data-divider-object ${entry.objects.includes(id)?'checked':''}>${label}</label>`).join('')}</div></div>${layoutCards(entry)}<p class="ai-month-back-note">개체의 실제 위치·크기·가독성은 AI 보호 조건으로 전달됩니다. 카드와 구분선은 이미지에 굽지 않고 편집 가능한 스타일로 적용됩니다.</p></article>`}).join(''):'<div class="design-type-unsupported">현재 템플릿에 간지 페이지가 없습니다. 간지를 추가하면 이곳에 페이지별 설정이 나타납니다.</div>';
+  host.innerHTML=items.length?items.map(target=>{const entry={...entryFor(target,spec),pageId:target.pageId};return `<article class="page-type-card divider-page-composition" data-divider-page="${esc(target.pageId)}"><header><strong>${esc(targetLabel(target))}</strong><small>${esc(target.pageId)}</small></header><div class="settings-grid"><label>1. 구성 형태<select data-divider-purpose>${presetOptions(entry.purpose)}</select></label><label>이미지 출처<select data-divider-image-source>${IMAGE_SOURCES.map(([id,label])=>`<option value="${id}" ${entry.imageSource===id?'selected':''}>${label}</option>`).join('')}</select></label><label>데이터가 없을 때<select data-divider-fallback>${fallbackOptions(entry.fallbackPreset)}</select></label></div><div class="divider-object-options"><strong>2. 포함 개체</strong><div class="checkbox-grid">${OBJECTS.map(([id,label])=>`<label><input type="checkbox" value="${id}" data-divider-object ${entry.objects.includes(id)?'checked':''}>${label}</label>`).join('')}</div></div>${layoutCards(entry)}<p class="ai-month-back-note">개체의 실제 위치·크기·가독성은 AI 보호 조건으로 전달됩니다. 카드와 구분선은 이미지에 굽지 않고 편집 가능한 스타일로 적용됩니다.</p></article>`}).join(''):'<div class="design-type-unsupported">현재 설정할 수 있는 안쪽면이나 간지 페이지가 없습니다.</div>';
  }
  function collect(spec=current()){spec.dividerPages=Object.fromEntries([...document.querySelectorAll('[data-divider-page]')].map(card=>{const purpose=card.querySelector('[data-divider-purpose]').value;return [card.dataset.dividerPage,{purpose,layoutId:card.querySelector('[data-divider-layout]:checked')?.value||layoutsFor(purpose)[0][0],imageSource:card.querySelector('[data-divider-image-source]').value,fallbackPreset:card.querySelector('[data-divider-fallback]').value||null,objects:[...card.querySelectorAll('[data-divider-object]:checked')].map(input=>input.value)}]}));return spec}
+ function surfaceKey(page){return `${page.role}:${Number(page.insertIndex)||0}`}
+ function capture(project,spec=current()){const pages=project?.book?.pageInstances||[];return Object.fromEntries(pages.flatMap(page=>spec.dividerPages?.[page.id]?[[surfaceKey(page),spec.dividerPages[page.id]]]:[]))}
+ function restore(project,spec,snapshot={}){spec.dividerPages=Object.fromEntries((project?.book?.pageInstances||[]).flatMap(page=>snapshot[surfaceKey(page)]?[[page.id,snapshot[surfaceKey(page)]]]:[]));return spec}
+ function applyToPages(project,spec=current()){const semantics={'annual-calendar':'yearly-calendar','school-symbols':'school-symbols','school-introduction':'divider','yearly-plan':'divider','academic-schedule':'divider',free:'divider'};(project?.book?.pageInstances||[]).forEach(page=>{const entry=spec.dividerPages?.[page.id];if(!entry)return;page.contentPurpose=entry.purpose;page.semanticPageRole=semantics[entry.purpose]||'divider'});return project}
  document.addEventListener('change',event=>{
   const card=event.target.closest?.('[data-divider-page]');if(!card)return;
   const spec=collect(),pageId=card.dataset.dividerPage;
@@ -57,5 +63,5 @@
   root.ACDLDesignSpec.write(projectValue(),spec,root.ACDLDesignTypeCatalog);render();
  });
  document.addEventListener('click',event=>{if(event.target.closest?.('[data-resource-page="page-settings"]'))setTimeout(()=>{install();render()},0)});
- install();root.ACDLDividerComposition=Object.freeze({PRESETS,OBJECTS,IMAGE_SOURCES,SCHOOL_SYMBOL_LAYOUTS,render,entryFor,collect});
+ install();root.ACDLDividerComposition=Object.freeze({PRESETS,OBJECTS,IMAGE_SOURCES,SCHOOL_SYMBOL_LAYOUTS,render,entryFor,collect,applyToPages,targets,targetLabel,capture,restore,surfaceKey});
 })(typeof window==='undefined'?globalThis:window);
