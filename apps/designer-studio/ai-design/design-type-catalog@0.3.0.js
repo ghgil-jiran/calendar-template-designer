@@ -27,12 +27,12 @@
    ['투명한 월력 격자 아래에 보이는 단색 바탕과 한두 개의 구조적 색상 블록','solid light ground visible beneath the transparent calendar grid with one or two structural color blocks only'],
    ['사진·플래너·메모 개체의 실제 비례와 정렬축을 이어주는 모듈형 색면','modular fields aligned to actual editable components without outlining, imitating, or enclosing them'],
    ['표지의 모듈 비례를 단순화한 강한 브랜드 마감과 정보 여백','simplified closing arrangement of the cover modular proportions with clear school-information space'])},
-  {id:'contemporary-illustration',name:'컨템퍼러리 일러스트레이션',description:'학생·수업·과학·음악·스포츠를 단순한 현대적 형태로 표현하는 고정 화법',colors:['#f7f4ea','#3678b8','#e96b55','#e6b94d'],guidance:pageGuidance(
-   ['단순한 인체·학교생활 형태와 대담한 크롭, 일관된 평면 벡터 화법','contemporary flat editorial illustration with simplified school-life forms, bold crop and consistent shape language, no photorealism'],
+  {id:'contemporary-illustration',name:'컨템퍼러리 일러스트레이션',description:'학습·과학·음악·스포츠를 비인물 현대 조형으로 표현하는 고정 화법',colors:['#f7f4ea','#3678b8','#e96b55','#e6b94d'],guidance:pageGuidance(
+   ['비인물 교육 모티프와 대담한 크롭, 일관된 평면 벡터 화법','contemporary flat editorial illustration with non-human educational motifs, bold crop and consistent shape language, no people or school buildings'],
    ['연력 바깥의 작은 추상 교육 모티프와 넓은 밝은 공간','large bright annual field with a few small abstract learning motifs in one fixed illustration language'],
-   ['배움·공동체·음악·과학·스포츠를 간지 목적에 맞게 해석한 독립 장면','unique purpose-led illustration of learning, community, music, science or sport in the same strict flat style'],
+   ['배움·연결·음악·과학·스포츠를 간지 목적에 맞게 해석한 비인물 조형','unique purpose-led non-human illustration of learning, connection, music, science or sport in the same strict flat style'],
    ['투명한 월력 격자 밖 실제 빈칸에만 놓이는 하나의 작은 현대 일러스트','one small contemporary illustration only in genuine unused space, with the transparent calendar grid remaining dominant'],
-   ['월별 독립 학교생활 장면을 같은 인물 비례·선·면·팔레트로 유지','cohesive monthly school-life illustration series using identical figure proportions, line weight, shape grammar and palette'],
+   ['월별 비인물 교육 조형을 같은 선·면·팔레트로 유지','cohesive monthly non-human educational illustration series using identical line weight, shape grammar and palette'],
    ['표지 장면의 형태와 색을 축약한 작은 마감 일러스트','small closing illustration resolving the cover shapes and colors around clear school information'])},
   {id:'digital-aura-motion',name:'디지털 오라 & 모션',description:'저채도 빛의 방향성과 운동감으로 청소년의 속도와 에너지를 표현하는 디지털 시스템',colors:['#f6f7fb','#596bd6','#78c9d2','#f0a36b'],guidance:pageGuidance(
    ['한 방향으로 흐르는 오라와 속도감 있는 빛의 궤적, 넓은 정지 공간','directional low-chroma aura and restrained motion trails balanced by large still space, no glass card or UI'],

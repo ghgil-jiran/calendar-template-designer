@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { buildImagePrompt, validateGenerationInput } from '../api/ai-design-generate.js';
-const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.14.0.js');
+const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.15.0.js');
 
 test('live image prompt protects editable calendar and school data', () => {
   const input=validateGenerationInput({styleKey:'seasonal',palette:['#315e9e','#ffffff'],request:{conditions:{schoolLevel:'middle',decorationDensity:'low',photoMode:'mixed',seasonalVariation:'high',instruction:'봄 느낌을 유지'},versions:{promptSet:'school-calendar-prompt@0.1.0'}}});
@@ -18,7 +18,7 @@ test('live image prompt protects editable calendar and school data', () => {
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.14.0');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.15.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','divider','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
@@ -29,6 +29,15 @@ test('versioned prompt set defines a distinct contract for every representative 
   }
 });
 
+test('every AI background forbids people and generated school environments regardless of school level',()=>{
+  for(const schoolLevel of ['all','elementary','middle','high'])for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
+    const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole,request:{conditions:{schoolLevel}}}));
+    assert.match(prompt,/Never generate people of any age, students, teachers, crowds, human silhouettes, faces, hands, body parts/i);
+    assert.match(prompt,/school buildings, campus buildings, classrooms, or identifiable school grounds/i);
+    assert.match(prompt,/separate editable assets/i);
+  }
+});
+
 test('prompt separates month-front and month-back visual modes',()=>{
   const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'campus-documentary',styleSnapshots:[{id:'campus-documentary',name:'Campus Documentary',guidance:{'month-back':{description:'real school photography first',keywords:'documentary markers',forbidden:'fake text'}}}],pageTypes:{'month-back':'photo-collage'},pageSettings:{monthBackMediaMode:'sample-replaceable'},expression:{monthFrontMode:'color-only',monthBackMode:'photo-editorial'},protectedContent:['calendar-data']};
   const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month-back',request:{designSpec}}));
@@ -36,7 +45,7 @@ test('prompt separates month-front and month-back visual modes',()=>{
   assert.match(prompt,/Month-back visual mode: photo-editorial/);
   assert.match(prompt,/Month-back media: sample-replaceable/);
   assert.match(prompt,/replaceable sample-photo frames visually dominant/i);
-  assert.match(prompt,/following components will be added later as editable objects|never create calendar data/i);
+  assert.match(prompt,/following components will be added later as editable objects|calendar data, planner lines, memo lines/i);
 });
 
 test('six design styles keep distinct non-negotiable signatures and a restrained front mode',()=>{
