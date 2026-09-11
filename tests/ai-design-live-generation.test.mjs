@@ -197,7 +197,8 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
   assert.match(html,/closest\?\.\("#saveAIDesignOpenAIKeyBtn"\)/);
   assert.match(html,/e\.key==="Enter"&&e\.target\?\.id==="aiDesignOpenAIKey"/);
   assert.match(client,/controller\.abort\(\),timeoutMs/);
-  assert.match(client,/JSON\.stringify\(input\),signal:options\.signal\},170000/);
+  assert.match(client,/JSON\.stringify\(input\),signal:options\.signal\},175000/);
+  assert.match(client,/error\?\.status!==504/);
   assert.match(client,/AIGenerationCancelledError/);
   assert.match(client,/연결 확인 시간이 초과됐습니다/);
 });
@@ -287,7 +288,9 @@ test('the selected representative set expands to eleven remaining monthly front 
   assert.match(html,/generatedMonthCount!==variations\.length/);
   assert.match(html,/function aiMonthlyAssetCoverage\(selected=selectedAIDesignVariant\(\)\)/);
   assert.match(html,/coverage\.complete===coverage\.expected/);
-  assert.match(html,/Promise\.all\(monthlyRoles/);
+  assert.match(html,/Promise\.allSettled\(monthlyRoles/);
+  assert.match(html,/results\.filter\(item=>item\.status==='fulfilled'\)/);
+  assert.match(html,/selected\.monthlyAssets\[variation\.key\]\|\|=\{metadata:\{\}\}/);
   assert.match(html,/ai-design-monthly-expansion\.v1/);
   assert.match(html,/월력 전체 생성/);
   assert.match(html,/aiMonthlyExpansionState="generating"/);
