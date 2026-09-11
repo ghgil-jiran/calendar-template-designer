@@ -18,7 +18,7 @@ test('live image prompt protects editable calendar and school data', () => {
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.15.2');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.15.3');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','divider','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
@@ -63,11 +63,12 @@ test('month fronts vary one selected axis without forcing five simultaneous chan
  prompts.forEach(prompt=>{assert.match(prompt,/Keep the month front almost plain/);assert.match(prompt,/Do not also vary composition, motif, scale, and decoration/)});
 });
 
-test('month front keeps the editable grid transparent over one continuous background',()=>{
+test('month front respects the selected editable calendar treatment without assuming transparency',()=>{
  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'editorial-graphic',styleSnapshots:[{id:'editorial-graphic',name:'Editorial Graphic',guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-accent',monthBackMode:'auto-match'},protectedContent:['calendar-data']};
  const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2028,month:3},request:{designSpec}}));
- assert.match(prompt,/calendar object and its grid must remain transparent/i);
- assert.match(prompt,/transparent over one continuous background/i);
+ assert.match(prompt,/never assume, draw, or imitate its grid, cells, rules, panels, or background/i);
+ assert.match(prompt,/respect the actual editable calendar treatment/i);
+ assert.doesNotMatch(prompt,/must remain transparent/i);
  assert.match(prompt,/Do not leave visible rectangular cutouts, cards/i);
 });
 
