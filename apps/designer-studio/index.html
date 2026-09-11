@@ -21,7 +21,7 @@
  </div>
 </div>
 <div id="designerHome" class="designer-home-overlay hidden"></div>
-<div id="adminAuthModal" class="admin-auth-modal hidden" role="dialog" aria-modal="true" aria-labelledby="adminAuthTitle"><form id="adminAuthForm" class="admin-auth-card"><h2 id="adminAuthTitle">Master Admin Sign In</h2><p>Supabase에 등록된 관리자 이메일과 비밀번호를 입력해주세요.</p><label>Email<input id="adminAuthEmail" type="email" autocomplete="username" required placeholder="admin@example.com"></label><label>Password<input id="adminAuthPassword" type="password" autocomplete="current-password" required></label><div id="adminAuthError" class="admin-auth-error" role="alert"></div><div class="admin-auth-actions"><button id="closeAdminAuthBtn" type="button">취소</button><button id="submitAdminAuthBtn" class="primary" type="submit">Sign In</button></div><p class="admin-auth-help">계정 생성과 비밀번호 재설정은 Supabase 관리자에게 요청해주세요. 공개 회원가입은 지원하지 않습니다.</p></form></div>
+<div id="adminAuthModal" class="admin-auth-modal hidden" role="dialog" aria-modal="true" aria-labelledby="adminAuthTitle"><form id="adminAuthForm" class="admin-auth-card"><h2 id="adminAuthTitle">Master Admin Sign In</h2><p>Supabase에 등록된 관리자 이메일과 비밀번호를 입력해주세요.</p><label>Email<input id="adminAuthEmail" type="email" autocomplete="username" required placeholder="admin@example.com"></label><label>Password<input id="adminAuthPassword" type="password" autocomplete="current-password" required></label><label id="adminAuthTestOption" class="admin-auth-test-option" hidden><input id="adminAuthTestLogin" type="checkbox"><span><strong>테스트용 자동 로그인</strong><small>로컬·Preview에서만 사용할 수 있습니다.</small></span></label><div id="adminAuthError" class="admin-auth-error" role="alert"></div><div class="admin-auth-actions"><button id="closeAdminAuthBtn" type="button">취소</button><button id="submitAdminAuthBtn" class="primary" type="submit">Sign In</button></div><p class="admin-auth-help">계정 생성과 비밀번호 재설정은 Supabase 관리자에게 요청해주세요. 공개 회원가입은 지원하지 않습니다.</p></form></div>
 <div id="setup" class="setup hidden"><div class="setup-card"><h1>새 달력 템플릿 만들기</h1><p>사용자에게 배포할 템플릿의 제품 유형, 페이지 구조와 지원 옵션을 설정합니다.</p>
 <div class="setup-grid">
 <label class="setup-field" data-types="desk wall poster postcard">달력 유형<select id="setupType"><option value="desk">탁상형</option><option value="wall">벽걸이형</option><option value="poster">벽보형 · 연간 한 면</option><option value="postcard">엽서형 · 표지 + 월력 12장</option></select></label>
@@ -303,7 +303,7 @@
 
 <script src="./features/object-editing-sprint2-runtime.js?v=20260907.1" data-runtime-source="sprint2-product-integration"></script>
 <script src="./template-library-runtime.js?v=20260907.1"></script>
-<script src="./features/service-shell-runtime.js?v=20260907.2" data-runtime-source="service-shell-runtime admin-landing-runtime"></script>
+<script src="./features/service-shell-runtime.js?v=20260911.1" data-runtime-source="service-shell-runtime admin-landing-runtime"></script>
 <script src="./features/template-settings-refresh-runtime.js?v=20260911.5" data-runtime-source="template-rules-persistence-runtime template-settings-refresh-runtime"></script>
 <script src="./page-structure-policy-runtime.js?v=20260911.2"></script>
 <script src="./ai-design/divider-composition-runtime.js?v=20260911.1"></script>
