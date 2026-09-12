@@ -257,6 +257,15 @@ test('system bases are protected while shared review templates remain editable',
   assert.match(html, /isStandard:false/);
 });
 
+test('system base deployment identity is generated and read only for administrators', () => {
+  const runtime = fs.readFileSync(path.resolve('apps/designer-studio/template-library-runtime.js'), 'utf8');
+  assert.match(html, /id="deployTemplateId" readonly/);
+  assert.match(html, /id="deployTemplateVersion" readonly/);
+  assert.match(html, /검토용 Package 생성/);
+  assert.match(runtime, /record\.classification\?\.packageId\|\|record\.packageId\|\|''/);
+  assert.match(runtime, /record\.packageVersion\|\|'1\.0\.0'/);
+});
+
 test('template settings author required optional and unused inputs with sample fallback', () => {
   assert.match(html, /id="resourceInputContractGrid"/);
   assert.match(html, /const TEMPLATE_INPUT_DEFINITIONS=/);
