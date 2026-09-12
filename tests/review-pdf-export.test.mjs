@@ -32,6 +32,8 @@ test('review PDF compresses AI backgrounds and hides empty image instructions',(
  assert.match(html,/data-element-role="ai-design-background"/);
  assert.match(html,/frame-placeholder non-output editor-only/);
  assert.match(html,/frame-shell\.empty-frame/);
+ assert.match(html,/clone\.querySelectorAll\('\.empty-frame'\)/);
+ assert.match(html,/node\.closest\('\.free-element'\)/);
 });
 
 test('review PDF removes empty frame outlines and protects mini-calendar readability',()=>{

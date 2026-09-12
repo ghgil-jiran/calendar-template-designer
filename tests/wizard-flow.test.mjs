@@ -190,7 +190,7 @@ test('monthly-back mini calendars expose independent month-title and weekend sty
 test('image-based school asset slots do not render fixed role captions', () => {
   const html = studioHtml;
   assert.match(html, /\["image","image-text"\]\.includes\(SEMANTIC_DEFS\[item\.role\]\?\.kind\)\)item\.showCaption=false/);
-  assert.match(html, /item\.showCaption===true\?/);
+  assert.match(html, /item\.showCaption===true\|\|showTitle\?/);
   assert.match(html, /semantic-empty-visual non-output editor-only/);
 });
 
@@ -393,7 +393,7 @@ test('local studio server resolves extracted feature files from the Designer Stu
   const server = fs.readFileSync(new URL('../tools/serve-designer-studio.mjs', import.meta.url), 'utf8');
   assert.match(server, /`apps\/designer-studio\/\$\{requestRel\}`/);
   assert.match(server, /\.webp':'image\/webp'/);
-  assert.match(studioHtml, /features\/ai-design-runtime\.js\?v=20260909\.1/);
+  assert.match(studioHtml, /features\/ai-design-runtime\.js\?v=20260912\.6/);
   assert.match(studioHtml, /features\/template-settings-library\.js\?v=20260907\.3/);
 });
 

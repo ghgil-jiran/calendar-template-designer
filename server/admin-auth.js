@@ -53,6 +53,19 @@ export async function signInMasterAdmin(email, password) {
   return { user, accessToken: session.access_token, refreshToken: session.refresh_token, expiresIn: session.expires_in };
 }
 
+export function testAutoLoginEnabled() {
+  const vercelEnvironment = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
+  const runtimeEnvironment = String(process.env.NODE_ENV || '').trim().toLowerCase();
+  const explicitlyEnabled = String(process.env.TEST_AUTO_LOGIN_ENABLED || '').trim().toLowerCase() === 'true';
+  const nonProduction = vercelEnvironment === 'preview' || (!vercelEnvironment && runtimeEnvironment !== 'production');
+  return explicitlyEnabled && nonProduction && Boolean(process.env.TEST_AUTO_LOGIN_EMAIL?.trim() && process.env.TEST_AUTO_LOGIN_PASSWORD?.trim());
+}
+
+export async function signInTestMasterAdmin() {
+  if (!testAutoLoginEnabled()) throw Object.assign(new Error('Test auto login is disabled'), { statusCode: 403, code: 'TEST_AUTO_LOGIN_DISABLED' });
+  return signInMasterAdmin(process.env.TEST_AUTO_LOGIN_EMAIL.trim(), process.env.TEST_AUTO_LOGIN_PASSWORD);
+}
+
 export async function refreshMasterAdmin(refreshToken) {
   const { url, serviceKey } = config();
   const response = await fetch(`${url}/auth/v1/token?grant_type=refresh_token`, {

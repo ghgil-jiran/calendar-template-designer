@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { buildImagePrompt, validateGenerationInput } from '../api/ai-design-generate.js';
-const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.14.0.js');
+const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.15.0.js');
 
 test('live image prompt protects editable calendar and school data', () => {
   const input=validateGenerationInput({styleKey:'seasonal',palette:['#315e9e','#ffffff'],request:{conditions:{schoolLevel:'middle',decorationDensity:'low',photoMode:'mixed',seasonalVariation:'high',instruction:'봄 느낌을 유지'},versions:{promptSet:'school-calendar-prompt@0.1.0'}}});
@@ -13,39 +13,51 @@ test('live image prompt protects editable calendar and school data', () => {
   assert.match(prompt,/never invent or embed a school photo/i);
   assert.match(prompt,/#315e9e/);
   assert.match(prompt,/Page role: 표지/);
-  assert.match(prompt,/actual protected coordinates are authoritative/i);
-  assert.match(prompt,/editable year and title/i);
+  assert.match(prompt,/Actual protected coordinates override every visual request/i);
+  assert.match(prompt,/one restrained, text-free, non-functional print background/i);
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.14.0');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.16.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','divider','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
     assert.match(prompt,/Never rasterize or invent school photos/i);
     assert.match(prompt,/Never rasterize or invent school photos/i);
     assert.match(prompt,/Do not draw binding, holes, crop marks/i);
+    assert.match(prompt,/Keep 70 to 85 percent of the page visually quiet/i);
+    assert.match(prompt,/Decoration may occupy at most/i);
+    assert.match(prompt,/zero Korean-like or Latin-like glyphs/i);
     assert.match(prompt,new RegExp(`Page role: ${prompts.ROLE_PROMPTS[pageRole].label}`));
+  }
+});
+
+test('every AI background forbids people and generated school environments regardless of school level',()=>{
+  for(const schoolLevel of ['all','elementary','middle','high'])for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
+    const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole,request:{conditions:{schoolLevel}}}));
+    assert.match(prompt,/Never generate people of any age, students, teachers, crowds, human silhouettes, faces, hands, body parts/i);
+    assert.match(prompt,/school buildings, campus buildings, classrooms, or identifiable school grounds/i);
+    assert.match(prompt,/separate editable assets/i);
   }
 });
 
 test('prompt separates month-front and month-back visual modes',()=>{
   const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'campus-documentary',styleSnapshots:[{id:'campus-documentary',name:'Campus Documentary',guidance:{'month-back':{description:'real school photography first',keywords:'documentary markers',forbidden:'fake text'}}}],pageTypes:{'month-back':'photo-collage'},pageSettings:{monthBackMediaMode:'sample-replaceable'},expression:{monthFrontMode:'color-only',monthBackMode:'photo-editorial'},protectedContent:['calendar-data']};
   const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month-back',request:{designSpec}}));
-  assert.match(prompt,/Month-front visual mode: color-only/);
-  assert.match(prompt,/Month-back visual mode: photo-editorial/);
-  assert.match(prompt,/Month-back media: sample-replaceable/);
-  assert.match(prompt,/replaceable sample-photo frames visually dominant/i);
-  assert.match(prompt,/following components will be added later as editable objects|never create calendar data/i);
+  assert.match(prompt,/month-front mode color-only/);
+  assert.match(prompt,/month-back mode photo-editorial/);
+  assert.match(prompt,/photo media sample-replaceable/);
+  assert.match(prompt,/real replaceable or school photographs stay dominant/i);
+  assert.match(prompt,/Protected editable content: calendar-data/i);
 });
 
 test('six design styles keep distinct non-negotiable signatures and a restrained front mode',()=>{
  const styleIds=['editorial-graphic','campus-documentary','modular-color-system','contemporary-illustration','digital-aura-motion','korean-modern-graphic'];
- const signatures=new Set(styleIds.map(styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-only',monthBackMode:'auto-match'},protectedContent:['calendar-data']};const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2027,month:9,season:'autumn'},request:{designSpec}}));assert.match(prompt,/Non-negotiable style signature/);assert.match(prompt,/Month-front rule: Keep the month front almost plain/);assert.match(prompt,/Style-and-page direction/);return prompt.match(/Non-negotiable style signature: (.*?)\. Do not borrow/)?.[1]||prompt}));
+ const signatures=new Set(styleIds.map(styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-only',monthBackMode:'auto-match'},protectedContent:['calendar-data']};const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2027,month:9,season:'autumn'},request:{designSpec}}));assert.match(prompt,/Required style signature/);assert.match(prompt,/Keep the month front almost plain/);assert.match(prompt,/Apply this style to this page/);return prompt.match(/Required style signature: (.*?)\. Apply this style/)?.[1]||prompt}));
  assert.equal(signatures.size,6);
 });
 
-test('new shape-system prompts reject old materials, fake photos, and repeated diagonals',()=>{const promptFor=styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{'month-back':{}}}],pageTypes:{'month-back':'photo-collage'},expression:{monthBackMode:'photo-editorial'},protectedContent:['school-photos']};return buildImagePrompt(validateGenerationInput({styleKey:'photo',pageRole:'month-back',month:{year:2028,month:5},request:{designSpec}}))};assert.match(promptFor('editorial-graphic'),/repeated diagonal template/i);const campus=promptFor('campus-documentary');assert.match(campus,/Never generate, reconstruct, or simulate a school photograph/i);assert.match(campus,/Do not generate physical or illustrated props such as pencils, pens, notebooks/i);assert.match(campus,/Do not simulate crop marks, registration marks, labels, captions, tape, or photo corners/i);assert.match(promptFor('korean-modern-graphic'),/no Hanji texture/i)});
+test('new shape-system prompts reject old materials, fake photos, and repeated diagonals',()=>{const promptFor=styleId=>{const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId,styleSnapshots:[{id:styleId,name:styleId,guidance:{'month-back':{}}}],pageTypes:{'month-back':'photo-collage'},expression:{monthBackMode:'photo-editorial'},protectedContent:['school-photos']};return buildImagePrompt(validateGenerationInput({styleKey:'photo',pageRole:'month-back',month:{year:2028,month:5},request:{designSpec}}))};assert.match(promptFor('editorial-graphic'),/repeated diagonal template/i);const campus=promptFor('campus-documentary');assert.match(campus,/Never generate, reconstruct, or simulate a school photograph/i);assert.match(campus,/No visible paper, paint, watercolor, brushwork, grain/i);assert.match(campus,/Do not generate pencils, pens, notebooks/i);assert.match(campus,/never repeat one identical top rule-and-dot template/i);assert.match(promptFor('korean-modern-graphic'),/no Hanji texture/i)});
 
 test('month fronts vary one selected axis without forcing five simultaneous changes',()=>{
  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'modular-color-system',styleSnapshots:[{id:'modular-color-system',name:'Modular Color System',guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-only',monthBackMode:'auto-match'},protectedContent:['calendar-data']};
@@ -54,27 +66,34 @@ test('month fronts vary one selected axis without forcing five simultaneous chan
  prompts.forEach(prompt=>{assert.match(prompt,/Keep the month front almost plain/);assert.match(prompt,/Do not also vary composition, motif, scale, and decoration/)});
 });
 
-test('month front keeps the editable grid transparent over one continuous background',()=>{
+test('month front respects the selected editable calendar treatment without assuming transparency',()=>{
  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'editorial-graphic',styleSnapshots:[{id:'editorial-graphic',name:'Editorial Graphic',guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-accent',monthBackMode:'auto-match'},protectedContent:['calendar-data']};
  const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2028,month:3},request:{designSpec}}));
- assert.match(prompt,/calendar object and its grid must remain transparent/i);
- assert.match(prompt,/continuous pale background pass underneath it/i);
- assert.match(prompt,/without creating a white rectangle, card, panel/i);
+ assert.match(prompt,/Never rasterize or invent[^.]*grids/i);
+ assert.match(prompt,/actual editable calendar treatment/i);
+ assert.doesNotMatch(prompt,/must remain transparent/i);
+ assert.match(prompt,/Do not leave visible rectangular cutouts, cards/i);
 });
 
-test('system composition selects only the active monthly rule instead of stacking generic themes',()=>{
+test('system composition keeps the active monthly rule and the shared commercial direction',()=>{
  const base={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'editorial-graphic',styleSnapshots:[{id:'editorial-graphic',name:'Editorial Graphic',guidance:{month:{description:'editorial month'},'month-back':{description:'editorial back'}}}],pageSettings:{monthBackMediaMode:'sample-replaceable'},protectedContent:['calendar-data']};
  const front=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2028,month:4,season:'spring'},request:{designSpec:{...base,commonGuideline:'USER COMMON THEME',pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-only',monthBackMode:'auto-match'}}}}));
  assert.match(front,/page-role-composition@0\.1\.0/);
  assert.match(front,/exactly one selected variation mode/);
  assert.match(front,/Do not use flowers, leaves, trees, or seasonal nature as an automatic filler/);
- assert.doesNotMatch(front,/USER COMMON THEME/);
+ assert.match(front,/USER COMMON THEME/);
  assert.doesNotMatch(front,/Suggested subject vocabulary/);
  const back=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month-back',month:{year:2028,month:4,season:'spring'},request:{designSpec:{...base,pageTypes:{'month-back':'image-calendar'},expression:{monthFrontMode:'color-only',monthBackMode:'photo-minimal'}}}}));
  assert.match(back,/Do not create a full scene behind the components/);
  assert.doesNotMatch(back,/Suggested subject vocabulary/);
  const illustrated=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month-back',month:{year:2028,month:4,season:'spring'},request:{designSpec:{...base,pageSettings:{monthBackMediaMode:'template-design'},pageTypes:{'month-back':'illustration-led'},expression:{monthFrontMode:'color-only',monthBackMode:'illustration-series'}}}}));
  assert.match(illustrated,/only as optional inspiration rather than a required monthly theme/);
+});
+
+test('generation prompt applies shared, style-wide, and actual-page rules from design type settings',()=>{
+ const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'editorial-graphic',commonGuideline:'COMMERCIAL SET RULE',commonForbidden:'NO COMMON PROP',styleSnapshots:[{id:'editorial-graphic',name:'Editorial Graphic',forbidden:'NO STYLE TEXTURE',guidance:{divider:{description:'fallback divider'}},pageGuidance:{'page:divider-2':{description:'ACTUAL ACADEMIC SCHEDULE PAGE',keywords:'MONTH GROUP RHYTHM',forbidden:'NO DECORATION IN SCHEDULE'}}}],pageTypes:{divider:'content-led'},pageInstance:{pageId:'divider-2',sourceRole:'front-insert-back',contentPurpose:'academic-schedule',compositionType:'academic-schedule',layoutId:'schedule-month-cards',objects:['title','schedule-list']},expression:{monthFrontMode:'color-accent',monthBackMode:'auto-match'},protectedContent:['event-text']};
+ const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'divider',request:{designSpec}}));
+ assert.match(prompt,/COMMERCIAL SET RULE/);assert.match(prompt,/NO COMMON PROP/);assert.match(prompt,/NO STYLE TEXTURE/);assert.match(prompt,/ACTUAL ACADEMIC SCHEDULE PAGE/);assert.match(prompt,/MONTH GROUP RHYTHM/);assert.match(prompt,/NO DECORATION IN SCHEDULE/);assert.match(prompt,/twelve independent month-and-event groups/);assert.match(prompt,/editable page title/);assert.match(prompt,/multi-line event information/);
 });
 
 test('month generation protects the structural calendar master in addition to editable objects',()=>{
@@ -108,8 +127,8 @@ test('editor derives object-specific spatial semantics before requesting an imag
 test('month-back prompts enforce one cohesive series and geometry stays abstract',()=>{
  const monthBack=prompts.buildPrompt({pageRole:'month-back',palette:['#123456'],variantDirection:'cohesive',month:{year:2027,month:5},designSpec:{styleId:'modular-color-system',pageTypeId:'image-calendar',expression:{}},protectedRegions:[]});
  assert.match(monthBack,/one coherent series/);
- assert.match(monthBack,/match the artwork to the saved page type/);
- assert.match(monthBack,/replaceable sample-photo frames visually dominant/);
+ assert.match(monthBack,/adapting the artwork to this saved page composition/);
+ assert.match(monthBack,/one replaceable sample-photo frame beside one editable calendar/);
  assert.match(monthBack,/Lines, columns, and modules remain decorative background language only/);
  assert.match(monthBack,/Never rasterize a calendar grid/);
 });
@@ -118,10 +137,9 @@ test('design spec selects role-specific composition guidance without rasterizing
   const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'modular-color-system',styleSnapshots:[{id:'modular-color-system',name:'Modular Color System',guidance:{month:{description:'modern geometry',keywords:'low-opacity geometric edge shapes',forbidden:'functional-looking regions'}}}],pageTypes:{month:'split-calendar-image'},expression:{monthFrontMode:'color-accent',monthBackMode:'auto-match'},protectedContent:['calendar-data','event-text']};
   const input=validateGenerationInput({styleKey:'balanced',pageRole:'month',request:{designSpec}}),prompt=buildImagePrompt(input);
   assert.equal(input.designSpec.pageTypeId,'split-calendar-image');
-  assert.match(prompt,/editable composition is split-calendar-image/);
   assert.match(prompt,/vertical image field beside the calendar grid/);
   assert.match(prompt,/modern geometry/);
-  assert.match(prompt,/Protected content contract: calendar-data, event-text/);
+  assert.match(prompt,/Protected editable content: calendar-data, event-text/);
   assert.match(prompt,/Never rasterize or invent school photos/);
 });
 
@@ -182,9 +200,26 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
   assert.match(html,/closest\?\.\("#saveAIDesignOpenAIKeyBtn"\)/);
   assert.match(html,/e\.key==="Enter"&&e\.target\?\.id==="aiDesignOpenAIKey"/);
   assert.match(client,/controller\.abort\(\),timeoutMs/);
-  assert.match(client,/JSON\.stringify\(input\),signal:options\.signal\},70000/);
+  assert.match(client,/JSON\.stringify\(input\),signal:options\.signal\},175000/);
+  assert.match(client,/!\[502,503,504\]\.includes\(error\?\.status\)/);
   assert.match(client,/AIGenerationCancelledError/);
   assert.match(client,/연결 확인 시간이 초과됐습니다/);
+});
+
+test('editor entry loads the current AI client, expansion, and runtime cache versions',()=>{
+  assert.match(studioSource,/ai-design-client\.js\?v=20260912\.2/);
+  assert.match(studioSource,/design-set-expansion@0\.2\.0\.js\?v=20260912\.3/);
+  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260912\.6/);
+  assert.match(studioSource,/const pageAssets=selected\.assetsByPage\|\|\{\}/);
+  assert.match(studioSource,/filter\(page=>!pageAssets\[page\.id\]\)/);
+});
+
+test('AI image generation allows production latency and reports timeouts explicitly',()=>{
+  const endpoint=fs.readFileSync(new URL('../api/ai-design-generate.js',import.meta.url),'utf8');
+  const vercel=JSON.parse(fs.readFileSync(new URL('../vercel.json',import.meta.url),'utf8'));
+  assert.match(endpoint,/AbortSignal\.timeout\(150000\)/);
+  assert.match(endpoint,/AI_IMAGE_TIMEOUT/);
+  assert.equal(vercel.functions['api/ai-design-generate.js'].maxDuration,180);
 });
 
 test('AI generation controls render independently from the Vault connection controls', () => {
@@ -210,8 +245,9 @@ test('AI generation controls render independently from the Vault connection cont
   assert.match(html,/layoutApplied/);
   assert.match(html,/const AI_DESIGN_ROLE_MAP=\{cover:\["cover-front"\],annual:\["cover-back","poster-annual"\],divider:/);
   assert.doesNotMatch(html,/item\.pagePlans\.filter\(plan=>\['cover','month','month-back'\]/);
-  assert.match(html,/item\.pagePlans\.map\(plan=>aiPagePreviewMarkup\(item,plan\)\)/);
-  assert.match(html,/실제 AI 생성 자산 · \$\{item\.pagePlans\.length\}개 역할 완성/);
+  assert.match(html,/previewPlans\.map\(target=>aiPagePreviewMarkup\(item,target\)\)/);
+  assert.match(html,/실제 AI 생성 자산 · \$\{previewPlans\.length\}개 면 완성/);
+  assert.match(html,/variant\.assetsByPage\?\.\[reference\.id\]/);
   assert.match(html,/designStyleId:designContext\.styleId/);
   assert.match(html,/pageTypeId:designContext\.pageTypeId/);
   assert.match(html,/metadata\.promptVersion/);
@@ -264,7 +300,9 @@ test('the selected representative set expands to eleven remaining monthly front 
   assert.match(html,/generatedMonthCount!==variations\.length/);
   assert.match(html,/function aiMonthlyAssetCoverage\(selected=selectedAIDesignVariant\(\)\)/);
   assert.match(html,/coverage\.complete===coverage\.expected/);
-  assert.match(html,/Promise\.all\(monthlyRoles/);
+  assert.match(html,/Promise\.allSettled\(monthlyRoles/);
+  assert.match(html,/results\.filter\(item=>item\.status==='fulfilled'\)/);
+  assert.match(html,/selected\.monthlyAssets\[variation\.key\]\|\|=\{metadata:\{\}\}/);
   assert.match(html,/ai-design-monthly-expansion\.v1/);
   assert.match(html,/월력 전체 생성/);
   assert.match(html,/aiMonthlyExpansionState="generating"/);
@@ -287,6 +325,19 @@ test('the selected representative set expands to eleven remaining monthly front 
   assert.match(html,/designSpecVersion:metadata\.designSpecVersion/);
 });
 
+test('editor applies every representative page asset with its real generated role',()=>{
+  const html=studioSource,expansion=fs.readFileSync(new URL('../apps/designer-studio/ai-design/design-set-expansion@0.2.0.js',import.meta.url),'utf8');
+  assert.match(html,/generatedRole=metadata\.generatedRole\|\|window\.ACDLDesignSetExpansion\?\.generatedRole\?\.\(page\)/);
+  assert.match(html,/const pageAssets=selected\.assetsByPage\|\|\{\}/);
+  assert.match(html,/aiDesignTargetPages\(generatedRole\)\.filter\(page=>!pageAssets\[page\.id\]\)/);
+  assert.match(html,/function repairAIDesignPageCoverage\(selected,session\)/);
+  assert.match(html,/selected\.assetsByPage\?\.\[page\.id\]\|\|monthly\?\.\[generatedRole\]\|\|selected\.assetsByRole\?\.\[generatedRole\]/);
+  assert.match(html,/coverageRepair=repairAIDesignPageCoverage\(selected,aiDesignMockSession\)/);
+  assert.match(html,/repairedCoverage:true/);
+  assert.doesNotMatch(html,/generatedRole:"divider",pageInstance:metadata\.pageInstance/);
+  assert.match(expansion,/selected\?\.assetsByPage\?\.\[page\?\.id\]\|\|selected\?\.assetsByRole/);
+});
+
 test('AI generation UI follows the enabled role and monthly role contract',()=>{
   const html=studioSource;
   assert.doesNotMatch(html,/6개 대표 페이지/);
@@ -294,7 +345,7 @@ test('AI generation UI follows the enabled role and monthly role contract',()=>{
   assert.match(html,/context\.monthlyRoles\.includes\("month-back"\)/);
   assert.match(html,/monthBack\.classList\.toggle\("hidden",!hasMonthBack\)/);
   assert.match(html,/section\.classList\.toggle\("hidden",!plan\.monthlyRoles\.length\)/);
-  assert.match(html,/대표 디자인을 생성하면 \$\{plan\.representativeCount\}개 대표 페이지/);
+  assert.match(html,/대표 디자인을 생성하면 \$\{previewPlans\.length\}개 실제 면/);
   assert.match(html,/plan\.monthlyAssetCount/);
   assert.match(html,/aiCostText\(plan\)/);
   assert.match(html,/const primaryRole=roles\[0\]/);

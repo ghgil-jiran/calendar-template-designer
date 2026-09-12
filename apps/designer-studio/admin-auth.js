@@ -11,11 +11,13 @@
   return data;
  }
  async function signIn(email,password){return save(await request({action:'sign-in',email,password}))}
+ async function signInForTesting(){return save(await request({action:'test-sign-in'}))}
+ async function capabilities(){try{const response=await root.fetch('/api/admin-auth?capabilities=1'),data=await response.json().catch(()=>({}));return {testAutoLoginEnabled:response.ok&&data.testAutoLoginEnabled===true}}catch{return {testAutoLoginEnabled:false}}}
  async function refresh(){if(!session?.refreshToken)return null;try{return save(await request({action:'refresh',refreshToken:session.refreshToken}))}catch{save(null);return null}}
  function signOut(){save(null)}
  function accessToken(){return session?.accessToken||''}
  function currentUser(){return session?.user||null}
  function isSignedIn(){return Boolean(accessToken()&&currentUser()?.role==='master_admin')}
  async function ensureSession(){if(!session)return null;const expiresAt=Number(session.savedAt||0)+(Number(session.expiresIn||0)*1000);if(expiresAt&&Date.now()>expiresAt-60000)return refresh();return session}
- root.ACDLAdminAuth=Object.freeze({signIn,signOut,refresh,ensureSession,accessToken,currentUser,isSignedIn,onChange(listener){listeners.add(listener);return()=>listeners.delete(listener)}});
+ root.ACDLAdminAuth=Object.freeze({signIn,signInForTesting,capabilities,signOut,refresh,ensureSession,accessToken,currentUser,isSignedIn,onChange(listener){listeners.add(listener);return()=>listeners.delete(listener)}});
 })(window);

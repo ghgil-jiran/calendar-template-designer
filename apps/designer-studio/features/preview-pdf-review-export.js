@@ -35,6 +35,7 @@
     const live=$('page');if(!live)throw new Error(`${roleLabel(pageInfo)} 렌더링 결과가 없습니다.`);
     const clone=window.ACDLPreviewState.clonePage(live,pageInfo);
     clone.classList.remove('editor-bleed-visible','export-crop-marks','export-guides-visible');clone.classList.add('review-pdf-page');clone.style.width='100%';clone.style.height='100%';
+    clone.querySelectorAll('.empty-frame').forEach(node=>{const element=node.closest('.free-element');if(element)element.remove();else node.remove()});
     const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.dataset.pageId=pageInfo.id;sheet.setAttribute('aria-label',roleLabel(pageInfo));sheet.style.width=`${width}mm`;sheet.style.height=`${height}mm`;sheet.appendChild(clone);root.appendChild(sheet);
    }
   }catch(error){failed=error;console.error('review PDF render failed',error)}
