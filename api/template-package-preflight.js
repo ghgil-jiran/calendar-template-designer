@@ -22,6 +22,10 @@ export default async function handler(request,response){
     const body=typeof request.body==='string'?JSON.parse(request.body):request.body||{};
     const templateId=request.method==='POST'?body.templateId:query.get('templateId');
     const {template,version}=await getTemplate(templateId);
+    if(request.method==='GET'&&query.get('action')==='identity'){
+      const classification=version?.projectData?.template?.classification||null;
+      return sendJson(response,200,{classification,packageId:classification?.packageId||null,packageVersion:version?.projectData?.template?.publishing?.packageVersion||'1.0.0',sourceVersion:{templateId:template.id,versionId:version.id,versionNumber:version.versionNumber}});
+    }
     if(request.method==='GET'&&query.get('action')==='candidate'){
       return sendJson(response,200,buildTemplatePackageCandidate({template,version,packageId:query.get('packageId'),packageVersion:query.get('packageVersion')}));
     }

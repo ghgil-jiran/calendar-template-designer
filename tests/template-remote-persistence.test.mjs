@@ -107,6 +107,13 @@ test('review registration sends only the selected source and immutable identity'
   assert.equal(requestPath,'/api/template-package-preflight');assert.equal(requestOptions.method,'POST');assert.deepEqual(JSON.parse(requestOptions.body),{templateId:'template id',packageId:'desk-basic-01',packageVersion:'1.0.0'});
 });
 
+test('package identity uses a lightweight preflight lookup',async()=>{
+  let requestPath;
+  const api=runtime({fetch:async path=>{requestPath=path;return {ok:true,status:200,json:async()=>({packageId:'desk-basic-01',packageVersion:'1.0.0'})}}});
+  await api.packageIdentity('template id');
+  assert.equal(requestPath,'/api/template-package-preflight?action=identity&templateId=template%20id');
+});
+
 test('autosave requires an authenticated Master Admin session', async () => {
   const api = runtime({ accessToken: '', fetch: async () => { throw new Error('must not fetch'); } });
   await assert.rejects(() => api.saveDraft({ templateId: 't1', projectData: {} }), error => error.code === 'AUTH_REQUIRED');

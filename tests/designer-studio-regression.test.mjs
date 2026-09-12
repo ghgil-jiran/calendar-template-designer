@@ -263,10 +263,10 @@ test('system base deployment identity is generated and read only for administrat
   assert.match(html, /id="deployTemplateVersion" readonly/);
   assert.match(html, /검토용 Package 생성/);
   assert.match(runtime, /async function openDeploy\(record\)/);
-  assert.match(runtime, /projectData=await projectForRecord\(record\)/);
-  assert.match(runtime, /classification=projectData\?\.template\?\.classification/);
-  assert.match(runtime, /packageId=classification\?\.packageId\|\|''/);
-  assert.match(runtime, /projectData\?\.template\?\.publishing\?\.packageVersion\|\|'1\.0\.0'/);
+  assert.match(runtime, /identity=await remote\.packageIdentity\(record\.remoteId\|\|record\.id\)/);
+  assert.match(runtime, /classification=identity\.classification/);
+  assert.match(runtime, /packageId=identity\.packageId\|\|''/);
+  assert.match(runtime, /packageVersion=identity\.packageVersion\|\|'1\.0\.0'/);
   assert.match(runtime, /openDeploy\([\s\S]*?\)\.catch\(error=>/);
   assert.match(runtime, /record\.isStandard&&record\.source==='local'/);
   assert.match(runtime, /기존 Published Package/);
