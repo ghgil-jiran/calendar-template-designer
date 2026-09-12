@@ -203,6 +203,12 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
   assert.match(client,/연결 확인 시간이 초과됐습니다/);
 });
 
+test('editor entry loads the current AI client, expansion, and runtime cache versions',()=>{
+  assert.match(studioSource,/ai-design-client\.js\?v=20260912\.2/);
+  assert.match(studioSource,/design-set-expansion@0\.2\.0\.js\?v=20260912\.2/);
+  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260912\.2/);
+});
+
 test('AI image generation allows production latency and reports timeouts explicitly',()=>{
   const endpoint=fs.readFileSync(new URL('../api/ai-design-generate.js',import.meta.url),'utf8');
   const vercel=JSON.parse(fs.readFileSync(new URL('../vercel.json',import.meta.url),'utf8'));
