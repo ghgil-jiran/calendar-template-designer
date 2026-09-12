@@ -96,7 +96,7 @@ test('package candidate binds one source version to an explicit package identity
   let requestPath;
   const api=runtime({fetch:async path=>{requestPath=path;return {ok:true,status:200,json:async()=>({templateId:'desk-basic-01',version:'1.0.0',sha256:'abc'})}}});
   const result=await api.packageCandidate('template id','desk-basic-01','1.0.0');
-  assert.equal(requestPath,'/api/template-package-candidate?templateId=template%20id&packageId=desk-basic-01&packageVersion=1.0.0');
+  assert.equal(requestPath,'/api/template-package-preflight?action=candidate&templateId=template%20id&packageId=desk-basic-01&packageVersion=1.0.0');
   assert.equal(result.templateId,'desk-basic-01');
 });
 
@@ -104,7 +104,7 @@ test('review registration sends only the selected source and immutable identity'
   let requestPath,requestOptions;
   const api=runtime({fetch:async (path,options)=>{requestPath=path;requestOptions=options;return {ok:true,status:201,json:async()=>({status:'review'})}}});
   await api.registerReviewPackage('template id','desk-basic-01','1.0.0');
-  assert.equal(requestPath,'/api/template-package-register-review');assert.equal(requestOptions.method,'POST');assert.deepEqual(JSON.parse(requestOptions.body),{templateId:'template id',packageId:'desk-basic-01',packageVersion:'1.0.0'});
+  assert.equal(requestPath,'/api/template-package-preflight');assert.equal(requestOptions.method,'POST');assert.deepEqual(JSON.parse(requestOptions.body),{templateId:'template id',packageId:'desk-basic-01',packageVersion:'1.0.0'});
 });
 
 test('autosave requires an authenticated Master Admin session', async () => {
