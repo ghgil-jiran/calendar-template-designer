@@ -46,6 +46,15 @@ test('individually generated divider assets satisfy per-page expansion coverage'
  assert.equal(divider.aiDesignExpansion.assetReady,true);
 });
 
+test('every non-monthly physical surface accepts its own generated asset',()=>{
+ const {project,selected}=fixture();
+ delete selected.assetsByRole.cover;delete selected.assetsByRole.annual;delete selected.assetsByRole['back-cover'];
+ selected.assetsByPage={cover:'cover-by-page',annual:'annual-by-page',closing:'back-cover-by-page'};
+ const report=api().createReport(project,selected);
+ assert.equal(report.status,'complete');
+ assert.equal(report.missingPages.length,0);
+});
+
 test('semantic page roles use the same generated role as generation and application',()=>{
  const {project,selected}=fixture(),annual=project.book.pageInstances.find(page=>page.id==='annual');
  annual.semanticPageRole='cover-continuation';

@@ -205,8 +205,8 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
 
 test('editor entry loads the current AI client, expansion, and runtime cache versions',()=>{
   assert.match(studioSource,/ai-design-client\.js\?v=20260912\.2/);
-  assert.match(studioSource,/design-set-expansion@0\.2\.0\.js\?v=20260912\.2/);
-  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260912\.2/);
+  assert.match(studioSource,/design-set-expansion@0\.2\.0\.js\?v=20260912\.3/);
+  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260912\.3/);
 });
 
 test('AI image generation allows production latency and reports timeouts explicitly',()=>{
@@ -240,8 +240,9 @@ test('AI generation controls render independently from the Vault connection cont
   assert.match(html,/layoutApplied/);
   assert.match(html,/const AI_DESIGN_ROLE_MAP=\{cover:\["cover-front"\],annual:\["cover-back","poster-annual"\],divider:/);
   assert.doesNotMatch(html,/item\.pagePlans\.filter\(plan=>\['cover','month','month-back'\]/);
-  assert.match(html,/item\.pagePlans\.map\(plan=>aiPagePreviewMarkup\(item,plan\)\)/);
-  assert.match(html,/실제 AI 생성 자산 · \$\{item\.pagePlans\.length\}개 역할 완성/);
+  assert.match(html,/previewPlans\.map\(target=>aiPagePreviewMarkup\(item,target\)\)/);
+  assert.match(html,/실제 AI 생성 자산 · \$\{previewPlans\.length\}개 면 완성/);
+  assert.match(html,/variant\.assetsByPage\?\.\[reference\.id\]/);
   assert.match(html,/designStyleId:designContext\.styleId/);
   assert.match(html,/pageTypeId:designContext\.pageTypeId/);
   assert.match(html,/metadata\.promptVersion/);
@@ -319,6 +320,14 @@ test('the selected representative set expands to eleven remaining monthly front 
   assert.match(html,/designSpecVersion:metadata\.designSpecVersion/);
 });
 
+test('editor applies every representative page asset with its real generated role',()=>{
+  const html=studioSource,expansion=fs.readFileSync(new URL('../apps/designer-studio/ai-design/design-set-expansion@0.2.0.js',import.meta.url),'utf8');
+  assert.match(html,/generatedRole=metadata\.generatedRole\|\|window\.ACDLDesignSetExpansion\?\.generatedRole\?\.\(page\)/);
+  assert.match(html,/pageRoles\.forEach\(role=>delete sources\[role\]\)/);
+  assert.doesNotMatch(html,/generatedRole:"divider",pageInstance:metadata\.pageInstance/);
+  assert.match(expansion,/selected\?\.assetsByPage\?\.\[page\?\.id\]\|\|selected\?\.assetsByRole/);
+});
+
 test('AI generation UI follows the enabled role and monthly role contract',()=>{
   const html=studioSource;
   assert.doesNotMatch(html,/6개 대표 페이지/);
@@ -326,7 +335,7 @@ test('AI generation UI follows the enabled role and monthly role contract',()=>{
   assert.match(html,/context\.monthlyRoles\.includes\("month-back"\)/);
   assert.match(html,/monthBack\.classList\.toggle\("hidden",!hasMonthBack\)/);
   assert.match(html,/section\.classList\.toggle\("hidden",!plan\.monthlyRoles\.length\)/);
-  assert.match(html,/대표 디자인을 생성하면 \$\{plan\.representativeCount\}개 대표 페이지/);
+  assert.match(html,/대표 디자인을 생성하면 \$\{previewPlans\.length\}개 실제 면/);
   assert.match(html,/plan\.monthlyAssetCount/);
   assert.match(html,/aiCostText\(plan\)/);
   assert.match(html,/const primaryRole=roles\[0\]/);

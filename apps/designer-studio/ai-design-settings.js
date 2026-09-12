@@ -1,10 +1,11 @@
 (function(root){
  const VERSION=Object.freeze({module:'2.0.0',promptSet:'school-calendar-design@0.15.3',styleProfile:'school-calendar-styles@0.3.0',pageRules:'calendar-page-rules@0.9.0',qualityProfile:'print-safe-quality@0.2.0',generationContext:'ai-generation-context.v2@0.2.0'});
- const ROLE_LABELS=Object.freeze({cover:'표지',annual:'연력',divider:'간지','school-symbols':'간지',month:'월력 앞면','month-back':'월력 뒷면','back-cover':'뒷표지'});
+ const ROLE_LABELS=Object.freeze({cover:'표지',annual:'연력 구성',divider:'안쪽면·간지','school-symbols':'안쪽면·간지',month:'월력 앞면','month-back':'월력 뒷면','back-cover':'뒷표지'});
  const MONTH_BACK_COMPONENT_LABELS=Object.freeze({'image':'이미지 1','image-2':'이미지 2','image-3':'이미지 3','image-4':'이미지 4','image-5':'이미지 5','image-6':'이미지 6','current-calendar':'뒷면 월력','previous-mini-calendar':'전달 미니 월력','next-mini-calendar':'다음 달 미니 월력','academic-schedule':'해당 월 학사일정','planner-daily':'날짜별 계획표','planner-monthly-goal':'월 목표','planner-checklist':'할 일 리스트','planner-weekly':'주별 계획','memo':'메모','month-date-strip':'월력 띠력'});
  function projectPages(project){return project?.book?.pageInstances||project?.book?.pages||[]}
  function pageRoles(project){const roles=[];projectPages(project).forEach(page=>{const source=page.semanticPageRole||page.role||page.pageRole,map={'cover-front':'cover','cover-back':'annual','cover-continuation':'cover','yearly-calendar':'annual','school-symbols':'divider','front-insert-front':'divider','front-insert-back':'divider','rear-insert-front':'divider','rear-insert-back':'divider','monthly-front':'month','monthly-back':'month-back','back-cover-information':'back-cover','back-cover-continuation':'back-cover','back-cover-front':'back-cover','back-cover-back':'back-cover'},role=map[source]||source;if(role&&!roles.includes(role))roles.push(role)});return roles}
- function summary(project){const size=project?.productType?.pageSize||{},settings=project?.settings||{},roles=pageRoles(project),dividerCount=projectPages(project).filter(page=>['school-symbols','front-insert-front','front-insert-back','rear-insert-front','rear-insert-back'].includes(page.role)||['school-symbols','divider'].includes(page.semanticPageRole)).length;return {productType:project?.productType?.category||'미설정',pageSize:size.width&&size.height?`${size.width} × ${size.height} ${size.unit||'mm'}`:'미설정',academicYear:settings.year||'미설정',startMonth:settings.startMonth||'미설정',pageCount:projectPages(project).length,roles:roles.map(role=>role==='divider'&&dividerCount?`간지 ${dividerCount}면`:ROLE_LABELS[role]||role),dividerCount,versions:{...VERSION}}}
+ function surfaceSummary(project){const labels={cover:'표지',month:'월력 앞면',annual:'연간 벽보',divider:'간지','month-back':'월력 뒷면','back-cover':'뒷표지','cover-front':'표지','cover-back':'표지 안쪽면','front-insert-front':'앞 간지 앞면','front-insert-back':'앞 간지 뒷면','rear-insert-front':'뒤 간지 앞면','rear-insert-back':'뒤 간지 뒷면','monthly-front':'월력 앞면','monthly-back':'월력 뒷면','back-cover-front':'뒷표지 안쪽면','back-cover-back':'뒷표지','poster-annual':'연간 벽보'},counts=new Map();projectPages(project).forEach(page=>{const label=labels[page.role]||page.role||'미지정 면';counts.set(label,(counts.get(label)||0)+1)});return [...counts].map(([label,count])=>`${label} ${count}면`)}
+ function summary(project){const size=project?.productType?.pageSize||{},settings=project?.settings||{},dividerCount=projectPages(project).filter(page=>['school-symbols','front-insert-front','front-insert-back','rear-insert-front','rear-insert-back'].includes(page.role)||['school-symbols','divider'].includes(page.semanticPageRole)).length;return {productType:project?.productType?.category||'미설정',pageSize:size.width&&size.height?`${size.width} × ${size.height} ${size.unit||'mm'}`:'미설정',academicYear:settings.year||'미설정',startMonth:settings.startMonth||'미설정',pageCount:projectPages(project).length,roles:surfaceSummary(project),dividerCount,versions:{...VERSION}}}
  const VARIANT_BLUEPRINTS=Object.freeze([
   {key:'balanced',name:'단정한 균형형',description:'학교 정보와 달력 가독성을 우선하고 장식을 여백 안에 절제해 배치합니다.',palette:['#173b63','#a9cce8','#faf7f0'],motif:'corner',sampleAsset:'./ai-design/sample-assets/brand-editorial-v0.1.png',sampleAssetId:'brand-editorial@0.1.0',assets:['AI 생성 부분 배경','모서리 일러스트','독립 사진 프레임'],styles:['차분한 제목 위계','선명한 달력 대비'],layout:'정보 영역을 고정하고 남은 공간에 장식을 배치'},
   {key:'seasonal',name:'사계절 연결형',description:'같은 조형 언어를 유지하면서 월별 색과 독립 일러스트에 계절 변화를 줍니다.',palette:['#477b62','#e7f1eb','#f7efe2'],motif:'season',sampleAsset:'./ai-design/sample-assets/seasonal-watercolor-v0.1.png',sampleAssetId:'seasonal-watercolor@0.1.0',assets:['AI 생성 계절 배경','계절 일러스트','월 표시 장식'],styles:['월별 계절 색상','공통 서체 위계'],layout:'표지에서 시작한 장식 흐름을 월별 페이지로 연결'},
@@ -13,7 +14,7 @@
  ]);
  const PAGE_PLAN_BLUEPRINTS=Object.freeze([
   {role:'cover',label:'표지',assetSlots:['전체·부분 배경','독립 일러스트','사진 프레임'],editableObjects:['연도','학교명','교표'],layout:'사진·제목·학교 정보의 표지 위계'},
-  {role:'annual',label:'연력',assetSlots:['연력 프레임','코너 장식','옅은 패턴'],editableObjects:['연도','12개월 월력','공휴일'],layout:'연간 정보가 먼저 읽히는 넓은 격자'},
+  {role:'annual',label:'연력이 선택된 면',assetSlots:['정보 바깥 배경','코너 장식','옅은 패턴'],editableObjects:['연도','12개월 월력','선택 교표'],layout:'선택된 실제 면 안에서 연간 정보가 먼저 읽히는 넓은 격자'},
   {role:'divider',label:'간지',assetSlots:['간지 배경','가장자리 장식','구분 포인트'],editableObjects:['교표','교훈','교가','교목','교화','연혁','안내'],layout:'실제 간지 용도에 맞춘 독립 정보 영역'},
   {role:'month',label:'월력',assetSlots:['12개월 개별 배경 톤','월 표시 강조색','계절 일러스트','격자 주변 패턴'],editableObjects:['월·요일·날짜','학사일정','미니월력','교훈·교표'],layout:'달력 격자를 보호하면서 월별 색상과 계절 포인트를 변주',variationPolicy:'one-result-per-month'},
   {role:'month-back',label:'월력 뒷면',assetSlots:['12개월 개별 일러스트','사진 프레임','미니월력 프레임','메모 장식'],editableObjects:['미니월력','띠 월력','플래너·체크리스트·메모'],layout:'플래너 구조를 보호하고 월마다 독립 일러스트 하나를 배치',variationPolicy:'one-independent-illustration-per-month'},
@@ -48,11 +49,11 @@
   if(!value||typeof value!=='object')return value;
   const output={};
   for(const [key,entry] of Object.entries(value)){
-   if(['sampleAsset','assetsByRole','monthlyAssets'].includes(key))continue;
+   if(['sampleAsset','assetsByRole','assetsByPage','monthlyAssets'].includes(key))continue;
    output[key]=omitAssetPayloads(entry);
   }
   return output;
  }
  function createDraft(session,createdAt=new Date().toISOString()){if(!canEnterEditor(session))throw new Error('AI design proposal selection is required');const selected=session.variants.find(item=>item.id===session.selectedVariantId);return {schemaVersion:'ai-design-draft.v1',status:'selected-not-applied',createdAt,assetStorage:'template.resources.aiDesignAssets',session:omitAssetPayloads(session),selectedVariant:omitAssetPayloads(selected)}}
- root.ACDLAIDesignSettings=Object.freeze({VERSION,ROLE_LABELS,MONTH_BACK_COMPONENT_LABELS,MONTH_BACK_LAYOUTS,VARIANT_BLUEPRINTS,PAGE_PLAN_BLUEPRINTS,pageRoles,summary,monthlyVariations,monthBackLayouts,createSession,selectVariant,selectMonthBackLayout,regeneratePage,canEnterEditor,createDraft});
+ root.ACDLAIDesignSettings=Object.freeze({VERSION,ROLE_LABELS,MONTH_BACK_COMPONENT_LABELS,MONTH_BACK_LAYOUTS,VARIANT_BLUEPRINTS,PAGE_PLAN_BLUEPRINTS,pageRoles,surfaceSummary,summary,monthlyVariations,monthBackLayouts,createSession,selectVariant,selectMonthBackLayout,regeneratePage,canEnterEditor,createDraft});
 })(typeof window==='undefined'?globalThis:window);
