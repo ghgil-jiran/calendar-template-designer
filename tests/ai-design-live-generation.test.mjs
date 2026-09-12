@@ -206,7 +206,7 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
 test('editor entry loads the current AI client, expansion, and runtime cache versions',()=>{
   assert.match(studioSource,/ai-design-client\.js\?v=20260912\.2/);
   assert.match(studioSource,/design-set-expansion@0\.2\.0\.js\?v=20260912\.3/);
-  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260912\.4/);
+  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260912\.5/);
   assert.match(studioSource,/const pageAssets=selected\.assetsByPage\|\|\{\}/);
   assert.match(studioSource,/filter\(page=>!pageAssets\[page\.id\]\)/);
 });
@@ -327,6 +327,10 @@ test('editor applies every representative page asset with its real generated rol
   assert.match(html,/generatedRole=metadata\.generatedRole\|\|window\.ACDLDesignSetExpansion\?\.generatedRole\?\.\(page\)/);
   assert.match(html,/const pageAssets=selected\.assetsByPage\|\|\{\}/);
   assert.match(html,/aiDesignTargetPages\(generatedRole\)\.filter\(page=>!pageAssets\[page\.id\]\)/);
+  assert.match(html,/function repairAIDesignPageCoverage\(selected,session\)/);
+  assert.match(html,/selected\.assetsByPage\?\.\[page\.id\]\|\|monthly\?\.\[generatedRole\]\|\|selected\.assetsByRole\?\.\[generatedRole\]/);
+  assert.match(html,/coverageRepair=repairAIDesignPageCoverage\(selected,aiDesignMockSession\)/);
+  assert.match(html,/repairedCoverage:true/);
   assert.doesNotMatch(html,/generatedRole:"divider",pageInstance:metadata\.pageInstance/);
   assert.match(expansion,/selected\?\.assetsByPage\?\.\[page\?\.id\]\|\|selected\?\.assetsByRole/);
 });
