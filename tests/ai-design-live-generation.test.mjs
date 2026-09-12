@@ -14,17 +14,20 @@ test('live image prompt protects editable calendar and school data', () => {
   assert.match(prompt,/#315e9e/);
   assert.match(prompt,/Page role: 표지/);
   assert.match(prompt,/Actual protected coordinates override every visual request/i);
-  assert.match(prompt,/one text-free, non-functional print background/i);
+  assert.match(prompt,/one restrained, text-free, non-functional print background/i);
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.15.3');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.16.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','divider','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
     assert.match(prompt,/Never rasterize or invent school photos/i);
     assert.match(prompt,/Never rasterize or invent school photos/i);
     assert.match(prompt,/Do not draw binding, holes, crop marks/i);
+    assert.match(prompt,/Keep 70 to 85 percent of the page visually quiet/i);
+    assert.match(prompt,/Decoration may occupy at most/i);
+    assert.match(prompt,/zero Korean-like or Latin-like glyphs/i);
     assert.match(prompt,new RegExp(`Page role: ${prompts.ROLE_PROMPTS[pageRole].label}`));
   }
 });
@@ -66,8 +69,8 @@ test('month fronts vary one selected axis without forcing five simultaneous chan
 test('month front respects the selected editable calendar treatment without assuming transparency',()=>{
  const designSpec={schemaVersion:'ai-design-spec.v2',version:'0.3.0',styleId:'editorial-graphic',styleSnapshots:[{id:'editorial-graphic',name:'Editorial Graphic',guidance:{month:{}}}],pageTypes:{month:'calendar-led'},expression:{monthFrontMode:'color-accent',monthBackMode:'auto-match'},protectedContent:['calendar-data']};
  const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'month',month:{year:2028,month:3},request:{designSpec}}));
- assert.match(prompt,/never assume, draw, or imitate its grid, cells, rules, panels, or background/i);
- assert.match(prompt,/respect the actual editable calendar treatment/i);
+ assert.match(prompt,/Never rasterize or invent[^.]*grids/i);
+ assert.match(prompt,/actual editable calendar treatment/i);
  assert.doesNotMatch(prompt,/must remain transparent/i);
  assert.match(prompt,/Do not leave visible rectangular cutouts, cards/i);
 });
@@ -206,7 +209,7 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
 test('editor entry loads the current AI client, expansion, and runtime cache versions',()=>{
   assert.match(studioSource,/ai-design-client\.js\?v=20260912\.2/);
   assert.match(studioSource,/design-set-expansion@0\.2\.0\.js\?v=20260912\.3/);
-  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260912\.5/);
+  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260912\.6/);
   assert.match(studioSource,/const pageAssets=selected\.assetsByPage\|\|\{\}/);
   assert.match(studioSource,/filter\(page=>!pageAssets\[page\.id\]\)/);
 });
