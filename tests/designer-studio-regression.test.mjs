@@ -268,6 +268,8 @@ test('system base deployment identity is generated and read only for administrat
   assert.match(runtime, /packageId=classification\?\.packageId\|\|''/);
   assert.match(runtime, /projectData\?\.template\?\.publishing\?\.packageVersion\|\|'1\.0\.0'/);
   assert.match(runtime, /openDeploy\([\s\S]*?\)\.catch\(error=>/);
+  assert.match(runtime, /record\.isStandard&&record\.source==='local'/);
+  assert.match(runtime, /기존 Published Package/);
 });
 
 test('template settings author required optional and unused inputs with sample fallback', () => {
