@@ -206,7 +206,9 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
 test('editor entry loads the current AI client, expansion, and runtime cache versions',()=>{
   assert.match(studioSource,/ai-design-client\.js\?v=20260912\.2/);
   assert.match(studioSource,/design-set-expansion@0\.2\.0\.js\?v=20260912\.3/);
-  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260912\.3/);
+  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260912\.4/);
+  assert.match(studioSource,/const pageAssets=selected\.assetsByPage\|\|\{\}/);
+  assert.match(studioSource,/filter\(page=>!pageAssets\[page\.id\]\)/);
 });
 
 test('AI image generation allows production latency and reports timeouts explicitly',()=>{
@@ -323,7 +325,8 @@ test('the selected representative set expands to eleven remaining monthly front 
 test('editor applies every representative page asset with its real generated role',()=>{
   const html=studioSource,expansion=fs.readFileSync(new URL('../apps/designer-studio/ai-design/design-set-expansion@0.2.0.js',import.meta.url),'utf8');
   assert.match(html,/generatedRole=metadata\.generatedRole\|\|window\.ACDLDesignSetExpansion\?\.generatedRole\?\.\(page\)/);
-  assert.match(html,/pageRoles\.forEach\(role=>delete sources\[role\]\)/);
+  assert.match(html,/const pageAssets=selected\.assetsByPage\|\|\{\}/);
+  assert.match(html,/aiDesignTargetPages\(generatedRole\)\.filter\(page=>!pageAssets\[page\.id\]\)/);
   assert.doesNotMatch(html,/generatedRole:"divider",pageInstance:metadata\.pageInstance/);
   assert.match(expansion,/selected\?\.assetsByPage\?\.\[page\?\.id\]\|\|selected\?\.assetsByRole/);
 });
