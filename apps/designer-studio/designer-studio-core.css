@@ -132,6 +132,7 @@ body.review-pdf-printing .free-element[data-element-role="ai-month-back-componen
 .semantic-copy{padding:7px;display:flex;flex-direction:column;justify-content:center;min-width:0}
 .semantic-copy strong{font-size:14px}.semantic-copy p{font-size:10px;color:#667085;margin:3px 0 0;line-height:1.45}
 .semantic-logo .semantic-media{height:100%}
+.semantic-logo .semantic-media img{object-fit:contain;object-position:center}
 .semantic-motto{justify-content:center;align-items:center;text-align:center;padding:14px}
 .semantic-song .semantic-media{min-height:55%}
 .semantic-song .semantic-media img{object-fit:contain;background:#fff;filter:contrast(1.12);image-rendering:auto}
