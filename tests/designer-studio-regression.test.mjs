@@ -262,8 +262,12 @@ test('system base deployment identity is generated and read only for administrat
   assert.match(html, /id="deployTemplateId" readonly/);
   assert.match(html, /id="deployTemplateVersion" readonly/);
   assert.match(html, /검토용 Package 생성/);
-  assert.match(runtime, /record\.classification\?\.packageId\|\|record\.packageId\|\|''/);
-  assert.match(runtime, /record\.packageVersion\|\|'1\.0\.0'/);
+  assert.match(runtime, /async function openDeploy\(record\)/);
+  assert.match(runtime, /projectData=await projectForRecord\(record\)/);
+  assert.match(runtime, /classification=projectData\?\.template\?\.classification/);
+  assert.match(runtime, /packageId=classification\?\.packageId\|\|''/);
+  assert.match(runtime, /projectData\?\.template\?\.publishing\?\.packageVersion\|\|'1\.0\.0'/);
+  assert.match(runtime, /openDeploy\([\s\S]*?\)\.catch\(error=>/);
 });
 
 test('template settings author required optional and unused inputs with sample fallback', () => {
