@@ -16,7 +16,7 @@
  }
  async function generate(input,options={}){
   let lastError;
-  for(let attempt=0;attempt<2;attempt+=1){try{return await request('/api/ai-design-generate',{method:'POST',body:JSON.stringify(input),signal:options.signal},175000)}catch(error){lastError=error;if(options.signal?.aborted||error?.status!==504||attempt===1)throw error}}
+  for(let attempt=0;attempt<2;attempt+=1){try{return await request('/api/ai-design-generate',{method:'POST',body:JSON.stringify(input),signal:options.signal},175000)}catch(error){lastError=error;if(options.signal?.aborted||![502,503,504].includes(error?.status)||attempt===1)throw error}}
   throw lastError;
  }
  async function config(){return request('/api/ai-design-config',{method:'GET'})}

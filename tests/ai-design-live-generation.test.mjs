@@ -198,7 +198,7 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
   assert.match(html,/e\.key==="Enter"&&e\.target\?\.id==="aiDesignOpenAIKey"/);
   assert.match(client,/controller\.abort\(\),timeoutMs/);
   assert.match(client,/JSON\.stringify\(input\),signal:options\.signal\},175000/);
-  assert.match(client,/error\?\.status!==504/);
+  assert.match(client,/!\[502,503,504\]\.includes\(error\?\.status\)/);
   assert.match(client,/AIGenerationCancelledError/);
   assert.match(client,/연결 확인 시간이 초과됐습니다/);
 });

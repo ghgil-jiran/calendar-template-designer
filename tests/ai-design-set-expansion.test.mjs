@@ -35,3 +35,22 @@ test('expansion report identifies a missing monthly role asset and its unapplied
  assert.deepEqual(JSON.parse(JSON.stringify(report.missingMonthlyAssets)),[{monthKey:key,role:'month-back'}]);
  assert.equal(report.missingPages[0].pageId,`back-${key}`);
 });
+
+test('individually generated divider assets satisfy per-page expansion coverage',()=>{
+ const {project,selected}=fixture(),divider=project.book.pageInstances.find(page=>page.id==='symbols');
+ delete selected.assetsByRole.divider;
+ selected.assetsByPage={symbols:'individual-divider-asset'};
+ const report=api().createReport(project,selected);
+ assert.equal(report.status,'complete');
+ assert.equal(report.missingPages.length,0);
+ assert.equal(divider.aiDesignExpansion.assetReady,true);
+});
+
+test('semantic page roles use the same generated role as generation and application',()=>{
+ const {project,selected}=fixture(),annual=project.book.pageInstances.find(page=>page.id==='annual');
+ annual.semanticPageRole='cover-continuation';
+ project.book.elementsByPage.annual[0].aiDesign.generatedRole='cover';
+ const report=api().createReport(project,selected);
+ assert.equal(report.status,'complete');
+ assert.equal(report.pages.find(page=>page.pageId==='annual').generatedRole,'cover');
+});
