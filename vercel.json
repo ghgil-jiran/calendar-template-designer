@@ -75,6 +75,9 @@
     },
     "api/ai-design-generate.js": {
       "maxDuration": 180
+    },
+    "api/template-package-preflight.js": {
+      "maxDuration": 60
     }
   }
 }
