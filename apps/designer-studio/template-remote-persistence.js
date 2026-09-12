@@ -7,7 +7,7 @@
   if(!isRemote())throw Object.assign(new Error('로컬 환경에서는 브라우저 저장을 사용합니다.'),{code:'REMOTE_DISABLED'});
   const token=accessToken();if(!token)throw Object.assign(new Error('Master Admin 로그인이 필요합니다.'),{code:'AUTH_REQUIRED'});
   const response=await root.fetch(path,{...options,headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`,...options.headers}}),body=await response.json().catch(()=>({}));
-  if(!response.ok){if(response.status===401)root.ACDLAdminAuth?.signOut?.();throw Object.assign(new Error(response.status===401?'로그인이 만료되었습니다. 다시 로그인해주세요.':response.status===403?'Master Admin 권한이 필요합니다.':response.status===503?'원격 저장 환경 설정이 필요합니다.':'원격 저장 요청에 실패했습니다.'),{code:body.error||'REMOTE_REQUEST_FAILED',status:response.status})}
+  if(!response.ok){if(response.status===401)root.ACDLAdminAuth?.signOut?.();const code=body.error||'REMOTE_REQUEST_FAILED',detail=body.details?.upstreamMessage||body.message||'',base=response.status===401?'로그인이 만료되었습니다. 다시 로그인해주세요.':response.status===403?'Master Admin 권한이 필요합니다.':response.status===503?'원격 저장 환경 설정이 필요합니다.':'원격 저장 요청에 실패했습니다.';throw Object.assign(new Error(`${base} [${response.status}/${code}]${detail?` ${detail}`:''}`),{code,status:response.status,details:body.details||null})}
   return body;
  }
  async function assetObjectUrl(id){

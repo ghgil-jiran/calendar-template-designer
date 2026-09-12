@@ -7,7 +7,7 @@ async function postReview(origin,authorization,bypass,payload){
   const headers={'Content-Type':'application/json',Authorization:authorization};
   if(bypass)headers['x-vercel-protection-bypass']=bypass;
   const target=await fetch(`${origin}/api/template-packages/review`,{method:'POST',headers,body:JSON.stringify(payload)}),result=await target.json().catch(()=>({}));
-  if(!target.ok)throw Object.assign(new Error(result.message||result.error||'User Service review registration failed'),{statusCode:target.status,code:'USER_SERVICE_REVIEW_REGISTRATION_FAILED'});
+  if(!target.ok)throw Object.assign(new Error(result.message||result.error||'User Service review registration failed'),{statusCode:target.status,code:'USER_SERVICE_REVIEW_REGISTRATION_FAILED',details:{upstreamStatus:target.status,upstreamError:result.error||null,upstreamMessage:result.message||null}});
   return result;
 }
 
