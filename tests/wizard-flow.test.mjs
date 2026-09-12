@@ -225,26 +225,28 @@ test('template library uses unified controls and calendar product thumbnails', (
   assert.match(runtime, /calendar-product-thumb calendar-product-\$\{escape\(record\.type\)\}/);
   assert.match(runtime, /calendar-product-page.*data-library-thumbnail/);
   assert.match(runtime, /function cardStateLabel\(record\)/);
-  assert.match(runtime, /record\.state==='published'\?'게시됨'/);
-  assert.match(runtime, /record\.isStandard\?'<span class="standard-badge">표준<\/span>'/);
+  assert.match(runtime, /record\.state==='ready'\?'공유 검토'/);
+  assert.match(runtime, /record\.isStandard\?'<span class="standard-badge">시스템 베이스<\/span>'/);
+  assert.match(runtime, /data-library-deploy/);
   assert.match(runtime, /data-library-settings/);
   assert.doesNotMatch(runtime, /data-library-copy/);
   assert.match(runtime, /function internalVersionLabel\(record\)/);
   assert.match(runtime, /library-card-version/);
 });
 
-test('template lifecycle separates status, standard, design editing and settings', () => {
+test('template lifecycle separates personal, shared review and protected system bases', () => {
   const html = studioHtml;
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(html, /id="saveTemplateStandard"/);
-  assert.match(html, /id="libraryStandardFilter"/);
-  assert.match(runtime, /const locked=record\.isStandard===true/);
+  assert.match(html, /data-library-scope="review">공유 검토/);
+  assert.match(runtime, /const locked=record\.source==='catalog'/);
   assert.match(runtime, /if\(source&&!source\.isStandard\)openDesignerProjectFromRecord\(source\)/);
   assert.doesNotMatch(runtime, /\['draft','ready'\]\.includes\(source\.state\)/);
   assert.match(runtime, /data-library-settings/);
   assert.match(runtime, /async function saveSettings\(recordId,values\)/);
   assert.match(runtime, /async function startNewFrom\(record\)/);
-  assert.match(runtime, /activeStandardOnly&&!record\.isStandard/);
+  assert.match(runtime, /activeLibraryScope==='review'/);
+  assert.match(runtime, /activeLibraryScope==='custom'/);
   assert.doesNotMatch(runtime, /data-library-copy/);
   assert.doesNotMatch(runtime, /data-library-state-change/);
   assert.match(runtime, /status:result\.template\.state/);
@@ -365,7 +367,7 @@ test('template library entry and save do not reference the removed legacy filter
   const html = studioHtml;
   assert.doesNotMatch(html, /activeLibraryFilter/);
   assert.match(html, /designerHomeLibrary[^\n]+renderTemplateLibrary\('all'\)/);
-  assert.match(html, /if\(isStandard\|\|state==="published"\|\|state==="archived"\)/);
+  assert.match(html, /if\(state==="ready"\|\|state==="archived"\)/);
 });
 
 test('library project opening waits for package loading and clears stale schedule settings', () => {

@@ -47,3 +47,22 @@ export function inspectWallTemplate(template,version){
     blockers:checks.filter(check=>!check.ok).map(check=>check.label)
   };
 }
+
+export function inspectTemplatePackage(template,version){
+  if(template?.productType==='wall')return inspectWallTemplate(template,version);
+  const project=version?.projectData||{},pages=project?.book?.pageInstances||[],size=project?.productType?.pageSize||{};
+  const roles=pages.map(page=>page.role),monthly=pages.filter(page=>page.role==='monthly-front');
+  const checks=[
+    {id:'system-base',label:'시스템 베이스 확정',ok:template?.isStandard===true&&template?.state==='ready'},
+    {id:'project-document',label:'저장된 프로젝트 문서',ok:Boolean(project?.book)&&pages.length>0},
+    {id:'product-type',label:'제품 유형 일치',ok:Boolean(template?.productType)&&project?.productType?.category===template?.productType},
+    {id:'page-size',label:'유효한 페이지 크기',ok:Number(size.width)>0&&Number(size.height)>0&&Boolean(size.unit||'mm')},
+    {id:'monthly-pages',label:'월력 앞면 12개',ok:monthly.length===12},
+    {id:'cover-order',label:'표지와 뒷표지 포함',ok:roles[0]==='cover-front'&&roles.some(role=>role==='back-cover-front')}
+    ,{id:'classification',label:'템플릿 분류 계약',ok:project?.template?.classification?.schemaVersion==='template-classification.v1'&&Boolean(project?.template?.classification?.compositionType)&&Boolean(project?.template?.classification?.designStyle)}
+    ,{id:'user-input',label:'사용자 입력 안내 계약',ok:project?.template?.userInput?.schemaVersion==='template-user-input.v1'&&Array.isArray(project?.template?.userInput?.requiredInputs)&&project?.template?.userInput?.recommendedFlow==='quick-order'&&project?.template?.userInput?.supportsOptionalEditing===true&&project?.template?.userInput?.userServiceCapabilities?.includes('add-text')&&project?.template?.userInput?.userServiceCapabilities?.includes('add-image')}
+  ];
+  const assetIds=[...collectAssetIds(project)].sort();
+  const fingerprint=createHash('sha256').update(JSON.stringify(stable(project))).digest('hex');
+  return {ok:checks.every(check=>check.ok),template:{id:template.id,name:template.name,edition:template.edition,state:template.state,isStandard:template.isStandard,latestVersionNumber:template.latestVersionNumber},version:{id:version.id,versionNumber:version.versionNumber,createdAt:version.createdAt},summary:{surfaceCount:pages.length,pageSize:{width:size.width,height:size.height,unit:size.unit||'mm'},roles,monthCount:monthly.length,assetCount:assetIds.length,assetIds,projectSha256:fingerprint},checks,blockers:checks.filter(check=>!check.ok).map(check=>check.label)};
+}

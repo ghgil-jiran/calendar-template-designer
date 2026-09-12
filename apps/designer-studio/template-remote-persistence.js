@@ -59,6 +59,8 @@
  async function hydrateVersion(version){return version?.projectData?{...version,projectData:await hydrateProjectData(version.projectData)}:version}
  async function restore(templateId,versionId,saveNote){return request('/api/template-restore',{method:'POST',body:JSON.stringify({templateId,versionId,saveNote})})}
  async function packagePreflight(templateId){return request(`/api/template-package-preflight?templateId=${encodeURIComponent(templateId)}`)}
+ async function packageCandidate(templateId,packageId,packageVersion){return request(`/api/template-package-candidate?templateId=${encodeURIComponent(templateId)}&packageId=${encodeURIComponent(packageId)}&packageVersion=${encodeURIComponent(packageVersion)}`)}
+ async function registerReviewPackage(templateId,packageId,packageVersion){return request('/api/template-package-register-review',{method:'POST',body:JSON.stringify({templateId,packageId,packageVersion})})}
  async function remove({templateId=null,stableKey,hideCatalog=false}){return request('/api/templates',{method:'DELETE',body:JSON.stringify({templateId,stableKey,hideCatalog})})}
- root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,remove,deletedCatalogKeys:()=>[...deletedCatalogKeys],toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareProjectData,hydrateProjectData,assetObjectUrl,legacyStoragePath});
+ root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,packageCandidate,registerReviewPackage,remove,deletedCatalogKeys:()=>[...deletedCatalogKeys],toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareProjectData,hydrateProjectData,assetObjectUrl,legacyStoragePath});
 })(window);

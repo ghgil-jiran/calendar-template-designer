@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { inspectWallTemplate } from '../server/template-package-preflight.js';
+import { inspectTemplatePackage, inspectWallTemplate } from '../server/template-package-preflight.js';
 
 function fixture(){
   const months=Array.from({length:12},(_,index)=>{const offset=2+index;return {id:`month-${index}`,role:'monthly-front',calendarYear:2028+Math.floor(offset/12),calendarMonth:offset%12+1,monthKey:`${2028+Math.floor(offset/12)}-${String(offset%12+1).padStart(2,'0')}`}});
@@ -16,4 +16,12 @@ test('saved wall template passes the 15-surface package contract',()=>{
 test('a 13-surface wall draft is blocked before package export',()=>{
   const {template,version}=fixture();version.projectData.book.pageInstances.splice(1,1);version.projectData.settings.frontInsertCount=0;
   const result=inspectWallTemplate(template,version);assert.equal(result.ok,false);assert.ok(result.blockers.includes('총 15면'));assert.ok(result.blockers.includes('표지·앞간지·월력 12면·뒷표지 순서'));
+});
+
+test('a confirmed desk system base receives a deterministic generic preflight',()=>{
+  const months=Array.from({length:12},(_,index)=>({id:`month-${index}`,role:'monthly-front'}));
+  const template={id:'desk-1',name:'탁상형 표준',edition:2028,state:'ready',isStandard:true,productType:'desk',latestVersionNumber:2};
+  const version={id:'v2',versionNumber:2,createdAt:'2026-09-12T00:00:00Z',projectData:{productType:{category:'desk',pageSize:{width:260,height:190,unit:'mm'}},template:{classification:{schemaVersion:'template-classification.v1',compositionType:'basic',designStyle:'editorial-graphic'},userInput:{schemaVersion:'template-user-input.v1',requiredInputs:['school.name'],recommendedFlow:'quick-order',supportsOptionalEditing:true,userServiceCapabilities:['add-text','add-image','edit-bound-content']}},book:{pageInstances:[{id:'cover',role:'cover-front'},...months,{id:'back',role:'back-cover-front'}]}}};
+  const result=inspectTemplatePackage(template,version);
+  assert.equal(result.ok,true);assert.equal(result.summary.monthCount,12);assert.match(result.summary.projectSha256,/^[a-f0-9]{64}$/);
 });

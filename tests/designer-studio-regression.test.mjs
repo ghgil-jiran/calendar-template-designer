@@ -244,10 +244,13 @@ test('template settings require a separate irreversible confirmation before perm
   assert.match(runtime,/deletedCatalogKeys\.has\(record\.stableKey\|\|record\.id\)/);
 });
 
-test('published and standard templates are protected while new templates keep their origin', () => {
+test('system bases are protected while shared review templates remain editable', () => {
   const runtime = fs.readFileSync(path.resolve('apps/designer-studio/template-library-runtime.js'), 'utf8');
-  assert.match(runtime, /const locked=record\.isStandard===true/);
+  assert.match(runtime, /const locked=record\.source==='catalog'/);
+  assert.match(runtime, /activeLibraryScope==='review'/);
+  assert.match(runtime, /record\.state!=='ready'/);
   assert.match(runtime, /if\(source&&!source\.isStandard\)openDesignerProjectFromRecord\(source\)/);
+  assert.match(runtime, /rawState==='published'\?'ready':rawState/);
   assert.match(runtime, /이 템플릿으로 새로 만들기/);
   assert.doesNotMatch(runtime, /연결 작업본 만들기/);
   assert.match(html, /project\.template\.derivedFromTemplateId=window\.ACDLNewTemplateBaseRecord\?\.id\|\|null/);
