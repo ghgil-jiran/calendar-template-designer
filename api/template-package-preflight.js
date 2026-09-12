@@ -32,7 +32,7 @@ export default async function handler(request,response){
       const authorization=request.headers.authorization||request.headers.Authorization;
       const bypass=process.env.USER_SERVICE_BYPASS_SECRET||'';
       const bytes=Buffer.from(deterministicJson(candidate.packageBundle),'utf8'),totalChunks=Math.ceil(bytes.length/REVIEW_CHUNK_BYTES);
-      for(let index=0;index<totalChunks;index+=1){const chunk=bytes.subarray(index*REVIEW_CHUNK_BYTES,Math.min(bytes.length,(index+1)*REVIEW_CHUNK_BYTES));await postReview(origin,authorization,bypass,{mode:'chunk',sha256:candidate.sha256,index,totalChunks,data:chunk.toString('base64')})}
+      await Promise.all(Array.from({length:totalChunks},(_,index)=>{const chunk=bytes.subarray(index*REVIEW_CHUNK_BYTES,Math.min(bytes.length,(index+1)*REVIEW_CHUNK_BYTES));return postReview(origin,authorization,bypass,{mode:'chunk',sha256:candidate.sha256,index,totalChunks,data:chunk.toString('base64')})}));
       const result=await postReview(origin,authorization,bypass,{mode:'finalize',sha256:candidate.sha256,totalChunks});
       return sendJson(response,201,{...result,sourceVersion:candidate.source,classification:candidate.classification});
     }
