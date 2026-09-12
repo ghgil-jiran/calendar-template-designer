@@ -296,7 +296,7 @@
  function closeDeploy(){el('templateDeployDialog')?.classList.add('hidden');pendingDeploy=null;pendingReviewIdentity=null;const button=el('confirmTemplateDeployBtn');if(button){delete button.dataset.stage;button.textContent='배포 정보 확인'}}
  function openDeploy(record){
   if(!record?.isStandard)throw new Error('시스템 베이스로 확정된 템플릿만 배포할 수 있습니다.');
-  pendingDeploy=record;pendingReviewIdentity=null;el('deployTemplateId').value=record.classification?.packageId||record.packageId||record.template||record.stableKey||'';el('deployTemplateVersion').value=record.packageVersion||'';const feedback=el('templateDeployFeedback'),button=el('confirmTemplateDeployBtn');feedback.classList.add('hidden');feedback.textContent='';button.disabled=false;delete button.dataset.stage;button.textContent='배포 정보 확인';el('templateDeployDialog').classList.remove('hidden');el('deployTemplateId').focus();
+  pendingDeploy=record;pendingReviewIdentity=null;el('deployTemplateId').value=record.classification?.packageId||record.packageId||record.template||record.stableKey||'';el('deployTemplateVersion').value=record.packageVersion||'1.0.0';const feedback=el('templateDeployFeedback'),button=el('confirmTemplateDeployBtn');feedback.classList.add('hidden');feedback.textContent='';button.disabled=false;delete button.dataset.stage;button.textContent='배포 정보 확인';el('templateDeployDialog').classList.remove('hidden');el('deployTemplateId').focus();
  }
  async function inspectDeploy(event){
   event.preventDefault();if(!pendingDeploy)return;const packageId=el('deployTemplateId').value.trim(),packageVersion=el('deployTemplateVersion').value.trim(),feedback=el('templateDeployFeedback'),button=el('confirmTemplateDeployBtn');
