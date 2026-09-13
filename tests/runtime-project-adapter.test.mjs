@@ -60,6 +60,21 @@ test('runtime project adapter normalizes design-type aliases and supplies page-a
  assert.deepEqual(JSON.parse(JSON.stringify(index('memo').value)),{layout:'checklist',title:'TO DO',lineCount:8,itemCount:7,weekCount:5,showMemo:true});
 });
 
+test('runtime project adapter carries the complete calendar master presentation contract',()=>{
+ const dataset={calendar:{},monthlyQuotes:{}};
+ const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{buildRuntimeDataset:()=>dataset,resolvePageBinding:path=>path},parity:{buildDeskAcademicSurfacePlan:()=>[]},pageAdapter:{compose:()=>({pages:[],complete:true})}});
+ const calendar={rows:6,weekStart:'monday',calendarRegion:{x:4,y:18,width:92,height:76},calendarLayout:{rowsMode:'fixed-6',weekStartsOn:'monday',regions:{titlePercent:21,weekdayPercent:4,dateGridPercent:75}},calendarPreset:{schemaVersion:'monthly-calendar-preset.v1',presetId:'segmented-underline',presetVersion:'1.0.0',supportedRows:[5,6]},calendarOverrides:{gridStyle:'open-rows',lineColor:'#123456',lineWidth:2},design:{monthTitleStyle:'number-inline',weekdayStyle:'outlined-pills',gridStyle:'open-rows'}};
+ const project={productType:{category:'desk',pageSize:{width:260,height:180}},settings:{year:2027,calendarRows:5,weekStart:'sunday'},template:{id:'desk',masterElements:{},masters:{calendar}},book:{pageInstances:[{id:'march',role:'monthly-front',calendarYear:2027,calendarMonth:3}],elementsByPage:{march:[]}}};
+ const object=adapter.adapt(project).template.pages[0].objects[0];
+ assert.equal(object.role,'current-calendar');
+ assert.equal(object.value.rows,6);
+ assert.equal(object.value.weekStart,'monday');
+ assert.equal(object.value.calendarLayout.rowsMode,'fixed-6');
+ assert.equal(object.value.calendarOverrides.lineColor,'#123456');
+ assert.equal(object.style.design.weekdayStyle,'outlined-pills');
+ assert.equal(object.style.calendarPreset.presetId,'segmented-underline');
+});
+
 test('runtime project adapter blocks invalid user service Dataset before composition',()=>{
  const accepted={dataset:{schemaVersion:'1.0'},diagnostics:[{severity:'error',code:'MISSING_SCHOOL_NAME'}],hasErrors:true};
  let composed=false;
