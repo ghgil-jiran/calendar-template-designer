@@ -42,6 +42,15 @@ assert.equal(project.book.pageInstances[26].monthKey, '2029-02');
 assert.equal(project.book.pageInstances[27].packageRole, 'back-contact');
 assert.equal(project.book.pageInstances[2].role, 'front-insert-front');
 assert.equal(project.book.pageInstances[26].role, 'monthly-front');
+assert.deepEqual(project.book.pageInstances.slice(0, 6).map(page => [page.surfaceRole, page.contentPurpose]), [
+  ['cover-front', 'cover'],
+  ['cover-back', 'annual-calendar'],
+  ['front-insert-front', 'school-symbols'],
+  ['monthly-back', 'photo-memo'],
+  ['monthly-front', 'month-calendar'],
+  ['monthly-back', 'photo-memo']
+]);
+assert.ok(!project.book.pageInstances.some(page => page.surfaceRole === 'annual-calendar' || page.surfaceRole === 'school-symbols'));
 
 const symbolPage = project.book.pageInstances[2];
 const song = project.book.elementsByPage[symbolPage.id].find(item => item.role === 'school-song');
@@ -87,6 +96,8 @@ assert.equal(wallProject.book.pageInstances[13].monthKey, '2029-02');
 assert.equal(wallProject.book.pageInstances[1].role, 'front-insert-front');
 assert.equal(wallProject.book.pageInstances[14].role, 'back-cover-front');
 assert.equal(wallProject.book.pageInstances[14].packageRole, 'back-contact');
+assert.deepEqual([wallProject.book.pageInstances[1].surfaceRole, wallProject.book.pageInstances[1].contentPurpose], ['front-insert-front', 'school-symbols']);
+assert.deepEqual([wallProject.book.pageInstances[14].surfaceRole, wallProject.book.pageInstances[14].contentPurpose], ['back-cover-front', 'contact-information']);
 assert.equal(wallProject.settings.frontInsertCount, 1);
 assert.equal(wallProject.settings.rearInsertCount, 0);
 assert.deepEqual(wallProject.template.masters.calendar.calendarRegion, { x: 7, y: 41, width: 86, height: 52 });

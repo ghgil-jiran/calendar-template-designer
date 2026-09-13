@@ -1,5 +1,21 @@
 # Work Context
 
+## 현재 상태 · 2026-09-13
+
+- 현재 브랜치: `refactor/designer-structure-a2`
+- Runtime v2의 첫 기준으로 페이지의 물리 위치 `surfaceRole`과 내용 용도 `contentPurpose`를 분리했다.
+- 물리 면은 표지·표지 뒷면·앞/뒷간지 양면·월력 앞/뒷면·뒷표지 안/바깥면으로 구분한다.
+- 연력·학교 상징·사진 메모·연락처는 페이지 역할이나 페이지 Master가 아니라 콘텐츠 용도/개체로 취급한다.
+- 기존 Package 필드는 읽기 호환용으로 유지하며 사용자 서비스 Runtime v2가 새 두 필드를 우선 읽도록 옮기는 단계가 남았다.
+- Production과 Published Package는 변경하지 않았다.
+
+## 다음 할 일 · 2026-09-13
+
+1. 사용자 서비스 `integration/runtime-v2`에 동일한 페이지 의미 계약과 실패 시 명시 오류 원칙을 반영한다.
+2. 28면 고정 변환 대신 Package의 실제 surface plan을 그대로 사용하는 조립기를 연결한다.
+3. 템플릿 샘플·사용자 Dataset·개체 권한·자산을 한 번만 해석한 Runtime 문서를 화면·저장·PDF가 공유하게 한다.
+4. 대표 28면 Package로 저장·재열기·검토 PDF를 확인한 뒤에만 사용자 테스트를 요청한다.
+
 ## 현재 상태 · 2026-08-26
 
 - 현재 브랜치: `refactor/designer-structure-a2`

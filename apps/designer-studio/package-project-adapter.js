@@ -14,6 +14,35 @@
     return typeof value === 'string' && key ? value.replace('{YYYY-MM}', key) : value;
   }
 
+  const contentPurposeByLegacyRole = Object.freeze({
+    'cover-front': 'cover',
+    'annual-calendar': 'annual-calendar',
+    'school-symbols': 'school-symbols',
+    'monthly-calendar': 'month-calendar',
+    'monthly-photo-memo': 'photo-memo',
+    'back-contact': 'contact-information'
+  });
+
+  const surfaceRoleByLegacyRole = Object.freeze({
+    'cover-front': 'cover-front',
+    'annual-calendar': 'cover-back',
+    'school-symbols': 'front-insert-front',
+    'monthly-calendar': 'monthly-front',
+    'monthly-photo-memo': 'monthly-back',
+    'back-contact': 'back-cover-back'
+  });
+
+  function applyPageSemantics(page, legacyRole, surfaceRole) {
+    const physicalRole = surfaceRole || surfaceRoleByLegacyRole[legacyRole] || page.surfaceRole || page.role || 'custom';
+    page.role = physicalRole;
+    page.surfaceRole = physicalRole;
+    page.contentPurpose = contentPurposeByLegacyRole[legacyRole] || 'free-layout';
+    // Transitional aliases are output-only compatibility fields. New Runtime code
+    // must branch on surfaceRole/contentPurpose instead of these legacy names.
+    page.packageRole = legacyRole;
+    page.semanticPageRole = legacyRole;
+  }
+
   function elementFromDefinition(definition, page, sampleAssets = {}, suffix = '') {
     const frame = definition.framePct || { x: 0, y: 0, width: 100, height: 100 };
     const binding = resolvePattern(definition.bindingPattern || definition.targetBindingPattern || definition.binding, page);
@@ -65,16 +94,8 @@
   }
 
   function assignPage(page, role, calendar) {
-    const editorRole = {
-      'school-symbols': 'front-insert-front',
-      'monthly-calendar': 'monthly-front',
-      'monthly-photo-memo': 'monthly-back',
-      'back-contact': 'back-cover-back'
-    }[role];
     page.sourceRole ||= page.role;
-    if (editorRole) page.role = editorRole;
-    page.packageRole = role;
-    page.semanticPageRole = role;
+    applyPageSemantics(page, role);
     page.calendarYear = calendar?.year || null;
     page.calendarMonth = calendar?.month || null;
     page.monthKey = calendar ? `${calendar.year}-${String(calendar.month).padStart(2, '0')}` : null;
@@ -106,21 +127,22 @@
           'monthly-calendar': 'monthly-front',
           'back-contact': 'back-cover-front'
         }[rule.role] || rule.role;
-        surfaces.push({
+        const page = {
           id: `page.${number}`,
           number,
           side: 'front',
           role: editorRole,
           sourceRole: rule.role,
           packageRole: rule.role,
-          semanticPageRole: rule.role,
           sequenceIndex: surfaces.length,
           masterId: rule.role === 'monthly-calendar' ? 'master.monthly.front' : `master.${rule.role}`,
           calendarYear: calendar?.year || null,
           calendarMonth: calendar?.month || null,
           monthKey: calendar ? `${calendar.year}-${String(calendar.month).padStart(2, '0')}` : null,
           overrides: {}
-        });
+        };
+        applyPageSemantics(page, rule.role, editorRole);
+        surfaces.push(page);
       }
     }
     return { surfaces, months };
