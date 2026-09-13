@@ -75,6 +75,15 @@ test('runtime project adapter carries the complete calendar master presentation 
  assert.equal(object.style.calendarPreset.presetId,'segmented-underline');
 });
 
+test('runtime project adapter mirrors source pages and master shadow composition',()=>{
+ const dataset={calendar:{},monthlyQuotes:{}};
+ const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{buildRuntimeDataset:()=>dataset,resolvePageBinding:path=>path},parity:{buildDeskAcademicSurfacePlan:()=>[]},pageAdapter:{compose:()=>({pages:[],complete:true})}});
+ const project={productType:{category:'desk',pageSize:{width:260,height:180}},settings:{year:2027},template:{id:'desk',masterElements:{monthly:[{id:'master-title',type:'text',content:'MASTER',x:0,y:0,width:20,height:10},{id:'master-keep',type:'text',content:'KEEP',x:0,y:10,width:20,height:10}]},masters:{calendar:{}}},book:{pageInstances:[{id:'march-instance',sourcePageId:'march-source',role:'monthly-front',masterId:'monthly',calendarYear:2027,calendarMonth:3}],elementsByPage:{'march-source':[{id:'page-title',shadowOfMasterElementId:'master-title',type:'text',content:'PAGE',x:0,y:0,width:20,height:10},{id:'calendar-explicit',type:'calendar-grid',role:'current-calendar',x:0,y:20,width:100,height:80}]}}};
+ const ids=adapter.adapt(project).template.pages[0].objects.map(object=>object.id);
+ assert.equal(JSON.stringify(ids),JSON.stringify(['master-keep','page-title','calendar-explicit']));
+ assert.equal(ids.includes('march-instance.calendar'),false);
+});
+
 test('runtime project adapter keeps physical surface, content purpose, master, and advanced widgets independent',()=>{
  const dataset={calendar:{},monthlyQuotes:{}};
  const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{buildRuntimeDataset:()=>dataset,resolvePageBinding:path=>path},parity:{buildDeskAcademicSurfacePlan:()=>[]},pageAdapter:{compose:()=>({pages:[],complete:true})}});
