@@ -36,7 +36,6 @@ async function postReview(origin,authorization,bypass,payload){
   if(!target.ok)throw Object.assign(new Error(result.message||result.error||'User Service review registration failed'),{statusCode:target.status,code:'USER_SERVICE_REVIEW_REGISTRATION_FAILED',details:{upstreamStatus:target.status,upstreamError:result.error||null,upstreamMessage:result.message||null}});
   return result;
 }
-async function nextReviewVersion(origin,authorization,bypass,packageId,baseVersion){return (await postReview(origin,authorization,bypass,{mode:'next-version',packageId,baseVersion})).version}
 
 export default async function handler(request,response){
   try{
@@ -54,16 +53,14 @@ export default async function handler(request,response){
       return sendJson(response,200,{classification,packageId:classification?.packageId||null,packageVersion:version?.projectData?.template?.publishing?.packageVersion||'1.0.0',sourceVersion:{templateId:template.id,versionId:version.id,versionNumber:version.versionNumber}});
     }
     if(request.method==='GET'&&query.get('action')==='candidate'){
-      const origin=process.env.USER_SERVICE_ORIGIN?.replace(/\/$/,'');if(!origin)throw Object.assign(new Error('USER_SERVICE_ORIGIN is not configured'),{statusCode:503,code:'USER_SERVICE_NOT_CONFIGURED'});
-      const packageId=query.get('packageId'),baseVersion=query.get('packageVersion'),authorization=request.headers.authorization||request.headers.Authorization,bypass=process.env.USER_SERVICE_BYPASS_SECRET||'',packageVersion=await nextReviewVersion(origin,authorization,bypass,packageId,baseVersion);
-      return sendJson(response,200,buildTemplatePackageCandidate({template,version,packageId,packageVersion}));
+      return sendJson(response,200,buildTemplatePackageCandidate({template,version,packageId:query.get('packageId'),packageVersion:query.get('packageVersion')}));
     }
     if(request.method==='POST'){
       const origin=process.env.USER_SERVICE_ORIGIN?.replace(/\/$/,'');
       if(!origin)throw Object.assign(new Error('USER_SERVICE_ORIGIN is not configured'),{statusCode:503,code:'USER_SERVICE_NOT_CONFIGURED'});
+      const candidate=await packageCandidateAssets(buildTemplatePackageCandidate({template,version,packageId:body.packageId,packageVersion:body.packageVersion}));
       const authorization=request.headers.authorization||request.headers.Authorization;
       const bypass=process.env.USER_SERVICE_BYPASS_SECRET||'';
-      const packageVersion=await nextReviewVersion(origin,authorization,bypass,body.packageId,body.packageVersion),candidate=await packageCandidateAssets(buildTemplatePackageCandidate({template,version,packageId:body.packageId,packageVersion}));
       const bytes=Buffer.from(deterministicJson(candidate.packageBundle),'utf8'),totalChunks=Math.ceil(bytes.length/REVIEW_CHUNK_BYTES);
       await Promise.all(Array.from({length:totalChunks},(_,index)=>{const chunk=bytes.subarray(index*REVIEW_CHUNK_BYTES,Math.min(bytes.length,(index+1)*REVIEW_CHUNK_BYTES));return postReview(origin,authorization,bypass,{mode:'chunk',sha256:candidate.sha256,index,totalChunks,data:chunk.toString('base64')})}));
       for(const asset of candidate.assets){
