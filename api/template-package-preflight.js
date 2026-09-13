@@ -18,11 +18,11 @@ function replaceAssetMarkers(value){
   return value;
 }
 async function packageCandidateAssets(candidate){
-  const ids=[...collectAssetIds(candidate.packageBundle.template.projectData)].sort(),assets=[];
-  for(const id of ids){
+  const ids=[...collectAssetIds(candidate.packageBundle.template.projectData)].sort();
+  const assets=await Promise.all(ids.map(async id=>{
     const asset=await readTemplateAsset(id),sha256=createHash('sha256').update(asset.bytes).digest('hex');
-    assets.push({id,mimeType:asset.mimeType,byteLength:asset.bytes.length,sha256,storagePath:`${candidate.templateId}/${candidate.version}/review/assets/${id}`,_bytes:asset.bytes});
-  }
+    return {id,mimeType:asset.mimeType,byteLength:asset.bytes.length,sha256,storagePath:`${candidate.templateId}/${candidate.version}/review/assets/${id}`,_bytes:asset.bytes};
+  }));
   const packageBundle=replaceAssetMarkers(candidate.packageBundle);
   packageBundle.assets=assets.map(({_bytes,...descriptor})=>descriptor);
   packageBundle.manifest.assets=packageBundle.assets;
@@ -37,6 +37,14 @@ async function postReview(origin,authorization,bypass,payload){
   return result;
 }
 async function nextReviewVersion(origin,authorization,bypass,packageId,baseVersion){return (await postReview(origin,authorization,bypass,{mode:'next-version',packageId,baseVersion})).version}
+async function uploadReviewAsset(origin,authorization,bypass,packageSha256,asset){
+  const totalChunks=Math.ceil(asset._bytes.length/REVIEW_CHUNK_BYTES);
+  for(let index=0;index<totalChunks;index+=1){const chunk=asset._bytes.subarray(index*REVIEW_CHUNK_BYTES,Math.min(asset._bytes.length,(index+1)*REVIEW_CHUNK_BYTES));await postReview(origin,authorization,bypass,{mode:'asset-chunk',packageSha256,assetId:asset.id,assetSha256:asset.sha256,mimeType:asset.mimeType,index,totalChunks,data:chunk.toString('base64')})}
+}
+async function uploadReviewAssets(origin,authorization,bypass,candidate,concurrency=4){
+  let next=0;const worker=async()=>{while(next<candidate.assets.length){const asset=candidate.assets[next++];await uploadReviewAsset(origin,authorization,bypass,candidate.sha256,asset)}};
+  await Promise.all(Array.from({length:Math.min(concurrency,candidate.assets.length||1)},worker));
+}
 
 export default async function handler(request,response){
   try{
@@ -66,10 +74,7 @@ export default async function handler(request,response){
       const packageVersion=await nextReviewVersion(origin,authorization,bypass,body.packageId,body.packageVersion),candidate=await packageCandidateAssets(buildTemplatePackageCandidate({template,version,packageId:body.packageId,packageVersion}));
       const bytes=Buffer.from(deterministicJson(candidate.packageBundle),'utf8'),totalChunks=Math.ceil(bytes.length/REVIEW_CHUNK_BYTES);
       await Promise.all(Array.from({length:totalChunks},(_,index)=>{const chunk=bytes.subarray(index*REVIEW_CHUNK_BYTES,Math.min(bytes.length,(index+1)*REVIEW_CHUNK_BYTES));return postReview(origin,authorization,bypass,{mode:'chunk',sha256:candidate.sha256,index,totalChunks,data:chunk.toString('base64')})}));
-      for(const asset of candidate.assets){
-        const assetChunks=Math.ceil(asset._bytes.length/REVIEW_CHUNK_BYTES);
-        for(let index=0;index<assetChunks;index+=1){const chunk=asset._bytes.subarray(index*REVIEW_CHUNK_BYTES,Math.min(asset._bytes.length,(index+1)*REVIEW_CHUNK_BYTES));await postReview(origin,authorization,bypass,{mode:'asset-chunk',packageSha256:candidate.sha256,assetId:asset.id,assetSha256:asset.sha256,mimeType:asset.mimeType,index,totalChunks:assetChunks,data:chunk.toString('base64')})}
-      }
+      await uploadReviewAssets(origin,authorization,bypass,candidate);
       const result=await postReview(origin,authorization,bypass,{mode:'finalize',sha256:candidate.sha256,totalChunks});
       return sendJson(response,201,{...result,sourceVersion:candidate.source,classification:candidate.classification});
     }

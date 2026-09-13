@@ -18,6 +18,16 @@ async function jsonResponse(response, fallbackCode) {
   return body;
 }
 
+async function fetchWithTransientRetry(url, options, attempts = 3) {
+  let response;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    response = await fetch(url, options);
+    if (![502, 503, 504].includes(response.status) || attempt === attempts - 1) return response;
+    await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+  }
+  return response;
+}
+
 export function bearerToken(request) {
   const header = String(request.headers?.authorization || request.headers?.Authorization || '').trim();
   const match = header.match(/^Bearer\s+(.+)$/i);
@@ -27,9 +37,9 @@ export function bearerToken(request) {
 
 export async function verifyMasterAdminToken(accessToken) {
   const { url, serviceKey } = config();
-  const userResponse = await fetch(`${url}/auth/v1/user`, { headers: { apikey: serviceKey, Authorization: `Bearer ${accessToken}` } });
+  const userResponse = await fetchWithTransientRetry(`${url}/auth/v1/user`, { headers: { apikey: serviceKey, Authorization: `Bearer ${accessToken}` } });
   const user = await jsonResponse(userResponse, 'INVALID_SESSION');
-  const adminResponse = await fetch(`${url}/rest/v1/template_admins?select=user_id,email,role,active&user_id=eq.${encodeURIComponent(user.id)}&role=eq.master_admin&active=is.true&limit=1`, {
+  const adminResponse = await fetchWithTransientRetry(`${url}/rest/v1/template_admins?select=user_id,email,role,active&user_id=eq.${encodeURIComponent(user.id)}&role=eq.master_admin&active=is.true&limit=1`, {
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
   });
   const admins = await jsonResponse(adminResponse, 'ADMIN_LOOKUP_FAILED');

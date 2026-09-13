@@ -77,7 +77,7 @@
       "maxDuration": 180
     },
     "api/template-package-preflight.js": {
-      "maxDuration": 60
+      "maxDuration": 300
     }
   }
 }
