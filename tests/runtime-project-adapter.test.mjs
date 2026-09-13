@@ -75,6 +75,20 @@ test('runtime project adapter carries the complete calendar master presentation 
  assert.equal(object.style.calendarPreset.presetId,'segmented-underline');
 });
 
+test('runtime project adapter keeps physical surface, content purpose, master, and advanced widgets independent',()=>{
+ const dataset={calendar:{},monthlyQuotes:{}};
+ const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{buildRuntimeDataset:()=>dataset,resolvePageBinding:path=>path},parity:{buildDeskAcademicSurfacePlan:()=>[]},pageAdapter:{compose:()=>({pages:[],complete:true})}});
+ const project={productType:{category:'desk',pageSize:{width:260,height:180}},settings:{year:2032},template:{id:'desk',masterElements:{divider:[{id:'plan',type:'memo',role:'yearly-plan',memoLayout:'yearly-grid',yearlyColumns:4,linesPerMonth:4,baseYear:2032,yearlyLayoutType:'yearly-vertical-groups',yearlyGroupSize:3,yearlyContainerStyle:'vertical-group'}]},masters:{}},book:{pageInstances:[{id:'insert',role:'front-insert-back',contentPurpose:'yearly-plan',masterId:'divider'}],elementsByPage:{insert:[]}}};
+ const page=adapter.adapt(project).template.pages[0],plan=page.objects[0];
+ assert.equal(page.role,'front-insert-back');
+ assert.equal(page.metadata.surfaceRole,'front-insert-back');
+ assert.equal(page.metadata.contentPurpose,'yearly-plan');
+ assert.equal(page.metadata.masterId,'divider');
+ assert.equal(plan.runtimeWidget.yearlyColumns,4);
+ assert.equal(plan.runtimeWidget.yearlyLayoutType,'yearly-vertical-groups');
+ assert.equal(plan.runtimeWidget.yearlyContainerStyle,'vertical-group');
+});
+
 test('runtime project adapter blocks invalid user service Dataset before composition',()=>{
  const accepted={dataset:{schemaVersion:'1.0'},diagnostics:[{severity:'error',code:'MISSING_SCHOOL_NAME'}],hasErrors:true};
  let composed=false;
