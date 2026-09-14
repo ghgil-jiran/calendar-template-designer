@@ -267,7 +267,7 @@ test('template lifecycle separates status, standard, design editing and settings
 test('published save transfers a snapshot review package before changing the library record', () => {
   const html=studioHtml;
   const runtime=fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');
-  assert.match(html, /template-publishing-runtime\.js\?v=20260914\.5/);
+  assert.match(html, /template-publishing-runtime\.js\?v=20260914\.10/);
   assert.match(runtime, /if\(values\.state==='published'\)\{const published=await window\.ACDLTemplatePublishing\.publish/);
   assert.ok(runtime.indexOf("ACDLTemplatePublishing.publish") < runtime.indexOf("remote.save({templateId:record.remoteId"));
 });
@@ -282,7 +282,7 @@ test('insert sidebar separates and collapses utility controls when an object cat
 
 test('remote template cards expose restore history without the unreliable preview action', () => {
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
-  assert.match(runtime, /편집 이력 v\\$\\{record\\.version\\} · Package \\$\\{packageVersion\\}/);
+  assert.match(runtime, /편집 이력 v\$\{record\.version\} · Package \$\{packageVersion\}/);
   assert.match(runtime, /data-library-history/);
   assert.match(runtime, /ACDLTemplateRemotePersistence\.versions\(templateId\)/);
   assert.match(runtime, /기존 버전은 그대로 보존됩니다/);
