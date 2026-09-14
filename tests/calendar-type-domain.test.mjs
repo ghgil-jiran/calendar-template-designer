@@ -33,13 +33,14 @@ test('validation enforces production size and allowed ranges',()=>{
  const type=domain.definition('desk-standard');type.productionSize.width=100;type.ranges.frontInsert={min:4,max:2};const result=domain.validate(type);assert.equal(result.valid,false);assert.equal(result.errors.length,2);
 });
 
-test('desk minimum is 26 surfaces when cover back shares the first monthly back',()=>{
- const type=domain.definition('desk-standard');
- assert.deepEqual(JSON.parse(JSON.stringify(domain.minimumStructure(type))),{surfaceCount:26,sheetCount:13,monthCount:12});
- assert.equal(domain.normalize(type).policies.backCoverBack,'unsupported');
- type.coverBackMode='separate';
- assert.equal(domain.minimumStructure(type).surfaceCount,28);
- assert.equal(domain.normalize(type).policies.backCoverBack,'required');
+test('desk type leaves cover-inside topology to each template',()=>{
+ const type=domain.definition('desk-standard'),structure=domain.minimumStructure(type);
+ assert.equal(type.coverBackMode,'template-defined');
+ assert.equal(type.policies.annualSingle,'unsupported');
+ assert.equal(type.policies.backCoverBack,'unsupported');
+ assert.deepEqual(JSON.parse(JSON.stringify(structure)),{surfaceCount:null,sheetCount:null,minimumSurfaceCount:26,maximumSurfaceCount:28,monthCount:12});
+ type.coverBackMode='shared-month-back';
+ assert.equal(domain.normalize(type).coverBackMode,'template-defined');
 });
 
 test('desk structural rules block incompatible type policies',()=>{
