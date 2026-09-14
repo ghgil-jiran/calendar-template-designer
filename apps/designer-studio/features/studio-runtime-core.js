@@ -358,6 +358,7 @@ el("cancelTemplateSaveBtn")?.addEventListener("click",()=>{const dialog=el("temp
 el("confirmTemplateSaveBtn")?.addEventListener("click",async ()=>{
  const saveDialog=el("templateSaveDialog");if(!project&&saveDialog.dataset.mode!=="settings")return;
  const feedback=el("templateSaveFeedback");feedback.className="save-feedback hidden";feedback.textContent="";
+ const previousSaveState=project?.template?.metadata?.state;
  try{
   const dialog=el("templateSaveDialog");
   if(dialog.dataset.mode==="settings"){await window.ACDLTemplateLibrarySettings.save(dialog.dataset.recordId,{name:el("saveTemplateName").value.trim(),description:el("saveTemplateDescription").value.trim(),edition:Number(el("saveTemplateEdition").value),state:el("saveTemplateState").value,isStandard:el("saveTemplateStandard").checked});dialog.classList.add("hidden");return}
@@ -365,7 +366,7 @@ el("confirmTemplateSaveBtn")?.addEventListener("click",async ()=>{
   const name=el("saveTemplateName").value.trim()||"이름 없는 템플릿",description=el("saveTemplateDescription").value.trim(),edition=Number(el("saveTemplateEdition").value)||2027,state=el("saveTemplateState").value,isStandard=el("saveTemplateStandard").checked;
   const id=project.template.id||("tpl-"+Date.now()),stableKey=project.template.remoteStableKey||id;project.template.id=id;
   Object.assign(project.template.metadata,{name,description,edition,state,isStandard});project.template.libraryScope=state==="ready"||state==="published"?"base":state==="draft"?"custom":project.template.libraryScope||"custom";window.ACDLTemplateYearSynchronizer.synchronize(project,{year:edition,startMonth:project.settings.startMonth||3});
-  const projectCopy=window.ACDLPersistenceProject.clone(project);await saveTemplateProjectData(id,projectCopy);let savedId=id,remoteSaved=false,remoteError=null,remoteVersion=Number(project.template.remoteVersionNumber)||0;
+  const projectCopy=window.ACDLPersistenceProject.clone(project);if(state==='published')await window.ACDLTemplatePublishing.publish({record:{id,stableKey,packageVersion:project.template?.package?.version},projectData:projectCopy,name,productType:project.productType?.category||project.settings?.type||'desk'});await saveTemplateProjectData(id,projectCopy);let savedId=id,remoteSaved=false,remoteError=null,remoteVersion=Number(project.template.remoteVersionNumber)||0;
   const remote=window.ACDLTemplateRemotePersistence;
   if(remote?.isRemote?.())try{const result=await remote.save({templateId:project.template.remoteId||null,stableKey,name,description,edition,state,isStandard,productType:project.productType?.category||project.settings?.type||"desk",templateKey:project.template?.preset||project.settings?.template||"school-basic",saveKind:state==="published"?"publish":"manual",saveNote:`${name} 저장`,schemaVersion:"2.0",projectData:projectCopy},{onProgress:window.ACDLTemplateSaveProgress});savedId=result.template.id;remoteVersion=result.version.versionNumber;remoteSaved=true;project.template.id=savedId;project.template.remoteId=savedId;project.template.remoteStableKey=result.template.stableKey;project.template.remoteVersionNumber=remoteVersion;await saveTemplateProjectData(savedId,window.ACDLPersistenceProject.clone(project))}catch(error){remoteError=error;console.warn("원격 템플릿 저장 실패",error)}
   project.template.librarySource="local";
@@ -378,6 +379,7 @@ el("confirmTemplateSaveBtn")?.addEventListener("click",async ()=>{
   showEditorToast(`${name} ${edition} Edition ${remoteSaved?`원격 저장 완료 · v${remoteVersion}`:"브라우저 저장 완료"}`);
   if(remoteSaved)alert(`템플릿 저장 완료\n\n저장 위치: Supabase 원격 저장\n버전: v${remoteVersion}`);else alert(`템플릿은 이 브라우저에만 저장되었습니다.\n\n원격 저장 실패: ${remoteError?.message||"원격 저장이 연결되지 않았습니다."}\n\n버전 이력을 사용하려면 Supabase 원격 저장이 필요합니다.`);
  }catch(err){
+  if(project?.template?.metadata&&previousSaveState!==undefined)project.template.metadata.state=previousSaveState;
   feedback.className="save-feedback error";feedback.textContent=`저장 실패: ${err?.message||"브라우저 데이터베이스 저장 오류"}`;
  }
 });
