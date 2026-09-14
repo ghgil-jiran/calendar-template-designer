@@ -71,7 +71,7 @@
   const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return {active:[],archived:[]};
   progress('cleanup','시스템 베이스와 사용자 서비스 목록을 동기화하고 있습니다.');
   const records=(await remote.list()).filter(item=>item.state==='published'),active=[];
-  for(const record of records){const loaded=await remote.load(record.id,{deferAssets:true}),identity=publishedIdentity(loaded?.version?.projectData);if(identity)active.push(identity)}
+  for(const record of records){const loaded=await remote.load(record.id,{deferAssets:true}),identity=publishedIdentity(loaded?.version?.projectData);if(!identity)throw new Error(`게시 템플릿의 Package 정보를 찾지 못했습니다: ${record.name||record.id}`);active.push(identity)}
   return request({mode:'sync-review-catalog',activePackages:active});
  }
  async function reconcile(){return synchronizeCatalog()}
