@@ -34,5 +34,8 @@
   projectData.template.publishing={...(projectData.template.publishing||{}),packageId:id,lastReviewPackage:{templateId:id,version,sha256:digest,status:'review',transferredAt:new Date().toISOString()}};
   return {...result,templateId:id,version,sha256:digest}
  }
- root.ACDLTemplatePublishing=Object.freeze({publish,buildBundle,packageId,deterministic});
+ function publishedIdentity(project){const value=project?.template?.publishing?.lastReviewPackage;if(!value?.templateId||!value?.version)return null;return {templateId:value.templateId,version:value.version}}
+ async function withdraw(project){const identity=publishedIdentity(project);if(!identity)return {withdrawn:[]};return request({mode:'withdraw',...identity})}
+ async function reconcile(){return request({mode:'retire-packages',retirePackages:[{templateId:'desk-academic-standard',version:'1.4.0'},{templateId:'desk-academic-standard',version:'1.1.0'},{templateId:'wall-academic-standard',version:'0.3.0'}]})}
+ root.ACDLTemplatePublishing=Object.freeze({publish,withdraw,reconcile,publishedIdentity,buildBundle,packageId,deterministic});
 })(window);
