@@ -61,9 +61,9 @@
   for(let index=0;index<totalChunks;index++){await run(`패키지 전송 ${index+1}/${totalChunks}`,()=>request({mode:'chunk',sha256:digest,index,totalChunks,data:base64(bytes.subarray(index*CHUNK_BYTES,(index+1)*CHUNK_BYTES))}));progress('upload','패키지를 전송하고 있습니다.',index+1,totalChunks)}
   progress('validate','전송 결과와 패키지를 검증하고 있습니다.');const result=await run('패키지 검증',()=>request({mode:'finalize',sha256:digest,totalChunks}));
   progress('activate','새 버전을 노출하고 이전 버전을 보관하고 있습니다.');await run('새 버전 전환',()=>request({mode:'activate-review',templateId:id,version}));
-  progress('cleanup','이전 기본 템플릿 목록을 정리하고 있습니다.');await run('이전 목록 정리',()=>reconcile());
+  progress('cleanup','이전 기본 템플릿 목록을 정리하고 있습니다.');let cleanupWarning=null;try{await reconcile()}catch(error){cleanupWarning=error?.message||String(error);console.warn('[template-publishing] 게시 후 이전 목록 정리 실패',error)}
   projectData.template.publishing={...(projectData.template.publishing||{}),packageId:id,lastReviewPackage:{templateId:id,version,sha256:digest,status:'review',transferredAt:new Date().toISOString()}};
-  return {...result,templateId:id,version,sha256:digest,name:publication.name}
+  return {...result,templateId:id,version,sha256:digest,name:publication.name,cleanupWarning}
  }
  function publishedIdentity(project){const value=project?.template?.publishing?.lastReviewPackage;if(!value?.templateId||!value?.version)return null;return {templateId:value.templateId,version:value.version}}
  async function withdraw(project){const identity=publishedIdentity(project);if(!identity)return {withdrawn:[]};return request({mode:'withdraw',...identity})}
