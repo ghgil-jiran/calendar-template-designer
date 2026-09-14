@@ -1,5 +1,5 @@
 const DEFAULT_REVIEW_ENDPOINT='https://school-calendar-editor-servic-git-1a2acc-gil-gighyun-s-projects.vercel.app/api/template-packages/review';
-const ALLOWED_MODES=new Set(['next-version','chunk','finalize','activate-review','withdraw','retire-packages']);
+const ALLOWED_MODES=new Set(['next-version','asset-chunk','chunk','finalize','activate-review','withdraw','retire-packages']);
 
 function endpoint(){
   const configured=process.env.USER_SERVICE_REVIEW_API_URL?.trim();
