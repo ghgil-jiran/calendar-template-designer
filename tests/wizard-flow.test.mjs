@@ -272,6 +272,10 @@ test('published save transfers a snapshot review package before changing the lib
   assert.ok(runtime.indexOf("ACDLTemplatePublishing.publish") < runtime.indexOf("remote.save({templateId:record.remoteId"));
 });
 
+test('deployed editor loads the PNG representative preview capture runtime',()=>{
+  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260914\.8/);
+});
+
 test('insert sidebar separates and collapses utility controls when an object category opens', () => {
   const html = studioHtml;
   assert.match(html, /id="insertSidebarUtilities"/);

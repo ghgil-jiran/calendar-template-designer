@@ -342,6 +342,11 @@ window.makeProject=makeProject;
 window.render=render;
 function representativeBlobDataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error('대표 이미지 자산을 읽지 못했습니다.'));reader.readAsDataURL(blob)})}
 async function representativeInlineUrl(value){if(!value||value.startsWith('data:')||value.startsWith('#'))return value;try{const response=await fetch(value);if(!response.ok)throw new Error(String(response.status));return await representativeBlobDataUrl(await response.blob())}catch(_){return value}}
+async function representativeSvgPng(svg,width,height){
+ const image=new Image(),url=`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+ await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error('표지 렌더링 이미지를 만들지 못했습니다.'));image.src=url});
+ const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const context=canvas.getContext('2d');if(!context)throw new Error('대표 이미지 캔버스를 만들지 못했습니다.');context.drawImage(image,0,0,width,height);return canvas.toDataURL('image/png')
+}
 async function representativeCoverSvg(sourceProject=project){
  if(!sourceProject?.book?.pageInstances?.length)throw new Error('대표 이미지로 사용할 페이지가 없습니다.');
  const previous={project,pageId:selectedPageId,elementId:selectedElementId,elementScope:selectedElementScope,calendarEditing},cover=sourceProject.book.pageInstances.find(page=>page.role==='cover-front')||sourceProject.book.pageInstances[0];
@@ -359,7 +364,7 @@ async function representativeCoverSvg(sourceProject=project){
   }
   const designSize=window.ACDLEditorPageFit?.designSize?.(),width=Math.max(1,Math.round(Number(designSize?.width)||source.offsetWidth||850)),height=Math.max(1,Math.round(Number(designSize?.height)||source.offsetHeight||588));clone.style.transform='none';clone.style.width=`${width}px`;clone.style.height=`${height}px`;clone.style.maxWidth='none';clone.style.maxHeight='none';clone.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
   const markup=new XMLSerializer().serializeToString(clone),svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><foreignObject width="100%" height="100%">${markup}</foreignObject></svg>`;
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  return representativeSvgPng(svg,width,height);
  }finally{project=previous.project;selectedPageId=previous.pageId;selectedElementId=previous.elementId;selectedElementScope=previous.elementScope;calendarEditing=previous.calendarEditing;if(project?.book?.pageInstances?.length)renderPage()}
 }
 window.ACDLRepresentativePreview=Object.freeze({capture:representativeCoverSvg});
