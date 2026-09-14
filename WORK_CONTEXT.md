@@ -39,6 +39,7 @@
 - 저장 완료 뒤 사용자 서비스 Preview 목록에 새 Review Package 버전이 보이는지 확인한다.
 - 전송 실패 시 에디터 템플릿이 검토 완료 상태를 유지하는지 확인한다.
 - Production Package의 실제 `published` 전환은 이번 작업에 포함하지 않는다.
+- Review 전송 대상은 사용자 서비스 `feat/runtime-v2-style-calendar-20260913`의 고정 Preview 별칭이다. Production 주소에는 Review 수신 API가 없으므로 사용하지 않는다.
 
 ## 보존 원칙
 

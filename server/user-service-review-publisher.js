@@ -1,4 +1,4 @@
-const DEFAULT_REVIEW_ENDPOINT='https://school-calendar-editor-service.vercel.app/api/template-packages/review';
+const DEFAULT_REVIEW_ENDPOINT='https://school-calendar-editor-servic-git-1a2acc-gil-gighyun-s-projects.vercel.app/api/template-packages/review';
 const ALLOWED_MODES=new Set(['next-version','chunk','finalize']);
 
 function endpoint(){
@@ -15,7 +15,7 @@ export async function forwardReviewPackage({authorization,body,fetcher=fetch}){
     body:JSON.stringify(body),
     signal:AbortSignal.timeout(30000)
   });
-  const result=await response.json().catch(()=>({error:'invalid_user_service_response'}));
+  const result=await response.json().catch(()=>({error:'invalid_user_service_response',message:`사용자 서비스가 JSON이 아닌 ${response.status} 응답을 반환했습니다.`}));
   if(!response.ok)throw Object.assign(new Error(result.message||result.error||'사용자 서비스 검토 패키지 전송에 실패했습니다.'),{statusCode:response.status,code:result.error||'USER_SERVICE_REVIEW_FAILED',detail:result});
   return result;
 }
