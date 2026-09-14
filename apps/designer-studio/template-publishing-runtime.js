@@ -32,7 +32,8 @@
  }
  function dataUrlBytes(value){
   const match=/^data:(image\/[^;,]+)(;base64)?,([\s\S]*)$/.exec(value);if(!match)return null;
-  const binary=match[2]?atob(match[3]):decodeURIComponent(match[3]),bytes=new Uint8Array(binary.length);for(let index=0;index<binary.length;index++)bytes[index]=binary.charCodeAt(index);return {mimeType:match[1],bytes}
+  if(!match[2])return {mimeType:match[1],bytes:encoder.encode(decodeURIComponent(match[3]))};
+  const binary=atob(match[3]),bytes=new Uint8Array(binary.length);for(let index=0;index<binary.length;index++)bytes[index]=binary.charCodeAt(index);return {mimeType:match[1],bytes}
  }
  function assetUuid(digest){const chars=digest.slice(0,32).split('');chars[12]='4';chars[16]=['8','9','a','b'][parseInt(chars[16],16)%4];return `${chars.slice(0,8).join('')}-${chars.slice(8,12).join('')}-${chars.slice(12,16).join('')}-${chars.slice(16,20).join('')}-${chars.slice(20,32).join('')}`}
  async function externalizeAssets(value,{templateId,version}){
