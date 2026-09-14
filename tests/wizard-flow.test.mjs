@@ -282,7 +282,7 @@ test('insert sidebar separates and collapses utility controls when an object cat
 
 test('remote template cards expose restore history without the unreliable preview action', () => {
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
-  assert.match(runtime, /Package \$\{record\.template\}@\$\{record\.packageVersion\}/);
+  assert.match(runtime, /편집 이력 v\\$\\{record\\.version\\} · Package \\$\\{packageVersion\\}/);
   assert.match(runtime, /data-library-history/);
   assert.match(runtime, /ACDLTemplateRemotePersistence\.versions\(templateId\)/);
   assert.match(runtime, /기존 버전은 그대로 보존됩니다/);
