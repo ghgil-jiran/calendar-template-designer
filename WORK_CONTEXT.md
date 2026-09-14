@@ -1,12 +1,14 @@
 # Work Context
 
-## 현재 기준 · 2026-09-12
+## 현재 기준 · 2026-09-14
 
 - 저장소: `ghgil-jiran/calendar-template-designer`
-- 기준 브랜치: `main`
-- 기준 커밋: `600d628ed28ec97b04d8ff4da30cfa8ac5ccad91`
-- Production: `https://calendar-template-designer.vercel.app/`
-- Preview의 페이지 구성·AI 디자인 개선을 `main`의 기존 변경과 병합했고, 전체 빌드와 Studio 회귀검사 430개가 통과했다.
+- 작업 브랜치: `feat/template-library-lifecycle-20260914`
+- 기준: `feat/runtime-style-contract-20260913` 원격 최신 Runtime 위에 라이브러리 승인 흐름을 추가한다.
+- Production: `https://calendar-template-designer.vercel.app/` 유지
+- `초안 → 내 템플릿`, `검토 완료·게시됨 → 시스템 베이스`로 표시 영역을 상태 기준으로 분리했다.
+- 내 템플릿에서는 게시됨을, 시스템 베이스에서는 초안을 선택할 수 없도록 상태 필터와 설정 선택지를 분리했다.
+- 전체 빌드와 Studio 회귀검사 434개가 통과했다.
 - 기존 Published Package와 저장 템플릿은 자동 변경하거나 교체하지 않는다.
 - Supabase 운영 데이터 변경은 없다.
 
@@ -25,8 +27,8 @@
 
 템플릿 에디터에서 완성한 템플릿을 라이브러리에 등록하고, 사용자 서비스가 게시된 템플릿을 조회·선택할 수 있도록 연결한다.
 
-1. 사용자 서비스에 노출할 대표 탁상형 템플릿을 선택한다.
-2. 템플릿 상태를 `published`로 확정하고 Template Package의 ID, 버전, SHA, 달력 유형을 고정한다.
+1. Preview에서 현재 Supabase의 검토 완료 템플릿 2개가 시스템 베이스에, 초안 1개가 내 템플릿에 표시되는지 확인한다.
+2. 시스템 베이스의 `검토 완료 → 게시됨` 전환과 사용자 서비스 Review/Published Package 등록을 하나의 승인 동작으로 연결한다.
 3. 사용자 서비스의 템플릿 목록을 Template Registry의 게시 템플릿과 연결한다.
 4. 사용자 서비스에서 템플릿 선택 후 학교 정보·학사일정·월별 이미지를 적용해 미리보기와 저장·재열기를 확인한다.
 5. 같은 `ResolvedDocument`를 기준으로 화면 미리보기와 인쇄용 PDF 연결을 검증한다.

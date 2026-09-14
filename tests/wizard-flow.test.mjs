@@ -253,6 +253,15 @@ test('template lifecycle separates status, standard, design editing and settings
   assert.match(runtime, /confirmButton\.disabled=true;cancelButton\.disabled=true;confirmButton\.textContent='저장 중…'/);
   assert.match(runtime, /dialog\.setAttribute\('aria-busy','true'\)/);
   assert.match(runtime, /feedback\.classList\.contains\('error'\)\)finish\(\)/);
+  assert.match(runtime, /scopeFilterStates=\{custom:\['draft','archived'\],base:\['ready','published','archived'\]\}/);
+  assert.match(runtime, /scopeSettingStates=\{custom:\['draft','ready','archived'\],base:\['ready','published','archived'\]\}/);
+  assert.match(runtime, /if\(state==='ready'\|\|state==='published'\)return 'base'/);
+  assert.match(runtime, /if\(state==='draft'\)return 'custom'/);
+  assert.match(runtime, /if\(scopeOf\(record\)!==activeLibraryScope\)return false/);
+  assert.match(runtime, /configureStateOptions\(scopeOf\(record\),record\.state\)/);
+  const systemStateFilters=html.match(/id="libraryStateFilters">([\s\S]*?)<\/div><\/div><div class="library-filter-row library-standard-group"/)?.[1]||'';
+  assert.doesNotMatch(systemStateFilters, /data-library-state="draft"/);
+  assert.match(systemStateFilters, /data-library-state="ready"/);
 });
 
 test('insert sidebar separates and collapses utility controls when an object category opens', () => {
@@ -329,10 +338,12 @@ test('prototype system bases are archived and hidden from the default active vie
   assert.match(runtime, /if\(record\.libraryOverride\|\|!map\.has\(record\.id\)\)map\.set\(record\.id,record\)/);
 });
 
-test('new desk planner standard is visible as a separate 2028 draft system base', () => {
+test('draft catalog samples cannot appear in the system base view', () => {
   const catalog = fs.readFileSync(new URL('../apps/designer-studio/template-catalog.js', import.meta.url), 'utf8');
+  const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   const html = studioHtml;
   assert.match(catalog, /tpl-2028-desk-planner-standard-01[^\n]+name:"\[학사달력\] 탁상형 검토 01 - 월별 플래너"[^\n]+status:"draft"[^\n]+template:"desk-sample-6"/);
+  assert.match(runtime, /if\(state==='draft'\)return 'custom'/);
   assert.match(catalog, /features:\["6번 원본 재현","28면 구성","월별 파스텔 색상","월 목표·할 일","5주 계획·메모","사용자 편집 보호"\]/);
   assert.match(catalog, /pageSummary:"총 28면 · 표지 1면 · 간지 2면 · 월력 24면 · 뒷표지 1면"/);
   assert.match(html, /id="masterMonthTitleAlign"/);

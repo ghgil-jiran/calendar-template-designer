@@ -103,6 +103,7 @@ async function openDesignerProjectFromRecord(t){
   project.template.remoteVersionNumber=Number(t.version)||Number(project.template.remoteVersionNumber)||0;
  }
  project.template.librarySource=t.source||project.template.librarySource||"local";
+ project.template.libraryScope=window.ACDLTemplateLibrarySettings?.scopeOf?.(t)||project.template.libraryScope||"custom";
  project.template.derivedFromPackage=t.derivedFromPackage||project.template.derivedFromPackage||null;
  project.template.preset=t.template||project.settings?.template||"school-basic";
  project.template.metadata={...(project.template.metadata||{}),name:t.name,description:t.description||"",edition:Number(t.edition)||2027,state:t.state||"draft"};
