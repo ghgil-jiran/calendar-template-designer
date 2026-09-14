@@ -67,6 +67,9 @@
     }
   ],
   "functions": {
+    "api/templates.js": {
+      "maxDuration": 300
+    },
     "api/schedule-extract.js": {
       "maxDuration": 60
     },
