@@ -67,13 +67,52 @@
  }
  function publishedIdentity(project){const value=project?.template?.publishing?.lastReviewPackage;if(!value?.templateId||!value?.version)return null;return {templateId:value.templateId,version:value.version}}
  async function withdraw(project){const identity=publishedIdentity(project);if(!identity)return {withdrawn:[]};return request({mode:'withdraw',...identity})}
+ async function editorCatalog({strict=false}={}){
+  const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return [];
+  const records=(await remote.list()).filter(item=>item.state==='published'),items=[];
+  for(const record of records){
+   const loaded=await remote.load(record.id,{deferAssets:true}),identity=publishedIdentity(loaded?.version?.projectData);
+   if(!identity){if(strict)throw new Error(`게시 템플릿의 Package 정보를 찾지 못했습니다: ${record.name||record.id}`);items.push({name:record.name||record.id,editorRevision:Number(loaded?.version?.versionNumber||record.version||0),templateId:null,version:null,error:'Package 정보 누락'});continue}
+   items.push({name:record.name||loaded?.template?.name||identity.templateId,editorRevision:Number(loaded?.version?.versionNumber||record.version||0),...identity});
+  }
+  return items
+ }
+ function compareCatalogs(editor,service){
+  const editorById=new Map(editor.filter(item=>item.templateId).map(item=>[item.templateId,item])),serviceById=new Map(service.map(item=>[item.templateId,item])),ids=new Set([...editorById.keys(),...serviceById.keys()]),rows=[];
+  for(const id of ids){const left=editorById.get(id),right=serviceById.get(id),state=!left?'service-only':!right?'editor-only':left.version===right.version?'matched':'version-mismatch';rows.push({templateId:id,name:left?.name||right?.name||id,editorRevision:left?.editorRevision||null,editorVersion:left?.version||null,serviceVersion:right?.version||null,state})}
+  for(const item of editor.filter(entry=>!entry.templateId))rows.push({...item,state:'invalid-editor'});
+  return rows.sort((a,b)=>String(a.name).localeCompare(String(b.name),'ko'))
+ }
+ async function inspectCatalog(){
+  const editor=await editorCatalog(),serviceResult=await request({mode:'inspect-review-catalog'}),service=serviceResult.packages||[];
+  return {editor,service,rows:compareCatalogs(editor,service)}
+ }
  async function synchronizeCatalog(){
-  const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return {active:[],archived:[]};
+  const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return {requested:[],packages:[],deactivated:[]};
   progress('cleanup','시스템 베이스와 사용자 서비스 목록을 동기화하고 있습니다.');
-  const records=(await remote.list()).filter(item=>item.state==='published'),active=[];
-  for(const record of records){const loaded=await remote.load(record.id,{deferAssets:true}),identity=publishedIdentity(loaded?.version?.projectData);if(!identity)throw new Error(`게시 템플릿의 Package 정보를 찾지 못했습니다: ${record.name||record.id}`);active.push(identity)}
+  const editor=await editorCatalog({strict:true}),active=editor.map(({templateId,version})=>({templateId,version}));
   return request({mode:'sync-review-catalog',activePackages:active});
  }
+ function syncStateLabel(state){return ({matched:'일치','editor-only':'등록 필요','service-only':'내림 대상','version-mismatch':'버전 불일치','invalid-editor':'Package 정보 누락'})[state]||state}
+ function renderSyncResult(result){
+  const body=document.getElementById('templateSyncRows'),summary=document.getElementById('templateSyncSummary');if(!body||!summary)return;
+  const rows=result.rows||[],matched=rows.filter(row=>row.state==='matched').length,issues=rows.length-matched;
+  summary.className=`template-sync-summary ${issues?'warning':'success'}`;summary.textContent=issues?`${rows.length}개 중 ${matched}개 일치 · ${issues}개 확인 필요`:`${rows.length}개 템플릿이 모두 일치합니다.`;
+  body.innerHTML=rows.length?rows.map(row=>`<tr data-sync-state="${row.state}"><td><strong>${String(row.name||'').replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]))}</strong><small>${row.templateId||'Package ID 없음'}</small></td><td>${row.editorRevision?`편집 이력 v${row.editorRevision}`:'—'}<small>${row.editorVersion?`Package ${row.editorVersion}`:'—'}</small></td><td>${row.serviceVersion?`Package ${row.serviceVersion}`:'—'}</td><td><span class="template-sync-state ${row.state}">${syncStateLabel(row.state)}</span></td></tr>`).join(''):'<tr><td colspan="4" class="template-sync-empty">비교할 템플릿이 없습니다.</td></tr>'
+ }
+ function syncStatus(stage,message,type='working'){const status=document.getElementById('templateSyncStatus');if(!status)return;status.className=`template-sync-status ${type}`;status.innerHTML=`<strong>${stage}</strong><span>${message}</span>`}
+ async function openSyncDialog(){
+  const dialog=document.getElementById('templateSyncDialog');if(!dialog)return;dialog.classList.remove('hidden');syncStatus('목록 조회','양쪽 서비스의 현재 목록을 불러오고 있습니다.');
+  try{const result=await inspectCatalog();renderSyncResult(result);syncStatus('비교 완료','아직 변경하지 않았습니다. 결과를 확인한 뒤 동기화를 실행하세요.','ready');document.getElementById('runTemplateSyncBtn').disabled=false}catch(error){syncStatus('조회 실패',error?.message||String(error),'error')}
+ }
+ async function runSyncDialog(){
+  const button=document.getElementById('runTemplateSyncBtn');if(button)button.disabled=true;syncStatus('동기화 실행','시스템 베이스 목록을 사용자 서비스 Preview에 적용하고 있습니다.');
+  try{const changed=await synchronizeCatalog();syncStatus('결과 검증',`활성 ${changed.packages?.length||0}개 · 내림 ${changed.deactivated?.length||0}개 · 누락 ${changed.missing?.length||0}개`);const result=await inspectCatalog();renderSyncResult(result);const issues=result.rows.filter(row=>row.state!=='matched').length;syncStatus(issues?'동기화 확인 필요':'동기화 완료',issues?`${issues}개 항목이 일치하지 않습니다. 아래 결과를 확인하세요.`:'양쪽 서비스의 템플릿과 Package 버전이 일치합니다.',issues?'error':'success')}catch(error){syncStatus('동기화 실패',error?.message||String(error),'error')}finally{if(button)button.disabled=false}
+ }
+ function installSyncDialog(){
+  document.getElementById('openTemplateSyncBtn')?.addEventListener('click',openSyncDialog);document.getElementById('closeTemplateSyncBtn')?.addEventListener('click',()=>document.getElementById('templateSyncDialog')?.classList.add('hidden'));document.getElementById('runTemplateSyncBtn')?.addEventListener('click',runSyncDialog);document.getElementById('refreshTemplateSyncBtn')?.addEventListener('click',openSyncDialog)
+ }
+ installSyncDialog();
  async function reconcile(){return synchronizeCatalog()}
- root.ACDLTemplatePublishing=Object.freeze({publish,withdraw,reconcile,synchronizeCatalog,publishedIdentity,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
+ root.ACDLTemplatePublishing=Object.freeze({publish,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,publishedIdentity,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
 })(window);
