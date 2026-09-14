@@ -97,15 +97,12 @@ function collectAssetIds(value,result=new Set()){
 
 export async function supabaseRequest(path, options = {}) {
   const { url, key } = supabaseConfig();
-  const response = await fetch(`${url}/rest/v1/${path}`, {
-    ...options,
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      ...options.headers
-    }
-  });
+  const read=!options.method||String(options.method).toUpperCase()==='GET',attempts=read?2:1;
+  let response;
+  for(let attempt=1;attempt<=attempts;attempt+=1){
+    try{response=await fetch(`${url}/rest/v1/${path}`,{...options,signal:options.signal||AbortSignal.timeout(read?20000:120000),headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json',...options.headers}});break}
+    catch(error){console.error('[template-persistence] Supabase request failed',{path:path.split('?')[0],attempt,read,error:String(error)});if(attempt===attempts){const timeout=error?.name==='TimeoutError'||error?.name==='AbortError';throw Object.assign(new Error(timeout?'Supabase read timed out':error?.message||'Supabase request failed'),{statusCode:timeout?504:502,code:timeout?'SUPABASE_TIMEOUT':'SUPABASE_REQUEST_FAILED'})}}
+  }
   const text = await response.text();
   const body = text ? JSON.parse(text) : null;
   if (!response.ok) {
