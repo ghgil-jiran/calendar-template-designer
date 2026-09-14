@@ -112,7 +112,7 @@
  function installSyncDialog(){
   document.getElementById('openTemplateSyncBtn')?.addEventListener('click',openSyncDialog);document.getElementById('closeTemplateSyncBtn')?.addEventListener('click',()=>document.getElementById('templateSyncDialog')?.classList.add('hidden'));document.getElementById('runTemplateSyncBtn')?.addEventListener('click',runSyncDialog);document.getElementById('refreshTemplateSyncBtn')?.addEventListener('click',openSyncDialog)
  }
- installSyncDialog();
+ if(typeof document!=='undefined')installSyncDialog();
  async function reconcile(){return synchronizeCatalog()}
  root.ACDLTemplatePublishing=Object.freeze({publish,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,publishedIdentity,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
 })(window);
