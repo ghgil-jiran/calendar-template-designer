@@ -9,7 +9,7 @@
  function semver(input){return /^\d+\.\d+\.\d+$/.test(String(input||''))?String(input):'1.0.0'}
  async function request(body){
   const token=root.ACDLTemplateRemotePersistence?.accessToken?.()||root.ACDLAdminAuth?.accessToken?.();if(!token)throw new Error('게시하려면 Master Admin 로그인이 필요합니다.');
-  const response=await root.fetch('/api/template-publish-review',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(body)}),result=await response.json().catch(()=>({}));
+  const response=await root.fetch('/api/templates',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({operation:'publish-review',reviewBody:body})}),result=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(result.message||result.error||'사용자 서비스로 템플릿을 보내지 못했습니다.');return result
  }
  async function inlineBlobUrls(value,cache=new Map()){
