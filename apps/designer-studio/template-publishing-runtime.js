@@ -1,5 +1,5 @@
 (function(root){
- const CHUNK_BYTES=900*1024;
+ const CHUNK_BYTES=1800*1024;
  const encoder=new TextEncoder();
  function stable(value){if(Array.isArray(value))return value.map(stable);if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(key=>[key,stable(value[key])]));return value}
  function deterministic(value){return JSON.stringify(stable(value),null,2)+'\n'}

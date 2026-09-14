@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 import {forwardReviewPackage} from '../server/user-service-review-publisher.js';
 
 const source=readFileSync(new URL('../apps/designer-studio/template-publishing-runtime.js',import.meta.url),'utf8');
+const proxySource=readFileSync(new URL('../api/templates.js',import.meta.url),'utf8');
 function runtime(){const window={crypto:globalThis.crypto,fetch:globalThis.fetch,TextEncoder,FileReader:class{}};vm.runInNewContext(source,{window,TextEncoder,FileReader:window.FileReader,structuredClone,btoa});return window.ACDLTemplatePublishing}
 
 test('snapshot review bundle preserves the complete editor project and author input contract',()=>{const api=runtime(),project={productType:{category:'desk',pageSize:{width:260,height:180,unit:'mm'}},settings:{startMonth:3},template:{publishing:{dataRequirements:[{path:'school.name',stage:'project-create-required'},{path:'monthlyImages',stage:'optional',fallback:'sample'}]}},book:{pageInstances:[{id:'cover',role:'cover-front'},{id:'month',role:'monthly-front'}]}};const bundle=api.buildBundle(project,{id:'test-template',version:'1.0.0',name:'테스트',productType:'desk'});assert.equal(bundle.template.kind,'designer-project-snapshot');assert.equal(bundle.template.projectData,project);assert.equal(bundle.bindings.bindings[0].required,true);assert.equal(bundle.bindings.bindings[1].missing,'sample');assert.equal(bundle.manifest.status,'review');assert.equal(bundle.manifest.publishable,false)});
@@ -13,4 +14,6 @@ test('package id normalization is stable and accepted by the user service contra
 
 test('review proxy forwards only authenticated supported operations to the user service preview branch',async()=>{await assert.rejects(()=>forwardReviewPackage({authorization:'',body:{mode:'chunk'},fetcher:async()=>{}}),/AUTH_REQUIRED/);let received;const result=await forwardReviewPackage({authorization:'Bearer token',body:{mode:'next-version',packageId:'a',baseVersion:'1.0.0'},fetcher:async(url,options)=>{received={url,options};return {ok:true,status:200,json:async()=>({version:'1.0.1'})}}});assert.equal(result.version,'1.0.1');assert.match(received.url,/school-calendar-editor-servic-git-1a2acc/);assert.match(received.url,/template-packages\/review$/);assert.equal(received.options.headers.Authorization,'Bearer token')});
 
-test('browser reuses the existing templates endpoint so deployment function count does not grow',()=>{assert.match(source,/fetch\('\/api\/templates'/);assert.match(source,/operation:'publish-review'/)});
+test('browser reuses the existing templates endpoint with bounded two-megabyte review chunks',()=>{assert.match(source,/fetch\('\/api\/templates'/);assert.match(source,/operation:'publish-review'/);assert.match(source,/CHUNK_BYTES=1800\*1024/)});
+
+test('review proxy delegates authorization once to the receiving user service',()=>{const review=proxySource.indexOf("body?.operation==='publish-review'"),localAuth=proxySource.indexOf('await assertInternalAccess(request)');assert.ok(review>0);assert.ok(localAuth>review);assert.match(proxySource,/forwardReviewPackage\(\{authorization,body:body\.reviewBody\}\)/)});
