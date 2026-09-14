@@ -342,10 +342,11 @@ window.makeProject=makeProject;
 window.render=render;
 function representativeBlobDataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error('대표 이미지 자산을 읽지 못했습니다.'));reader.readAsDataURL(blob)})}
 async function representativeInlineUrl(value){if(!value||value.startsWith('data:')||value.startsWith('#'))return value;try{const response=await fetch(value);if(!response.ok)throw new Error(String(response.status));return await representativeBlobDataUrl(await response.blob())}catch(_){return value}}
-async function representativeCoverSvg(){
- if(!project?.book?.pageInstances?.length)throw new Error('대표 이미지로 사용할 페이지가 없습니다.');
- const cover=project.book.pageInstances.find(page=>page.role==='cover-front')||project.book.pageInstances[0],previous={pageId:selectedPageId,elementId:selectedElementId,elementScope:selectedElementScope,calendarEditing};
+async function representativeCoverSvg(sourceProject=project){
+ if(!sourceProject?.book?.pageInstances?.length)throw new Error('대표 이미지로 사용할 페이지가 없습니다.');
+ const previous={project,pageId:selectedPageId,elementId:selectedElementId,elementScope:selectedElementScope,calendarEditing},cover=sourceProject.book.pageInstances.find(page=>page.role==='cover-front')||sourceProject.book.pageInstances[0];
  try{
+  project=sourceProject;
   selectedPageId=cover.id;selectedElementId=null;selectedElementScope=null;calendarEditing=false;renderPage();applyThemeTokens();
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));await document.fonts?.ready;
   const source=el('page');if(!source)throw new Error('표지 렌더링 결과를 찾지 못했습니다.');
@@ -359,7 +360,7 @@ async function representativeCoverSvg(){
   const designSize=window.ACDLEditorPageFit?.designSize?.(),width=Math.max(1,Math.round(Number(designSize?.width)||source.offsetWidth||850)),height=Math.max(1,Math.round(Number(designSize?.height)||source.offsetHeight||588));clone.style.transform='none';clone.style.width=`${width}px`;clone.style.height=`${height}px`;clone.style.maxWidth='none';clone.style.maxHeight='none';clone.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
   const markup=new XMLSerializer().serializeToString(clone),svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><foreignObject width="100%" height="100%">${markup}</foreignObject></svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
- }finally{selectedPageId=previous.pageId;selectedElementId=previous.elementId;selectedElementScope=previous.elementScope;calendarEditing=previous.calendarEditing;if(project)renderPage()}
+ }finally{project=previous.project;selectedPageId=previous.pageId;selectedElementId=previous.elementId;selectedElementScope=previous.elementScope;calendarEditing=previous.calendarEditing;if(project?.book?.pageInstances?.length)renderPage()}
 }
 window.ACDLRepresentativePreview=Object.freeze({capture:representativeCoverSvg});
 window.renderPage=renderPage;
