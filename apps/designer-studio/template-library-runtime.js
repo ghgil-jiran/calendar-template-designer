@@ -123,7 +123,7 @@
  window.TemplateLibraryRepository=TemplateLibraryRepository;
  function label(type){return typeMeta(type).label}
  function cardStateLabel(record){return record.state==='published'?'게시됨':record.state==='archived'?'보관됨':record.state==='ready'?'검토 완료':'초안'}
- function internalVersionLabel(record){return record.canonicalPackage&&record.packageVersion?`Package ${record.template}@${record.packageVersion}`:`내부 버전 v${record.version}`}
+ function internalVersionLabel(record){const packageVersion=record.packageVersion||record.lastReviewPackage?.version;return packageVersion?`편집 이력 v${record.version} · Package ${packageVersion}`:`편집 이력 v${record.version}`}
  function publishedCount(type){return records().filter(record=>record.type===type&&record.state==='published').length}
  function typeOptions(){return allTypes().filter(type=>type.enabled!==false)}
  function ensureTypeOptions(){
