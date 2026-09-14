@@ -90,7 +90,7 @@
  async function synchronizeCatalog(){
   const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return {requested:[],packages:[],deactivated:[]};
   progress('cleanup','시스템 베이스와 사용자 서비스 목록을 동기화하고 있습니다.');
-  const editor=await editorCatalog({strict:true}),active=editor.map(({templateId,version,editorRevision})=>({templateId,version,sourceEditorRevision:editorRevision}));
+  const editor=await editorCatalog({strict:true}),active=editor.map(({templateId,version,editorRevision})=>({templateId,version,sourceEditorRevision:editorRevision>0?editorRevision:null}));
   return request({mode:'sync-review-catalog',activePackages:active});
  }
  function syncStateLabel(state){return ({matched:'일치','editor-only':'등록 필요','service-only':'내림 대상','version-mismatch':'버전 불일치','invalid-editor':'Package 정보 누락'})[state]||state}
