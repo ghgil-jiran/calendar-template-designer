@@ -267,13 +267,13 @@ test('template lifecycle separates status, standard, design editing and settings
 test('published save transfers a snapshot review package before changing the library record', () => {
   const html=studioHtml;
   const runtime=fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');
-  assert.match(html, /template-publishing-runtime\.js\?v=20260914\.12/);
+  assert.match(html, /template-publishing-runtime\.js\?v=20260914\.13/);
   assert.match(runtime, /if\(values\.state==='published'\)\{const published=await window\.ACDLTemplatePublishing\.publish/);
   assert.ok(runtime.indexOf("ACDLTemplatePublishing.publish") < runtime.indexOf("remote.save({templateId:record.remoteId"));
 });
 
 test('deployed editor loads the PNG representative preview capture runtime',()=>{
-  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260914\.8/);
+  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260914\.9/);
 });
 
 test('insert sidebar separates and collapses utility controls when an object category opens', () => {
