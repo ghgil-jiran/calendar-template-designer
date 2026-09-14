@@ -102,7 +102,8 @@
   };
  }
  function records(){
-  const map=new Map((catalog.templates||[]).filter(record=>!deletedCatalogKeys.has(record.stableKey||record.id)).map(record=>[record.id,normalize(record,'catalog')]));
+  const remoteLibrary=window.ACDLTemplateRemotePersistence?.isRemote?.()&&window.ACDLTemplateRemotePersistence?.hasSession?.();
+  const map=new Map((remoteLibrary?[]:(catalog.templates||[])).filter(record=>!deletedCatalogKeys.has(record.stableKey||record.id)).map(record=>[record.id,normalize(record,'catalog')]));
   oldLibrary().map(record=>normalize(record,'local')).forEach(record=>{
    const catalogMatch=[...map.values()].find(item=>item.source==='catalog'&&(item.id===record.stableKey||item.stableKey===record.stableKey));
    if(catalogMatch){map.delete(catalogMatch.id);map.set(record.id,normalize({...catalogMatch,...record,catalogId:catalogMatch.id,source:'catalog'},'catalog'));return}
