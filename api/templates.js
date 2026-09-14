@@ -15,7 +15,10 @@ export default async function handler(request, response) {
     await assertInternalAccess(request);
     if (request.method === 'GET') {
       const templateId = new URL(request.url, 'http://localhost').searchParams.get('id');
-      return sendJson(response, 200, templateId ? await getTemplate(templateId) : { templates: await listTemplates(), deletedCatalogKeys: await listDeletedCatalogKeys() });
+      if(templateId)return sendJson(response,200,await getTemplate(templateId));
+      const startedAt=Date.now(),[templates,deletedCatalogKeys]=await Promise.all([listTemplates(),listDeletedCatalogKeys()]);
+      console.log('[template-library] remote list loaded',{templateCount:templates.length,deletedCatalogKeyCount:deletedCatalogKeys.length,durationMs:Date.now()-startedAt});
+      return sendJson(response,200,{templates,deletedCatalogKeys});
     }
     if (request.method === 'DELETE') return sendJson(response, 200, await deleteTemplate(await readJson(request)));
     response.setHeader('Allow', 'GET, POST, DELETE');
