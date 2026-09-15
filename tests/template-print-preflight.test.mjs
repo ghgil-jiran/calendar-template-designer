@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 await import('../apps/designer-studio/template-print-preflight.js');
+await import('../apps/designer-studio/render-parity-preflight.js');
 const {analyze}=globalThis.ACDLTemplatePrintPreflight;
+const parity=globalThis.ACDLRenderParityPreflight;
 
 function project(overrides={}){
  return {
@@ -81,4 +83,22 @@ test('runtime stage blocks missing surfaces and objects and preserves diagnostic
  assert.ok(report.issues.some(item=>item.code==='RUNTIME_SURFACE_MISSING'));
  assert.ok(report.issues.some(item=>item.code==='RUNTIME_OBJECT_MISSING'));
  assert.ok(report.issues.some(item=>item.code==='RUNTIME_BINDING_MISSING'));
+});
+
+test('screen and RGB PDF stage passes matching page snapshots',()=>{
+ const renderParity=parity.aggregate([{screen:{pageId:'cover',role:'cover',width:960,height:680,objects:[{id:'background',type:'image',geometry:{left:'0%',top:'0%',width:'100%',height:'100%',transform:''},image:{loaded:true}}]},rgb:{pageId:'cover',role:'cover',width:960,height:680,objects:[{id:'background',type:'image',geometry:{left:'0%',top:'0%',width:'100%',height:'100%',transform:''},image:{loaded:true}}]},issues:[]}]);
+ const report=analyze(project(),{runtimeDocument:null,renderParity});
+ assert.equal(report.schemaVersion,'template-preflight-report.v3');
+ assert.equal(report.stages[2].status,'passed');
+ assert.deepEqual(report.renderParity,{generated:true,pages:1,screenObjects:1,rgbObjects:1});
+});
+
+test('screen and RGB PDF stage reports missing and shifted output objects',()=>{
+ const screen={pageId:'cover',role:'cover',width:960,height:680,objects:[{id:'background',type:'image',geometry:{left:'0%',top:'0%',width:'100%',height:'100%',transform:''},image:{loaded:true}},{id:'title',type:'text',geometry:{left:'10%',top:'10%',width:'30%',height:'10%',transform:''},image:null}]};
+ const rgb={pageId:'cover',role:'cover',width:960,height:680,objects:[{id:'background',type:'image',geometry:{left:'1%',top:'0%',width:'100%',height:'100%',transform:''},image:{loaded:true}}]};
+ const renderParity=parity.aggregate([{screen,rgb,issues:parity.comparePage(screen,rgb,0)}]);
+ const report=analyze(project(),{runtimeDocument:null,renderParity});
+ assert.equal(report.stages[2].status,'blocked');
+ assert.ok(report.issues.some(item=>item.code==='RGB_OBJECT_MISSING'));
+ assert.ok(report.issues.some(item=>item.code==='RGB_OBJECT_GEOMETRY_MISMATCH'));
 });
