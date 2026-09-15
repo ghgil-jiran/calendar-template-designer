@@ -353,7 +353,7 @@
  function downloadPreflightReport(){if(!preflightReport)return;const blob=new Blob([JSON.stringify(preflightReport,null,2)],{type:'application/json'}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`template-preflight-${preflightReport.identity.templateId||'report'}-${Date.now()}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(link.href),0)}
  async function captureRenderParity(candidate){
   const api=window.ACDLRenderParityPreflight;if(!api||!window.ACDLPreviewState)return {generated:false,pages:0,screenObjects:0,rgbObjects:0,issues:[{severity:'error',code:'RENDER_PARITY_API_MISSING',message:'화면·RGB PDF 비교 모듈을 불러오지 못했습니다.',path:'render.parity'}]};
-  const savedProject=project,saved=window.ACDLPreviewState.capture({pageId:selectedPageId,elementId:selectedElementId,scope:selectedElementScope,calendarEditing,preview,previewType}),results=[];
+  const savedProject=project,saved=window.ACDLPreviewState.capture({pageId:selectedPageId,elementId:selectedElementId,scope:selectedElementScope,calendarEditing,preview,previewType}),results=[],livePage=el('page'),savedPageSize={width:livePage?.style.width||'',height:livePage?.style.height||''};
   const outputRoot=document.createElement('main');outputRoot.className='review-pdf-root';outputRoot.style.cssText='position:fixed;left:-100000px;top:0;visibility:hidden;pointer-events:none';document.body.appendChild(outputRoot);
   try{
    project=candidate;selectedElementId=null;selectedElementScope=null;calendarEditing=false;preview=false;previewType=null;
@@ -361,6 +361,7 @@
    for(const [index,pageInfo] of window.ACDLPreviewState.pages(candidate).entries()){
     selectedPageId=pageInfo.id;renderPage();applyThemeTokens();
     const live=el('page');if(!live)throw new Error(`${pageInfo.id} 화면 렌더링 결과가 없습니다.`);
+    if(!(live.offsetWidth>0&&live.offsetHeight>0)){const physical=candidate?.productType?.pageSize||{},width=pageInfo.role==='poster-annual'?720:960,height=pageInfo.role==='poster-annual'?1018:Math.round(width*(Number(physical.height)||180)/(Number(physical.width)||260));live.style.width=`${width}px`;live.style.height=`${height}px`}
     const imageReady=Promise.all([...live.querySelectorAll('img')].map(image=>image.complete?Promise.resolve():new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true})})));
     await Promise.race([imageReady,new Promise(resolve=>setTimeout(resolve,8000))]);
     const clone=window.ACDLPreviewState.clonePage(live,pageInfo);clone.classList.add('review-pdf-page');outputRoot.appendChild(clone);
@@ -369,7 +370,7 @@
    return api.aggregate(results);
   }catch(error){console.error('render parity preflight failed',error);return {generated:false,pages:results.length,screenObjects:0,rgbObjects:0,issues:[{severity:'error',code:'RENDER_PARITY_FAILED',message:error?.message||'화면·RGB PDF 비교에 실패했습니다.',path:'render.parity'}]};
   }finally{
-   outputRoot.remove();project=savedProject;const restored=window.ACDLPreviewState.restore(savedProject,saved);selectedPageId=restored.pageId;selectedElementId=restored.elementId;selectedElementScope=restored.scope;calendarEditing=restored.calendarEditing;preview=restored.preview;previewType=restored.previewType;if(project)try{render()}catch(error){console.error('preflight editor restore failed',error)}
+   outputRoot.remove();if(livePage){livePage.style.width=savedPageSize.width;livePage.style.height=savedPageSize.height}project=savedProject;const restored=window.ACDLPreviewState.restore(savedProject,saved);selectedPageId=restored.pageId;selectedElementId=restored.elementId;selectedElementScope=restored.scope;calendarEditing=restored.calendarEditing;preview=restored.preview;previewType=restored.previewType;if(project)try{render()}catch(error){console.error('preflight editor restore failed',error)}
   }
  }
  async function openPrintPreflight(record){
