@@ -295,8 +295,9 @@ test('remote template cards expose restore history without the unreliable previe
   assert.match(runtime, /remote\.restore\(templateId,versionId/);
   assert.doesNotMatch(runtime, /data-version-preview/);
   assert.doesNotMatch(runtime, /과거 버전 읽기 전용 미리보기/);
-  assert.match(runtime, /data-library-quality-check disabled/);
-  assert.match(runtime, /인쇄·출력 품질 검사 · 준비 중/);
+  assert.match(runtime, /data-library-quality-check=/);
+  assert.match(runtime, /openPrintPreflight/);
+  assert.match(runtime, />인쇄·출력 품질 검사</);
 });
 
 test('new template setup omits file loading and cancel returns to the library', () => {

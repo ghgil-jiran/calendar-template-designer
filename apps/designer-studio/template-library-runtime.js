@@ -159,7 +159,7 @@
   const remoteStored=record.storage==='supabase';
   const storageBadge=record.source==='local'?`<span class="${remoteStored?'storage-remote':'storage-local'}">${remoteStored?'Supabase 원격 저장':'브라우저 저장 · 원격 저장 필요'}</span>`:'';
   const remoteHistory=remoteStored?`<button data-library-history="${escape(record.id)}" aria-expanded="false">버전 이력</button>`:'';
-  const qualityCheck='<button type="button" data-library-quality-check disabled title="인쇄·출력 품질 검사는 추후 제공할 예정입니다.">인쇄·출력 품질 검사 · 준비 중</button>';
+  const qualityCheck=`<button type="button" data-library-quality-check="${escape(record.id)}">인쇄·출력 품질 검사</button>`;
   const locked=record.isStandard===true;
   const editAction=locked?'':`<button data-library-edit="${escape(record.id)}">편집</button>`;
   const fallbackImage=record.template==='desk-sample-3'?'./assets/sample-three/school-building.webp':'./assets/sample-school/jiran-building.webp';
@@ -340,9 +340,17 @@
     grid.querySelectorAll('[data-library-edit]').forEach(button=>button.addEventListener('click',()=>{const source=records().find(record=>record.id===button.dataset.libraryEdit);if(source&&!source.isStandard)openDesignerProjectFromRecord(source).catch(error=>showEditorToast(error?.message||'템플릿 편집 화면을 열지 못했습니다.'))}));
     grid.querySelectorAll('[data-library-settings]').forEach(button=>button.addEventListener('click',()=>openSettings(records().find(record=>record.id===button.dataset.librarySettings))));
     grid.querySelectorAll('[data-library-history]').forEach(button=>button.addEventListener('click',()=>toggleVersionHistory(button)));
+    grid.querySelectorAll('[data-library-quality-check]').forEach(button=>button.addEventListener('click',()=>openPrintPreflight(records().find(record=>record.id===button.dataset.libraryQualityCheck))));
     hydrateThumbnails(list);
   }
   updateLibrarySummary(list.length);
+ }
+ let preflightRecord=null;
+ function preflightCount(entries){return Object.entries(entries||{}).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).map(([name,count])=>`<span><b>${escape(name)}</b> ${count}</span>`).join('')||'<span>사용 항목 없음</span>'}
+ async function openPrintPreflight(record){
+  if(!record)return;preflightRecord=record;const dialog=el('templatePreflightDialog'),status=el('templatePreflightStatus');dialog.classList.remove('hidden');status.className='template-preflight-status working';status.innerHTML='<strong>검사 중</strong><span>저장된 템플릿의 전체 페이지와 개체를 확인하고 있습니다.</span>';el('templatePreflightTitle').textContent=`${record.name} · 인쇄 품질 검사`;el('templatePreflightDescription').textContent=`${record.type} · ${record.edition} Edition · ${internalVersionLabel(record)}`;el('templatePreflightMetrics').innerHTML='';el('templatePreflightIssues').innerHTML='<p class="template-preflight-empty">검사 결과를 준비하고 있습니다.</p>';el('templatePreflightInventory').innerHTML='';
+  try{const project=await projectForRecord(record),report=window.ACDLTemplatePrintPreflight.analyze(project,{templateId:record.stableKey||record.id,version:record.packageVersion||record.version});const labels={passed:['검사 통과','현재 기본 검사에서 막히는 항목이 없습니다.'],review:['확인 필요',`${report.summary.warnings}개 항목을 확인해 주세요.`],blocked:['수정 필요',`${report.summary.errors}개 오류를 먼저 수정해야 합니다.`]},label=labels[report.status];status.className=`template-preflight-status ${report.status}`;status.innerHTML=`<strong>${label[0]}</strong><span>${label[1]}</span>`;el('templatePreflightMetrics').innerHTML=[['페이지',report.summary.pages],['개체',report.summary.elements],['개체 종류',report.summary.elementTypes],['스타일',report.summary.styles],['오류',report.summary.errors],['경고',report.summary.warnings]].map(([name,value])=>`<div><strong>${value}</strong><span>${name}</span></div>`).join('');el('templatePreflightIssues').innerHTML=report.issues.length?report.issues.map(item=>`<article class="${item.severity}"><i>${item.severity==='error'?'!':'△'}</i><div><strong>${escape(item.message)}</strong><small>${escape(item.code)}${item.path?` · ${escape(item.path)}`:''}</small></div></article>`).join(''):'<p class="template-preflight-empty success">페이지 구조와 지원 기능 기본 검사를 통과했습니다.</p>';el('templatePreflightInventory').innerHTML=`<h4>페이지 역할</h4><div>${preflightCount(report.inventory.pageRoles)}</div><h4>개체 종류</h4><div>${preflightCount(report.inventory.elementTypes)}</div><h4>스타일 속성</h4><div>${preflightCount(report.inventory.styleKeys)}</div>`;record.preflightReport=report
+  }catch(error){status.className='template-preflight-status blocked';status.innerHTML=`<strong>검사 중단</strong><span>${escape(error?.message||'템플릿을 불러오지 못했습니다.')}</span>`}
  }
  function renderUserChoices(){
   const grid=el('userTemplateChoiceGrid');if(!grid)return;const selectedType=selectedCalendarType;const list=records().filter(record=>record.type===selectedType&&record.state==='published').sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
@@ -363,5 +371,6 @@
  el('libraryEditionFilter')?.addEventListener('change',()=>renderLibrary(activeLibraryState));
  document.querySelectorAll('#designerHomeLibrary,#libraryBtn').forEach(button=>button.addEventListener('click',()=>setTimeout(()=>renderLibrary('all'),0)));
  configureStateOptions('custom','draft');
+ ['closeTemplatePreflightBtn','closeTemplatePreflightFooterBtn'].forEach(id=>el(id)?.addEventListener('click',()=>el('templatePreflightDialog')?.classList.add('hidden')));el('rerunTemplatePreflightBtn')?.addEventListener('click',()=>preflightRecord&&openPrintPreflight(preflightRecord));
  document.querySelector('#closeTemplateLibraryBtn')?.addEventListener('click',()=>setTimeout(()=>{renderTypeChoices();renderUserChoices()},0));
 })();
