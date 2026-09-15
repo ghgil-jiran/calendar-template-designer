@@ -59,11 +59,12 @@ test('template switching ignores stale async loads', () => {
   assert.match(html, /if\(!isCurrentProjectTransition\(transitionId\)\)return;/);
 });
 
-test('library thumbnails cannot restore an earlier editor state', () => {
+test('library thumbnails render remote projects without restoring an earlier editor state', () => {
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(runtime, /function hydrateThumbnails\(list\)/);
-  assert.match(runtime, /host\.dataset\.rendered='fallback'/);
-  assert.doesNotMatch(runtime, /function hydrateThumbnails\(list\).*renderActualThumbnail\(record,host\)/);
+  assert.match(runtime, /renderActualThumbnail\(record,host\)/);
+  assert.match(runtime, /navigation&&!navigation\.isCurrent\(transitionId\)/);
+  assert.match(runtime, /if\(original&&\(!navigation\|\|navigation\.isCurrent\(transitionId\)\)\)/);
 });
 
 test('library edit and clone entry report loading stages without querying IndexedDB with an empty id', () => {
@@ -209,6 +210,7 @@ test('template thumbnails support uploaded artwork and page fallbacks', () => {
   assert.match(runtime, /const designSize=window\.ACDLEditorPageFit\?\.designSize\?\.\(\)/);
   assert.match(runtime, /sourceWidth=Math\.max\(1,Math\.round\(Number\(designSize\?\.width\)\|\|page\.offsetWidth/);
   assert.match(runtime, /render\(\);window\.ACDLEditorPageFit\?\.fit\?\.\(\)/);
+  assert.match(runtime, /renderActualThumbnail\(record,host\)/);
   assert.match(runtime, /clone\.style\.removeProperty\('transform'\)/);
   assert.doesNotMatch(runtime, /page\.getBoundingClientRect\(\)/);
   assert.doesNotMatch(html, /\.calendar-product-page \.library-thumb-render\{[^}]*transform:none!important/);
