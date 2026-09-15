@@ -42,3 +42,20 @@ test('surface count and print declarations are checked independently',()=>{
  assert.ok(report.issues.some(item=>item.code==='SURFACE_COUNT_MISMATCH'&&item.severity==='error'));
  assert.ok(report.issues.some(item=>item.code==='BLEED_NOT_DECLARED'&&item.severity==='warning'));
 });
+
+test('current desk template semantic roles, objects and styles are official capabilities',()=>{
+ const value=project();
+ value.book.pageInstances=[{id:'cover',role:'cover-front',elements:[{id:'school',type:'semantic-object',style:{stroke:'#fff',strokeWidth:2,whiteSpace:'normal',containerStyle:'none',sectionDivider:'none',protectedClearArea:true}}]},{id:'symbols',role:'front-insert-front',semanticPageRole:'school-symbols',elements:[{id:'annual',type:'year-calendar',style:{titleColor:'#111',dateColor:'#222',gridLine:true}}]}];
+ const report=analyze(value);
+ assert.equal(report.summary.errors,0);
+ assert.equal(report.issues.some(item=>['PAGE_ROLE_UNSUPPORTED','ELEMENT_TYPE_UNSUPPORTED','STYLE_NOT_CATALOGED'].includes(item.code)),false);
+});
+
+test('repeated findings are grouped while raw paths remain available',()=>{
+ const value=project();
+ value.book.pageInstances[0].elements=[{id:'a',type:'text',style:{futureStyle:true}},{id:'b',type:'text',style:{futureStyle:true}}];
+ const report=analyze(value),group=report.issueGroups.find(item=>item.code==='STYLE_NOT_CATALOGED');
+ assert.equal(group.count,2);
+ assert.equal(group.paths.length,2);
+ assert.equal(report.issues.filter(item=>item.code==='STYLE_NOT_CATALOGED').length,2);
+});
