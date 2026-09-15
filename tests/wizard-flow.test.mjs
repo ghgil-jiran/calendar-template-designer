@@ -248,11 +248,11 @@ test('template lifecycle separates status, standard, design editing and settings
   assert.doesNotMatch(runtime, /data-library-copy/);
   assert.doesNotMatch(runtime, /data-library-state-change/);
   assert.match(runtime, /status:result\.template\.state/);
-  assert.match(runtime, /저장할 템플릿을 준비하고 있습니다\./);
-  assert.match(runtime, /AI 이미지 \$\{completed\}\/\$\{total\} 저장 중/);
-  assert.match(runtime, /confirmButton\.disabled=true;cancelButton\.disabled=true;confirmButton\.textContent='저장 중…'/);
-  assert.match(runtime, /dialog\.setAttribute\('aria-busy','true'\)/);
-  assert.match(runtime, /feedback\.classList\.contains\('error'\)\)finish\(\)/);
+  assert.match(html, /id="templateSaveJobDialog"/);
+  assert.match(runtime, /\['assets','이미지 전송'/);
+  assert.match(runtime, /confirmButton\.disabled=true;cancelButton\.disabled=true/);
+  assert.match(runtime, /function fail\(error,retry\)/);
+  assert.match(runtime, /retryAction\(\)/);
   assert.match(runtime, /scopeFilterStates=\{custom:\['draft','archived'\],base:\['ready','published','archived'\]\}/);
   assert.match(runtime, /scopeSettingStates=\{custom:\['draft','ready','archived'\],base:\['ready','published','archived'\]\}/);
   assert.match(runtime, /if\(state==='ready'\|\|state==='published'\)return 'base'/);
@@ -267,13 +267,13 @@ test('template lifecycle separates status, standard, design editing and settings
 test('published save transfers a snapshot review package before changing the library record', () => {
   const html=studioHtml;
   const runtime=fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');
-  assert.match(html, /template-publishing-runtime\.js\?v=20260915\.1/);
-  assert.match(runtime, /if\(values\.state==='published'\)\{const published=await window\.ACDLTemplatePublishing\.publish/);
+  assert.match(html, /template-publishing-runtime\.js\?v=20260915\.2/);
+  assert.match(runtime, /if\(values\.state==='published'\)\{publicationResult=await window\.ACDLTemplatePublishing\.publish/);
   assert.ok(runtime.indexOf("ACDLTemplatePublishing.publish") < runtime.indexOf("remote.save({templateId:record.remoteId"));
 });
 
 test('deployed editor loads the PNG representative preview capture runtime',()=>{
-  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260914\.9/);
+  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260915\.1/);
 });
 
 test('insert sidebar separates and collapses utility controls when an object category opens', () => {

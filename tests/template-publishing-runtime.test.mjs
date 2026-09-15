@@ -35,6 +35,8 @@ test('browser reuses the existing templates endpoint with bounded two-megabyte r
 
 test('missing review chunks trigger bounded re-upload and finalization recovery',()=>{assert.match(source,/for\(let attempt=0;attempt<3;attempt\+\+\)/);assert.match(source,/Review \(\?:asset \|package \)\?chunk missing/);assert.match(source,/await uploadAssets\(true\);await uploadPackage\(true\)/)});
 
+test('an interrupted publish keeps its version and completed checkpoints for stage retry',()=>{assert.match(source,/let pendingPublish=null/);assert.match(source,/pendingPublish\?\.key===key\?pendingPublish:null/);assert.match(source,/if\(!context\.assetsUploaded\)await uploadAssets\(\)/);assert.match(source,/if\(!context\.packageUploaded\)await uploadPackage\(\)/);assert.match(source,/if\(!context\.validated\)for/);assert.match(source,/if\(!context\.activated\)/);assert.match(source,/function completePublication\(templateId,version\)/)});
+
 test('review proxy delegates authorization once to the receiving user service',()=>{const review=proxySource.indexOf("body?.operation==='publish-review'"),localAuth=proxySource.indexOf('await assertInternalAccess(request)');assert.ok(review>0);assert.ok(localAuth>review);assert.match(proxySource,/forwardReviewPackage\(\{authorization,body:body\.reviewBody\}\)/)});
 
 test('image-heavy package finalization has an explicit long-running function budget',()=>{assert.equal(vercel.functions['api/templates.js'].maxDuration,300);assert.match(readFileSync(new URL('../server/user-service-review-publisher.js',import.meta.url),'utf8'),/body\.mode==='finalize'\?240000:60000/)});
