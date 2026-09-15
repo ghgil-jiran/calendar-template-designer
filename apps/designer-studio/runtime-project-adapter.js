@@ -3,6 +3,7 @@
  function pct(value,total){return Number(value||0)/100*total}
  const TYPE_ALIASES=Object.freeze({frame:'image-frame','monthly-calendar':'calendar','school-object':'semantic-object'});
  function objectType(value){const type=String(value||'shape');return TYPE_ALIASES[type]||type}
+ function hasRenderableValue(value){if(value===undefined||value===null)return false;if(typeof value==='string')return value.trim().length>0;if(Array.isArray(value))return value.length>0;if(typeof value==='object')return Object.keys(value).length>0;return true}
  function shiftedMonth(year,month,offset){const date=new Date(Date.UTC(Number(year),Number(month)-1+offset,1));return {year:date.getUTCFullYear(),month:date.getUTCMonth()+1}}
  function widgetValue(element,page){
   const config=element.runtimeWidget||element,type=objectType(element.type),year=Number(page?.calendarYear),month=Number(page?.calendarMonth);
@@ -59,7 +60,7 @@
    const runtime=adaptDeskAcademic(project,resolved.dataset);
    return {...runtime,diagnostics:[...accepted.diagnostics,...resolved.diagnostics],hasErrors:false};
   }
-  return Object.freeze({readPath,objectType,widgetValue,legacyObject,adapt,adaptDeskAcademic,adaptUserService,adaptUserServiceWithAssets})
+  return Object.freeze({readPath,objectType,hasRenderableValue,widgetValue,legacyObject,adapt,adaptDeskAcademic,adaptUserService,adaptUserServiceWithAssets})
  }
- root.ACDLRuntimeProjectAdapter=Object.freeze({readPath,legacyObject,create})
+ root.ACDLRuntimeProjectAdapter=Object.freeze({readPath,hasRenderableValue,legacyObject,create})
 })(typeof window!=='undefined'?window:globalThis);

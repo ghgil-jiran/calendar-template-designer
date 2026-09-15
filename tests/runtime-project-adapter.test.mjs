@@ -7,6 +7,15 @@ const source=fs.readFileSync(new URL('../apps/designer-studio/runtime-project-ad
 const assetSource=fs.readFileSync(new URL('../apps/designer-studio/project-asset-resolver.js',import.meta.url),'utf8');
 const context={};vm.createContext(context);vm.runInContext(assetSource,context);vm.runInContext(source,context);
 
+test('runtime distinguishes a usable template fallback from an empty binding value',()=>{
+ const {hasRenderableValue}=context.ACDLRuntimeProjectAdapter;
+ assert.equal(hasRenderableValue({src:'/sample.jpg'}),true);
+ assert.equal(hasRenderableValue('sample'),true);
+ assert.equal(hasRenderableValue({}),false);
+ assert.equal(hasRenderableValue(''),false);
+ assert.equal(hasRenderableValue(null),false);
+});
+
 test('runtime project adapter accepts a supplied Dataset without changing the project',()=>{
  const dataset={school:{name:'샘플 학교'},calendar:{year:2027},monthlyQuotes:{'2027-03':{text:'봄'}}};
  const domain={buildRuntimeDataset(){throw new Error('override must be used')},resolvePageBinding(path){return path}};
