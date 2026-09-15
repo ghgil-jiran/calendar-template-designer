@@ -3,8 +3,11 @@ import assert from 'node:assert/strict';
 
 await import('../apps/designer-studio/template-print-preflight.js');
 await import('../apps/designer-studio/render-parity-preflight.js');
+await import('../apps/designer-studio/desk-academic-print-parity.js');
+await import('../apps/designer-studio/print-output-preflight.js');
 const {analyze}=globalThis.ACDLTemplatePrintPreflight;
 const parity=globalThis.ACDLRenderParityPreflight;
+const printOutput=globalThis.ACDLPrintOutputPreflight;
 
 function project(overrides={}){
  return {
@@ -88,7 +91,7 @@ test('runtime stage blocks missing surfaces and objects and preserves diagnostic
 test('screen and RGB PDF stage passes matching page snapshots',()=>{
  const renderParity=parity.aggregate([{screen:{pageId:'cover',role:'cover',width:960,height:680,objects:[{id:'background',type:'image',geometry:{left:'0%',top:'0%',width:'100%',height:'100%',transform:''},image:{loaded:true}}]},rgb:{pageId:'cover',role:'cover',width:960,height:680,objects:[{id:'background',type:'image',geometry:{left:'0%',top:'0%',width:'100%',height:'100%',transform:''},image:{loaded:true}}]},issues:[]}]);
  const report=analyze(project(),{runtimeDocument:null,renderParity});
- assert.equal(report.schemaVersion,'template-preflight-report.v3');
+ assert.equal(report.schemaVersion,'template-preflight-report.v4');
  assert.equal(report.stages[2].status,'passed');
  assert.deepEqual(report.renderParity,{generated:true,pages:1,screenObjects:1,rgbObjects:1});
 });
@@ -108,4 +111,24 @@ test('hidden RGB output uses its explicit preview dimensions',()=>{
  const snapshot=parity.pageSnapshot(page,{id:'cover',role:'cover-front'});
  assert.equal(snapshot.width,960);
  assert.equal(snapshot.height,671);
+});
+
+test('print stage confirms the production contract but waits for a real worker artifact',()=>{
+ const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
+ const output=printOutput.inspect(value),report=analyze(value,{printOutput:output});
+ assert.equal(output.contractReady,true);
+ assert.equal(output.artifactVerified,false);
+ assert.equal(report.schemaVersion,'template-preflight-report.v4');
+ assert.equal(report.stages[3].status,'review');
+ assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_REQUIRED'));
+ assert.equal(report.printOutput.profile.productionSize.width,266);
+});
+
+test('print stage blocks a contract that cannot produce the required artifact',()=>{
+ const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'png',dpi:150,bleed:0,cropMarks:false,colorMode:'rgb'}};
+ const output=printOutput.inspect(value),report=analyze(value,{printOutput:output});
+ assert.equal(output.contractReady,false);
+ assert.equal(report.stages[3].status,'blocked');
+ assert.ok(report.issues.some(item=>item.code==='PRINT_DPI_TOO_LOW'));
+ assert.ok(report.issues.some(item=>item.code==='PRINT_COLOR_MODE_INVALID'));
 });
