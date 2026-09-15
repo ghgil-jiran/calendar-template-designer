@@ -21,7 +21,23 @@
   items.forEach(item=>{const detail=item.message.includes(':')?item.message.slice(item.message.lastIndexOf(':')+1).trim():item.message,key=`${item.severity}|${item.code}|${detail}`,group=groups.get(key)||{severity:item.severity,code:item.code,message:item.message,count:0,paths:[]};group.count+=1;if(item.path&&group.paths.length<5)group.paths.push(item.path);groups.set(key,group)});
   return [...groups.values()].sort((a,b)=>a.severity===b.severity?b.count-a.count:a.severity==='error'?-1:1);
  }
- function analyze(project,{templateId=null,version=null}={}){
+ function runtimeIssues(project,runtimeDocument){
+  const problems=[],sourcePages=listOf(project?.book?.pageInstances||project?.pages),runtimePages=listOf(runtimeDocument?.pages);
+  if(!runtimeDocument)return [issue('error','RUNTIME_DOCUMENT_MISSING','공통 Runtime 문서를 생성하지 못했습니다.','runtime.document')];
+  if(runtimePages.length!==sourcePages.length)problems.push(issue('error','RUNTIME_SURFACE_COUNT_MISMATCH',`원본 ${sourcePages.length}면과 Runtime ${runtimePages.length}면이 다릅니다.`,'runtime.pages'));
+  const runtimeById=new Map(runtimePages.map(page=>[text(page.sourcePageId||page.id),page]));
+  sourcePages.forEach((page,pageIndex)=>{
+   const sourceId=text(page.sourcePageId||page.id),resolved=runtimeById.get(sourceId);
+   if(!resolved){problems.push(issue('error','RUNTIME_SURFACE_MISSING',`Runtime에서 페이지가 누락됐습니다: ${sourceId}`,`pages[${pageIndex}]`));return;}
+   const sourceRole=text(page.surfaceRole||page.role||'page'),resolvedRole=text(resolved.surfaceRole||resolved.role||'page');
+   if(sourceRole!==resolvedRole)problems.push(issue('error','RUNTIME_SURFACE_ROLE_MISMATCH',`페이지 역할이 달라졌습니다: ${sourceRole} → ${resolvedRole}`,`runtime.pages[${pageIndex}].role`));
+   const ids=new Set(listOf(resolved.objects).map(object=>text(object.sourceObjectId||object.id)));
+   listOf(project?.book?.elementsByPage?.[sourceId]).filter(element=>element?.visible!==false).forEach(element=>{const id=text(element?.id);if(id&&!ids.has(id))problems.push(issue('error','RUNTIME_OBJECT_MISSING',`Runtime에서 개체가 누락됐습니다: ${id}`,`pages[${pageIndex}].elements`));});
+  });
+  listOf(runtimeDocument.diagnostics).forEach((item,index)=>problems.push(issue(item.severity==='error'?'error':'warning',`RUNTIME_${text(item.code||'DIAGNOSTIC')}`,text(item.message||'Runtime 진단 항목입니다.'),item.pageId?`runtime.pages.${item.pageId}${item.objectId?`.objects.${item.objectId}`:''}`:`runtime.diagnostics[${index}]`)));
+  return problems;
+ }
+ function analyze(project,{templateId=null,version=null,runtimeDocument=undefined}={}){
   const problems=[],capabilities=new Set(),pages=listOf(project?.book?.pageInstances||project?.pages),size=objectOf(project?.productType?.pageSize||project?.print?.pageSize),template=objectOf(project?.template);
   if(!project||typeof project!=='object')problems.push(issue('error','PROJECT_MISSING','템플릿 문서를 불러오지 못했습니다.'));
   if(!text(template.id||templateId))problems.push(issue('warning','TEMPLATE_ID_MISSING','Package ID가 아직 고정되지 않았습니다.','template.id'));
@@ -46,8 +62,10 @@
   const expected=Number(project?.settings?.surfaceCount||project?.template?.surfacePlan?.surfaceCount||0);if(expected&&expected!==pages.length)problems.push(issue('error','SURFACE_COUNT_MISMATCH',`페이지 구성 ${expected}면과 실제 ${pages.length}면이 다릅니다.`,'book.pageInstances'));
   const bleed=bleedValue(project,template);
   if(!(bleed>0))problems.push(issue('warning','BLEED_NOT_DECLARED','도련 값이 Package 인쇄 정보에 명시되지 않았습니다.','print.bleed'));
+  const contractIssueCount=problems.length;if(runtimeDocument!==undefined)problems.push(...runtimeIssues(project,runtimeDocument));
   const errors=problems.filter(item=>item.severity==='error').length,warnings=problems.filter(item=>item.severity==='warning').length;
-  return Object.freeze({schemaVersion:'template-preflight-report.v1',generatedAt:new Date().toISOString(),identity:{templateId:text(template.id||templateId)||null,version:text(template.version||version)||null},status:errors?'blocked':warnings?'review':'passed',summary:{pages:pages.length,pageRoles:pageRoles.size,elements:[...elementTypes.values()].reduce((sum,count)=>sum+count,0),elementTypes:elementTypes.size,styles:styleKeys.size,bindings:bindings.size,assets:assets.size,errors,warnings,issueGroups:groupIssues(problems).length},inventory:{pageRoles:Object.fromEntries(pageRoles),elementTypes:Object.fromEntries(elementTypes),styleKeys:Object.fromEntries(styleKeys),bindings:[...bindings].sort(),capabilities:[...capabilities].sort()},issueGroups:groupIssues(problems),issues:problems});
+  const stage=(name,items)=>({name,status:items.some(item=>item.severity==='error')?'blocked':items.some(item=>item.severity==='warning')?'review':'passed',errors:items.filter(item=>item.severity==='error').length,warnings:items.filter(item=>item.severity==='warning').length});
+  return Object.freeze({schemaVersion:'template-preflight-report.v2',generatedAt:new Date().toISOString(),identity:{templateId:text(template.id||templateId)||null,version:text(template.version||version)||null},status:errors?'blocked':warnings?'review':'passed',summary:{pages:pages.length,pageRoles:pageRoles.size,elements:[...elementTypes.values()].reduce((sum,count)=>sum+count,0),elementTypes:elementTypes.size,styles:styleKeys.size,bindings:bindings.size,assets:assets.size,errors,warnings,issueGroups:groupIssues(problems).length},stages:[stage('Package 계약',problems.slice(0,contractIssueCount)),stage('Runtime 문서',runtimeDocument===undefined?[issue('warning','NOT_RUN','실행 전')]:problems.slice(contractIssueCount)),{name:'화면·RGB PDF',status:'pending',errors:0,warnings:0},{name:'CMYK·PDF/X-4',status:'pending',errors:0,warnings:0}],runtime:runtimeDocument===undefined?null:{generated:Boolean(runtimeDocument),pages:listOf(runtimeDocument?.pages).length,objects:listOf(runtimeDocument?.pages).reduce((sum,page)=>sum+listOf(page.objects).length,0),diagnostics:listOf(runtimeDocument?.diagnostics).length,version:text(runtimeDocument?.runtimeVersion)||null},inventory:{pageRoles:Object.fromEntries(pageRoles),elementTypes:Object.fromEntries(elementTypes),styleKeys:Object.fromEntries(styleKeys),bindings:[...bindings].sort(),capabilities:[...capabilities].sort()},issueGroups:groupIssues(problems),issues:problems});
  }
  globalThis.ACDLTemplatePrintPreflight=Object.freeze({analyze,catalog:Object.freeze({pageRoles:[...PAGE_ROLES],elementTypes:[...ELEMENT_TYPES],styleKeys:[...STYLE_KEYS]})});
 })();

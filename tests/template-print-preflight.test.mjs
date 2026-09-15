@@ -66,3 +66,19 @@ test('repeated findings are grouped while raw paths remain available',()=>{
  assert.equal(group.paths.length,2);
  assert.equal(report.issues.filter(item=>item.code==='STYLE_NOT_CATALOGED').length,2);
 });
+
+test('runtime document stage passes only when every source surface and object survives',()=>{
+ const value=project(),runtimeDocument={runtimeVersion:'1.0.0-beta.1',pages:[{id:'cover',sourcePageId:'cover',role:'cover',surfaceRole:'cover',objects:[{id:'background',sourceObjectId:'background'}]},{id:'month-1',sourcePageId:'month-1',role:'monthly-front',surfaceRole:'monthly-front',objects:[{id:'title',sourceObjectId:'title'},{id:'calendar',sourceObjectId:'calendar'}]}],diagnostics:[]};
+ const report=analyze(value,{runtimeDocument});
+ assert.equal(report.stages[1].status,'passed');
+ assert.deepEqual(report.runtime,{generated:true,pages:2,objects:3,diagnostics:0,version:'1.0.0-beta.1'});
+});
+
+test('runtime stage blocks missing surfaces and objects and preserves diagnostics',()=>{
+ const value=project(),runtimeDocument={runtimeVersion:'1.0.0-beta.1',pages:[{id:'cover',sourcePageId:'cover',role:'cover',surfaceRole:'cover',objects:[]}],diagnostics:[{severity:'warning',code:'BINDING_MISSING',message:'binding missing',pageId:'cover',objectId:'background'}]};
+ const report=analyze(value,{runtimeDocument});
+ assert.equal(report.stages[1].status,'blocked');
+ assert.ok(report.issues.some(item=>item.code==='RUNTIME_SURFACE_MISSING'));
+ assert.ok(report.issues.some(item=>item.code==='RUNTIME_OBJECT_MISSING'));
+ assert.ok(report.issues.some(item=>item.code==='RUNTIME_BINDING_MISSING'));
+});

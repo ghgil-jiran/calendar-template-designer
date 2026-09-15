@@ -22,6 +22,7 @@
 - 실제 공통 타입과 일치하도록 `cover-front`, `school-symbols`, `semantic-object`와 현행 스타일을 Capability에 등록했다. 반복 진단은 원인별 집계, 오류·경고 필터, 상세 위치, JSON 보고서 저장으로 확인한다.
 - 전체 빌드와 Studio 회귀검사 466개가 통과했다.
 - 첫 기준 템플릿 재검사 결과는 오류 0개, 경고 1개였으며 남은 도련 경고는 에디터 정본인 `template.resources.exportSettings.bleed`를 검사기가 읽지 못한 오탐으로 확인했다. 에디터 설정과 Package 사방 도련 객체를 모두 같은 인쇄 계약으로 검사한다.
+- 인쇄 품질 검사 2단계에서 저장 프로젝트를 공통 Runtime 문서로 직접 변환하고 원본 대비 물리 면수·페이지 ID·역할·페이지 개체 누락 및 Runtime 진단을 검사한다. 검사 창은 Package 계약, Runtime 문서, 화면·RGB PDF, CMYK·PDF/X-4의 4단계 상태를 한 화면에 표시한다.
 
 ## 완료한 큰 단계
 
