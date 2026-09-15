@@ -269,7 +269,7 @@ test('template lifecycle separates status, standard, design editing and settings
 test('published save transfers a snapshot review package before changing the library record', () => {
   const html=studioHtml;
   const runtime=fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');
-  assert.match(html, /template-publishing-runtime\.js\?v=20260915\.3/);
+  assert.match(html, /template-publishing-runtime\.js\?v=20260915\.4/);
   assert.match(runtime, /if\(values\.state==='published'\)\{publicationResult=await window\.ACDLTemplatePublishing\.publish/);
   assert.ok(runtime.indexOf("ACDLTemplatePublishing.publish") < runtime.indexOf("remote.save({templateId:record.remoteId"));
 });
