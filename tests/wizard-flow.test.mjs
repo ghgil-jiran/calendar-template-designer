@@ -269,13 +269,13 @@ test('template lifecycle separates status, standard, design editing and settings
 test('published save transfers a snapshot review package before changing the library record', () => {
   const html=studioHtml;
   const runtime=fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');
-  assert.match(html, /template-publishing-runtime\.js\?v=20260915\.4/);
+  assert.match(html, /template-publishing-runtime\.js\?v=20260915\.5/);
   assert.match(runtime, /if\(values\.state==='published'\)\{publicationResult=await window\.ACDLTemplatePublishing\.publish/);
   assert.ok(runtime.indexOf("ACDLTemplatePublishing.publish") < runtime.indexOf("remote.save({templateId:record.remoteId"));
 });
 
 test('deployed editor loads the PNG representative preview capture runtime',()=>{
-  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260915\.1/);
+  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260915\.2/);
 });
 
 test('insert sidebar separates and collapses utility controls when an object category opens', () => {
@@ -438,7 +438,7 @@ test('local and deployed entry points include the shared project asset resolver'
 });
 
 test('critical template recovery modules use a deployment cache version',()=>{
- assert.match(studioHtml,/template-remote-persistence\.js\?v=20260915\.1/);
+ assert.match(studioHtml,/template-remote-persistence\.js\?v=20260915\.2/);
  assert.match(studioHtml,/template-project-loader\.js\?v=20260906\.4/);
 });
 
