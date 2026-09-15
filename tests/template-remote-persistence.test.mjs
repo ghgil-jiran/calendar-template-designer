@@ -43,6 +43,30 @@ test('remote library keeps the saved representative marker and resolves thumbnai
   assert.equal(record.thumbnail.dataUrl,marker);assert.equal(urls[assetId],'https://signed.example/cover.png');assert.equal(calls.filter(path=>path.startsWith('/api/template-assets?ids=')).length,1)
 });
 
+test('library thumbnails load through the authenticated same-origin asset endpoint',async()=>{
+  const ids=['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222'],calls=[];
+  const api=runtime({fetch:async()=>({ok:true,status:200,json:async()=>({})})});
+  const originalFetch=api.assetObjectUrl;
+  const result=await api.assetObjectUrls(ids,{concurrency:2});
+  assert.deepEqual(Object.keys(result.urls),ids);
+  assert.equal(result.failures.length,0);
+  assert.match(result.urls[ids[0]],/^blob:template-asset-/);
+  assert.notEqual(result.urls[ids[0]],result.urls[ids[1]]);
+  assert.equal(typeof originalFetch,'function');
+});
+
+test('library thumbnail loading isolates a missing asset without hiding successful images',async()=>{
+  const good='11111111-1111-4111-8111-111111111111',missing='22222222-2222-4222-8222-222222222222';
+  const values=new Map();let blobSequence=0;class BrowserURL extends URL{}BrowserURL.createObjectURL=()=>`blob:template-asset-${++blobSequence}`;
+  const window={location:{hostname:'templates.example.com'},URL:BrowserURL,sessionStorage:{getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)},ACDLAdminAuth:{accessToken:()=> 'admin-jwt',signOut(){}},fetch:async path=>String(path).includes(missing)?{ok:false,status:404,blob:async()=>new Blob()}:{ok:true,status:200,blob:async()=>new Blob(['image'])}};
+  vm.runInNewContext(source,{window,URL,console,structuredClone});
+  const result=await window.ACDLTemplateRemotePersistence.assetObjectUrls([good,missing]);
+  assert.match(result.urls[good],/^blob:template-asset-/);
+  assert.equal(result.urls[missing],undefined);
+  assert.equal(result.failures.length,1);
+  assert.equal(result.failures[0].id,missing);
+});
+
 test('remote library exposes deleted built-in catalog keys',async()=>{
   const api=runtime({fetch:async()=>({ok:true,status:200,json:async()=>({templates:[],deletedCatalogKeys:['built-in-01']})})});
   await api.list();assert.deepEqual([...api.deletedCatalogKeys()],['built-in-01']);
