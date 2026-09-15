@@ -10,7 +10,7 @@
  function pageSnapshot(page,pageInfo){
   const rect=page.getBoundingClientRect(),objects=[...page.querySelectorAll('.free-element[data-element-id]')].filter(node=>getComputedStyle(node).display!=='none').map(nodeSnapshot);
   if(page.querySelector('#calendarRegion,.calendar-region'))objects.push({id:'@calendar-region',type:'calendar-grid',role:'calendar',scope:'master',geometry:{},image:null});
-  return {pageId:text(pageInfo?.id),role:text(pageInfo?.role),width:round(page.offsetWidth||rect.width),height:round(page.offsetHeight||rect.height),objects};
+  return {pageId:text(pageInfo?.id),role:text(pageInfo?.role),width:round(page.offsetWidth||rect.width||parseFloat(page.style.width)||Number(page.dataset.previewWidth)),height:round(page.offsetHeight||rect.height||parseFloat(page.style.height)||Number(page.dataset.previewHeight)),objects};
  }
  function comparePage(screen,output,index=0){
   const problems=[],path=`render.pages[${index}]`,outputById=new Map(list(output?.objects).map(item=>[item.id,item]));

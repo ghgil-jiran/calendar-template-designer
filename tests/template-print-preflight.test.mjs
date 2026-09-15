@@ -102,3 +102,10 @@ test('screen and RGB PDF stage reports missing and shifted output objects',()=>{
  assert.ok(report.issues.some(item=>item.code==='RGB_OBJECT_MISSING'));
  assert.ok(report.issues.some(item=>item.code==='RGB_OBJECT_GEOMETRY_MISMATCH'));
 });
+
+test('hidden RGB output uses its explicit preview dimensions',()=>{
+ const page={offsetWidth:0,offsetHeight:0,style:{width:'960px',height:'671px'},dataset:{previewWidth:'960',previewHeight:'671'},getBoundingClientRect:()=>({width:0,height:0}),querySelectorAll:()=>[],querySelector:()=>null};
+ const snapshot=parity.pageSnapshot(page,{id:'cover',role:'cover-front'});
+ assert.equal(snapshot.width,960);
+ assert.equal(snapshot.height,671);
+});
