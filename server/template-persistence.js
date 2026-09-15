@@ -169,7 +169,7 @@ export function validateDraftSave(value) {
   };
 }
 
-export function rowToLibraryItem(row, projectStandard = false) {
+export function rowToLibraryItem(row, projectStandard = false, thumbnail = null) {
   return {
     id: row.id,
     stableKey: row.stable_key,
@@ -182,7 +182,8 @@ export function rowToLibraryItem(row, projectStandard = false) {
     templateKey: row.template_key,
     latestVersionId: row.latest_version_id,
     latestVersionNumber: row.latest_version_number,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
+    thumbnail: thumbnail && typeof thumbnail === 'object' ? thumbnail : undefined
   };
 }
 
@@ -207,11 +208,11 @@ function firstRow(value) {
 
 export async function listTemplates() {
   const rows = await supabaseRequest('template_projects?select=*&order=updated_at.desc');
-  if (!rows.length || rows.some(row => Object.hasOwn(row, 'is_standard'))) return rows.map(rowToLibraryItem);
+  if (!rows.length) return [];
   const ids = rows.map(row => row.latest_version_id).filter(Boolean);
-  const versions = ids.length ? await supabaseRequest(`template_versions?select=id,project_data&id=in.(${ids.map(encodeURIComponent).join(',')})`) : [];
-  const standardByVersion = new Map(versions.map(version => [version.id, version.project_data?.template?.metadata?.isStandard === true]));
-  return rows.map(row => rowToLibraryItem(row, standardByVersion.get(row.latest_version_id)));
+  const versions = ids.length ? await supabaseRequest(`template_versions?select=id,thumbnail:project_data->template->thumbnail,project_standard:project_data->template->metadata->isStandard&id=in.(${ids.map(encodeURIComponent).join(',')})`) : [];
+  const versionMeta = new Map(versions.map(version => [version.id, version]));
+  return rows.map(row => {const meta=versionMeta.get(row.latest_version_id);return rowToLibraryItem(row,meta?.project_standard===true,meta?.thumbnail)});
 }
 
 export async function listDeletedCatalogKeys(){

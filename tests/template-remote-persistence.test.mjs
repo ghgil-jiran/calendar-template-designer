@@ -36,6 +36,13 @@ test('remote library uses one latest record per template', async () => {
   assert.equal(calls[0].options.headers.Authorization, 'Bearer admin-jwt');
 });
 
+test('remote library keeps the saved representative marker and resolves thumbnail urls in one batch',async()=>{
+  const marker='acdl-asset://11111111-1111-4111-8111-111111111111',assetId=marker.slice('acdl-asset://'.length),calls=[];
+  const api=runtime({fetch:async(path)=>{calls.push(path);if(path.startsWith('/api/template-assets?ids='))return {ok:true,status:200,json:async()=>({assets:[{id:assetId,url:'https://signed.example/cover.png'}]})};return {ok:true,status:200,json:async()=>({templates:[{id:'t1',stableKey:'desk-01',name:'표지',description:'',edition:2027,state:'published',productType:'desk',templateKey:'desk',latestVersionNumber:4,updatedAt:'2026-09-15',thumbnail:{kind:'upload',dataUrl:marker}}]})}}});
+  const [record]=await api.list(),urls=await api.resolveAssetUrls([assetId]);
+  assert.equal(record.thumbnail.dataUrl,marker);assert.equal(urls[assetId],'https://signed.example/cover.png');assert.equal(calls.filter(path=>path.startsWith('/api/template-assets?ids=')).length,1)
+});
+
 test('remote library exposes deleted built-in catalog keys',async()=>{
   const api=runtime({fetch:async()=>({ok:true,status:200,json:async()=>({templates:[],deletedCatalogKeys:['built-in-01']})})});
   await api.list();assert.deepEqual([...api.deletedCatalogKeys()],['built-in-01']);
