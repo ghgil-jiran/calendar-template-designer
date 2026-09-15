@@ -43,6 +43,13 @@ test('surface count and print declarations are checked independently',()=>{
  assert.ok(report.issues.some(item=>item.code==='BLEED_NOT_DECLARED'&&item.severity==='warning'));
 });
 
+test('editor export settings and package edge declarations both satisfy bleed contract',()=>{
+ const editorProject=project();delete editorProject.template.print;editorProject.template.resources={exportSettings:{bleed:3}};
+ assert.equal(analyze(editorProject).issues.some(item=>item.code==='BLEED_NOT_DECLARED'),false);
+ const packageProject=project();packageProject.template.print={bleed:{top:3,right:3,bottom:3,left:3,unit:'mm'}};
+ assert.equal(analyze(packageProject).issues.some(item=>item.code==='BLEED_NOT_DECLARED'),false);
+});
+
 test('current desk template semantic roles, objects and styles are official capabilities',()=>{
  const value=project();
  value.book.pageInstances=[{id:'cover',role:'cover-front',elements:[{id:'school',type:'semantic-object',style:{stroke:'#fff',strokeWidth:2,whiteSpace:'normal',containerStyle:'none',sectionDivider:'none',protectedClearArea:true}}]},{id:'symbols',role:'front-insert-front',semanticPageRole:'school-symbols',elements:[{id:'annual',type:'year-calendar',style:{titleColor:'#111',dateColor:'#222',gridLine:true}}]}];

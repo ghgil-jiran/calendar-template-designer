@@ -15,6 +15,7 @@
  function styleEntries(element){const style=objectOf(element?.style);return Object.keys(style).map(key=>[key,style[key]])}
  function imageSource(element){const image=objectOf(element?.image),value=objectOf(element?.value);return text(element?.src||element?.assetRef||element?.assetId||image.src||image.assetRef||image.assetId||value.src||value.assetRef||value.assetId)}
  function isRequiredImage(element){const role=text(element?.role||element?.semanticRole||element?.style?.legacyRole).toLowerCase();return element?.required===true||element?.print?.required===true||role.includes('background')||role.includes('ai-')}
+ function bleedValue(project,template){const print=objectOf(project?.print||template?.print||project?.settings?.print),resources=objectOf(template?.resources),exportSettings=objectOf(resources.exportSettings),bleed=print.bleed;return Number(typeof bleed==='object'?(bleed.top??bleed.left):bleed??print.bleedMm??exportSettings.bleed??project?.productType?.bleed??0)}
  function groupIssues(items){
   const groups=new Map();
   items.forEach(item=>{const detail=item.message.includes(':')?item.message.slice(item.message.lastIndexOf(':')+1).trim():item.message,key=`${item.severity}|${item.code}|${detail}`,group=groups.get(key)||{severity:item.severity,code:item.code,message:item.message,count:0,paths:[]};group.count+=1;if(item.path&&group.paths.length<5)group.paths.push(item.path);groups.set(key,group)});
@@ -43,7 +44,7 @@
    });
   });
   const expected=Number(project?.settings?.surfaceCount||project?.template?.surfacePlan?.surfaceCount||0);if(expected&&expected!==pages.length)problems.push(issue('error','SURFACE_COUNT_MISMATCH',`페이지 구성 ${expected}면과 실제 ${pages.length}면이 다릅니다.`,'book.pageInstances'));
-  const print=objectOf(project?.print||template?.print||project?.settings?.print);const bleed=Number(print.bleed??print.bleedMm??project?.productType?.bleed??0);
+  const bleed=bleedValue(project,template);
   if(!(bleed>0))problems.push(issue('warning','BLEED_NOT_DECLARED','도련 값이 Package 인쇄 정보에 명시되지 않았습니다.','print.bleed'));
   const errors=problems.filter(item=>item.severity==='error').length,warnings=problems.filter(item=>item.severity==='warning').length;
   return Object.freeze({schemaVersion:'template-preflight-report.v1',generatedAt:new Date().toISOString(),identity:{templateId:text(template.id||templateId)||null,version:text(template.version||version)||null},status:errors?'blocked':warnings?'review':'passed',summary:{pages:pages.length,pageRoles:pageRoles.size,elements:[...elementTypes.values()].reduce((sum,count)=>sum+count,0),elementTypes:elementTypes.size,styles:styleKeys.size,bindings:bindings.size,assets:assets.size,errors,warnings,issueGroups:groupIssues(problems).length},inventory:{pageRoles:Object.fromEntries(pageRoles),elementTypes:Object.fromEntries(elementTypes),styleKeys:Object.fromEntries(styleKeys),bindings:[...bindings].sort(),capabilities:[...capabilities].sort()},issueGroups:groupIssues(problems),issues:problems});
