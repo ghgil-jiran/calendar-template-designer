@@ -22,8 +22,11 @@
    if(details.length)details.forEach((item,index)=>issues.push(issue(item?.severity==='warning'?'warning':'error',text(item?.code)||'PRINT_ARTIFACT_FAILED',text(item?.message)||'PDF 자동 Preflight 검사에 실패했습니다.',text(item?.path)||`print.artifact.issues[${index}]`)));
    else issues.push(issue('error','PRINT_ARTIFACT_FAILED',artifact.error||'운영 PDF 워커 처리에 실패했습니다.','print.artifact.error'));
   }
-  else if(artifact.verified!==true)issues.push(issue('error','PRINT_ARTIFACT_NOT_VERIFIED','CMYK PDF 자동 Preflight 결과가 통과 상태가 아닙니다.','print.artifact.verified'));
-  return Object.freeze({schemaVersion:'print-output-preflight.v1',contractReady:Boolean(comparison?.contractReady)&&!issues.some(item=>item.severity==='error'&&item.code!=='PRINT_ARTIFACT_NOT_VERIFIED'),artifactVerified:Boolean(artifact?.verified),geometryMappingVerified:geometryValid,contentParity:{status:'same-dataset-required',comparisonBox:'TrimBox',message:'동일한 Runtime Dataset으로 생성한 Review PDF와 CMYK PDF의 TrimBox 영역을 비교해야 합니다.'},artifact:artifact||null,worker:'user-service-pdf-worker',profile:value,issues});
+  const checks=artifact?.checks||artifact?.preflight?.checks||{},requiredChecks={pdfx4:checks.pdfx4,outputIntent:checks.outputIntent,cmyk:checks.cmyk,k100:checks.k100,trimBox:checks.trimBox,bleedBox:checks.bleedBox,fontOutlined:checks.fontOutlined??checks.fontOutline,vectorContentPreserved:checks.vectorContentPreserved,trimContentParity:checks.trimContentParity},missingChecks=artifact?.status==='done'?Object.entries(requiredChecks).filter(([,passed])=>passed!==true).map(([key])=>key):[];
+  const artifactVerified=artifact?.verified===true&&missingChecks.length===0;
+  if(artifact?.status==='done'&&missingChecks.length)issues.push(issue('warning','PRINT_ARTIFACT_CHECKS_INCOMPLETE',`완료 PDF의 필수 세부검사가 남아 있습니다: ${missingChecks.join(', ')}`,'print.artifact.checks'));
+  else if(artifact&&artifact.verified!==true&&!['queued','processing','error'].includes(artifact.status))issues.push(issue('error','PRINT_ARTIFACT_NOT_VERIFIED','CMYK PDF 자동 Preflight 결과가 통과 상태가 아닙니다.','print.artifact.verified'));
+  return Object.freeze({schemaVersion:'print-output-preflight.v1',contractReady:Boolean(comparison?.contractReady)&&!issues.some(item=>item.severity==='error'&&item.code!=='PRINT_ARTIFACT_NOT_VERIFIED'),artifactVerified,artifactChecksComplete:missingChecks.length===0,missingArtifactChecks:missingChecks,geometryMappingVerified:geometryValid,contentParity:{status:'same-dataset-required',comparisonBox:'TrimBox',message:'동일한 Runtime Dataset으로 생성한 Review PDF와 CMYK PDF의 TrimBox 영역을 비교해야 합니다.'},artifact:artifact||null,worker:'user-service-pdf-worker',profile:value,issues});
  }
  root.ACDLPrintOutputPreflight=Object.freeze({profile,inspect});
 })(typeof window!=='undefined'?window:globalThis);
