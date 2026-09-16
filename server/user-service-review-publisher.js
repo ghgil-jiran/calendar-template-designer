@@ -4,7 +4,7 @@ const ALLOWED_MODES=new Set(['next-version','asset-chunk','chunk','finalize','ac
 function endpoint(mode){
   const configured=process.env.USER_SERVICE_REVIEW_API_URL?.trim();
   const review=configured||DEFAULT_REVIEW_ENDPOINT;
-  if(mode==='ensure-print-preflight'||mode==='print-preflight-status')return process.env.USER_SERVICE_PRINT_PREFLIGHT_API_URL?.trim()||review.replace('/api/template-packages/review','/api/template-print-preflight');
+  if(['ensure-print-preflight','print-preflight-status','print-preflight-download','print-preflight-history'].includes(mode))return process.env.USER_SERVICE_PRINT_PREFLIGHT_API_URL?.trim()||review.replace('/api/template-packages/review','/api/template-print-preflight');
   return review;
 }
 
