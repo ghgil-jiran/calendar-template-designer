@@ -165,11 +165,14 @@ test('a legacy done artifact cannot pass while required detailed checks are miss
 
 test('a completed artifact with a failed structural check is blocked, not reported as incomplete',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
- const passed={status:'passed'},artifact={status:'done',verified:false,checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:{status:'failed',message:'페이지 전체가 래스터화되었습니다.'},vectorContentPreserved:{status:'failed'},trimContentParity:{status:'failed'}}};
+ const passed={status:'passed'},artifact={status:'done',verified:false,filePath:'private/path.pdf',downloadUrl:'https://signed.example/pdf',checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:{status:'failed',message:'페이지 전체가 래스터화되었습니다.'},vectorContentPreserved:{status:'failed'},trimContentParity:{status:'failed'}}};
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
  assert.equal(output.artifactVerified,false);
  assert.deepEqual([...output.failedArtifactChecks],['fontOutlined','vectorContentPreserved','trimContentParity']);
  assert.deepEqual([...output.missingArtifactChecks],[]);
  assert.equal(report.status,'blocked');
  assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_CHECKS_FAILED'));
+ assert.deepEqual(report.printOutput.failedArtifactChecks,['fontOutlined','vectorContentPreserved','trimContentParity']);
+ assert.equal(report.printOutput.artifact.checks.fontOutlined.status,'failed');
+ assert.equal(report.printOutput.artifact.filePath,undefined);
 });
