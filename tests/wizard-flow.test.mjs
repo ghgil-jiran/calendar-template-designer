@@ -269,7 +269,7 @@ test('template lifecycle separates status, standard, design editing and settings
 test('published save transfers a snapshot review package before changing the library record', () => {
   const html=studioHtml;
   const runtime=fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');
-  assert.match(html, /template-publishing-runtime\.js\?v=20260915\.5/);
+  assert.match(html, /template-publishing-runtime\.js\?v=20260916\.1/);
   assert.match(runtime, /if\(values\.state==='published'\)\{publicationResult=await window\.ACDLTemplatePublishing\.publish/);
   assert.ok(runtime.indexOf("ACDLTemplatePublishing.publish") < runtime.indexOf("remote.save({templateId:record.remoteId"));
 });
@@ -298,6 +298,12 @@ test('remote template cards expose restore history without the unreliable previe
   assert.match(runtime, /data-library-quality-check=/);
   assert.match(runtime, /openPrintPreflight/);
   assert.match(runtime, />인쇄·출력 품질 검사</);
+  assert.match(studioHtml, /id="downloadTemplatePrintPdfBtn"/);
+  assert.match(studioHtml, /id="templatePreflightArtifact"/);
+  assert.match(studioHtml, /id="templatePreflightHistory"/);
+  assert.match(runtime, /완료 결과 새로고침/);
+  assert.match(runtime, /printPreflightDownload/);
+  assert.match(runtime, /printPreflightHistory/);
 });
 
 test('new template setup omits file loading and cancel returns to the library', () => {

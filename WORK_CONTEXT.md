@@ -1,6 +1,6 @@
 # Work Context
 
-## 현재 기준 · 2026-09-15
+## 현재 기준 · 2026-09-16
 
 - 저장소: `ghgil-jiran/calendar-template-designer`
 - 작업 브랜치: `feat/template-library-lifecycle-20260914`
@@ -28,6 +28,9 @@
 - 라이브러리 모달에서는 편집 작업영역이 숨겨져 캔버스가 `0×0`으로 측정될 수 있으므로, 3단계 검사 동안 Package의 물리 규격 비율로 독립 측정 크기를 부여하고 검사 종료 뒤 기존 화면 크기를 복원한다.
 - RGB PDF 복제본은 실제 인쇄 전까지 CSS로 숨겨져 `offsetWidth/offsetHeight`가 0일 수 있다. 검사기는 복제 시 고정한 inline/preview 크기를 출력 치수의 정본으로 보조 사용한다.
 - 인쇄 검증 4단계는 260×180mm 재단, 사방 3mm 도련, 266×186mm 제작, 300 DPI 이상, CMYK, PDF/X-4, Japan Color 2011 Coated, K100, 서체 아웃라인, TrimBox/BleedBox, 0.540pt 재단선 계약을 검사한다. 실제 파일 구조 통과는 사용자 서비스 운영 VM의 PDF 워커 산출물이 있어야 하므로, 산출물 없이 설정만 맞는 경우 `확인 필요`로 표시하며 통과로 오인하지 않는다.
+- 첫 실제 인쇄 잡 `94f13d0b-8cea-4390-bbd5-6a286b3bd7a3`은 30면·74.96MB CMYK PDF/X-4 산출물까지 자동검사를 통과했다. 새 전체 변환을 만들지 않고 동일 Package ID·버전·SHA의 완료 산출물을 우선 재사용한다.
+- 인쇄 검사 창에 최종 CMYK PDF 다운로드, PDF/X-4·ICC/OutputIntent·CMYK·K100·TrimBox·BleedBox·서체 아웃라인·페이지 수·파일 크기 세부 표시, 잡 ID·완료 시각과 최근 검사 이력 영역을 추가했다. 사용자 서비스는 `print-preflight-download`, `print-preflight-history` 응답을 연결해야 한다.
+- 버튼 명칭을 `완료 결과 새로고침`으로 변경해 완료 산출물 조회와 새 전체 생성의 차이를 명확히 했다. 전체 빌드와 Studio 회귀검사 478개가 통과했다.
 
 ## 완료한 큰 단계
 
