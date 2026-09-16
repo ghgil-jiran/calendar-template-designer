@@ -1,16 +1,18 @@
 const DEFAULT_REVIEW_ENDPOINT='https://school-calendar-editor-servic-git-1a2acc-gil-gighyun-s-projects.vercel.app/api/template-packages/review';
-const ALLOWED_MODES=new Set(['next-version','asset-chunk','chunk','finalize','activate-review','withdraw','retire-packages','inspect-review-catalog','sync-review-catalog']);
+const ALLOWED_MODES=new Set(['next-version','asset-chunk','chunk','finalize','activate-review','withdraw','retire-packages','inspect-review-catalog','sync-review-catalog','ensure-print-preflight','print-preflight-status']);
 
-function endpoint(){
+function endpoint(mode){
   const configured=process.env.USER_SERVICE_REVIEW_API_URL?.trim();
-  return configured||DEFAULT_REVIEW_ENDPOINT;
+  const review=configured||DEFAULT_REVIEW_ENDPOINT;
+  if(mode==='ensure-print-preflight'||mode==='print-preflight-status')return process.env.USER_SERVICE_PRINT_PREFLIGHT_API_URL?.trim()||review.replace('/api/template-packages/review','/api/template-print-preflight');
+  return review;
 }
 
 export async function forwardReviewPackage({authorization,body,fetcher=fetch}){
   if(!authorization?.match(/^Bearer\s+\S+/i))throw Object.assign(new Error('AUTH_REQUIRED'),{statusCode:401,code:'AUTH_REQUIRED'});
   if(!body||!ALLOWED_MODES.has(body.mode))throw Object.assign(new Error('INVALID_REVIEW_MODE'),{statusCode:400,code:'INVALID_REVIEW_MODE'});
   const timeoutMs=body.mode==='finalize'?240000:60000;
-  let response;try{response=await fetcher(endpoint(),{
+  let response;try{response=await fetcher(endpoint(body.mode),{
     method:'POST',
     headers:{Authorization:authorization,'Content-Type':'application/json'},
     body:JSON.stringify(body),
