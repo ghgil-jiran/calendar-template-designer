@@ -152,3 +152,13 @@ test('failed worker artifacts expose their detailed PDF preflight findings',()=>
  assert.ok(report.issues.some(item=>item.code==='PDF_PDFX4_MISSING'));
  assert.equal(report.issues.some(item=>item.code==='PRINT_ARTIFACT_FAILED'),false);
 });
+
+test('a legacy done artifact cannot pass while required detailed checks are missing',()=>{
+ const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
+ const artifact={status:'done',verified:true,checks:{pdfx4:true,outputIntent:true,cmyk:true,trimBox:true,bleedBox:true,fontOutlined:true}};
+ const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
+ assert.equal(output.artifactVerified,false);
+ assert.deepEqual([...output.missingArtifactChecks],['k100','vectorContentPreserved','trimContentParity']);
+ assert.equal(report.status,'review');
+ assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_CHECKS_INCOMPLETE'));
+});
