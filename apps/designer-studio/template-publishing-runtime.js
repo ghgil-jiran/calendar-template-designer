@@ -67,6 +67,8 @@
  function completePublication(templateId,version){if(pendingPublish?.id===templateId&&pendingPublish?.version===version)pendingPublish=null}
  function publishedIdentity(project){const value=project?.template?.publishing?.lastReviewPackage;if(!value?.templateId||!value?.version)return null;return {templateId:value.templateId,version:value.version}}
  async function withdraw(project){const identity=publishedIdentity(project);if(!identity)return {withdrawn:[]};return request({mode:'withdraw',...identity})}
+ async function ensurePrintPreflight(identity){return request({mode:'ensure-print-preflight',templateId:identity.templateId,version:identity.version,sha256:identity.sha256})}
+ async function printPreflightStatus(id){return request({mode:'print-preflight-status',id})}
  async function editorCatalog({strict=false}={}){
   const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return [];
   const records=(await remote.list()).filter(item=>item.state==='published'),items=[];
@@ -114,5 +116,5 @@
  }
  if(typeof document!=='undefined')installSyncDialog();
  async function reconcile(){return synchronizeCatalog()}
- root.ACDLTemplatePublishing=Object.freeze({publish,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,publishedIdentity,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
+ root.ACDLTemplatePublishing=Object.freeze({publish,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,publishedIdentity,ensurePrintPreflight,printPreflightStatus,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
 })(window);
