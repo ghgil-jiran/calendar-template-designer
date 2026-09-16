@@ -132,3 +132,13 @@ test('print stage blocks a contract that cannot produce the required artifact',(
  assert.ok(report.issues.some(item=>item.code==='PRINT_DPI_TOO_LOW'));
  assert.ok(report.issues.some(item=>item.code==='PRINT_COLOR_MODE_INVALID'));
 });
+
+test('failed worker artifacts expose their detailed PDF preflight findings',()=>{
+ const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
+ const artifact={status:'error',verified:false,error:'PDF 자동 Preflight 실패',issues:[{severity:'error',code:'PDF_PDFX4_MISSING',message:'pdfx4 검증에 실패했습니다.'}]};
+ const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
+ assert.equal(output.artifactVerified,false);
+ assert.equal(report.stages[3].status,'blocked');
+ assert.ok(report.issues.some(item=>item.code==='PDF_PDFX4_MISSING'));
+ assert.equal(report.issues.some(item=>item.code==='PRINT_ARTIFACT_FAILED'),false);
+});
