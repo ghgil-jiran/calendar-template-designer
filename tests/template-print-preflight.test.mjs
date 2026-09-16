@@ -122,6 +122,16 @@ test('print stage confirms the production contract but waits for a real worker a
  assert.equal(report.stages[3].status,'review');
  assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_REQUIRED'));
  assert.equal(report.printOutput.profile.productionSize.width,266);
+ assert.equal(output.geometryMappingVerified,true);
+ assert.deepEqual(JSON.parse(JSON.stringify(report.printOutput.profile.coordinateMapping)),{source:'trim',target:'production',mode:'translate-no-scale',scale:1,offsetX:3,offsetY:3,comparisonBox:'TrimBox'});
+ assert.equal(output.contentParity.status,'same-dataset-required');
+});
+
+test('print stage rejects a production geometry that cannot be mapped by bleed-only translation',()=>{
+ const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:-3,cropMarks:true,colorMode:'cmyk'}};
+ const output=printOutput.inspect(value);
+ assert.equal(output.geometryMappingVerified,false);
+ assert.ok(output.issues.some(item=>item.code==='PRINT_TRIM_BLEED_MAPPING_INVALID'));
 });
 
 test('print stage blocks a contract that cannot produce the required artifact',()=>{
