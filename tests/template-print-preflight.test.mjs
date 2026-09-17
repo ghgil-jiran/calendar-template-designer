@@ -91,7 +91,7 @@ test('runtime stage blocks missing surfaces and objects and preserves diagnostic
 test('screen and RGB PDF stage passes matching page snapshots',()=>{
  const renderParity=parity.aggregate([{screen:{pageId:'cover',role:'cover',width:960,height:680,objects:[{id:'background',type:'image',geometry:{left:'0%',top:'0%',width:'100%',height:'100%',transform:''},image:{loaded:true}}]},rgb:{pageId:'cover',role:'cover',width:960,height:680,objects:[{id:'background',type:'image',geometry:{left:'0%',top:'0%',width:'100%',height:'100%',transform:''},image:{loaded:true}}]},issues:[]}]);
  const report=analyze(project(),{runtimeDocument:null,renderParity});
- assert.equal(report.schemaVersion,'template-preflight-report.v4');
+ assert.equal(report.schemaVersion,'template-preflight-report.v5');
  assert.equal(report.stages[2].status,'passed');
  assert.deepEqual(report.renderParity,{generated:true,pages:1,screenObjects:1,rgbObjects:1});
 });
@@ -118,13 +118,18 @@ test('print stage confirms the production contract but waits for a real worker a
  const output=printOutput.inspect(value),report=analyze(value,{printOutput:output});
  assert.equal(output.contractReady,true);
  assert.equal(output.artifactVerified,false);
- assert.equal(report.schemaVersion,'template-preflight-report.v4');
+ assert.equal(report.schemaVersion,'template-preflight-report.v5');
  assert.equal(report.stages[3].status,'review');
  assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_REQUIRED'));
  assert.equal(report.printOutput.profile.productionSize.width,266);
  assert.equal(output.geometryMappingVerified,true);
  assert.deepEqual(JSON.parse(JSON.stringify(report.printOutput.profile.coordinateMapping)),{source:'trim',target:'production',mode:'translate-no-scale',scale:1,offsetX:3,offsetY:3,comparisonBox:'TrimBox'});
  assert.equal(output.contentParity.status,'same-dataset-required');
+ assert.equal(report.finalApproved,false);
+ assert.equal(report.approval.external.status,'not_run');
+ assert.equal(report.approval.physical.status,'not_run');
+ assert.equal(report.stages[4].name,'Acrobat 외부 Preflight');
+ assert.equal(report.stages[5].name,'실물 인쇄 승인');
 });
 
 test('print stage rejects a production geometry that cannot be mapped by bleed-only translation',()=>{
@@ -176,3 +181,17 @@ test('a completed artifact with a failed structural check is blocked, not report
  assert.equal(report.printOutput.artifact.checks.fontOutlined.status,'failed');
  assert.equal(report.printOutput.artifact.filePath,undefined);
 });
+test('automated PDF success remains review until external and physical approvals exist',()=>{
+ const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
+ const passed={status:'passed'},artifact={status:'done',verified:true,checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed}};
+ const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
+ assert.equal(output.approval.automated.status,'passed');
+ assert.equal(output.approval.artifactClass,'legacy-converted');
+ assert.equal(report.status,'review');
+ assert.equal(report.approvalLevel,'automated-preflight');
+ assert.equal(report.finalApproved,false);
+ assert.equal(report.stages[3].status,'passed');
+ assert.equal(report.stages[4].status,'pending');
+ assert.equal(report.stages[5].status,'pending');
+});
+
