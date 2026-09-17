@@ -6,6 +6,9 @@ dist
 .vite
 coverage
 
+# Generated print proofs and comparison artifacts
+output/
+
 .env*
 !.env.example
 *.db
