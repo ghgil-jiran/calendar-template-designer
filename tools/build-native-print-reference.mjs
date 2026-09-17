@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 import { TemplateRuntime } from "../packages/template-runtime/dist/src/Runtime.js";
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
-const fixture=path.join(root,"templates","desk-native-print-reference","0.1.0");
+const version="0.2.0";
+const fixture=path.join(root,"templates","desk-native-print-reference",version);
 const output=path.join(root,"output","native-print-reference");
 const [template,dataset]=await Promise.all([
   readFile(path.join(fixture,"template.json"),"utf8").then(JSON.parse),

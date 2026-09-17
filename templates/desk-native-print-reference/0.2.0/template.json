@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.0",
+  "id": "desk-native-print-reference",
+  "revision": 2,
+  "metadata": { "name": "탁상형 네이티브 인쇄 기준 · 대표 3면", "purpose": "new-print-principles-reference", "version": "0.2.0" },
+  "printContract": {
+    "schemaVersion": "print-contract.v1", "profile": "Japan Color 2011 Coated", "pdfStandard": "PDF/X-4", "coordinateUnit": "mm",
+    "productionSizeMm": { "width": 266, "height": 186 }, "trimSizeMm": { "width": 260, "height": 180 }, "bleedMm": 3, "safeInsetMm": 8, "minimumImageDpi": 300
+  },
+  "pages": [
+    {
+      "id": "native.cover", "role": "cover-front", "surfaceRole": "cover-front", "contentPurpose": "cover", "size": { "width": 260, "height": 180, "unit": "mm" },
+      "objects": [
+        { "id": "cover.photo", "type": "image-frame", "role": "school-image", "frame": { "x": 12, "y": 12, "width": 150, "height": 112 }, "binding": "school.exterior", "style": { "fit": "cover", "focus": { "x": 0.5, "y": 0.5 } }, "print": { "structure": "raster-image", "image": { "kind": "photo", "readiness": "replacement-required", "minimumDpi": 300, "replaceableByUser": true } } },
+        { "id": "cover.year", "type": "text", "role": "year", "frame": { "x": 174, "y": 28, "width": 68, "height": 28 }, "binding": "calendar.year", "style": { "fontFamily": "Pretendard", "fontSizePt": 38, "fontWeight": 500, "textAlign": "left" }, "print": { "structure": "native-vector", "textMode": "outline", "blackMode": "k100", "fill": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } },
+        { "id": "cover.school", "type": "text", "role": "school-name", "frame": { "x": 174, "y": 72, "width": 68, "height": 14 }, "binding": "school.name", "style": { "fontFamily": "Pretendard", "fontSizePt": 18, "fontWeight": 700, "textAlign": "left" }, "print": { "structure": "native-vector", "textMode": "outline", "blackMode": "k100", "fill": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } }
+      ]
+    },
+    {
+      "id": "native.month-front", "role": "monthly-front", "surfaceRole": "monthly-front", "contentPurpose": "monthly-calendar", "size": { "width": 260, "height": 180, "unit": "mm" }, "metadata": { "calendarYear": 2028, "calendarMonth": 3 },
+      "objects": [
+        { "id": "month.title", "type": "text", "role": "month-title", "frame": { "x": 12, "y": 8, "width": 42, "height": 18 }, "value": "3월", "style": { "fontFamily": "Pretendard", "fontSizePt": 28, "fontWeight": 700 }, "print": { "structure": "native-vector", "textMode": "outline", "blackMode": "k100", "fill": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } },
+        { "id": "weekday.sun", "type": "text", "role": "weekday", "frame": { "x": 12, "y": 29, "width": 33.714, "height": 7 }, "value": "일", "style": { "fontFamily": "Pretendard", "fontSizePt": 8, "fontWeight": 700, "textAlign": "center" }, "print": { "structure": "native-vector", "textMode": "outline", "blackMode": "process", "fill": { "space": "cmyk", "c": 0, "m": 0.82, "y": 0.72, "k": 0.12 } } },
+        { "id": "weekday.mon", "type": "text", "role": "weekday", "frame": { "x": 45.714, "y": 29, "width": 33.714, "height": 7 }, "value": "월", "style": { "fontFamily": "Pretendard", "fontSizePt": 8, "fontWeight": 600, "textAlign": "center" }, "print": { "structure": "native-vector", "textMode": "outline", "blackMode": "k100", "fill": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } },
+        { "id": "weekday.tue", "type": "text", "role": "weekday", "frame": { "x": 79.428, "y": 29, "width": 33.714, "height": 7 }, "value": "화", "style": { "fontFamily": "Pretendard", "fontSizePt": 8, "fontWeight": 600, "textAlign": "center" }, "print": { "structure": "native-vector", "textMode": "outline", "blackMode": "k100", "fill": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } },
+        { "id": "weekday.wed", "type": "text", "role": "weekday", "frame": { "x": 113.142, "y": 29, "width": 33.714, "height": 7 }, "value": "수", "style": { "fontFamily": "Pretendard", "fontSizePt": 8, "fontWeight": 600, "textAlign": "center" }, "print": { "structure": "native-vector", "textMode": "outline", "blackMode": "k100", "fill": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } },
+        { "id": "weekday.thu", "type": "text", "role": "weekday", "frame": { "x": 146.856, "y": 29, "width": 33.714, "height": 7 }, "value": "목", "style": { "fontFamily": "Pretendard", "fontSizePt": 8, "fontWeight": 600, "textAlign": "center" }, "print": { "structure": "native-vector", "textMode": "outline", "blackMode": "k100", "fill": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } },
+        { "id": "weekday.fri", "type": "text", "role": "weekday", "frame": { "x": 180.57, "y": 29, "width": 33.714, "height": 7 }, "value": "금", "style": { "fontFamily": "Pretendard", "fontSizePt": 8, "fontWeight": 600, "textAlign": "center" }, "print": { "structure": "native-vector", "textMode": "outline", "blackMode": "k100", "fill": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } },
+        { "id": "weekday.sat", "type": "text", "role": "weekday", "frame": { "x": 214.284, "y": 29, "width": 33.716, "height": 7 }, "value": "토", "style": { "fontFamily": "Pretendard", "fontSizePt": 8, "fontWeight": 700, "textAlign": "center" }, "print": { "structure": "native-vector", "textMode": "outline", "blackMode": "process", "fill": { "space": "cmyk", "c": 0.82, "m": 0.48, "y": 0, "k": 0.15 } } },
+        { "id": "month.grid", "type": "calendar-grid", "role": "calendar-grid", "frame": { "x": 12, "y": 38, "width": 236, "height": 130 }, "value": { "year": 2028, "month": 3 }, "style": { "dateFontSizePt": 9, "sundayFill": { "space": "cmyk", "c": 0, "m": 0.82, "y": 0.72, "k": 0.12 }, "saturdayFill": { "space": "cmyk", "c": 0.82, "m": 0.48, "y": 0, "k": 0.15 } }, "print": { "structure": "native-vector", "blackMode": "k100", "stroke": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } },
+        { "id": "month.events", "type": "event-list", "role": "academic-events", "frame": { "x": 12, "y": 38, "width": 236, "height": 130 }, "binding": "monthlyEvents.2028-03", "style": { "year": 2028, "month": 3, "weekStart": "sunday", "rows": 5, "fontFamily": "Pretendard", "fontSizePt": 6.5, "maxPerDay": 2 }, "print": { "structure": "native-vector", "textMode": "outline", "blackMode": "k100", "fill": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } }
+      ]
+    },
+    {
+      "id": "native.month-back", "role": "monthly-back", "surfaceRole": "monthly-back", "contentPurpose": "monthly-photo-memo", "size": { "width": 260, "height": 180, "unit": "mm" }, "metadata": { "calendarYear": 2028, "calendarMonth": 3 },
+      "objects": [
+        { "id": "month.photo", "type": "image-frame", "role": "monthly-photo", "frame": { "x": 12, "y": 12, "width": 236, "height": 94 }, "binding": "monthlyImages.2028-03", "style": { "fit": "cover", "focus": { "x": 0.5, "y": 0.45 } }, "print": { "structure": "raster-image", "image": { "kind": "photo", "readiness": "replacement-required", "minimumDpi": 300, "replaceableByUser": true } } },
+        { "id": "month.memo", "type": "memo", "role": "memo", "frame": { "x": 12, "y": 114, "width": 236, "height": 54 }, "style": { "lineCount": 6, "strokeWidthPt": 0.35 }, "print": { "structure": "native-vector", "blackMode": "k100", "stroke": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } }
+      ]
+    }
+  ]
+}
