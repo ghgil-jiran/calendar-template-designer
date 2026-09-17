@@ -1,15 +1,17 @@
 import { PageResolver } from "./PageResolver.js";
 import { RenderModelBuilder } from "./RenderModelBuilder.js";
 import type { RuntimeDataset, RuntimeDiagnostic, RuntimeOptions, RuntimeResult, TemplateDocument } from "./types.js";
+import { PrintContractValidator } from "./PrintContractValidator.js";
 
 export const TEMPLATE_RUNTIME_VERSION = "1.0.0-beta.1";
 
 export class TemplateRuntime {
-  constructor(private readonly pages = new PageResolver(), private readonly builder = new RenderModelBuilder()) {}
+  constructor(private readonly pages = new PageResolver(), private readonly builder = new RenderModelBuilder(), private readonly print = new PrintContractValidator()) {}
 
   execute(template: TemplateDocument, dataset: RuntimeDataset, options: RuntimeOptions = {}): RuntimeResult {
     this.assertInput(template, dataset);
     const diagnostics: RuntimeDiagnostic[] = [];
+    if (options.target === "print") diagnostics.push(...this.print.validate(template));
     const pages = template.pages.map(page => {
       const result = this.pages.resolve(page, dataset, options);
       diagnostics.push(...result.diagnostics);

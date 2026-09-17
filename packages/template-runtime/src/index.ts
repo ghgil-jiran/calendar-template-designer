@@ -1,4 +1,5 @@
 export * from "./types.js";
+export * from "./PrintContractValidator.js";
 export * from "./BindingResolver.js";
 export * from "./LayoutEngine.js";
 export * from "./ObjectResolver.js";

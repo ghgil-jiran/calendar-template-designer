@@ -8,12 +8,17 @@
     "schemaVersion": { "const": "1.0" },
     "id": { "type": "string", "minLength": 1 },
     "revision": { "type": "integer", "minimum": 1 },
-    "pages": { "type": "array", "items": { "$ref": "#/$defs/page" } }
+    "pages": { "type": "array", "items": { "$ref": "#/$defs/page" } },
+    "printContract": { "$ref": "#/$defs/printContract" }
   },
   "$defs": {
     "size": { "type": "object", "required": ["width", "height", "unit"], "properties": { "width": {"type":"number","exclusiveMinimum":0}, "height":{"type":"number","exclusiveMinimum":0}, "unit":{"enum":["mm","pt","px"]} } },
     "frame": { "type": "object", "required": ["x","y","width","height"], "properties": { "x":{"type":"number"}, "y":{"type":"number"}, "width":{"type":"number","minimum":0}, "height":{"type":"number","minimum":0} } },
-    "object": { "type": "object", "required": ["id","type","frame"], "properties": { "id":{"type":"string"}, "type":{"type":"string"}, "frame":{"$ref":"#/$defs/frame"}, "binding":{"type":"string"}, "value":{}, "style":{"type":"object"}, "children":{"type":"array","items":{"$ref":"#/$defs/object"}} } },
+    "cmyk": { "type":"object", "required":["space","c","m","y","k"], "properties":{"space":{"const":"cmyk"},"c":{"type":"number","minimum":0,"maximum":1},"m":{"type":"number","minimum":0,"maximum":1},"y":{"type":"number","minimum":0,"maximum":1},"k":{"type":"number","minimum":0,"maximum":1}} },
+    "printContract": { "type":"object", "required":["schemaVersion","profile","pdfStandard","coordinateUnit","productionSizeMm","trimSizeMm","bleedMm","safeInsetMm","minimumImageDpi"], "properties":{"schemaVersion":{"const":"print-contract.v1"},"profile":{"const":"Japan Color 2011 Coated"},"pdfStandard":{"const":"PDF/X-4"},"coordinateUnit":{"const":"mm"},"productionSizeMm":{"$ref":"#/$defs/physicalSize"},"trimSizeMm":{"$ref":"#/$defs/physicalSize"},"bleedMm":{"type":"number","minimum":0},"safeInsetMm":{"type":"number","minimum":0},"minimumImageDpi":{"type":"number","exclusiveMinimum":0}} },
+    "physicalSize": { "type":"object", "required":["width","height"], "properties":{"width":{"type":"number","exclusiveMinimum":0},"height":{"type":"number","exclusiveMinimum":0}} },
+    "printObject": { "type":"object", "required":["structure"], "properties":{"structure":{"enum":["native-vector","raster-image"]},"textMode":{"const":"outline"},"blackMode":{"enum":["k100","process"]},"fill":{"$ref":"#/$defs/cmyk"},"stroke":{"$ref":"#/$defs/cmyk"},"image":{"type":"object","required":["kind","readiness","minimumDpi","replaceableByUser"],"properties":{"kind":{"enum":["photo","ai-background"]},"readiness":{"enum":["temporary","replacement-required","print-ready"]},"minimumDpi":{"type":"number","exclusiveMinimum":0},"replaceableByUser":{"type":"boolean"}}}} },
+    "object": { "type": "object", "required": ["id","type","frame"], "properties": { "id":{"type":"string"}, "type":{"type":"string"}, "frame":{"$ref":"#/$defs/frame"}, "binding":{"type":"string"}, "value":{}, "style":{"type":"object"}, "print":{"$ref":"#/$defs/printObject"}, "children":{"type":"array","items":{"$ref":"#/$defs/object"}} } },
     "page": { "type":"object", "required":["id","role","size","objects"], "properties": { "id":{"type":"string"}, "role":{"type":"string"}, "size":{"$ref":"#/$defs/size"}, "objects":{"type":"array","items":{"$ref":"#/$defs/object"}} } }
   }
 }

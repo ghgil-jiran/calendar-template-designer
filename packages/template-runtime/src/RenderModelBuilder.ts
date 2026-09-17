@@ -9,6 +9,7 @@ export class RenderModelBuilder {
       templateRevision: template.revision,
       generatedAt: new Date().toISOString(),
       target: options.target ?? "screen",
+      ...(template.printContract ? { printContract: structuredClone(template.printContract) } : {}),
       pages,
       diagnostics: options.includeDiagnostics === false ? [] : diagnostics
     };

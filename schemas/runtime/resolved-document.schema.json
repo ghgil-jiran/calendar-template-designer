@@ -37,6 +37,10 @@
         "thumbnail"
       ]
     },
+    "printContract": {
+      "type": "object",
+      "required": ["schemaVersion", "profile", "pdfStandard", "coordinateUnit", "productionSizeMm", "trimSizeMm", "bleedMm", "safeInsetMm", "minimumImageDpi"]
+    },
     "pages": {
       "type": "array",
       "items": {
