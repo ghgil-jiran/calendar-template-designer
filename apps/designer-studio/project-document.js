@@ -533,6 +533,9 @@
 
   function migrateProject(project) {
     if (!project || typeof project !== 'object') return { project, report: { applied: [], source: 'invalid' } };
+    if (project.settings?.template !== 'native-desk-academic-full' && project.template?.nativePrintAuthoring?.origin === 'new-template') {
+      delete project.template.nativePrintAuthoring;
+    }
     if (isDeskSampleThreeDocument(project)) return migrateDeskSampleThreeProject(project);
     if (!isDeskPlannerStandardDocument(project)) return { project, report: { applied: [], source: 'not-desk-planner-standard-01' } };
     const applied = [];
@@ -776,5 +779,5 @@
   }
 
   function createPrintReadyProject(options,dependencies){const project=createProject(options,dependencies);return root.ACDLNativePrintAuthoring?.initializeProject(project)??project}
-  root.ACDLProjectDocument = Object.freeze({ createProject:createPrintReadyProject, migrateProject, isDeskPlannerStandardDocument, isDeskSampleThreeDocument });
+  root.ACDLProjectDocument = Object.freeze({ createProject, createPrintReadyProject, migrateProject, isDeskPlannerStandardDocument, isDeskSampleThreeDocument });
 })(typeof window !== 'undefined' ? window : globalThis);
