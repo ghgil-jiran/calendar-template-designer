@@ -7,12 +7,14 @@ export type PrintImageKind = "photo" | "ai-background";
 export type PrintImageReadiness = "temporary" | "replacement-required" | "print-ready";
 export interface PrintColor { space:"cmyk"; c:number; m:number; y:number; k:number; }
 export interface PrintImagePolicy { kind:PrintImageKind; readiness:PrintImageReadiness; minimumDpi:number; replaceableByUser:boolean; }
+export interface PrintFontPolicy { ref:"package"; assetId:string; sha256:string; postscriptName:string; license:string; outlineAllowed:boolean; }
 export interface PrintObjectPolicy {
   structure:"native-vector"|"raster-image";
   textMode?:"outline";
   blackMode?:"k100"|"process";
   fill?:PrintColor;
   stroke?:PrintColor;
+  font?:PrintFontPolicy;
   image?:PrintImagePolicy;
 }
 export interface PrintDocumentContract {
@@ -28,14 +30,14 @@ export interface PrintDocumentContract {
 }
 export interface Size { width:number; height:number; unit:Unit; }
 export interface Rect { x:number; y:number; width:number; height:number; }
-export interface TemplateObject { id:string; type:ObjectKind|string; role?:string; frame:Rect; binding?:string; fallbackBinding?:string; value?:unknown; assetRef?:RuntimeAssetRef; style?:Record<string,unknown>; print?:PrintObjectPolicy; runtimeWidget?:Record<string,unknown>; editPolicy?:Record<string,boolean>; userReplaceable?:boolean; shapeType?:string; metadata?:Record<string,unknown>; children?:TemplateObject[]; visible?:boolean; zIndex?:number; rotation?:number; opacity?:number; }
+export interface TemplateObject { id:string; type:ObjectKind|string; role?:string; frame:Rect; binding?:string; fallbackBinding?:string; value?:unknown; assetRef?:RuntimeAssetRef; printAsset?:unknown; style?:Record<string,unknown>; printIntent?:Record<string,unknown>; print?:PrintObjectPolicy; runtimeWidget?:Record<string,unknown>; editPolicy?:Record<string,boolean>; userReplaceable?:boolean; shapeType?:string; metadata?:Record<string,unknown>; children?:TemplateObject[]; visible?:boolean; zIndex?:number; rotation?:number; opacity?:number; }
 export interface TemplatePage { id:string; role:string; surfaceRole?:RuntimeSurfaceRole; contentPurpose?:RuntimeContentPurpose; masterId?:string; size:Size; objects:TemplateObject[]; background?:Record<string,unknown>; metadata?:Record<string,unknown>; }
 export interface TemplateDocument { schemaVersion:string; id:string; revision:number; pages:TemplatePage[]; printContract?:PrintDocumentContract; metadata?:Record<string,unknown>; }
 export interface MonthlyQuoteContent { title:string; quoteKo:string; quoteEn?:string; source?:string; sourceStatus?:"verified"|"unverified"|"original"|"edited"; translationType?:"original"|"official"|"editorial"; }
 export interface RuntimeDataset { schemaVersion:string; locale?:string; timezone?:string; school?:Record<string,unknown>; calendar?:Record<string,unknown>; monthlyImages?:Record<string,unknown>|unknown[]; monthlyQuotes?:Record<string,MonthlyQuoteContent>; variables?:Record<string,unknown>; [key:string]:unknown; }
 export interface RuntimeOptions { strictBindings?:boolean; includeDiagnostics?:boolean; target?:"screen"|"print"|"thumbnail"; collisionPolicy?:"report"|"shift"|"ignore"; }
 export interface RuntimeDiagnostic { severity:"info"|"warning"|"error"; code:string; message:string; pageId?:string; objectId?:string; binding?:string; }
-export interface RenderNode { id:string; sourceObjectId:string; type:string; role:string; frame:Rect; rotation:number; opacity:number; visible:boolean; zIndex:number; style:Record<string,unknown>; print?:PrintObjectPolicy; payload:unknown; value?:unknown; assetRef?:RuntimeAssetRef; runtimeWidget:Record<string,unknown>; editPolicy:Record<string,boolean>; userReplaceable:boolean; shapeType:string; metadata:Record<string,unknown>; children?:RenderNode[]; fingerprint:string; }
+export interface RenderNode { id:string; sourceObjectId:string; type:string; role:string; frame:Rect; rotation:number; opacity:number; visible:boolean; zIndex:number; style:Record<string,unknown>; printIntent?:Record<string,unknown>; print?:PrintObjectPolicy; printAsset?:unknown; payload:unknown; value?:unknown; assetRef?:RuntimeAssetRef; runtimeWidget:Record<string,unknown>; editPolicy:Record<string,boolean>; userReplaceable:boolean; shapeType:string; metadata:Record<string,unknown>; children?:RenderNode[]; fingerprint:string; }
 export type ResolvedObject = RenderNode;
 export interface ResolvedPage { id:string; sourcePageId:string; role:string; surfaceRole:RuntimeSurfaceRole; contentPurpose:RuntimeContentPurpose; masterId:string|null; size:Size; background:Record<string,unknown>; objects:RenderNode[]; metadata:Record<string,unknown>; }
 export interface ResolvedDocument { schemaVersion:"1.1"; runtimeVersion:string; templateId:string; templateRevision:number; generatedAt:string; target:"screen"|"print"|"thumbnail"; printContract?:PrintDocumentContract; pages:ResolvedPage[]; diagnostics:RuntimeDiagnostic[]; }

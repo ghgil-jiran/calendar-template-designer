@@ -306,6 +306,7 @@
  async function saveSettings(recordId,values){
   const record=records().find(item=>item.id===recordId);if(!record)throw new Error('설정할 템플릿을 찾지 못했습니다.');const sourceProject=await projectForRecord(record),projectData=window.ACDLPersistenceProject.clone(sourceProject);projectData.template||={};projectData.template.metadata={...(projectData.template.metadata||{}),...values};
   window.ACDLTemplateYearSynchronizer.synchronize(projectData,{year:Number(values.edition)||record.edition,startMonth:projectData.settings?.startMonth||3});
+  window.ACDLNativePrintPackageCompiler?.assertLifecycleReady?.(projectData,values.state);
   const nextScope=values.state==='ready'||values.state==='published'?'base':values.state==='draft'?'custom':scopeOf(record);projectData.template.libraryScope=nextScope;
   const remote=window.ACDLTemplateRemotePersistence;let saved={...record,...values,status:values.state,libraryScope:nextScope,updatedAt:new Date().toISOString(),source:'local',libraryOverride:true},publicationResult=null;
   if(values.state==='published'){publicationResult=await window.ACDLTemplatePublishing.publish({record,projectData,name:values.name||record.name,productType:record.type});values.name=publicationResult.name||values.name;projectData.template.metadata.name=values.name;saved={...saved,name:values.name}}

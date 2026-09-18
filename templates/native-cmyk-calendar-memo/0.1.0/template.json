@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0",
+  "id": "native-cmyk-calendar-memo",
+  "revision": 1,
+  "metadata": { "name": "CMYK 네이티브 월력·메모 1면", "purpose": "native-print-composite-proof", "version": "0.1.0" },
+  "printContract": { "schemaVersion": "print-contract.v1", "profile": "Japan Color 2011 Coated", "pdfStandard": "PDF/X-4", "coordinateUnit": "mm", "productionSizeMm": { "width": 266, "height": 186 }, "trimSizeMm": { "width": 260, "height": 180 }, "bleedMm": 3, "safeInsetMm": 8, "minimumImageDpi": 300 },
+  "pages": [{
+    "id": "native-calendar-memo.page-1", "role": "technical-composite-proof", "surfaceRole": "monthly-front", "contentPurpose": "monthly-calendar", "size": { "width": 260, "height": 180, "unit": "mm" },
+    "objects": [
+      { "id": "month-grid", "type": "calendar-grid", "role": "calendar-grid", "frame": { "x": 12, "y": 18, "width": 236, "height": 102 }, "value": { "year": 2028, "month": 3, "weekStart": "sunday", "rows": 6 }, "style": { "fontFamily": "Pretendard", "fontWeight": 400, "dateFontSizePt": 8, "datePaddingMm": 2, "dateTextAlign": "left", "strokeWidthPt": 0.35, "showAdjacentDates": false, "sundayFill": { "space": "cmyk", "c": 0, "m": 0.82, "y": 0.72, "k": 0.12 }, "saturdayFill": { "space": "cmyk", "c": 0.82, "m": 0.48, "y": 0, "k": 0.15 }, "weekdayFill": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } }, "print": { "structure": "native-vector", "textMode": "outline", "blackMode": "k100", "stroke": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 }, "font": { "ref": "package", "assetId": "assets/fonts/Pretendard-Regular.otf", "sha256": "3ffbacde6ab8411f1d2db54bb9b1f0b3ee2a738932033722cf0388c06aed1c93", "postscriptName": "Pretendard-Regular", "license": "OFL-1.1", "outlineAllowed": true } }, "rotation": 0, "opacity": 1, "zIndex": 1 },
+      { "id": "month-memo", "type": "memo", "role": "memo", "frame": { "x": 22, "y": 132, "width": 216, "height": 30 }, "style": { "lineCount": 4, "strokeWidthPt": 0.35 }, "print": { "structure": "native-vector", "blackMode": "k100", "stroke": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } }, "rotation": 2, "opacity": 1, "zIndex": 2 }
+    ]
+  }]
+}

@@ -18,7 +18,8 @@ assert.equal(new ScreenRenderer().renderModel(snapshot.document,'page.march').le
 
 const schoolProject=structuredClone(project);
 schoolProject.book.school={name:'호환 학교',englishName:'COMPATIBILITY SCHOOL',phone:'02-1234-5678',profile:{building:{assetId:'asset.exterior',image:'exterior.jpg'},logo:{image:'logo.png'}}};
-schoolProject.template.masterElements['master.monthly.front'].push({id:'legacy.english',type:'text',x:5,y:15,width:50,height:10,binding:'school.englishName',content:'SAMPLE',zIndex:3});
+const printIntent={schemaVersion:'print-object-intent.v1',structure:'native-vector',paint:{fill:{requiredSpace:'cmyk',resolution:'pending-cmyk-authoring'}}};
+schoolProject.template.masterElements['master.monthly.front'].push({id:'legacy.english',type:'text',x:5,y:15,width:50,height:10,binding:'school.englishName',content:'SAMPLE',zIndex:3,printIntent});
 const schoolSnapshot=new DesignerRuntimeBridge().resolve(schoolProject);
 assert.equal(schoolSnapshot.dataset.school.nameEn,'COMPATIBILITY SCHOOL');
 assert.equal(schoolSnapshot.dataset.school.englishName,'COMPATIBILITY SCHOOL');
@@ -26,4 +27,5 @@ assert.equal(schoolSnapshot.dataset.school.exterior.assetId,'asset.exterior');
 assert.equal(schoolSnapshot.dataset.school.logo.src,'logo.png');
 assert.deepEqual(schoolSnapshot.dataset.school.contacts,[{label:'대표',phone:'02-1234-5678',fax:undefined}]);
 assert.equal(schoolSnapshot.document.pages[0].objects.find(x=>x.id==='legacy.english')?.value,'COMPATIBILITY SCHOOL');
+assert.deepEqual(schoolSnapshot.document.pages[0].objects.find(x=>x.id==='legacy.english')?.printIntent,printIntent);
 console.log('RC4 integration tests passed');

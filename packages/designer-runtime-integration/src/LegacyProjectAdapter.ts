@@ -35,6 +35,6 @@ export class LegacyProjectAdapter {
     const image=element.image&&typeof element.image==="object"?element.image as Record<string,unknown>:{};const value = element.value ?? element.content ?? (element.type === "image" || element.type === "image-frame" ? {assetId:image.assetId,fit:image.fit??element.fit,focalPoint:image.focalPoint,src:element.src??image.src} : undefined);
     return { id:String(element.id ?? `legacy.object.${index}`), type:String(element.type ?? "shape"),
       frame:{x:pct(element.x,pageWidth),y:pct(element.y,pageHeight),width:pct(element.width ?? 10,pageWidth),height:pct(element.height ?? 10,pageHeight)},
-      binding:typeof element.binding === "string" ? element.binding : undefined, value, style:{...(element.style ?? {}), legacyRole:element.role}, visible:element.visible !== false, zIndex:Number(element.zIndex ?? index) };
+      binding:typeof element.binding === "string" ? element.binding : undefined, value, printIntent:element.printIntent&&typeof element.printIntent==="object"?structuredClone(element.printIntent as Record<string,unknown>):undefined, style:{...(element.style ?? {}), legacyRole:element.role}, visible:element.visible !== false, zIndex:Number(element.zIndex ?? index) };
   }
 }

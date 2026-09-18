@@ -519,6 +519,7 @@ function normalizeElementData(){
  project.template.masters.calendar.rangeEventStyle ||= {enabled:true,contractId:"user-service-v1.1",contractRevision:"1.0.0",labelMode:"every",labelPosition:"inside",barHeight:14,laneGap:1,maxLanes:4,continuationStyle:"arrow",overflowStyle:"count"};
  ensureEditableCover();
  ensureEditablePoster();
+ window.ACDLNativePrintAuthoring?.syncProject(project);
 }
 function normalizeAIDesignBackgrounds(){
  window.ACDLProjectAssetResolver?.normalize(project);

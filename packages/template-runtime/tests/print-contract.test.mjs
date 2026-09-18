@@ -3,6 +3,7 @@ import test from "node:test";
 import { TemplateRuntime } from "../dist/src/Runtime.js";
 
 const k100={space:"cmyk",c:0,m:0,y:0,k:1};
+const font={ref:"package",assetId:"fonts/pretendard-regular.otf",sha256:"a".repeat(64),postscriptName:"Pretendard-Regular",license:"OFL-1.1",outlineAllowed:true};
 const vector=(extra={})=>({structure:"native-vector",...extra});
 const image=(kind,readiness)=>({structure:"raster-image",image:{kind,readiness,minimumDpi:300,replaceableByUser:kind==="photo"}});
 const frame=(x,y,width,height)=>({x,y,width,height});
@@ -15,12 +16,12 @@ function representative(){
     pages:[
       {id:"native.cover",role:"cover-front",surfaceRole:"cover-front",contentPurpose:"cover",size,objects:[
         {id:"cover.photo",type:"image-frame",role:"school-image",frame:frame(12,12,150,112),binding:"school.exterior",print:image("photo","replacement-required")},
-        {id:"cover.year",type:"text",role:"year",frame:frame(174,28,68,28),binding:"calendar.year",style:{fontFamily:"Pretendard",fontSizePt:38},print:vector({textMode:"outline",blackMode:"k100",fill:k100})},
-        {id:"cover.school",type:"text",role:"school-name",frame:frame(174,72,68,14),binding:"school.name",style:{fontFamily:"Pretendard",fontSizePt:18},print:vector({textMode:"outline",blackMode:"k100",fill:k100})}
+        {id:"cover.year",type:"text",role:"year",frame:frame(174,28,68,28),binding:"calendar.year",style:{fontFamily:"Pretendard",fontSizePt:38},print:vector({textMode:"outline",font,blackMode:"k100",fill:k100})},
+        {id:"cover.school",type:"text",role:"school-name",frame:frame(174,72,68,14),binding:"school.name",style:{fontFamily:"Pretendard",fontSizePt:18},print:vector({textMode:"outline",font,blackMode:"k100",fill:k100})}
       ]},
       {id:"native.month-front",role:"monthly-front",surfaceRole:"monthly-front",contentPurpose:"monthly-calendar",size,metadata:{calendarYear:2028,calendarMonth:3},objects:[
-        {id:"month.title",type:"text",role:"month-title",frame:frame(12,10,42,20),value:"3월",style:{fontFamily:"Pretendard",fontSizePt:28},print:vector({textMode:"outline",blackMode:"k100",fill:k100})},
-        {id:"month.grid",type:"calendar-grid",role:"calendar-grid",frame:frame(12,40,236,128),value:{year:2028,month:3},print:vector({blackMode:"k100",stroke:k100})}
+        {id:"month.title",type:"text",role:"month-title",frame:frame(12,10,42,20),value:"3월",style:{fontFamily:"Pretendard",fontSizePt:28},print:vector({textMode:"outline",font,blackMode:"k100",fill:k100})},
+        {id:"month.grid",type:"calendar-grid",role:"calendar-grid",frame:frame(12,40,236,128),value:{year:2028,month:3},print:vector({textMode:"outline",font,blackMode:"k100",stroke:k100})}
       ]},
       {id:"native.month-back",role:"monthly-back",surfaceRole:"monthly-back",contentPurpose:"monthly-photo-memo",size,metadata:{calendarYear:2028,calendarMonth:3},objects:[
         {id:"month.photo",type:"image-frame",role:"monthly-photo",frame:frame(12,12,236,94),binding:"monthlyImages.2028-03",print:image("photo","replacement-required")},

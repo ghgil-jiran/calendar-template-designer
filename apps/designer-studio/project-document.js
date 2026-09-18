@@ -775,5 +775,6 @@
     return applyDeskRepresentativePreset(project, options);
   }
 
-  root.ACDLProjectDocument = Object.freeze({ createProject, migrateProject, isDeskPlannerStandardDocument, isDeskSampleThreeDocument });
+  function createPrintReadyProject(options,dependencies){const project=createProject(options,dependencies);return root.ACDLNativePrintAuthoring?.initializeProject(project)??project}
+  root.ACDLProjectDocument = Object.freeze({ createProject:createPrintReadyProject, migrateProject, isDeskPlannerStandardDocument, isDeskSampleThreeDocument });
 })(typeof window !== 'undefined' ? window : globalThis);

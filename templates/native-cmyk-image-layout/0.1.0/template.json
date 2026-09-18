@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0",
+  "id": "native-cmyk-image-layout",
+  "revision": 1,
+  "metadata": { "name": "CMYK 네이티브 이미지 레이아웃 1면", "purpose": "native-print-image-layout-proof", "version": "0.1.0" },
+  "printContract": { "schemaVersion": "print-contract.v1", "profile": "Japan Color 2011 Coated", "pdfStandard": "PDF/X-4", "coordinateUnit": "mm", "productionSizeMm": { "width": 266, "height": 186 }, "trimSizeMm": { "width": 260, "height": 180 }, "bleedMm": 3, "safeInsetMm": 8, "minimumImageDpi": 300 },
+  "pages": [{
+    "id": "native-image-layout.page-1", "role": "technical-image-layout-proof", "surfaceRole": "technical-image-layout-proof", "contentPurpose": "free", "size": { "width": 260, "height": 180, "unit": "mm" },
+    "objects": [
+      { "id": "cover-photo", "type": "image-frame", "role": "cover-photo", "frame": { "x": 22, "y": 28, "width": 100, "height": 80 }, "style": { "fit": "cover", "focus": { "x": 0.75, "y": 0.25 }, "scale": 1.1 }, "value": { "ref": "package", "id": "assets/images/proof-cmyk.jpg", "sha256": "51e64f0c4cbe74266fb491b17107e518b34b76503fd6019b89ac55ffc9593eee", "mimeType": "image/jpeg", "pixelWidth": 1600, "pixelHeight": 1200, "colorSpace": "cmyk", "outputConditionIdentifier": "Japan Color 2011 Coated" }, "print": { "structure": "raster-image", "image": { "kind": "photo", "readiness": "print-ready", "minimumDpi": 300, "replaceableByUser": true } }, "rotation": 6, "opacity": 0.9, "zIndex": 1 },
+      { "id": "contain-photo", "type": "image-frame", "role": "contain-photo", "frame": { "x": 140, "y": 48, "width": 90, "height": 70 }, "style": { "fit": "contain", "focus": { "x": 0.5, "y": 0.5 }, "scale": 1 }, "value": { "ref": "package", "id": "assets/images/proof-cmyk.jpg", "sha256": "51e64f0c4cbe74266fb491b17107e518b34b76503fd6019b89ac55ffc9593eee", "mimeType": "image/jpeg", "pixelWidth": 1600, "pixelHeight": 1200, "colorSpace": "cmyk", "outputConditionIdentifier": "Japan Color 2011 Coated" }, "print": { "structure": "raster-image", "image": { "kind": "photo", "readiness": "print-ready", "minimumDpi": 300, "replaceableByUser": true } }, "rotation": -4, "opacity": 1, "zIndex": 2 }
+    ]
+  }]
+}
