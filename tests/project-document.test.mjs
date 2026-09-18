@@ -13,6 +13,7 @@ const base = { year: 2027, startMonth: 3, frontInsertCount: 1, rearInsertCount: 
 
 const desk = globalThis.ACDLProjectDocument.createProject({ ...base, type: 'desk', template: 'school-basic', sizePresetId: 'desk-standard' }, dependencies);
 assert.equal(desk.format, 'acdl-project');
+assert.equal(desk.template.nativePrintAuthoring, undefined);
 assert.equal(desk.version, '2.18.0');
 assert.equal(desk.book.sheets.length, 15);
 assert.equal(desk.book.pageInstances.length, 30);
@@ -26,6 +27,11 @@ assert.equal(desk.book.school.address, '경기도 성남시 수정구 금토로8
 assert.equal(desk.book.school.website, 'www.jirantech.com');
 assert.equal(desk.template.resources.sampleAssets.length, 5);
 assert.match(desk.book.school.profile.logo.image, /jiran-logo\.webp$/);
+
+const accidentallyPromoted = structuredClone(desk);
+accidentallyPromoted.template.nativePrintAuthoring = { enabled: true, origin: 'new-template' };
+globalThis.ACDLProjectDocument.migrateProject(accidentallyPromoted);
+assert.equal(accidentallyPromoted.template.nativePrintAuthoring, undefined);
 
 const representative = globalThis.ACDLProjectDocument.createProject({ ...base, type: 'desk', template: 'desk-sample-6', sizePresetId: 'desk-standard' }, dependencies);
 assert.equal(representative.template.pageComposition.pageCount, 28);
