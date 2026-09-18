@@ -37,22 +37,23 @@ const PHYSICAL_PAGE_LABELS=Object.freeze({
   'back-cover-front':'뒷표지 안쪽면','back-cover-back':'뒷표지'
 });
 const CONTENT_LABELS=Object.freeze({
-  'cover-front':'표지 디자인','yearly-calendar':'연력','school-symbols':'학교 상징',
-  'academic-schedule':'학사 일정','month-calendar':'월력','month-back':'월력 뒷면 구성',
+  'cover-front':'표지 디자인','cover-design':'표지 디자인','yearly-calendar':'연력','school-symbols':'학교 상징',
+  'academic-schedule':'학사 일정','annual-calendar':'연력','month-calendar':'월력','month-back':'월력 뒷면 구성',
   'yearly-plan':'Yearly Plan','back-cover':'학교 정보 뒷표지'
 });
 const pageDescription=page=>({
   pageNumber:page.number,sheetNumber:page.sheetNumber,side:page.side,
   pageId:page.id,physicalRole:page.role,physicalLabel:PHYSICAL_PAGE_LABELS[page.role]||page.role,
   semanticRole:page.semanticPageRole||page.role,
-  contentLabel:CONTENT_LABELS[page.semanticPageRole||page.role]||page.semanticPageRole||page.role,
+  contentPurpose:page.contentPurpose||page.semanticPageRole||page.role,
+  contentLabel:CONTENT_LABELS[page.contentPurpose||page.semanticPageRole||page.role]||page.contentPurpose||page.semanticPageRole||page.role,
   ...(page.calendarYear&&page.calendarMonth?{monthKey:`${page.calendarYear}-${String(page.calendarMonth).padStart(2,'0')}`}:{})
 });
-const fullProject=globalThis.ACDLNativePrintFullTemplate.create({year:2028,startMonth:3},dependencies);
+const fullProject=globalThis.ACDLNativePrintFullTemplate.create({year:2028,startMonth:3,coverType:'left-photo',annualType:'individual-month-boxes',monthFrontType:'calendar-led',monthFrontLayout:'left-title-split',insertPurposes:{'front-insert-front':'school-symbols','front-insert-back':'academic-schedule'}},dependencies);
 const representativePages=[
   fullProject.book.pageInstances.find(page=>page.role==='cover-front'),
   fullProject.book.pageInstances.find(page=>page.semanticPageRole==='yearly-calendar'),
-  ...(INCLUDE_SPECIAL_PAGES?[fullProject.book.pageInstances.find(page=>page.semanticPageRole==='school-symbols'),fullProject.book.pageInstances.find(page=>page.semanticPageRole==='academic-schedule')]:[]),
+  ...(INCLUDE_SPECIAL_PAGES?[fullProject.book.pageInstances.find(page=>page.contentPurpose==='school-symbols'),fullProject.book.pageInstances.find(page=>page.contentPurpose==='academic-schedule')]:[]),
   fullProject.book.pageInstances.find(page=>page.role==='monthly-front'),
   ...(INCLUDE_MONTHLY_BACK?[fullProject.book.pageInstances.find(page=>page.role==='monthly-back')]:[]),
   ...(INCLUDE_TRAILING_PAGES?[fullProject.book.pageInstances.find(page=>page.semanticPageRole==='yearly-plan'),fullProject.book.pageInstances.find(page=>page.semanticPageRole==='back-cover')]:[])
@@ -96,6 +97,19 @@ const packagedProject=externalized.project.project;
 const readiness=globalThis.ACDLNativePrintPackageCompiler.compileProject(packagedProject);
 if(readiness.status!=='ready')throw new Error(`${ALL_PAGES?'전체 30면':'대표면'} Package 승격 실패: ${JSON.stringify(readiness)}`);
 
+const packageIdentity={id:'native-desk-academic-full',version:'0.1.0'};
+const packageBundle=globalThis.ACDLTemplatePublishing.buildBundle(packagedProject,{
+  ...packageIdentity,
+  name:'네이티브 인쇄 대표 30면',
+  productType:'desk',
+  assets:externalized.assets
+});
+const packageLoader=await import(pathToFileURL(path.join(ROOT,'dist','user-service-runtime-bridge','dist','index.js')));
+const loadedPackage=packageLoader.assembleTemplatePackage(packageBundle);
+if(loadedPackage.manifest.templateId!==packageIdentity.id||loadedPackage.manifest.version!==packageIdentity.version)throw new Error('사용자 서비스 Package 조립 후 identity가 달라졌습니다.');
+if(loadedPackage.template.kind!=='designer-project-snapshot')throw new Error('사용자 서비스가 읽을 수 있는 designer-project-snapshot Package가 아닙니다.');
+if(loadedPackage.template.projectData.book.pageInstances.length!==selectedPages.length)throw new Error('사용자 서비스 Package 조립 후 페이지 수가 달라졌습니다.');
+
 const adapted=globalThis.ACDLRuntimeProjectAdapter.create().adapt(packagedProject,packagedProject.book.pageInstances);
 const runtimeModule=await import(pathToFileURL(path.join(ROOT,'dist','user-service-runtime-bridge','dist','native-print-runtime.js')));
 const runtimeResult=new runtimeModule.TemplateRuntime().execute(adapted.template,adapted.dataset,{target:'print',strictBindings:true,includeDiagnostics:true});
@@ -116,7 +130,8 @@ mkdirSync(path.dirname(OUTPUT),{recursive:true});
 writeFileSync(OUTPUT,pdf);
 writeFileSync(OUTPUT.replace(/\.pdf$/i,'.resolved-document.json'),`${JSON.stringify(runtimeResult.document,null,2)}\n`);
 writeFileSync(OUTPUT.replace(/\.pdf$/i,'.print-document.json'),`${JSON.stringify(printDocument,null,2)}\n`);
+writeFileSync(OUTPUT.replace(/\.pdf$/i,'.package-bundle.json'),`${JSON.stringify(packageBundle,null,2)}\n`);
 const pageMap=selectedPages.map(pageDescription);
 writeFileSync(OUTPUT.replace(/\.pdf$/i,'.structure.json'),`${JSON.stringify({generatedAt:new Date().toISOString(),source:{fullSurfaceCount:fullProject.book.pageInstances.length,selectedPageIds:selectedPages.map(page=>page.id),selectedRoles:selectedPages.map(page=>page.semanticPageRole||page.role),pageMap},readiness,structure},null,2)}\n`);
 const coverDpi=readiness.promoted.find(item=>item.objectId==='cover.photo')?.asset?.effectiveDpi;
-console.log(`${ALL_PAGES?'NATIVE_FULL_30_SURFACES_OK':'NATIVE_FULL_REPRESENTATIVE_OK'}\npdf=${OUTPUT}\npages=${printDocument.pages.length}\nphysicalPages=${pageMap.map(page=>page.physicalLabel).join(',')}\ncontents=${pageMap.map(page=>page.contentLabel).join(',')}\nimageDpi=${coverDpi}`);
+console.log(`${ALL_PAGES?'NATIVE_FULL_30_SURFACES_OK':'NATIVE_FULL_REPRESENTATIVE_OK'}\npdf=${OUTPUT}\npackage=${packageIdentity.id}@${packageIdentity.version}\npackageConsumer=user-service-runtime-bridge\npages=${printDocument.pages.length}\nphysicalPages=${pageMap.map(page=>page.physicalLabel).join(',')}\ncontents=${pageMap.map(page=>page.contentLabel).join(',')}\nimageDpi=${coverDpi}`);
