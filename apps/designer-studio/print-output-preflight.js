@@ -28,10 +28,13 @@
   }
   const checks=artifact?.checks||artifact?.preflight?.checks||{};
   const coreChecks={pdfx4:checks.pdfx4,outputIntent:checks.outputIntent,cmyk:checks.cmyk,k100:checks.k100,trimBox:checks.trimBox,bleedBox:checks.bleedBox,fontOutlined:checks.fontOutlined??checks.fontOutline,vectorContentPreserved:checks.vectorContentPreserved};
-  const followUpChecks={trimContentParity:checks.trimContentParity,templateImageApproval:checks.templateImageApproval};
+  const followUpChecks={trimContentParity:checks.trimContentParity};
+  const aiImageCheck=checks.aiImagePrintQuality;
+  const legacyImageReview=checks.templateImageApproval;
   const runtimeChecks={imageDpi:checks.imageDpi,finalPrintImageApproval:checks.finalPrintImageApproval};
   const coreStates=Object.fromEntries(Object.entries(coreChecks).map(([key,value])=>[key,checkState(value)]));
   const followUpStates=Object.fromEntries(Object.entries(followUpChecks).map(([key,value])=>[key,checkState(value)]));
+  const aiImageState=checkState(aiImageCheck);
   const runtimeStates=Object.fromEntries(Object.entries(runtimeChecks).map(([key,value])=>[key,checkState(value)]));
   const failedChecks=artifact?.status==='done'?Object.entries(coreStates).filter(([,state])=>state==='failed').map(([key])=>key):[];
   const missingChecks=artifact?.status==='done'?Object.entries(coreStates).filter(([,state])=>state!=='passed'&&state!=='failed').map(([key])=>key):[];
@@ -43,7 +46,15 @@
   if(artifact?.status==='done'&&followUpArtifactChecks.length)issues.push(issue('warning','PRINT_ARTIFACT_FOLLOW_UP',`1차 자동검사는 완료되었고 후속 품질검토가 남아 있습니다: ${followUpArtifactChecks.join(', ')}`,'print.artifact.checks'));
   const automatedStatus=artifactVerified?'passed':issues.some(item=>item.severity==='error')?'failed':'pending',generationMode=text(artifact?.generationMode||artifact?.renderer||'');
   const approval=Object.freeze({automated:{status:automatedStatus,label:'핵심 자동 인쇄 Preflight'},external:{status:'not_run',label:'Acrobat 외부 Preflight',required:true},physical:{status:'not_run',label:'실물 인쇄 승인',required:true},finalApproved:false,artifactClass:generationMode.includes('native')?'native-print-model':artifact?'legacy-converted':'not-generated'});
-  return Object.freeze({schemaVersion:'print-output-preflight.v2',approval,contractReady:Boolean(comparison?.contractReady)&&!issues.some(item=>item.severity==='error'),artifactVerified,artifactChecksComplete:failedChecks.length===0&&missingChecks.length===0,failedArtifactChecks:failedChecks,missingArtifactChecks:missingChecks,followUpArtifactChecks,runtimeArtifactChecks,geometryMappingVerified:geometryValid,contentParity:{status:followUpStates.trimContentParity==='not_run'?'same-dataset-required':followUpStates.trimContentParity,comparisonBox:'TrimBox',message:'동일한 Runtime Dataset으로 생성한 Review PDF와 CMYK PDF의 TrimBox 영역을 비교해야 합니다.'},artifact:artifact||null,worker:'user-service-pdf-worker',profile:value,issues});
+  const aiImageInspection=Object.freeze({status:aiImageState==='failed'?'blocked':aiImageState==='passed'?'passed':'pending',checkKey:'aiImagePrintQuality',criteriaVersion:text(aiImageCheck?.criteriaVersion||aiImageCheck?.evidence?.criteriaVersion)||null,legacyReview:legacyImageReview||null,criteria:[
+   'AI 생성 이미지 용도·대상 페이지·프레임 식별',
+   '생성 기준 버전과 최대 품질 적용 여부',
+   '대상 프레임에 맞는 화면비·크롭 안전성',
+   '누락·깨짐·프레임 이탈·과도한 확대 여부',
+   '흐림·노이즈·반복 패턴·비정상 형상 여부',
+   '달력 개체와 배경·일러스트의 가독성 충돌 여부'
+  ],result:aiImageCheck||null});
+  return Object.freeze({schemaVersion:'print-output-preflight.v3',approval,contractReady:Boolean(comparison?.contractReady)&&!issues.some(item=>item.severity==='error'),artifactVerified,artifactChecksComplete:failedChecks.length===0&&missingChecks.length===0,failedArtifactChecks:failedChecks,missingArtifactChecks:missingChecks,followUpArtifactChecks,aiImageInspection,runtimeArtifactChecks,geometryMappingVerified:geometryValid,contentParity:{status:followUpStates.trimContentParity==='not_run'?'same-dataset-required':followUpStates.trimContentParity,comparisonBox:'TrimBox',message:'동일한 Runtime Dataset으로 생성한 Review PDF와 CMYK PDF의 TrimBox 영역을 비교해야 합니다.'},artifact:artifact||null,worker:'user-service-pdf-worker',profile:value,issues});
  }
  root.ACDLPrintOutputPreflight=Object.freeze({profile,inspect});
 })(typeof window!=='undefined'?window:globalThis);

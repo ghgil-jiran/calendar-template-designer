@@ -28,7 +28,7 @@ test('supported page, element, style, binding and asset capabilities are invento
  assert.equal(report.inventory.elementTypes.image,1);
  assert.ok(report.inventory.capabilities.includes('binding.school'));
  assert.ok(report.inventory.capabilities.includes('style.fontFamily'));
- assert.deepEqual(report.gates.map(gate=>gate.name),['생성 준비','Print Document·화면','최종 PDF 자동검사','외부·실물 승인']);
+ assert.deepEqual(report.gates.map(gate=>gate.name),['생성 준비','Print Document·화면','핵심 자동검사','AI 생성 이미지 검사','외부·실물 승인']);
 });
 
 test('unsupported capabilities and missing required assets block output',()=>{
@@ -92,7 +92,7 @@ test('runtime stage blocks missing surfaces and objects and preserves diagnostic
 test('screen and RGB PDF stage passes matching page snapshots',()=>{
  const renderParity=parity.aggregate([{screen:{pageId:'cover',role:'cover',width:960,height:680,objects:[{id:'background',type:'image',geometry:{left:'0%',top:'0%',width:'100%',height:'100%',transform:''},image:{loaded:true}}]},rgb:{pageId:'cover',role:'cover',width:960,height:680,objects:[{id:'background',type:'image',geometry:{left:'0%',top:'0%',width:'100%',height:'100%',transform:''},image:{loaded:true}}]},issues:[]}]);
  const report=analyze(project(),{runtimeDocument:null,renderParity});
- assert.equal(report.schemaVersion,'template-preflight-report.v5');
+ assert.equal(report.schemaVersion,'template-preflight-report.v6');
  assert.equal(report.stages[2].status,'passed');
  assert.deepEqual(report.renderParity,{generated:true,pages:1,screenObjects:1,rgbObjects:1});
 });
@@ -119,7 +119,7 @@ test('print stage confirms the production contract but waits for a real worker a
  const output=printOutput.inspect(value),report=analyze(value,{printOutput:output});
  assert.equal(output.contractReady,true);
  assert.equal(output.artifactVerified,false);
- assert.equal(report.schemaVersion,'template-preflight-report.v5');
+ assert.equal(report.schemaVersion,'template-preflight-report.v6');
  assert.equal(report.stages[3].status,'review');
  assert.equal(report.gates[2].status,'pending');
  assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_REQUIRED'));
@@ -167,7 +167,8 @@ test('a legacy done artifact cannot pass while core checks are missing',()=>{
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
  assert.equal(output.artifactVerified,false);
  assert.deepEqual([...output.missingArtifactChecks],['k100','vectorContentPreserved']);
- assert.deepEqual([...output.followUpArtifactChecks],['trimContentParity','templateImageApproval']);
+ assert.deepEqual([...output.followUpArtifactChecks],['trimContentParity']);
+ assert.equal(output.aiImageInspection.status,'pending');
  assert.deepEqual([...output.runtimeArtifactChecks],['imageDpi','finalPrintImageApproval']);
  assert.equal(report.status,'review');
  assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_CHECKS_INCOMPLETE'));
@@ -180,7 +181,7 @@ test('a completed artifact with a failed core structural check is blocked',()=>{
  assert.equal(output.artifactVerified,false);
  assert.deepEqual([...output.failedArtifactChecks],['fontOutlined','vectorContentPreserved']);
  assert.deepEqual([...output.missingArtifactChecks],[]);
- assert.deepEqual([...output.followUpArtifactChecks],['trimContentParity','templateImageApproval']);
+ assert.deepEqual([...output.followUpArtifactChecks],['trimContentParity']);
  assert.deepEqual([...output.runtimeArtifactChecks],['imageDpi','finalPrintImageApproval']);
  assert.equal(report.status,'blocked');
  assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_CHECKS_FAILED'));
@@ -196,11 +197,14 @@ test('automated PDF success remains review until external and physical approvals
  assert.equal(output.approval.automated.status,'passed');
  assert.equal(output.approval.artifactClass,'legacy-converted');
  assert.equal(report.status,'review');
- assert.equal(report.approvalLevel,'automated-preflight');
+ assert.equal(report.approvalLevel,'core-print-preflight');
  assert.equal(report.finalApproved,false);
  assert.equal(report.stages[3].status,'passed');
  assert.equal(report.stages[4].status,'pending');
  assert.equal(report.stages[5].status,'pending');
+ assert.equal(report.gates[2].status,'passed');
+ assert.equal(report.gates[3].status,'pending');
+ assert.equal(report.gates[4].status,'pending');
 });
 
 
@@ -217,12 +221,15 @@ test('image checks are reported outside the Template Editor automated gate',()=>
  }};
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
  assert.deepEqual([...output.failedArtifactChecks],[]);
- assert.deepEqual([...output.followUpArtifactChecks],['templateImageApproval']);
+ assert.deepEqual([...output.followUpArtifactChecks],[]);
+ assert.equal(output.aiImageInspection.status,'pending');
  assert.deepEqual([...output.runtimeArtifactChecks],['imageDpi','finalPrintImageApproval']);
  assert.equal(output.artifactVerified,true);
  assert.equal(output.approval.automated.status,'passed');
  assert.equal(report.status,'review');
  assert.equal(report.issues.some(item=>item.code==='PRINT_ARTIFACT_CHECKS_FAILED'),false);
- assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_FOLLOW_UP'));
+ assert.equal(report.issues.some(item=>item.code==='PRINT_ARTIFACT_FOLLOW_UP'),false);
+ assert.equal(report.gates[2].status,'passed');
+ assert.equal(report.gates[3].status,'pending');
 });
 
