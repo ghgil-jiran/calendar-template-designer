@@ -96,6 +96,7 @@
  async function printPreflightDownload(id){return request({mode:'print-preflight-download',id})}
  async function printPreflightHistory(identity){return request({mode:'print-preflight-history',templateId:identity.templateId,version:identity.version,sha256:identity.sha256})}
  async function recordTrimContentParityReview(id,review){return request({mode:'record-trim-content-parity-review',id,...review})}
+ async function recordTemplateImageReview(id,review){return request({mode:'record-template-image-review',id,...review})}
  async function editorCatalog({strict=false}={}){
   const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return [];
   const records=(await remote.list()).filter(item=>item.state==='published'),items=[];
@@ -143,5 +144,5 @@
  }
  if(typeof document!=='undefined')installSyncDialog();
  async function reconcile(){return synchronizeCatalog()}
- root.ACDLTemplatePublishing=Object.freeze({publish,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,publishedIdentity,ensurePrintPreflight,printPreflightStatus,printPreflightDownload,printPreflightHistory,recordTrimContentParityReview,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
+ root.ACDLTemplatePublishing=Object.freeze({publish,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,publishedIdentity,ensurePrintPreflight,printPreflightStatus,printPreflightDownload,printPreflightHistory,recordTrimContentParityReview,recordTemplateImageReview,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
 })(window);
