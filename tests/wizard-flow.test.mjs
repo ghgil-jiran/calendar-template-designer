@@ -301,7 +301,13 @@ test('remote template cards expose restore history without the unreliable previe
   assert.match(studioHtml, /id="downloadTemplatePrintPdfBtn"/);
   assert.match(studioHtml, /id="templatePreflightArtifact"/);
   assert.match(studioHtml, /id="templatePreflightHistory"/);
-  assert.match(runtime, /완료 결과 새로고침/);
+  assert.match(studioHtml, /완료 결과 확인/);
+  assert.match(studioHtml, /빠른 검사/);
+  assert.match(studioHtml, /최종 PDF 생성·검사/);
+  assert.match(runtime, /refreshPreflightResult/);
+  const openPreflightSource=runtime.slice(runtime.indexOf('async function openPrintPreflight'),runtime.indexOf('function renderUserChoices'));
+  assert.doesNotMatch(openPreflightSource, /ensurePrintPreflight/);
+  assert.match(runtime.slice(runtime.indexOf('async function runFinalPreflight'),runtime.indexOf('async function refreshPreflightResult')), /ensurePrintPreflight/);
   assert.match(runtime, /printPreflightDownload/);
   assert.match(runtime, /printPreflightHistory/);
 });

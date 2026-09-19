@@ -28,6 +28,7 @@ test('supported page, element, style, binding and asset capabilities are invento
  assert.equal(report.inventory.elementTypes.image,1);
  assert.ok(report.inventory.capabilities.includes('binding.school'));
  assert.ok(report.inventory.capabilities.includes('style.fontFamily'));
+ assert.deepEqual(report.gates.map(gate=>gate.name),['생성 준비','Print Document·화면','최종 PDF 자동검사','외부·실물 승인']);
 });
 
 test('unsupported capabilities and missing required assets block output',()=>{
@@ -120,6 +121,7 @@ test('print stage confirms the production contract but waits for a real worker a
  assert.equal(output.artifactVerified,false);
  assert.equal(report.schemaVersion,'template-preflight-report.v5');
  assert.equal(report.stages[3].status,'review');
+ assert.equal(report.gates[2].status,'pending');
  assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_REQUIRED'));
  assert.equal(report.printOutput.profile.productionSize.width,266);
  assert.equal(output.geometryMappingVerified,true);
@@ -144,6 +146,7 @@ test('print stage blocks a contract that cannot produce the required artifact',(
  const output=printOutput.inspect(value),report=analyze(value,{printOutput:output});
  assert.equal(output.contractReady,false);
  assert.equal(report.stages[3].status,'blocked');
+ assert.equal(report.gates[1].status,'blocked');
  assert.ok(report.issues.some(item=>item.code==='PRINT_DPI_TOO_LOW'));
  assert.ok(report.issues.some(item=>item.code==='PRINT_COLOR_MODE_INVALID'));
 });
