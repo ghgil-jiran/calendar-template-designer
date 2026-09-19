@@ -6,12 +6,12 @@
  function hasRenderableValue(value){if(value===undefined||value===null)return false;if(typeof value==='string')return value.trim().length>0;if(Array.isArray(value))return value.length>0;if(typeof value==='object')return Object.keys(value).length>0;return true}
  function shiftedMonth(year,month,offset){const date=new Date(Date.UTC(Number(year),Number(month)-1+offset,1));return {year:date.getUTCFullYear(),month:date.getUTCMonth()+1}}
  function widgetValue(element,page){
-  const config=element.runtimeWidget||element,type=objectType(element.type),year=Number(page?.calendarYear),month=Number(page?.calendarMonth);
+  const storedValue=element?.value&&typeof element.value==='object'&&!Array.isArray(element.value)?element.value:{},runtimeConfig=Object.fromEntries(Object.entries(element.runtimeWidget||{}).filter(([,value])=>value!==undefined)),config={...storedValue,...runtimeConfig},type=objectType(element.type),year=Number(page?.calendarYear),month=Number(page?.calendarMonth);
   if(type==='year-calendar')return {year:Number(config.baseYear),startMonth:Number(config.startMonth||3),monthCount:Number(config.monthCount||12),columns:Number(config.columns||4),weekStart:config.weekStart||'sunday'};
   if(!Number.isInteger(year)||month<1||month>12)return element.value;
-  if(type==='calendar'||type==='calendar-grid')return {year,month,rows:element.rows,weekStart:element.weekStart,showAdjacentMonths:element.showAdjacentMonths};
-  if(type==='mini-calendar-prev')return {...shiftedMonth(year,month,-1),rows:element.rows,weekStart:element.weekStart};
-  if(type==='mini-calendar-next')return {...shiftedMonth(year,month,1),rows:element.rows,weekStart:element.weekStart};
+  if(type==='calendar'||type==='calendar-grid')return {...storedValue,year,month,rows:config.rows,weekStart:config.weekStart,showAdjacentMonths:config.showAdjacentMonths};
+  if(type==='mini-calendar-prev')return {...storedValue,...shiftedMonth(year,month,-1),rows:config.rows,weekStart:config.weekStart};
+  if(type==='mini-calendar-next')return {...storedValue,...shiftedMonth(year,month,1),rows:config.rows,weekStart:config.weekStart};
   if(type==='mini-calendar'||type==='month-date-strip')return {year,month,rows:config.rows,weekStart:config.weekStart,showWeekday:config.showWeekday!==false,showDate:config.showDate!==false};
   if(type==='memo')return {layout:config.memoLayout||'lines',title:config.title||'MEMO',lineCount:Number(config.lineCount||8),itemCount:Number(config.itemCount||9),weekCount:Number(config.weekCount||5),showMemo:config.showMemo!==false};
   return element.value

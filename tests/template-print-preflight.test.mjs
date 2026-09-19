@@ -181,7 +181,7 @@ test('a completed artifact with a failed structural check is blocked, not report
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
  assert.equal(output.artifactVerified,false);
  assert.deepEqual([...output.failedArtifactChecks],['fontOutlined','vectorContentPreserved','trimContentParity']);
- assert.deepEqual([...output.missingArtifactChecks],[]);
+ assert.deepEqual([...output.missingArtifactChecks],['imageDpi','templateImageApproval','finalPrintImageApproval']);
  assert.equal(report.status,'blocked');
  assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_CHECKS_FAILED'));
  assert.deepEqual(report.printOutput.failedArtifactChecks,['fontOutlined','vectorContentPreserved','trimContentParity']);

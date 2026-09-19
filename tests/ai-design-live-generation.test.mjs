@@ -18,7 +18,7 @@ test('live image prompt protects editable calendar and school data', () => {
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.16.0');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.17.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','divider','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
@@ -30,6 +30,13 @@ test('versioned prompt set defines a distinct contract for every representative 
     assert.match(prompt,/zero Korean-like or Latin-like glyphs/i);
     assert.match(prompt,new RegExp(`Page role: ${prompts.ROLE_PROMPTS[pageRole].label}`));
   }
+});
+
+test('cover generation forbids an inset sheet and requires one full-bleed surface',()=>{
+  const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole:'cover'}));
+  assert.match(prompt,/ground and color must continue to all four outer edges/i);
+  assert.match(prompt,/no inset sheet, smaller canvas, mounted print, poster, card, paper rectangle/i);
+  assert.match(prompt,/one continuous full-bleed surface extending to every outer pixel edge/i);
 });
 
 test('every AI background forbids people and generated school environments regardless of school level',()=>{

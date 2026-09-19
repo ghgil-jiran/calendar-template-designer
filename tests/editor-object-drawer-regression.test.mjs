@@ -14,6 +14,8 @@ test('editor columns keep independent scrolling inside the viewport', () => {
 });
 
 test('page navigation is a horizontal role-colored dock below the center canvas', () => {
+  assert.match(html, /\.workspace>\.center\{grid-column:2;grid-row:1\}/);
+  assert.match(html, /\.workspace>\.right\{grid-column:3;grid-row:1\/-1;display:flex;flex-direction:column\}/);
   assert.match(html, /\.workspace>\.page-dock\{[^}]*grid-column:2[^}]*grid-row:2[^}]*grid-template-columns:76px minmax\(0,1fr\)/);
   assert.match(html, /\.page-dock \.sheet\{display:contents\}/);
   assert.match(html, /\.page-dock \.sheet-head\{display:none\}/);
