@@ -244,9 +244,28 @@ test('AI image inspection unlocks only after core output and then unlocks final 
  assert.equal(report.gates[3].status,'pending');
  assert.equal(report.gates[3].access,'available');
  assert.equal(report.gates[4].access,'locked');
- output=printOutput.inspect(value,{artifact:{status:'done',verified:true,checks:{...core,aiImagePrintQuality:{status:'passed',criteriaVersion:'ai-print-v1'}}}});report=analyze(value,{printOutput:output});
+ const criteria=Object.fromEntries(['identity','generationStandard','frameSuitability','placementIntegrity','visualArtifacts','contentLegibility'].map(key=>[key,{status:'passed'}]));
+ output=printOutput.inspect(value,{artifact:{status:'done',verified:true,checks:{...core,aiImagePrintQuality:{status:'passed',criteriaVersion:'ai-print-v1',criteria}}}});report=analyze(value,{printOutput:output});
  assert.equal(report.gates[3].status,'passed');
  assert.equal(report.gates[4].access,'available');
+});
+
+test('a top-level AI pass without six criterion results cannot unlock final approval',()=>{
+ const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
+ const passed={status:'passed'},artifact={status:'done',verified:true,checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed,aiImagePrintQuality:{status:'passed',criteriaVersion:'ai-print-v1'}}};
+ const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
+ assert.equal(output.aiImageInspection.criteriaComplete,false);
+ assert.equal(output.aiImageInspection.status,'pending');
+ assert.equal(report.gates[4].access,'locked');
+});
+
+test('saved AI quality evidence is shown per criterion but remains non-decisive',()=>{
+ const value=project();value.template.aiDesignDraft={quality:{schemaVersion:'ai-design-quality.v1@0.2.0',status:'review-required',pageCount:1,checkedAt:'2026-09-20T00:00:00.000Z',pages:[{pageId:'cover',issues:[{code:'print-resolution-review',severity:'review'}]}]}};
+ const output=printOutput.inspect(value,{artifact:{status:'done',checks:{}}});
+ assert.equal(output.aiImageInspection.status,'pending');
+ assert.equal(output.aiImageInspection.criteria.length,6);
+ assert.equal(output.aiImageInspection.criteria.find(item=>item.key==='frameSuitability').status,'review');
+ assert.ok(output.aiImageInspection.criteria.every(item=>item.source==='legacy-ai-quality'));
 });
 
 test('templates without AI generated images skip the AI gate after core output',()=>{
