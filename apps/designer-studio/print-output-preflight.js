@@ -6,6 +6,16 @@
   if(value&&typeof value==='object')return text(value.status)||(value.passed===true||value.valid===true?'passed':value.passed===false||value.valid===false?'failed':'not_run');
   if(value===true)return 'passed';if(value===false)return 'failed';return 'not_run';
  };
+ const list=value=>Array.isArray(value)?value:[];
+ function aiImageInventory(project){
+  const resources=project?.template?.resources||{},assets=[...list(resources.aiDesignAssets),...list(resources.assets)],aiAssetIds=new Set(assets.filter(asset=>asset?.origin==='ai-generated'||asset?.source?.type==='live-ai-generation'||text(asset?.id).startsWith('ai-design.')).map(asset=>text(asset.id)).filter(Boolean)),items=[];
+  const pages=list(project?.book?.pageInstances||project?.pages),elementsByPage=project?.book?.elementsByPage||{},masters=project?.template?.masterElements||{};
+  pages.forEach(page=>[...list(masters[page?.masterId]),...list(elementsByPage[page?.id]),...list(page?.elements),...list(page?.objects)].forEach(element=>{
+   const role=text(element?.role||element?.semanticRole).toLowerCase(),assetId=text(element?.assetId||element?.image?.assetId),isAi=Boolean(element?.aiDesign)||role==='ai-design-background'||role==='ai-background'||aiAssetIds.has(assetId);
+   if(isAi)items.push({pageId:text(page?.id)||null,objectId:text(element?.id)||null,assetId:assetId||text(element?.aiDesign?.resourceId)||null,role:role||null});
+  }));
+  return Object.freeze({required:items.length>0||list(resources.aiDesignAssets).length>0,count:items.length,items:Object.freeze(items)});
+ }
  function profile(project){
   const size=project?.productType?.pageSize||{},settings=project?.template?.resources?.exportSettings||{},bleed=num(settings.bleed),trim={width:num(size.width),height:num(size.height),unit:text(size.unit)||'mm'};
   return {pdfStandard:'PDF/X-4',productionSize:{width:trim.width+bleed*2,height:trim.height+bleed*2,unit:trim.unit},trimSize:trim,bleed:{top:bleed,right:bleed,bottom:bleed,left:bleed,unit:'mm'},coordinateMapping:{source:'trim',target:'production',mode:'translate-no-scale',scale:1,offsetX:bleed,offsetY:bleed,comparisonBox:'TrimBox'},colorProfile:'Japan Color 2011 Coated',cropMarkWidth:{value:.540,unit:'pt'},blackRule:'K100',fontHandling:'outline',boxes:['TrimBox','BleedBox'],dpi:num(settings.dpi),format:text(settings.format).toLowerCase(),colorMode:text(settings.colorMode).toLowerCase(),cropMarks:settings.cropMarks===true};
@@ -34,7 +44,7 @@
   const runtimeChecks={imageDpi:checks.imageDpi,finalPrintImageApproval:checks.finalPrintImageApproval};
   const coreStates=Object.fromEntries(Object.entries(coreChecks).map(([key,value])=>[key,checkState(value)]));
   const followUpStates=Object.fromEntries(Object.entries(followUpChecks).map(([key,value])=>[key,checkState(value)]));
-  const aiImageState=checkState(aiImageCheck);
+  const aiImages=aiImageInventory(project),aiImageState=checkState(aiImageCheck);
   const runtimeStates=Object.fromEntries(Object.entries(runtimeChecks).map(([key,value])=>[key,checkState(value)]));
   const failedChecks=artifact?.status==='done'?Object.entries(coreStates).filter(([,state])=>state==='failed').map(([key])=>key):[];
   const missingChecks=artifact?.status==='done'?Object.entries(coreStates).filter(([,state])=>state!=='passed'&&state!=='failed').map(([key])=>key):[];
@@ -46,7 +56,7 @@
   if(artifact?.status==='done'&&followUpArtifactChecks.length)issues.push(issue('warning','PRINT_ARTIFACT_FOLLOW_UP',`1차 자동검사는 완료되었고 후속 품질검토가 남아 있습니다: ${followUpArtifactChecks.join(', ')}`,'print.artifact.checks'));
   const automatedStatus=artifactVerified?'passed':issues.some(item=>item.severity==='error')?'failed':'pending',generationMode=text(artifact?.generationMode||artifact?.renderer||'');
   const approval=Object.freeze({automated:{status:automatedStatus,label:'핵심 자동 인쇄 Preflight'},external:{status:'not_run',label:'Acrobat 외부 Preflight',required:true},physical:{status:'not_run',label:'실물 인쇄 승인',required:true},finalApproved:false,artifactClass:generationMode.includes('native')?'native-print-model':artifact?'legacy-converted':'not-generated'});
-  const aiImageInspection=Object.freeze({status:aiImageState==='failed'?'blocked':aiImageState==='passed'?'passed':'pending',checkKey:'aiImagePrintQuality',criteriaVersion:text(aiImageCheck?.criteriaVersion||aiImageCheck?.evidence?.criteriaVersion)||null,legacyReview:legacyImageReview||null,criteria:[
+  const aiImageInspection=Object.freeze({status:!aiImages.required?'passed':aiImageState==='failed'?'blocked':aiImageState==='passed'?'passed':'pending',disposition:aiImages.required?'required':'not_applicable',required:aiImages.required,imageCount:aiImages.count,images:aiImages.items,checkKey:'aiImagePrintQuality',criteriaVersion:text(aiImageCheck?.criteriaVersion||aiImageCheck?.evidence?.criteriaVersion)||null,legacyReview:legacyImageReview||null,criteria:[
    'AI 생성 이미지 용도·대상 페이지·프레임 식별',
    '생성 기준 버전과 최대 품질 적용 여부',
    '대상 프레임에 맞는 화면비·크롭 안전성',
