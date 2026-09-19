@@ -161,36 +161,34 @@ test('failed worker artifacts expose their detailed PDF preflight findings',()=>
  assert.equal(report.issues.some(item=>item.code==='PRINT_ARTIFACT_FAILED'),false);
 });
 
-test('a legacy done artifact cannot pass while required detailed checks are missing',()=>{
+test('a legacy done artifact cannot pass while core checks are missing',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
  const artifact={status:'done',verified:true,checks:{pdfx4:true,outputIntent:true,cmyk:true,trimBox:true,bleedBox:true,fontOutlined:true}};
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
  assert.equal(output.artifactVerified,false);
- assert.deepEqual([...output.missingArtifactChecks],[
-  'k100',
-  'vectorContentPreserved',
-  'trimContentParity',
-  'imageDpi',
-  'templateImageApproval',
-  'finalPrintImageApproval',
-]);
+ assert.deepEqual([...output.missingArtifactChecks],['k100','vectorContentPreserved']);
+ assert.deepEqual([...output.followUpArtifactChecks],['trimContentParity','templateImageApproval']);
+ assert.deepEqual([...output.runtimeArtifactChecks],['imageDpi','finalPrintImageApproval']);
  assert.equal(report.status,'review');
  assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_CHECKS_INCOMPLETE'));
 });
 
-test('a completed artifact with a failed structural check is blocked, not reported as incomplete',()=>{
+test('a completed artifact with a failed core structural check is blocked',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
  const passed={status:'passed'},artifact={status:'done',verified:false,filePath:'private/path.pdf',downloadUrl:'https://signed.example/pdf',checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:{status:'failed',message:'페이지 전체가 래스터화되었습니다.'},vectorContentPreserved:{status:'failed'},trimContentParity:{status:'failed'}}};
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
  assert.equal(output.artifactVerified,false);
- assert.deepEqual([...output.failedArtifactChecks],['fontOutlined','vectorContentPreserved','trimContentParity']);
- assert.deepEqual([...output.missingArtifactChecks],['imageDpi','templateImageApproval','finalPrintImageApproval']);
+ assert.deepEqual([...output.failedArtifactChecks],['fontOutlined','vectorContentPreserved']);
+ assert.deepEqual([...output.missingArtifactChecks],[]);
+ assert.deepEqual([...output.followUpArtifactChecks],['trimContentParity','templateImageApproval']);
+ assert.deepEqual([...output.runtimeArtifactChecks],['imageDpi','finalPrintImageApproval']);
  assert.equal(report.status,'blocked');
  assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_CHECKS_FAILED'));
- assert.deepEqual(report.printOutput.failedArtifactChecks,['fontOutlined','vectorContentPreserved','trimContentParity']);
+ assert.deepEqual(report.printOutput.failedArtifactChecks,['fontOutlined','vectorContentPreserved']);
  assert.equal(report.printOutput.artifact.checks.fontOutlined.status,'failed');
  assert.equal(report.printOutput.artifact.filePath,undefined);
 });
+
 test('automated PDF success remains review until external and physical approvals exist',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
  const passed={status:'passed'},artifact={status:'done',verified:true,checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed,imageDpi:passed,templateImageApproval:passed,finalPrintImageApproval:passed}};
@@ -207,7 +205,7 @@ test('automated PDF success remains review until external and physical approvals
 
 
 
-test('a PDF cannot pass automated preflight when image approvals are missing or failed',()=>{
+test('image checks are reported outside the Template Editor automated gate',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
  const passed={status:'passed'};
  const artifact={status:'done',verified:false,checks:{
@@ -218,8 +216,13 @@ test('a PDF cannot pass automated preflight when image approvals are missing or 
   finalPrintImageApproval:{status:'failed',message:'최종 인쇄 이미지 승인이 필요합니다.'},
  }};
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
- assert.deepEqual([...output.failedArtifactChecks],['imageDpi','templateImageApproval','finalPrintImageApproval']);
- assert.equal(output.artifactVerified,false);
- assert.equal(report.status,'blocked');
- assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_CHECKS_FAILED'));
+ assert.deepEqual([...output.failedArtifactChecks],[]);
+ assert.deepEqual([...output.followUpArtifactChecks],['templateImageApproval']);
+ assert.deepEqual([...output.runtimeArtifactChecks],['imageDpi','finalPrintImageApproval']);
+ assert.equal(output.artifactVerified,true);
+ assert.equal(output.approval.automated.status,'passed');
+ assert.equal(report.status,'review');
+ assert.equal(report.issues.some(item=>item.code==='PRINT_ARTIFACT_CHECKS_FAILED'),false);
+ assert.ok(report.issues.some(item=>item.code==='PRINT_ARTIFACT_FOLLOW_UP'));
 });
+
