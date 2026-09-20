@@ -42,3 +42,12 @@ test('review PDF removes empty frame outlines and protects mini-calendar readabi
   assert.match(css,/data-element-role="ai-month-back-component"\] \.widget-mini-calendar\{background:rgba\(255,255,255,\.97\)/);
   assert.match(css,/\.semantic-song \.semantic-media img\{object-fit:contain/);
 });
+
+test('worker print mode reuses the review DOM renderer with an explicit identity contract',()=>{
+ assert.match(html,/templatePrintJob/);
+ assert.match(html,/template-print-render-source/);
+ assert.match(html,/rendererId=source\.rendererId/);
+ assert.match(html,/pageWidthMm='266'/);
+ assert.match(html,/clone\.style\.left='3mm'/);
+ assert.match(html,/ACDLPreviewState\.clonePage\(live,pageInfo\)/);
+});

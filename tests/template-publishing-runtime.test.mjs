@@ -40,6 +40,7 @@ test('review proxy permits completed print artifact download and history modes',
 test('print artifact download and history use the dedicated print preflight endpoint',async()=>{for(const mode of ['print-preflight-download','print-preflight-history']){let endpoint='';await forwardReviewPackage({authorization:'Bearer token',body:{mode,id:'job-id'},fetcher:async url=>{endpoint=url;return {ok:true,status:200,json:async()=>({ok:true})}}});assert.match(endpoint,/\/api\/template-print-preflight$/)}});
 
 test('publishing runtime exposes print artifact download and history requests',()=>{const api=runtime();assert.equal(typeof api.printPreflightDownload,'function');assert.equal(typeof api.printPreflightHistory,'function');assert.match(source,/mode:'print-preflight-download'/);assert.match(source,/mode:'print-preflight-history'/)});
+test('print preflight request carries the canonical editor renderer origin and id',()=>{assert.match(source,/editorPrintOrigin:location\.origin/);assert.match(source,/rendererId:'template-editor-review-dom\.v1'/)});
 test('completed CMYK PDF uses the Korean template display name instead of the internal package id',()=>{const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');assert.match(library,/identity\?\.name\|\|identity\?\.displayName/);assert.match(library,/replace\(\/\\s\+\/g,'-'\)/);assert.match(library,/`\$\{safe\}-CMYK-draft\.pdf`/);assert.match(library,/name:preflightRecord\.name\|\|preflightProject\?\.template\?\.metadata\?\.name/)});
 test('the actual CMYK download reuses the opened library record name',()=>{const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');assert.match(library,/identity=\{\.\.\.\(preflightReport\?\.identity\|\|\{\}\),name:preflightRecord\?\.name\|\|preflightReport\?\.identity\?\.name\}/);assert.match(library,/link\.download=artifactFilename\(identity,artifact\)/)});
 test('a completed artifact remains downloadable even when quality verification fails',()=>{const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8'),start=library.indexOf('async function downloadPrintPdf()'),end=library.indexOf('async function captureRenderParity',start),download=library.slice(start,end);assert.match(download,/artifact\.status!==['"]done['"]/);assert.doesNotMatch(download,/artifact\.verified/)});
@@ -87,10 +88,10 @@ test('every draft final preflight refreshes the immutable package from the curre
  const start=library.indexOf('async function runFinalPreflight');
  const end=library.indexOf('async function refreshPreflightResult',start);
  const finalPreflight=library.slice(start,end);
- assert.match(finalPreflight,/const status=el\\('templatePreflightStatus'\\),draft=/);
- assert.match(finalPreflight,/if\\(draft\\|\\|!preflightIdentity\\?\\.templateId/);
- assert.match(finalPreflight,/await prepareDraftPrintInspectionPackage\\(\\)/);
- assert.match(finalPreflight,/preflightRenderParity=await captureRenderParity\\(preflightProject\\)/);
+ assert.match(finalPreflight,/const status=el\('templatePreflightStatus'\),draft=/);
+ assert.match(finalPreflight,/if\(draft\|\|!preflightIdentity\?\.templateId/);
+ assert.match(finalPreflight,/await prepareDraftPrintInspectionPackage\(\)/);
+ assert.match(finalPreflight,/preflightRenderParity=await captureRenderParity\(preflightProject\)/);
 });
 
 test('review proxy delegates authorization once to the receiving user service',()=>{const review=proxySource.indexOf("body?.operation==='publish-review'"),localAuth=proxySource.indexOf('await assertInternalAccess(request)');assert.ok(review>0);assert.ok(localAuth>review);assert.match(proxySource,/forwardReviewPackage\(\{authorization,body:body\.reviewBody\}\)/)});

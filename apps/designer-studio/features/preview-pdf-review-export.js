@@ -16,6 +16,27 @@
    }catch(error){console.warn('review background optimization skipped',error)}
   }));
  }
+ async function prepareWorkerPrintPage(){
+  const query=new URLSearchParams(location.search),jobId=query.get('templatePrintJob'),sha256=query.get('templatePrintSha'),pageNumber=Number(query.get('page'));
+  if(!jobId&&!sha256)return false;
+  const fail=error=>{document.body.dataset.printError='1';document.body.dataset.printErrorMessage=String(error?.message||error);console.error('[template-editor-print]',error)};
+  try{
+   if(!jobId||!sha256||!Number.isInteger(pageNumber)||pageNumber<1)throw new Error('editor_print_request_invalid');
+   const response=await fetch(`/api/template-print-render-source?jobId=${encodeURIComponent(jobId)}&sha256=${encodeURIComponent(sha256)}`),source=await response.json();
+   if(!response.ok)throw new Error(source?.message||source?.error||'editor_print_source_failed');
+   project=await window.ACDLTemplateProjectLoader.prepare(source.projectData,{migrate:window.ACDLProjectDocument?.migrateProject});
+   const pages=window.ACDLPreviewState.pages(project),pageInfo=pages[pageNumber-1];if(!pageInfo)throw new Error('editor_print_page_not_found');
+   selectedPageId=pageInfo.id;selectedElementId=null;selectedElementScope=null;calendarEditing=false;preview=false;previewType=null;renderPage();applyThemeTokens();
+   const live=$('page');if(!live)throw new Error('editor_print_page_render_missing');
+   const clone=window.ACDLPreviewState.clonePage(live,pageInfo);clone.classList.remove('editor-bleed-visible','export-crop-marks','export-guides-visible');clone.classList.add('review-pdf-page');clone.style.width='260mm';clone.style.height='180mm';clone.style.position='absolute';clone.style.left='3mm';clone.style.top='3mm';
+   clone.querySelectorAll('.empty-frame').forEach(node=>{const element=node.closest('.free-element');if(element)element.remove();else node.remove()});
+   const root=document.createElement('main');root.className='review-pdf-root editor-worker-print-root';root.dataset.rendererId=source.rendererId;const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.style.width='266mm';sheet.style.height='186mm';sheet.style.position='relative';sheet.appendChild(clone);root.appendChild(sheet);document.body.appendChild(root);
+   const style=document.createElement('style');style.textContent='@page{size:266mm 186mm;margin:0}.editor-worker-print-root{display:block!important}.editor-worker-print-root .review-pdf-sheet{margin:0!important;break-after:auto!important}';document.head.appendChild(style);
+   if(document.fonts?.ready)await document.fonts.ready;await optimizeReviewBackgrounds(root);await waitForImages(root);await nextFrame();document.body.classList.add('review-pdf-printing');await nextFrame();
+   document.body.dataset.printReady='1';document.body.dataset.totalPages=String(pages.length);document.body.dataset.pageWidthMm='266';document.body.dataset.pageHeightMm='186';document.body.dataset.rendererId=source.rendererId;document.body.dataset.packageSha256=source.sha256;
+  }catch(error){fail(error)}
+  return true;
+ }
  async function exportReviewPdf(){
   const pages=window.ACDLPreviewState?.pages(project)||[];
   if(!pages.length){showEditorToast('검토용 PDF로 저장할 페이지가 없습니다.');return}
@@ -55,4 +76,5 @@
  }
  $('reviewPdfBtn')?.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();exportReviewPdf()},true);
  window.ACDLReviewPdf=Object.freeze({export:exportReviewPdf});
+ prepareWorkerPrintPage();
 })();

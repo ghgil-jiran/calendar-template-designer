@@ -93,7 +93,7 @@
  function completePublication(templateId,version){if(pendingPublish?.id===templateId&&pendingPublish?.version===version)pendingPublish=null}
  function publishedIdentity(project){const value=project?.template?.publishing?.lastReviewPackage;if(!value?.templateId||!value?.version)return null;return {templateId:value.templateId,version:value.version}}
  async function withdraw(project){const identity=publishedIdentity(project);if(!identity)return {withdrawn:[]};return request({mode:'withdraw',...identity})}
- async function ensurePrintPreflight(identity,{force=false}={}){return request({mode:'ensure-print-preflight',templateId:identity.templateId,version:identity.version,sha256:identity.sha256,force})}
+ async function ensurePrintPreflight(identity,{force=false}={}){return request({mode:'ensure-print-preflight',templateId:identity.templateId,version:identity.version,sha256:identity.sha256,force,editorPrintOrigin:location.origin,rendererId:'template-editor-review-dom.v1'})}
  async function printPreflightStatus(id){return request({mode:'print-preflight-status',id})}
  async function printPreflightDownload(id){return request({mode:'print-preflight-download',id})}
  async function printPreflightHistory(identity){return request({mode:'print-preflight-history',templateId:identity.templateId,version:identity.version,sha256:identity.sha256})}
