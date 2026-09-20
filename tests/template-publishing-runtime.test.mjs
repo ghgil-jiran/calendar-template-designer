@@ -87,10 +87,10 @@ test('every draft final preflight refreshes the immutable package from the curre
  const start=library.indexOf('async function runFinalPreflight');
  const end=library.indexOf('async function refreshPreflightResult',start);
  const finalPreflight=library.slice(start,end);
- assert.match(finalPreflight,/const status=el\('templatePreflightStatus'\),draft=/);
- assert.match(finalPreflight,/if\(draft\|\|!preflightIdentity\?\.templateId/);
- assert.match(finalPreflight,/await prepareDraftPrintInspectionPackage\(\)/);
- assert.match(finalPreflight,/preflightRenderParity=await captureRenderParity\(preflightProject\)/);
+ assert.match(finalPreflight,/const status=el\\('templatePreflightStatus'\\),draft=/);
+ assert.match(finalPreflight,/if\\(draft\\|\\|!preflightIdentity\\?\\.templateId/);
+ assert.match(finalPreflight,/await prepareDraftPrintInspectionPackage\\(\\)/);
+ assert.match(finalPreflight,/preflightRenderParity=await captureRenderParity\\(preflightProject\\)/);
 });
 
 test('review proxy delegates authorization once to the receiving user service',()=>{const review=proxySource.indexOf("body?.operation==='publish-review'"),localAuth=proxySource.indexOf('await assertInternalAccess(request)');assert.ok(review>0);assert.ok(localAuth>review);assert.match(proxySource,/forwardReviewPackage\(\{authorization,body:body\.reviewBody\}\)/)});
