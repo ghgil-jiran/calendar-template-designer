@@ -22,7 +22,7 @@
   const fail=error=>{document.body.dataset.printError='1';document.body.dataset.printErrorMessage=String(error?.message||error);console.error('[template-editor-print]',error)};
   try{
    if(!jobId||!sha256||!Number.isInteger(pageNumber)||pageNumber<1)throw new Error('editor_print_request_invalid');
-   const response=await fetch(`/api/template-print-render-source?jobId=${encodeURIComponent(jobId)}&sha256=${encodeURIComponent(sha256)}`),source=await response.json();
+   const response=await fetch(`/api/templates?printRenderJob=${encodeURIComponent(jobId)}&sha256=${encodeURIComponent(sha256)}`),source=await response.json();
    if(!response.ok)throw new Error(source?.message||source?.error||'editor_print_source_failed');
    project=await window.ACDLTemplateProjectLoader.prepare(source.projectData,{migrate:window.ACDLProjectDocument?.migrateProject});
    const pages=window.ACDLPreviewState.pages(project),pageInfo=pages[pageNumber-1];if(!pageInfo)throw new Error('editor_print_page_not_found');
