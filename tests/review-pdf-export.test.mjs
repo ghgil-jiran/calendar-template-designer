@@ -45,7 +45,7 @@ test('review PDF removes empty frame outlines and protects mini-calendar readabi
 
 test('worker print mode reuses the review DOM renderer with an explicit identity contract',()=>{
  assert.match(html,/templatePrintJob/);
- assert.match(html,/template-print-render-source/);
+ assert.match(html,/\/api\/templates\?printRenderJob=/);
  assert.match(html,/rendererId=source\.rendererId/);
  assert.match(html,/pageWidthMm='266'/);
  assert.match(html,/clone\.style\.left='3mm'/);
