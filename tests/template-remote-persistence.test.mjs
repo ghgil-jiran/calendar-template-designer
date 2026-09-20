@@ -152,7 +152,7 @@ test('AI design draft, quality report and regenerated backgrounds survive remote
     }
     throw new Error(`unexpected ${path}`);
   }});
-  const project = { template: { aiDesignDraft: { status: 'sample-applied', quality: { schemaVersion: 'ai-design-quality.v1@0.1.0', pageCount: 28, regeneration: { completed: 1 } }, selectedVariant: { assetsByRole: { cover: 'data:image/webp;base64,Y292ZXI=' } } }, resources: { aiDesignAssets: [{ id: 'cover', src: 'data:image/webp;base64,Y292ZXI=' }] } }, book: { pageInstances: Array.from({ length: 28 }, (_, index) => ({ id: `page-${index + 1}` })), elementsByPage: { 'page-1': [{ role: 'ai-design-background', src: 'data:image/webp;base64,Y292ZXI=' }] } } };
+  const project = { template: { aiDesignDraft: { status: 'sample-applied', quality: { schemaVersion: 'ai-design-quality.v1@0.2.0', pageCount: 28, regeneration: { completed: 1 }, printInspection: { criteriaVersion: 'ai-image-print-quality.v1@0.1.0', status: 'pending', criteria: { identity: { status: 'passed' }, generationStandard: { status: 'review' } } } }, selectedVariant: { assetsByRole: { cover: 'data:image/webp;base64,Y292ZXI=' } } }, resources: { aiDesignAssets: [{ id: 'cover', src: 'data:image/webp;base64,Y292ZXI=' }] } }, book: { pageInstances: Array.from({ length: 28 }, (_, index) => ({ id: `page-${index + 1}` })), elementsByPage: { 'page-1': [{ role: 'ai-design-background', src: 'data:image/webp;base64,Y292ZXI=' }] } } };
   const prepared = await api.prepareProjectData(project);
   assert.match(prepared.book.elementsByPage['page-1'][0].src, /^acdl-asset:\/\//);
   assert.equal(prepared.template.aiDesignDraft.quality.pageCount, 28);
@@ -160,6 +160,9 @@ test('AI design draft, quality report and regenerated backgrounds survive remote
   assert.match(reopened.book.elementsByPage['page-1'][0].src, /^blob:template-asset-/);
   assert.equal(reopened.template.aiDesignDraft.status, 'sample-applied');
   assert.equal(reopened.template.aiDesignDraft.quality.regeneration.completed, 1);
+  assert.equal(reopened.template.aiDesignDraft.quality.printInspection.criteriaVersion, 'ai-image-print-quality.v1@0.1.0');
+  assert.equal(reopened.template.aiDesignDraft.quality.printInspection.criteria.identity.status, 'passed');
+  assert.equal(reopened.template.aiDesignDraft.quality.printInspection.criteria.generationStandard.status, 'review');
 });
 
 test('resource-only AI backgrounds are materialized before remote save and reopen',async()=>{
