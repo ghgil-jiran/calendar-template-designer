@@ -82,6 +82,17 @@ test('template preflight creates and persists a package for a draft before reque
  assert.match(library,/ensurePrintPreflight\(preflightIdentity/);
 });
 
+test('every draft final preflight refreshes the immutable package from the current saved snapshot',()=>{
+ const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');
+ const start=library.indexOf('async function runFinalPreflight');
+ const end=library.indexOf('async function refreshPreflightResult',start);
+ const finalPreflight=library.slice(start,end);
+ assert.match(finalPreflight,/const status=el\('templatePreflightStatus'\),draft=/);
+ assert.match(finalPreflight,/if\(draft\|\|!preflightIdentity\?\.templateId/);
+ assert.match(finalPreflight,/await prepareDraftPrintInspectionPackage\(\)/);
+ assert.match(finalPreflight,/preflightRenderParity=await captureRenderParity\(preflightProject\)/);
+});
+
 test('review proxy delegates authorization once to the receiving user service',()=>{const review=proxySource.indexOf("body?.operation==='publish-review'"),localAuth=proxySource.indexOf('await assertInternalAccess(request)');assert.ok(review>0);assert.ok(localAuth>review);assert.match(proxySource,/forwardReviewPackage\(\{authorization,body:body\.reviewBody\}\)/)});
 
 test('image-heavy package finalization has an explicit long-running function budget',()=>{assert.equal(vercel.functions['api/templates.js'].maxDuration,300);assert.match(readFileSync(new URL('../server/user-service-review-publisher.js',import.meta.url),'utf8'),/body\.mode==='finalize'\?240000:60000/)});
