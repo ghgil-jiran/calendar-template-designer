@@ -32,7 +32,7 @@
    clone.querySelectorAll('.empty-frame').forEach(node=>{const element=node.closest('.free-element');if(element)element.remove();else node.remove()});
    const root=document.createElement('main');root.className='review-pdf-root editor-worker-print-root';root.dataset.rendererId=source.rendererId;const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.style.width='266mm';sheet.style.height='186mm';sheet.style.position='relative';sheet.appendChild(clone);root.appendChild(sheet);document.body.appendChild(root);
    const style=document.createElement('style');style.textContent='@page{size:266mm 186mm;margin:0}.editor-worker-print-root{display:block!important}.editor-worker-print-root .review-pdf-sheet{margin:0!important;break-after:auto!important}';document.head.appendChild(style);
-   if(document.fonts?.ready)await document.fonts.ready;await optimizeReviewBackgrounds(root);await waitForImages(root);await nextFrame();document.body.classList.add('review-pdf-printing');await nextFrame();
+   if(document.fonts?.ready)await document.fonts.ready;await optimizeReviewBackgrounds(root);await waitForImages(root);const failedImages=[...root.querySelectorAll('img')].filter(image=>!image.naturalWidth);if(failedImages.length)throw new Error(`editor_print_image_load_failed:${failedImages.length}`);await nextFrame();document.body.classList.add('review-pdf-printing');await nextFrame();
    document.body.dataset.printReady='1';document.body.dataset.totalPages=String(pages.length);document.body.dataset.pageWidthMm='266';document.body.dataset.pageHeightMm='186';document.body.dataset.rendererId=source.rendererId;document.body.dataset.packageSha256=source.sha256;
   }catch(error){fail(error)}
   return true;
