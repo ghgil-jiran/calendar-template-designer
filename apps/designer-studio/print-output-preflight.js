@@ -66,7 +66,7 @@
   const checks=artifact?.checks||artifact?.preflight?.checks||{};
   const coreChecks={pdfx4:checks.pdfx4,outputIntent:checks.outputIntent,cmyk:checks.cmyk,k100:checks.k100,trimBox:checks.trimBox,bleedBox:checks.bleedBox,fontOutlined:checks.fontOutlined??checks.fontOutline,vectorContentPreserved:checks.vectorContentPreserved};
   const followUpChecks={trimContentParity:checks.trimContentParity};
-  const aiImageCheck=checks.aiImagePrintQuality;
+  const aiImageCheck=checks.aiImagePrintQuality||project?.template?.aiDesignDraft?.quality?.printInspection;
   const legacyImageReview=checks.templateImageApproval;
   const runtimeChecks={imageDpi:checks.imageDpi,finalPrintImageApproval:checks.finalPrintImageApproval};
   const coreStates=Object.fromEntries(Object.entries(coreChecks).map(([key,value])=>[key,checkState(value)]));
