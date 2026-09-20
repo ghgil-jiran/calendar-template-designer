@@ -263,6 +263,9 @@ test('saved AI quality evidence is shown per criterion but remains non-decisive'
  const value=project();value.template.aiDesignDraft={quality:{schemaVersion:'ai-design-quality.v1@0.2.0',status:'review-required',pageCount:1,checkedAt:'2026-09-20T00:00:00.000Z',pages:[{pageId:'cover',issues:[{code:'print-resolution-review',severity:'review'}]}]}};
  const output=printOutput.inspect(value,{artifact:{status:'done',checks:{}}});
  assert.equal(output.aiImageInspection.status,'pending');
+ assert.equal(output.aiImageInspection.evidenceMode,'legacy-reference');
+ assert.deepEqual(output.aiImageInspection.criteriaSummary,{passed:0,review:0,failed:0,notRun:6});
+ assert.equal(output.aiImageInspection.referenceSummary.review,4);
  assert.equal(output.aiImageInspection.criteria.length,6);
  assert.equal(output.aiImageInspection.criteria.find(item=>item.key==='frameSuitability').status,'review');
  assert.ok(output.aiImageInspection.criteria.every(item=>item.source==='legacy-ai-quality'));
@@ -272,6 +275,7 @@ test('a saved dedicated print inspection feeds the six AI image cards',()=>{
  const value=project(),passed={status:'passed'};value.template.aiDesignDraft={quality:{schemaVersion:'ai-design-quality.v1@0.2.0',printInspection:{status:'pending',criteriaVersion:'ai-image-print-quality.v1@0.1.0',criteria:{identity:passed,generationStandard:{status:'review'},frameSuitability:{status:'review'},placementIntegrity:passed,visualArtifacts:{status:'review'},contentLegibility:passed}}}};
  const output=printOutput.inspect(value,{artifact:{status:'done',checks:{}}});
  assert.equal(output.aiImageInspection.criteriaVersion,'ai-image-print-quality.v1@0.1.0');
+ assert.equal(output.aiImageInspection.evidenceMode,'dedicated');
  assert.equal(output.aiImageInspection.criteriaSummary.passed,3);
  assert.equal(output.aiImageInspection.criteriaSummary.review,3);
  assert.equal(output.aiImageInspection.criteriaComplete,false);
