@@ -51,7 +51,36 @@ test('browser reuses the existing templates endpoint with bounded two-megabyte r
 
 test('missing review chunks trigger bounded re-upload and finalization recovery',()=>{assert.match(source,/for\(let attempt=0;attempt<3;attempt\+\+\)/);assert.match(source,/Review \(\?:asset \|package \)\?chunk missing/);assert.match(source,/await uploadAssets\(true\);await uploadPackage\(true\)/)});
 
-test('an interrupted publish keeps its version and completed checkpoints for stage retry',()=>{assert.match(source,/let pendingPublish=null/);assert.match(source,/pendingPublish\?\.key===key\?pendingPublish:null/);assert.match(source,/if\(!context\.assetsUploaded\)await uploadAssets\(\)/);assert.match(source,/if\(!context\.packageUploaded\)await uploadPackage\(\)/);assert.match(source,/if\(!context\.validated\)for/);assert.match(source,/if\(!context\.activated\)/);assert.match(source,/function completePublication\(templateId,version\)/)});
+test('an interrupted publish keeps its version and completed checkpoints for stage retry',()=>{assert.match(source,/let pendingPublish=null/);assert.match(source,/pendingPublish\?\.key===key\?pendingPublish:null/);assert.match(source,/if\(!context\.assetsUploaded\)await uploadAssets\(\)/);assert.match(source,/if\(!context\.packageUploaded\)await uploadPackage\(\)/);assert.match(source,/if\(!context\.validated\)for/);assert.match(source,/if\(activate&&!context\.activated\)/);assert.match(source,/function completePublication\(templateId,version\)/)});
+
+test('draft print inspection prepares an inactive package without publishing it',async()=>{
+ const modes=[];
+ const window={
+  crypto:globalThis.crypto,TextEncoder,FileReader:class{},
+  ACDLTemplateRemotePersistence:{accessToken:()=>"token"},
+  ACDLRepresentativePreview:{capture:async()=>"data:image/png;base64,aGVsbG8="},
+  ACDLNativePrintPackageCompiler:{compileProject:()=>({status:'ready',counts:{blocked:0}})},
+  fetch:async(_url,options)=>{const body=JSON.parse(options.body).reviewBody;modes.push(body.mode);return {ok:true,json:async()=>body.mode==='next-version'?{version:'1.0.0'}:{ok:true}}}
+ };
+ vm.runInNewContext(source,{window,TextEncoder,FileReader:window.FileReader,structuredClone,btoa,atob,decodeURIComponent});
+ const projectData={productType:{category:'desk',pageSize:{width:260,height:180,unit:'mm'}},settings:{startMonth:3},template:{metadata:{name:'초안',state:'draft'},remoteVersionNumber:3,publishing:{},thumbnail:{}},book:{pageInstances:[{id:'cover',role:'cover-front'}],elementsByPage:{cover:[]}}};
+ const result=await window.ACDLTemplatePublishing.preparePrintInspection({record:{id:'draft-template',stableKey:'draft-template',version:3,type:'desk'},projectData,name:'초안',productType:'desk'});
+ assert.equal(result.version,'1.0.0');
+ assert.ok(projectData.template.publishing.lastPrintInspectionPackage?.sha256);
+ assert.equal(projectData.template.publishing.lastPrintInspectionPackage.status,'print-inspection');
+ assert.equal(projectData.template.publishing.lastReviewPackage,undefined);
+ assert.equal(modes.includes('activate-review'),false);
+ assert.deepEqual(modes.filter(mode=>mode==='next-version'||mode==='finalize'),['next-version','finalize']);
+});
+
+test('template preflight creates and persists a package for a draft before requesting the worker job',()=>{
+ const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');
+ assert.match(library,/lastPrintInspectionPackage\|\|publishing\.lastReviewPackage/);
+ assert.match(library,/preparePrintInspection/);
+ assert.match(library,/saveNote:`\$\{record\.name\} 인쇄검사용 Package 저장`/);
+ assert.match(library,/state,isStandard:record\.isStandard===true/);
+ assert.match(library,/ensurePrintPreflight\(preflightIdentity/);
+});
 
 test('review proxy delegates authorization once to the receiving user service',()=>{const review=proxySource.indexOf("body?.operation==='publish-review'"),localAuth=proxySource.indexOf('await assertInternalAccess(request)');assert.ok(review>0);assert.ok(localAuth>review);assert.match(proxySource,/forwardReviewPackage\(\{authorization,body:body\.reviewBody\}\)/)});
 
