@@ -5,6 +5,14 @@
  function waitForImages(root){
   return Promise.all([...root.querySelectorAll('img')].map(image=>image.complete?Promise.resolve():new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true})})));
  }
+ function normalizePrintCompositing(root){
+  [...root.querySelectorAll('*')].forEach(node=>{
+   const computed=getComputedStyle(node),style=node.style;
+   if(computed.filter&&computed.filter!=='none'){node.dataset.printNormalizedFilter=computed.filter;style.setProperty('filter','none','important')}
+   if(computed.backdropFilter&&computed.backdropFilter!=='none')style.setProperty('backdrop-filter','none','important');
+   if(computed.mixBlendMode&&computed.mixBlendMode!=='normal')style.setProperty('mix-blend-mode','normal','important');
+  });
+ }
  async function optimizeReviewBackgrounds(root){
   const images=[...root.querySelectorAll('[data-element-role="ai-design-background"] img')];
   await Promise.all(images.map(async image=>{
@@ -30,7 +38,7 @@
    const live=$('page');if(!live)throw new Error('editor_print_page_render_missing');
    const clone=window.ACDLPreviewState.clonePage(live,pageInfo);clone.classList.remove('editor-bleed-visible','export-crop-marks','export-guides-visible');clone.classList.add('review-pdf-page');clone.style.width='260mm';clone.style.height='180mm';clone.style.position='absolute';clone.style.left='3mm';clone.style.top='3mm';
    clone.querySelectorAll('.empty-frame').forEach(node=>{const element=node.closest('.free-element');if(element)element.remove();else node.remove()});
-   const root=document.createElement('main');root.className='review-pdf-root editor-worker-print-root';root.dataset.rendererId=source.rendererId;const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.style.width='266mm';sheet.style.height='186mm';sheet.style.position='relative';sheet.appendChild(clone);root.appendChild(sheet);document.body.appendChild(root);
+   const root=document.createElement('main');root.className='review-pdf-root editor-worker-print-root';root.dataset.rendererId=source.rendererId;const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.style.width='266mm';sheet.style.height='186mm';sheet.style.position='relative';sheet.appendChild(clone);root.appendChild(sheet);document.body.appendChild(root);normalizePrintCompositing(root);
    const style=document.createElement('style');style.textContent='@page{size:266mm 186mm;margin:0}.editor-worker-print-root{display:block!important}.editor-worker-print-root .review-pdf-sheet{margin:0!important;break-after:auto!important}';document.head.appendChild(style);
    if(document.fonts?.ready)await document.fonts.ready;await optimizeReviewBackgrounds(root);await waitForImages(root);const failedImages=[...root.querySelectorAll('img')].filter(image=>!image.naturalWidth);if(failedImages.length)throw new Error(`editor_print_image_load_failed:${failedImages.length}`);await nextFrame();document.body.classList.add('review-pdf-printing');await nextFrame();
    document.body.dataset.printReady='1';document.body.dataset.totalPages=String(pages.length);document.body.dataset.pageWidthMm='266';document.body.dataset.pageHeightMm='186';document.body.dataset.rendererId=source.rendererId;document.body.dataset.packageSha256=source.sha256;
@@ -63,7 +71,7 @@
   const restored=window.ACDLPreviewState.restore(project,saved);selectedPageId=restored.pageId;selectedElementId=restored.elementId;selectedElementScope=restored.scope;calendarEditing=restored.calendarEditing;preview=restored.preview;previewType=restored.previewType;
   try{render()}catch(error){console.error('editor restore failed',error)}
   if(failed){if(button)button.disabled=false;showEditorToast(`검토용 PDF를 만들지 못했습니다: ${failed.message||failed}`);return}
-  const pageStyle=document.createElement('style');pageStyle.id='reviewPdfPageStyle';pageStyle.textContent=`@page{size:${width}mm ${height}mm;margin:0}`;document.head.appendChild(pageStyle);document.body.appendChild(root);
+  const pageStyle=document.createElement('style');pageStyle.id='reviewPdfPageStyle';pageStyle.textContent=`@page{size:${width}mm ${height}mm;margin:0}`;document.head.appendChild(pageStyle);document.body.appendChild(root);normalizePrintCompositing(root);
   const originalTitle=document.title;
   const metadata=project?.template?.metadata||{};document.title=`${safeFilePart(metadata.name||project?.book?.id)}-review-${safeFilePart(metadata.version||'draft')}`;
   const cleanup=()=>{document.body.classList.remove('review-pdf-printing');root.remove();pageStyle.remove();document.title=originalTitle;if(button)button.disabled=false};
