@@ -5,6 +5,12 @@
  function waitForImages(root){
   return Promise.all([...root.querySelectorAll('img')].map(image=>image.complete?Promise.resolve():new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true})})));
  }
+ function normalizePrintBindingPattern(root){
+  root.querySelectorAll('.binding').forEach(binding=>{
+   binding.replaceChildren(...Array.from({length:58},()=>document.createElement('i')));
+   binding.dataset.printNormalizedBinding='true';
+  });
+ }
  function normalizePrintCompositing(root){
   [...root.querySelectorAll('*')].forEach(node=>{
    const computed=getComputedStyle(node),style=node.style;
@@ -38,8 +44,8 @@
    const live=$('page');if(!live)throw new Error('editor_print_page_render_missing');
    const clone=window.ACDLPreviewState.clonePage(live,pageInfo);clone.classList.remove('editor-bleed-visible','export-crop-marks','export-guides-visible');clone.classList.add('review-pdf-page');clone.style.width='260mm';clone.style.height='180mm';clone.style.position='absolute';clone.style.left='3mm';clone.style.top='3mm';
    clone.querySelectorAll('.empty-frame').forEach(node=>{const element=node.closest('.free-element');if(element)element.remove();else node.remove()});
-   const root=document.createElement('main');root.className='review-pdf-root editor-worker-print-root';root.dataset.rendererId=source.rendererId;const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.style.width='266mm';sheet.style.height='186mm';sheet.style.position='relative';sheet.appendChild(clone);root.appendChild(sheet);document.body.appendChild(root);normalizePrintCompositing(root);
-   const style=document.createElement('style');style.textContent='@page{size:266mm 186mm;margin:0}.editor-worker-print-root{display:block!important}.editor-worker-print-root .review-pdf-sheet{margin:0!important;break-after:auto!important}.editor-worker-print-root .year-month-grid .adj{opacity:1!important;color:#c7cbd2!important}';document.head.appendChild(style);
+   const root=document.createElement('main');root.className='review-pdf-root editor-worker-print-root';root.dataset.rendererId=source.rendererId;const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.style.width='266mm';sheet.style.height='186mm';sheet.style.position='relative';sheet.appendChild(clone);root.appendChild(sheet);document.body.appendChild(root);normalizePrintBindingPattern(root);normalizePrintCompositing(root);
+   const style=document.createElement('style');style.textContent='@page{size:266mm 186mm;margin:0}.editor-worker-print-root{display:block!important}.editor-worker-print-root .review-pdf-sheet{margin:0!important;break-after:auto!important}.editor-worker-print-root .year-month-grid .adj{opacity:1!important;color:#c7cbd2!important}.editor-worker-print-root .binding[data-print-normalized-binding="true"]{display:grid!important;grid-template-columns:repeat(58,1.85mm)!important;justify-content:space-between!important;background:none!important;opacity:1!important}.editor-worker-print-root .binding[data-print-normalized-binding="true"]>i{display:block!important;height:100%!important;background:rgba(104,115,134,.45)!important}';document.head.appendChild(style);
    if(document.fonts?.ready)await document.fonts.ready;await optimizeReviewBackgrounds(root);await waitForImages(root);const failedImages=[...root.querySelectorAll('img')].filter(image=>!image.naturalWidth);if(failedImages.length)throw new Error(`editor_print_image_load_failed:${failedImages.length}`);await nextFrame();document.body.classList.add('review-pdf-printing');await nextFrame();
    document.body.dataset.printReady='1';document.body.dataset.totalPages=String(pages.length);document.body.dataset.pageWidthMm='266';document.body.dataset.pageHeightMm='186';document.body.dataset.rendererId=source.rendererId;document.body.dataset.packageSha256=source.sha256;
   }catch(error){fail(error)}
