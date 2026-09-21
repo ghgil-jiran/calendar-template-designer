@@ -24,8 +24,10 @@ const photoMemoHtml = renderer.renderObject({
   }
 });
 assert.match(photoMemoHtml, /data-layout="photo-1\.7-memo-1"/);
-assert.equal((photoMemoHtml.match(/<div class="shadow-memo-line(?: has-rule)?"><\/div>/g) || []).length, 7);
-assert.equal((photoMemoHtml.match(/has-rule/g) || []).length, 6);
+assert.match(photoMemoHtml, /class="shadow-memo-rules"/);
+assert.equal((photoMemoHtml.match(/<line /g) || []).length, 6);
+assert.equal((photoMemoHtml.match(/vector-effect="non-scaling-stroke"/g) || []).length, 6);
+assert.doesNotMatch(photoMemoHtml, /shadow-memo-line|has-rule/);
 assert.match(photoMemoHtml, /asset:march/);
 assert.match(photoMemoHtml, /school\.example/);
 
