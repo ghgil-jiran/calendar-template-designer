@@ -18,7 +18,7 @@ test('live image prompt protects editable calendar and school data', () => {
 });
 
 test('versioned prompt set defines a distinct contract for every representative page role', async () => {
-  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.17.0');
+  assert.equal(prompts.PROMPT_SET_ID,'school-calendar-design@0.18.0');
   assert.deepEqual(Object.keys(prompts.ROLE_PROMPTS),['cover','annual','divider','month','month-back','back-cover']);
   for(const pageRole of Object.keys(prompts.ROLE_PROMPTS)){
     const prompt=buildImagePrompt(validateGenerationInput({styleKey:'balanced',pageRole}));
@@ -117,7 +117,7 @@ test('protected regions are bounded and become low-contrast readability zones',(
  assert.match(prompt,/type=calendar-information, importance=critical/);
  assert.match(prompt,/main composition anchors are date-grid/i);
  assert.match(prompt,/Strict zones permit only continuous low-contrast background/i);
- assert.match(prompt,/Never turn any coordinates into visible cutouts/i);
+	 assert.match(prompt,/coordinates define composition flow, never visible boxes or placeholders/i);
 });
 
 test('editor derives object-specific spatial semantics before requesting an image',()=>{
