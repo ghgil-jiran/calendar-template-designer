@@ -67,9 +67,13 @@
     const photoHtml = source
       ? `<img class="shadow-photo-memo-image" src="${escapeHtml(source)}" alt="" />`
       : '<div class="shadow-photo-memo-empty" data-screen-only="true"></div>';
-    const lines = Array.from({ length: Number(memo.lineCount || 7) }, (_, index) => (
-      `<div class="shadow-memo-line${index < Number(memo.drawnLineCount || 6) ? ' has-rule' : ''}"></div>`
-    )).join('');
+    const lineCount = Math.max(1, Number(memo.lineCount || 7));
+    const drawnLineCount = Math.max(0, Math.min(lineCount - 1, Number(memo.drawnLineCount || 6)));
+    const rules = Array.from({ length: drawnLineCount }, (_, index) => {
+      const y = ((index + 1) / lineCount) * 100;
+      return `<line x1="0" y1="${y}" x2="100" y2="${y}" stroke="#d1d5db" stroke-width=".2mm" vector-effect="non-scaling-stroke" shape-rendering="geometricPrecision"></line>`;
+    }).join('');
+    const lines = `<svg class="shadow-memo-rules" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none">${rules}</svg>`;
     const motto = memo.footer?.leftBinding || '';
     const site = memo.footer?.rightBinding || '';
     const exact = object.contract?.model === 'absolute-safe-area';
