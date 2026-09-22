@@ -79,3 +79,12 @@ test('current-page editing shadows a Master object without mutating other pages'
   assert.match(html, /function applyGraphicInspector\(action\)\{snapshot\(\);const target=ensureCurrentPageEditTarget\(\)/);
   assert.match(html, /삽입·편집 적용 범위/);
 });
+
+test('print memo rules are independent opaque fills instead of a repeating gradient', () => {
+  const objectEditing = fs.readFileSync(path.resolve('apps/designer-studio/features/object-editing.js'), 'utf8');
+  const coreCss = fs.readFileSync(path.resolve('apps/designer-studio/designer-studio-core.css'), 'utf8');
+  assert.match(objectEditing, /data-print-memo-lines="true"/);
+  assert.match(objectEditing, /data-print-rule="true"/);
+  assert.match(coreCss, /\.memo-rule\{[^}]*position:absolute[^}]*height:1px[^}]*background:#cfd5df/);
+  assert.doesNotMatch(coreCss, /\.memo-lines\{[^}]*repeating-linear-gradient/);
+});
