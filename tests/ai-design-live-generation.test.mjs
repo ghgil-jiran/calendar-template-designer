@@ -357,3 +357,21 @@ test('AI generation UI follows the enabled role and monthly role contract',()=>{
   assert.match(html,/aiCostText\(plan\)/);
   assert.match(html,/const primaryRole=roles\[0\]/);
 });
+
+
+test('print AI generation enforces high quality and records verified output evidence', () => {
+  const endpoint=fs.readFileSync(new URL('../api/ai-design-generate.js',import.meta.url),'utf8');
+  const runtime=fs.readFileSync(new URL('../apps/designer-studio/features/ai-design-runtime.js',import.meta.url),'utf8');
+  const quality=fs.readFileSync(new URL('../apps/designer-studio/ai-design/design-quality@0.2.0.js',import.meta.url),'utf8');
+  const context=fs.readFileSync(new URL('../apps/designer-studio/ai-design/ai-generation-context@0.2.0.js',import.meta.url),'utf8');
+  assert.match(endpoint,/quality:'high'/);
+  assert.match(endpoint,/outputCompression:0/);
+  assert.match(endpoint,/inspectGeneratedWebp\(encoded,generationSize\)/);
+  assert.match(endpoint,/generationEvidence/);
+  assert.match(runtime,/id="aiDesignLiveQuality" disabled><option value="high">인쇄용 고품질 · 고정/);
+  assert.doesNotMatch(runtime,/quality=el\("aiDesignLiveQuality"\)\?\.value\|\|"low"/);
+  assert.match(runtime,/generationEvidence:result\.asset\.generationEvidence\|\|null/);
+  assert.match(quality,/qualityContract:'ai-image-generation-quality\.v1'/);
+  assert.match(quality,/이전 생성물이라 인쇄용 생성 품질 증거가 없습니다/);
+  assert.match(context,/high:0\.2/);
+});
