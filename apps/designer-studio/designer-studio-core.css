@@ -69,7 +69,7 @@
 .page[data-standard-family="desk-3"] .widget-mini-calendar.mini-grid-lines .mini-grid span{border-bottom:1px solid color-mix(in srgb,var(--mini-primary,#293878) 18%,transparent)}
 .widget-memo{width:100%;height:100%;background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:6px;padding:7px;display:flex;flex-direction:column}
 .widget-memo strong{font-size:12px;margin-bottom:5px}
-.memo-lines{flex:1;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(12.5% - 1px),#cfd5df calc(12.5% - 1px),#cfd5df 12.5%)}
+.memo-lines{position:relative;flex:1;overflow:hidden;background:none}.memo-rule{position:absolute;left:0;right:0;display:block;height:1px;background:#cfd5df}
 .widget-memo[data-memo-layout="goal"],.widget-memo[data-memo-layout="weekly"],.widget-memo[data-memo-layout="checklist"]{border:0;background:transparent;padding:0;gap:7px}.widget-memo[data-memo-layout]>.planner-ribbon{align-self:flex-start;margin:0;padding:5px 18px;background:var(--month-primary,var(--accent));color:#fff;line-height:1;border-radius:2px;letter-spacing:.02em}.planner-goal-box{flex:1;min-height:0;border-radius:7px;background:rgba(255,255,255,.98)}
 .widget-memo[data-memo-layout="weekly"] .planner-week-list{flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:8px;min-height:0}.planner-week-card{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;border-radius:7px;background:rgba(255,255,255,.96)}.planner-week-label{display:flex;align-items:center;justify-content:center;flex:0 0 24px;background:color-mix(in srgb,var(--month-primary,var(--accent)) 25%,white);color:var(--month-primary,var(--accent));font-size:9px;font-weight:800}.planner-week-card.memo .planner-week-label{background:var(--month-primary,var(--accent));color:#fff}.planner-week-space{flex:1}
 .widget-memo[data-memo-layout="checklist"] .planner-check-list{flex:1;display:grid;min-height:0;gap:3px}.planner-check-row{display:grid;grid-template-columns:20% 1fr 8%;align-items:center;overflow:hidden;border-radius:5px;background:rgba(255,255,255,.96);min-height:0}.planner-check-row.header{background:color-mix(in srgb,var(--month-primary,var(--accent)) 25%,white);color:var(--month-primary,var(--accent));font-size:8px;text-align:center}.planner-check-row>span{height:100%;display:flex;align-items:center;justify-content:center;border-right:1px solid color-mix(in srgb,var(--month-primary,var(--accent)) 15%,white)}.planner-check-row>span:last-child{border-right:0}
@@ -353,7 +353,7 @@ body:has(#userSetup:not(.hidden)) .page.editor-bleed-visible::after{display:none
 .icon-toolbar .toolbar-insert-tools,.icon-toolbar .toolbar-scope{display:none!important}
 
 /* ================= v31 QUALITY FIXES ================= */
-.memo-lines{--memo-line-count:8;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc((100% / var(--memo-line-count)) - 1px),#cfd5df calc((100% / var(--memo-line-count)) - 1px),#cfd5df calc(100% / var(--memo-line-count)))!important}
+.memo-lines{--memo-line-count:8;background:none!important}
 .widget-schedule{padding:var(--schedule-pad,7px)}
 .widget-schedule strong{font-size:var(--schedule-title-size,12px);margin-bottom:var(--schedule-gap,4px)}
 .schedule-item{font-size:var(--schedule-font-size,9px)!important;grid-template-columns:var(--schedule-date-width,26px) 1fr!important;gap:var(--schedule-item-gap,4px)!important;line-height:var(--schedule-line-height,1.25)}
