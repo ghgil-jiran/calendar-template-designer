@@ -5,7 +5,8 @@ await import('../apps/designer-studio/desk-academic-visual-parity.js');
 const parity = globalThis.ACDLDeskAcademicVisualParity;
 
 const calendar = '<section data-calendar-rows="5">' + Array.from({ length: 35 }, () => '<div class="shadow-calendar-cell"></div>').join('') + '</section>';
-const photoMemo = '<section data-layout="photo-1.7-memo-1">' + Array.from({ length: 6 }, () => '<div class="shadow-memo-line has-rule"></div>').join('') + '<div class="shadow-memo-line"></div></section>';
+const photoMemo = '<section data-layout="photo-1.7-memo-1"><div data-print-memo-lines="true">' + Array.from({ length: 6 }, () => '<i class="shadow-memo-rule"></i>').join('') + '</div></section>';
+const legacyPhotoMemo = '<section data-layout="photo-1.7-memo-1">' + Array.from({ length: 6 }, () => '<div class="shadow-memo-line has-rule"></div>').join('') + '<div class="shadow-memo-line"></div></section>';
 const pages = [
   ...Array.from({ length: 3 }, () => ({ role: 'support', html: '' })),
   ...Array.from({ length: 12 }, () => ({ role: 'monthly-calendar', html: calendar })),
@@ -20,6 +21,7 @@ assert.equal(report.visuallyApproved, false);
 assert.deepEqual(report.issues, []);
 const approved = parity.compare({ pageCount: 28, pages }, { visual: { status: 'approved' } });
 assert.equal(approved.visuallyApproved, true);
+assert.deepEqual(parity.inspectPage({ role: 'monthly-photo-memo', html: legacyPhotoMemo }), { role: 'monthly-photo-memo', layout: true, lines: 7, drawnLines: 6 });
 
 const broken = parity.compare({ pages: pages.map((page, index) => index === 3 ? { ...page, html: page.html.replace('data-calendar-rows="5"', 'data-calendar-rows="6"') } : page) });
 assert.ok(broken.issues.some(issue => issue.code === 'VISUAL_CALENDAR_ROWS'));

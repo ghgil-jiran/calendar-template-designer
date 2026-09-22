@@ -164,13 +164,13 @@ test('live generation input rejects unknown styles and long instructions', () =>
   assert.throws(()=>validateGenerationInput({styleKey:'balanced',request:{conditions:{instruction:'가'.repeat(501)}}}),/500자/);
 });
 
-test('cover variants retain distinct directions and selectable generation quality', () => {
+test('cover variants retain distinct directions while print generation stays high quality', () => {
   const centered=validateGenerationInput({styleKey:'balanced',variantIndex:0,quality:'low'});
   const asymmetric=validateGenerationInput({styleKey:'balanced',variantIndex:1,quality:'medium'});
   assert.equal(centered.variantDirection,'centered-photo');
   assert.equal(asymmetric.variantDirection,'asymmetric-photo');
-  assert.equal(centered.quality,'low');
-  assert.equal(asymmetric.quality,'medium');
+  assert.equal(centered.quality,'high');
+  assert.equal(asymmetric.quality,'high');
 });
 
 test('browser client keeps the API key server-side and sends the admin token', async () => {

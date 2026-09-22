@@ -13,12 +13,15 @@ test('template menu exposes a dedicated AI image review PDF action',()=>{
 test('AI review PDF uses live RGB source assets without the review JPEG optimizer',()=>{
  const source=fs.readFileSync(new URL('features/ai-image-review-export.js',root),'utf8');
  assert.match(source,/source\?\.type==="live-ai-generation"/);
- assert.match(source,/asset\.src\.startsWith\("data:image\/"\)/);
+ assert.match(source,/\^\(data:image\\\/\|blob:\|https\?:\\\/\\\/\)/);
  assert.match(source,/dataset\.reviewSource="original"/);
  assert.doesNotMatch(source,/toDataURL|image\/jpeg|optimizeReviewBackgrounds/);
  assert.match(source,/@page\{size:A4 landscape/);
  assert.match(source,/중앙부 확대/);
  assert.match(source,/generationEvidence/);
+ assert.match(source,/expectedTargets/);
+ assert.match(source,/missingTargets/);
+ assert.match(source,/generation\.model\|\|evidence\.model/);
  assert.match(source,/window\.ACDLAIImageReviewPdf/);
 });
 
@@ -26,4 +29,5 @@ test('applied AI resources preserve generation evidence for later review',()=>{
  const runtime=fs.readFileSync(new URL('features/ai-design-runtime.js',root),'utf8');
  assert.match(runtime,/generation:\{\.\.\.metadata\},print:\{colorSpace:"RGB",sourcePreserved:true/);
  assert.match(runtime,/resource\.generation=\{\.\.\.metadata\}/);
+ assert.match(runtime,/model:result\.asset\.model\|\|""/);
 });

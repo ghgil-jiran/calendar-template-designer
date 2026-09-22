@@ -22,8 +22,11 @@
     }
     if (role === 'monthly-photo-memo') {
       metrics.layout = html.includes('data-layout="photo-1.7-memo-1"');
-      metrics.lines = count(html, /class="shadow-memo-line(?: has-rule)?"/g);
-      metrics.drawnLines = count(html, /class="shadow-memo-line has-rule"/g);
+      const legacyLines = count(html, /class="shadow-memo-line(?: has-rule)?"/g);
+      const legacyDrawnLines = count(html, /class="shadow-memo-line has-rule"/g);
+      const memoRules = count(html, /class="shadow-memo-rule"/g);
+      metrics.lines = legacyLines || (html.includes('data-print-memo-lines="true"') ? memoRules + 1 : 0);
+      metrics.drawnLines = legacyDrawnLines || memoRules;
     }
     if (role === 'back-contact') {
       metrics.contactCard = html.includes('shadow-contact-card');
