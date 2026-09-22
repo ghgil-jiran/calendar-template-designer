@@ -71,9 +71,9 @@
     const drawnLineCount = Math.max(0, Math.min(lineCount - 1, Number(memo.drawnLineCount || 6)));
     const rules = Array.from({ length: drawnLineCount }, (_, index) => {
       const y = ((index + 1) / lineCount) * 100;
-      return `<line x1="0" y1="${y}" x2="100" y2="${y}" stroke="#d1d5db" stroke-width=".2mm" vector-effect="non-scaling-stroke" shape-rendering="geometricPrecision"></line>`;
+      return `<i class="shadow-memo-rule" data-print-rule="true" style="top:${y}%"></i>`;
     }).join('');
-    const lines = `<svg class="shadow-memo-rules" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none">${rules}</svg>`;
+    const lines = `<div class="shadow-memo-rules" data-print-memo-lines="true" aria-hidden="true">${rules}</div>`;
     const motto = memo.footer?.leftBinding || '';
     const site = memo.footer?.rightBinding || '';
     const exact = object.contract?.model === 'absolute-safe-area';
