@@ -181,7 +181,8 @@ function renderWidgetContent(view,p){
    const count=Math.max(1,Math.min(20,Number(view.itemCount||6)));
    return `<div class="widget-memo" data-memo-layout="checklist"><strong class="planner-ribbon">${title}</strong><div class="planner-check-list" style="grid-template-rows:auto repeat(${count},1fr)"><div class="planner-check-row header"><span>DATE</span><span>TO DO</span><span></span></div>${Array.from({length:count},()=>`<div class="planner-check-row"><span></span><span></span><span></span></div>`).join("")}</div></div>`
   }
-  return `<div class="widget-memo" data-memo-layout="${layout}"><strong>${title}</strong><div class="memo-lines" style="--memo-line-count:${Math.max(3,Number(view.lineCount||8))}"></div></div>`
+  const lineCount=Math.max(3,Number(view.lineCount||8)),rules=Array.from({length:lineCount},(_,index)=>`<i class="memo-rule" data-print-rule="true" style="top:${((index+1)/lineCount)*100}%"></i>`).join("");
+  return `<div class="widget-memo" data-memo-layout="${layout}"><strong>${title}</strong><div class="memo-lines" data-print-memo-lines="true" style="--memo-line-count:${lineCount}">${rules}</div></div>`
  }
  if(view.type==="monthly-quote"){
   const q=monthlyQuoteForPage(p),s=view.style||{},css=`--quote-title-size:${Number(s.titleSize||13)}px;--quote-ko-size:${Number(s.quoteKoSize||18)}px;--quote-en-size:${Number(s.quoteEnSize||10)}px;--quote-source-size:${Number(s.sourceSize||9)}px;--quote-align:${s.textAlign||"center"};--quote-color:${s.color||"#17202e"};--quote-accent:${s.accentColor||"#315e9e"};--quote-secondary:${s.secondaryColor||"#667085"};--quote-gap:${Number(s.itemGap||7)}px`;
