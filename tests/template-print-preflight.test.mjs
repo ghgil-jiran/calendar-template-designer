@@ -29,7 +29,7 @@ test('supported page, element, style, binding and asset capabilities are invento
  assert.equal(report.inventory.elementTypes.image,1);
  assert.ok(report.inventory.capabilities.includes('binding.school'));
  assert.ok(report.inventory.capabilities.includes('style.fontFamily'));
- assert.deepEqual(report.gates.map(gate=>gate.name),['생성 준비','Print Document·화면','핵심 자동검사','AI 생성 이미지 검사','외부·실물 승인']);
+ assert.deepEqual(report.gates.map(gate=>gate.name),['생성 준비','Print Document·화면','핵심 자동검사','AI 생성 이미지 검사','검사 완료']);
 });
 
 test('unsupported capabilities and missing required assets block output',()=>{
@@ -131,8 +131,10 @@ test('print stage confirms the production contract but waits for a real worker a
  assert.equal(report.finalApproved,false);
  assert.equal(report.approval.external.status,'not_run');
  assert.equal(report.approval.physical.status,'not_run');
- assert.equal(report.stages[4].name,'Acrobat 외부 Preflight');
- assert.equal(report.stages[5].name,'실물 인쇄 승인');
+ assert.equal(report.approval.external.required,false);
+ assert.equal(report.approval.physical.required,false);
+ assert.equal(report.stages[4].name,'외부 Preflight 후속 권장');
+ assert.equal(report.stages[5].name,'대표 실물 출력 후속 권장');
 });
 
 test('print stage rejects a production geometry that cannot be mapped by bleed-only translation',()=>{
@@ -191,21 +193,27 @@ test('a completed artifact with a failed core structural check is blocked',()=>{
  assert.equal(report.printOutput.artifact.filePath,undefined);
 });
 
-test('automated PDF success remains review until external and physical approvals exist',()=>{
+test('four internal gates automatically complete the final gate without external approval storage',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
- const passed={status:'passed'},artifact={status:'done',verified:true,checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed,imageDpi:passed,templateImageApproval:passed,finalPrintImageApproval:passed}};
- const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
+ const passed={status:'passed'},criteria=Object.fromEntries(['identity','generationStandard','frameSuitability','placementIntegrity','visualArtifacts','contentLegibility'].map(key=>[key,passed])),artifact={status:'done',verified:true,checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed,aiImagePrintQuality:{status:'passed',criteriaVersion:'ai-print-v1',criteria}}};
+ const runtimeDocument={runtimeVersion:'1.0.0-beta.1',pages:[{id:'cover',sourcePageId:'cover',role:'cover',surfaceRole:'cover',objects:[{id:'background',sourceObjectId:'background'}]},{id:'month-1',sourcePageId:'month-1',role:'monthly-front',surfaceRole:'monthly-front',objects:[{id:'title',sourceObjectId:'title'},{id:'calendar',sourceObjectId:'calendar'}]}],diagnostics:[]};
+ const renderParity={generated:true,pages:2,screenObjects:3,rgbObjects:3,issues:[]};
+ const output=printOutput.inspect(value,{artifact}),report=analyze(value,{runtimeDocument,renderParity,printOutput:output});
  assert.equal(output.approval.automated.status,'passed');
  assert.equal(output.approval.artifactClass,'legacy-converted');
- assert.equal(report.status,'review');
- assert.equal(report.approvalLevel,'core-print-preflight');
- assert.equal(report.finalApproved,false);
+ assert.equal(report.status,'passed');
+ assert.equal(report.approvalLevel,'final-approved');
+ assert.equal(report.finalApproved,true);
  assert.equal(report.stages[3].status,'passed');
- assert.equal(report.stages[4].status,'pending');
- assert.equal(report.stages[5].status,'pending');
+ assert.equal(report.stages[4].status,'passed');
+ assert.equal(report.stages[5].status,'passed');
  assert.equal(report.gates[2].status,'passed');
- assert.equal(report.gates[3].status,'pending');
- assert.equal(report.gates[4].status,'pending');
+ assert.equal(report.gates[3].status,'passed');
+ assert.equal(report.gates[4].status,'passed');
+ assert.equal(report.approval.external.required,false);
+ assert.equal(report.approval.physical.required,false);
+ assert.equal(report.approval.external.autoCompleted,true);
+ assert.equal(report.approval.physical.autoCompleted,true);
 });
 
 
