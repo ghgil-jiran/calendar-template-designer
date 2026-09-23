@@ -148,10 +148,10 @@ test('postcard calendar editing uses the single shared toggle handler', () => {
   );
 });
 
-test('desk thumbnail gives most of the card area to the cover design', () => {
-  assert.match(html, /calendar-product-thumb\{[^}]*padding:7px/);
-  assert.match(html, /calendar-product-shell\{[^}]*width:98%;height:94%/);
-  assert.match(html, /calendar-product-page\{[^}]*height:90%/);
+test('library thumbnail gives the full image area to the saved first page', () => {
+  assert.match(html, /library-thumb\.library-first-page-thumb\{[^}]*aspect-ratio:13\/9/);
+  assert.match(html, /library-first-page-thumb \.library-uploaded-thumbnail[^}]*object-fit:contain/);
+  assert.match(html, /library-first-page-thumb \.library-thumb-render\{[^}]*inset:0!important/);
 });
 
 test('designer studio entry flow uses the unified studio entry and hides sample entry', () => {

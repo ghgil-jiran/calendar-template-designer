@@ -350,7 +350,7 @@ async function representativeSvgPng(svg,width,height){
 }
 async function representativeCoverSvg(sourceProject=project){
  if(!sourceProject?.book?.pageInstances?.length)throw new Error('대표 이미지로 사용할 페이지가 없습니다.');
- const previous={project,pageId:selectedPageId,elementId:selectedElementId,elementScope:selectedElementScope,calendarEditing},cover=sourceProject.book.pageInstances.find(page=>page.role==='cover-front')||sourceProject.book.pageInstances[0];
+ const previous={project,pageId:selectedPageId,elementId:selectedElementId,elementScope:selectedElementScope,calendarEditing},cover=sourceProject.book.pageInstances[0];
  try{
   project=sourceProject;
   selectedPageId=cover.id;selectedElementId=null;selectedElementScope=null;calendarEditing=false;renderPage();applyThemeTokens();
@@ -370,7 +370,15 @@ async function representativeCoverSvg(sourceProject=project){
   return representativeSvgPng(svg,width,height);
  }finally{project=previous.project;selectedPageId=previous.pageId;selectedElementId=previous.elementId;selectedElementScope=previous.elementScope;calendarEditing=previous.calendarEditing;if(project?.book?.pageInstances?.length)renderPage()}
 }
-window.ACDLRepresentativePreview=Object.freeze({capture:representativeCoverSvg});
+async function refreshRepresentativeThumbnail(sourceProject,{fileName=''}={}){
+ const page=sourceProject?.book?.pageInstances?.[0];
+ if(!page)throw new Error('대표 이미지로 사용할 첫 페이지가 없습니다.');
+ const dataUrl=await representativeCoverSvg(sourceProject),updatedAt=new Date().toISOString();
+ sourceProject.template||={};
+ sourceProject.template.thumbnail={kind:'upload',source:'first-page',dataUrl,fileName:fileName||`${sourceProject.template.id||'template'}-${Date.now()}-page-1.png`,updatedAt,pageId:page.id||null,pageRole:page.role||null,fit:'contain'};
+ return sourceProject.template.thumbnail
+}
+window.ACDLRepresentativePreview=Object.freeze({capture:representativeCoverSvg,refresh:refreshRepresentativeThumbnail});
 window.renderPage=renderPage;
 window.renderFreeElements=renderFreeElements;
 window.renderNavigator=renderNavigator;
@@ -397,7 +405,7 @@ el("confirmTemplateSaveBtn")?.addEventListener("click",async ()=>{
   let name=el("saveTemplateName").value.trim()||"이름 없는 템플릿";const description=el("saveTemplateDescription").value.trim(),edition=Number(el("saveTemplateEdition").value)||2027,state=el("saveTemplateState").value,isStandard=el("saveTemplateStandard").checked;
   window.ACDLNativePrintPackageCompiler?.assertLifecycleReady?.(project,state);
   const id=project.template.id||("tpl-"+Date.now()),stableKey=project.template.remoteStableKey||id;project.template.id=id;
-  Object.assign(project.template.metadata,{name,description,edition,state,isStandard});project.template.libraryScope=state==="ready"||state==="published"?"base":state==="draft"?"custom":project.template.libraryScope||"custom";window.ACDLTemplateYearSynchronizer.synchronize(project,{year:edition,startMonth:project.settings.startMonth||3});
+  Object.assign(project.template.metadata,{name,description,edition,state,isStandard});project.template.libraryScope=state==="ready"||state==="published"?"base":state==="draft"?"custom":project.template.libraryScope||"custom";window.ACDLTemplateYearSynchronizer.synchronize(project,{year:edition,startMonth:project.settings.startMonth||3});window.ACDLTemplateSaveProgress?.({phase:'publishing',stage:'prepare',detail:'첫 페이지를 라이브러리 대표 이미지로 생성하고 있습니다.'});await window.ACDLRepresentativePreview.refresh(project,{fileName:`${stableKey}-${Date.now()}-page-1.png`});
   let publicationResult=null;const projectCopy=window.ACDLPersistenceProject.clone(project);if(state==='published'){publicationResult=await window.ACDLTemplatePublishing.publish({record:{id,stableKey,packageVersion:project.template?.package?.version},projectData:projectCopy,name,productType:project.productType?.category||project.settings?.type||'desk'});name=publicationResult.name||name;projectCopy.template.metadata.name=name;project.template.metadata.name=name;project.template.publishing=window.ACDLPersistenceProject.clone(projectCopy.template.publishing);project.template.thumbnail=window.ACDLPersistenceProject.clone(projectCopy.template.thumbnail)}else if(previousSaveState==='published')await window.ACDLTemplatePublishing.withdraw(projectCopy);window.ACDLTemplateSaveProgress?.({phase:'save-record',stage:'library',detail:'편집 원본과 라이브러리 관리 정보를 저장하고 있습니다.'});await saveTemplateProjectData(id,projectCopy);let savedId=id,remoteSaved=false,remoteError=null,remoteVersion=Number(project.template.remoteVersionNumber)||0;
   const remote=window.ACDLTemplateRemotePersistence;
   if(remote?.isRemote?.())try{const result=await remote.save({templateId:project.template.remoteId||null,stableKey,name,description,edition,state,isStandard,productType:project.productType?.category||project.settings?.type||"desk",templateKey:project.template?.preset||project.settings?.template||"school-basic",saveKind:state==="published"?"publish":"manual",saveNote:`${name} 저장`,schemaVersion:"2.0",projectData:projectCopy},{onProgress:window.ACDLTemplateSaveProgress});savedId=result.template.id;remoteVersion=result.version.versionNumber;remoteSaved=true;const persistedThumbnail=result.version?.projectData?.template?.thumbnail;if(state==='published'&&(!persistedThumbnail?.dataUrl||persistedThumbnail.packagePreview?.sha256!==publicationResult?.representativePreview?.sha256))throw Object.assign(new Error('서버에 저장된 대표 이미지가 게시 Package 대표 이미지와 일치하지 않습니다.'),{code:'REPRESENTATIVE_PREVIEW_MISMATCH'});if(persistedThumbnail){projectCopy.template.thumbnail=window.ACDLPersistenceProject.clone(persistedThumbnail);project.template.thumbnail=window.ACDLPersistenceProject.clone(persistedThumbnail)}project.template.id=savedId;project.template.remoteId=savedId;project.template.remoteStableKey=result.template.stableKey;project.template.remoteVersionNumber=remoteVersion;await saveTemplateProjectData(savedId,window.ACDLPersistenceProject.clone(project));if(state==="published"){window.ACDLTemplateSaveProgress?.({phase:'publishing',stage:'cleanup',detail:'사용자 서비스의 활성 템플릿 목록을 동기화하고 있습니다.'});await window.ACDLTemplatePublishing.synchronizeCatalog()}}catch(error){remoteError=error;console.warn("원격 템플릿 저장 실패",error);if(state==="published")throw error}

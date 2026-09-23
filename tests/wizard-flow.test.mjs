@@ -195,14 +195,17 @@ test('image-based school asset slots do not render fixed role captions', () => {
   assert.match(html, /semantic-empty-visual non-output editor-only/);
 });
 
-test('template thumbnails support uploaded artwork and page fallbacks', () => {
+test('template thumbnails persist the actual first page and keep a legacy fallback', () => {
   const html = studioHtml;
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(html, /id="resourceThumbnailInput"/);
   assert.match(html, /project\.template\.thumbnail=\{kind:'upload'/);
   assert.match(html, /권장 크기는 1200×900px, 최소 크기는 800×600px/);
   assert.match(runtime, /uploaded\?\.dataUrl/);
-  assert.match(runtime, /record\.type==='poster'\?pages\.find\(page=>page\.role==='poster-annual'\):pages\.find\(page=>page\.role==='cover-front'\)/);
+  assert.match(html, /sourceProject\.book\.pageInstances\[0\]/);
+  assert.match(html, /source:'first-page'/);
+  assert.match(html, /ACDLRepresentativePreview\.refresh\(project/);
+  assert.match(runtime, /ACDLRepresentativePreview\?\.refresh\?\.\(projectData/);
   assert.match(runtime, /function mountCoverSnapshot\(record,host,page\)/);
   assert.match(runtime, /thumbnailMarkupCache/);
   assert.match(runtime, /library-thumbnail-fallback/);
@@ -216,16 +219,16 @@ test('template thumbnails support uploaded artwork and page fallbacks', () => {
   assert.doesNotMatch(html, /\.calendar-product-page \.library-thumb-render\{[^}]*transform:none!important/);
 });
 
-test('template library uses unified controls and calendar product thumbnails', () => {
+test('template library uses unified controls and full first-page thumbnails', () => {
   const html = studioHtml;
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(html, /grid-template-columns:repeat\(auto-fill,minmax\(268px,300px\)\)/);
   assert.match(html, /\.library-tab,\.library-type-filter,\.library-state-group \[data-library-state\],\.library-edition-group select/);
-  assert.match(html, /\.calendar-product-binding/);
-  assert.match(html, /\.calendar-product-stand/);
-  assert.match(html, /\.calendar-product-wall \.calendar-product-shell/);
-  assert.match(runtime, /calendar-product-thumb calendar-product-\$\{escape\(record\.type\)\}/);
-  assert.match(runtime, /calendar-product-page.*data-library-thumbnail/);
+  assert.match(html, /\.library-thumb\.library-first-page-thumb/);
+  assert.match(html, /aspect-ratio:13\/9/);
+  assert.match(runtime, /library-first-page-thumb.*data-library-thumbnail/);
+  assert.doesNotMatch(runtime, /calendar-product-binding/);
+  assert.doesNotMatch(runtime, /calendar-product-stand/);
   assert.match(runtime, /function cardStateLabel\(record\)/);
   assert.match(runtime, /record\.state==='published'\?'게시됨'/);
   assert.match(runtime, /record\.isStandard\?'<span class="standard-badge">표준<\/span>'/);
