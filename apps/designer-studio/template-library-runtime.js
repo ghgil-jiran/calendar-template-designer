@@ -478,7 +478,7 @@
  }
  async function loadPreflightHistory(){
   if(!preflightIdentity?.templateId||!preflightIdentity?.version||!preflightIdentity?.sha256){preflightHistory=[];preflightArtifact=null;return}
-  try{preflightHistory=await window.ACDLTemplatePublishing.printPreflightHistory(preflightIdentity);preflightArtifact=latestPreflightArtifact(preflightHistory)}catch(error){console.info('print preflight history is not available yet',error);preflightHistory=[];preflightArtifact=null}
+  try{const history=await window.ACDLTemplatePublishing.printPreflightHistory(preflightIdentity),artifact=latestPreflightArtifact(history);preflightHistory=history;preflightArtifact=artifact;return artifact}catch(error){console.info('print preflight history is not available yet',error);throw error}
  }
  function stopPreflightPolling(){if(preflightPollTimer){clearInterval(preflightPollTimer);preflightPollTimer=null}}
  function syncPreflightPolling(){
@@ -486,7 +486,7 @@
   if(!['queued','processing'].includes(preflightArtifact?.status))return;
   preflightPollTimer=setInterval(async()=>{
    if(el('templatePreflightDialog')?.classList.contains('hidden')){stopPreflightPolling();return}
-   try{await loadPreflightHistory();preflightActiveGate=2;renderCurrentPreflight(preflightArtifact?.status==='done'?'최종 PDF 생성과 핵심 자동검사가 완료되었습니다.':'워커 진행 상태를 자동으로 갱신했습니다.');if(!['queued','processing'].includes(preflightArtifact?.status))stopPreflightPolling()}catch(error){console.info('print preflight polling failed',error)}
+   try{await loadPreflightHistory();preflightActiveGate=2;renderCurrentPreflight(preflightArtifact?.status==='done'?'최종 PDF 생성과 핵심 자동검사가 완료되었습니다.':'워커 진행 상태를 자동으로 갱신했습니다.');if(!['queued','processing'].includes(preflightArtifact?.status))stopPreflightPolling()}catch(error){console.info('print preflight polling failed',error);preflightActiveGate=2;renderCurrentPreflight(error?.status===401||error?.status===403||error?.code==='master_admin_required'?'관리자 인증이 만료되어 상태 갱신을 잠시 중단했습니다. 다시 로그인하면 동일 Job을 이어서 확인합니다.':'상태 갱신에 실패했습니다. 마지막으로 확인된 Job 상태를 유지합니다.')}
   },5000)
  }
  function printInspectionPackage(project){

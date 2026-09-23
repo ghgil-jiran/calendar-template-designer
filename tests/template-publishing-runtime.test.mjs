@@ -40,6 +40,10 @@ test('review proxy permits completed print artifact and AI image inspection mode
 test('print artifact download and history use the dedicated print preflight endpoint',async()=>{for(const mode of ['print-preflight-download','print-preflight-history']){let endpoint='';await forwardReviewPackage({authorization:'Bearer token',body:{mode,id:'job-id'},fetcher:async url=>{endpoint=url;return {ok:true,status:200,json:async()=>({ok:true})}}});assert.match(endpoint,/\/api\/template-print-preflight$/)}});
 
 test('publishing runtime exposes print artifact download and history requests',()=>{const api=runtime();assert.equal(typeof api.printPreflightDownload,'function');assert.equal(typeof api.printPreflightHistory,'function');assert.match(source,/mode:'print-preflight-download'/);assert.match(source,/mode:'print-preflight-history'/)});
+
+test('publishing requests preserve HTTP status for authentication recovery',()=>{
+ assert.match(source,/error\.status=response\.status/);
+});
 test('publishing runtime exposes the integrated AI image inspection save request',()=>{const api=runtime();assert.equal(typeof api.recordAiImagePrintQualityReview,'function');assert.match(source,/mode:'record-ai-image-print-quality-review'/)});
 test('AI image inspection stays inside print preflight while the review PDF remains optional',()=>{const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');assert.match(library,/별도 ‘AI 생성 이미지 검토용 PDF’는 선택적인 보조 자료/);assert.match(library,/recordAiImagePrintQualityReview/);assert.match(library,/ai-image-inspection-gallery/);assert.match(library,/manual-visual-inspection/)});
 test('print preflight request carries the canonical editor renderer origin and id',()=>{assert.match(source,/editorPrintOrigin:location\.origin/);assert.match(source,/rendererId:'template-editor-review-dom\.v1'/)});

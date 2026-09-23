@@ -274,6 +274,13 @@ test('published save transfers a snapshot review package before changing the lib
   assert.ok(runtime.indexOf("ACDLTemplatePublishing.publish") < runtime.indexOf("remote.save({templateId:record.remoteId"));
 });
 
+test('print preflight polling keeps the last known job when history authentication expires',()=>{
+  const runtime=fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');
+  assert.match(runtime,/const history=await window\.ACDLTemplatePublishing\.printPreflightHistory/);
+  assert.doesNotMatch(runtime,/catch\(error\)\{console\.info\('print preflight history is not available yet',error\);preflightHistory=\[\];preflightArtifact=null\}/);
+  assert.match(runtime,/관리자 인증이 만료되어 상태 갱신을 잠시 중단했습니다/);
+});
+
 test('deployed editor loads the PNG representative preview capture runtime',()=>{
   assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260923\.2/);
 });
