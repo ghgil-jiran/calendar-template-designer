@@ -275,7 +275,7 @@ test('published save transfers a snapshot review package before changing the lib
 });
 
 test('deployed editor loads the PNG representative preview capture runtime',()=>{
-  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260915\.2/);
+  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260923\.2/);
 });
 
 test('insert sidebar separates and collapses utility controls when an object category opens', () => {

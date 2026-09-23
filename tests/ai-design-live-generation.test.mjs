@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { buildImagePrompt, validateGenerationInput } from '../api/ai-design-generate.js';
+import { buildImagePrompt, openAIUpstreamError, validateGenerationInput } from '../api/ai-design-generate.js';
 const prompts=await import('../apps/designer-studio/ai-design/prompts/school-calendar-design@0.15.0.js');
 
 test('live image prompt protects editable calendar and school data', () => {
@@ -182,6 +182,23 @@ test('browser client keeps the API key server-side and sends the admin token', a
   assert.doesNotMatch(source,/process\.env|sk-[a-z0-9]/i);
 });
 
+test('OpenAI 429 errors distinguish quota from a temporary rate limit',()=>{
+  const quota=openAIUpstreamError({status:429,headers:{get:()=>null}},{error:{code:'insufficient_quota',message:'You exceeded your current quota'}});
+  assert.equal(quota.code,'AI_IMAGE_QUOTA_EXCEEDED');
+  assert.match(quota.message,/Billing과 Usage limits/);
+  const limited=openAIUpstreamError({status:429,headers:{get:()=> '12'}},{error:{type:'rate_limit_exceeded'}});
+  assert.equal(limited.code,'AI_IMAGE_RATE_LIMITED');
+  assert.equal(limited.details.retryAfterSeconds,12);
+  assert.match(limited.message,/12초 후/);
+});
+
+test('browser client presents detailed API errors without retrying 429',async()=>{
+  const source=fs.readFileSync(new URL('../apps/designer-studio/ai-design-client.js',import.meta.url),'utf8');let calls=0;
+  const context={window:null,AbortController,setTimeout,clearTimeout,ACDLTemplateRemotePersistence:{accessToken:()=> 'admin-token'},fetch:async()=>{calls+=1;return {ok:false,status:429,json:async()=>({error:'AI_IMAGE_QUOTA_EXCEEDED',details:{message:'OpenAI 이미지 API 사용 한도 또는 결제 한도에 도달했습니다.',reason:'insufficient_quota'}})}}};context.window=context;vm.createContext(context);vm.runInContext(source,context);
+  await assert.rejects(()=>context.ACDLAIDesignClient.generate({styleKey:'balanced'}),error=>error.code==='AI_IMAGE_QUOTA_EXCEEDED'&&/결제 한도/.test(error.message));
+  assert.equal(calls,1);
+});
+
 test('browser client stores a submitted key only through the authenticated config endpoint', async () => {
   const source=fs.readFileSync(new URL('../apps/designer-studio/ai-design-client.js',import.meta.url),'utf8');let call;
   const context={window:null,AbortController,setTimeout,clearTimeout,ACDLTemplateRemotePersistence:{accessToken:()=> 'admin-token'},fetch:async(url,options)=>{call={url,options};return {ok:true,json:async()=>({configured:true,storage:'supabase-vault'})}}};context.window=context;vm.createContext(context);vm.runInContext(source,context);
@@ -214,11 +231,18 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
 });
 
 test('editor entry loads the current AI client, expansion, and runtime cache versions',()=>{
-  assert.match(studioSource,/ai-design-client\.js\?v=20260912\.2/);
+  assert.match(studioSource,/ai-design-client\.js\?v=20260923\.1/);
   assert.match(studioSource,/design-set-expansion@0\.2\.0\.js\?v=20260923\.1/);
   assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260923\.1/);
   assert.match(studioSource,/const pageAssets=selected\.assetsByPage\|\|\{\}/);
   assert.match(studioSource,/filter\(page=>!pageAssets\[page\.id\]\)/);
+});
+
+test('school information save uses the bound-asset helper exposed by its runtime module',()=>{
+  const core=fs.readFileSync(new URL('../apps/designer-studio/features/studio-runtime-core.js',import.meta.url),'utf8');
+  assert.match(core,/window\.applyAllBoundAssets\?\.\(project\)/);
+  assert.match(core,/window\.applyAllBoundAssets=applyAllBoundAssets/);
+  assert.doesNotMatch(core,/;applyAllBoundAssets\(project\);markDirty\(\)/);
 });
 
 test('AI image generation allows production latency and reports timeouts explicitly',()=>{
