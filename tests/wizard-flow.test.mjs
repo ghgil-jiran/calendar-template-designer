@@ -61,7 +61,7 @@ test('template switching ignores stale async loads', () => {
 
 test('library thumbnails render remote projects without restoring an earlier editor state', () => {
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
-  assert.match(runtime, /function hydrateThumbnails\(list\)/);
+  assert.match(runtime, /function hydrateThumbnails\(list,container\)/);
   assert.match(runtime, /renderActualThumbnail\(record,host\)/);
   assert.match(runtime, /navigation&&!navigation\.isCurrent\(transitionId\)/);
   assert.match(runtime, /if\(original&&\(!navigation\|\|navigation\.isCurrent\(transitionId\)\)\)/);
