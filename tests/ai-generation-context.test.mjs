@@ -7,12 +7,14 @@ const source=fs.readFileSync(new URL('../apps/designer-studio/ai-design/ai-gener
 function api(){const context={};vm.createContext(context);vm.runInContext(source,context);return context.ACDLAIGenerationContext}
 function project(definition,pages){return {productType:{category:definition.family.id,pageSize:definition.finishedSize,duplex:definition.printSides==='duplex'},template:{calendarTypeSnapshot:{definition},resources:{exportSettings:{dpi:300,bleed:3,safeMargin:5}}},book:{pageInstances:pages}}}
 
-test('desk generation context enables all roles present in its page structure',()=>{
+test('desk generation context uses physical surfaces and does not promote cover inside to annual',()=>{
  const definition={id:'desk-standard',family:{id:'desk'},orientation:'landscape',printSides:'duplex',binding:{edge:'top',method:'wire-o'},finishedSize:{width:260,height:180,unit:'mm'},productionSize:{width:266,height:186,unit:'mm'},policies:{cover:'required',annualSingle:'optional',monthlyFront:'required',monthlyBack:'required',backCover:'required'},pageRules:[{role:'school-symbols'}]};
  const pages=[{id:'cover',role:'cover-front'},{id:'annual',role:'cover-back'},{id:'symbols',role:'front-insert-front',semanticPageRole:'school-symbols'},{id:'front',role:'monthly-front'},{id:'back',role:'monthly-back'},{id:'closing',role:'back-cover-front'}];
  const result=api().build(project(definition,pages));
- assert.deepEqual([...result.enabledRoles],['cover','annual','divider','month','month-back','back-cover']);
- assert.equal(result.roles.find(item=>item.role==='divider').targets[0].pageId,'symbols');
+ assert.deepEqual([...result.enabledRoles],['cover','divider','month','month-back','back-cover']);
+ assert.equal(result.roles.find(item=>item.role==='annual').enabled,false);
+ assert.ok(result.roles.find(item=>item.role==='divider').pageIds.includes('annual'));
+ assert.deepEqual([...result.roles.find(item=>item.role==='divider').pageIds],['annual','symbols']);
  assert.deepEqual([...result.monthlyRoles],['month','month-back']);
  assert.equal(result.print.bleedMm,3);
  const plan=api().plan(result,{monthCount:12,quality:'low'});
@@ -39,7 +41,7 @@ test('page settings become restrained image roles with a print-resolution plan',
 
 test('optional annual generation follows the saved semantic purpose of the physical cover-back surface',()=>{const definition={id:'desk-standard',family:{id:'desk'},finishedSize:{width:260,height:180},productionSize:{width:266,height:186},policies:{cover:'required',annualSingle:'optional',backCover:'required'}},value=project(definition,[{id:'front',role:'cover-front'},{id:'back',role:'cover-back',semanticPageRole:'cover-continuation'},{id:'closing',role:'back-cover-back'}]),result=api().build(value);assert.equal(result.roles.find(item=>item.role==='annual').enabled,false);assert.deepEqual([...result.roles.find(item=>item.role==='cover').pageIds],['front','back']);assert.ok(!result.enabledRoles.includes('annual'))});
 
-test('desk cover inside annual is generated even when the single-sheet annual policy is unsupported',()=>{
+test('desk cover inside annual stays a divider surface when the single-sheet annual policy is unsupported',()=>{
  const definition={id:'desk-standard',family:{id:'desk'},finishedSize:{width:260,height:180},productionSize:{width:266,height:186},policies:{cover:'required',annualSingle:'unsupported',frontInsert:'optional',monthlyFront:'required',monthlyBack:'required',backCover:'required'}};
  const pages=[
   {id:'surface.1.front',role:'cover-front'},
@@ -50,9 +52,10 @@ test('desk cover inside annual is generated even when the single-sheet annual po
   {id:'surface.15.front',role:'back-cover-front'},
   {id:'surface.15.back',role:'back-cover-back'}
  ];
- const result=api().build(project(definition,pages)),annual=result.roles.find(item=>item.role==='annual'),plan=api().plan(result,{monthCount:12,quality:'low'});
- assert.equal(annual.enabled,true);
- assert.deepEqual([...annual.pageIds],['surface.1.back']);
+ const result=api().build(project(definition,pages)),annual=result.roles.find(item=>item.role==='annual'),divider=result.roles.find(item=>item.role==='divider'),plan=api().plan(result,{monthCount:12,quality:'low'});
+ assert.equal(annual.enabled,false);
+ assert.ok(divider.pageIds.includes('surface.1.back'));
+ assert.equal(divider.targets.find(item=>item.pageId==='surface.1.back').contentPurpose,'yearly-calendar');
  assert.equal(plan.actualPageCount,30);
  assert.equal(plan.representativeCount,8);
  assert.equal(plan.generationCount,30);

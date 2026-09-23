@@ -17,12 +17,12 @@
   return Object.freeze({required:items.length>0||list(resources.aiDesignAssets).length>0,count:items.length,items:Object.freeze(items)});
  }
  const AI_IMAGE_CRITERIA=Object.freeze([
-  ['identity','용도·대상 페이지·프레임 식별'],
+  ['identity','AI 원본 수·페이지 용도 연결'],
   ['generationStandard','생성 기준 버전과 최대 품질 적용'],
-  ['frameSuitability','대상 프레임 화면비·크롭 안전성'],
-  ['placementIntegrity','누락·깨짐·프레임 이탈·과도한 확대'],
+  ['frameSuitability','원본 파일 규격·포맷·손상 여부'],
+  ['placementIntegrity','원본 확대 선명도·색상 계조'],
   ['visualArtifacts','흐림·노이즈·반복 패턴·비정상 형상'],
-  ['contentLegibility','달력 개체와 배경·일러스트 가독성 충돌']
+  ['contentLegibility','원치 않는 문자·숫자·가짜 기능 요소']
  ]);
  function criterionValue(source,key){
   const values=source?.criteria||source?.checks||source?.results;if(Array.isArray(values))return values.find(item=>text(item?.key||item?.id)===key);return values?.[key];
@@ -31,12 +31,14 @@
   const pages=list(quality?.pages),issues=pages.flatMap(page=>list(page?.issues).map(item=>({...item,pageId:page.pageId}))),hasReport=Boolean(quality?.schemaVersion&&pages.length),failed=codes=>issues.filter(item=>codes.includes(text(item.code))&&item.severity==='fail'),review=codes=>issues.filter(item=>codes.includes(text(item.code))&&item.severity==='review');
   if(key==='identity'){const incomplete=inventory.items.filter(item=>!item.pageId||!item.objectId||!item.assetId);return {status:incomplete.length?'failed':inventory.count?'passed':'not_run',message:incomplete.length?`${incomplete.length}개 이미지의 페이지·개체·자산 식별 정보가 부족합니다.`:inventory.count?`${inventory.count}개 AI 이미지의 적용 위치를 식별했습니다.`:'식별할 AI 이미지가 없습니다.'}}
   if(!hasReport)return {status:'not_run',message:'저장된 AI 품질 보고서가 없습니다.'};
-  const mappings={generationStandard:[[],[]],frameSuitability:[['effective-resolution'],['print-resolution-review']],placementIntegrity:[['missing-asset','safe-area','collision','effective-resolution'],['print-resolution-review']],visualArtifacts:[['duplicate-asset','visual-inconsistency'],[]],contentLegibility:[['readability','collision','safe-area','forbidden-text'],['forbidden-text-review']]},entry=mappings[key]||[[],[]],failures=failed(entry[0]),reviews=review(entry[1]);
+  const mappings={generationStandard:[[],[]],frameSuitability:[[],[]],placementIntegrity:[[],[]],visualArtifacts:[['duplicate-asset','visual-inconsistency'],[]],contentLegibility:[['forbidden-text'],['forbidden-text-review']]},entry=mappings[key]||[[],[]],failures=failed(entry[0]),reviews=review(entry[1]);
   if(failures.length)return {status:'failed',message:`기존 AI 품질 보고서에서 ${failures.length}건의 실패 근거가 있습니다.`,evidence:{pageIds:[...new Set(failures.map(item=>item.pageId))],issueCodes:[...new Set(failures.map(item=>item.code))]}};
   if(reviews.length)return {status:'review',message:`기존 AI 품질 보고서에서 ${reviews.length}건의 수동 확인이 필요합니다.`,evidence:{pageIds:[...new Set(reviews.map(item=>item.pageId))],issueCodes:[...new Set(reviews.map(item=>item.code))]}};
   if(key==='generationStandard')return {status:'review',message:`기존 생성 보고서 ${quality.schemaVersion}는 참고할 수 있지만 최대 품질 적용을 증명하지 않습니다.`};
-  if(key==='frameSuitability')return {status:'review',message:'기존 보고서는 화면비와 크롭 안전성을 독립 검사하지 않았습니다.'};
+  if(key==='frameSuitability')return {status:'review',message:'기존 보고서는 원본 파일 규격·포맷·손상 여부를 독립 검사하지 않았습니다.'};
+  if(key==='placementIntegrity')return {status:'review',message:'검토용 PDF의 원본·확대 화면에서 선명도와 색상 계조를 확인해야 합니다.'};
   if(key==='visualArtifacts')return {status:'review',message:'중복·스타일 일관성 외 흐림·노이즈·비정상 형상 검사가 필요합니다.'};
+  if(key==='contentLegibility')return {status:'review',message:'원치 않는 문자·숫자·가짜 버튼·프레임이 생성되지 않았는지 확인해야 합니다.'};
   return {status:'passed',message:`기존 AI 품질 보고서 ${quality.schemaVersion}에서 관련 실패가 없습니다.`};
  }
  function aiImageCriteria(project,source,inventory){

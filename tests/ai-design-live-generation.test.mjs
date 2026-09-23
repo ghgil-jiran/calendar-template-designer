@@ -215,8 +215,8 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
 
 test('editor entry loads the current AI client, expansion, and runtime cache versions',()=>{
   assert.match(studioSource,/ai-design-client\.js\?v=20260912\.2/);
-  assert.match(studioSource,/design-set-expansion@0\.2\.0\.js\?v=20260912\.3/);
-  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260912\.6/);
+  assert.match(studioSource,/design-set-expansion@0\.2\.0\.js\?v=20260923\.1/);
+  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260923\.1/);
   assert.match(studioSource,/const pageAssets=selected\.assetsByPage\|\|\{\}/);
   assert.match(studioSource,/filter\(page=>!pageAssets\[page\.id\]\)/);
 });
@@ -250,7 +250,7 @@ test('AI generation controls render independently from the Vault connection cont
   assert.match(html,/id="aiDesignLiveQuality"/);
   assert.match(html,/applyAICoverLayout/);
   assert.match(html,/layoutApplied/);
-  assert.match(html,/const AI_DESIGN_ROLE_MAP=\{cover:\["cover-front"\],annual:\["cover-back","poster-annual"\],divider:/);
+  assert.match(html,/const AI_DESIGN_ROLE_MAP=\{cover:\["cover-front"\],annual:\["poster-annual","annual"\],divider:\["cover-back"/);
   assert.doesNotMatch(html,/item\.pagePlans\.filter\(plan=>\['cover','month','month-back'\]/);
   assert.match(html,/previewPlans\.map\(target=>aiPagePreviewMarkup\(item,target\)\)/);
   assert.match(html,/실제 AI 생성 자산 · \$\{previewPlans\.length\}개 면 완성/);

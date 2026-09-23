@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 
 await import('../apps/designer-studio/template-print-preflight.js');
 await import('../apps/designer-studio/render-parity-preflight.js');
@@ -250,6 +251,16 @@ test('AI image inspection unlocks only after core output and then unlocks final 
  assert.equal(report.gates[4].access,'available');
 });
 
+test('AI image inspection criteria focus on source quality instead of template placement',()=>{
+ const source=fs.readFileSync(new URL('../apps/designer-studio/print-output-preflight.js',import.meta.url),'utf8');
+ assert.match(source,/AI 원본 수·페이지 용도 연결/);
+ assert.match(source,/원본 파일 규격·포맷·손상 여부/);
+ assert.match(source,/원본 확대 선명도·색상 계조/);
+ assert.match(source,/원치 않는 문자·숫자·가짜 기능 요소/);
+ assert.doesNotMatch(source,/대상 프레임 화면비·크롭 안전성/);
+ assert.doesNotMatch(source,/달력 개체와 배경·일러스트 가독성 충돌/);
+});
+
 test('a top-level AI pass without six criterion results cannot unlock final approval',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
  const passed={status:'passed'},artifact={status:'done',verified:true,checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed,aiImagePrintQuality:{status:'passed',criteriaVersion:'ai-print-v1'}}};
@@ -265,7 +276,7 @@ test('saved AI quality evidence is shown per criterion but remains non-decisive'
  assert.equal(output.aiImageInspection.status,'pending');
  assert.equal(output.aiImageInspection.evidenceMode,'legacy-reference');
  assert.deepEqual(output.aiImageInspection.criteriaSummary,{passed:0,review:0,failed:0,notRun:6});
- assert.equal(output.aiImageInspection.referenceSummary.review,4);
+ assert.equal(output.aiImageInspection.referenceSummary.review,5);
  assert.equal(output.aiImageInspection.criteria.length,6);
  assert.equal(output.aiImageInspection.criteria.find(item=>item.key==='frameSuitability').status,'review');
  assert.ok(output.aiImageInspection.criteria.every(item=>item.source==='legacy-ai-quality'));

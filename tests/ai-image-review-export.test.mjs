@@ -21,6 +21,8 @@ test('AI review PDF uses live RGB source assets without the review JPEG optimize
  assert.match(source,/generationEvidence/);
  assert.match(source,/expectedTargets/);
  assert.match(source,/missingTargets/);
+ assert.match(source,/요약 1쪽과 AI 원본/);
+ assert.match(source,/‘연력’은 독립 면이 아니라 표지 안쪽면/);
  assert.match(source,/generation\.model\|\|evidence\.model/);
  assert.match(source,/window\.ACDLAIImageReviewPdf/);
 });

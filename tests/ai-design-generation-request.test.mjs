@@ -68,7 +68,7 @@ test('new-template completion applies the selected sample only to a separate dra
   assert.match(html, /generatedRoles=selected\?\.assetsByRole\?Object\.keys\(selected\.assetsByRole\)/);
   assert.doesNotMatch(html, /project\.template\.masterElements\[masterId\]=kept/);
   assert.match(html, /const AI_DESIGN_ROLE_MAP=\{cover:\["cover-front"\]/);
-  assert.match(html, /divider:\["school-symbols","front-insert-front","front-insert-back","rear-insert-front","rear-insert-back"\]/);
+  assert.match(html, /annual:\["poster-annual","annual"\],divider:\["cover-back","school-symbols","front-insert-front","front-insert-back","rear-insert-front","rear-insert-back"\]/);
   assert.match(html, /Object\.entries\(selected\.assetsByPage\|\|\{\}\)/);
   assert.doesNotMatch(html, /selected\.generatedRole==="cover"\?new Set\(\["cover-front"\]\):new Set\(\["cover-front","cover-back","monthly-front"/);
   assert.match(html, /role:"ai-design-background"/);

@@ -45,7 +45,7 @@
  function createSummarySheet(assets){
   const stats=reviewStats(assets);
   const sheet=document.createElement("section");sheet.className="ai-review-sheet ai-review-summary";
-  sheet.append(text("p","AI IMAGE REVIEW","ai-review-kicker"),text("h1","AI 생성 이미지 검토용 PDF"),text("p","AI가 생성한 RGB 원본 이미지 세트 자체를 검토합니다. 템플릿 배치·CMYK·PDF/X-4 판정용 문서가 아닙니다.","ai-review-lead"));
+  sheet.append(text("p","AI IMAGE REVIEW","ai-review-kicker"),text("h1","AI 생성 이미지 검토용 PDF"),text("p",`이 PDF는 요약 1쪽과 AI 원본 ${stats.actual}쪽, 총 ${stats.actual+1}쪽으로 구성됩니다. 달력의 물리 면수와 PDF 쪽수는 같지 않습니다. ‘연력’은 독립 면이 아니라 표지 안쪽면에 사용된 이미지 용도입니다. 템플릿 배치·CMYK·PDF/X-4 판정용 문서가 아닙니다.`,"ai-review-lead"));
   const grid=document.createElement("div");grid.className="ai-review-summary-grid";
   [["예상 생성 대상",`${stats.expected}면`],["실제 AI 원본",`${stats.actual}개`],["연결 완료",`${stats.assigned}/${stats.expected}면`],["누락",`${stats.missingTargets.length}면`],["high 품질",`${stats.high}/${stats.actual}`],["생성 계약 통과",`${stats.verified}/${stats.actual}`]].forEach(([label,value])=>{const card=document.createElement("div");card.append(text("span",label),text("strong",value));grid.append(card)});sheet.append(grid);
   const note=document.createElement("div");note.className="ai-review-note";note.append(text("strong","검토 기준"),text("p","흐림·노이즈·문자 생성·비정상 형상·월별 과도한 반복과 역할 연결을 확인합니다. 화면은 저장된 RGB 원본 주소를 별도 JPEG 변환 없이 사용하며, PDF 저장 과정의 내부 압축은 브라우저 설정을 따릅니다."));sheet.append(note);
