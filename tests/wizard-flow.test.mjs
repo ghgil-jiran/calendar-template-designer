@@ -86,9 +86,8 @@ test('library edit and clone entry report loading stages without querying Indexe
 test('public landing presents the template studio without a calendar creation entry', () => {
   const html = studioHtml;
   const landing = html.match(/<div id="entryScreen"[\s\S]*?<div id="designerHome"/)?.[0] || '';
-  assert.match(landing, /사용자의 아이디어가 디자인이 되고/);
-  assert.match(landing, /디자인이 실제 제품이 되는 순간까지/);
-  assert.match(landing, /사용자 서비스와 템플릿 에디터를 연결하며 더 나은 달력 제작 경험을 만들어갑니다/);
+  assert.match(landing, /사용자의 아이디어가<br>새로운 디자인이 되고<br><span>실제 제품으로 만듭니다\.<\/span>/);
+  assert.match(landing, /AI 기반의 디자인과 다양한 유형의 구성 요소를 적용하여 새로운 달력 템플릿을 제작합니다/);
   assert.match(landing, /UNIVERSAL CALENDAR DESIGN STUDIO/);
   assert.match(landing, /템플릿 라이브러리/);
   assert.match(landing, /새 템플릿 만들기/);
@@ -96,14 +95,13 @@ test('public landing presents the template studio without a calendar creation en
   assert.doesNotMatch(landing, /새 달력 만들기/);
 });
 
-test('public landing explains the editor around production-supported calendar families', () => {
+test('public landing explains the editor through its creator benefits', () => {
   const html = studioHtml;
   const landing = html.match(/<div id="entryScreen"[\s\S]*?<div id="designerHome"/)?.[0] || '';
-  assert.match(landing, /실제 제작 가능한 달력/);
-  assert.match(landing, /풍부한 디자인 요소/);
-  assert.match(landing, /디자인을 템플릿으로/);
-  assert.match(landing, /화면부터 인쇄까지/);
-  assert.match(landing, /탁상달력, 벽걸이형, 한 장 포스터형/);
+  assert.match(landing, /AI로 디자인을 시작하세요/);
+  assert.match(landing, /페이지를 원하는 구성으로/);
+  assert.match(landing, /학교마다 달라지는 내용까지/);
+  assert.match(landing, /만든 디자인을 계속 활용하세요/);
   assert.doesNotMatch(html, /transform:rotate\(-1\.4deg\)/);
 });
 
