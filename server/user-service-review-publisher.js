@@ -1,5 +1,5 @@
 const DEFAULT_REVIEW_ENDPOINT='https://school-calendar-editor-servic-git-1a2acc-gil-gighyun-s-projects.vercel.app/api/template-packages/review';
-const PRINT_PREFLIGHT_MODES=['ensure-print-preflight','print-preflight-status','print-preflight-download','print-preflight-history','record-trim-content-parity-review','record-template-image-review'];
+const PRINT_PREFLIGHT_MODES=['ensure-print-preflight','print-preflight-status','print-preflight-download','print-preflight-history','record-trim-content-parity-review','record-template-image-review','record-ai-image-print-quality-review'];
 const ALLOWED_MODES=new Set(['next-version','asset-chunk','chunk','finalize','activate-review','withdraw','retire-packages','inspect-review-catalog','sync-review-catalog',...PRINT_PREFLIGHT_MODES]);
 
 function endpoint(mode){

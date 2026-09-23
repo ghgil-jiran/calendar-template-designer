@@ -294,21 +294,21 @@ test('a saved dedicated print inspection feeds the six AI image cards',()=>{
  assert.ok(output.aiImageInspection.criteria.every(item=>item.source==='ai-image-print-quality'));
 });
 
-test('templates without AI generated images skip the AI gate after core output',()=>{
+test('templates without AI generated images block the required AI gate',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};value.book.elementsByPage.cover=[{id:'editor-background',type:'image',role:'background',src:'package-asset://cover'}];
  const passed={status:'passed'},artifact={status:'done',verified:true,checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed}};
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
- assert.equal(output.aiImageInspection.required,false);
- assert.equal(output.aiImageInspection.status,'passed');
- assert.equal(report.gates[3].disposition,'not_applicable');
- assert.equal(report.gates[4].access,'available');
+ assert.equal(output.aiImageInspection.required,true);
+ assert.equal(output.aiImageInspection.status,'blocked');
+ assert.equal(report.gates[3].disposition,'required');
+ assert.equal(report.gates[4].access,'locked');
 });
 
-test('a skipped AI gate cannot bypass an unfinished core output gate',()=>{
+test('a missing AI image set cannot bypass an unfinished core output gate',()=>{
  const value=project();value.book.elementsByPage.cover=[];
  const output=printOutput.inspect(value),report=analyze(value,{printOutput:output});
  assert.equal(report.gates[2].status,'pending');
- assert.equal(report.gates[3].status,'passed');
+ assert.equal(report.gates[3].status,'blocked');
  assert.equal(report.gates[3].access,'locked');
  assert.equal(report.gates[4].access,'locked');
 });

@@ -101,6 +101,7 @@
  async function deletePrintPreflight(id){return request({mode:'delete-print-preflight',id})}
  async function recordTrimContentParityReview(id,review){return request({mode:'record-trim-content-parity-review',id,...review})}
  async function recordTemplateImageReview(id,review){return request({mode:'record-template-image-review',id,...review})}
+ async function recordAiImagePrintQualityReview(id,review){return request({mode:'record-ai-image-print-quality-review',id,...review})}
  async function editorCatalog({strict=false}={}){
   const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return [];
   const records=(await remote.list()).filter(item=>item.state==='published'),items=[];
@@ -148,5 +149,5 @@
  }
  if(typeof document!=='undefined')installSyncDialog();
  async function reconcile(){return synchronizeCatalog()}
- root.ACDLTemplatePublishing=Object.freeze({publish,preparePrintInspection,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,publishedIdentity,ensurePrintPreflight,printPreflightStatus,printPreflightDownload,printPreflightHistory,cancelPrintPreflight,deletePrintPreflight,recordTrimContentParityReview,recordTemplateImageReview,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
+ root.ACDLTemplatePublishing=Object.freeze({publish,preparePrintInspection,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,publishedIdentity,ensurePrintPreflight,printPreflightStatus,printPreflightDownload,printPreflightHistory,cancelPrintPreflight,deletePrintPreflight,recordTrimContentParityReview,recordTemplateImageReview,recordAiImagePrintQualityReview,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
 })(window);
