@@ -7,9 +7,9 @@ const source = await readFile(new URL('../apps/designer-studio/template-remote-p
 
 function runtime({ hostname = 'templates.example.com', fetch, accessToken = 'admin-jwt', localApiProxy = false } = {}) {
   const values = new Map();
-  let blobSequence=0;class BrowserURL extends URL{}BrowserURL.createObjectURL=()=>`blob:template-asset-${++blobSequence}`;
+  let blobSequence=0;class BrowserURL extends URL{}BrowserURL.createObjectURL=()=>`blob:template-asset-${++blobSequence}`;BrowserURL.revokeObjectURL=()=>{};
   const browserFetch=async(path,options)=>String(path).startsWith('/api/template-assets?content=')?{ok:true,status:200,blob:async()=>new Blob(['image'])}:fetch(path,options);
-  const window = { location: { hostname }, ACDL_LOCAL_API_PROXY:localApiProxy, URL:BrowserURL, sessionStorage: { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) }, ACDLAdminAuth: { accessToken: () => accessToken, signOut() {} }, fetch:browserFetch };
+  const window = { location: { hostname }, ACDL_LOCAL_API_PROXY:localApiProxy, URL:BrowserURL, Image:class{naturalWidth=850;naturalHeight=588;decode(){return Promise.resolve()}}, sessionStorage: { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) }, ACDLAdminAuth: { accessToken: () => accessToken, signOut() {} }, fetch:browserFetch };
   vm.runInNewContext(source, { window, URL, console, structuredClone });
   return window.ACDLTemplateRemotePersistence;
 }
@@ -113,6 +113,19 @@ test('remote save sends project data through the protected Vercel API', async ()
   assert.equal(request.options.method, 'POST');
   assert.equal(JSON.parse(request.options.body).projectData.id, 'project');
   assert.equal(result.version.versionNumber, 2);
+});
+
+test('manual save verifies that the latest library version loads the image just uploaded',async()=>{
+ const assetId='11111111-1111-4111-8111-111111111111',marker=`acdl-asset://${assetId}`,calls=[];
+ const api=runtime({fetch:async(path,options)=>{calls.push(path);if(path==='/api/template-assets')return {ok:true,status:201,json:async()=>({asset:{id:assetId}})};if(path==='/api/templates'&&options?.method==='POST')return {ok:true,status:201,json:async()=>({template:{id:'t1'},version:{id:'v2',projectData:{template:{thumbnail:{kind:'upload',dataUrl:marker,pageId:'cover'}}}}})};if(path==='/api/templates')return {ok:true,status:200,json:async()=>({templates:[{id:'t1',latestVersionId:'v2',thumbnail:{kind:'upload',dataUrl:marker}}]})};throw Error(`unexpected ${path}`)}});
+ await api.save({projectData:{template:{thumbnail:{kind:'upload',dataUrl:'data:image/png;base64,YWJj',pageId:'cover'}}}},{verifyThumbnail:true});
+ assert.deepEqual(calls,['/api/template-assets','/api/templates','/api/templates']);
+});
+
+test('manual save rejects a library entry still pointing to an older representative asset',async()=>{
+ const marker='acdl-asset://11111111-1111-4111-8111-111111111111',oldMarker='acdl-asset://22222222-2222-4222-8222-222222222222';
+ const api=runtime({fetch:async(path,options)=>path==='/api/templates'&&options?.method==='POST'?{ok:true,status:201,json:async()=>({template:{id:'t1'},version:{id:'v2',projectData:{template:{thumbnail:{kind:'upload',dataUrl:marker,pageId:'cover'}}}}})}:{ok:true,status:200,json:async()=>({templates:[{id:'t1',latestVersionId:'v1',thumbnail:{kind:'upload',dataUrl:oldMarker}}]})}});
+ await assert.rejects(()=>api.save({projectData:{template:{thumbnail:{kind:'upload',dataUrl:marker,pageId:'cover'}}}},{verifyThumbnail:true}),error=>error.code==='THUMBNAIL_LIBRARY_MISMATCH');
 });
 
 test('package preflight checks the latest saved remote version',async()=>{

@@ -60,7 +60,17 @@
  }
  async function list(){const body=await request('/api/templates');deletedCatalogKeys=Array.isArray(body.deletedCatalogKeys)?body.deletedCatalogKeys:[];return (body.templates||[]).map(record)}
  async function load(id,{onProgress,deferAssets=false}={}){onProgress?.({phase:'remote',completed:0,total:1});const result=await request(`/api/templates?id=${encodeURIComponent(id)}`);onProgress?.({phase:'remote',completed:1,total:1});if(result?.version?.projectData){const storedProjectData=structuredClone(result.version.projectData);result.version.storedProjectData=storedProjectData;if(!deferAssets)result.version.projectData=await hydrateProjectData(storedProjectData,{onProgress})}return result}
- async function save(input,options={}){const projectData=await prepareProjectData(input.projectData,options);options.onProgress?.({phase:'version',completed:1,total:1});const result=await request('/api/templates',{method:'POST',body:JSON.stringify({...input,projectData})});options.onProgress?.({phase:'complete',completed:1,total:1});return result}
+ async function verifySavedThumbnail(result,expected){
+  const templateId=result.template?.id,versionId=result.version?.id,stored=result.version?.projectData?.template?.thumbnail;
+  if(!templateId||!versionId||!expected?.dataUrl||stored?.dataUrl!==expected.dataUrl||stored?.pageId!==expected.pageId)throw Object.assign(new Error('저장된 대표 이미지가 생성한 첫 페이지 이미지와 일치하지 않습니다.'),{code:'THUMBNAIL_SAVE_MISMATCH'});
+  const listing=await request('/api/templates'),item=(listing.templates||[]).find(template=>template.id===templateId);
+  if(item?.latestVersionId!==versionId||item?.thumbnail?.dataUrl!==expected.dataUrl)throw Object.assign(new Error('라이브러리가 최신 버전의 대표 이미지를 가리키지 않습니다.'),{code:'THUMBNAIL_LIBRARY_MISMATCH'});
+  const match=expected.dataUrl.match(/^acdl-asset:\/\/([0-9a-f-]{36})$/i);
+  if(!match)throw Object.assign(new Error('대표 이미지 자산 ID를 확인할 수 없습니다.'),{code:'THUMBNAIL_ASSET_INVALID'});
+  let objectUrl;try{objectUrl=await assetObjectUrl(match[1])}catch(error){throw Object.assign(new Error('저장된 대표 이미지 파일을 불러올 수 없습니다.'),{code:'THUMBNAIL_ASSET_INVALID',cause:error})}
+  try{const image=new root.Image();image.src=objectUrl;await image.decode();if(!image.naturalWidth||!image.naturalHeight)throw new Error('Empty thumbnail image')}catch(error){throw Object.assign(new Error('저장된 대표 이미지 파일을 열 수 없습니다.'),{code:'THUMBNAIL_ASSET_INVALID',cause:error})}finally{root.URL.revokeObjectURL(objectUrl)}
+ }
+ async function save(input,options={}){const projectData=await prepareProjectData(input.projectData,options);options.onProgress?.({phase:'version',completed:1,total:1});const result=await request('/api/templates',{method:'POST',body:JSON.stringify({...input,projectData})});if(options.verifyThumbnail)await verifySavedThumbnail(result,projectData.template?.thumbnail);options.onProgress?.({phase:'complete',completed:1,total:1});return result}
  async function saveDraft(input){const projectData=await prepareProjectData(input.projectData);return request('/api/template-drafts',{method:'PUT',body:JSON.stringify({...input,projectData})})}
  async function versions(templateId){return request(`/api/template-versions?templateId=${encodeURIComponent(templateId)}`)}
  async function hydrateVersion(version){return version?.projectData?{...version,projectData:await hydrateProjectData(version.projectData)}:version}
