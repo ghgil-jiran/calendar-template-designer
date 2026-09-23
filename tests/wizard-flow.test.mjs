@@ -59,12 +59,13 @@ test('template switching ignores stale async loads', () => {
   assert.match(html, /if\(!isCurrentProjectTransition\(transitionId\)\)return;/);
 });
 
-test('library thumbnails render remote projects without restoring an earlier editor state', () => {
+test('library thumbnails use only a saved first-page image and identify missing assets', () => {
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(runtime, /function hydrateThumbnails\(list,container\)/);
-  assert.match(runtime, /renderActualThumbnail\(record,host\)/);
-  assert.match(runtime, /navigation&&!navigation\.isCurrent\(transitionId\)/);
-  assert.match(runtime, /if\(original&&\(!navigation\|\|navigation\.isCurrent\(transitionId\)\)\)/);
+  assert.match(runtime, /record\.thumbnail\?\.kind==='upload'/);
+  assert.match(runtime, /저장된 첫 페이지 이미지가 없습니다/);
+  assert.match(runtime, /await image\.decode\(\)/);
+  assert.doesNotMatch(runtime, /renderActualThumbnail|mountCoverSnapshot|thumbnailMarkupCache/);
 });
 
 test('library edit and clone entry report loading stages without querying IndexedDB with an empty id', () => {
@@ -195,28 +196,15 @@ test('image-based school asset slots do not render fixed role captions', () => {
   assert.match(html, /semantic-empty-visual non-output editor-only/);
 });
 
-test('template thumbnails persist the actual first page without a misleading fallback', () => {
+test('saving a draft persists its first page and the library never substitutes a rendered page', () => {
   const html = studioHtml;
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
-  assert.match(html, /id="resourceThumbnailInput"/);
-  assert.match(html, /project\.template\.thumbnail=\{kind:'upload'/);
-  assert.match(html, /권장 크기는 1200×900px, 최소 크기는 800×600px/);
-  assert.match(runtime, /uploaded\?\.dataUrl/);
   assert.match(html, /sourceProject\.book\.pageInstances\[0\]/);
   assert.match(html, /source:'first-page'/);
   assert.match(html, /ACDLRepresentativePreview\.refresh\(project/);
   assert.match(runtime, /ACDLRepresentativePreview\.refresh\(projectData/);
-  assert.match(runtime, /function mountCoverSnapshot\(record,host,page\)/);
-  assert.match(runtime, /thumbnailMarkupCache/);
-  assert.doesNotMatch(runtime, /library-thumbnail-fallback\" src=/);
-  assert.match(runtime, /transform',`scale\(\$\{scale\}\)`,'important'/);
-  assert.match(runtime, /const designSize=window\.ACDLEditorPageFit\?\.designSize\?\.\(\)/);
-  assert.match(runtime, /sourceWidth=Math\.max\(1,Math\.round\(Number\(designSize\?\.width\)\|\|page\.offsetWidth/);
-  assert.match(runtime, /render\(\);window\.ACDLEditorPageFit\?\.fit\?\.\(\)/);
-  assert.match(runtime, /renderActualThumbnail\(record,host\)/);
-  assert.match(runtime, /clone\.style\.removeProperty\('transform'\)/);
-  assert.doesNotMatch(runtime, /page\.getBoundingClientRect\(\)/);
-  assert.doesNotMatch(html, /\.calendar-product-page \.library-thumb-render\{[^}]*transform:none!important/);
+  assert.match(runtime, /저장된 첫 페이지 이미지 파일을 불러오지 못했습니다/);
+  assert.doesNotMatch(runtime, /renderActualThumbnail|library-thumbnail-fallback/);
 });
 
 test('template library uses unified controls and full first-page thumbnails', () => {
@@ -285,7 +273,7 @@ test('print preflight polling keeps the last known job when history authenticati
 });
 
 test('deployed editor loads the PNG representative preview capture runtime',()=>{
-  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260923\.4/);
+  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260923\.5/);
 });
 
 test('insert sidebar separates and collapses utility controls when an object category opens', () => {

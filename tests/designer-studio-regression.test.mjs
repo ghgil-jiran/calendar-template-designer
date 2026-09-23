@@ -151,7 +151,7 @@ test('postcard calendar editing uses the single shared toggle handler', () => {
 test('library thumbnail gives the full image area to the saved first page', () => {
   assert.match(html, /library-thumb\.library-first-page-thumb\{[^}]*aspect-ratio:13\/9/);
   assert.match(html, /library-first-page-thumb \.library-uploaded-thumbnail[^}]*object-fit:contain/);
-  assert.match(html, /library-first-page-thumb \.library-thumb-render\{[^}]*inset:0!important/);
+  assert.doesNotMatch(html, /library-first-page-thumb \.library-thumb-render/);
 });
 
 test('designer studio entry flow uses the unified studio entry and hides sample entry', () => {

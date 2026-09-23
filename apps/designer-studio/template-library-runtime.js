@@ -15,9 +15,7 @@
  let activeTypeFilter='all';
  let activeLibraryState='all';
  let activeStandardOnly=false;
- let thumbnailQueue=Promise.resolve();
  const thumbnailGenerations=new WeakMap();
- const thumbnailMarkupCache=new Map();
  const thumbnailObjectUrls=new WeakMap();
  const versionHistoryCache=new Map();
  let pendingClone=null;
@@ -94,7 +92,7 @@
     features:record?.features||[],
     size:sizeOf({...record,type}),
     pageSummary:record?.pageSummary||`${meta.duplex?'앞면·뒷면':'단면'} · ${meta.monthlyCount||12}개월`,
-    thumbnail:record?.thumbnail||{kind:'renderer',source:'templateData'},
+    thumbnail:record?.thumbnail||null,
     updatedAt,
     version,
     publishedAt,
@@ -185,42 +183,40 @@
   panel.innerHTML='<p class="library-version-loading">버전 이력을 불러오는 중입니다.</p>';
   try{let versions=versionHistoryCache.get(templateId);if(!versions){const result=await window.ACDLTemplateRemotePersistence.versions(templateId);versions=result.versions||[];versionHistoryCache.set(templateId,versions)}panel.innerHTML=historyMarkup(templateId,versions,record.version);panel.querySelectorAll('[data-version-restore]').forEach(item=>item.addEventListener('click',()=>restoreVersion(templateId,item.dataset.versionRestore).catch(error=>showEditorToast(error?.message||'버전을 복원하지 못했습니다.'))))}catch(error){panel.innerHTML=`<p class="library-version-error">${escape(error?.message||'버전 이력을 불러오지 못했습니다.')}</p>`}
  }
- function mountCoverSnapshot(record,host,page){
-  // The editor page is a fixed design surface with an outer display scale. A
-  // thumbnail must start from that unscaled surface; getBoundingClientRect()
-  // includes the editor scale and would make the clone scale twice.
-  const designSize=window.ACDLEditorPageFit?.designSize?.();
-  const sourceWidth=Math.max(1,Math.round(Number(designSize?.width)||page.offsetWidth||parseFloat(page.style.width)||850));
-  const sourceHeight=Math.max(1,Math.round(Number(designSize?.height)||page.offsetHeight||parseFloat(page.style.height)||588));
-  const clone=page.cloneNode(true);
-  clone.removeAttribute('id');clone.classList.add('library-thumb-render','library-cover-snapshot');
-  clone.querySelectorAll('.editor-only,.non-output,.s2-selection-toolbar,.s2-key-hint,.selected').forEach(node=>{node.classList.contains('selected')?node.classList.remove('selected'):node.remove()});
-  clone.style.removeProperty('transform');clone.style.setProperty('transform-origin','top left','important');clone.style.setProperty('width',`${sourceWidth}px`,'important');clone.style.setProperty('height',`${sourceHeight}px`,'important');clone.style.setProperty('max-width','none','important');clone.style.setProperty('max-height','none','important');clone.style.setProperty('inset','auto','important');
-  const fit=()=>{if(!host.isConnected)return;const scale=Math.min(host.clientWidth/sourceWidth,host.clientHeight/sourceHeight);clone.style.setProperty('left',`${Math.max(0,(host.clientWidth-sourceWidth*scale)/2)}px`,'important');clone.style.setProperty('top',`${Math.max(0,(host.clientHeight-sourceHeight*scale)/2)}px`,'important');clone.style.setProperty('transform',`scale(${scale})`,'important')};
-  host.innerHTML='';host.appendChild(clone);fit();
-  thumbnailMarkupCache.set(`${record.id}:${record.version}:${record.updatedAt}`,host.innerHTML);
-  if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(fit);observer.observe(host);host._thumbnailObserver?.disconnect?.();host._thumbnailObserver=observer}
- }
- async function renderActualThumbnailNow(record,host){
-  if(!host||host.dataset.rendered==='true'||el('templateLibraryModal')?.classList.contains('hidden'))return;
-  const navigation=window.ACDLProjectNavigation;
-  const transitionId=navigation?.current?.();
-  let original=null;
-  try{
-   original={project,selectedPageId,selectedElementId,selectedElementScope,calendarEditing,history,future};
-   let source=await loadTemplateProjectData(record.id);
-   if(!host.isConnected||el('templateLibraryModal')?.classList.contains('hidden')||(navigation&&!navigation.isCurrent(transitionId)))return;
-   const uploaded=source?.template?.thumbnail?.kind==='upload'?source.template.thumbnail:record.thumbnail?.kind==='upload'?record.thumbnail:null;
-   if(uploaded?.dataUrl){host.innerHTML=`<img class="library-uploaded-thumbnail" src="${uploaded.dataUrl}" alt="${escape(record.name)} 대표 이미지">`;host.dataset.rendered='true';return}
-   if(!source){const preset=(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[]).find(item=>item.recommended)||(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[])[0];source=makeProject({type:record.type,year:record.edition,startMonth:3,template:record.packageVersion?'school-basic':record.template,frontInsertCount:record.packageVersion?0:1,rearInsertCount:0,calendarRows:record.packageVersion?5:6,weekStart:'sunday',showAdjacentMiniCalendars:true,posterColumns:4,sizePresetId:preset?.id});if(record.packageVersion)source=await window.ACDLPackageProjectAdapter.loadAndApply(source,record.packageBase)}
-   project=structuredClone(source);const pages=project.book.pageInstances||[],preferred=record.type==='poster'?pages.find(page=>page.role==='poster-annual'):pages.find(page=>page.role==='cover-front');selectedPageId=preferred?.id||pages[0]?.id||null;selectedElementId=null;selectedElementScope=null;calendarEditing=false;history=[];future=[];render();window.ACDLEditorPageFit?.fit?.();
-   const page=el('page');if(!page)return;mountCoverSnapshot(record,host,page);host.dataset.rendered='true';
-  }catch(error){host.innerHTML='<span class="thumbnail-placeholder">미리보기를 만들 수 없습니다.</span>';console.warn('Template thumbnail failed',record.id,error)}
-  finally{if(original&&(!navigation||navigation.isCurrent(transitionId))){project=original.project;selectedPageId=original.selectedPageId;selectedElementId=original.selectedElementId;selectedElementScope=original.selectedElementScope;calendarEditing=original.calendarEditing;history=original.history;future=original.future;if(project)render()}}
- }
- function renderActualThumbnail(record,host){const key=`${record.id}:${record.version}:${record.updatedAt}`,cached=thumbnailMarkupCache.get(key);if(cached&&host){host.innerHTML=cached;host.dataset.rendered='true';return Promise.resolve()}thumbnailQueue=thumbnailQueue.then(()=>renderActualThumbnailNow(record,host)).catch(error=>console.warn('Template thumbnail queue failed',record.id,error));return thumbnailQueue}
  function releaseThumbnailObjectUrls(container){thumbnailObjectUrls.get(container)?.forEach(url=>URL.revokeObjectURL?.(url));thumbnailObjectUrls.set(container,new Set())}
- async function hydrateThumbnails(list,container){if(!container)return;const generation=(thumbnailGenerations.get(container)||0)+1;thumbnailGenerations.set(container,generation);releaseThumbnailObjectUrls(container);const markers=[],pending=[];list.forEach(record=>{const host=container.querySelector(`[data-library-thumbnail="${CSS.escape(record.id)}"]`);if(!host)return;const uploaded=record.thumbnail?.kind==='upload'?record.thumbnail:null,src=uploaded?.dataUrl||'',match=String(src).match(/^acdl-asset:\/\/([0-9a-f-]{36})$/i);if(match){markers.push(match[1]);pending.push({record,host,assetId:match[1]});return}if(src){host.innerHTML=`<img class="library-uploaded-thumbnail" src="${src}" alt="${escape(record.name)} 대표 이미지">`;host.dataset.rendered='true';return}if(record.source==='catalog'){renderActualThumbnail(record,host);return}host.innerHTML='<span class="thumbnail-placeholder">대표 이미지 저장 필요</span>';host.dataset.rendered='missing'});if(!markers.length)return;try{const result=await window.ACDLTemplateRemotePersistence?.assetObjectUrls?.(markers)||{urls:{},failures:[]},urls=result.urls||{};if(generation!==thumbnailGenerations.get(container)){Object.values(urls).forEach(url=>URL.revokeObjectURL(url));return}pending.forEach(({record,host,assetId})=>{const src=urls[assetId];if(generation!==thumbnailGenerations.get(container)||!host.isConnected)return;if(src){thumbnailObjectUrls.get(container).add(src);host.innerHTML=`<img class="library-uploaded-thumbnail" src="${src}" alt="${escape(record.name)} 대표 이미지">`;host.dataset.rendered='true'}else{host.innerHTML='<span class="thumbnail-placeholder">대표 이미지 파일을 불러오지 못했습니다.</span>';host.dataset.rendered='failed'}});if(result.failures?.length)console.warn('Template thumbnail assets failed',result.failures.map(item=>({id:item.id,status:item.error?.status,code:item.error?.code})))}catch(error){pending.forEach(({host})=>{if(generation===thumbnailGenerations.get(container)&&host.isConnected){host.innerHTML='<span class="thumbnail-placeholder">대표 이미지 파일을 불러오지 못했습니다.</span>';host.dataset.rendered='failed'}});console.warn('Template thumbnail batch failed',error)}}
+ async function hydrateThumbnails(list,container){
+  if(!container)return;
+  const generation=(thumbnailGenerations.get(container)||0)+1;
+  thumbnailGenerations.set(container,generation);releaseThumbnailObjectUrls(container);
+  const current=host=>generation===thumbnailGenerations.get(container)&&host.isConnected;
+  const showMissing=(host,message,status)=>{if(!current(host))return;host.innerHTML=`<span class="thumbnail-placeholder">${message}</span>`;host.dataset.rendered=status};
+  const showImage=async(host,record,src)=>{
+   const image=new Image();image.className='library-uploaded-thumbnail';image.alt=`${record.name} 첫 페이지 이미지`;image.src=src;
+   try{await image.decode();if(!image.naturalWidth||!image.naturalHeight)throw new Error('Empty thumbnail');if(!current(host))return;host.replaceChildren(image);host.dataset.rendered='true'}
+   catch(error){showMissing(host,'저장된 첫 페이지 이미지 파일을 표시할 수 없습니다.','failed');console.warn('Template thumbnail decode failed',record.id,error)}
+  };
+  const pending=[],direct=[];
+  list.forEach(record=>{
+   const host=container.querySelector(`[data-library-thumbnail="${CSS.escape(record.id)}"]`);if(!host)return;
+   const src=record.thumbnail?.kind==='upload'?record.thumbnail.dataUrl||'':'';
+   const marker=String(src).match(/^acdl-asset:\/\/([0-9a-f-]{36})$/i);
+   if(marker){pending.push({record,host,assetId:marker[1]});return}
+   if(src){direct.push(showImage(host,record,src));return}
+   showMissing(host,'저장된 첫 페이지 이미지가 없습니다.','missing');
+  });
+  if(!pending.length)return Promise.all(direct);
+  try{
+   const result=await window.ACDLTemplateRemotePersistence.assetObjectUrls(pending.map(item=>item.assetId));
+   const urls=result.urls||{};
+   if(generation!==thumbnailGenerations.get(container)){Object.values(urls).forEach(url=>URL.revokeObjectURL(url));return}
+   await Promise.all([...direct,...pending.map(async({record,host,assetId})=>{
+    const src=urls[assetId];if(!src){showMissing(host,'저장된 첫 페이지 이미지 파일을 불러오지 못했습니다.','failed');return}
+    if(!current(host)){URL.revokeObjectURL(src);return}
+    thumbnailObjectUrls.get(container).add(src);await showImage(host,record,src);
+   })]);
+   if(result.failures?.length)console.warn('Template thumbnail assets failed',result.failures.map(item=>({id:item.id,status:item.error?.status,code:item.error?.code})));
+  }catch(error){pending.forEach(({host})=>showMissing(host,'저장된 첫 페이지 이미지 파일을 불러오지 못했습니다.','failed'));console.warn('Template thumbnail batch failed',error)}
+ }
  function editionOptions(){
   return [...new Set(records().map(record=>Number(record.edition)))].filter(Number).sort((a,b)=>b-a);
  }
@@ -535,7 +531,7 @@ async function refreshPreflightResult(){
  }
  function renderUserChoices(){
   const grid=el('userTemplateChoiceGrid');if(!grid)return;const selectedType=selectedCalendarType;const list=records().filter(record=>record.type===selectedType&&record.state==='published').sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
-  grid.innerHTML=list.length?list.map(record=>`<button type="button" class="template-choice" data-user-library-id="${escape(record.id)}" data-user-template="${escape(record.template)}" data-user-type="${escape(record.type)}" data-state="published"><div class="template-preview" data-library-thumbnail="${escape(record.id)}"><span class="thumbnail-placeholder">템플릿 미리보기</span></div><div class="template-card-topline"><strong>${escape(record.name)}</strong><span class="edition-badge">${record.edition} Edition</span></div><small class="template-description">${escape(record.description)}</small><div class="template-tags"><span>${escape(label(record.type))}</span>${(record.features||[]).slice(0,2).map(item=>`<span>${escape(item)}</span>`).join('')}</div></button>`).join(''):`<div class="library-empty-state user-empty"><strong>현재 준비 중인 유형입니다.</strong><p>게시된 템플릿이 없습니다.</p></div>`;
+  grid.innerHTML=list.length?list.map(record=>`<button type="button" class="template-choice" data-user-library-id="${escape(record.id)}" data-user-template="${escape(record.template)}" data-user-type="${escape(record.type)}" data-state="published"><div class="template-preview" data-library-thumbnail="${escape(record.id)}"><span class="thumbnail-placeholder">저장된 첫 페이지 이미지가 없습니다.</span></div><div class="template-card-topline"><strong>${escape(record.name)}</strong><span class="edition-badge">${record.edition} Edition</span></div><small class="template-description">${escape(record.description)}</small><div class="template-tags"><span>${escape(label(record.type))}</span>${(record.features||[]).slice(0,2).map(item=>`<span>${escape(item)}</span>`).join('')}</div></button>`).join(''):`<div class="library-empty-state user-empty"><strong>현재 준비 중인 유형입니다.</strong><p>게시된 템플릿이 없습니다.</p></div>`;
   grid.querySelectorAll('[data-user-template]').forEach(button=>button.addEventListener('click',()=>{grid.querySelectorAll('[data-user-template]').forEach(item=>item.classList.remove('selected'));button.classList.add('selected');selectedUserTemplate={template:button.dataset.userTemplate,type:button.dataset.userType,libraryId:button.dataset.userLibraryId};renderUserSizeOptions();wizardStateApi?.persistWizardState?.({selectedType:selectedCalendarType,template:selectedUserTemplate.template,step:userWizardStep});updateWizardActions()}));
   updateWizardActions();
   hydrateThumbnails(list,grid);
