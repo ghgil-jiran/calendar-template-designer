@@ -195,7 +195,7 @@ test('image-based school asset slots do not render fixed role captions', () => {
   assert.match(html, /semantic-empty-visual non-output editor-only/);
 });
 
-test('template thumbnails persist the actual first page and keep a legacy fallback', () => {
+test('template thumbnails persist the actual first page without a misleading fallback', () => {
   const html = studioHtml;
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
   assert.match(html, /id="resourceThumbnailInput"/);
@@ -208,7 +208,7 @@ test('template thumbnails persist the actual first page and keep a legacy fallba
   assert.match(runtime, /ACDLRepresentativePreview\?\.refresh\?\.\(projectData/);
   assert.match(runtime, /function mountCoverSnapshot\(record,host,page\)/);
   assert.match(runtime, /thumbnailMarkupCache/);
-  assert.match(runtime, /library-thumbnail-fallback/);
+  assert.doesNotMatch(runtime, /library-thumbnail-fallback\" src=/);
   assert.match(runtime, /transform',`scale\(\$\{scale\}\)`,'important'/);
   assert.match(runtime, /const designSize=window\.ACDLEditorPageFit\?\.designSize\?\.\(\)/);
   assert.match(runtime, /sourceWidth=Math\.max\(1,Math\.round\(Number\(designSize\?\.width\)\|\|page\.offsetWidth/);
@@ -285,7 +285,7 @@ test('print preflight polling keeps the last known job when history authenticati
 });
 
 test('deployed editor loads the PNG representative preview capture runtime',()=>{
-  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260923\.2/);
+  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260923\.3/);
 });
 
 test('insert sidebar separates and collapses utility controls when an object category opens', () => {
