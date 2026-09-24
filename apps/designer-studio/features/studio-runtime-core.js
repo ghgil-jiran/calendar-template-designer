@@ -348,9 +348,10 @@ async function representativeSvgPng(svg,width,height){
  await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error('표지 렌더링 이미지를 만들지 못했습니다.'));image.src=url});
  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const context=canvas.getContext('2d');if(!context)throw new Error('대표 이미지 캔버스를 만들지 못했습니다.');context.drawImage(image,0,0,width,height);const pixels=context.getImageData(0,0,width,height).data;let visible=0;for(let index=3;index<pixels.length;index+=4)if(pixels[index]>16)visible++;if(visible<width*height*.05)throw Object.assign(new Error('첫 페이지가 비어 있는 이미지로 생성되어 저장을 중단했습니다.'),{code:'THUMBNAIL_RENDER_EMPTY'});return canvas.toDataURL('image/png')
 }
-async function representativeCoverSvg(sourceProject=project){
+async function representativeCoverSvg(sourceProject=project,pageIndex=0){
  if(!sourceProject?.book?.pageInstances?.length)throw new Error('대표 이미지로 사용할 페이지가 없습니다.');
- const previous={project,pageId:selectedPageId,elementId:selectedElementId,elementScope:selectedElementScope,calendarEditing},cover=sourceProject.book.pageInstances[0];
+ const previous={project,pageId:selectedPageId,elementId:selectedElementId,elementScope:selectedElementScope,calendarEditing},cover=sourceProject.book.pageInstances[pageIndex];
+  if(!cover)throw new Error(`미리보기 페이지 ${pageIndex+1}을 찾지 못했습니다.`);
  try{
   project=sourceProject;
   selectedPageId=cover.id;selectedElementId=null;selectedElementScope=null;calendarEditing=false;renderPage();applyThemeTokens();
@@ -379,7 +380,7 @@ async function refreshRepresentativeThumbnail(sourceProject,{fileName=''}={}){
  sourceProject.template.thumbnail={kind:'upload',source:'first-page',dataUrl,fileName:fileName||`${sourceProject.template.id||'template'}-${Date.now()}-page-1.png`,updatedAt,pageId:page.id||null,pageRole:page.role||null,fit:'contain'};
  return sourceProject.template.thumbnail
 }
-window.ACDLRepresentativePreview=Object.freeze({capture:representativeCoverSvg,refresh:refreshRepresentativeThumbnail});
+window.ACDLRepresentativePreview=Object.freeze({capture:representativeCoverSvg,capturePage:representativeCoverSvg,refresh:refreshRepresentativeThumbnail});
 window.renderPage=renderPage;
 window.renderFreeElements=renderFreeElements;
 window.renderNavigator=renderNavigator;
