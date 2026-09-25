@@ -541,7 +541,7 @@ function masterElements(p=selectedPage()){
  return project.template.masterElements[masterId]
 }
 function isMonthBackCompositionElement(item){return item?.role==="ai-month-back-component"||Boolean(item?.aiDesignComponent)||["image-frame","mini-calendar","mini-calendar-prev","mini-calendar-next","month-date-strip"].includes(item.type)||item.type==="memo"||["monthly-goal","monthly-todo","weekly-planner"].includes(item.role)}
-function allVisibleElements(){const page=selectedPage(),pageItems=pageElements(),shadowed=new Set(pageItems.map(e=>e.shadowOfMasterElementId).filter(Boolean)),hideInheritedDecoration=page.aiDesignBase?.mode==="neutral",replaceMonthBackComposition=page.aiMonthBackComposition?.mode==="generated-layout";return [...masterElements().filter(e=>!shadowed.has(e.id)).filter(e=>!hideInheritedDecoration||!isInheritedDesignDecoration(e)).filter(e=>!replaceMonthBackComposition||!isMonthBackCompositionElement(e)).map(e=>({...e,_scope:"master"})),...pageItems.map(e=>({...e,_scope:"page"}))].sort((a,b)=>(a.zIndex||0)-(b.zIndex||0))}
+function allVisibleElements(){return window.ACDLPageCompositionRuntime.visibleElements(selectedPage(),masterElements(),pageElements())}
 function sourceElement(){
  if(!selectedElementId)return null;
  const arr=selectedElementScope==="master"?masterElements():pageElements();
