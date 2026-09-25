@@ -161,9 +161,8 @@ function renderWidgetContent(view,p){
  if(view.type==="month-date-strip"){
   const strip=window.ACDLPageCompositionRuntime.resolveMonthDateStrip(view,p,{year:project.settings.year,startMonth:project.settings.startMonth||1});
   if(!strip)return "";
-  let inner=`<div class="month-date-strip" style="--date-count:${strip.cells.length};${view.style?.background===false?"background:transparent;border-color:transparent;":""}">`;
-  for(const cell of strip.cells)inner+=`<div class="month-date-cell ${cell.weekday===0?"sun":cell.weekday===6?"sat":""}">${strip.showWeekday?`<span class="dow">${cell.weekdayLabel}</span>`:""}${strip.showDate?`<span class="date">${cell.day}</span>`:""}</div>`;
-  return inner+"</div>"
+  window.ACDLPageCompositionRuntime.installMonthDateStripStyle();
+  return window.ACDLPageCompositionRuntime.renderMonthDateStripMarkup(strip,view.style?.background===false)
  }
  if(view.type==="memo"){
   const layout=view.memoLayout||"lines",title=v21Escape(view.title||"메모");
