@@ -29,7 +29,7 @@
   }
   function widgetValue(element, page) {
     const storedValue = element?.value && typeof element.value === "object" && !Array.isArray(element.value) ? element.value : {};
-    const runtimeConfig = Object.fromEntries(Object.entries(element.runtimeWidget || {}).filter(([, value]) => value !== undefined));
+    const runtimeConfig = Object.fromEntries(Object.entries({ rows: element.rows, weekStart: element.weekStart, showWeekday: element.showWeekday, showDate: element.showDate, baseYear: element.baseYear, startMonth: element.startMonth, monthCount: element.monthCount, columns: element.columns, memoLayout: element.memoLayout, title: element.title, lineCount: element.lineCount, itemCount: element.itemCount, weekCount: element.weekCount, showMemo: element.showMemo, showAdjacentMonths: element.showAdjacentMonths, ...element.runtimeWidget }).filter(([, value]) => value !== undefined));
     const config = { ...storedValue, ...runtimeConfig };
     const type = alias(element.type), year = Number(page?.calendarYear), month = Number(page?.calendarMonth);
     if (type === "year-calendar") return { year: Number(config.baseYear), startMonth: Number(config.startMonth || 3), monthCount: Number(config.monthCount || 12), columns: Number(config.columns || 4), weekStart: config.weekStart || "sunday" };
