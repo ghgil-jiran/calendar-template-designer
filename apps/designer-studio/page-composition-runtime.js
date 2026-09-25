@@ -64,5 +64,29 @@
     if (type === "memo") return { layout: config.memoLayout || "lines", title: config.title || "MEMO", lineCount: Number(config.lineCount || 8), itemCount: Number(config.itemCount || 9), weekCount: Number(config.weekCount || 5), showMemo: config.showMemo !== false };
     return element.value;
   }
-  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip });
+  // The same page object must produce the same widget DOM in authoring and user editing.
+  // Values inserted into HTML are generated calendar numbers or escaped labels.
+  const monthDateStripCss = ".month-date-strip{width:100%;height:100%;display:grid;grid-template-columns:repeat(var(--date-count,31),minmax(0,1fr));align-items:stretch;background:rgba(255,255,255,.96);border:1px solid var(--line,#d8dbe2);border-radius:6px;overflow:hidden}.month-date-cell{min-width:0;display:grid;grid-template-rows:1fr 1.15fr;align-items:center;text-align:center;border-right:1px solid rgba(23,32,46,.09);font-variant-numeric:tabular-nums}.month-date-cell:last-child{border-right:0}.month-date-cell .dow{font-size:clamp(5px,1.05vw,10px);font-weight:800;color:#6b7280;line-height:1}.month-date-cell .date{font-size:clamp(6px,1.35vw,13px);font-weight:750;line-height:1}.month-date-cell.sun .dow,.month-date-cell.sun .date{color:#d04444}.month-date-cell.sat .dow,.month-date-cell.sat .date{color:#3569b8}";
+  function escapeMonthStripText(value) {
+    return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+  }
+  function renderMonthDateStripMarkup(strip, transparent = false) {
+    if (!strip || !Array.isArray(strip.cells)) return "";
+    const cells = strip.cells.map(cell => {
+      const kind = cell.weekday === 0 ? " sun" : cell.weekday === 6 ? " sat" : "";
+      return '<div class="month-date-cell' + kind + '">' +
+        (strip.showWeekday ? '<span class="dow">' + escapeMonthStripText(cell.weekdayLabel) + '</span>' : "") +
+        (strip.showDate ? '<span class="date">' + escapeMonthStripText(cell.day) + '</span>' : "") + '</div>';
+    }).join("");
+    return '<div class="month-date-strip" style="--date-count:' + strip.cells.length +
+      (transparent ? ';background:transparent;border-color:transparent' : "") + '">' + cells + '</div>';
+  }
+  function installMonthDateStripStyle() {
+    if (typeof document === "undefined" || document.getElementById("acdl-month-date-strip-style")) return;
+    const style = document.createElement("style");
+    style.id = "acdl-month-date-strip-style";
+    style.textContent = monthDateStripCss;
+    document.head.appendChild(style);
+  }
+  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss, installMonthDateStripStyle });
 })(typeof window !== "undefined" ? window : globalThis);
