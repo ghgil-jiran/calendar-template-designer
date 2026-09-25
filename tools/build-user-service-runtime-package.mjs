@@ -7,7 +7,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(process.argv[2] || resolve(root, 'dist/user-service-runtime-bridge'));
 const source = resolve(root, 'packages/designer-runtime-integration/dist');
 const templateRuntimeSource = resolve(root, 'packages/template-runtime/dist/src');
-const bridgeVersion = '0.1.0-alpha.3';
+const bridgeVersion = '0.1.0-alpha.4';
 const templatePackages = [
   { templateId: 'desk-academic-standard', versions: ['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0'] },
   { templateId: 'wall-academic-standard', versions: ['0.1.0', '0.2.0', '0.3.0'] }
@@ -42,6 +42,9 @@ for (const name of modules) {
   await cp(resolve(source, `${name}.d.ts`), resolve(output, 'dist', `${name}.d.ts`));
 }
 await cp(templateRuntimeSource, resolve(output, 'dist/template-runtime'), { recursive: true });
+await cp(resolve(root, 'apps/designer-studio/page-composition-runtime.js'), resolve(output, 'dist/page-composition-runtime.js'));
+await writeFile(resolve(output, 'dist/page-composition.js'), 'import "./page-composition-runtime.js";\nexport const visibleElements = globalThis.ACDLPageCompositionRuntime.visibleElements;\n');
+await writeFile(resolve(output, 'dist/page-composition.d.ts'), 'export declare function visibleElements<T extends { id?: string; zIndex?: number; role?: string; type?: string; shadowOfMasterElementId?: string }>(page: Record<string, unknown>, masterElements: T[], localElements: T[]): Array<T & { _scope: "master" | "page" }>;\n');
 const nativePrintExport = 'export * from "./template-runtime/index.js";\n';
 await writeFile(resolve(output, 'dist/native-print-runtime.js'), nativePrintExport);
 await writeFile(resolve(output, 'dist/native-print-runtime.d.ts'), nativePrintExport);
@@ -68,6 +71,7 @@ await writeFile(resolve(output, 'package.json'), `${JSON.stringify({
   exports: {
     '.': { types: './dist/index.d.ts', import: './dist/index.js' },
     './native-print-runtime': { types: './dist/native-print-runtime.d.ts', import: './dist/native-print-runtime.js' },
+    './page-composition': { types: './dist/page-composition.d.ts', import: './dist/page-composition.js' },
     ...Object.fromEntries(templatePackages.flatMap(({ templateId, versions }) => versions.map(version => [
       `./templates/${templateId}/${version}/*`,
       `./templates/${templateId}/${version}/*`
@@ -101,6 +105,9 @@ const integrityFiles = [
   'dist/index.d.ts',
   'dist/native-print-runtime.js',
   'dist/native-print-runtime.d.ts',
+  'dist/page-composition-runtime.js',
+  'dist/page-composition.js',
+  'dist/page-composition.d.ts',
   ...nativeRuntimeFiles,
   ...modules.flatMap(name => [`dist/${name}.js`, `dist/${name}.d.ts`]),
   ...templatePackages.flatMap(({ templateId, versions }) => versions.flatMap(version => [
