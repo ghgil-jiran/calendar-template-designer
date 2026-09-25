@@ -159,9 +159,10 @@ function renderWidgetContent(view,p){
   return inner+"</div>"
  }
  if(view.type==="month-date-strip"){
-  const usePage=view.monthSource!=="fixed"&&p.calendarYear&&p.calendarMonth,year=usePage?p.calendarYear:Number(view.year||project.settings.year),month=usePage?p.calendarMonth:Number(view.month||project.settings.startMonth||1),count=new Date(year,month,0).getDate();
-  let inner=`<div class="month-date-strip" style="--date-count:${count};${view.style?.background===false?"background:transparent;border-color:transparent;":""}">`;
-  for(let day=1;day<=count;day++){const dow=new Date(year,month-1,day).getDay(),letter="SMTWTFS"[dow];inner+=`<div class="month-date-cell ${dow===0?"sun":dow===6?"sat":""}">${view.showWeekday===false?"":`<span class="dow">${letter}</span>`}${view.showDate===false?"":`<span class="date">${day}</span>`}</div>`}
+  const strip=window.ACDLPageCompositionRuntime.resolveMonthDateStrip(view,p,{year:project.settings.year,startMonth:project.settings.startMonth||1});
+  if(!strip)return "";
+  let inner=`<div class="month-date-strip" style="--date-count:${strip.cells.length};${view.style?.background===false?"background:transparent;border-color:transparent;":""}">`;
+  for(const cell of strip.cells)inner+=`<div class="month-date-cell ${cell.weekday===0?"sun":cell.weekday===6?"sat":""}">${strip.showWeekday?`<span class="dow">${cell.weekdayLabel}</span>`:""}${strip.showDate?`<span class="date">${cell.day}</span>`:""}</div>`;
   return inner+"</div>"
  }
  if(view.type==="memo"){
