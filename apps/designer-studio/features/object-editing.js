@@ -153,9 +153,18 @@ function renderWidgetContent(view,p){
   return inner+"</div></div>"
  }
  if(view.type==="year-calendar"){
-  const cols=Number(view.columns||4),count=Number(view.monthCount||12),start=Number(view.startMonth||1),seq=monthSequence(p.calendarYear||project.settings.year,start).slice(0,count);
-  const layout=["open-grid","individual-month-boxes","vertical-three-month-groups","horizontal-four-month-groups"].includes(view.layoutType)?view.layoutType:"individual-month-boxes",baseYear=seq[0]?.year,renderMonth=mm=>{const rows=yearCalendarRowCountFor(view,mm.year,mm.month),monthNames=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"],transition=view.showTransitionYear!==false&&mm.year!==baseYear,yearMark=transition?`<small class="year-transition">${mm.year}</small>`:"",label=view.monthLabelStyle==="number-en"?`${mm.month} <small>${monthNames[mm.month-1]}${transition?` · ${mm.year}`:""}</small>`:`${yearMark}${mm.month}월`,weekdayRows=view.showWeekdayHeader===false?"":"auto ";let html=`<div class="year-month" data-month-key="${mm.year}-${String(mm.month).padStart(2,"0")}"><strong>${label}</strong><div class="year-month-grid" style="--year-calendar-rows:${rows};grid-template-rows:${weekdayRows}repeat(${rows},1fr)">`;if(view.showWeekdayHeader!==false)weekDayHeaders(true).forEach(x=>html+=`<span class="mh">${x}</span>`);calendarGridFor(mm.year,mm.month,rows).forEach(c=>html+=`<span class="${c.month!==mm.month?"adj":""}">${c.day}</span>`);return html+="</div></div>"};
-  let inner=`<div class="year-calendar-object annual-layout-${layout}" style="--year-cols:${cols};--year-rows:${Math.ceil(count/cols)}">`;if(layout==="vertical-three-month-groups"||layout==="horizontal-four-month-groups"){const size=layout==="vertical-three-month-groups"?3:4;for(let index=0;index<seq.length;index+=size)inner+=`<div class="year-calendar-group">${seq.slice(index,index+size).map(renderMonth).join("")}</div>`}else inner+=seq.map(renderMonth).join("");
+  const annual=window.ACDLPageCompositionRuntime.resolveAnnualCalendar({...view,weekStart:project.settings.weekStart},p,{year:project.settings.year,startMonth:1,calendarRows:project.settings.calendarRows,calendarRowsMode:project.settings.calendarRowsMode,sampleFamily:project.template?.metadata?.sampleFamily,weekStart:project.settings.weekStart});
+  if(!annual)return "";
+  const renderMonth=mm=>{
+   const monthNames=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"],label=view.monthLabelStyle==="number-en"?`${mm.month} <small>${monthNames[mm.month-1]}${mm.transition?` · ${mm.year}`:""}</small>`:`${mm.transition?`<small class="year-transition">${mm.year}</small>`:""}${mm.month}월`;
+   let html=`<div class="year-month" data-month-key="${mm.year}-${String(mm.month).padStart(2,"0")}"><strong>${label}</strong><div class="year-month-grid" style="--year-calendar-rows:${mm.rows};grid-template-rows:${annual.showWeekdayHeader?"auto ":""}repeat(${mm.rows},1fr)">`;
+   if(annual.showWeekdayHeader)mm.headers.forEach(x=>html+=`<span class="mh">${x}</span>`);
+   mm.cells.forEach(cell=>html+=`<span class="${cell.month!==mm.month?"adj":""}">${cell.day}</span>`);
+   return html+"</div></div>"
+  };
+  let inner=`<div class="year-calendar-object annual-layout-${annual.layout}" style="--year-cols:${annual.columns};--year-rows:${Math.ceil(annual.months.length/annual.columns)}">`;
+  if(annual.groupSize){for(let index=0;index<annual.months.length;index+=annual.groupSize)inner+=`<div class="year-calendar-group">${annual.months.slice(index,index+annual.groupSize).map(renderMonth).join("")}</div>`}
+  else inner+=annual.months.map(renderMonth).join("");
   return inner+"</div>"
  }
  if(view.type==="month-date-strip"){
