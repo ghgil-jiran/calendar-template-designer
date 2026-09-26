@@ -164,12 +164,12 @@ test('live generation input rejects unknown styles and long instructions', () =>
   assert.throws(()=>validateGenerationInput({styleKey:'balanced',request:{conditions:{instruction:'가'.repeat(501)}}}),/500자/);
 });
 
-test('cover variants retain distinct directions while print generation stays high quality', () => {
-  const centered=validateGenerationInput({styleKey:'balanced',variantIndex:0,quality:'low'});
-  const asymmetric=validateGenerationInput({styleKey:'balanced',variantIndex:1,quality:'medium'});
+test('design generation defaults to medium and accepts high explicitly', () => {
+  const centered=validateGenerationInput({styleKey:'balanced',variantIndex:0});
+  const asymmetric=validateGenerationInput({styleKey:'balanced',variantIndex:1,quality:'high'});
   assert.equal(centered.variantDirection,'centered-photo');
   assert.equal(asymmetric.variantDirection,'asymmetric-photo');
-  assert.equal(centered.quality,'high');
+  assert.equal(centered.quality,'medium');
   assert.equal(asymmetric.quality,'high');
 });
 
@@ -383,19 +383,22 @@ test('AI generation UI follows the enabled role and monthly role contract',()=>{
 });
 
 
-test('print AI generation enforces high quality and records verified output evidence', () => {
+test('selected generation quality reaches API and basic images require print review', () => {
   const endpoint=fs.readFileSync(new URL('../api/ai-design-generate.js',import.meta.url),'utf8');
   const runtime=fs.readFileSync(new URL('../apps/designer-studio/features/ai-design-runtime.js',import.meta.url),'utf8');
   const quality=fs.readFileSync(new URL('../apps/designer-studio/ai-design/design-quality@0.2.0.js',import.meta.url),'utf8');
   const context=fs.readFileSync(new URL('../apps/designer-studio/ai-design/ai-generation-context@0.2.0.js',import.meta.url),'utf8');
-  assert.match(endpoint,/quality:'high'/);
+  assert.match(endpoint,/quality:input\.quality,output_format:/);
   assert.match(endpoint,/outputCompression:0/);
   assert.match(endpoint,/inspectGeneratedWebp\(encoded,generationSize\)/);
   assert.match(endpoint,/generationEvidence/);
-  assert.match(runtime,/id="aiDesignLiveQuality" disabled><option value="high">인쇄용 고품질 · 고정/);
+  assert.match(runtime,/id="aiDesignLiveQuality"><option value="medium" selected>/);
+  assert.match(runtime,/quality=selectedAIDesignQuality\(\)/);
+  assert.match(runtime,/quality=selected\.quality/);
   assert.doesNotMatch(runtime,/quality=el\("aiDesignLiveQuality"\)\?\.value\|\|"low"/);
   assert.match(runtime,/generationEvidence:result\.asset\.generationEvidence\|\|null/);
   assert.match(quality,/qualityContract:'ai-image-generation-quality\.v1'/);
+  assert.match(quality,/기본 품질로 생성되었습니다/);
   assert.match(quality,/이전 생성물이라 인쇄용 생성 품질 증거가 없습니다/);
   assert.match(context,/high:0\.2/);
 });
