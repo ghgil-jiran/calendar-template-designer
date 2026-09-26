@@ -324,14 +324,6 @@
   if(edition!=='all'&&String(record.edition)!==edition)return false;
   return true;
  }
- function renderLandingShowcase(){
-  const host=el('landingTemplateCovers');if(!host)return;
-  const covers=(window.ACDLAdminAuth?.isSignedIn?.()?records():[]).filter(record=>record.thumbnail?.kind==='upload'&&record.thumbnail.dataUrl&&record.state!=='archived').sort((a,b)=>Date.parse(b.updatedAt||0)-Date.parse(a.updatedAt||0)).slice(0,3);
-  const positions=['back','middle','front'];
-  host.innerHTML=positions.map((position,index)=>{const record=covers[index];return `<div class="landing-cover landing-cover-${position}"${record?` data-library-thumbnail="${escape(record.id)}"`:''}><span class="thumbnail-placeholder">${record?'첫 페이지를 불러오는 중입니다.':'템플릿 첫 페이지 이미지'}</span></div>`}).join('');
-  hydrateThumbnails(covers,host);
- }
- window.renderLandingShowcase=renderLandingShowcase;
  function renderLibrary(filter='all'){
   ensureTypeOptions();renderTypeFilters();renderEditionOptions();
   activeLibraryState=filter||activeLibraryState;
@@ -351,7 +343,6 @@
     hydrateThumbnails(list,grid);
   }
   updateLibrarySummary(list.length);
-  renderLandingShowcase();
  }
  let preflightRecord=null,preflightProject=null,preflightRuntimeDocument=null,preflightRenderParity=undefined,preflightIdentity=null,preflightHistory=[];
  let preflightReport=null,preflightArtifact=null,preflightFilter='all',preflightActiveGate=null,preflightStatusMessage='',preflightPollTimer=null;
@@ -550,7 +541,7 @@ async function refreshPreflightResult(){
  window.renderUserTemplateChoices=renderUserChoices;renderUserTemplateChoices=renderUserChoices;
  window.applyCalendarType=type=>{oldApplyType(type);selectedCalendarType=type;el('selectedTypeLabel')&&(el('selectedTypeLabel').textContent=label(type));renderTypeChoices();renderUserChoices()};applyCalendarType=window.applyCalendarType;
  window.ACDLTemplateCatalog={allTypes,records,typeMeta,renderTypeChoices,renderTypeFilters};
- ensureTypeOptions();renderTypeChoices();renderTypeFilters();renderUserChoices();renderLandingShowcase();installTemplateSaveProgress();installCloneDialog();installPermanentDeleteDialog();installTemplateOpenProgress();
+ ensureTypeOptions();renderTypeChoices();renderTypeFilters();renderUserChoices();installTemplateSaveProgress();installCloneDialog();installPermanentDeleteDialog();installTemplateOpenProgress();
  document.querySelectorAll('[data-library-state]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-library-state]').forEach(x=>x.classList.toggle('active',x===button));activeLibraryState=button.dataset.libraryState;setTimeout(()=>renderLibrary(button.dataset.libraryState),0)}));
  el('libraryStandardFilter')?.addEventListener('click',event=>{activeStandardOnly=!activeStandardOnly;event.currentTarget.classList.toggle('active',activeStandardOnly);event.currentTarget.setAttribute('aria-pressed',String(activeStandardOnly));renderLibrary(activeLibraryState)});
  document.querySelectorAll('[data-library-scope]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-library-scope]').forEach(x=>x.classList.toggle('active',x===button));activeLibraryScope=button.dataset.libraryScope;setTimeout(()=>renderLibrary(activeLibraryState),0)}));
