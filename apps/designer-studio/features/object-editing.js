@@ -174,23 +174,23 @@ function renderWidgetContent(view,p){
   return window.ACDLPageCompositionRuntime.renderMonthDateStripMarkup(strip,view.style?.background===false)
  }
  if(view.type==="memo"){
-  const layout=view.memoLayout||"lines",title=v21Escape(view.title||"메모");
+  const memoModel=window.ACDLPageCompositionRuntime.resolveMemoLayout(view),layout=memoModel.layout,title=v21Escape(memoModel.title);
   if(layout==="yearly-grid"){
    const columns=Math.max(2,Math.min(6,Number(view.yearlyColumns||4))),lines=Math.max(0,Math.min(12,Number(view.linesPerMonth??4))),monthNames=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"],start=Math.max(1,Math.min(12,Number(view.startMonth||1))),baseYear=Number(view.baseYear||project.settings.year||new Date().getFullYear()),months=Array.from({length:12},(_,index)=>{const zero=start-1+index;return {month:zero%12+1,year:baseYear+Math.floor(zero/12)}}),layoutType=view.yearlyLayoutType||"yearly-open-grid",base=months[0].year,renderMonth=entry=>{const transition=entry.year!==base,label=view.monthLabelStyle==="number-ko"?`${transition?`${entry.year} `:""}${entry.month}월`:`${entry.month} ${monthNames[entry.month-1]}${transition?` · ${entry.year}`:""}`;return `<section><b>${label}</b><div>${Array.from({length:lines},()=>"<i></i>").join("")}</div></section>`},groupSize=Number(view.yearlyGroupSize||0),content=groupSize?Array.from({length:Math.ceil(months.length/groupSize)},(_,index)=>`<div class="yearly-plan-group">${months.slice(index*groupSize,(index+1)*groupSize).map(renderMonth).join("")}</div>`).join(""):months.map(renderMonth).join("");
    return `<div class="widget-memo yearly-plan-grid yearly-layout-${layoutType}" data-container-style="${view.yearlyContainerStyle||"none"}" style="--yearly-cols:${columns}"><strong class="yearly-plan-title">${title}</strong><div class="yearly-plan-months">${content}</div></div>`
   }
   if(layout==="goal")return `<div class="widget-memo" data-memo-layout="goal"><strong class="planner-ribbon">${title}</strong><div class="planner-goal-box"></div></div>`;
   if(layout==="weekly"){
-   const weeks=Math.max(1,Math.min(5,Number(view.weekCount||5))),ordinals=["1st","2nd","3rd","4th","5th"];
+   const weeks=memoModel.weekCount,ordinals=["1st","2nd","3rd","4th","5th"];
    const cards=Array.from({length:weeks},(_,index)=>`<div class="planner-week-card"><span class="planner-week-label">${ordinals[index]} WEEK</span><span class="planner-week-space"></span></div>`);
-   if(view.showMemo!==false)cards.push(`<div class="planner-week-card memo"><span class="planner-week-label">MEMO</span><span class="planner-week-space"></span></div>`);
+   if(memoModel.showMemo)cards.push(`<div class="planner-week-card memo"><span class="planner-week-label">MEMO</span><span class="planner-week-space"></span></div>`);
    return `<div class="widget-memo" data-memo-layout="weekly"><strong class="planner-ribbon">${title}</strong><div class="planner-week-list">${cards.join("")}</div></div>`
   }
   if(layout==="checklist"){
-   const count=Math.max(1,Math.min(20,Number(view.itemCount||6)));
+   const count=memoModel.itemCount;
    return `<div class="widget-memo" data-memo-layout="checklist"><strong class="planner-ribbon">${title}</strong><div class="planner-check-list" style="grid-template-rows:auto repeat(${count},1fr)"><div class="planner-check-row header"><span>DATE</span><span>TO DO</span><span></span></div>${Array.from({length:count},()=>`<div class="planner-check-row"><span></span><span></span><span></span></div>`).join("")}</div></div>`
   }
-  const lineCount=Math.max(3,Number(view.lineCount||8)),rules=Array.from({length:lineCount},(_,index)=>`<i class="memo-rule" data-print-rule="true" style="top:${((index+1)/lineCount)*100}%"></i>`).join("");
+  const lineCount=memoModel.lineCount,rules=Array.from({length:lineCount},(_,index)=>`<i class="memo-rule" data-print-rule="true" style="top:${((index+1)/lineCount)*100}%"></i>`).join("");
   return `<div class="widget-memo" data-memo-layout="${layout}"><strong>${title}</strong><div class="memo-lines" data-print-memo-lines="true" style="--memo-line-count:${lineCount}">${rules}</div></div>`
  }
  if(view.type==="monthly-quote"){
