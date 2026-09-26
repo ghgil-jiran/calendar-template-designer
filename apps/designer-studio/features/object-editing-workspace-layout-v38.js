@@ -8,7 +8,7 @@
  host.appendChild(body);
  drawer.classList.add('hidden');
  const utilities=$('insertSidebarUtilities'),utilitiesToggle=$('toggleInsertSidebarUtilities');
- const setUtilitiesCollapsed=collapsed=>{utilities?.classList.toggle('is-collapsed',collapsed);if(utilitiesToggle){utilitiesToggle.setAttribute('aria-expanded',String(!collapsed));utilitiesToggle.textContent=collapsed?'자료·적용 범위 펼치기':'자료·적용 범위 접기'}};
+ const setUtilitiesCollapsed=collapsed=>{utilities?.classList.toggle('is-collapsed',collapsed);if(utilitiesToggle){utilitiesToggle.setAttribute('aria-expanded',String(!collapsed));utilitiesToggle.textContent=collapsed?'자료 펼치기':'자료 접기'}};
  utilitiesToggle?.addEventListener('click',()=>setUtilitiesCollapsed(utilitiesToggle.getAttribute('aria-expanded')==='true'));
  const normalize=tab=>({all:'school',shapes:'graphics',frames:'graphics',vectors:'graphics'}[tab]||tab||'school');
  const activate=tab=>{
@@ -21,18 +21,6 @@
  };
  switchObjectLibrary=activate;window.switchObjectLibrary=activate;
  $('openSampleSchoolDataBtn')?.addEventListener('click',()=>openResourceModal('school'));
- const scopeMirror=$('insertScopeMirror'),scopeSource=$('elementScope');
- const materializePageOverride=()=>{
-  if(scopeMirror?.value!=='page'||selectedElementScope!=='master')return false;
-  const masterItem=sourceElement();if(!masterItem)return false;
-  const pageItems=pageElements(),existing=pageItems.find(item=>item.shadowOfMasterElementId===masterItem.id);
-  if(existing){selectedElementId=existing.id;selectedElementScope='page';render();return true}
-  snapshot();
-  const clone=typeof structuredClone==='function'?structuredClone(masterItem):JSON.parse(JSON.stringify(masterItem));
-  clone.id=`element.page-override.${Date.now()}`;clone.shadowOfMasterElementId=masterItem.id;clone.originScope='master';
-  pageItems.push(clone);selectedElementId=clone.id;selectedElementScope='page';markDirty();render();showEditorToast('이 개체를 현재 페이지 전용으로 분리했습니다. 다른 Master 페이지는 변경되지 않습니다.');return true;
- };
- if(scopeMirror&&scopeSource){scopeMirror.value=scopeSource.value;scopeMirror.addEventListener('change',()=>{if(scopeMirror.value==='page')materializePageOverride();scopeSource.value=scopeMirror.value;scopeSource.dispatchEvent(new Event('change',{bubbles:true}))});scopeSource.addEventListener('change',()=>scopeMirror.value=scopeSource.value)}
  $('openObjectDrawerBtn')?.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();activate('school')},true);
  document.querySelectorAll('[data-library-tab]').forEach(button=>button.addEventListener('click',()=>activate(button.dataset.libraryTab)));
  const priorNavigator=renderNavigator;

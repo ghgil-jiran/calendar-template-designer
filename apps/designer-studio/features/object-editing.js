@@ -491,7 +491,7 @@ function verifyMonthlyMasterPropagation(role,itemId){
  return {
   canonical,
   pageCount:pages.length,
-  matchingPages:pages.filter(p=>canonicalMasterIdForPage(p)===canonical).length,
+  matchingPages:pages.filter(p=>canonicalMasterIdForPage(p)===canonical&&!pageElements(p).some(local=>local.shadowOfMasterElementId===itemId)).length,
   itemExists:masterItems.some(item=>item.id===itemId)
  }
 }
@@ -555,9 +555,9 @@ function sourceElement(){
  const arr=selectedElementScope==="master"?masterElements():pageElements();
  return arr.find(e=>e.id===selectedElementId)||null
 }
-function ensureCurrentPageEditTarget(id=selectedElementId,scope=selectedElementScope){
+function ensureCurrentPageEditTarget(id=selectedElementId,scope=selectedElementScope,{explicit=false}={}){
  const original=scope==="master"?masterElements().find(item=>item.id===id):pageElements().find(item=>item.id===id);
- if(!original||scope!=="master"||el("elementScope")?.value!=="page")return {id,scope,item:original,created:false};
+ if(!original||scope!=="master"||!explicit)return {id,scope,item:original,created:false};
  const pageItems=pageElements();let pageItem=pageItems.find(item=>item.shadowOfMasterElementId===id),created=false;
  if(!pageItem){
   pageItem=typeof structuredClone==="function"?structuredClone(original):JSON.parse(JSON.stringify(original));
@@ -620,11 +620,6 @@ function startElementPointer(e){
  inspectorDirty=false;inspectorNotice={type:"ready",message:"선택한 개체의 설정을 변경할 수 있습니다."};
  selectedElementId=id;selectedElementScope=scope;
  let pageOverrideCreated=false;
- if(scope==="master"&&el("elementScope")?.value==="page"){
-  const masterItem=sourceElement(),pageItems=pageElements(),existing=pageItems.find(item=>item.shadowOfMasterElementId===id);
-  if(existing){selectedElementId=existing.id;selectedElementScope="page"}
-  else if(masterItem){snapshot();const clone=typeof structuredClone==="function"?structuredClone(masterItem):JSON.parse(JSON.stringify(masterItem));clone.id=`element.page-override.${Date.now()}`;clone.shadowOfMasterElementId=masterItem.id;clone.originScope="master";pageItems.push(clone);selectedElementId=clone.id;selectedElementScope="page";pageOverrideCreated=true;showEditorToast("현재 페이지 전용 개체로 분리했습니다.")}
- }
  const item=sourceElement();if(!item)return;
  if(!pageOverrideCreated)snapshot();
  box.classList.add("active");
@@ -694,21 +689,43 @@ function promoteSelectedToMonthlyMaster(){
  snapshot();
  const item=structuredClone(pageArr[idx]);
  const targetMasterId=role==="monthly-back"?"master.monthly.back":"master.monthly.front";
- item.id=`${targetMasterId}.${item.type}.${Date.now()}`;
- item.masterRole=role;
- item.masterId=targetMasterId;
- pageArr.splice(idx,1);
  project.template.masterElements[targetMasterId] ||= [];
- project.template.masterElements[targetMasterId].push(item);
+ const inherited=item.shadowOfMasterElementId
+  ?project.template.masterElements[targetMasterId].find(master=>master.id===item.shadowOfMasterElementId)
+  :null;
+ const sameRole=!inherited&&item.type==="semantic-object"&&item.role
+  ?project.template.masterElements[targetMasterId].find(master=>master.type===item.type&&master.role===item.role)
+  :null;
+ if(inherited){
+  for(const key of ["x","y","width","height"])inherited[key]=item[key];
+  pageArr.splice(idx,1);
+  selectedElementId=inherited.id;
+ }else if(sameRole){
+  const originalId=sameRole.id;
+  Object.assign(sameRole,item,{id:originalId,masterRole:role,masterId:targetMasterId});
+  delete sameRole.shadowOfMasterElementId;
+  delete sameRole.originScope;
+  pageArr.splice(idx,1);
+  selectedElementId=originalId;
+ }else{
+  item.id=`${targetMasterId}.${item.type}.${Date.now()}`;
+  delete item.shadowOfMasterElementId;
+  delete item.originScope;
+  item.masterRole=role;
+  item.masterId=targetMasterId;
+  pageArr.splice(idx,1);
+  project.template.masterElements[targetMasterId].push(item);
+  selectedElementId=item.id;
+ }
  monthlyPagesForRole(role).forEach(page=>page.masterId=targetMasterId);
- selectedElementId=item.id;selectedElementScope="master";
- const verification=verifyMonthlyMasterPropagation(role,item.id);
+ selectedElementScope="master";
+ const verification=verifyMonthlyMasterPropagation(role,selectedElementId);
  markDirty();
  inspectorNotice={
-  type:verification.itemExists&&verification.matchingPages===verification.pageCount?"success":"error",
+  type:verification.itemExists&&verification.matchingPages===verification.pageCount?"success":verification.itemExists?"info":"error",
   message:verification.itemExists&&verification.matchingPages===verification.pageCount
    ?`${verification.pageCount}개 ${role==="monthly-back"?"월력 뒷면":"월력 앞면"}에 공통 적용했습니다.`
-   :"Master 적용 확인 중 문제가 발견되었습니다."
+    :`공통 개체를 저장했지만 ${verification.pageCount-verification.matchingPages}개 월에는 별도 편집이 있어 해당 월의 개체는 유지됩니다.`
  };
  render();
  showEditorToast(inspectorNotice.message)
@@ -954,7 +971,7 @@ function renderInspector(){
  if(!sourceElement()){
  const calendarDesign=project.template.masters.calendar.design||{};
  const designPreset=calendarDesign.monthTitleStyle==="number-inline"&&calendarDesign.monthTitleAlign==="center"&&calendarDesign.weekdayStyle==="outlined-pills"&&calendarDesign.gridStyle==="open-rows"?"sample-3":calendarDesign.monthTitleStyle!=="number-inline"&&calendarDesign.monthTitleStyle!=="korean-label"&&calendarDesign.monthTitleAlign!=="center"&&calendarDesign.weekdayStyle!=="outlined-pills"&&calendarDesign.gridStyle!=="open-rows"?"sample-6":"custom";
-  design+=`<div class="section designer-only-control"><span class="layer-chip">12개월 공통 월력 디자인</span><label>빠른 디자인 조합<select id="masterCalendarDesignPreset"><option value="sample-6" ${designPreset==="sample-6"?"selected":""}>6번 원본형 · 큰 숫자/채움 탭/박스 셀</option><option value="sample-3" ${designPreset==="sample-3"?"selected":""}>3번 원본형 · 가로 제목/테두리 요일/가로줄</option><option value="custom" ${designPreset==="custom"?"selected":""}>사용자 조합</option></select></label><label>월 표시 형식<select id="masterMonthTitleStyle"><option value="number-stack" ${calendarDesign.monthTitleStyle!=="number-inline"&&calendarDesign.monthTitleStyle!=="korean-label"?"selected":""}>큰 숫자 + 연도·영문월 · 6번 방식</option><option value="number-inline" ${calendarDesign.monthTitleStyle==="number-inline"?"selected":""}>숫자 + 연도·영문월 가로형 · 3번 방식</option><option value="korean-label" ${calendarDesign.monthTitleStyle==="korean-label"?"selected":""}>연도년 월월 한글형</option></select></label><label>월 표시 위치<select id="masterMonthTitleAlign"><option value="left" ${calendarDesign.monthTitleAlign!=="center"?"selected":""}>왼쪽 · 6번 방식</option><option value="center" ${calendarDesign.monthTitleAlign==="center"?"selected":""}>가운데 · 3번 방식</option></select></label><label>요일 표시<select id="masterWeekdayStyle"><option value="filled-tabs" ${calendarDesign.weekdayStyle!=="outlined-pills"?"selected":""}>연결형 채움 탭 · 6번 방식</option><option value="outlined-pills" ${calendarDesign.weekdayStyle==="outlined-pills"?"selected":""}>독립 테두리 캡슐 · 3번 방식</option></select></label><label>날짜 격자<select id="masterGridStyle"><option value="boxed" ${calendarDesign.gridStyle==="boxed"||!["open-rows","minimal","detached-cards"].includes(calendarDesign.gridStyle)?"selected":""}>전체 박스 격자 · 6번 방식</option><option value="open-rows" ${calendarDesign.gridStyle==="open-rows"?"selected":""}>독립 밑줄 · 첨부 디자인 1</option><option value="minimal" ${calendarDesign.gridStyle==="minimal"?"selected":""}>미니멀 무선 · 첨부 디자인 2</option><option value="detached-cards" ${calendarDesign.gridStyle==="detached-cards"?"selected":""}>개별 사각 셀</option></select></label><label>월 제목 크기<input id="masterTitleSize" type="number" min="14" max="36" value="${project.template.masters.calendar.monthTitleSize}"></label><label>단일 일정 표시 개수<select id="masterMaxEvents">${[1,2,3,4].map(n=>`<option ${n===project.template.masters.calendar.eventMaxVisiblePerDay?"selected":""}>${n}</option>`).join("")}</select></label><button id="applyMaster" class="action">월력 공통 디자인 저장</button></div>`;
+  design+=`<div class="section designer-only-control"><span class="layer-chip">12개월 공통 월력 디자인</span><label>빠른 디자인 조합<select id="masterCalendarDesignPreset"><option value="sample-6" ${designPreset==="sample-6"?"selected":""}>6번 원본형 · 큰 숫자/채움 탭/박스 셀</option><option value="sample-3" ${designPreset==="sample-3"?"selected":""}>3번 원본형 · 가로 제목/테두리 요일/가로줄</option><option value="custom" ${designPreset==="custom"?"selected":""}>사용자 조합</option></select></label><label>월 표시 형식<select id="masterMonthTitleStyle"><option value="number-stack" ${calendarDesign.monthTitleStyle!=="number-inline"&&calendarDesign.monthTitleStyle!=="korean-label"?"selected":""}>큰 숫자 + 연도·영문월 · 6번 방식</option><option value="number-inline" ${calendarDesign.monthTitleStyle==="number-inline"?"selected":""}>숫자 + 연도·영문월 가로형 · 3번 방식</option><option value="korean-label" ${calendarDesign.monthTitleStyle==="korean-label"?"selected":""}>연도년 월월 한글형</option></select></label><label>월 표시 위치<select id="masterMonthTitleAlign"><option value="left" ${calendarDesign.monthTitleAlign!=="center"?"selected":""}>왼쪽 · 6번 방식</option><option value="center" ${calendarDesign.monthTitleAlign==="center"?"selected":""}>가운데 · 3번 방식</option></select></label><label>요일 표시<select id="masterWeekdayStyle"><option value="filled-tabs" ${calendarDesign.weekdayStyle!=="outlined-pills"?"selected":""}>연결형 채움 탭 · 6번 방식</option><option value="outlined-pills" ${calendarDesign.weekdayStyle==="outlined-pills"?"selected":""}>독립 테두리 캡슐 · 3번 방식</option></select></label><label>날짜 격자<select id="masterGridStyle"><option value="boxed" ${calendarDesign.gridStyle==="boxed"||!["open-rows","minimal","detached-cards"].includes(calendarDesign.gridStyle)?"selected":""}>전체 박스 격자 · 6번 방식</option><option value="open-rows" ${calendarDesign.gridStyle==="open-rows"?"selected":""}>독립 밑줄 · 첨부 디자인 1</option><option value="minimal" ${calendarDesign.gridStyle==="minimal"?"selected":""}>미니멀 무선 · 첨부 디자인 2</option><option value="detached-cards" ${calendarDesign.gridStyle==="detached-cards"?"selected":""}>개별 사각 셀</option></select></label><label>월 제목 크기<input id="masterTitleSize" type="number" min="14" max="36" value="${project.template.masters.calendar.monthTitleSize}"></label><label>단일 일정 표시 개수<select id="masterMaxEvents">${[1,2,3,4].map(n=>`<option ${n===project.template.masters.calendar.eventMaxVisiblePerDay?"selected":""}>${n}</option>`).join("")}</select></label><button id="applyMaster" class="action">월력 기본 스타일 저장</button></div>`;
  design=design.replace("큰 숫자 + 연도·영문월 · 6번 방식","큰 월 숫자 + 연도·영문월 세로").replace("숫자 + 연도·영문월 가로형 · 3번 방식","연도 + 큰 월 숫자 + 영문월 가로").replace(/<option value="korean-label"[^>]*>연도년 월월 한글형<\/option>/,`<option value="number-only" ${calendarDesign.monthTitleStyle==="number-only"?"selected":""}>큰 월 숫자만</option><option value="year-month-korean" ${["year-month-korean","korean-label"].includes(calendarDesign.monthTitleStyle)?"selected":""}>연도년 월월 한글형</option><option value="month-korean" ${calendarDesign.monthTitleStyle==="month-korean"?"selected":""}>월월 한글형</option><option value="english-month" ${calendarDesign.monthTitleStyle==="english-month"?"selected":""}>영문 월 + 연도</option>`).replace(/(<option value="center"[^>]*>가운데 · 3번 방식<\/option>)/,`$1<option value="right" ${calendarDesign.monthTitleAlign==="right"?"selected":""}>오른쪽</option>`);if(["number-only","year-month-korean","month-korean","english-month"].includes(calendarDesign.monthTitleStyle))design=design.replace(/(<option value="number-stack") selected/,"$1");if(calendarDesign.monthTitleAlign==="right")design=design.replace(/(<option value="left") selected/,"$1");
  const rs=project.template.masters.calendar.rangeEventStyle;
  design+=`<div class="section"><span class="layer-chip">구간 일정 자동 조판</span><div class="range-event-legend">시작일과 종료일이 다른 일정은 주 단위 막대로 자동 분할합니다. 겹치는 일정은 Lane에 자동 배치하고 다음 주나 다른 달로 이어지는 구간도 표시합니다.</div><div class="range-style-preview"><div class="demo-bar">교육과정 집중 운영기간</div></div><label class="inline-check"><input id="rangeEnabled" type="checkbox" ${rs.enabled?"checked":""}><span>구간 일정을 막대 형태로 표시</span></label><div class="range-style-grid"><label>일정명 표시<select id="rangeLabelMode"><option value="first" ${rs.labelMode==="first"?"selected":""}>첫 구간만</option><option value="every" ${rs.labelMode==="every"?"selected":""}>매주 반복</option><option value="continued" ${rs.labelMode==="continued"?"selected":""}>후속 구간에 계속 표시</option><option value="none" ${rs.labelMode==="none"?"selected":""}>표시 안 함</option></select></label><label>일정명 위치<select id="rangeLabelPosition"><option value="inside" ${rs.labelPosition==="inside"?"selected":""}>막대 안</option><option value="above" ${rs.labelPosition==="above"?"selected":""}>막대 위</option></select></label><label>막대 높이(px)<input id="rangeBarHeight" type="number" min="6" max="24" value="${rs.barHeight}"></label><label>Lane 간격(px)<input id="rangeLaneGap" type="number" min="0" max="10" value="${rs.laneGap}"></label><label>최대 Lane<input id="rangeMaxLanes" type="number" value="4" readonly><small>사용자 서비스 표준 · 단일/기간 일정 공통</small></label><label>초과 일정<select id="rangeOverflowStyle"><option value="count" ${rs.overflowStyle==="count"?"selected":""}>+N개 표시</option><option value="hide" ${rs.overflowStyle==="hide"?"selected":""}>숨김</option></select></label></div><button id="applyRangeEventStyle" class="action">구간 일정 스타일 저장</button></div>`;
@@ -962,8 +979,14 @@ function renderInspector(){
  const validationMessages=validate();
  if(validationMessages.length)content+=`<div class="section validation warn">${validationMessages.join("<br>")}</div>`;
  }
- if(canPromoteSelectedToMonthlyMaster())layout+=`<div class="section master-apply-card"><strong>선택 개체를 Master로 전환</strong><p>현재 페이지의 개체를 제거하고 같은 면을 사용하는 12개월 전체에 공통으로 표시합니다.</p><button id="promoteToMonthlyMaster" class="action">선택 개체를 ${monthlyMasterLabel(p)}에 적용</button><div class="master-scope-note">적용 대상: ${canonicalMasterIdForPage(p)} · ${monthlyPagesForRole(p.role).length}개 면</div></div>`;
- else if(sourceElement()&&selectedElementScope==="master"&&(p.role==="monthly-front"||p.role==="monthly-back"))layout+=`<div class="section hint"><strong style="display:block;color:var(--text);margin-bottom:4px">Master 공통 개체</strong>이 개체는 ${monthlyMasterLabel(p)} ${monthlyPagesForRole(p.role).length}개 면에 표시됩니다. Master ID: ${canonicalMasterIdForPage(p)}. 샘플 콘텐츠·Binding·배치 변경도 전체 해당 월에 반영됩니다.</div>`;
+ if(canPromoteSelectedToMonthlyMaster()){
+  const item=sourceElement(),origin=item?.shadowOfMasterElementId,masterItems=masterElements(p),hasOrigin=Boolean(origin&&masterItems.some(master=>master.id===origin));
+  const sameRole=!hasOrigin&&item?.type==="semantic-object"&&item.role&&masterItems.some(master=>master.type===item.type&&master.role===item.role);
+  layout+=`<div class="section master-apply-card"><strong>${hasOrigin?"이 월의 배치를 12개월에 적용":sameRole?"기존 공통 개체 교체":"월 전용 개체를 공통으로 전환"}</strong><p>${hasOrigin?"현재 월의 위치와 크기를 공통 개체에 적용합니다. 이 월의 별도 설정은 공통 설정으로 돌아갑니다." :sameRole?"같은 종류의 공통 개체를 이 개체로 교체합니다. 12개월의 이미지·내용·배치가 함께 변경됩니다.":"이 월의 개체를 공통 Master로 옮겨 같은 면의 12개월에 표시합니다."}</p><button id="promoteToMonthlyMaster" class="action">${hasOrigin?"현재 배치를": "선택 개체를"} ${monthlyMasterLabel(p)}에 적용</button>${hasOrigin?'<button id="restoreMonthlyMaster" class="secondary" type="button">이 월의 별도 편집 취소</button>':""}<div class="master-scope-note">적용 대상: ${monthlyPagesForRole(p.role).length}개 면</div></div>`;
+ }else if(sourceElement()&&selectedElementScope==="master"&&(p.role==="monthly-front"||p.role==="monthly-back")){
+  const item=sourceElement(),overridden=monthlyPagesForRole(p.role).filter(page=>pageElements(page).some(local=>local.shadowOfMasterElementId===item.id));
+  layout+=`<div class="section master-apply-card"><strong>12개월 공통 개체</strong><p>이 개체의 위치와 크기는 ${monthlyMasterLabel(p)}에 공통으로 반영됩니다.${overridden.length?` 단, 별도 편집된 ${overridden.length}개 월은 현재 공통 배치를 따르지 않습니다.`:""}</p><button id="detachMonthlyMaster" class="secondary" type="button">이 월만 별도 편집</button></div>`;
+ }
  const empty=tab=>`<div class="inspector-tab-empty">${tab==="content"?"선택한 개체의 콘텐츠 설정이 없습니다.":tab==="design"?"선택한 개체의 디자인 설정이 없습니다.":"선택한 개체의 배치 설정이 없습니다."}</div>`;
  ins.innerHTML=`${inspectorTabsHTML()}<div class="inspector-tab-panel ${inspectorActiveTab==="content"?"active":""}" data-panel="content">${content||empty("content")}</div><div class="inspector-tab-panel ${inspectorActiveTab==="design"?"active":""}" data-panel="design">${design||empty("design")}</div><div class="inspector-tab-panel ${inspectorActiveTab==="layout"?"active":""}" data-panel="layout">${layout||empty("layout")}</div>`;
  setupInspectorTabs();bindInspector();setupInspectorFeedback();
@@ -1047,6 +1070,25 @@ function bindInspector(){
   s.overflowStyle=el("rangeOverflowStyle").value
  }));
  bind("promoteToMonthlyMaster",promoteSelectedToMonthlyMaster);
+ bind("detachMonthlyMaster",()=>{
+  const item=sourceElement();
+  if(!item||selectedElementScope!=="master")return;
+  snapshot();
+  ensureCurrentPageEditTarget(item.id,"master",{explicit:true});
+  markDirty();render();
+  showEditorToast("이 월만 별도로 편집합니다. 이후 공통 개체 변경은 이 월에 반영되지 않습니다.");
+ });
+ bind("restoreMonthlyMaster",()=>{
+  const item=sourceElement(),p=selectedPage();
+  if(!item?.shadowOfMasterElementId||!masterElements(p).some(master=>master.id===item.shadowOfMasterElementId))return;
+  if(!confirm("이 월의 별도 개체 설정을 제거하고 12개월 공통 개체로 되돌릴까요?"))return;
+  snapshot();
+  const arr=pageElements(p),idx=arr.findIndex(local=>local.id===item.id);
+  if(idx<0)return;
+  arr.splice(idx,1);
+  selectedElementId=item.shadowOfMasterElementId;selectedElementScope="master";
+  markDirty();render();showEditorToast("이 월을 공통 개체 설정으로 되돌렸습니다.");
+ });
  bind("applyCoverMaster",()=>change(()=>applyCoverTitleSize(Number(el("coverTitleSize").value))));
  bind("addEvent",()=>openEventDialog());
  document.querySelectorAll("[data-delete-event]").forEach(b=>b.addEventListener("click",()=>change(()=>project.book.events=project.book.events.filter(e=>e.id!==b.dataset.deleteEvent))));

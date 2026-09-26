@@ -103,12 +103,8 @@
     <div><strong>샘플 학교 자료</strong><span>학교 정보와 교표·전경 이미지를 입력하거나 수정합니다.</span></div>
     <button id="openSampleSchoolDataBtn" type="button">정보·이미지 입력/수정</button>
    </div>
-   <div class="insert-scope-card">
-    <label for="insertScopeMirror"><strong>삽입·편집 적용 범위</strong><span>현재 면만 수정하거나 같은 Master의 모든 면에 공통 적용합니다.</span></label>
-    <select id="insertScopeMirror"><option value="page">현재 페이지</option><option value="master">같은 Master 전체</option></select>
-   </div>
   </div>
-  <button id="toggleInsertSidebarUtilities" class="insert-utilities-toggle" type="button" aria-expanded="true" aria-controls="insertSidebarUtilities">자료·적용 범위 접기</button>
+  <button id="toggleInsertSidebarUtilities" class="insert-utilities-toggle" type="button" aria-expanded="true" aria-controls="insertSidebarUtilities">자료 접기</button>
  </div>
 </aside>
 <section class="panel center">
@@ -158,7 +154,7 @@
   <button id="canvasZoomPercentBtn" class="canvas-zoom-percent" type="button" title="화면 맞춤으로 전환">100%</button>
   <button id="canvasFitBtn" class="canvas-fit-button active" type="button" aria-pressed="true">화면 맞춤</button>
  </div>
- <div class="toolbar-scope"><label for="elementScope">추가 범위</label><select id="elementScope"><option value="page">현재 페이지</option><option value="master">같은 Master 전체</option></select></div>
+ <select id="elementScope" class="hidden" aria-hidden="true" tabindex="-1"><option value="page">현재 페이지</option><option value="master">같은 Master 전체</option></select>
  <input id="elementImageInput" class="hidden" type="file" accept="image/*"><input id="frameImageInput" class="hidden" type="file" accept="image/*"><input id="semanticImageInput" class="hidden" type="file" accept="image/*">
  <div class="hidden" aria-hidden="true"><button id="contentMode">이전 콘텐츠 모드</button><button id="templateMode">템플릿 설계</button><span id="modeHelp"></span><button id="previewBtn">현재 페이지 미리보기</button></div>
 </div>
