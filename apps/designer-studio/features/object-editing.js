@@ -174,7 +174,7 @@ function renderWidgetContent(view,p){
   return window.ACDLPageCompositionRuntime.renderMonthDateStripMarkup(strip,view.style?.background===false)
  }
  if(view.type==="memo"){
-  const memoModel=window.ACDLPageCompositionRuntime.resolveMemoLayout(view),layout=memoModel.layout,title=v21Escape(memoModel.title);
+  const memoModel=window.ACDLPageCompositionRuntime.resolveMemoLayout({...view,baseYear:view.baseYear||project.settings.year}),layout=memoModel.layout,title=v21Escape(memoModel.title);
   if(layout==="yearly-grid"){
    const {yearlyColumns:columns,linesPerMonth:lines,yearlyLayoutType:layoutType,yearlyGroupSize:groupSize,yearlyContainerStyle:containerStyle,yearlyMonths:months}=memoModel;
    const renderMonth=entry=>`<section><b>${v21Escape(entry.label)}</b><div>${Array.from({length:lines},()=>"<i></i>").join("")}</div></section>`;
