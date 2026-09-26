@@ -142,14 +142,14 @@ function ensureMonthlyQuotes(){
 function monthlyQuoteForPage(p=selectedPage()){ensureMonthlyQuotes();const key=monthlyQuoteKey(p);return key?project.book.monthlyQuotes[key]:{title:"이 달의 명언",quoteKo:"월력 뒷면에서 월별 명언을 편집하세요.",quoteEn:"Edit the monthly quote on a monthly back page.",source:""}}
 function renderWidgetContent(view,p){
  if(["mini-calendar","mini-calendar-prev","mini-calendar-next"].includes(view.type)){
-  const offset=view.type==="mini-calendar-prev"?-1:view.type==="mini-calendar-next"?1:0;
-  const baseYear=Number(p.calendarYear||project.settings.year),baseMonth=Number(p.calendarMonth||project.settings.startMonth||1),target=new Date(baseYear,baseMonth-1+offset,1),year=target.getFullYear(),month=target.getMonth()+1;
-  const rows=calendarRowCountFor(year,month);
-  const monthNames=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"],label=view.monthLabelStyle==="number-en"?`${month} <small>${monthNames[month-1]}</small>`:`${year}년 ${month}월`,weekdayRows=view.showWeekdayHeader===false?"":"auto ";
+  const model=window.ACDLPageCompositionRuntime.resolveMiniCalendar({...view,weekStart:project.settings.weekStart,calendarRows:project.settings.calendarRows,calendarRowsMode:project.settings.calendarRowsMode,sampleFamily:project.template?.metadata?.sampleFamily},p,{year:project.settings.year,startMonth:project.settings.startMonth||1});
+  if(!model)return "";
+  const {year,month,rows}=model;
+  const monthNames=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"],label=view.monthLabelStyle==="number-en"?`${month} <small>${monthNames[month-1]}</small>`:`${year}년 ${month}월`,weekdayRows=model.showWeekdayHeader?"auto ":"";
   const miniStyle=view.style||{},miniVars=`--mini-title-align:${miniStyle.titleAlign||"left"};--mini-title-size:${Number(miniStyle.titleSize||11)}px;--mini-primary:${miniStyle.primary||"#293878"};--mini-weekday:${miniStyle.weekdayColor||"#7a8291"};--mini-date:${miniStyle.dateColor||"#293878"};--mini-sunday:${miniStyle.sunday||"#ef3340"};--mini-saturday:${miniStyle.saturday||"#4777bd"};`,miniClass=miniStyle.gridLine?" mini-grid-lines":"";
   let inner=`<div class="widget-mini-calendar${miniClass}" style="${miniVars}"><strong>${label}</strong><div class="mini-grid" style="--mini-calendar-rows:${rows};grid-template-rows:${weekdayRows}repeat(${rows},1fr)">`;
-  if(view.showWeekdayHeader!==false)weekDayHeaders().forEach(x=>inner+=`<span class="mh">${x}</span>`);
-  calendarGridFor(year,month,rows).forEach(c=>{const date=`${c.year}-${String(c.month).padStart(2,"0")}-${String(c.day).padStart(2,"0")}`,holiday=(project.book.events||[]).some(event=>event.startDate===date&&event.category==="holiday");inner+=`<span class="${[c.month!==month?"adj":"",c.dow===0?"sun":"",c.dow===6?"sat":"",holiday?"holiday":""].filter(Boolean).join(" ")}">${c.day}${c.extra?` · ${c.extra.day}`:""}</span>`});
+  if(model.showWeekdayHeader)model.headers.forEach(x=>inner+=`<span class="mh">${x}</span>`);
+  model.cells.forEach(c=>{const holiday=(project.book.events||[]).some(event=>event.startDate===c.date&&event.category==="holiday");inner+=`<span class="${[c.month!==month?"adj":"",c.weekday===0?"sun":"",c.weekday===6?"sat":"",holiday?"holiday":""].filter(Boolean).join(" ")}">${c.day}${c.extra?` · ${c.extra.day}`:""}</span>`});
   return inner+"</div></div>"
  }
  if(view.type==="year-calendar"){
