@@ -158,5 +158,17 @@
     });
     return { baseYear, startMonth, columns, layout, groupSize, showWeekdayHeader: element?.showWeekdayHeader !== false, months };
   }
-  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar, resolveAnnualCalendar });
+  function resolveMemoLayout(element) {
+    const layout = typeof element?.memoLayout === "string" && element.memoLayout ? element.memoLayout : "lines";
+    const title = typeof element?.title === "string" && element.title ? element.title : "메모";
+    const bounded = (value, fallback, min, max) => Math.max(min, Math.min(max, Number(value || fallback)));
+    return {
+      layout, title,
+      lineCount: bounded(element?.lineCount, 8, 3, 20),
+      weekCount: bounded(element?.weekCount, 5, 1, 5),
+      itemCount: bounded(element?.itemCount, 6, 1, 20),
+      showMemo: element?.showMemo !== false,
+    };
+  }
+  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar, resolveAnnualCalendar, resolveMemoLayout });
 })(typeof window !== "undefined" ? window : globalThis);
