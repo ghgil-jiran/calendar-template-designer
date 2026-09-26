@@ -324,6 +324,14 @@
   if(edition!=='all'&&String(record.edition)!==edition)return false;
   return true;
  }
+ function renderLandingShowcase(){
+  const host=el('landingTemplateCovers');if(!host)return;
+  const covers=(window.ACDLAdminAuth?.isSignedIn?.()?records():[]).filter(record=>record.thumbnail?.kind==='upload'&&record.thumbnail.dataUrl&&record.state!=='archived').sort((a,b)=>Date.parse(b.updatedAt||0)-Date.parse(a.updatedAt||0)).slice(0,3);
+  const positions=['back','middle','front'];
+  host.innerHTML=positions.map((position,index)=>{const record=covers[index];return `<div class="landing-cover landing-cover-${position}"${record?` data-library-thumbnail="${escape(record.id)}"`:''}><span class="thumbnail-placeholder">${record?'첫 페이지를 불러오는 중입니다.':'템플릿 첫 페이지 이미지'}</span></div>`}).join('');
+  hydrateThumbnails(covers,host);
+ }
+ window.renderLandingShowcase=renderLandingShowcase;
  function renderLibrary(filter='all'){
   ensureTypeOptions();renderTypeFilters();renderEditionOptions();
   activeLibraryState=filter||activeLibraryState;
@@ -332,7 +340,7 @@
   const grid=el('templateLibraryGrid');if(!grid)return;
   if(!list.length && activeLibraryScope==='custom'){
     grid.innerHTML=`<div class="library-empty-state user-empty"><strong>등록된 템플릿이 없습니다.</strong><p>새 템플릿을 만들어 이 영역에 저장하세요.</p><button class="primary" id="createCustomTemplateBtn">새 템플릿 만들기</button></div>`;
-    const button=el('createCustomTemplateBtn');if(button)button.addEventListener('click',()=>{closeTemplateLibrary();enterDesigner();});
+    const button=el('createCustomTemplateBtn');if(button)button.addEventListener('click',()=>{closeTemplateLibrary();openDesignerStudio({mode:'designer',source:'library'});});
   } else {
     grid.innerHTML=list.length?list.map(cardMarkup).join(''):`<div class="library-empty-state"><strong>${activeTypeFilter==='all'?'등록된 템플릿이 없습니다.':`${escape(label(activeTypeFilter))}에 등록된 템플릿이 없습니다.`}</strong><p>새 템플릿을 만들어 보세요.</p></div>`;
     grid.querySelectorAll('[data-library-use]').forEach(button=>button.addEventListener('click',()=>startNewFrom(records().find(record=>record.id===button.dataset.libraryUse)).catch(error=>showEditorToast(error?.message||'새 템플릿 설정을 시작하지 못했습니다.'))));
@@ -343,6 +351,7 @@
     hydrateThumbnails(list,grid);
   }
   updateLibrarySummary(list.length);
+  renderLandingShowcase();
  }
  let preflightRecord=null,preflightProject=null,preflightRuntimeDocument=null,preflightRenderParity=undefined,preflightIdentity=null,preflightHistory=[];
  let preflightReport=null,preflightArtifact=null,preflightFilter='all',preflightActiveGate=null,preflightStatusMessage='',preflightPollTimer=null;
@@ -541,7 +550,7 @@ async function refreshPreflightResult(){
  window.renderUserTemplateChoices=renderUserChoices;renderUserTemplateChoices=renderUserChoices;
  window.applyCalendarType=type=>{oldApplyType(type);selectedCalendarType=type;el('selectedTypeLabel')&&(el('selectedTypeLabel').textContent=label(type));renderTypeChoices();renderUserChoices()};applyCalendarType=window.applyCalendarType;
  window.ACDLTemplateCatalog={allTypes,records,typeMeta,renderTypeChoices,renderTypeFilters};
- ensureTypeOptions();renderTypeChoices();renderTypeFilters();renderUserChoices();installTemplateSaveProgress();installCloneDialog();installPermanentDeleteDialog();installTemplateOpenProgress();
+ ensureTypeOptions();renderTypeChoices();renderTypeFilters();renderUserChoices();renderLandingShowcase();installTemplateSaveProgress();installCloneDialog();installPermanentDeleteDialog();installTemplateOpenProgress();
  document.querySelectorAll('[data-library-state]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-library-state]').forEach(x=>x.classList.toggle('active',x===button));activeLibraryState=button.dataset.libraryState;setTimeout(()=>renderLibrary(button.dataset.libraryState),0)}));
  el('libraryStandardFilter')?.addEventListener('click',event=>{activeStandardOnly=!activeStandardOnly;event.currentTarget.classList.toggle('active',activeStandardOnly);event.currentTarget.setAttribute('aria-pressed',String(activeStandardOnly));renderLibrary(activeLibraryState)});
  document.querySelectorAll('[data-library-scope]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-library-scope]').forEach(x=>x.classList.toggle('active',x===button));activeLibraryScope=button.dataset.libraryScope;setTimeout(()=>renderLibrary(activeLibraryState),0)}));

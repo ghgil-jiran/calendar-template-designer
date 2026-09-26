@@ -27,5 +27,6 @@
  modal.addEventListener('click',event=>{if(event.target===modal)closeSignIn()});
  testInput.addEventListener('change',syncTestLoginFields);
  form.addEventListener('submit',async event=>{event.preventDefault();error.textContent='';submit.disabled=true;submit.textContent='확인 중…';try{if(testInput.checked)await auth.signInForTesting();else await auth.signIn($('adminAuthEmail').value,$('adminAuthPassword').value);const next=pendingAction;modal.classList.add('hidden');pendingAction=null;updateAuthView();next?.()}catch(reason){error.textContent=reason?.message||'로그인할 수 없습니다.'}finally{submit.disabled=false;submit.textContent=testInput.checked?'테스트 로그인':'Sign In'}});
- auth.onChange(updateAuthView);auth.ensureSession().finally(updateAuthView);updateAuthView();
+ function syncLandingCovers(){if(auth.isSignedIn())Promise.resolve(window.refreshRemoteTemplateLibrary?.()).finally(()=>window.renderLandingShowcase?.());else window.renderLandingShowcase?.()}
+ auth.onChange(()=>{updateAuthView();syncLandingCovers()});auth.ensureSession().finally(()=>{updateAuthView();syncLandingCovers()});updateAuthView();
 })();

@@ -262,3 +262,13 @@ test('template settings author required optional and unused inputs with sample f
   assert.match(html, /stage==="optional"\?\{fallback:"sample"\}/);
   assert.match(html, /project\.template\.publishing=\{/);
 });
+
+test('library new-template actions open the setup screen and landing covers use saved thumbnails', () => {
+  const core=fs.readFileSync(path.resolve('apps/designer-studio/features/studio-runtime-core.js'),'utf8');
+  const library=fs.readFileSync(path.resolve('apps/designer-studio/template-library-runtime.js'),'utf8');
+  assert.match(core,/newLibraryTemplateBtn[^\n]*openDesignerStudio\(\{mode:"designer",source:"library"\}\)/);
+  assert.match(library,/createCustomTemplateBtn[^\n]*openDesignerStudio\(\{mode:'designer',source:'library'\}\)/);
+  assert.match(html,/id="landingTemplateCovers"/);
+  assert.match(library,/renderLandingShowcase\(\)/);
+  assert.match(library,/hydrateThumbnails\(covers,host\)/);
+});

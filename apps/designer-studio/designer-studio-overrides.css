@@ -428,3 +428,20 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .library-first-page-thumb[data-rendered="missing"] .thumbnail-placeholder,.library-first-page-thumb[data-rendered="failed"] .thumbnail-placeholder{position:static;background:none;padding:12px;color:#667085;text-align:center;font-size:12px}.template-preview .thumbnail-placeholder{display:grid;place-items:center;width:100%;height:100%;color:#667085;text-align:center;font-size:12px}
 
 .template-choice .template-preview,.template-choice:nth-child(2) .template-preview,.template-choice:nth-child(3) .template-preview{background:#fff;border:1px solid #dbe3ee}
+
+/* Landing introduction and live library cover stack */
+.landing-hero{grid-template-columns:minmax(0,1fr) minmax(430px,1fr);gap:44px}
+.landing-copy h1{max-width:680px;font-size:clamp(30px,3.15vw,46px);line-height:1.24;letter-spacing:-.045em;word-break:keep-all}
+.landing-copy>p{font-size:15px;line-height:1.7}
+.landing-copy-secondary{margin-top:42px;padding-top:25px;border-top:1px solid #d9e2ee}
+.landing-copy-secondary h2{margin:0 0 9px;color:#2c67b1;font-size:clamp(21px,2vw,27px);line-height:1.35;letter-spacing:-.035em;word-break:keep-all}
+.landing-copy-secondary p{margin:0;color:#5b6b82;font-size:14px;line-height:1.7;word-break:keep-all}
+.landing-cover-stack{position:relative;width:min(600px,100%);height:390px}
+.landing-cover{position:absolute;top:50%;left:50%;display:grid;place-items:center;width:72%;aspect-ratio:260/180;border:8px solid #fff;border-radius:8px;background:#e9f0f8;box-shadow:0 20px 48px rgba(30,58,95,.23);overflow:hidden;transform-origin:center center}
+.landing-cover-back{z-index:1;transform:translate(-80%,-54%) rotate(-12deg)}
+.landing-cover-middle{z-index:2;transform:translate(-50%,-55%) rotate(2deg)}
+.landing-cover-front{z-index:3;transform:translate(-20%,-45%) rotate(12deg)}
+.landing-cover .library-uploaded-thumbnail{display:block;width:100%;height:100%;object-fit:contain;background:#fff}
+.landing-cover .thumbnail-placeholder,.landing-cover>span{padding:18px;color:#64748b;font-size:14px;font-weight:750;text-align:center}
+@media(max-width:900px){.landing-hero{grid-template-columns:1fr;gap:18px}.landing-showcase{min-height:350px}.landing-cover-stack{height:340px}}
+@media(max-width:560px){.landing-copy h1{font-size:clamp(28px,7vw,34px)}.landing-copy-secondary{margin-top:28px}.landing-copy-secondary h2{font-size:21px}.landing-showcase{min-height:260px}.landing-cover-stack{height:250px}.landing-cover{width:76%;border-width:5px}.landing-cover .thumbnail-placeholder,.landing-cover>span{font-size:10px}}
