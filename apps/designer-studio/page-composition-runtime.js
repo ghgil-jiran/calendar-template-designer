@@ -206,9 +206,7 @@
     };
     const groups = Array.from({ length: count }, (_, index) => group(index));
     if (type === "monthly-schedule") {
-      const prefix = groups[0].key;
-      const items = events.filter(item => item.startDate.startsWith(prefix) || (item.endDate || "").startsWith(prefix))
-        .sort((left, right) => left.startDate.localeCompare(right.startDate)).slice(0, Number(element?.maxItems || 10));
+      const items = groups[0].items.slice(0, Number(element?.maxItems || 10));
       return { mode, groups: [{ ...groups[0], items }], items };
     }
     const first = groups[0].key + "-01", lastGroup = groups[groups.length - 1];
@@ -218,5 +216,40 @@
     const items = mode === "all" || mode === "year-by-month" ? all : all.slice(0, Number(element?.maxItems || 24));
     return { mode, groups, items };
   }
-  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar, resolveAnnualCalendar, resolveMemoLayout, resolveScheduleEvents });
+  const yearScheduleCss = `
+.widget-event-list.academic-year-schedule{width:100%;height:100%;padding:0;background:rgba(255,255,255,.72);border:0;border-radius:0;overflow:hidden}
+.academic-year-schedule .academic-year-grid{display:grid;width:100%;height:100%;gap:2.2%;overflow:hidden}
+.academic-year-schedule.schedule-open-grid .academic-year-grid,.academic-year-schedule.schedule-month-cards .academic-year-grid{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))}
+.academic-year-schedule .academic-month-card{min-width:0;min-height:0;padding:4px 5px;overflow:hidden}
+.academic-year-schedule .academic-month-card h5{display:flex;align-items:baseline;gap:3px;margin:0 0 4px;padding-bottom:3px;border-bottom:1px solid rgba(100,116,139,.45);font-size:10px;line-height:1;color:#173b63}
+.academic-year-schedule .academic-month-card h5 small{font-size:6px;color:#667085}
+.academic-year-schedule .academic-month-events{display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.academic-year-schedule .academic-month-event{display:grid;grid-template-columns:28px minmax(0,1fr);gap:3px;font-size:6.5px;line-height:1.2}
+.academic-year-schedule .academic-month-event time{font-weight:800;color:#53657d}
+.academic-year-schedule .academic-month-event span{min-width:0;overflow-wrap:anywhere}
+.academic-year-schedule.schedule-month-cards .academic-month-card{border:1px solid rgba(148,163,184,.55);border-radius:5px;background:rgba(255,255,255,.76)}
+.academic-year-schedule.schedule-vertical-groups .academic-year-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.academic-year-schedule.schedule-horizontal-groups .academic-year-grid{grid-template-rows:repeat(3,minmax(0,1fr))}
+.academic-year-schedule .academic-schedule-group{display:grid;min-width:0;min-height:0;gap:4px;padding:4px;border:1px solid rgba(148,163,184,.55);border-radius:5px;background:rgba(255,255,255,.58);overflow:hidden}
+.academic-year-schedule.schedule-vertical-groups .academic-schedule-group{grid-template-rows:repeat(3,minmax(0,1fr))}
+.academic-year-schedule.schedule-horizontal-groups .academic-schedule-group{grid-template-columns:repeat(4,minmax(0,1fr))}
+.academic-year-schedule .academic-schedule-group .academic-month-card{padding:2px}
+`;
+  function renderYearScheduleMarkup(schedule, element, baseYear) {
+    const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+    const layout = ["schedule-open-grid","schedule-month-cards","schedule-vertical-groups","schedule-horizontal-groups"].includes(element?.scheduleLayoutType) ? element.scheduleLayoutType : "schedule-open-grid";
+    const months = schedule.groups.map(group => {
+      const transition = group.year !== Number(baseYear) ? " <small>" + escape(group.year) + "</small>" : "";
+      const entries = group.items.map(event => {
+        const start = String(event.startDate || "").slice(5).replace("-", ".");
+        const end = element?.showEndDate && event.endDate && event.endDate !== event.startDate ? "–" + String(event.endDate).slice(5).replace("-", ".") : "";
+        return '<div class="academic-month-event"><time>' + escape(start + end) + '</time><span>' + escape(event.title ?? event.name) + '</span></div>';
+      }).join("");
+      return '<section class="academic-month-card"><h5>' + escape(group.month) + '월' + transition + '</h5><div class="academic-month-events">' + entries + '</div></section>';
+    });
+    const groupSize = layout === "schedule-vertical-groups" ? 3 : layout === "schedule-horizontal-groups" ? 4 : 0;
+    const content = groupSize ? Array.from({length: Math.ceil(months.length / groupSize)}, (_, index) => '<div class="academic-schedule-group">' + months.slice(index * groupSize, (index + 1) * groupSize).join("") + '</div>').join("") : months.join("");
+    return '<div class="widget-event-list academic-year-schedule ' + layout + '" data-event-fit="manual"><div class="academic-year-grid">' + content + '</div></div>';
+  }
+  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar, resolveAnnualCalendar, resolveMemoLayout, resolveScheduleEvents, renderYearScheduleMarkup, yearScheduleCss });
 })(typeof window !== "undefined" ? window : globalThis);
