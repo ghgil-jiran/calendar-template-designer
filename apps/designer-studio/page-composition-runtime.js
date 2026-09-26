@@ -108,5 +108,30 @@
       '<text x="50" y="61" text-anchor="middle" font-size="44" font-family="Arial, sans-serif" fill="' + primary + '">' + escapeMonthStripText(asset.icon) + '</text></svg>';
   }
   function supportsVectorAsset(assetId) { return VECTOR_LIBRARY.some(item => item.id === assetId); }
-  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset });
+  function resolveMiniCalendar(element, page, defaults = {}) {
+    const sourceYear = Number(page?.calendarYear || defaults.year);
+    const sourceMonth = Number(page?.calendarMonth || defaults.startMonth || 1);
+    if (!Number.isInteger(sourceYear) || sourceYear < 2000 || sourceYear > 2200 || !Number.isInteger(sourceMonth) || sourceMonth < 1 || sourceMonth > 12) return null;
+    const shift = element?.type === "mini-calendar-prev" ? -1 : element?.type === "mini-calendar-next" ? 1 : 0;
+    const target = new Date(Date.UTC(sourceYear, sourceMonth - 1 + shift, 1));
+    const year = target.getUTCFullYear(), month = target.getUTCMonth() + 1;
+    const monday = (element?.weekStart || defaults.weekStart) === "monday";
+    const offset = monday ? (target.getUTCDay() + 6) % 7 : target.getUTCDay();
+    const days = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const configured = Number(element?.calendarRows ?? defaults.calendarRows ?? 6);
+    const adaptive = (element?.sampleFamily ?? defaults.sampleFamily) === "desk-6" && (element?.calendarRowsMode ?? defaults.calendarRowsMode) === "adaptive";
+    const rows = adaptive ? Math.max(5, Math.min(6, Math.ceil((offset + days) / 7))) : configured === 5 ? 5 : 6;
+    const start = new Date(Date.UTC(year, month - 1, 1 - offset));
+    const dateCell = date => ({ year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate(), weekday: date.getUTCDay(), date: date.toISOString().slice(0, 10) });
+    const all = Array.from({ length: 42 }, (_, index) => { const date = new Date(start); date.setUTCDate(start.getUTCDate() + index); return dateCell(date); });
+    const cells = rows === 6 ? all : all.slice(0, 35).map(cell => ({ ...cell }));
+    if (rows === 5) all.slice(35).forEach((cell, index) => { if (cell.month === month) cells[28 + index].extra = cell; });
+    const desk6 = (element?.sampleFamily ?? defaults.sampleFamily) === "desk-6";
+    const headers = desk6 ? (monday ? ["MON","TUE","WED","THU","FRI","SAT","SUN"] : ["SUN","MON","TUE","WED","THU","FRI","SAT"])
+      : (monday ? ["월","화","수","목","금","토","일"] : ["일","월","화","수","목","금","토"]);
+    const monthNames = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    const label = element?.monthLabelStyle === "number-en" ? month + " " + monthNames[month - 1] : year + "년 " + month + "월";
+    return { year, month, rows, headers, label, showWeekdayHeader: element?.showWeekdayHeader !== false, cells };
+  }
+  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar });
 })(typeof window !== "undefined" ? window : globalThis);
