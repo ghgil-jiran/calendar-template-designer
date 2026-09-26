@@ -484,6 +484,40 @@ function normalizeMonthlyMasterIds(){
 function monthlyPagesForRole(role){
  return project.book.pageInstances.filter(p=>p.role===role)
 }
+function matchingMonthlyObjectsFor(item){
+ const page=selectedPage(),role=page?.role;
+ if(!item||!["monthly-front","monthly-back"].includes(role))return [];
+ const masterId=role==="monthly-back"?"master.monthly.back":"master.monthly.front";
+ if(!item.role&&!item.binding&&!item.image?.binding&&!item.shadowOfMasterElementId&&pageElements(page).filter(other=>other.type===item.type&&!other.role).length!==1)return [item];
+ const same=(candidate)=>{
+  if(!candidate||candidate.type!==item.type)return false;
+  if(item.role)return candidate.role===item.role;
+  if(item.shadowOfMasterElementId)return candidate.id===item.shadowOfMasterElementId||candidate.shadowOfMasterElementId===item.shadowOfMasterElementId;
+  if(item.id===candidate.id)return true;
+  const binding=item.binding||item.image?.binding;
+  if(binding)return (candidate.binding||candidate.image?.binding)===binding;
+  const candidateList=project.template.masterElements?.[masterId]?.includes(candidate)
+   ?project.template.masterElements[masterId]
+   :monthlyPagesForRole(role).map(month=>pageElements(month)).find(items=>items.includes(candidate));
+  return candidateList?.filter(other=>other.type===item.type&&!other.role).length===1;
+ };
+ const matches=[];
+ (project.template.masterElements?.[masterId]||[]).forEach(candidate=>{if(same(candidate))matches.push(candidate)});
+ monthlyPagesForRole(role).forEach(month=>pageElements(month).forEach(candidate=>{if(same(candidate))matches.push(candidate)}));
+ return matches
+}
+function syncMonthlyGeometry(item){
+ const page=selectedPage();
+ if(!item||!["monthly-front","monthly-back"].includes(page?.role))return 0;
+ if(selectedElementScope==="page"&&item.shadowOfMasterElementId)return 0;
+ let count=0;
+ matchingMonthlyObjectsFor(item).forEach(candidate=>{
+  if(candidate===item||candidate.shadowOfMasterElementId)return;
+  for(const key of ["x","y","width","height"])candidate[key]=item[key];
+  count++
+ });
+ return count
+}
 function verifyMonthlyMasterPropagation(role,itemId){
  const canonical=role==="monthly-back"?"master.monthly.back":"master.monthly.front";
  const pages=monthlyPagesForRole(role);
@@ -666,6 +700,7 @@ function endElementPointer(e){
  node.removeEventListener("pointercancel",endElementPointer);
  const changed=elementDrag.changed,overrideCreated=elementDrag.pageOverrideCreated;
  elementDrag=null;
+ if(changed)syncMonthlyGeometry(sourceElement());
  if(!changed&&!overrideCreated){
   history.pop();
   el("undoBtn").disabled=!history.length;
@@ -1050,7 +1085,7 @@ function bindInspector(){
  bind("applyElementStyle",()=>changeElement(item=>window.ACDLInspectorElement.apply(item,"text-style",{fontFamily:el("elemFontFamily").value,fontSize:el("elemFontSize").value,fontWeight:el("elemFontWeight").value,fontStyle:el("elemItalic").checked?"italic":"normal",underline:el("elemUnderline").checked,strike:el("elemStrike").checked,textAlign:el("elemAlign").value,verticalAlign:el("elemVerticalAlign").value,color:el("elemColor").value,letterSpacing:el("elemLetterSpacing").value,lineHeight:el("elemLineHeight").value,opacity:el("elemOpacity").value,background:el("elemBackground").checked,backgroundColor:el("elemBackgroundColor").value,strokeWidth:el("elemStrokeWidth").value,strokeColor:el("elemStrokeColor").value,shadow:el("elemShadow").checked,shadowX:el("elemShadowX").value,shadowY:el("elemShadowY").value,shadowBlur:el("elemShadowBlur").value,shadowColor:el("elemShadowColor").value})));
  bind("applyImageStyle",()=>changeElement(item=>window.ACDLInspectorElement.apply(item,"image-style",{fit:el("elemFit").value,alt:el("elemAlt").value,lockAspect:el("elemLockAspect")?.value,brightness:el("elemBrightness")?.value,contrast:el("elemContrast")?.value,saturation:el("elemSaturation")?.value,opacity:el("elemImageOpacity")?.value,flipX:el("elemImageFlipX")?.value,flipY:el("elemImageFlipY")?.value})));
  bind("replaceImageBtn",()=>{pendingImageElementId=selectedElementId;pendingImageElementScope=selectedElementScope;el("elementImageInput").click()});
- bind("applyElementGeometry",()=>changeElement(item=>window.ACDLInspectorElement.apply(item,"geometry",{x:el("elemX").value,y:el("elemY").value,width:el("elemW").value,height:el("elemH").value})));
+ bind("applyElementGeometry",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"geometry",{x:el("elemX").value,y:el("elemY").value,width:el("elemW").value,height:el("elemH").value});syncMonthlyGeometry(item)}));
  bind("bringForward",()=>changeElement(item=>item.zIndex=(item.zIndex||0)+1));
  bind("sendBackward",()=>changeElement(item=>item.zIndex=Math.max(0,(item.zIndex||0)-1)));
  bind("duplicateFromInspector",duplicateSelected);bind("deleteFromInspector",deleteSelected);

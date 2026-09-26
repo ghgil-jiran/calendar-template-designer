@@ -80,15 +80,20 @@
   event.preventDefault();event.stopImmediatePropagation();
   const item=sourceElement();if(!item)return;
   const imageFit=$('allowUserImageFit'),required=$('graphicRequired');
+  const applyAll=$('applyMonthlyPermissions')?.checked===true;
+  const targets=applyAll?matchingMonthlyObjectsFor(item):[item];
   snapshot();
-  item.permissions={...(item.permissions||{}),move:false,resize:false,rotate:false,color:false,delete:false,duplicate:false,layer:false};
-  if(imageFit){
-   item.permissions.replaceImage=imageFit.checked;
-   item.permissions.content=imageFit.checked;
-   item.userReplaceable=imageFit.checked;
-  }
-  if(required)item.required=required.checked;
-  markDirty();render();showEditorToast('사용자 편집 설정을 저장했습니다.');
+  targets.forEach(target=>{
+   target.permissions={...(target.permissions||{}),move:false,resize:false,rotate:false,color:false,delete:false,duplicate:false,layer:false};
+   if(imageFit){
+    target.permissions.replaceImage=imageFit.checked;
+    target.permissions.content=imageFit.checked;
+    target.userReplaceable=imageFit.checked;
+   }
+   if(required)target.required=required.checked;
+  });
+  markDirty();render();
+  showEditorToast(applyAll?`같은 월력 ${selectedPage().role==="monthly-front"?"앞면":"뒷면"}의 개체 ${targets.length}개에 권한을 저장했습니다.`:'현재 개체의 사용자 편집 설정을 저장했습니다.');
  },true);
  activate('school');
 })();
