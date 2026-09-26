@@ -161,13 +161,30 @@
   function resolveMemoLayout(element) {
     const layout = typeof element?.memoLayout === "string" && element.memoLayout ? element.memoLayout : "lines";
     const title = typeof element?.title === "string" && element.title ? element.title : "메모";
-    const bounded = (value, fallback, min, max) => Math.max(min, Math.min(max, Number(value || fallback)));
+    const bounded = (value, fallback, min, max) => Math.max(min, Math.min(max, Number(value ?? fallback)));
+    const startMonth = bounded(element?.startMonth, 1, 1, 12);
+    const baseYear = Number(element?.baseYear) || new Date().getFullYear();
+    const monthNames = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    const yearlyMonths = Array.from({ length: 12 }, (_, index) => {
+      const zero = startMonth - 1 + index, month = zero % 12 + 1, year = baseYear + Math.floor(zero / 12);
+      const transition = year !== baseYear;
+      const label = element?.monthLabelStyle === "number-ko"
+        ? (transition ? year + " " : "") + month + "월"
+        : month + " " + monthNames[month - 1] + (transition ? " · " + year : "");
+      return { year, month, transition, label };
+    });
     return {
       layout, title,
       lineCount: bounded(element?.lineCount, 8, 3, 20),
       weekCount: bounded(element?.weekCount, 5, 1, 5),
       itemCount: bounded(element?.itemCount, 6, 1, 20),
       showMemo: element?.showMemo !== false,
+      yearlyColumns: bounded(element?.yearlyColumns, 4, 2, 6),
+      linesPerMonth: bounded(element?.linesPerMonth, 4, 0, 12),
+      yearlyGroupSize: [3, 4].includes(Number(element?.yearlyGroupSize)) ? Number(element.yearlyGroupSize) : 0,
+      yearlyLayoutType: element?.yearlyLayoutType || "yearly-open-grid",
+      yearlyContainerStyle: element?.yearlyContainerStyle || "none",
+      yearlyMonths,
     };
   }
   function resolveScheduleEvents(inputEvents, element, page, defaults = {}) {
