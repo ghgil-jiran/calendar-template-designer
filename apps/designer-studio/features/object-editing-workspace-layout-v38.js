@@ -70,13 +70,25 @@
   let dataPanel=ins.querySelector('[data-panel="data"]');if(!dataPanel){dataPanel=document.createElement('div');dataPanel.className='inspector-tab-panel';dataPanel.dataset.panel='data';ins.appendChild(dataPanel)}
   dataPanel.innerHTML=binding?`<div class="section element-inspector"><div class="inspector-group"><div class="inspector-group-title"><span>데이터 연결</span><small>연결됨</small></div><div class="binding-path">${binding}</div><div class="hint">샘플 학교 자료 또는 사용자 서비스 데이터가 이 개체에 연결됩니다.</div></div></div>`:'<div class="inspector-tab-empty">고정 콘텐츠 개체입니다. 콘텐츠 탭에서 직접 값을 설정합니다.</div>';
   let permissionPanel=ins.querySelector('[data-panel="permission"]');if(!permissionPanel){permissionPanel=document.createElement('div');permissionPanel.className='inspector-tab-panel';permissionPanel.dataset.panel='permission';ins.appendChild(permissionPanel)}permissionPanel.innerHTML=permissionHTML(item);
+  const permissionSave=permissionPanel.querySelector('#applyGraphicPermissions');
+  if(permissionSave){
+   const controls=[...permissionPanel.querySelectorAll('#allowUserImageFit,#graphicRequired')];
+   const baseline=controls.map(control=>control.checked);
+   const refresh=()=>{
+    const changed=controls.some((control,index)=>control.checked!==baseline[index]);
+    permissionSave.disabled=!changed;
+    permissionSave.classList.toggle('has-changes',changed);
+   };
+   controls.forEach(control=>{control.addEventListener('change',refresh);control.addEventListener('input',refresh)});
+   refresh();
+  }
   ins.querySelectorAll('.inspector-tab').forEach(button=>button.onclick=()=>{inspectorActiveTab=button.dataset.tab;ins.querySelectorAll('.inspector-tab').forEach(n=>n.classList.toggle('active',n.dataset.tab===inspectorActiveTab));ins.querySelectorAll('.inspector-tab-panel').forEach(n=>n.classList.toggle('active',n.dataset.panel===inspectorActiveTab))});
   ins.querySelectorAll('.inspector-tab-panel').forEach(panel=>panel.classList.toggle('active',panel.dataset.panel===inspectorActiveTab));
  };
  const renderedWithSupport=render;
  render=function(){const result=renderedWithSupport.apply(this,arguments);ensureInspectorSupport();return result};
  $('inspector')?.addEventListener('click',event=>{
-  const button=event.target.closest('#applyGraphicPermissions');if(!button)return;
+  const button=event.target.closest('#applyGraphicPermissions');if(!button||button.disabled)return;
   event.preventDefault();event.stopImmediatePropagation();
   const item=sourceElement();if(!item)return;
   const imageFit=$('allowUserImageFit'),required=$('graphicRequired');

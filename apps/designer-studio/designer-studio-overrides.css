@@ -451,3 +451,9 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .workspace>.right .permission-compact-option span{display:grid;gap:2px;min-width:0}
 .workspace>.right .permission-compact-option strong{font-size:11px;font-weight:700;line-height:1.4}
 .workspace>.right .permission-compact-option small{font-size:10px;color:#64748b;line-height:1.45}
+
+/* Clear save state: no badge over the label, and unchanged permission settings stay inactive. */
+.workspace>.right .action.inspector-save.has-changes{color:#fff!important}
+.workspace>.right .action.inspector-save.has-changes::after{content:none!important;display:none!important}
+.workspace>.right #applyGraphicPermissions:disabled{background:#aab2bd!important;color:#fff!important;opacity:.72;cursor:not-allowed;box-shadow:none}
+.workspace>.right #applyGraphicPermissions:not(:disabled){background:#2563eb;color:#fff!important}
