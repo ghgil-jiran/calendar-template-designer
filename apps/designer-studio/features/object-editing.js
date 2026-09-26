@@ -208,9 +208,7 @@ function renderWidgetContent(view,p){
  if(view.type==="event-list"){
   const monthMode=view.displayMode==="month",year=monthMode?Number(p.calendarYear||project.settings.year):Number(project.settings.year),startMonth=monthMode?Number(p.calendarMonth||project.settings.startMonth||1):Number(view.startMonth||project.settings.startMonth||1);
   const schedule=window.ACDLPageCompositionRuntime.resolveScheduleEvents(project.book.events||[],view,p,{year:project.settings.year,startMonth:project.settings.startMonth||1});
-  if(view.displayMode==="year-by-month"){
-   const layout=view.scheduleLayoutType||"schedule-open-grid",months=schedule.groups.map(group=>{const items=group.items,month=group.month,calendarYear=group.year,transition=calendarYear!==year?` <small>${calendarYear}</small>`:"";return `<section class="academic-month-card"><h5>${month}월${transition}</h5><div class="academic-month-events">${items.map(ev=>{const end=view.showEndDate&&ev.endDate&&ev.endDate!==ev.startDate?`–${ev.endDate.slice(5).replace("-",".")}`:"";return `<div class="academic-month-event"><time>${ev.startDate.slice(5).replace("-",".")}${end}</time><span>${v21Escape(ev.title)}</span></div>`}).join("")}</div></section>`}),groupSize=layout==="schedule-vertical-groups"?3:layout==="schedule-horizontal-groups"?4:0,content=groupSize?Array.from({length:12/groupSize},(_,index)=>`<div class="academic-schedule-group">${months.slice(index*groupSize,(index+1)*groupSize).join("")}</div>`).join(""):months.join("");return `<div class="widget-event-list academic-year-schedule ${layout}" data-event-fit="manual"><div class="academic-year-grid">${content}</div></div>`
-  }
+  if(view.displayMode==="year-by-month")return window.ACDLPageCompositionRuntime.renderYearScheduleMarkup(schedule,view,year);
   const items=schedule.items;
   const requestedColumns=view.columns==="auto"?"auto":Math.max(1,Math.min(4,Number(view.columns||1))),fontSize=Math.max(5,Math.min(18,Number(view.fontSize||8))),minFontSize=Math.max(5,Math.min(fontSize,Number(view.minFontSize||6)));
   const title=monthMode?`${startMonth}월 학사일정`:view.title||"전체 학사일정";
