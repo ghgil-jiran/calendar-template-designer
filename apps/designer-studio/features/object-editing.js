@@ -506,16 +506,42 @@ function matchingMonthlyObjectsFor(item){
  monthlyPagesForRole(role).forEach(month=>pageElements(month).forEach(candidate=>{if(same(candidate))matches.push(candidate)}));
  return matches
 }
+function syncMonthlySharedFields(item,fields){
+ if(!item||selectedElementScope==="page"&&item.shadowOfMasterElementId)return 0;
+ let count=0;
+ matchingMonthlyObjectsFor(item).forEach(other=>{
+  if(other===item||other.shadowOfMasterElementId)return;
+  for(const key of fields)if(Object.hasOwn(item,key))other[key]=structuredClone(item[key]);
+  count++
+ });
+ return count
+}
 function syncMonthlyGeometry(item){
  const page=selectedPage();
  if(!item||!["monthly-front","monthly-back"].includes(page?.role))return 0;
  if(selectedElementScope==="page"&&item.shadowOfMasterElementId)return 0;
+ const masterId=page.role==="monthly-back"?"master.monthly.back":"master.monthly.front";
+ const master=item.type==="semantic-object"&&item.role==="school-logo"
+  ?(project.template.masterElements?.[masterId]||[]).find(candidate=>candidate.type===item.type&&candidate.role===item.role):null;
  let count=0;
  matchingMonthlyObjectsFor(item).forEach(candidate=>{
   if(candidate===item||candidate.shadowOfMasterElementId)return;
   for(const key of ["x","y","width","height"])candidate[key]=item[key];
   count++
  });
+ // An older promotion could leave one local logo over the shared Master on every month.
+ // Keep the shared copy and remove only unlinked duplicate logos.
+ if(master){
+  for(const month of monthlyPagesForRole(page.role)){
+   const elements=pageElements(month);
+   for(let i=elements.length-1;i>=0;i--){
+    const candidate=elements[i];
+    if(candidate.type==="semantic-object"&&candidate.role==="school-logo"&&!candidate.shadowOfMasterElementId){elements.splice(i,1);count++}
+   }
+  }
+  selectedElementId=master.id;
+  selectedElementScope="master";
+ }
  return count
 }
 function verifyMonthlyMasterPropagation(role,itemId){
@@ -700,7 +726,7 @@ function endElementPointer(e){
  node.removeEventListener("pointercancel",endElementPointer);
  const changed=elementDrag.changed,overrideCreated=elementDrag.pageOverrideCreated;
  elementDrag=null;
- if(changed)syncMonthlyGeometry(sourceElement());
+ if(changed){syncMonthlyGeometry(sourceElement());pendingCanvasGeometrySaveId=selectedElementId;}
  if(!changed&&!overrideCreated){
   history.pop();
   el("undoBtn").disabled=!history.length;
@@ -715,7 +741,9 @@ function monthlyMasterLabel(p=selectedPage()){
 }
 function canPromoteSelectedToMonthlyMaster(){
  const p=selectedPage(),item=sourceElement();
- return item&&selectedElementScope==="page"&&(p.role==="monthly-front"||p.role==="monthly-back")
+ if(!item||selectedElementScope!=="page"||!["monthly-front","monthly-back"].includes(p.role))return false;
+ if(item.shadowOfMasterElementId)return false;
+ return matchingMonthlyObjectsFor(item).filter(other=>other!==item).length===0
 }
 function promoteSelectedToMonthlyMaster(){
  if(!canPromoteSelectedToMonthlyMaster())return;
@@ -825,7 +853,7 @@ function elementInspectorPanels(){
   panels.design=head+`<div class="template-help-card"><strong>월 표시를 포함한 미니 월력 스타일</strong>월 제목·요일·날짜·주말색과 구분선을 이 개체에 저장합니다.</div><div class="grid2"><label>월 제목 크기<input id="miniTitleSize" type="number" min="6" max="36" step=".5" value="${s.titleSize||11}"></label><label>월 제목 정렬<select id="miniTitleAlign"><option value="left" ${s.titleAlign!=="center"&&s.titleAlign!=="right"?"selected":""}>왼쪽</option><option value="center" ${s.titleAlign==="center"?"selected":""}>가운데</option><option value="right" ${s.titleAlign==="right"?"selected":""}>오른쪽</option></select></label><label>월 제목색<input id="miniPrimary" type="color" value="${s.primary||"#293878"}"></label><label>요일색<input id="miniWeekdayColor" type="color" value="${s.weekdayColor||"#7a8291"}"></label><label>평일 날짜색<input id="miniDateColor" type="color" value="${s.dateColor||"#293878"}"></label><label>일요일색<input id="miniSunday" type="color" value="${s.sunday||"#ef3340"}"></label><label>토요일색<input id="miniSaturday" type="color" value="${s.saturday||"#4777bd"}"></label></div><label><input id="miniGridLine" type="checkbox" ${s.gridLine?"checked":""} style="width:auto;height:auto"> 날짜 행 구분선 표시</label><button id="applyMiniCalendarStyle" class="action">미니 월력 스타일 저장</button></div>`;
  }
  else panels.content=head+`<button id="replaceImageBtn" class="action">이미지 파일 선택</button><label style="margin-top:8px">이미지 맞춤<select id="elemFit"><option value="cover" ${item.fit==="cover"?"selected":""}>영역 채우기</option><option value="contain" ${item.fit==="contain"?"selected":""}>전체 이미지 보기</option></select></label><label>비율 유지<select id="elemLockAspect"><option value="true" ${item.lockAspect!==false?"selected":""}>유지</option><option value="false" ${item.lockAspect===false?"selected":""}>자유 변형</option></select></label><div class="grid2"><label>밝기 %<input id="elemBrightness" type="number" min="0" max="300" value="${item.imageStyle?.brightness??100}"></label><label>대비 %<input id="elemContrast" type="number" min="0" max="300" value="${item.imageStyle?.contrast??100}"></label><label>채도 %<input id="elemSaturation" type="number" min="0" max="300" value="${item.imageStyle?.saturation??100}"></label><label>투명도<input id="elemImageOpacity" type="number" min="0" max="1" step=".05" value="${item.opacity??1}"></label></div><div class="grid2"><label>좌우 반전<select id="elemImageFlipX"><option value="false" ${!item.imageStyle?.flipX?"selected":""}>아니오</option><option value="true" ${item.imageStyle?.flipX?"selected":""}>예</option></select></label><label>상하 반전<select id="elemImageFlipY"><option value="false" ${!item.imageStyle?.flipY?"selected":""}>아니오</option><option value="true" ${item.imageStyle?.flipY?"selected":""}>예</option></select></label></div><label>대체 텍스트<input id="elemAlt" value="${item.alt||""}"></label><button id="applyImageStyle" class="action">이미지 설정 적용</button></div>`;
- panels.layout=head+`<div class="grid2"><label>X (%)<input id="elemX" type="number" step=".5" value="${item.x.toFixed(1)}"></label><label>Y (%)<input id="elemY" type="number" step=".5" value="${item.y.toFixed(1)}"></label><label>폭 (%)<input id="elemW" type="number" step=".5" value="${item.width.toFixed(1)}"></label><label>높이 (%)<input id="elemH" type="number" step=".5" value="${item.height.toFixed(1)}"></label></div><button id="applyElementGeometry" class="action secondary">좌표·크기 저장</button><div class="row"><button id="sendBackward" class="secondary">뒤로</button><button id="bringForward" class="secondary">앞으로</button></div><div class="row"><button id="duplicateFromInspector" class="secondary">복제</button><button id="deleteFromInspector" class="danger">삭제</button></div></div>`;
+ panels.layout=head+`<div class="grid2"><label>X (%)<input id="elemX" type="number" step=".5" value="${item.x.toFixed(1)}"></label><label>Y (%)<input id="elemY" type="number" step=".5" value="${item.y.toFixed(1)}"></label><label>폭 (%)<input id="elemW" type="number" step=".5" value="${item.width.toFixed(1)}"></label><label>높이 (%)<input id="elemH" type="number" step=".5" value="${item.height.toFixed(1)}"></label></div><button id="applyElementGeometry" class="action secondary">배치 정보 저장</button><div class="row"><button id="sendBackward" class="secondary">뒤로</button><button id="bringForward" class="secondary">앞으로</button></div><div class="row"><button id="duplicateFromInspector" class="secondary">복제</button><button id="deleteFromInspector" class="danger">삭제</button></div></div>`;
  return panels
 }
 function inspectorTabsHTML(){
@@ -906,6 +934,7 @@ function renderPage(){
 }
 function dateEvents(){return selectedDate?project.book.events.filter(ev=>selectedDate>=ev.startDate&&selectedDate<=(ev.endDate||ev.startDate)):[]}
 
+let pendingCanvasGeometrySaveId=null;
 const INSPECTOR_SAVE_MESSAGES={
  applySemanticSample:"샘플 콘텐츠를 저장했습니다.",
  applySemanticBinding:"데이터 연결 설정을 저장했습니다.",
@@ -950,7 +979,7 @@ function setupInspectorFeedback(){
   button.dataset.initialSignature=initial;
   tracked.push({button,container,initial});
   const update=()=>{
-   const draftChanged=id==="applySemanticSample"&&semanticImageDraftElementId===sourceElement()?.id&&!!semanticImageDraft;
+   const draftChanged=(id==="applySemanticSample"&&semanticImageDraftElementId===sourceElement()?.id&&!!semanticImageDraft)||(id==="applyElementGeometry"&&pendingCanvasGeometrySaveId===selectedElementId);
    const changed=inspectorSignature(container)!==initial||draftChanged;
    button.classList.toggle("has-changes",changed);
    container.classList.toggle("is-dirty",changed);
@@ -979,6 +1008,7 @@ function setupInspectorFeedback(){
     return
    }
    inspectorDirty=false;
+   if(id==="applyElementGeometry")pendingCanvasGeometrySaveId=null;
    inspectorNotice={type:"success",message:INSPECTOR_SAVE_MESSAGES[id]};
    setTimeout(()=>showEditorToast("저장되었습니다."),0);
   },true)
@@ -1015,9 +1045,11 @@ function renderInspector(){
  if(validationMessages.length)content+=`<div class="section validation warn">${validationMessages.join("<br>")}</div>`;
  }
  if(canPromoteSelectedToMonthlyMaster()){
-  const item=sourceElement(),origin=item?.shadowOfMasterElementId,masterItems=masterElements(p),hasOrigin=Boolean(origin&&masterItems.some(master=>master.id===origin));
-  const sameRole=!hasOrigin&&item?.type==="semantic-object"&&item.role&&masterItems.some(master=>master.type===item.type&&master.role===item.role);
-  layout+=`<div class="section master-apply-card"><strong>${hasOrigin?"이 월의 배치를 12개월에 적용":sameRole?"기존 공통 개체 교체":"월 전용 개체를 공통으로 전환"}</strong><p>${hasOrigin?"현재 월의 위치와 크기를 공통 개체에 적용합니다. 이 월의 별도 설정은 공통 설정으로 돌아갑니다." :sameRole?"같은 종류의 공통 개체를 이 개체로 교체합니다. 12개월의 이미지·내용·배치가 함께 변경됩니다.":"이 월의 개체를 공통 Master로 옮겨 같은 면의 12개월에 표시합니다."}</p><button id="promoteToMonthlyMaster" class="action">${hasOrigin?"현재 배치를": "선택 개체를"} ${monthlyMasterLabel(p)}에 적용</button>${hasOrigin?'<button id="restoreMonthlyMaster" class="secondary" type="button">이 월의 별도 편집 취소</button>':""}<div class="master-scope-note">적용 대상: ${monthlyPagesForRole(p.role).length}개 면</div></div>`;
+  layout+=`<div class="section master-apply-card"><strong>새 개체를 월력 공통으로 추가</strong><p>현재 월에 새로 만든 개체를 공통 Master로 옮겨 같은 면의 12개월에 추가합니다.</p><button id="promoteToMonthlyMaster" class="action">새 개체를 ${monthlyMasterLabel(p)}에 추가</button><div class="master-scope-note">적용 대상: ${monthlyPagesForRole(p.role).length}개 면</div></div>`;
+ }else if(sourceElement()?.shadowOfMasterElementId&&selectedElementScope==="page"&&["monthly-front","monthly-back"].includes(p.role)){
+  layout+=`<div class="section master-apply-card"><strong>이 월만 별도 편집</strong><p>위의 배치 정보 저장은 이 월에만 적용됩니다.</p><button id="restoreMonthlyMaster" class="secondary" type="button">이 월의 별도 편집 취소</button></div>`;
+ }else if(sourceElement()&&selectedElementScope==="page"&&["monthly-front","monthly-back"].includes(p.role)){
+  layout+=`<div class="section master-apply-card"><strong>기존 월력 개체</strong><p>새 개체 추가 버튼은 표시하지 않습니다. 위의 배치 정보 저장으로 같은 역할의 월력 개체를 수정합니다.</p></div>`;
  }else if(sourceElement()&&selectedElementScope==="master"&&(p.role==="monthly-front"||p.role==="monthly-back")){
   const item=sourceElement(),overridden=monthlyPagesForRole(p.role).filter(page=>pageElements(page).some(local=>local.shadowOfMasterElementId===item.id));
   layout+=`<div class="section master-apply-card"><strong>12개월 공통 개체</strong><p>이 개체의 위치와 크기는 ${monthlyMasterLabel(p)}에 공통으로 반영됩니다.${overridden.length?` 단, 별도 편집된 ${overridden.length}개 월은 현재 공통 배치를 따르지 않습니다.`:""}</p><button id="detachMonthlyMaster" class="secondary" type="button">이 월만 별도 편집</button></div>`;
@@ -1048,7 +1080,8 @@ function bindInspector(){
   change(()=>{
    i.bindingEnabled=el("semanticBindingMode").value==="bound";
    i.binding=i.bindingEnabled?el("semanticBindingPath").value:null;
-   i.fallbackToSample=el("semanticFallback").checked
+   i.fallbackToSample=el("semanticFallback").checked;
+   if(!/^monthlyImages\./.test(i.binding||""))syncMonthlySharedFields(i,["bindingEnabled","binding","fallbackToSample"])
   });
   showEditorToast(i.bindingEnabled?"실제 학교 데이터 Binding을 저장했습니다.":"고정 콘텐츠 개체로 변경했습니다.")
  });
@@ -1059,7 +1092,8 @@ function bindInspector(){
   if(el("semanticTitleOverride"))i.titleOverride=el("semanticTitleOverride").value.trim()||semanticRoleLabel(i.role);
   i.style.titleSize=Number(el("semanticTitleSize").value);
   i.style.descriptionSize=Number(el("semanticDescriptionSize").value);
-  i.style.textAlign=el("semanticTextAlign").value
+  i.style.textAlign=el("semanticTextAlign").value;
+  syncMonthlySharedFields(i,["layoutPreset","showTitle","titleOverride","style"])
  }));
  bind("replaceSemanticImage",()=>{pendingSemanticRole=sourceElement()?.role;el("semanticImageInput").click()});
  bind("applyCalendarRegion",()=>change(()=>{const r=calendarRegion();r.x=Number(el("calX").value);r.y=Number(el("calY").value);r.width=Number(el("calW").value);r.height=Number(el("calH").value);r.width=Math.max(25,Math.min(100,r.width));r.height=Math.max(25,Math.min(100,r.height));r.x=Math.max(0,Math.min(r.x,100-r.width));r.y=Math.max(0,Math.min(r.y,100-r.height))}));
@@ -1071,21 +1105,21 @@ function bindInspector(){
  bind("closeCalendarEditing",()=>{calendarEditing=false;render()});
  bind("applyMemoWidget",()=>changeElement(i=>{i.memoLayout=el("memoLayout")?.value||"lines";i.title=el("widgetTitle").value;if(el("memoLineCount"))i.lineCount=Number(el("memoLineCount").value);if(el("memoWeekCount"))i.weekCount=Number(el("memoWeekCount").value);if(el("memoShowMemo"))i.showMemo=el("memoShowMemo").checked;if(el("memoItemCount"))i.itemCount=Number(el("memoItemCount").value);if(el("memoYearlyColumns"))i.yearlyColumns=Number(el("memoYearlyColumns").value);if(el("memoLinesPerMonth"))i.linesPerMonth=Number(el("memoLinesPerMonth").value);if(el("memoMonthLabelStyle"))i.monthLabelStyle=el("memoMonthLabelStyle").value}));
  bind("applyMonthlyQuoteContent",()=>change(()=>{const key=monthlyQuoteKey(selectedPage());if(!key)return;ensureMonthlyQuotes();const current=project.book.monthlyQuotes[key]||{};project.book.monthlyQuotes[key]={...current,title:el("quoteTitle").value.trim()||"이 달의 명언",quoteKo:el("quoteKo").value.trim(),quoteEn:el("quoteEn").value.trim(),source:el("quoteSource").value.trim(),sourceStatus:"edited",translationType:current.translationType||"editorial"}}));
- bind("applyMonthlyQuoteStyle",()=>changeElement(i=>{i.style||={};i.style.titleSize=Number(el("quoteTitleSize").value);i.style.quoteKoSize=Number(el("quoteKoSize").value);i.style.quoteEnSize=Number(el("quoteEnSize").value);i.style.sourceSize=Number(el("quoteSourceSize").value);i.style.textAlign=el("quoteAlign").value;i.style.color=el("quoteColor").value;i.style.accentColor=el("quoteAccentColor").value;i.style.secondaryColor=el("quoteSecondaryColor").value;i.style.itemGap=Number(el("quoteItemGap").value)}));
+ bind("applyMonthlyQuoteStyle",()=>changeElement(i=>{i.style||={};i.style.titleSize=Number(el("quoteTitleSize").value);i.style.quoteKoSize=Number(el("quoteKoSize").value);i.style.quoteEnSize=Number(el("quoteEnSize").value);i.style.sourceSize=Number(el("quoteSourceSize").value);i.style.textAlign=el("quoteAlign").value;i.style.color=el("quoteColor").value;i.style.accentColor=el("quoteAccentColor").value;i.style.secondaryColor=el("quoteSecondaryColor").value;i.style.itemGap=Number(el("quoteItemGap").value);syncMonthlySharedFields(i,["style"])}));
  bind("applyYearCalendarContent",()=>change(()=>{const i=sourceElement();i.startMonth=Number(el("yearCalendarStartMonth").value)}));
  bind("applyYearCalendarLayout",()=>change(()=>{const i=sourceElement();i.columns=Number(el("yearCalendarColumns").value);i.rowsMode=el("yearCalendarRowsMode")?.value||"inherit"}));
- bind("applyMiniCalendarContent",()=>changeElement(i=>{i.monthLabelStyle=el("miniMonthLabelStyle").value;i.showWeekdayHeader=el("miniShowWeekday").checked}));
- bind("applyMiniCalendarStyle",()=>changeElement(i=>{i.style||={};i.style.titleSize=Number(el("miniTitleSize").value);i.style.titleAlign=el("miniTitleAlign").value;i.style.primary=el("miniPrimary").value;i.style.weekdayColor=el("miniWeekdayColor").value;i.style.dateColor=el("miniDateColor").value;i.style.sunday=el("miniSunday").value;i.style.saturday=el("miniSaturday").value;i.style.gridLine=el("miniGridLine").checked}));
+ bind("applyMiniCalendarContent",()=>changeElement(i=>{i.monthLabelStyle=el("miniMonthLabelStyle").value;i.showWeekdayHeader=el("miniShowWeekday").checked;syncMonthlySharedFields(i,["monthLabelStyle","showWeekdayHeader"])}));
+ bind("applyMiniCalendarStyle",()=>changeElement(i=>{i.style||={};i.style.titleSize=Number(el("miniTitleSize").value);i.style.titleAlign=el("miniTitleAlign").value;i.style.primary=el("miniPrimary").value;i.style.weekdayColor=el("miniWeekdayColor").value;i.style.dateColor=el("miniDateColor").value;i.style.sunday=el("miniSunday").value;i.style.saturday=el("miniSaturday").value;i.style.gridLine=el("miniGridLine").checked;syncMonthlySharedFields(i,["style"])}));
  bind("applyScheduleWidget",()=>change(()=>{const i=sourceElement();i.title=el("widgetTitle").value;i.maxItems=Number(el("scheduleMaxItems").value)}));
  bind("applyEventListWidget",()=>change(()=>{const i=sourceElement();i.title=el("eventListTitle").value;i.startMonth=Number(el("eventListStartMonth").value);i.monthCount=Number(el("eventListMonthCount").value);i.displayMode=el("eventListDisplayMode")?.value||"limit";i.maxItems=Number(el("eventListMaxItems")?.value||i.maxItems||24);i.showEndDate=el("eventListShowEndDate").checked}));
  bind("applyEventListLayout",()=>change(()=>{const i=sourceElement(),columns=el("eventListColumns").value;i.columns=columns==="auto"?"auto":Number(columns||1);i.fontSize=Number(el("eventListFontSize").value||8);i.minFontSize=Math.min(i.fontSize,Number(el("eventListMinFontSize").value||6));i.autoShrink=el("eventListAutoShrink").checked}));
  bind("applyDateStripContent",()=>change(()=>{const i=sourceElement();i.monthSource=el("dateStripMonthSource").value;i.year=Number(el("dateStripYear").value);i.month=Number(el("dateStripMonth").value);i.showWeekday=el("dateStripShowWeekday").checked;i.showDate=el("dateStripShowDate").checked}));
- bind("applyDateStripDesign",()=>change(()=>{const i=sourceElement();i.style||={};i.style.background=el("dateStripBackground").checked}));
+ bind("applyDateStripDesign",()=>change(()=>{const i=sourceElement();i.style||={};i.style.background=el("dateStripBackground").checked;syncMonthlySharedFields(i,["style"])}));
  bind("applyTextContent",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"text-content",{content:el("elemText").value,binding:el("elemTextBinding")?.value});if(item.binding==="calendar.year")item.format=el("elemYearFormat")?.value||"year-plain"}));
- bind("applyElementStyle",()=>changeElement(item=>window.ACDLInspectorElement.apply(item,"text-style",{fontFamily:el("elemFontFamily").value,fontSize:el("elemFontSize").value,fontWeight:el("elemFontWeight").value,fontStyle:el("elemItalic").checked?"italic":"normal",underline:el("elemUnderline").checked,strike:el("elemStrike").checked,textAlign:el("elemAlign").value,verticalAlign:el("elemVerticalAlign").value,color:el("elemColor").value,letterSpacing:el("elemLetterSpacing").value,lineHeight:el("elemLineHeight").value,opacity:el("elemOpacity").value,background:el("elemBackground").checked,backgroundColor:el("elemBackgroundColor").value,strokeWidth:el("elemStrokeWidth").value,strokeColor:el("elemStrokeColor").value,shadow:el("elemShadow").checked,shadowX:el("elemShadowX").value,shadowY:el("elemShadowY").value,shadowBlur:el("elemShadowBlur").value,shadowColor:el("elemShadowColor").value})));
- bind("applyImageStyle",()=>changeElement(item=>window.ACDLInspectorElement.apply(item,"image-style",{fit:el("elemFit").value,alt:el("elemAlt").value,lockAspect:el("elemLockAspect")?.value,brightness:el("elemBrightness")?.value,contrast:el("elemContrast")?.value,saturation:el("elemSaturation")?.value,opacity:el("elemImageOpacity")?.value,flipX:el("elemImageFlipX")?.value,flipY:el("elemImageFlipY")?.value})));
+ bind("applyElementStyle",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"text-style",{fontFamily:el("elemFontFamily").value,fontSize:el("elemFontSize").value,fontWeight:el("elemFontWeight").value,fontStyle:el("elemItalic").checked?"italic":"normal",underline:el("elemUnderline").checked,strike:el("elemStrike").checked,textAlign:el("elemAlign").value,verticalAlign:el("elemVerticalAlign").value,color:el("elemColor").value,letterSpacing:el("elemLetterSpacing").value,lineHeight:el("elemLineHeight").value,opacity:el("elemOpacity").value,background:el("elemBackground").checked,backgroundColor:el("elemBackgroundColor").value,strokeWidth:el("elemStrokeWidth").value,strokeColor:el("elemStrokeColor").value,shadow:el("elemShadow").checked,shadowX:el("elemShadowX").value,shadowY:el("elemShadowY").value,shadowBlur:el("elemShadowBlur").value,shadowColor:el("elemShadowColor").value});syncMonthlySharedFields(item,["style","opacity"])}));
+ bind("applyImageStyle",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"image-style",{fit:el("elemFit").value,alt:el("elemAlt").value,lockAspect:el("elemLockAspect")?.value,brightness:el("elemBrightness")?.value,contrast:el("elemContrast")?.value,saturation:el("elemSaturation")?.value,opacity:el("elemImageOpacity")?.value,flipX:el("elemImageFlipX")?.value,flipY:el("elemImageFlipY")?.value});syncMonthlySharedFields(item,["style","fit","opacity"])}));
  bind("replaceImageBtn",()=>{pendingImageElementId=selectedElementId;pendingImageElementScope=selectedElementScope;el("elementImageInput").click()});
- bind("applyElementGeometry",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"geometry",{x:el("elemX").value,y:el("elemY").value,width:el("elemW").value,height:el("elemH").value});syncMonthlyGeometry(item)}));
+ bind("applyElementGeometry",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"geometry",{x:el("elemX").value,y:el("elemY").value,width:el("elemW").value,height:el("elemH").value});syncMonthlyGeometry(item);pendingCanvasGeometrySaveId=null}));
  bind("bringForward",()=>changeElement(item=>item.zIndex=(item.zIndex||0)+1));
  bind("sendBackward",()=>changeElement(item=>item.zIndex=Math.max(0,(item.zIndex||0)-1)));
  bind("duplicateFromInspector",duplicateSelected);bind("deleteFromInspector",deleteSelected);
