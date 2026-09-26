@@ -133,5 +133,30 @@
     const label = element?.monthLabelStyle === "number-en" ? month + " " + monthNames[month - 1] : year + "년 " + month + "월";
     return { year, month, rows, headers, label, showWeekdayHeader: element?.showWeekdayHeader !== false, cells };
   }
-  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar });
+  function resolveAnnualCalendar(element, page, defaults = {}) {
+    const baseYear = Number(page?.calendarYear || defaults.year);
+    const startMonth = Number(element?.startMonth || defaults.startMonth || 1);
+    if (!Number.isInteger(baseYear) || !Number.isInteger(startMonth) || startMonth < 1 || startMonth > 12) return null;
+    const count = Math.max(1, Math.min(12, Number(element?.monthCount || 12)));
+    const layout = ["open-grid","individual-month-boxes","vertical-three-month-groups","horizontal-four-month-groups"].includes(element?.layoutType) ? element.layoutType : "individual-month-boxes";
+    const columns = Math.max(1, Math.min(6, Number(element?.columns || 4)));
+    const groupSize = layout === "vertical-three-month-groups" ? 3 : layout === "horizontal-four-month-groups" ? 4 : 0;
+    const months = Array.from({ length: count }, (_, index) => {
+      const absolute = startMonth - 1 + index;
+      const year = baseYear + Math.floor(absolute / 12), month = absolute % 12 + 1;
+      const rowMode = String(element?.rowsMode || "inherit");
+      const mini = resolveMiniCalendar({
+        type: "mini-calendar", weekStart: element?.weekStart ?? defaults.weekStart,
+        calendarRows: rowMode === "5" || rowMode === "6" ? Number(rowMode) : defaults.calendarRows,
+        calendarRowsMode: rowMode === "adaptive" ? "adaptive" : defaults.calendarRowsMode,
+        sampleFamily: rowMode === "adaptive" ? "desk-6" : defaults.sampleFamily,
+      }, { calendarYear: year, calendarMonth: month }, { year, startMonth: month, ...defaults });
+      const transition = element?.showTransitionYear !== false && year !== baseYear;
+      const names = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+      const label = element?.monthLabelStyle === "number-en" ? month + " " + names[month - 1] + (transition ? " · " + year : "") : (transition ? year + " " : "") + month + "월";
+      return { year, month, transition, label, rows: mini?.rows ?? 6, cells: mini?.cells ?? [], headers: (element?.sampleFamily ?? defaults.sampleFamily) === "desk-6" ? (mini?.headers ?? []).map(label => label[0]) : (mini?.headers ?? []) };
+    });
+    return { baseYear, startMonth, columns, layout, groupSize, showWeekdayHeader: element?.showWeekdayHeader !== false, months };
+  }
+  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar, resolveAnnualCalendar });
 })(typeof window !== "undefined" ? window : globalThis);
