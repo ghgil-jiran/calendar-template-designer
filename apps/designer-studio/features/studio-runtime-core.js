@@ -1007,7 +1007,18 @@ renderFreeElements=function(pageNode){
   if(view.role!=="ai-design-background")box.addEventListener("pointerdown",startElementPointer);if(view.type==="image-frame")box.addEventListener("dblclick",e=>{e.stopPropagation();pendingImageElementId=view.id;pendingImageElementScope=view._scope;el("frameImageInput").value="";el("frameImageInput").click()});(view.role==="ai-design-background"?backgroundLayer:layer).appendChild(box)
  });if(backgroundLayer.childElementCount)pageNode.appendChild(backgroundLayer);pageNode.appendChild(layer)
 };
-function permissionHTML(item){const p=item.permissions||{};return `<div class="section element-inspector"><div class="inspector-group"><div class="inspector-group-title"><span>사용자 편집 권한</span><small>Designer only</small></div><div class="permission-grid">${[["move","이동"],["resize","크기"],["rotate","회전"],["color","색상"],["replaceImage","이미지 교체"],["delete","삭제"]].map(([k,n])=>`<label><input type="checkbox" data-permission="${k}" ${p[k]!==false?"checked":""}>${n} 허용</label>`).join("")}</div><button id="applyGraphicPermissions" class="action">권한 저장</button></div></div>`}
+function permissionHTML(item){
+ const p=item.permissions||{},binding=item.binding||item.image?.binding||"";
+ const dataBound=Boolean(item.bindingEnabled!==false&&binding);
+ const isPhoto=["image","image-frame"].includes(item.type)&&!/^school\.profile\./.test(binding);
+ const userReplaceable=item.userReplaceable===true||item.replaceable===true||item.mediaPurpose==="user-replaceable-photo"||item.replacementPolicy==="replace-source-preserve-frame"||/^monthlyImages\./.test(binding)||["assets.coverPhoto","assets.endPhoto"].includes(binding);
+ return `<div class="section element-inspector"><div class="inspector-group"><div class="inspector-group-title"><span>사용자 편집 설정</span><small class="designer-permission-badge">템플릿 에디터에서 설정</small></div>
+ <p class="permission-help">템플릿 배치는 유지됩니다. 학교 자료 연결은 사용자 서비스의 입력 화면에서 관리합니다.</p>
+ ${dataBound?`<div class="permission-data-status">학교·달력 데이터에 연결된 개체입니다.</div>`:""}
+ ${isPhoto?`<label class="permission-compact-option"><input type="checkbox" id="allowUserImageFit" ${item.userReplaceable===false||p.replaceImage===false?"":userReplaceable?"checked":""}><span><strong>이미지 교체·맞춤 허용</strong><small>사용자 이미지를 바꾸고 프레임 안쪽을 조정합니다.</small></span></label>`:""}
+ <label class="permission-compact-option"><input type="checkbox" id="graphicRequired" ${item.required===true?"checked":""}><span><strong>필수 개체</strong><small>템플릿에서 삭제할 수 없도록 표시합니다.</small></span></label>
+ <button id="applyGraphicPermissions" class="action">설정 저장</button></div></div>`
+}
 function graphicShadowFields(style={}){return `<div class="grid2"><label>그림자<select id="graphicShadow"><option value="false" ${!style.shadow?"selected":""}>없음</option><option value="true" ${style.shadow?"selected":""}>표시</option></select></label><label>흐림<input id="graphicShadowBlur" type="number" min="0" max="50" value="${style.shadowBlur||0}"></label><label>가로 이동<input id="graphicShadowX" type="number" min="-50" max="50" value="${style.shadowX||0}"></label><label>세로 이동<input id="graphicShadowY" type="number" min="-50" max="50" value="${style.shadowY||0}"></label></div><label class="vector-color-swatch"><input id="graphicShadowColor" type="color" value="${style.shadowColor||"#000000"}"><span>그림자 색</span></label>`}
 const v28ElementInspectorPanels=elementInspectorPanels;
 elementInspectorPanels=function(){

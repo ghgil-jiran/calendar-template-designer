@@ -75,7 +75,21 @@
  };
  const renderedWithSupport=render;
  render=function(){const result=renderedWithSupport.apply(this,arguments);ensureInspectorSupport();return result};
- $('inspector')?.addEventListener('click',event=>{const button=event.target.closest('#applyGraphicPermissions');if(!button)return;event.preventDefault();event.stopImmediatePropagation();const item=sourceElement();if(!item)return;snapshot();item.permissions=Object.fromEntries([...$('inspector').querySelectorAll('[data-permission]')].map(input=>[input.dataset.permission,input.checked]));item.required=!!$('graphicRequired')?.checked;markDirty();render();showEditorToast('사용자 편집 권한을 저장했습니다.')},true);
+ $('inspector')?.addEventListener('click',event=>{
+  const button=event.target.closest('#applyGraphicPermissions');if(!button)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const item=sourceElement();if(!item)return;
+  const imageFit=$('allowUserImageFit'),required=$('graphicRequired');
+  snapshot();
+  item.permissions={...(item.permissions||{}),move:false,resize:false,rotate:false,color:false,delete:false,duplicate:false,layer:false};
+  if(imageFit){
+   item.permissions.replaceImage=imageFit.checked;
+   item.permissions.content=imageFit.checked;
+   item.userReplaceable=imageFit.checked;
+  }
+  if(required)item.required=required.checked;
+  markDirty();render();showEditorToast('사용자 편집 설정을 저장했습니다.');
+ },true);
  activate('school');
 })();
 

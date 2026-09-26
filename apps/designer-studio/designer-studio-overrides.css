@@ -441,3 +441,13 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .landing-fixed-cover-image{position:absolute;top:50%;left:-86.5%;width:186.5%;max-width:none;height:auto;transform:translateY(-50%);pointer-events:none;user-select:none}
 @media(max-width:900px){.landing-hero{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;padding:38px 28px 42px}.landing-copy h1,.landing-copy-secondary h2{font-size:clamp(21px,2.7vw,24px)}.landing-copy-secondary{margin-top:18px}.landing-showcase{min-height:0}}
 @media(max-width:700px){.landing-hero{grid-template-columns:1fr;gap:28px;padding:34px 22px 42px}.landing-copy h1,.landing-copy-secondary h2{font-size:clamp(23px,5vw,29px)}.landing-showcase{justify-self:start;max-width:480px}}
+
+/* Compact designer-side permission settings */
+.workspace>.right .designer-permission-badge{display:inline-flex;align-items:center;min-height:22px;padding:2px 7px;border-radius:999px;background:#edf4ff;color:#285b9e;font-size:10px;font-weight:700;white-space:nowrap}
+.workspace>.right .permission-help{margin:0 0 12px;color:#64748b;font-size:11px;line-height:1.55}
+.workspace>.right .permission-data-status{margin-bottom:10px;padding:7px 9px;border-radius:7px;background:#f2f6fc;color:#46617f;font-size:11px;overflow-wrap:anywhere}
+.workspace>.right .permission-compact-option{display:flex;flex-direction:row;align-items:flex-start;gap:10px;min-height:46px;margin:0 0 8px;padding:10px;border:1px solid #dbe4ef;border-radius:9px;background:#fff;color:#334155;cursor:pointer}
+.workspace>.right .permission-compact-option input[type="checkbox"]{flex:0 0 auto;width:16px!important;height:16px!important;min-width:16px;margin:1px 0 0;padding:0;accent-color:#2563eb}
+.workspace>.right .permission-compact-option span{display:grid;gap:2px;min-width:0}
+.workspace>.right .permission-compact-option strong{font-size:11px;font-weight:700;line-height:1.4}
+.workspace>.right .permission-compact-option small{font-size:10px;color:#64748b;line-height:1.45}
