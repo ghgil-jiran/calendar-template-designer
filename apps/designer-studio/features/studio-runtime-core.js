@@ -595,7 +595,12 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
       if(item.binding==='school.address')item.content=school.address||item.content;
       if(item.binding==='school.website')item.content=school.website||item.content;
       if(item.binding==='school.contacts')item.content=(school.contacts||[]).map(contact=>[contact.label,contact.phone,contact.fax&&`팩스 ${contact.fax}`].filter(Boolean).join(' ')).filter(Boolean).join(' · ')||[school.phone,school.fax&&`팩스 ${school.fax}`].filter(Boolean).join(' · ')||item.content;
-      if(item.binding==='calendar.year')item.content=String(prj.settings?.year||item.content||'');
+      if(item.binding==='calendar.year'){
+        const year=String(prj.settings?.year||item.content||'');
+        item.content=item.yearFormat==='number-calendar'
+          ? `${year}${item.yearLines==='two'?'\n':' '}CALENDAR`
+          : year;
+      }
       if(item.binding==='school.profile.motto.description')item.content=school.profile?.motto?.description||item.content;
       if(item.binding==='school.profile.song.description')item.content=school.profile?.song?.description||item.content;
     });
