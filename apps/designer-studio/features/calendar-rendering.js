@@ -39,19 +39,11 @@ function calendarRowCountFor(y,m){
 }
 function calendarGrid(y,m){return calendarGridFor(y,m,calendarRowCountFor(y,m))}
 function calendarVerticalLayout(design=project.template.masters.calendar.design||{}){
- const master=project.template.masters.calendar,preset=window.ACDLCalendarPresetCatalog?.resolve({calendarPreset:master.calendarPreset,calendarLayout:master.calendarLayout,calendarOverrides:master.calendarOverrides,design});
- if(preset){const layout=preset.layout,titleSpec=window.ACDLCalendarPresetCatalog?.titlePresentations?.[preset.presentation.monthTitleStyle],title=Math.max(layout.titlePercent,titleSpec?.titlePercent||0),remaining=100-title,weekday=Math.min(layout.weekdayPercent,remaining),grid=remaining-weekday,stage=weekday+grid;return{title,weekday,grid,weekdayStage:weekday/stage*100,preset}}
- const presets={"sample-6":{title:10,weekday:4,grid:86},"sample-3":{title:21,weekday:4,grid:75}};
- const stored=design.verticalLayout,total=Number(stored?.title||0)+Number(stored?.weekday||0)+Number(stored?.grid||0);
- const detected=design.presetId&&presets[design.presetId]?design.presetId:design.monthTitleStyle==="number-inline"?"sample-3":"sample-6";
- const layout=total===100?stored:presets[detected];
- const stage=layout.weekday+layout.grid;
- return {...layout,weekdayStage:layout.weekday/stage*100};
+ const master=project.template.masters.calendar;
+ return window.ACDLSharedCalendarLayout.resolveVerticalLayout({design,calendarPreset:master.calendarPreset,calendarLayout:master.calendarLayout,calendarOverrides:master.calendarOverrides},window.ACDLCalendarPresetCatalog);
 }
 function calendarChromeLayout(presentation,vertical,region=calendarRegion()){
- const style=presentation?.weekdayStyle||"filled-tabs",spec=window.ACDLCalendarPresetCatalog?.weekdayPresentations?.[style]||{boxHeightMm:7.06,gridGapMm:0};
- const pageHeightMm=Number(project.productType?.pageSize?.height||180),regionHeightMm=pageHeightMm*Number(region.height||79)/100,stageHeightMm=Math.max(1,regionHeightMm*(100-Number(vertical.title||10))/100),boxHeightMm=Number(spec.boxHeightMm||7.06),gridGapMm=Number(spec.gridGapMm||0),trackMm=boxHeightMm+gridGapMm;
- return {boxHeightMm,gridGapMm,trackMm,weekdayStage:Math.max(2,Math.min(20,trackMm/stageHeightMm*100)),contract:window.ACDLCalendarPresetCatalog?.compositionContract};
+ return window.ACDLSharedCalendarLayout.resolveChromeLayout(presentation,vertical,region,project.productType?.pageSize?.height,window.ACDLCalendarPresetCatalog);
 }
 function yearCalendarRowCountFor(view,y,m){
  const mode=view?.rowsMode||"inherit";
