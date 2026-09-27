@@ -1,0 +1,8 @@
+.shared-screen-memo.widget-memo{width:100%;height:100%;display:flex;flex-direction:column;box-sizing:border-box;border:0;background:transparent;padding:0;gap:7px}
+.shared-screen-memo.widget-memo>.planner-ribbon{align-self:flex-start;margin:0;padding:5px 18px;background:var(--month-primary,#315e9e);color:#fff;line-height:1;border-radius:2px;letter-spacing:.02em;font-size:12px}
+.shared-screen-memo .planner-check-list{flex:1;display:grid;min-height:0;gap:3px}
+.shared-screen-memo .planner-check-row{display:grid;grid-template-columns:20% 1fr 8%;align-items:center;overflow:hidden;border-radius:5px;background:rgba(255,255,255,.96);min-height:0}
+.shared-screen-memo .planner-check-row.header{background:color-mix(in srgb,var(--month-primary,#315e9e) 25%,white);color:var(--month-primary,#315e9e);font-size:8px;text-align:center}
+.shared-screen-memo .planner-check-row>span{height:100%;display:flex;align-items:center;justify-content:center;border-right:1px solid color-mix(in srgb,var(--month-primary,#315e9e) 15%,white)}
+.shared-screen-memo .planner-check-row>span:last-child{border-right:0}
+.runtime-planner-back-surface .shared-screen-memo.widget-memo>.planner-ribbon{clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 50%,calc(100% - 7px) 100%,7px 100%,0 50%);font-weight:800}

@@ -188,10 +188,7 @@ function renderWidgetContent(view,p){
    if(memoModel.showMemo)cards.push(`<div class="planner-week-card memo"><span class="planner-week-label">MEMO</span><span class="planner-week-space"></span></div>`);
    return `<div class="widget-memo" data-memo-layout="weekly"><strong class="planner-ribbon">${title}</strong><div class="planner-week-list">${cards.join("")}</div></div>`
   }
-  if(layout==="checklist"){
-   const count=memoModel.itemCount;
-   return `<div class="widget-memo" data-memo-layout="checklist"><strong class="planner-ribbon">${title}</strong><div class="planner-check-list" style="grid-template-rows:auto repeat(${count},1fr)"><div class="planner-check-row header"><span>DATE</span><span>TO DO</span><span></span></div>${Array.from({length:count},()=>`<div class="planner-check-row"><span></span><span></span><span></span></div>`).join("")}</div></div>`
-  }
+  if(layout==="checklist")return window.ACDLSharedMemo.renderChecklist(memoModel);
   const lineCount=memoModel.lineCount,rules=Array.from({length:lineCount},(_,index)=>`<i class="memo-rule" data-print-rule="true" style="top:${((index+1)/lineCount)*100}%"></i>`).join("");
   return `<div class="widget-memo" data-memo-layout="${layout}"><strong>${title}</strong><div class="memo-lines" data-print-memo-lines="true" style="--memo-line-count:${lineCount}">${rules}</div></div>`
  }
