@@ -35,7 +35,27 @@
   return {schemaVersion:SCHEMA_VERSION,version:VERSION,promptCompositionVersion,catalog:{id:catalog.id,version:catalog.version},scope:'desk-first',intent:'editable-start-for-designer',commonGuideline:String(preserveCommonGuideline?input.commonGuideline:catalog.commonGuideline?.text||''),commonForbidden:String(input.commonForbidden||catalog.commonGuideline?.forbidden||''),styleId:allowed(migratedStyleId,styleIds,styles[0]?.id||''),styleSnapshots,pageTypes,dividerPages,pageSettings,expression:{monthFrontMode:allowed(expression.monthFrontMode,optionIds(catalog,'monthFrontMode'),expressionDefaults.monthFrontMode),monthBackMode:allowed(expression.monthBackMode,optionIds(catalog,'monthBackMode'),expressionDefaults.monthBackMode)},protectedContent:[...protectedContent]};
  }
  function read(project,catalog=root.ACDLDesignTypeCatalog){return normalize(project?.template?.settings?.[RESOURCE_KEY]||{},catalog)}
+ // Page objects are the source of truth for an existing design. The saved spec
+ // describes the starting composition and can lag behind edits to those objects.
+ function readPageSettings(project,catalog=root.ACDLDesignTypeCatalog){
+  const spec=read(project,catalog),pages=project?.book?.pageInstances||[],byPage=project?.book?.elementsByPage||{};
+  const roleOf=page=>page.role==='cover-front'?'cover':page.role==='back-cover-front'?'back-cover-front':page.role==='back-cover-back'?'back-cover-back':null;
+  const componentOf=item=>{
+   const binding=item.binding||item.image?.binding;
+   const bindings={'calendar.year':'year','school.profile.building':'school-building','school.profile.logo':'school-logo','school.name':'school-name','school.englishName':'school-english-name','school.slogan':'school-slogan','school.address':'school-address','school.contacts':'school-contacts','school.website':'school-website'};
+   if(bindings[binding])return bindings[binding];
+   const roles={'year':'year','school-building':'school-building','school-logo':'school-logo','school-name':'school-name','school-english-name':'school-english-name','school-slogan':'school-slogan'};
+   return binding?null:roles[item.role]||null;
+  };
+  for(const page of pages){
+   const role=roleOf(page),items=byPage[page.id];
+   if(!role||!Array.isArray(items))continue;
+   const value=spec.pageSettings.roleCompositions[role],ids=roleComponentIds[role];
+   value.components=ids.filter(id=>items.some(item=>componentOf(item)===id));
+  }
+  return spec;
+ }
  function write(project,input,catalog=root.ACDLDesignTypeCatalog){if(!project?.template)throw new Error('Template project is required');project.template.settings=project.template.settings||{};project.template.settings[RESOURCE_KEY]=normalize(input,catalog);return project.template.settings[RESOURCE_KEY]}
  function selectedStyle(spec){return spec?.styleSnapshots?.find(style=>style.id===spec.styleId)||null}
- root.ACDLDesignSpec=Object.freeze({VERSION,SCHEMA_VERSION,RESOURCE_KEY,dividerObjectIds,dividerImageSources,dividerLayoutIds,monthBackComponentIds,defaultMonthBackComponents,roleComponentIds,roleComponentDefaults,clone,normalize,read,write,selectedStyle});
+ root.ACDLDesignSpec=Object.freeze({VERSION,SCHEMA_VERSION,RESOURCE_KEY,dividerObjectIds,dividerImageSources,dividerLayoutIds,monthBackComponentIds,defaultMonthBackComponents,roleComponentIds,roleComponentDefaults,clone,normalize,read,readPageSettings,write,selectedStyle});
 })(typeof window!=='undefined'?window:globalThis);
