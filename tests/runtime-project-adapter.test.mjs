@@ -29,6 +29,22 @@ test('runtime project adapter accepts a supplied Dataset without changing the pr
  assert.equal(JSON.stringify(project),before);
 });
 
+test('cover year display follows the saved page setting in editor and runtime output',()=>{
+ const dataset={calendar:{year:2027},monthlyQuotes:{}};
+ const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{buildRuntimeDataset:()=>dataset,resolvePageBinding:path=>path},parity:{buildDeskAcademicSurfacePlan:()=>[]},pageAdapter:{compose:()=>({pages:[],complete:true})}});
+ const cover={id:'cover',role:'cover-front',masterId:'cover',calendarYear:2027};
+ const element={id:'cover-year',type:'text',binding:'calendar.year',content:'2027',yearFormat:'number',yearLines:'one',x:30,y:5,width:40,height:12};
+ const project={productType:{category:'desk',pageSize:{width:260,height:180}},settings:{year:2027},template:{id:'desk',masterElements:{cover:[element]},masters:{},settings:{aiDesignSpec:{pageSettings:{roleCompositions:{cover:{yearFormat:'number-calendar',yearLines:'two'}}}}}},book:{pageInstances:[cover],elementsByPage:{}}};
+ assert.equal(context.ACDLRuntimeProjectAdapter.formatYearText(element,cover,project),'2027\nCALENDAR');
+ assert.equal(adapter.adapt(project).template.pages[0].objects[0].value,'2027\nCALENDAR');
+ const editingSource=fs.readFileSync(new URL('../apps/designer-studio/features/object-editing.js',import.meta.url),'utf8');
+ const resolveFunction=editingSource.slice(editingSource.indexOf('function resolveTextContent('),editingSource.indexOf('function applyCoverTitleSize('));
+ const editorContext={window:{ACDLRuntimeProjectAdapter:context.ACDLRuntimeProjectAdapter},project,selectedPage:()=>cover};
+ assert.equal(vm.runInNewContext(`${resolveFunction};resolveTextContent(${JSON.stringify(element)},selectedPage())`,editorContext),'2027\nCALENDAR');
+ project.template.settings.aiDesignSpec.pageSettings.roleCompositions.cover.yearFormat='number';
+ assert.equal(adapter.adapt(project).template.pages[0].objects[0].value,'2027');
+});
+
 test('runtime project adapter keeps academic composition separate from Dataset supply',()=>{
  const dataset={calendar:{},monthlyQuotes:{}};
  const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{buildRuntimeDataset:()=>dataset,resolvePageBinding:path=>path},parity:{buildDeskAcademicSurfacePlan:()=>[{role:'cover-front'}]},pageAdapter:{compose:()=>({pages:[],missing:[],complete:true})}});
