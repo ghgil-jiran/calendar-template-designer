@@ -1,0 +1,56 @@
+/* Calendar weekday chrome shared by the authoring canvas and Runtime preview. */
+.calendar-region.weekday-outlined-pills .calendar > .head,
+.shared-month-weekdays.weekday-outlined-pills > .head {
+  box-sizing: border-box;
+  align-self: start;
+  height: calc(100% - var(--calendar-weekday-grid-gap, 0%));
+  min-height: 0;
+  margin: 0 2px;
+  padding: 5px 3px;
+  border: 1.5px solid #98a2b3 !important;
+  border-radius: 7px;
+  background: #fff !important;
+  color: #262626;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1;
+  text-align: center;
+}
+.calendar-region.weekday-outlined-pills .calendar > .head:first-child,
+.shared-month-weekdays.weekday-outlined-pills > .head:first-child {
+  border-color: #f04455 !important;
+  color: #d92d20;
+}
+.calendar-region.weekday-outlined-pills .calendar > .head:nth-child(7),
+.shared-month-weekdays.weekday-outlined-pills > .head:nth-child(7) {
+  border-color: #7aa7d9 !important;
+  color: #2864b5;
+}
+
+/* Shared authored month title structure. */
+.calendar-region.month-title-left .month-title{text-align:left}.calendar-region.month-title-center .month-title{text-align:center}.calendar-region.month-title-right .month-title{text-align:right}.calendar-region .month-title.number-stack,.calendar-region .month-title.number-inline,.calendar-region .month-title.number-only,.calendar-region .month-title.english-month{display:flex;align-items:center;gap:10px;line-height:1}.calendar-region.month-title-center .month-title.number-stack,.calendar-region.month-title-center .month-title.number-inline,.calendar-region.month-title-center .month-title.number-only,.calendar-region.month-title-center .month-title.english-month{justify-content:center}.calendar-region.month-title-right .month-title.number-stack,.calendar-region.month-title-right .month-title.number-inline,.calendar-region.month-title-right .month-title.number-only,.calendar-region.month-title-right .month-title.english-month{justify-content:flex-end}.month-title .month-number{font-size:2.15em;font-weight:900;line-height:.8}.month-title .month-meta{display:flex;flex-direction:column;align-items:flex-start;gap:2px;color:#344054;font-size:.62em;font-weight:700}.month-title .month-en{font-size:1.05em;color:#17202e}.calendar-region .month-title.number-inline{gap:18px}.calendar-region .month-title.number-inline .month-number{font-size:2.65em;line-height:.78}.calendar-region .month-title.number-inline .month-year{font-size:1.05em;font-weight:850;color:#17202e}.calendar-region .month-title.number-inline .month-en{font-size:1.12em;font-weight:800;color:#8a8a8a}.calendar-region .month-title.number-only .month-number{font-size:2.65em}.calendar-region .month-title.year-month-korean,.calendar-region .month-title.month-korean{display:flex;align-items:center;font-weight:850;letter-spacing:-.04em}.calendar-region.month-title-center .month-title.year-month-korean,.calendar-region.month-title-center .month-title.month-korean{justify-content:center}.calendar-region.month-title-right .month-title.year-month-korean,.calendar-region.month-title-right .month-title.month-korean{justify-content:flex-end}.calendar-region .month-title.english-month{gap:12px;font-weight:850}.calendar-region .month-title.english-month .month-en{font-size:1.45em;font-weight:900}.calendar-region .month-title.english-month .month-year{font-size:.8em;color:#667085}
+.shared-month-title.month-title-left{text-align:left}.shared-month-title.month-title-center{text-align:center}.shared-month-title.month-title-right{text-align:right}.shared-month-title.number-stack,.shared-month-title.number-inline,.shared-month-title.number-only,.shared-month-title.english-month{display:flex;align-items:center;gap:10px;line-height:1}.shared-month-title.month-title-center.number-stack,.shared-month-title.month-title-center.number-inline,.shared-month-title.month-title-center.number-only,.shared-month-title.month-title-center.english-month{justify-content:center}.shared-month-title.month-title-right.number-stack,.shared-month-title.month-title-right.number-inline,.shared-month-title.month-title-right.number-only,.shared-month-title.month-title-right.english-month{justify-content:flex-end}.shared-month-title .month-number{font-size:2.15em;font-weight:900;line-height:.8}.shared-month-title .month-meta{display:flex;flex-direction:column;align-items:flex-start;gap:2px;color:#344054;font-size:.62em;font-weight:700}.shared-month-title .month-en{font-size:1.05em;color:#17202e}.shared-month-title.number-inline{gap:18px}.shared-month-title.number-inline .month-number{font-size:2.65em;line-height:.78}.shared-month-title.number-inline .month-year{font-size:1.05em;font-weight:850;color:#17202e}.shared-month-title.number-inline .month-en{font-size:1.12em;font-weight:800;color:#8a8a8a}.shared-month-title.number-only .month-number{font-size:2.65em}.shared-month-title.year-month-korean,.shared-month-title.month-korean{display:flex;align-items:center;font-weight:850;letter-spacing:-.04em}.shared-month-title.month-title-center.year-month-korean,.shared-month-title.month-title-center.month-korean{justify-content:center}.shared-month-title.month-title-right.year-month-korean,.shared-month-title.month-title-right.month-korean{justify-content:flex-end}.shared-month-title.english-month{gap:12px;font-weight:850}.shared-month-title.english-month .month-en{font-size:1.45em;font-weight:900}.shared-month-title.english-month .month-year{font-size:.8em;color:#667085}
+.shared-month-title{width:100%;min-width:0}
+
+/* The editor paints the outer top/left lines and each date cell paints right/bottom. */
+.shared-month-date-grid.grid-boxed {
+  box-sizing: border-box;
+  border-left: var(--calendar-grid-stroke, 1px solid #d8dee8);
+  border-top: var(--calendar-grid-stroke, 1px solid #d8dee8);
+}
+.shared-month-date-grid.grid-boxed > .shared-month-day-cell {
+  min-width: 0;
+  overflow: hidden;
+  border-right: var(--calendar-grid-stroke, 1px solid #d8dee8);
+  border-bottom: var(--calendar-grid-stroke, 1px solid #d8dee8);
+  background: rgba(255,255,255,.97);
+}
+.shared-month-date-grid.grid-boxed > .shared-month-day-cell > div:first-child {
+  box-sizing: border-box;
+  border: 0 !important;
+  padding: 3px 3px 42px !important;
+}
+
+/* Date-cell mini calendars use the same six/five-row markup on both screens. */
+.cell-mini-calendar{position:absolute;inset:0;display:flex;flex-direction:column;padding:4px;background:rgba(248,250,252,.96);overflow:hidden}.cell-mini-calendar strong{text-align:left;font-size:9px;line-height:1;margin-bottom:3px}.cell-mini-grid{display:flex;min-height:0;flex:1;flex-direction:column;justify-content:space-between;padding-bottom:1px;font-size:6px;line-height:1}.cell-mini-week{display:grid;grid-template-columns:repeat(7,1fr)}.cell-mini-week span{text-align:center;min-width:0}.cell-mini-week .merged{font-size:4.5px;white-space:nowrap}.cell-mini-week .adj{color:transparent}.cell-mini-week .sun-mini{color:#d92d20}.cell-mini-week .sat-mini{color:#175cd3}.cell.mini-host{position:relative;padding:0}.cell.mini-host .day-stack{display:none}
+.cell-mini-grid{display:grid;grid-template-rows:repeat(var(--mini-calendar-rows,6),minmax(0,1fr));justify-content:normal}.cell-mini-week{align-items:center}

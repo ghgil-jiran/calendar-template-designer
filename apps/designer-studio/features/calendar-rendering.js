@@ -64,10 +64,10 @@ function selectAdjacentMiniCells(grid,currentMonth){
  return []
 }
 function renderCellMiniCalendar(y,m){
- const rows=calendarRowCountFor(y,m),cells=calendarGridFor(y,m,rows),weeks=[];for(let i=0;i<cells.length;i+=7)weeks.push(cells.slice(i,i+7));
- let h=`<div class="cell-mini-calendar"><strong>${m}</strong><div class="cell-mini-grid" style="--mini-calendar-rows:${rows}">`;
- weeks.forEach(week=>{h+='<div class="cell-mini-week">';week.forEach(c=>{const current=c.month===m,label=current?(c.extra?`${c.day}/${c.extra.day}`:c.day):"",tone=!current?"adj":c.dow===0?"sun-mini":c.dow===6?"sat-mini":"",merged=c.extra?" merged":"";h+=`<span class="${tone}${merged}">${label}</span>`});h+="</div>"});
- return h+"</div></div>"
+ const shared=window.ACDLSharedMiniCalendar;
+ if(shared?.version!=="0.1.0-preview.1"||typeof shared.renderCellMiniCalendarMarkup!=="function")throw new Error("공통 미니월력 화면 모듈 버전이 일치하지 않습니다.");
+ const model=shared.resolveMiniCalendar({type:"mini-calendar"},{calendarYear:y,calendarMonth:m},{calendarRows:project.settings.calendarRows,calendarRowsMode:project.settings.calendarRowsMode,sampleFamily:project.template?.metadata?.sampleFamily,weekStart:project.settings.weekStart});
+ return shared.renderCellMiniCalendarMarkup(model)
 }
 
 function isoDate(d){

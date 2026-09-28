@@ -5,7 +5,9 @@ import vm from 'node:vm';
 
 const source=fs.readFileSync(new URL('../apps/designer-studio/runtime-project-adapter.js',import.meta.url),'utf8');
 const assetSource=fs.readFileSync(new URL('../apps/designer-studio/project-asset-resolver.js',import.meta.url),'utf8');
-const context={};vm.createContext(context);vm.runInContext(assetSource,context);vm.runInContext(source,context);
+const compositionSource=fs.readFileSync(new URL('../apps/designer-studio/page-composition-runtime.js',import.meta.url),'utf8');
+const screenSource=fs.readFileSync(new URL('../apps/designer-studio/shared-screen-composition.js',import.meta.url),'utf8');
+const context={};vm.createContext(context);vm.runInContext(assetSource,context);vm.runInContext(compositionSource,context);vm.runInContext(screenSource,context);vm.runInContext(source,context);
 
 test('runtime distinguishes a usable template fallback from an empty binding value',()=>{
  const {hasRenderableValue}=context.ACDLRuntimeProjectAdapter;
@@ -76,6 +78,10 @@ test('runtime project adapter carries the complete calendar master presentation 
  const project={productType:{category:'desk',pageSize:{width:260,height:180}},settings:{year:2027,calendarRows:5,weekStart:'sunday'},template:{id:'desk',masterElements:{},masters:{calendar}},book:{pageInstances:[{id:'march',role:'monthly-front',calendarYear:2027,calendarMonth:3}],elementsByPage:{march:[]}}};
  const object=adapter.adapt(project).template.pages[0].objects[0];
  assert.equal(object.role,'current-calendar');
+ assert.ok(Math.abs(object.frame.x-22.36)<1e-8);
+ assert.ok(Math.abs(object.frame.y-41.112)<1e-8);
+ assert.ok(Math.abs(object.frame.width-215.28)<1e-8);
+ assert.ok(Math.abs(object.frame.height-120.384)<1e-8);
  assert.equal(object.value.rows,6);
  assert.equal(object.value.weekStart,'monday');
  assert.equal(object.value.calendarLayout.rowsMode,'fixed-6');

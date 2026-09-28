@@ -43,5 +43,19 @@
     model.cells.forEach(cell => { const classes = [cell.month !== model.month ? "adj" : "", cell.weekday === 0 ? "sun" : "", cell.weekday === 6 ? "sat" : "", holidays.has(cell.date) ? "holiday" : ""].filter(Boolean).join(" "); inner += `<span class="${classes}">${cell.day}${cell.extra ? ` · ${cell.extra.day}` : ""}</span>`; });
     return inner + "</div></div>";
   }
-  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup});
+  function renderCellMiniCalendarMarkup(model) {
+    if (!model || !Array.isArray(model.cells) || model.cells.length !== model.rows * 7) return "";
+    let html = `<div class="cell-mini-calendar"><strong>${model.month}</strong><div class="cell-mini-grid" style="--mini-calendar-rows:${model.rows}">`;
+    for (let index = 0; index < model.cells.length; index += 7) {
+      html += '<div class="cell-mini-week">';
+      model.cells.slice(index, index + 7).forEach(cell => {
+        const current = cell.month === model.month;
+        const tone = !current ? "adj" : cell.weekday === 0 ? "sun-mini" : cell.weekday === 6 ? "sat-mini" : "";
+        html += `<span class="${tone}${cell.extra ? " merged" : ""}">${current ? cell.day + (cell.extra ? "/" + cell.extra.day : "") : ""}</span>`;
+      });
+      html += "</div>";
+    }
+    return html + "</div></div>";
+  }
+  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup});
 })(globalThis);
