@@ -168,7 +168,8 @@ function renderWidgetContent(view,p){
  }
  if(view.type==="memo"){
   const memoModel=window.ACDLPageCompositionRuntime.resolveMemoLayout({...view,baseYear:view.baseYear||project.settings.year}),layout=memoModel.layout,title=v21Escape(memoModel.title);
-  if(layout==="yearly-grid")return window.ACDLSharedMemo.renderYearlyPlan(memoModel);\n  if(layout==="goal")return `<div class="widget-memo" data-memo-layout="goal"><strong class="planner-ribbon">${title}</strong><div class="planner-goal-box"></div></div>`;
+  if(layout==="yearly-grid")return window.ACDLSharedMemo.renderYearlyPlan(memoModel);
+  if(layout==="goal")return `<div class="widget-memo" data-memo-layout="goal"><strong class="planner-ribbon">${title}</strong><div class="planner-goal-box"></div></div>`;
   if(layout==="weekly"){
    const weeks=memoModel.weekCount,ordinals=["1st","2nd","3rd","4th","5th"];
    const cards=Array.from({length:weeks},(_,index)=>`<div class="planner-week-card"><span class="planner-week-label">${ordinals[index]} WEEK</span><span class="planner-week-space"></span></div>`);
