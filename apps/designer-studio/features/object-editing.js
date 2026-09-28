@@ -304,7 +304,7 @@ function schoolBindingValue(binding){
 }
 function resolveTextContent(view,p=selectedPage()){
  if(view.binding?.startsWith("school."))return schoolBindingValue(view.binding)||view.content||"학교 정보 입력";
- if(view.binding==="calendar.year")return window.ACDLRuntimeProjectAdapter.formatYearText(view,p,project);
+ if(view.binding==="calendar.year"||view.type==="text"&&view.role==="year"&&["cover-front","back-cover-back"].includes(p?.role))return window.ACDLRuntimeProjectAdapter.formatYearText(view,p,project);
  return view.content||""
 }
 function applyCoverTitleSize(size){
