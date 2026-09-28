@@ -304,7 +304,7 @@ function schoolBindingValue(binding){
 }
 function resolveTextContent(view,p=selectedPage()){
  if(view.binding?.startsWith("school."))return schoolBindingValue(view.binding)||view.content||"학교 정보 입력";
- if(view.binding==="calendar.year")return String(p.calendarYear||project.settings.year||view.content||"");
+ if(view.binding==="calendar.year")return window.ACDLRuntimeProjectAdapter.formatYearText(view,p,project);
  return view.content||""
 }
 function applyCoverTitleSize(size){
@@ -657,7 +657,7 @@ function renderFreeElements(pageNode){
 }
 function applyTextElementStyles(node,view){
  const style=view.style||{},size=style.fontSize||project.template.masters.cover.titleSize||18,align=style.textAlign||"left",vertical=style.verticalAlign||"top";
- node.style.fontSize=size+"px";node.style.setProperty("--element-font-size",String(size));node.style.fontFamily=style.fontFamily||(["year","school-name"].includes(view.role)?"var(--tpl-title-font)":"var(--tpl-body-font)");node.style.fontWeight=String(style.fontWeight||"normal");node.style.fontStyle=style.fontStyle||"normal";node.style.textDecoration=style.textDecoration||"none";node.style.textAlign=align;node.style.justifyContent=align==="center"?"center":align==="right"?"flex-end":"flex-start";node.style.alignItems=vertical==="middle"?"center":vertical==="bottom"?"flex-end":"flex-start";node.style.color=style.color||"#17202e";node.style.letterSpacing=Number(style.letterSpacing||0)+"px";node.style.lineHeight=String(style.lineHeight||1.2);node.style.opacity=String(style.opacity??1);node.style.background=style.background?(style.backgroundColor||"#ffffff"):"transparent";node.style.webkitTextStroke=Number(style.strokeWidth||0)+"px "+(style.strokeColor||"transparent");node.style.textShadow=style.shadow?`${Number(style.shadowX||0)}px ${Number(style.shadowY||0)}px ${Number(style.shadowBlur||0)}px ${style.shadowColor||"#000000"}`:"none"
+ node.style.fontSize=size+"px";node.style.setProperty("--element-font-size",String(size));node.style.fontFamily=style.fontFamily||(["year","school-name"].includes(view.role)?"var(--tpl-title-font)":"var(--tpl-body-font)");node.style.fontWeight=String(style.fontWeight||"normal");node.style.fontStyle=style.fontStyle||"normal";node.style.textDecoration=style.textDecoration||"none";node.style.textAlign=align;node.style.justifyContent=align==="center"?"center":align==="right"?"flex-end":"flex-start";node.style.alignItems=vertical==="middle"?"center":vertical==="bottom"?"flex-end":"flex-start";node.style.whiteSpace=style.whiteSpace||"pre-line";node.style.color=style.color||"#17202e";node.style.letterSpacing=Number(style.letterSpacing||0)+"px";node.style.lineHeight=String(style.lineHeight||1.2);node.style.opacity=String(style.opacity??1);node.style.background=style.background?(style.backgroundColor||"#ffffff"):"transparent";node.style.webkitTextStroke=Number(style.strokeWidth||0)+"px "+(style.strokeColor||"transparent");node.style.textShadow=style.shadow?`${Number(style.shadowX||0)}px ${Number(style.shadowY||0)}px ${Number(style.shadowBlur||0)}px ${style.shadowColor||"#000000"}`:"none"
 }
 function startElementPointer(e){
  const box=e.currentTarget,id=box.dataset.elementId,scope=box.dataset.scope;
