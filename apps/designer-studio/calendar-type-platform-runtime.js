@@ -7,7 +7,11 @@
   'desk-standard':'./assets/calendar-types/desk-standard-260x180.webp',
   'desk-large':'./assets/calendar-types/desk-large-297x210.webp',
   'desk-wide':'./assets/calendar-types/desk-wide-297x148.webp',
-  'desk-portrait':'./assets/calendar-types/desk-portrait-180x260.webp'
+  'desk-portrait':'./assets/calendar-types/desk-portrait-180x260.webp',
+  'poster-standard':'./assets/calendar-types/single-sheet-poster-preview-v2.webp',
+  'wall-standard':'./assets/calendar-types/wall-hanging-preview.webp',
+  'wall-large':'./assets/calendar-types/wall-hanging-preview.webp',
+  'wall-large-plus':'./assets/calendar-types/wall-hanging-preview.webp'
  });
  const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
  const token=()=>root.ACDLAdminAuth?.accessToken?.()||'';
