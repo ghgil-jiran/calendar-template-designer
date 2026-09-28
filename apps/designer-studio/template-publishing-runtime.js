@@ -108,13 +108,13 @@
   for(const record of records){
    const loaded=await remote.load(record.id,{deferAssets:true}),identity=publishedIdentity(loaded?.version?.projectData);
    if(!identity){if(strict)throw new Error(`게시 템플릿의 Package 정보를 찾지 못했습니다: ${record.name||record.id}`);items.push({name:record.name||record.id,editorRevision:Number(loaded?.version?.versionNumber||record.version||0),templateId:null,version:null,error:'Package 정보 누락'});continue}
-   items.push({name:record.name||loaded?.template?.name||identity.templateId,editorRevision:Number(loaded?.version?.versionNumber||record.version||0),...identity});
+   items.push({name:record.name||loaded?.template?.name||identity.templateId,editorRevision:Number(loaded?.version?.versionNumber||record.version||0),packageEditorRevision:Number(loaded?.version?.projectData?.template?.publishing?.lastReviewPackage?.sourceEditorRevision)||null,...identity});
   }
   return items
  }
  function compareCatalogs(editor,service){
   const editorById=new Map(editor.filter(item=>item.templateId).map(item=>[item.templateId,item])),serviceById=new Map(service.map(item=>[item.templateId,item])),ids=new Set([...editorById.keys(),...serviceById.keys()]),rows=[];
-  for(const id of ids){const left=editorById.get(id),right=serviceById.get(id),state=!left?'service-only':!right?'editor-only':left.version===right.version?'matched':'version-mismatch';rows.push({templateId:id,name:left?.name||right?.name||id,editorRevision:left?.editorRevision||null,editorVersion:left?.version||null,serviceVersion:right?.version||null,serviceEditorRevision:right?.sourceEditorRevision||null,state})}
+  for(const id of ids){const left=editorById.get(id),right=serviceById.get(id),stale=left?.packageEditorRevision&&left.editorRevision>left.packageEditorRevision,state=!left?'service-only':stale?'unpackaged-edits':!right?'editor-only':left.version===right.version?'matched':'version-mismatch';rows.push({templateId:id,name:left?.name||right?.name||id,editorRevision:left?.editorRevision||null,packageEditorRevision:left?.packageEditorRevision||null,editorVersion:left?.version||null,serviceVersion:right?.version||null,serviceEditorRevision:right?.sourceEditorRevision||null,state})}
   for(const item of editor.filter(entry=>!entry.templateId))rows.push({...item,state:'invalid-editor'});
   return rows.sort((a,b)=>String(a.name).localeCompare(String(b.name),'ko'))
  }
@@ -125,10 +125,12 @@
  async function synchronizeCatalog(){
   const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return {requested:[],packages:[],deactivated:[]};
   progress('cleanup','시스템 베이스와 사용자 서비스 목록을 동기화하고 있습니다.');
-  const editor=await editorCatalog({strict:true}),active=editor.map(({templateId,version,editorRevision})=>({templateId,version,sourceEditorRevision:editorRevision>0?editorRevision:null}));
+  const editor=await editorCatalog({strict:true}),service=(await request({mode:'inspect-review-catalog'})).packages||[],rows=compareCatalogs(editor,service),blocked=rows.filter(row=>['unpackaged-edits','version-mismatch'].includes(row.state));
+  if(blocked.length)throw new Error(`${blocked.map(row=>row.name).join(', ')}: 편집본과 Preview의 Package 버전이 다릅니다. 현재 편집본을 새 검토용 Package로 저장한 뒤 동기화해 주세요.`);
+  const active=editor.map(({templateId,version,packageEditorRevision})=>({templateId,version,sourceEditorRevision:packageEditorRevision||null}));
   return request({mode:'sync-review-catalog',activePackages:active});
  }
- function syncStateLabel(state){return ({matched:'일치','editor-only':'등록 필요','service-only':'내림 대상','version-mismatch':'버전 불일치','invalid-editor':'Package 정보 누락'})[state]||state}
+ function syncStateLabel(state){return ({matched:'일치','editor-only':'등록 필요','service-only':'내림 대상','version-mismatch':'버전 불일치','unpackaged-edits':'새 Package 저장 필요','invalid-editor':'Package 정보 누락'})[state]||state}
  function renderSyncResult(result){
   const body=document.getElementById('templateSyncRows'),summary=document.getElementById('templateSyncSummary');if(!body||!summary)return;
   const rows=result.rows||[],matched=rows.filter(row=>row.state==='matched').length,issues=rows.length-matched;
@@ -138,7 +140,7 @@
  function syncStatus(stage,message,type='working'){const status=document.getElementById('templateSyncStatus');if(!status)return;status.className=`template-sync-status ${type}`;status.innerHTML=`<strong>${stage}</strong><span>${message}</span>`}
  async function openSyncDialog(){
   const dialog=document.getElementById('templateSyncDialog');if(!dialog)return;dialog.classList.remove('hidden');syncStatus('목록 조회','양쪽 서비스의 현재 목록을 불러오고 있습니다.');
-  try{const result=await inspectCatalog();renderSyncResult(result);syncStatus('비교 완료','아직 변경하지 않았습니다. 결과를 확인한 뒤 동기화를 실행하세요.','ready');document.getElementById('runTemplateSyncBtn').disabled=false}catch(error){syncStatus('조회 실패',error?.message||String(error),'error')}
+  try{const result=await inspectCatalog();renderSyncResult(result);const blocked=result.rows.filter(row=>['unpackaged-edits','version-mismatch','invalid-editor'].includes(row.state));syncStatus(blocked.length?'새 Package 확인 필요':'비교 완료',blocked.length?`${blocked.map(row=>row.name).join(', ')}: 편집본을 새 검토용 Package로 저장해야 합니다. 기존 Preview 버전은 변경하지 않았습니다.`:'아직 변경하지 않았습니다. 결과를 확인한 뒤 동기화를 실행하세요.',blocked.length?'error':'ready');document.getElementById('runTemplateSyncBtn').disabled=blocked.length>0}catch(error){syncStatus('조회 실패',error?.message||String(error),'error')}
  }
  async function runSyncDialog(){
   const button=document.getElementById('runTemplateSyncBtn');if(button)button.disabled=true;syncStatus('1/4 · 동기화 준비','시스템 베이스의 Package와 편집 이력을 정리하고 있습니다.');
