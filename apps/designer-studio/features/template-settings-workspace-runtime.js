@@ -214,7 +214,10 @@
  const basicSection=document.querySelector('[data-library-section="basic"] .object-grid');if(basicSection&&!basicSection.querySelector('[data-v36-year]')){const y=document.createElement('button');y.className='object-card';y.dataset.v36Year='1';y.innerHTML='<strong>해당 연도</strong><span>프로젝트 연도 자동 연결</span>';const m=document.createElement('button');m.className='object-card';m.dataset.v36Month='1';m.innerHTML='<strong>해당 월</strong><span>현재 페이지 월 자동 연결</span>';basicSection.prepend(m);basicSection.prepend(y);y.onclick=()=>addBoundText('calendar.year','2027','year-plain');m.onclick=()=>addBoundText('calendar.month','3월','month-ko')}
  const oldResolve=window.resolveTextContent||resolveTextContent;window.resolveTextContent=resolveTextContent=function(view,p=selectedPage()){
   if(view.binding==='calendar.month'){const month=Number(p.calendarMonth||project.settings?.startMonth||1),year=Number(p.calendarYear||project.settings?.year||'');return view.format==='year-month-ko'?`${year}년 ${month}월`:view.format==='month-2'?String(month).padStart(2,'0'):`${month}월`}
-  if(view.binding==='calendar.year'){const year=Number(p.calendarYear||project.settings?.year||view.content||'');if(!year)return view.content||'';if(view.format==='academic-year')return `${year}학년도`;if(view.format==='year-range')return `${year}–${year+1}`;if(view.format==='year-ko')return `${year}년`;return String(year)}
+  if(view.binding==='calendar.year'){
+   if((p.role==='cover-front'||p.role==='back-cover-back')&&project.template?.settings?.aiDesignSpec?.pageSettings?.roleCompositions?.[p.role==='cover-front'?'cover':'back-cover-back'])return oldResolve(view,p);
+   const year=Number(p.calendarYear||project.settings?.year||view.content||'');if(!year)return view.content||'';if(view.format==='academic-year')return `${year}학년도`;if(view.format==='year-range')return `${year}–${year+1}`;if(view.format==='year-ko')return `${year}년`;return String(year)
+  }
   return oldResolve(view,p)
  };
 
