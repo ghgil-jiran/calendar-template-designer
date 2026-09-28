@@ -125,10 +125,18 @@
  async function synchronizeCatalog(){
   const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return {requested:[],packages:[],deactivated:[]};
   progress('cleanup','시스템 베이스와 사용자 서비스 목록을 동기화하고 있습니다.');
-  const editor=await editorCatalog({strict:true}),service=(await request({mode:'inspect-review-catalog'})).packages||[],rows=compareCatalogs(editor,service),blocked=rows.filter(row=>['unpackaged-edits','version-mismatch'].includes(row.state));
-  if(blocked.length)throw new Error(`${blocked.map(row=>row.name).join(', ')}: 편집본과 Preview의 Package 버전이 다릅니다. 현재 편집본을 새 검토용 Package로 저장한 뒤 동기화해 주세요.`);
-  const active=editor.map(({templateId,version,packageEditorRevision})=>({templateId,version,sourceEditorRevision:packageEditorRevision||null}));
+  const editor=await editorCatalog({strict:true}),service=(await request({mode:'inspect-review-catalog'})).packages||[],active=activeReviewCatalog(editor,service);
   return request({mode:'sync-review-catalog',activePackages:active});
+ }
+ function activeReviewCatalog(editor,service){
+  const byService=new Map(service.map(item=>[item.templateId,item]));
+  return editor.flatMap(item=>{
+   const existing=byService.get(item.templateId),stale=item.packageEditorRevision&&item.editorRevision>item.packageEditorRevision;
+   if(stale||existing&&existing.version!==item.version){
+    return existing?[{templateId:existing.templateId,version:existing.version,sourceEditorRevision:existing.sourceEditorRevision||null}]:[];
+   }
+   return [{templateId:item.templateId,version:item.version,sourceEditorRevision:item.packageEditorRevision||existing?.sourceEditorRevision||null}];
+  });
  }
  function syncStateLabel(state){return ({matched:'일치','editor-only':'등록 필요','service-only':'내림 대상','version-mismatch':'버전 불일치','unpackaged-edits':'새 Package 저장 필요','invalid-editor':'Package 정보 누락'})[state]||state}
  function renderSyncResult(result){
@@ -140,7 +148,7 @@
  function syncStatus(stage,message,type='working'){const status=document.getElementById('templateSyncStatus');if(!status)return;status.className=`template-sync-status ${type}`;status.innerHTML=`<strong>${stage}</strong><span>${message}</span>`}
  async function openSyncDialog(){
   const dialog=document.getElementById('templateSyncDialog');if(!dialog)return;dialog.classList.remove('hidden');syncStatus('목록 조회','양쪽 서비스의 현재 목록을 불러오고 있습니다.');
-  try{const result=await inspectCatalog();renderSyncResult(result);const blocked=result.rows.filter(row=>['unpackaged-edits','version-mismatch','invalid-editor'].includes(row.state));syncStatus(blocked.length?'새 Package 확인 필요':'비교 완료',blocked.length?`${blocked.map(row=>row.name).join(', ')}: 편집본을 새 검토용 Package로 저장해야 합니다. 기존 Preview 버전은 변경하지 않았습니다.`:'아직 변경하지 않았습니다. 결과를 확인한 뒤 동기화를 실행하세요.',blocked.length?'error':'ready');document.getElementById('runTemplateSyncBtn').disabled=blocked.length>0}catch(error){syncStatus('조회 실패',error?.message||String(error),'error')}
+  try{const result=await inspectCatalog();renderSyncResult(result);const blocked=result.rows.filter(row=>['unpackaged-edits','version-mismatch','invalid-editor'].includes(row.state));syncStatus(blocked.length?'일부 Package 확인 필요':'비교 완료',blocked.length?`${blocked.map(row=>row.name).join(', ')}: 기존 Preview 버전을 유지합니다. 다른 템플릿의 새 Package는 동기화할 수 있습니다.`:'아직 변경하지 않았습니다. 결과를 확인한 뒤 동기화를 실행하세요.','ready');document.getElementById('runTemplateSyncBtn').disabled=false}catch(error){syncStatus('조회 실패',error?.message||String(error),'error')}
  }
  async function runSyncDialog(){
   const button=document.getElementById('runTemplateSyncBtn');if(button)button.disabled=true;syncStatus('1/4 · 동기화 준비','시스템 베이스의 Package와 편집 이력을 정리하고 있습니다.');
@@ -151,5 +159,5 @@
  }
  if(typeof document!=='undefined')installSyncDialog();
  async function reconcile(){return synchronizeCatalog()}
- root.ACDLTemplatePublishing=Object.freeze({publish,preparePrintInspection,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,publishedIdentity,ensurePrintPreflight,printPreflightStatus,printPreflightDownload,printPreflightHistory,cancelPrintPreflight,deletePrintPreflight,recordTrimContentParityReview,recordTemplateImageReview,recordAiImagePrintQualityReview,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
+ root.ACDLTemplatePublishing=Object.freeze({publish,preparePrintInspection,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,activeReviewCatalog,publishedIdentity,ensurePrintPreflight,printPreflightStatus,printPreflightDownload,printPreflightHistory,cancelPrintPreflight,deletePrintPreflight,recordTrimContentParityReview,recordTemplateImageReview,recordAiImagePrintQualityReview,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
 })(window);
