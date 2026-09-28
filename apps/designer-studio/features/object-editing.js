@@ -191,8 +191,9 @@ function renderWidgetContent(view,p){
  }
  if(view.type==="event-list"){
   const monthMode=view.displayMode==="month",year=monthMode?Number(p.calendarYear||project.settings.year):Number(project.settings.year),startMonth=monthMode?Number(p.calendarMonth||project.settings.startMonth||1):Number(view.startMonth||project.settings.startMonth||1);
+  if(view.displayMode==="year-by-month")return window.ACDLSharedSchedule.renderYearScheduleMarkup(
+   window.ACDLSharedSchedule.resolveYearScheduleEvents(project.book.events||[],view,year),view,year);
   const schedule=window.ACDLPageCompositionRuntime.resolveScheduleEvents(project.book.events||[],view,p,{year:project.settings.year,startMonth:project.settings.startMonth||1});
-  if(view.displayMode==="year-by-month")return window.ACDLPageCompositionRuntime.renderYearScheduleMarkup(schedule,view,year);
   const items=schedule.items;
   const requestedColumns=view.columns==="auto"?"auto":Math.max(1,Math.min(4,Number(view.columns||1))),fontSize=Math.max(5,Math.min(18,Number(view.fontSize||8))),minFontSize=Math.max(5,Math.min(fontSize,Number(view.minFontSize||6)));
   const title=monthMode?`${startMonth}월 학사일정`:view.title||"전체 학사일정";
