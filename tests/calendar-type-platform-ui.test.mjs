@@ -1,10 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
+import vm from 'node:vm';
 
 const runtime=fs.readFileSync(new URL('../apps/designer-studio/calendar-type-platform-runtime.js',import.meta.url),'utf8');
 const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8');
 const migration=fs.readFileSync(new URL('../supabase/migrations/202609070003_calendar_type_platform.sql',import.meta.url),'utf8');
+const objectEditing=fs.readFileSync(new URL('../apps/designer-studio/features/object-editing.js',import.meta.url),'utf8');
+
+test('new wide and portrait covers start with distinct geometry while standard stays compatible',()=>{
+ const source=objectEditing.slice(objectEditing.indexOf('function createCoverElements(p){'),objectEditing.indexOf('function ensureEditableCover(){'));
+ const coverFor=id=>vm.runInNewContext(`${source};createCoverElements({id:'cover'})`,{project:{productType:{category:'desk',calendarTypeId:id},template:{},settings:{year:2027},book:{school:{name:'학교'}}}});
+ const standard=coverFor('desk-standard'),wide=coverFor('desk-wide'),portrait=coverFor('desk-portrait');
+ assert.deepEqual([standard[0].x,standard[0].y,standard[0].width,standard[0].height],[5,7,90,60]);
+ assert.deepEqual([wide[0].x,wide[0].y,wide[0].width,wide[0].height],[5,9,57,82]);
+ assert.deepEqual([portrait[0].x,portrait[0].y,portrait[0].width,portrait[0].height],[8,7,84,48]);
+ for(const objects of [standard,wide,portrait])for(const item of objects)assert.ok(item.x>=0&&item.y>=0&&item.x+item.width<=100&&item.y+item.height<=100);
+});
 
 test('calendar type gallery exposes filters, status, settings and direct template creation',()=>{for(const value of ['typeFamilyFilter','typeStatusFilter','typeSearch','data-configure-type','data-create-type','typePlatformAdd'])assert.match(runtime,new RegExp(value))});
 test('both calendar type entry paths start with active types only',()=>{assert.match(runtime,/<option value="active" selected>사용 중<\/option>/);assert.match(runtime,/statusFilter\.value='active'/);assert.match(runtime,/openManager\('service-home'\)/);assert.match(runtime,/openManager\('template-create'\)/)});
@@ -20,7 +32,8 @@ test('calendar type UI uses the same control height and card hierarchy as templa
 test('calendar type workspace owns its background and scrolls only the card gallery',()=>{const css=fs.readFileSync(new URL('../apps/designer-studio/calendar-type-platform.css',import.meta.url),'utf8'),overrides=fs.readFileSync(new URL('../apps/designer-studio/designer-studio-overrides.css',import.meta.url),'utf8');assert.match(overrides,/\.type-manager-overlay\{[^}]*box-sizing:border-box[^}]*background:#eef2f7[^}]*overflow:hidden/);assert.match(css,/\.type-platform-shell\{[^}]*grid-template-rows:auto auto minmax\(0,1fr\)[^}]*height:100%[^}]*overflow:hidden/);assert.match(css,/\.type-gallery\{[^}]*min-height:0[^}]*overflow-x:hidden[^}]*overflow-y:auto/)});
 test('reselect type action follows the shared template settings button scale',()=>{const css=fs.readFileSync(new URL('../apps/designer-studio/calendar-type-platform-basic.css',import.meta.url),'utf8');assert.match(css,/\.calendar-type-context-head > button \{[\s\S]*min-width: 108px;[\s\S]*height: 36px;[\s\S]*border-radius: 8px;[\s\S]*font-size: 10px;/)});
 test('new templates start blank and show type constraints inside basic settings',()=>{assert.match(runtime,/creationMode='blank'/);assert.match(runtime,/renderBasicTypeContext/);assert.match(runtime,/빈 페이지 구성에서 시작하며 디자인과 AI 이미지는 새로 만듭니다/);assert.doesNotMatch(runtime,/creationProductPage|creationStartMode|기존 템플릿을 디자인 참고자료로 사용/);assert.match(runtime,/calendarTypeSnapshot/)});
-test('direct type creation clears a stale library base before building the selected type',()=>{const start=runtime.match(/function startCreation\(typeId\)\{([^\n]+)\}/)?.[1]||'';assert.match(start,/clearNewTemplateBase\(\)/);assert.ok(start.indexOf('clearNewTemplateBase()')<start.indexOf('createFromSetup()'));assert.match(html,/calendar-type-platform-runtime\.js\?v=20260923\.4/)});
+test('direct type creation clears a stale library base before building the selected type',()=>{const start=runtime.match(/function startCreation\(typeId\)\{([^\n]+)\}/)?.[1]||'';assert.match(start,/clearNewTemplateBase\(\)/);assert.ok(start.indexOf('clearNewTemplateBase()')<start.indexOf('createFromSetup('));assert.match(html,/calendar-type-platform-runtime\.js\?v=20260923\.4/)});
+test('chosen type size is applied before first render and restored after basic settings rebuild',()=>{const core=fs.readFileSync(new URL('../apps/designer-studio/features/studio-runtime-core.js',import.meta.url),'utf8'),settings=fs.readFileSync(new URL('../apps/designer-studio/features/template-settings-library.js',import.meta.url),'utf8');assert.match(runtime,/createFromSetup\(\(\)=>applyConstraints\(type,\{showSettings:false\}\)\)/);assert.match(core,/newTemplateSetupInProgress=true;beforeRender\?\.\(\);[^\n]*render\(\)/);assert.match(runtime,/baseRebuildProjectFromBasicSettings\(next\);if\(type\)\{const savedType=domain\.normalize\(type\);applyTypeSize\(project,savedType\)/);assert.match(settings,/presets\.find\(item=>item\.id===previous\.settings\.sizePreset\?\.id\)\?\.id\|\|presets\.find\(item=>item\.recommended\)/)});
 test('direct type creation keeps the type chooser visible until setup succeeds and recovers on failure',()=>{const start=runtime.match(/function startCreation\(typeId\)\{([^\n]+)\}/)?.[1]||'';assert.ok(start.indexOf('createFromSetup()')<start.indexOf("overlay?.classList.add('hidden')"));assert.match(start,/catch\(error\)/);assert.match(start,/overlay\?\.classList\.remove\('hidden'\)/);assert.match(start,/newTemplateSetupInProgress=false/)});
 test('legacy local calendar type manager is bypassed when the common domain is loaded',()=>{assert.match(html,/calendar-type-domain\.js/);assert.match(html,/calendar-type-platform-runtime\.js/);assert.match(fs.readFileSync(new URL('../apps/designer-studio/features/template-settings-workspace-runtime.js',import.meta.url),'utf8'),/if\(window\.ACDLCalendarTypeDomain\)return/)});
 test('Supabase schema owns five normalized calendar type tables without changing template rows',()=>{for(const table of ['calendar_product_families','calendar_type_definitions','calendar_type_sizes','calendar_type_capabilities','calendar_type_page_rules'])assert.match(migration,new RegExp(`create table if not exists public\\.${table}`));assert.doesNotMatch(migration,/update public\.template_(projects|versions|assets)/)});

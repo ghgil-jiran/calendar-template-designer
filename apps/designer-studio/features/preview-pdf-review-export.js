@@ -2,6 +2,14 @@
  const $=id=>document.getElementById(id);
  const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
  const safeFilePart=value=>String(value||'template').trim().replace(/[\\/:*?"<>|]+/g,'-').replace(/\s+/g,'-').slice(0,80)||'template';
+ function workerPageSize(value){
+  const trim=value?.productType?.pageSize||{},definition=value?.template?.calendarTypeSnapshot?.definition||{},expected=definition.finishedSize||{},production=value?.productType?.productionSize||{},expectedProduction=definition.productionSize||{},bleed=Number(value?.template?.resources?.exportSettings?.bleed??3);
+  const width=Number(trim.width),height=Number(trim.height);
+  if(!(width>0&&height>0)||(expected.width&&Number(expected.width)!==width)||(expected.height&&Number(expected.height)!==height))throw new Error('editor_print_size_mismatch');
+  const sheetWidth=Number(production.width||width+2*bleed),sheetHeight=Number(production.height||height+2*bleed),left=(sheetWidth-width)/2,top=(sheetHeight-height)/2;
+  if(!(left>=0&&top>=0&&Math.abs(left-top)<.001)||(expectedProduction.width&&Number(expectedProduction.width)!==sheetWidth)||(expectedProduction.height&&Number(expectedProduction.height)!==sheetHeight))throw new Error('editor_print_bleed_mismatch');
+  return {width,height,sheetWidth,sheetHeight,left,top}
+ }
  function waitForImages(root){
   return Promise.all([...root.querySelectorAll('img')].map(image=>image.complete?Promise.resolve():new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true})})));
  }
@@ -39,15 +47,16 @@
    const response=await fetch(`/api/templates?printRenderJob=${encodeURIComponent(jobId)}&sha256=${encodeURIComponent(sha256)}`),source=await response.json();
    if(!response.ok)throw new Error(source?.message||source?.error||'editor_print_source_failed');
    project=await window.ACDLTemplateProjectLoader.prepare(source.projectData,{migrate:window.ACDLProjectDocument?.migrateProject});
+   const size=workerPageSize(project);
    const pages=window.ACDLPreviewState.pages(project),pageInfo=pages[pageNumber-1];if(!pageInfo)throw new Error('editor_print_page_not_found');
    selectedPageId=pageInfo.id;selectedElementId=null;selectedElementScope=null;calendarEditing=false;preview=false;previewType=null;renderPage();applyThemeTokens();
    const live=$('page');if(!live)throw new Error('editor_print_page_render_missing');
-   const clone=window.ACDLPreviewState.clonePage(live,pageInfo);clone.classList.remove('editor-bleed-visible','export-crop-marks','export-guides-visible');clone.classList.add('review-pdf-page');clone.style.width='260mm';clone.style.height='180mm';clone.style.position='absolute';clone.style.left='3mm';clone.style.top='3mm';
+   const clone=window.ACDLPreviewState.clonePage(live,pageInfo);clone.classList.remove('editor-bleed-visible','export-crop-marks','export-guides-visible');clone.classList.add('review-pdf-page');clone.style.width=`${size.width}mm`;clone.style.height=`${size.height}mm`;clone.style.position='absolute';clone.style.left=`${size.left}mm`;clone.style.top=`${size.top}mm`;
    clone.querySelectorAll('.empty-frame').forEach(node=>{const element=node.closest('.free-element');if(element)element.remove();else node.remove()});
-   const root=document.createElement('main');root.className='review-pdf-root editor-worker-print-root';root.dataset.rendererId=source.rendererId;const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.style.width='266mm';sheet.style.height='186mm';sheet.style.position='relative';sheet.appendChild(clone);root.appendChild(sheet);document.body.appendChild(root);normalizePrintBindingPattern(root);normalizePrintCompositing(root);
-   const style=document.createElement('style');style.textContent='@page{size:266mm 186mm;margin:0}.editor-worker-print-root{display:block!important}.editor-worker-print-root .review-pdf-sheet{margin:0!important;break-after:auto!important}.editor-worker-print-root .year-month-grid .adj{opacity:1!important;color:#c7cbd2!important}.editor-worker-print-root .binding[data-print-normalized-binding="true"]{display:grid!important;grid-template-columns:repeat(58,1.85mm)!important;justify-content:space-between!important;background:none!important;opacity:1!important}.editor-worker-print-root .binding[data-print-normalized-binding="true"]>i{display:block!important;height:100%!important;background:rgba(104,115,134,.45)!important}';document.head.appendChild(style);
+   const root=document.createElement('main');root.className='review-pdf-root editor-worker-print-root';root.dataset.rendererId=source.rendererId;const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.style.width=`${size.sheetWidth}mm`;sheet.style.height=`${size.sheetHeight}mm`;sheet.style.position='relative';sheet.appendChild(clone);root.appendChild(sheet);document.body.appendChild(root);normalizePrintBindingPattern(root);normalizePrintCompositing(root);
+   const style=document.createElement('style');style.textContent=`@page{size:${size.sheetWidth}mm ${size.sheetHeight}mm;margin:0}`+'.editor-worker-print-root{display:block!important}.editor-worker-print-root .review-pdf-sheet{margin:0!important;break-after:auto!important}.editor-worker-print-root .year-month-grid .adj{opacity:1!important;color:#c7cbd2!important}.editor-worker-print-root .binding[data-print-normalized-binding="true"]{display:grid!important;grid-template-columns:repeat(58,1.85mm)!important;justify-content:space-between!important;background:none!important;opacity:1!important}.editor-worker-print-root .binding[data-print-normalized-binding="true"]>i{display:block!important;height:100%!important;background:rgba(104,115,134,.45)!important}';document.head.appendChild(style);
    if(document.fonts?.ready)await document.fonts.ready;await optimizeReviewBackgrounds(root);await waitForImages(root);const failedImages=[...root.querySelectorAll('img')].filter(image=>!image.naturalWidth);if(failedImages.length)throw new Error(`editor_print_image_load_failed:${failedImages.length}`);await nextFrame();document.body.classList.add('review-pdf-printing');await nextFrame();
-   document.body.dataset.printReady='1';document.body.dataset.totalPages=String(pages.length);document.body.dataset.pageWidthMm='266';document.body.dataset.pageHeightMm='186';document.body.dataset.rendererId=source.rendererId;document.body.dataset.packageSha256=source.sha256;
+   document.body.dataset.printReady='1';document.body.dataset.totalPages=String(pages.length);document.body.dataset.pageWidthMm=String(size.sheetWidth);document.body.dataset.pageHeightMm=String(size.sheetHeight);document.body.dataset.rendererId=source.rendererId;document.body.dataset.packageSha256=source.sha256;
   }catch(error){fail(error)}
   return true;
  }

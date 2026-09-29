@@ -29,6 +29,17 @@ test('snapshot is independent from later system definition changes',()=>{
  const type=domain.definition('desk-standard'),snap=domain.snapshot(type);type.finishedSize.width=999;assert.equal(snap.definition.finishedSize.width,260);
 });
 
+test('every desk type keeps its own trim and production sizes after a standard rebuild',()=>{
+ for(const id of ['desk-standard','desk-large','desk-wide','desk-portrait']){
+  const type=domain.definition(id),project={settings:{sizePreset:{id:'desk-standard'}},productType:{category:'desk',pageSize:{width:260,height:180}}};
+  domain.applyProjectSize(project,type);
+  assert.deepEqual(JSON.parse(JSON.stringify(project.productType.pageSize)),JSON.parse(JSON.stringify(type.finishedSize)));
+  assert.deepEqual(JSON.parse(JSON.stringify(project.productType.productionSize)),JSON.parse(JSON.stringify(type.productionSize)));
+  assert.equal(project.settings.sizePreset.id,id);
+  assert.deepEqual([project.settings.sizePreset.width,project.settings.sizePreset.height],[type.finishedSize.width,type.finishedSize.height]);
+ }
+});
+
 test('validation enforces production size and allowed ranges',()=>{
  const type=domain.definition('desk-standard');type.productionSize.width=100;type.ranges.frontInsert={min:4,max:2};const result=domain.validate(type);assert.equal(result.valid,false);assert.equal(result.errors.length,2);
 });

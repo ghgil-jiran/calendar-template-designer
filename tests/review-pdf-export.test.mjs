@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 import { readStudioFeatureSource } from './studio-feature-source.mjs';
 
 const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.meta.url),'utf8')+readStudioFeatureSource()+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css',import.meta.url),'utf8')+fs.readFileSync(new URL('../apps/designer-studio/designer-studio-overrides.css',import.meta.url),'utf8');
@@ -47,11 +48,22 @@ test('worker print mode reuses the review DOM renderer with an explicit identity
  assert.match(html,/templatePrintJob/);
  assert.match(html,/\/api\/templates\?printRenderJob=/);
  assert.match(html,/rendererId=source\.rendererId/);
- assert.match(html,/pageWidthMm='266'/);
- assert.match(html,/clone\.style\.left='3mm'/);
+ assert.match(html,/pageWidthMm=String\(size\.sheetWidth\)/);
+ assert.match(html,/clone\.style\.left=`\$\{size\.left\}mm`/);
  assert.match(html,/ACDLPreviewState\.clonePage\(live,pageInfo\)/);
  assert.match(html,/year-month-grid \.adj\{opacity:1!important;color:#c7cbd2!important\}/);
  assert.match(html,/normalizePrintBindingPattern\(root\)/);
  assert.match(html,/Array\.from\(\{length:58\}/);
  assert.match(html,/data-print-normalized-binding/);
+});
+
+test('worker page dimensions follow standard, wide and portrait trim with three millimetre bleed',()=>{
+ const source=fs.readFileSync(new URL('../apps/designer-studio/features/preview-pdf-review-export.js',import.meta.url),'utf8'),start=source.indexOf('function workerPageSize('),end=source.indexOf('function waitForImages(',start);
+ const dimensions=vm.runInNewContext(`${source.slice(start,end)};workerPageSize`,{});
+ for(const [width,height,sheetWidth,sheetHeight] of [[260,180,266,186],[297,148,303,154],[180,260,186,266]]){
+  const project={productType:{pageSize:{width,height},productionSize:{width:sheetWidth,height:sheetHeight}},template:{calendarTypeSnapshot:{definition:{finishedSize:{width,height}}},resources:{exportSettings:{bleed:3}}}};
+  assert.deepEqual(JSON.parse(JSON.stringify(dimensions(project))),{width,height,sheetWidth,sheetHeight,left:3,top:3});
+  project.productType.pageSize.width=260;
+  if(width!==260)assert.throws(()=>dimensions(project),/editor_print_size_mismatch/);
+ }
 });

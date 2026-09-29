@@ -208,15 +208,22 @@ function renderWidgetContent(view,p){
 
 function createCoverElements(p){
  const isWall=project.productType.category==="wall";
+ const typeId=project.template?.calendarTypeSnapshot?.definition?.id||project.productType?.calendarTypeId;
+ const layout=typeId==="desk-wide"?{
+  image:[5,9,57,82],year:[66,14,28,24],school:[66,52,28,17],slogan:[66,75,28,12],font:[34,23,14],align:"left"
+ }:typeId==="desk-portrait"?{
+  image:[8,7,84,48],year:[10,59,80,11],school:[10,73,80,9],slogan:[10,85,80,7],font:[34,22,13],align:"left"
+ }:null;
+ const box=(key,fallback)=>layout?.[key]||fallback;
  return [
   {
    id:`cover.school-image.${p.id}`,
    type:"image",
    role:"school-image",
-   x:isWall?8:5,
-   y:isWall?8:7,
-   width:isWall?84:90,
-   height:isWall?52:60,
+   x:box("image",isWall?[8,8,84,52]:[5,7,90,60])[0],
+   y:box("image",isWall?[8,8,84,52]:[5,7,90,60])[1],
+   width:box("image",isWall?[8,8,84,52]:[5,7,90,60])[2],
+   height:box("image",isWall?[8,8,84,52]:[5,7,90,60])[3],
    zIndex:1,
    src:"",
    alt:"학교 전경 이미지",
@@ -226,37 +233,37 @@ function createCoverElements(p){
    id:`cover.year.${p.id}`,
    type:"text",
    role:"year",
-   x:isWall?12:9,
-   y:isWall?64:69,
-   width:isWall?76:28,
-   height:isWall?9:13,
+   x:box("year",isWall?[12,64,76,9]:[9,69,28,13])[0],
+   y:box("year",isWall?[12,64,76,9]:[9,69,28,13])[1],
+   width:box("year",isWall?[12,64,76,9]:[9,69,28,13])[2],
+   height:box("year",isWall?[12,64,76,9]:[9,69,28,13])[3],
    zIndex:3,
    content:String(project.settings.year),
-   style:{fontSize:isWall?36:38,textAlign:"left",background:false,color:"#17202e"}
+   style:{fontSize:layout?layout.font[0]:isWall?36:38,textAlign:"left",background:false,color:"#17202e"}
   },
   {
    id:`cover.school-name.${p.id}`,
    type:"text",
    role:"school-name",
-   x:isWall?12:39,
-   y:isWall?74:70,
-   width:isWall?76:52,
-   height:isWall?7:11,
+   x:box("school",isWall?[12,74,76,7]:[39,70,52,11])[0],
+   y:box("school",isWall?[12,74,76,7]:[39,70,52,11])[1],
+   width:box("school",isWall?[12,74,76,7]:[39,70,52,11])[2],
+   height:box("school",isWall?[12,74,76,7]:[39,70,52,11])[3],
    zIndex:3,
    content:project.book.school.name,
-   style:{fontSize:isWall?21:24,textAlign:isWall?"left":"right",background:false,color:"#17202e"}
+   style:{fontSize:layout?layout.font[1]:isWall?21:24,textAlign:layout?.align|| (isWall?"left":"right"),background:false,color:"#17202e"}
   },
   {
    id:`cover.slogan.${p.id}`,
    type:"text",
    role:"slogan",
-   x:isWall?12:39,
-   y:isWall?83:82,
-   width:isWall?76:52,
-   height:isWall?6:8,
+   x:box("slogan",isWall?[12,83,76,6]:[39,82,52,8])[0],
+   y:box("slogan",isWall?[12,83,76,6]:[39,82,52,8])[1],
+   width:box("slogan",isWall?[12,83,76,6]:[39,82,52,8])[2],
+   height:box("slogan",isWall?[12,83,76,6]:[39,82,52,8])[3],
    zIndex:3,
    content:"배움으로 성장하고 함께 미래를 여는 학교",
-   style:{fontSize:isWall?13:15,textAlign:isWall?"left":"right",background:false,color:"#667085"}
+   style:{fontSize:layout?layout.font[2]:isWall?13:15,textAlign:layout?.align|| (isWall?"left":"right"),background:false,color:"#667085"}
   }
  ]
 }
