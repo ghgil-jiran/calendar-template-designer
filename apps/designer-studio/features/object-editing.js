@@ -481,10 +481,26 @@ function matchingMonthlyObjectsFor(item){
  const page=selectedPage(),role=page?.role;
  if(!item||!["monthly-front","monthly-back"].includes(role))return [];
  const masterId=role==="monthly-back"?"master.monthly.back":"master.monthly.front";
+ // Month-back widgets share a generic role. Their component identifies the
+ // corresponding widget on another month; the role alone joins unrelated boxes.
+ const component=item.aiDesignComponent;
+ const genericMonthBackRole=item.role==="ai-month-back-component";
+ const widgetIdentity=component||(
+  item.type==="memo"?[item.memoLayout||"lines",item.title||""].join(":"):
+  item.type||""
+ );
  if(!item.role&&!item.binding&&!item.image?.binding&&!item.shadowOfMasterElementId&&pageElements(page).filter(other=>other.type===item.type&&!other.role).length!==1)return [item];
  const same=(candidate)=>{
   if(!candidate||candidate.type!==item.type)return false;
-  if(item.role)return candidate.role===item.role;
+  if(item.role){
+   if(candidate.role!==item.role)return false;
+   if(!genericMonthBackRole)return true;
+   const candidateIdentity=candidate.aiDesignComponent||(
+    candidate.type==="memo"?[candidate.memoLayout||"lines",candidate.title||""].join(":"):
+    candidate.type||""
+   );
+   return Boolean(widgetIdentity)&&candidateIdentity===widgetIdentity;
+  }
   if(item.shadowOfMasterElementId)return candidate.id===item.shadowOfMasterElementId||candidate.shadowOfMasterElementId===item.shadowOfMasterElementId;
   if(item.id===candidate.id)return true;
   const binding=item.binding||item.image?.binding;
