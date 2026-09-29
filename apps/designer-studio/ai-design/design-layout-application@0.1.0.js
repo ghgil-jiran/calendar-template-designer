@@ -107,16 +107,15 @@
   const width=(zone[2]-gap*(columns-1))/columns,height=(zone[3]-gap*(rows-1))/rows;
   items.forEach((item,index)=>Object.assign(item,{x:zone[0]+index%columns*(width+gap),y:zone[1]+Math.floor(index/columns)*(height+gap),width,height,zIndex:Math.max(2,Number(item.zIndex)||2)}))
  }
- function applySchoolSymbolLayout(elements,typeId){
+ function applySchoolSymbolLayout(elements,typeId,pageSize){
   if(!['individual-cards','split-panels','open-editorial','ruled-editorial'].includes(typeId))return;
   const byRole=role=>elements.find(item=>item.role===role),title=byRole('symbols-title'),logo=byRole('school-logo'),motto=byRole('school-motto'),song=byRole('school-song'),symbols=['school-tree','school-flower'].map(byRole).filter(Boolean),hasSong=Boolean(song);
-  if(title)Object.assign(title,{x:8,y:6,width:84,height:9});
-  if(logo)Object.assign(logo,{x:7,y:6,width:10,height:10,imageFit:'contain',cropAllowed:false});
-  const left=hasSong?[7,20,40,70]:[8,20,84,70],songZone=[53,18,40,74];
-  if(motto)Object.assign(motto,{x:left[0],y:left[1],width:left[2],height:hasSong?18:20});
-  const symbolZone=[left[0],left[1]+(motto?24:0),left[2],left[3]-(motto?24:0)];
-  distributeGrid(symbols,symbolZone);
-  if(song)Object.assign(song,{x:songZone[0],y:songZone[1],width:songZone[2],height:songZone[3],imageFit:'contain',cropAllowed:false,minimumReadableSizeMm:{width:90,height:95},contentPriority:'readability-first'});
+  const selected=[title&&'title',logo&&'school-logo',motto&&'school-motto',song&&'school-song',...symbols.map(item=>item.role)].filter(Boolean);
+  const zones=root.ACDLPageCompositionPolicy.schoolSymbolBoxes(selected,pageSize);
+  const roles={title:'symbols-title'};
+  zones.forEach(zone=>{const item=byRole(roles[zone.id]||zone.id);if(item)Object.assign(item,{x:zone.x,y:zone.y,width:zone.width,height:zone.height})});
+  if(logo)Object.assign(logo,{imageFit:'contain',cropAllowed:false});
+  if(song)Object.assign(song,{imageFit:'contain',cropAllowed:false,minimumReadableSizeMm:{width:90,height:95},contentPriority:'readability-first'});
   const presentation={
    'individual-cards':{containerStyle:'individual-card',sectionDivider:'none'},
    'split-panels':{containerStyle:'split-panel',sectionDivider:'panel-gap'},
@@ -125,36 +124,18 @@
   }[typeId];
   [motto,song,...symbols].filter(Boolean).forEach(item=>{item.style=item.style||{};item.style.containerStyle=presentation.containerStyle;item.style.sectionDivider=presentation.sectionDivider;item.editablePresentation=true});
  }
- function applySchoolIntroductionLayout(elements,typeId){
+ function applySchoolIntroductionLayout(elements,typeId,pageSize){
   if(!['school-intro-center-image','school-intro-left-image','school-intro-background-image'].includes(typeId))return;
   const byRole=role=>elements.find(item=>item.role===role),title=byRole('symbols-title'),photo=byRole('school-building'),logo=byRole('school-logo'),motto=byRole('school-motto');
-  if(typeId==='school-intro-left-image'){
-   if(title)Object.assign(title,{x:7,y:6,width:86,height:9,zIndex:4});
-   if(photo)Object.assign(photo,{x:7,y:20,width:54,height:70,zIndex:2});
-   if(logo)Object.assign(logo,{x:66,y:20,width:27,height:20,zIndex:3});
-   if(motto)Object.assign(motto,{x:66,y:48,width:27,height:24,zIndex:3});
-  }else if(typeId==='school-intro-background-image'){
-   if(photo)Object.assign(photo,{x:5,y:5,width:90,height:88,zIndex:2});
-   if(title)Object.assign(title,{x:10,y:9,width:80,height:10,zIndex:4});
-   if(logo)Object.assign(logo,{x:72,y:24,width:18,height:16,zIndex:4});
-   if(motto)Object.assign(motto,{x:72,y:49,width:18,height:21,zIndex:4});
-  }else{
-   if(title)Object.assign(title,{x:7,y:6,width:86,height:9,zIndex:4});
-   if(photo)Object.assign(photo,{x:16,y:20,width:68,height:65,zIndex:2});
-   const extras=[logo,motto].filter(Boolean),width=extras.length>1?22:30,start=50-width*extras.length/2;
-   extras.forEach((item,index)=>Object.assign(item,{x:start+index*width,y:87,width:width-2,height:8,zIndex:3}));
-  }
+  const selected=[title&&'title',photo&&'school-building',logo&&'school-logo',motto&&'school-motto'].filter(Boolean);
+  const zones=root.ACDLPageCompositionPolicy.schoolIntroductionBoxes(selected,typeId,pageSize);
+  zones.forEach(zone=>{const item=byRole(zone.id==='title'?'symbols-title':zone.id);if(item)Object.assign(item,{x:zone.x,y:zone.y,width:zone.width,height:zone.height,zIndex:zone.id==='title'?4:zone.id==='school-building'?2:3})});
   if(photo)Object.assign(photo,{replaceable:true,showTitle:false,showCaption:false,imageFit:'cover',cropAllowed:true});
   if(logo)Object.assign(logo,{imageFit:'contain',cropAllowed:false,showTitle:false,showCaption:false});
   if(motto){motto.showTitle=true;motto.style={...(motto.style||{}),containerStyle:'none'};}
  }
  function applyMonthHeaderLayout(elements,layoutId,page,project){
-  const profiles={
-   'distributed-header':{title:[36,10,28,9],calendar:[5,8,90,87],left:[5,11,27,9],right:[68,11,27,9]},
-   'center-title-school-left':{title:[37,10,30,9],calendar:[5,8,90,87],left:[5,11,28,9],right:[70,11,25,9]},
-   'center-title-block':{title:[38,9,24,11],calendar:[5,8,90,87],left:[5,11,27,8],right:[68,11,27,8]},
-   'left-title-split':{title:[5,10,25,9],calendar:[5,8,90,87],left:[34,11,28,9],right:[68,11,27,9]}
-  },profile=profiles[layoutId]||profiles['distributed-header'],byRole=role=>elements.filter(item=>item.role===role),identity=[...byRole('school-logo'),...byRole('school-name')],message=[...byRole('school-motto'),...byRole('school-slogan')],photos=byRole('monthly-extra-image'),left=layoutId==='center-title-school-left'?identity:message,right=layoutId==='center-title-school-left'?[...message,...photos]:[...identity,...photos];
+  const profile=root.ACDLPageCompositionPolicy.monthHeaderZones(layoutId),byRole=role=>elements.filter(item=>item.role===role),identity=[...byRole('school-logo'),...byRole('school-name')],message=[...byRole('school-motto'),...byRole('school-slogan')],photos=byRole('monthly-extra-image'),left=layoutId==='center-title-school-left'?identity:message,right=layoutId==='center-title-school-left'?[...message,...photos]:[...identity,...photos];
   distribute(left,profile.left);distribute(right,profile.right);
   identity.filter(item=>item.role==='school-logo').forEach(item=>{item.imageFit='contain';item.cropAllowed=false});
   page.overrides=page.overrides||{};page.overrides.calendarRegion=box(profile.calendar);page.overrides.monthTitleRegion=box(profile.title);
@@ -177,31 +158,29 @@
   const elements=project.book?.elementsByPage?.[page.id]||[],groups={};
   elements.forEach(item=>{const group=classify(role,item);if(group==='background')return;(groups[group]||=[]).push(item)});
  Object.entries(groups).forEach(([group,items])=>role==='divider'&&['symbols','secondary'].includes(group)?distributeGrid(items,profile[group]||profile.secondary):distribute(items,profile[group]||profile.primary||profile.support||profile.identity));
-  if(role==='divider'){applySchoolSymbolLayout(elements,typeId);applySchoolIntroductionLayout(elements,typeId)}
+  if(role==='divider'){applySchoolSymbolLayout(elements,typeId,project.productType?.pageSize);applySchoolIntroductionLayout(elements,typeId,project.productType?.pageSize)}
   if(role==='annual'){
    const yearItem=(groups.title||[]).find(item=>item.binding==='calendar.year'||item.role==='year'),calendar=(groups.calendar||[]).find(item=>item.type==='year-calendar'),logo=(groups.info||[]).find(item=>item.role==='school-logo'),layoutId=composition?.layoutId||'centered';
-   if(yearItem)Object.assign(yearItem,{x:34,y:5,width:32,height:11});
-   if(calendar)Object.assign(calendar,{x:typeId==='vertical-three-month-groups'?6:7,y:20,width:typeId==='vertical-three-month-groups'?88:86,height:73,layoutType:typeId,columns:4,showTransitionYear:true});
-   if(logo){const zones={centered:[7,5,12,11],'logo-left':[7,5,12,11],'logo-right':[81,5,12,11]},zone=zones[layoutId]||zones.centered;Object.assign(logo,{x:zone[0],y:zone[1],width:zone[2],height:zone[3],imageFit:'contain',cropAllowed:false,showTitle:false,showCaption:false});}
+   const zones=root.ACDLPageCompositionPolicy.annualZones(typeId);
+   if(yearItem)Object.assign(yearItem,zones.title);
+   if(calendar)Object.assign(calendar,{...zones.content,layoutType:typeId,columns:4,showTransitionYear:true});
+   if(logo){const zone=layoutId==='logo-right'?{...zones.logo,x:81}:zones.logo;Object.assign(logo,{...zone,imageFit:'contain',cropAllowed:false,showTitle:false,showCaption:false});}
   }
   if(role==='divider'&&elements.some(item=>item.type==='event-list'&&item.role==='schedule-list')){
    const title=elements.find(item=>classify(role,item)==='title'),schedule=elements.find(item=>item.type==='event-list'&&item.role==='schedule-list');
-   if(title)Object.assign(title,{x:7,y:5,width:86,height:8,content:`${project.settings?.year||new Date().getFullYear()}학년도 학사일정`});
-   Object.assign(schedule,{x:5,y:15,width:90,height:80,startMonth:Number(project.settings?.startMonth||3),monthCount:12,displayMode:'year-by-month',scheduleLayoutType:resolvedDividerConfig(project,page).layoutId||'schedule-open-grid',showTitle:false,fontSize:8,minFontSize:6,maxItems:120,contentPriority:'readability-first',emptyStatePresentation:'blank'});
+   const zones=root.ACDLPageCompositionPolicy.twelveMonthZones('academic-schedule',{title:Boolean(title)});
+   if(title)Object.assign(title,{...zones.title,content:`${project.settings?.year||new Date().getFullYear()}학년도 학사일정`});
+   Object.assign(schedule,{...zones.content,startMonth:Number(project.settings?.startMonth||3),monthCount:12,displayMode:'year-by-month',scheduleLayoutType:resolvedDividerConfig(project,page).layoutId||'schedule-open-grid',showTitle:false,fontSize:8,minFontSize:6,maxItems:120,contentPriority:'readability-first',emptyStatePresentation:'blank'});
   }
   if(role==='divider'&&elements.some(item=>item.role==='yearly-plan')){
    const title=elements.find(item=>classify(role,item)==='title'),plan=elements.find(item=>item.role==='yearly-plan');
-   if(title)Object.assign(title,{x:7,y:4,width:86,height:7});
+   const zones=root.ACDLPageCompositionPolicy.twelveMonthZones('yearly-plan',{title:Boolean(title)});
+   if(title)Object.assign(title,zones.title);
    const layoutId=resolvedDividerConfig(project,page).layoutId||'yearly-open-grid',presentation={'yearly-open-grid':{containerStyle:'none',groupSize:0},'yearly-month-cards':{containerStyle:'individual-card',groupSize:1},'yearly-vertical-groups':{containerStyle:'vertical-group',groupSize:3},'yearly-horizontal-groups':{containerStyle:'horizontal-group',groupSize:4}}[layoutId]||{containerStyle:'none',groupSize:0};
-   Object.assign(plan,{x:5,y:title?13:5,width:90,height:title?82:90,memoLayout:'yearly-grid',yearlyLayoutType:layoutId,yearlyContainerStyle:presentation.containerStyle,yearlyGroupSize:presentation.groupSize,startMonth:Number(project.settings?.startMonth||3),baseYear:Number(project.settings?.year||new Date().getFullYear()),contentPriority:'primary-full-page',minimumReadableSizeMm:{width:220,height:145}});
+   Object.assign(plan,{...zones.content,memoLayout:'yearly-grid',yearlyLayoutType:layoutId,yearlyContainerStyle:presentation.containerStyle,yearlyGroupSize:presentation.groupSize,startMonth:Number(project.settings?.startMonth||3),baseYear:Number(project.settings?.year||new Date().getFullYear()),contentPriority:'primary-full-page',minimumReadableSizeMm:{width:220,height:145}});
   }
   if(role==='cover'){
-   const coverProfiles={
-    'center-photo':{photoLow:{image:[25,39,50,37],year:[29,13,42,19],identity:[8,80,84,14]},photoWide:{image:[18,31,64,46],year:[29,12,42,18],identity:[8,81,84,13]},photoFeature:{image:[12,27,76,51],year:[31,11,38,17],identity:[8,82,84,12]}},
-    'left-photo':{photoLow:{image:[5,12,58,76],year:[68,10,27,18],identity:[68,36,27,50]},photoWide:{image:[5,7,66,86],year:[75,8,20,18],identity:[75,34,20,56]},photoFeature:{image:[5,5,72,90],year:[80,8,16,18],identity:[80,34,16,56]}},
-    'right-photo':{photoLow:{image:[53,28,42,62],year:[8,9,40,18],identity:[8,68,40,20]},photoWide:{image:[46,23,49,69],year:[8,8,34,18],identity:[8,67,34,22]},photoFeature:{image:[39,17,56,76],year:[7,8,28,18],identity:[7,65,28,25]}},
-    free:{photoLow:{image:null,year:[29,18,42,22],identity:[8,78,84,15]},photoWide:{image:null,year:[8,16,42,22],identity:[8,76,84,16]},photoFeature:{image:null,year:[8,12,50,25],identity:[8,72,84,20]}}
-   },layoutKey=composition?.layoutId==='photo-wide'?'photoWide':composition?.layoutId==='photo-feature'?'photoFeature':'photoLow',coverProfile=coverProfiles[typeId]?.[layoutKey]||profile;
+   const coverProfile=root.ACDLPageCompositionPolicy.coverZones(typeId,composition?.layoutId);
    ['image','year'].forEach(group=>{if(coverProfile[group])distribute(groups[group]||[],coverProfile[group]);else (groups[group]||[]).filter(item=>String(item.id||'').startsWith('ai.')).forEach(item=>elements.splice(elements.indexOf(item),1))});
    const zone=coverProfile.identity||[15,77,70,18],identity=(groups.identity||[]).filter(item=>item.role!=='school-logo'),logo=(groups.identity||[]).find(item=>item.role==='school-logo');
    if(logo){Object.assign(logo,{x:zone[0],y:zone[1],width:Math.min(22,zone[2]*.28),height:Math.min(14,zone[3]),imageFit:'contain',cropAllowed:false});}
@@ -210,17 +189,12 @@
    if(logo)logo.identityGroup='school-identity';
   }
   if(role==='back-cover'){
-   const profiles={
-    'school-information':{'centered-information':{primary:[35,22,30,20],identity:[25,54,50,32]},'lower-information':{primary:[36,25,28,20],identity:[18,69,64,19]},'left-information':{primary:[8,27,34,36],identity:[51,25,41,50]}},
-    'year-school-information':{'centered-year':{year:[29,17,42,18],identity:[25,48,50,38]},'split-year-information':{year:[8,25,38,24],identity:[55,24,37,56]},'top-year-information':{year:[26,8,48,19],identity:[20,58,60,29]}},
-    'school-photo-information':{'center-photo':{year:[32,6,36,13],image:[24,23,52,43],identity:[20,72,60,20]},'left-photo':{year:[61,8,31,16],image:[7,14,48,67],identity:[61,35,31,48]},'right-photo':{year:[8,8,31,16],image:[45,14,48,67],identity:[8,35,31,48]}}
-   },defaults={'school-information':'centered-information','year-school-information':'centered-year','school-photo-information':'center-photo'},layoutId=composition?.layoutId||defaults[typeId],backProfile=profiles[typeId]?.[layoutId]||profiles[typeId]?.[defaults[typeId]]||profile;
+   const layoutId=composition?.layoutId,backProfile=root.ACDLPageCompositionPolicy.backCoverZones(typeId,layoutId);
    const yearItems=groups.year||[],allIdentity=groups.identity||[],hasYear=yearItems.length>0,promotedLogo=!hasYear?allIdentity.find(item=>item.role==='school-logo'):null,primaryItems=hasYear?yearItems:(promotedLogo?[promotedLogo]:[]);if(primaryItems.length&&backProfile.primary)distribute(primaryItems,backProfile.primary);else if(yearItems.length&&backProfile.year)distribute(yearItems,backProfile.year);else yearItems.filter(item=>String(item.id||'').startsWith('ai.')).forEach(item=>elements.splice(elements.indexOf(item),1));const imageItems=groups.image||[];if(backProfile.image)distribute(imageItems,backProfile.image);else imageItems.filter(item=>String(item.id||'').startsWith('ai.')).forEach(item=>elements.splice(elements.indexOf(item),1));
    const identity=allIdentity.filter(item=>item!==promotedLogo),zone=backProfile.identity||[20,58,60,30],logo=identity.find(item=>item.role==='school-logo'),texts=identity.filter(item=>item!==logo),nameItems=texts.filter(item=>['school-name','school-english-name'].includes(item.role)),detailItems=texts.filter(item=>!nameItems.includes(item));
-   const sideBySide=layoutId==='left-information'||layoutId==='split-year-information';
-   if(promotedLogo)Object.assign(promotedLogo,{imageFit:'contain',cropAllowed:false,identityGroup:'school-identity'});if(logo){const logoWidth=Math.min(22,zone[2]*.44),logoHeight=Math.min(12,Math.max(9,zone[3]*.32));Object.assign(logo,{x:sideBySide?zone[0]:zone[0]+(zone[2]-logoWidth)/2,y:zone[1],width:logoWidth,height:logoHeight,imageFit:'contain',cropAllowed:false,identityGroup:'school-identity'});}
-   const offset=sideBySide&&logo?Math.min(24,zone[2]*.48):0,textX=zone[0]+offset,textWidth=zone[2]-offset,nameY=!sideBySide&&logo?logo.y+logo.height+1:zone[1],nameHeight=Math.min(12,Math.max(7,zone[3]*.30)),detailY=nameY+nameHeight+1,detailHeight=Math.max(3,zone[1]+zone[3]-detailY);
-   distribute(nameItems,[textX,nameY,textWidth,nameHeight]);distribute(detailItems,[textX,detailY,textWidth,detailHeight]);
+   const placement=root.ACDLPageCompositionPolicy.backCoverIdentityBoxes(zone,layoutId,{logo:Boolean(logo),names:nameItems.length,details:detailItems.length}),sideBySide=placement.sideBySide;
+   if(promotedLogo)Object.assign(promotedLogo,{imageFit:'contain',cropAllowed:false,identityGroup:'school-identity'});if(logo)Object.assign(logo,{...placement.logo,imageFit:'contain',cropAllowed:false,identityGroup:'school-identity'});
+   nameItems.forEach((item,index)=>Object.assign(item,placement.names[index]));detailItems.forEach((item,index)=>Object.assign(item,placement.details[index]));
    texts.forEach(item=>{item.style=item.style||{};const limits=item.role==='school-name'?[10,15]:item.role==='school-english-name'?[7,9]:[6.5,8];item.style.fontSize=Math.max(limits[0],Math.min(Number(item.style.fontSize)||limits[1],limits[1]));item.style.textAlign=sideBySide?'left':'center';item.identityGroup='school-identity'});
    (groups.image||[]).forEach(item=>{item.replaceable=true;item.showTitle=false;item.showCaption=false;item.imageFit='cover';item.cropAllowed=true});
   }
@@ -238,7 +212,7 @@
  function apply(project,spec){
   if(!project?.book?.pageInstances||!spec?.pageTypes)throw new Error('Project and design spec are required');
   const pages=[];project.book.elementsByPage=project.book.elementsByPage||{};
-  project.book.pageInstances.forEach(page=>{const role=pageRole(page),compositionKey=role==='back-cover'?(page.side==='front'?'back-cover-front':'back-cover-back'):role,composition=spec.pageSettings?.roleCompositions?.[compositionKey],typeId=role==='divider'?spec.dividerPages?.[page.id]?.layoutId||spec.pageTypes[role]:role&&(composition?.typeId||spec.pageTypes[role]);if(role&&typeId){const result=applyPage(project,page,role,typeId,spec);if(result)pages.push(result)}});
+  project.book.pageInstances.forEach(page=>{const role=pageRole(page),compositionKey=role==='back-cover'?(page.side==='front'?'back-cover-front':'back-cover-back'):role,composition=spec.pageSettings?.roleCompositions?.[compositionKey],typeId=role==='divider'?spec.dividerPages?.[page.id]?.layoutId||spec.pageTypes[role]:role==='annual'&&spec.dividerPages?.[page.id]?.purpose==='annual-calendar'&&layouts.annual[spec.dividerPages[page.id].layoutId]?spec.dividerPages[page.id].layoutId:role&&(composition?.typeId||spec.pageTypes[role]);if(role&&typeId){const result=applyPage(project,page,role,typeId,spec);if(result)pages.push(result)}});
   const application={schemaVersion:SCHEMA_VERSION,version:VERSION,specVersion:spec.version||null,catalogVersion:spec.catalog?.version||null,editable:true,pages};
   project.template.settings=project.template.settings||{};project.template.settings.aiDesignLayoutApplication=application;
   return application
