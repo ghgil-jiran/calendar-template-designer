@@ -8,6 +8,15 @@ const html=fs.readFileSync(new URL('../apps/designer-studio/index.html',import.m
 const migration=fs.readFileSync(new URL('../supabase/migrations/202609070003_calendar_type_platform.sql',import.meta.url),'utf8');
 const objectEditing=fs.readFileSync(new URL('../apps/designer-studio/features/object-editing.js',import.meta.url),'utf8');
 
+test('saved calendar type size reaches the library card and editor load',()=>{
+ const library=fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');
+ const remote=fs.readFileSync(new URL('../apps/designer-studio/template-remote-persistence.js',import.meta.url),'utf8');
+ const settings=fs.readFileSync(new URL('../apps/designer-studio/features/template-settings-library.js',import.meta.url),'utf8');
+ assert.match(remote,/calendarTypeSize:item\.calendarTypeSize/);
+ assert.match(library,/record\.calendarTypeSize\|\|record\.projectData\?\.template\?\.calendarTypeSnapshot/);
+ assert.match(settings,/reconcileProjectSize\?\.\(project\)/);
+});
+
 test('new wide and portrait covers start with distinct geometry while standard stays compatible',()=>{
  const source=objectEditing.slice(objectEditing.indexOf('function createCoverElements(p){'),objectEditing.indexOf('function ensureEditableCover(){'));
  const coverFor=id=>vm.runInNewContext(`${source};createCoverElements({id:'cover'})`,{project:{productType:{category:'desk',calendarTypeId:id},template:{},settings:{year:2027},book:{school:{name:'학교'}}}});

@@ -169,7 +169,7 @@ export function validateDraftSave(value) {
   };
 }
 
-export function rowToLibraryItem(row, projectStandard = false, thumbnail = null) {
+export function rowToLibraryItem(row, projectStandard = false, thumbnail = null, calendarTypeSize = null) {
   return {
     id: row.id,
     stableKey: row.stable_key,
@@ -183,7 +183,8 @@ export function rowToLibraryItem(row, projectStandard = false, thumbnail = null)
     latestVersionId: row.latest_version_id,
     latestVersionNumber: row.latest_version_number,
     updatedAt: row.updated_at,
-    thumbnail: thumbnail && typeof thumbnail === 'object' ? thumbnail : undefined
+    thumbnail: thumbnail && typeof thumbnail === 'object' ? thumbnail : undefined,
+    calendarTypeSize: calendarTypeSize && typeof calendarTypeSize === 'object' ? calendarTypeSize : undefined
   };
 }
 
@@ -210,9 +211,9 @@ export async function listTemplates() {
   const rows = await supabaseRequest('template_projects?select=*&order=updated_at.desc');
   if (!rows.length) return [];
   const ids = rows.map(row => row.latest_version_id).filter(Boolean);
-  const versions = ids.length ? await supabaseRequest(`template_versions?select=id,thumbnail:project_data->template->thumbnail,project_standard:project_data->template->metadata->isStandard&id=in.(${ids.map(encodeURIComponent).join(',')})`) : [];
+  const versions = ids.length ? await supabaseRequest(`template_versions?select=id,thumbnail:project_data->template->thumbnail,project_standard:project_data->template->metadata->isStandard,calendar_type_size:project_data->template->calendarTypeSnapshot->definition->finishedSize&id=in.(${ids.map(encodeURIComponent).join(',')})`) : [];
   const versionMeta = new Map(versions.map(version => [version.id, version]));
-  return rows.map(row => {const meta=versionMeta.get(row.latest_version_id);return rowToLibraryItem(row,meta?.project_standard===true,meta?.thumbnail)});
+  return rows.map(row => {const meta=versionMeta.get(row.latest_version_id);return rowToLibraryItem(row,meta?.project_standard===true,meta?.thumbnail,meta?.calendar_type_size)});
 }
 
 export async function listDeletedCatalogKeys(){

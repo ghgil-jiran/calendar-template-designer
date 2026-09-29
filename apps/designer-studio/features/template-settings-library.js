@@ -87,6 +87,7 @@ async function openDesignerProjectFromRecord(t){
  try{if(t.projectData){const data=typeof t.projectData==="string"?JSON.parse(t.projectData):t.projectData,remote=window.ACDLTemplateRemotePersistence;nextProject=await window.ACDLTemplateProjectLoader.prepare(data,{hydrate:remote?.isRemote?.()?remote.hydrateProjectData:null,migrate:window.ACDLProjectDocument?.migrateProject,assertIntegrity:remote?.assertAIDesignIntegrity,onProgress:detail=>openProgress?.update?.(detail)})}else if(t.id){const stored=await loadTemplateProjectData(t.id,{onProgress:detail=>openProgress?.update?.(detail)});if(stored)nextProject=structuredClone(stored)}else throw new Error('불러올 템플릿 식별자와 문서가 없습니다.')}catch(error){openProgress?.fail?.(error);throw error}
  if(!isCurrentProjectTransition(transitionId))return;
  project=nextProject;
+ const sizeReconciled=window.ACDLCalendarTypeDomain?.reconcileProjectSize?.(project);
  if(!project){
   const type=t.type||"desk",preset=(SIZE_PRESETS[type]||SIZE_PRESETS.desk).find(x=>x.recommended)||(SIZE_PRESETS[type]||SIZE_PRESETS.desk)[0];
   project=makeProject({type,year:Number(t.edition)||2027,startMonth:3,template:t.packageVersion?"school-basic":t.template||"school-basic",frontInsertCount:t.packageVersion?0:1,rearInsertCount:0,calendarRows:t.packageVersion?5:6,weekStart:"sunday",showAdjacentMiniCalendars:true,posterColumns:4,sizePresetId:preset.id});
@@ -115,6 +116,7 @@ async function openDesignerProjectFromRecord(t){
  const openedProject=project;
  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(isCurrentProjectTransition(transitionId)&&project===openedProject)render()}));
  openProgress?.complete?.();showEditorToast(`${t.name} ${t.edition} Edition 편집을 시작했습니다.`);
+ if(sizeReconciled)showEditorToast('저장된 페이지 규격을 달력 유형에 맞췄습니다. 개체 배치를 확인한 뒤 새 버전으로 저장해 주세요.');
 }
 function closeTemplateLibrary(){
  el("templateLibraryModal")?.classList.add("hidden");

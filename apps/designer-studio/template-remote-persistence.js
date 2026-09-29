@@ -22,7 +22,7 @@
   return {urls,failures}
  }
  async function resolveAssetUrls(ids){const unique=[...new Set((ids||[]).filter(id=>/^[0-9a-f-]{36}$/i.test(id)))];if(!unique.length)return {};const result=await request(`/api/template-assets?ids=${encodeURIComponent(unique.join(','))}`);return Object.fromEntries((result.assets||[]).filter(asset=>asset?.id&&asset?.url).map(asset=>[asset.id,asset.url]))}
- function record(item){return {id:item.id,remoteId:item.id,stableKey:item.stableKey,name:item.name,description:item.description,edition:item.edition,state:item.state,isStandard:item.isStandard===true,type:item.productType,template:item.templateKey,thumbnail:item.thumbnail,version:item.latestVersionNumber,updatedAt:item.updatedAt,storage:'supabase',source:'local'}}
+ function record(item){return {id:item.id,remoteId:item.id,stableKey:item.stableKey,name:item.name,description:item.description,edition:item.edition,state:item.state,isStandard:item.isStandard===true,type:item.productType,template:item.templateKey,thumbnail:item.thumbnail,calendarTypeSize:item.calendarTypeSize,version:item.latestVersionNumber,updatedAt:item.updatedAt,storage:'supabase',source:'local'}}
  function visit(value,callback){if(typeof value==='string'){callback(value);return}if(Array.isArray(value)){value.forEach(item=>visit(item,callback));return}if(value&&typeof value==='object')Object.values(value).forEach(item=>visit(item,callback))}
  function replace(value,replacements){if(typeof value==='string')return replacements.get(value)||value;if(Array.isArray(value))return value.map(item=>replace(item,replacements));if(value&&typeof value==='object'){for(const key of Object.keys(value))value[key]=replace(value[key],replacements);return value}return value}
  function legacyStoragePath(value){

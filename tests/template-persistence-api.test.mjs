@@ -47,7 +47,7 @@ test('internal API accepts only an active Master Admin session', async () => {
 test('library endpoint maps every current row including archived templates', async () => {
   globalThis.fetch = async (url, options) => {
     assert.equal(options.headers.Authorization, 'Bearer server-secret');
-    if(url.includes('/template_versions?'))return response([{id:'v3',thumbnail:{kind:'upload',dataUrl:'acdl-asset://11111111-1111-4111-8111-111111111111'},project_standard:true}]);
+    if(url.includes('/template_versions?')){assert.match(url,/calendar_type_size:project_data->template->calendarTypeSnapshot->definition->finishedSize/);return response([{id:'v3',thumbnail:{kind:'upload',dataUrl:'acdl-asset://11111111-1111-4111-8111-111111111111'},project_standard:true,calendar_type_size:{width:297,height:148,unit:'mm'}}])}
     assert.match(url, /template_projects\?select=\*&order=updated_at\.desc/);
     assert.doesNotMatch(url, /archived_at=is\.null/);
     return response([{ id: 't1', stable_key: 'wall-01', name: '벽걸이형 표준 01', description: '', edition: 2028, state: 'draft', is_standard: true, product_type: 'wall', template_key: 'wall-standard', latest_version_id: 'v3', latest_version_number: 3, updated_at: '2026-08-24T00:00:00Z' }]);
@@ -58,6 +58,7 @@ test('library endpoint maps every current row including archived templates', asy
   assert.equal(templates[0].name, '벽걸이형 표준 01');
   assert.equal(templates[0].isStandard, true);
   assert.equal(templates[0].thumbnail.dataUrl,'acdl-asset://11111111-1111-4111-8111-111111111111');
+  assert.deepEqual(templates[0].calendarTypeSize,{width:297,height:148,unit:'mm'});
 });
 
 test('manual save calls the atomic version function then returns the latest library row', async () => {

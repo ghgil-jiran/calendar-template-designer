@@ -59,6 +59,8 @@
   select.value=allowed.includes(currentState)?currentState:allowed[0];
  }
  function sizeOf(record){
+  const snapshot=record.calendarTypeSize||record.projectData?.template?.calendarTypeSnapshot?.definition?.finishedSize;
+  if(Number(snapshot?.width)>0&&Number(snapshot?.height)>0)return {width:Number(snapshot.width),height:Number(snapshot.height),unit:snapshot.unit||'mm',label:`${snapshot.width} × ${snapshot.height} ${snapshot.unit||'mm'}`};
   const preset=(window.SIZE_PRESETS?.[record.type]||[]).find(item=>item.recommended)||(window.SIZE_PRESETS?.[record.type]||[])[0];
   return record.size|| (preset?{width:preset.width,height:preset.height,unit:'mm',label:preset.label}:{});
  }

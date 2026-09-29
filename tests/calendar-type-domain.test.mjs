@@ -40,6 +40,14 @@ test('every desk type keeps its own trim and production sizes after a standard r
  }
 });
 
+test('opening an older wide document corrects its size without changing saved objects',()=>{
+ const type=domain.definition('desk-wide'),object={id:'school-logo',x:12,y:18,width:20,height:10},project={settings:{sizePreset:{id:'desk-standard'}},productType:{category:'desk',pageSize:{width:260,height:180}},template:{calendarTypeSnapshot:domain.snapshot(type)},book:{elementsByPage:{cover:[object]}}};
+ assert.equal(domain.reconcileProjectSize(project),true);
+ assert.deepEqual(JSON.parse(JSON.stringify(project.productType.pageSize)),JSON.parse(JSON.stringify(type.finishedSize)));
+ assert.deepEqual(JSON.parse(JSON.stringify(project.book.elementsByPage.cover[0])),object);
+ assert.equal(domain.reconcileProjectSize(project),false);
+});
+
 test('validation enforces production size and allowed ranges',()=>{
  const type=domain.definition('desk-standard');type.productionSize.width=100;type.ranges.frontInsert={min:4,max:2};const result=domain.validate(type);assert.equal(result.valid,false);assert.equal(result.errors.length,2);
 });
