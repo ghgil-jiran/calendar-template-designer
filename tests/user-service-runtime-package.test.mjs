@@ -14,7 +14,7 @@ try {
   assert.equal(build.status, 0, build.stderr || build.stdout);
   const pkg = JSON.parse(await readFile(join(output, 'package.json'), 'utf8'));
   assert.equal(pkg.name, '@calendar-publishing/user-service-runtime-bridge');
-  assert.equal(pkg.version, '0.1.0-alpha.3');
+  assert.equal(pkg.version, '0.1.0-alpha.4');
   assert.deepEqual(pkg.exports['.'], { types: './dist/index.d.ts', import: './dist/index.js' });
   assert.deepEqual(pkg.exports['./native-print-runtime'], {
     types: './dist/native-print-runtime.d.ts',

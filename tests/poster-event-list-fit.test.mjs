@@ -8,7 +8,7 @@ const source = readFileSync(new URL('../apps/designer-studio/index.html', import
 test('annual event list supports limited and full display modes', () => {
   assert.match(source, /id="eventListDisplayMode"/);
   assert.match(source, /<option value="all"[^>]*>전체 일정 표시<\/option>/);
-  assert.match(source, /view\.displayMode==="all"\?allItems:allItems\.slice/);
+  assert.match(source, /limitedMode=!\['all','year-by-month','month'\]\.includes\(item\.displayMode\)/);
 });
 
 test('poster event list defaults to full automatic fitting', () => {

@@ -62,8 +62,8 @@ assert.match(studio, /hiddenCount=Number\(hiddenScheduleByDate\[day\.date\]\|\|0
 // 빈 셀의 이전·다음 달 미니 월력은 사용자 서비스처럼 셀 전체를 사용한다.
 assert.match(studio, /\.cell-mini-calendar\{position:absolute;inset:0;/);
 assert.match(studio, /\.cell-mini-grid\{[^}]*justify-content:space-between/);
-assert.match(studio, /const rows=calendarRowCountFor\(y,m\),cells=calendarGridFor\(y,m,rows\)/);
+assert.match(studio, /function resolveMiniCalendar\(element, page, defaults = \{\}\)/);
 assert.match(studio, /class="cell-mini-week"/);
-assert.match(studio, /c\.extra\?\`\$\{c\.day\}\/\$\{c\.extra\.day\}\`/);
+assert.match(studio, /cell\.extra \? "\/" \+ cell\.extra\.day : ""/);
 assert.match(studio, /const miniCells=project\.settings\.showAdjacentMiniCalendars\?selectAdjacentMiniCells\(grid,p\.calendarMonth\):\[\]/);
 assert.doesNotMatch(studio, /const miniCells=rows===5&&project\.settings\.showAdjacentMiniCalendars/);

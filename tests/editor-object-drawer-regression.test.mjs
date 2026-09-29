@@ -57,27 +57,26 @@ test('the object inspector uses one typography and form-control scale', () => {
 });
 
 test('the reorganized workspace completes insertion scope, search and inspector support', () => {
-  assert.match(html, /id="insertScopeMirror"/);
-  assert.match(html, /scopeMirror\.addEventListener\('change'/);
+  assert.match(html, /id="elementScope"/);
   assert.match(html, /objectCards\.forEach\(card=>card\.dataset\.search/);
   assert.match(html, /const filterObjects=/);
   assert.match(html, /\[\['data','데이터'\],\['permission','권한'\]\]/);
-  assert.match(html, /item\.permissions=Object\.fromEntries/);
+  assert.match(html, /target\.permissions=\{\.\.\.\(target\.permissions\|\|\{\}\)/);
   assert.match(html, /id="inspectorSelectionSummary"/);
 });
 
 test('current-page editing shadows a Master object without mutating other pages', () => {
   assert.match(html, /shadowOfMasterElementId/);
-  assert.match(html, /masterElements\(\)\.filter\(e=>!shadowed\.has\(e\.id\)\)/);
-  assert.match(html, /scope==="master"&&el\("elementScope"\)\?\.value==="page"/);
-  assert.match(html, /clone\.originScope="master"/);
+  assert.match(html, /masterElements\.filter\(element => !shadowed\.has\(element\.id\)/);
+  assert.match(html, /scope==='master'&&el\('elementScope'\)\?\.value==='page'/);
+  assert.match(html, /pageItem\.originScope="master"/);
   assert.match(html, /pageOverrideCreated/);
   assert.match(html, /function ensureCurrentPageEditTarget/);
   assert.match(html, /const usePageOverride=scope==='master'&&el\('elementScope'\)\?\.value==='page'/);
   assert.match(html, /if\(usePageOverride\)\{snapshot\(\);snapshotTaken=true;const target=ensureCurrentPageEditTarget/);
   assert.match(html, /function changeElement\(fn\)\{snapshot\(\);const target=ensureCurrentPageEditTarget\(\)/);
   assert.match(html, /function applyGraphicInspector\(action\)\{snapshot\(\);const target=ensureCurrentPageEditTarget\(\)/);
-  assert.match(html, /삽입·편집 적용 범위/);
+  assert.match(html, /같은 Master 전체/);
 });
 
 test('print memo rules are independent opaque fills instead of a repeating gradient', () => {

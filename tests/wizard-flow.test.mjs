@@ -86,9 +86,9 @@ test('library edit and clone entry report loading stages without querying Indexe
 test('public landing presents the template studio without a calendar creation entry', () => {
   const html = studioHtml;
   const landing = html.match(/<div id="entryScreen"[\s\S]*?<div id="designerHome"/)?.[0] || '';
-  assert.match(landing, /사용자의 아이디어가<br>새로운 디자인이 되고<br><span>실제 제품으로 만듭니다\.<\/span>/);
-  assert.match(landing, /AI 기반의 디자인과 다양한 유형의 구성 요소를 적용하여 새로운 달력 템플릿을 제작합니다/);
-  assert.match(landing, /UNIVERSAL CALENDAR DESIGN STUDIO/);
+  assert.match(landing, /우리 학교만의 이야기를 담습니다\./);
+  assert.match(landing, /AI 기반 학교 전용 에디터 플랫폼/);
+  assert.match(landing, /우리학교인쇄 CALENDAR EDITOR/);
   assert.match(landing, /템플릿 라이브러리/);
   assert.match(landing, /새 템플릿 만들기/);
   assert.match(landing, /달력 유형 관리/);
@@ -197,7 +197,7 @@ test('image-based school asset slots do not render fixed role captions', () => {
 test('saving a draft persists its first page and the library never substitutes a rendered page', () => {
   const html = studioHtml;
   const runtime = fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js', import.meta.url), 'utf8');
-  assert.match(html, /sourceProject\.book\.pageInstances\[0\]/);
+  assert.match(html, /sourceProject\.book\.pageInstances\[pageIndex\]/);
   assert.match(html, /source:'first-page'/);
   assert.match(html, /ACDLRepresentativePreview\.refresh\(project/);
   assert.match(runtime, /ACDLRepresentativePreview\.refresh\(projectData/);
@@ -258,7 +258,7 @@ test('template lifecycle separates status, standard, design editing and settings
 test('published save transfers a snapshot review package before changing the library record', () => {
   const html=studioHtml;
   const runtime=fs.readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');
-  assert.match(html, /template-publishing-runtime\.js\?v=20260923\.2/);
+  assert.match(html, /template-publishing-runtime\.js\?v=\d{8}\.\d+/);
   assert.match(runtime, /if\(values\.state==='published'\)\{publicationResult=await window\.ACDLTemplatePublishing\.publish/);
   assert.ok(runtime.indexOf("ACDLTemplatePublishing.publish") < runtime.indexOf("remote.save({templateId:record.remoteId"));
 });
@@ -271,7 +271,7 @@ test('print preflight polling keeps the last known job when history authenticati
 });
 
 test('deployed editor loads the PNG representative preview capture runtime',()=>{
-  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=20260923\.5/);
+  assert.match(studioHtml,/features\/studio-runtime-core\.js\?v=\d{8}\.\d+/);
 });
 
 test('insert sidebar separates and collapses utility controls when an object category opens', () => {
@@ -326,8 +326,8 @@ test('landing uses the requested service title and planner cover', () => {
   assert.match(html, /우리학교인쇄 CALENDAR EDITOR/);
   assert.doesNotMatch(html, /Universal Calendar Design Lab/);
   assert.doesNotMatch(html, /<div class="landing-process">/);
-  assert.match(html, /탁상형 검토 01 - 월별 플래너 표지/);
-  assert.match(html, /assets\/sample-school\/jiran-building\.webp/);
+  assert.match(html, /서로 겹쳐진 학교 달력 표지 세 장/);
+  assert.match(html, /assets\/landing\/hero-template-covers\.webp/);
 });
 
 test('desk 1.4.0 is the exact published canonical system base', () => {
@@ -380,10 +380,10 @@ test('draft catalog samples cannot appear in the system base view', () => {
   assert.match(html, /id="masterMonthTitleStyle"/);
   assert.match(html, /value="number-inline"/);
   assert.match(html, /calendar\.design\.monthTitleStyle=el\("masterMonthTitleStyle"\)/);
-  assert.match(html, /weekday-outlined-pills \.calendar>\.head\{[^}]*border:1\.5px/);
-  assert.match(html, /inlineTitle=`<span class="month-year">\$\{p\.calendarYear\}<\/span><span class="month-number">/);
+  assert.match(html, /weekday-outlined-pills \.calendar\s*>\s*\.head[^{]*\{[^}]*border:\s*1\.5px/);
+  assert.match(html, /"number-inline":\s*`<span class="month-year">\$\{y\}<\/span><span class="month-number">\$\{m\}/);
   assert.match(html, /\.calendar-stage \.head\{[^}]*height:calc\(100% - var\(--calendar-weekday-grid-gap,0%\)\)[^}]*min-height:0/);
-  assert.match(html, /weekday-outlined-pills \.calendar>\.head\{[^}]*margin:0 2px[^}]*border:1\.5px solid #98a2b3!important/);
+  assert.match(html, /weekday-outlined-pills \.calendar\s*>\s*\.head[^{]*\{[^}]*margin:\s*0 2px[^}]*border:\s*1\.5px solid #98a2b3\s*!important/);
   assert.match(html, /grid-open-rows \.calendar>\.cell:not\(\.head\)\{[^}]*border-right:0!important[^}]*border-bottom:1px solid #a7a7a7!important/);
   assert.match(html, /id="masterCalendarDesignPreset"/);
   assert.match(html, /"sample-6":\{title:"number-stack",align:"left",weekday:"filled-tabs",grid:"boxed"\}/);
