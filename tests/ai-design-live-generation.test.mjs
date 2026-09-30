@@ -233,7 +233,7 @@ test('dynamic Vault save control uses delegated click and a request timeout', ()
 test('editor entry loads the current AI client, expansion, and runtime cache versions',()=>{
   assert.match(studioSource,/ai-design-client\.js\?v=20260923\.1/);
   assert.match(studioSource,/design-set-expansion@0\.2\.0\.js\?v=20260923\.1/);
-  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260923\.1/);
+  assert.match(studioSource,/features\/ai-design-runtime\.js\?v=20260930\.2/);
   assert.match(studioSource,/const pageAssets=selected\.assetsByPage\|\|\{\}/);
   assert.match(studioSource,/filter\(page=>!pageAssets\[page\.id\]\)/);
 });

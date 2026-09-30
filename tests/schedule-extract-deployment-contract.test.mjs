@@ -125,3 +125,20 @@ test('remote browser client uses same-origin proxy and the Master Admin access t
   assert.equal(captured.options.headers.Authorization, 'Bearer signed-admin-jwt');
   assert.equal(result.total, 0);
 });
+
+ test('Preview forwards to the current review branch instead of the production origin', async () => {
+  const prior = process.env.VERCEL_ENV;
+  process.env.VERCEL_ENV = 'preview';
+  let target;
+  globalThis.fetch = async (url) => {
+    if (url.includes('/auth/v1/user')) return {ok:true,status:200,text:async()=>JSON.stringify({id:'admin-1'})};
+    if (url.includes('/rest/v1/template_admins?')) return {ok:true,status:200,text:async()=>JSON.stringify([{user_id:'admin-1',role:'master_admin',active:true}])};
+    target=url;
+    return {status:200,headers:{get:()=> 'application/json'},text:async()=>JSON.stringify({schedules:[],total:0})};
+  };
+  try {
+    const res=response();await handler(request(),res);
+    assert.equal(res.statusCode,200);
+    assert.equal(target,'https://school-calendar-editor-servic-git-8cf1b7-gil-gighyun-s-projects.vercel.app/api/ai/schedule-extract');
+  } finally {if(prior===undefined)delete process.env.VERCEL_ENV;else process.env.VERCEL_ENV=prior;}
+ });

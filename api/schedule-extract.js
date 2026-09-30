@@ -5,7 +5,10 @@ export const config = { api: { bodyParser: false } };
 const MAX_FILE_BYTES = 10 * 1024 * 1024 + 1024 * 1024;
 
 function userServiceOrigin() {
-  const value = process.env.USER_SERVICE_ORIGIN?.trim().replace(/\/$/, '');
+  const origin = process.env.VERCEL_ENV === 'preview'
+    ? (process.env.USER_SERVICE_PREVIEW_ORIGIN || 'https://school-calendar-editor-servic-git-8cf1b7-gil-gighyun-s-projects.vercel.app')
+    : process.env.USER_SERVICE_ORIGIN;
+  const value = origin?.trim().replace(/\/$/, '');
   if (!value || !/^https:\/\//i.test(value)) {
     throw Object.assign(new Error('Missing USER_SERVICE_ORIGIN'), {
       statusCode: 503,
