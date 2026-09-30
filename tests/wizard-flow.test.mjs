@@ -250,7 +250,7 @@ test('template lifecycle separates status, standard, design editing and settings
   assert.match(runtime, /if\(state==='draft'\)return 'custom'/);
   assert.match(runtime, /if\(scopeOf\(record\)!==activeLibraryScope\)return false/);
   assert.match(runtime, /configureStateOptions\(scopeOf\(record\),record\.state\)/);
-  const systemStateFilters=html.match(/id="libraryStateFilters">([\s\S]*?)<\/div><\/div><div class="library-filter-row library-standard-group"/)?.[1]||'';
+  const systemStateFilters=html.match(/id="libraryStateFilters">([\s\S]*?)<\/div><\/div><div class="library-filter-row library-standard-group[^"]*"/)?.[1]||'';
   assert.doesNotMatch(systemStateFilters, /data-library-state="draft"/);
   assert.match(systemStateFilters, /data-library-state="ready"/);
 });

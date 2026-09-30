@@ -195,7 +195,7 @@
    const placement=root.ACDLPageCompositionPolicy.backCoverIdentityBoxes(zone,layoutId,{logo:Boolean(logo),names:nameItems.length,details:detailItems.length}),sideBySide=placement.sideBySide;
    if(promotedLogo)Object.assign(promotedLogo,{imageFit:'contain',cropAllowed:false,identityGroup:'school-identity'});if(logo)Object.assign(logo,{...placement.logo,imageFit:'contain',cropAllowed:false,identityGroup:'school-identity'});
    nameItems.forEach((item,index)=>Object.assign(item,placement.names[index]));detailItems.forEach((item,index)=>Object.assign(item,placement.details[index]));
-   texts.forEach(item=>{item.style=item.style||{};const limits=item.role==='school-name'?[10,15]:item.role==='school-english-name'?[7,9]:[6.5,8];item.style.fontSize=Math.max(limits[0],Math.min(Number(item.style.fontSize)||limits[1],limits[1]));item.style.textAlign=sideBySide?'left':'center';item.identityGroup='school-identity'});
+   texts.forEach(item=>{item.style=item.style||{};const limits=item.role==='school-name'?[10,15]:item.role==='school-english-name'?[7,9]:[6.5,8];item.style.fontSize=Math.max(limits[0],Math.min(Number(item.style.fontSize)||limits[1],limits[1]));item.style.textAlign=sideBySide||layoutId==='left-information'?'left':'center';item.identityGroup='school-identity'});
    (groups.image||[]).forEach(item=>{item.replaceable=true;item.showTitle=false;item.showCaption=false;item.imageFit='cover';item.cropAllowed=true});
   }
   elements.filter(item=>item.role==='school-logo').forEach(item=>{item.imageFit='contain';item.cropAllowed=false});

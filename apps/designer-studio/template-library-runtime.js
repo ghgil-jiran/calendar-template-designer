@@ -139,7 +139,7 @@
  }
  function renderTypeFilters(){
   const host=el('libraryTypeFilters');if(!host)return;
-  host.innerHTML=[`<button class="library-type-filter ${activeTypeFilter==='all'?'active':''}" data-library-type="all">모든 유형</button>`,...typeOptions().map(type=>`<button class="library-type-filter ${activeTypeFilter===type.id?'active':''}" data-library-type="${escape(type.id)}">${escape(type.label)} <span>${publishedCount(type.id)}</span></button>`)].join('');
+  host.innerHTML=[`<button class="library-type-filter ${activeTypeFilter==='all'?'active':''}" data-library-type="all">모든 유형</button>`,...typeOptions().map(type=>`<button class="library-type-filter ${activeTypeFilter===type.id?'active':''}" data-library-type="${escape(type.id)}">${escape(type.label)} <span>${records().filter(record=>record.type===type.id&&filterActive(record,{ignoreType:true})).length}</span></button>`)].join('');
   host.querySelectorAll('[data-library-type]').forEach(button=>button.addEventListener('click',()=>{activeTypeFilter=button.dataset.libraryType;renderLibrary(activeLibraryState)}));
  }
  function renderStateFilters(){
@@ -316,19 +316,19 @@
   if(publicationResult)window.ACDLTemplatePublishing.completePublication?.(publicationResult.templateId,publicationResult.version);renderLibrary(activeLibraryState);renderUserChoices();showEditorToast('템플릿 설정과 사용자 서비스 게시 목록을 동기화했습니다.');return saved
  }
  window.ACDLTemplateLibrarySettings=Object.freeze({open:openSettings,save:saveSettings,startNewFrom,clonedProject,scopeOf,configureStateOptions});
- function filterActive(record){
+ function filterActive(record,{ignoreType=false}={}){
   if(scopeOf(record)!==activeLibraryScope)return false;
   if(activeLibraryState==='all'&&record.state==='archived')return false;
   if(activeLibraryState!=='all'&&record.state!==activeLibraryState)return false;
-  if(activeTypeFilter!=='all'&&record.type!==activeTypeFilter)return false;
+  if(!ignoreType&&activeTypeFilter!=='all'&&record.type!==activeTypeFilter)return false;
   if(activeStandardOnly&&!record.isStandard)return false;
   const edition=el('libraryEditionFilter')?.value||'all';
   if(edition!=='all'&&String(record.edition)!==edition)return false;
   return true;
  }
  function renderLibrary(filter='all'){
-  ensureTypeOptions();renderTypeFilters();renderEditionOptions();
   activeLibraryState=filter||activeLibraryState;
+  ensureTypeOptions();renderEditionOptions();renderTypeFilters();
   renderStateFilters();
   const list=records().filter(filterActive);
   const grid=el('templateLibraryGrid');if(!grid)return;

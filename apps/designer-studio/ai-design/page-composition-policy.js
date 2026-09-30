@@ -94,7 +94,7 @@
  }
  function coverZones(typeId,layoutId){
   const profiles={
-    'center-photo':{photoLow:{image:[25,39,50,37],year:[29,13,42,19],identity:[8,80,84,14]},photoWide:{image:[18,31,64,46],year:[29,12,42,18],identity:[8,81,84,13]},photoFeature:{image:[12,27,76,51],year:[31,11,38,17],identity:[8,82,84,12]}},
+    'center-photo':{photoLow:{image:[25,36,50,38],year:[16,10,68,12],identity:[8,80,84,14]},photoWide:{image:[8,30,84,43],year:[16,10,68,12],identity:[8,80,84,14]},photoFeature:{image:[8,8,84,66],year:[16,77,68,10],identity:[8,87,84,8]}},
     'left-photo':{photoLow:{image:[5,12,58,76],year:[68,10,27,18],identity:[68,36,27,50]},photoWide:{image:[5,7,66,86],year:[75,8,20,18],identity:[75,34,20,56]},photoFeature:{image:[5,5,72,90],year:[80,8,16,18],identity:[80,34,16,56]}},
     'right-photo':{photoLow:{image:[53,28,42,62],year:[8,9,40,18],identity:[8,68,40,20]},photoWide:{image:[46,23,49,69],year:[8,8,34,18],identity:[8,67,34,22]},photoFeature:{image:[39,17,56,76],year:[7,8,28,18],identity:[7,65,28,25]}},
     free:{photoLow:{image:null,year:[29,18,42,22],identity:[8,78,84,15]},photoWide:{image:null,year:[8,16,42,22],identity:[8,76,84,16]},photoFeature:{image:null,year:[8,12,50,25],identity:[8,72,84,20]}}
@@ -110,7 +110,7 @@
  };return profiles[layoutId]||profiles['distributed-header']}
  function backCoverZones(typeId,layoutId){
   const profiles={
-    'school-information':{'centered-information':{primary:[35,22,30,20],identity:[25,54,50,32]},'lower-information':{primary:[36,25,28,20],identity:[18,69,64,19]},'left-information':{primary:[8,27,34,36],identity:[51,25,41,50]}},
+    'school-information':{'centered-information':{primary:[35,22,30,20],identity:[25,54,50,32]},'lower-information':{primary:[36,25,28,20],identity:[18,69,64,19]},'left-information':{primary:[10,12,30,14],identity:[10,34,55,52]}},
     'year-school-information':{'centered-year':{year:[29,17,42,18],identity:[25,48,50,38]},'split-year-information':{year:[8,25,38,24],identity:[55,24,37,56]},'top-year-information':{year:[26,8,48,19],identity:[20,58,60,29]}},
     'school-photo-information':{'center-photo':{year:[32,6,36,13],image:[24,23,52,43],identity:[20,72,60,20]},'left-photo':{year:[61,8,31,16],image:[7,14,48,67],identity:[61,35,31,48]},'right-photo':{year:[8,8,31,16],image:[45,14,48,67],identity:[8,35,31,48]}}
    };
@@ -118,12 +118,12 @@
   return profiles[typeId]?.[layoutId]||profiles[typeId]?.[defaults[typeId]]||profiles['school-information']['centered-information'];
  }
  function backCoverIdentityBoxes(zone,layoutId,{logo=false,names=0,details=0}={}){
-  const sideBySide=layoutId==='left-information'||layoutId==='split-year-information';
+  const sideBySide=layoutId==='split-year-information';
   const spread=(count,area)=>{if(!count)return [];const gap=count>4?.6:count>1?1.5:0,h=Math.max(1.5,(area[3]-gap*(count-1))/count);return Array.from({length:count},(_,index)=>{const y=area[1]+index*(h+gap);return {x:area[0],y,width:area[2],height:Math.max(1.5,Math.min(h,area[1]+area[3]-y))}})};
   const logoWidth=Math.min(22,zone[2]*.44),logoHeight=Math.min(12,Math.max(9,zone[3]*.32));
-  const logoBox=logo?{x:sideBySide?zone[0]:zone[0]+(zone[2]-logoWidth)/2,y:zone[1],width:logoWidth,height:logoHeight}:null;
+  const logoBox=logo?{x:sideBySide||layoutId==='left-information'?zone[0]:zone[0]+(zone[2]-logoWidth)/2,y:zone[1],width:logoWidth,height:logoHeight}:null;
   const offset=sideBySide&&logo?Math.min(24,zone[2]*.48):0,textX=zone[0]+offset,textWidth=zone[2]-offset;
-  const nameY=!sideBySide&&logo?logoBox.y+logoBox.height+1:zone[1],nameHeight=Math.min(12,Math.max(7,zone[3]*.30));
+  const nameY=!sideBySide&&logo?logoBox.y+logoBox.height+3:zone[1],nameHeight=names?Math.min(12,Math.max(7,zone[3]*.30)):0;
   const detailY=nameY+nameHeight+1,detailHeight=Math.max(3,zone[1]+zone[3]-detailY);
   return {logo:logoBox,names:spread(names,[textX,nameY,textWidth,nameHeight]),details:spread(details,[textX,detailY,textWidth,detailHeight]),sideBySide};
  }

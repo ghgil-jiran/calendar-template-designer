@@ -93,7 +93,7 @@ test('annual card and annual editor object use a title band above the calendar',
 
 test('cover layouts place the photo differently and keep year and identity in the safe area',()=>{
  const imageZones=['photo-low','photo-wide','photo-feature'].map(id=>policy.coverZones('center-photo',id).image);
- assert.deepEqual(imageZones.map(zone=>zone[2]),[50,64,76]);
+ assert.deepEqual(imageZones.map(zone=>zone[2]),[50,84,84]);
  for(const type of ['center-photo','left-photo','right-photo','free'])for(const layout of ['photo-low','photo-wide','photo-feature']){
   const zones=policy.coverZones(type,layout);
   for(const zone of [zones.image,zones.year,zones.identity].filter(Boolean))assert.ok(zone[0]>=0&&zone[1]>=0&&zone[0]+zone[2]<=100&&zone[1]+zone[3]<=95,`${type}/${layout}`);
