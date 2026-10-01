@@ -38,3 +38,15 @@ test('date-cell mini calendars render all rows from the shared calendar model', 
   assert.equal((mini.renderCellMiniCalendarMarkup(six).match(/class="cell-mini-week"/g) ?? []).length, 6);
   assert.equal((mini.renderCellMiniCalendarMarkup(five).match(/class="cell-mini-week"/g) ?? []).length, 5);
 });
+
+ test('title typography preserves inherited styles and escapes custom text',()=>{
+ const {ACDLSharedMonthTitle:title}=shared('shared-screen-month-title');
+ assert.equal(title.title(2027,3,'number-stack',undefined,{}).markup,title.title(2027,3,'number-stack').markup);
+ const typography={numberSize:80,yearSize:18,englishSize:20,numberColor:'#112233',yearColor:'#445566',fontFamily:'Noto Serif KR',fontWeight:700,gap:0,metaGap:4};
+ const markup=title.title(2027,3,'number-stack',undefined,typography).markup;
+ assert.match(markup,/font-size:80px!important/);assert.match(markup,/color:#445566!important/);assert.match(markup,/gap:4px/);
+ assert.equal(title.rootStyle(typography).gap,'0px');
+ assert.equal(Object.keys(title.rootStyle(null)).length,0);
+ assert.equal(Object.keys(title.normalizeTypography({numberSize:Infinity,yearSize:-1,englishColor:'red;display:none',fontFamily:"evil'"})).length,0);
+ assert.match(title.title(2027,3,'month-korean','<img>',{textSize:30}).markup,/&lt;img&gt;/);
+ });

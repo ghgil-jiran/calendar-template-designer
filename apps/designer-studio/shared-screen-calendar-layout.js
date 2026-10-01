@@ -53,7 +53,7 @@
     const style = presentation?.weekdayStyle || "filled-tabs";
     const spec = catalog?.weekdayPresentations?.[style] || {boxHeightMm:7.06,gridGapMm:0};
     const regionHeightMm = Number(pageHeightMm || 180)*Number(region?.height || 79)/100;
-    const stageHeightMm = Math.max(1,regionHeightMm*(100-Number(vertical.title || 10))/100);
+    const stageHeightMm = Math.max(1,regionHeightMm*(100-Number(vertical.title ?? 10))/100);
     const geometry=vertical.fixedGeometry,fixedTrack=Number(geometry?.weekdayTrackMm),fixedGap=Number(geometry?.weekdayGapMm),hasFixedTrack=Number.isFinite(fixedTrack)&&fixedTrack>0&&Number.isFinite(fixedGap)&&fixedGap>=0&&fixedGap<fixedTrack;
     const gridGapMm=hasFixedTrack?fixedGap:Number(spec.gridGapMm||0),trackMm=hasFixedTrack?fixedTrack:Number(spec.boxHeightMm||7.06)+gridGapMm,boxHeightMm=trackMm-gridGapMm;
     return {boxHeightMm,gridGapMm,trackMm,weekdayStage:Math.max(2,Math.min(20,trackMm/stageHeightMm*100)),contract:catalog?.compositionContract};

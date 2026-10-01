@@ -27,3 +27,15 @@ assert.equal(size.classList.contains('inspector-field-error'), true);
 size.value = '20';
 assert.deepEqual(globalThis.ACDLInspectorForm.validate(container), { valid: true, message: '' });
 assert.equal(size.classList.contains('inspector-field-error'), false);
+
+size.value = '';
+size.dataset = {optional:'true'};
+assert.deepEqual(globalThis.ACDLInspectorForm.validate(container), {valid:true,message:''});
+size.value = '0';
+assert.equal(globalThis.ACDLInspectorForm.validate(container).valid,false);
+size.value = '20';
+name.pattern = '#[a-fA-F0-9]{6}';
+name.value = 'red';
+assert.equal(globalThis.ACDLInspectorForm.validate(container).valid,false);
+name.value = '#123ABC';
+assert.equal(globalThis.ACDLInspectorForm.validate(container).valid,true);

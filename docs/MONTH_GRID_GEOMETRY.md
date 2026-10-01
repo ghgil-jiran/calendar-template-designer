@@ -11,3 +11,11 @@ calendarLayout.fixedGeometry (monthly-grid-geometry.v1)에 기존 titlePercent, 
 calendarLayout.monthTitle (monthly-title-object.v1)에 독립 frame을 보존한다. calendarRegion은 요일+날짜 격자 영역으로 변환하며 fixedGeometry.titlePercent=0. 변환은 한 번만 적용한다. 월 표시는 기존 형식/연도/월/글자 크기를 계속 사용한다. 드래그 및 배치 입력은 월 표시와 격자를 각각 대상으로 삼는다. 현재 두 배치는 12개월 공통이며 월별 별도 제목 배치와 글꼴/구성요소별 색상 확장은 후속.
 
 Runtime은 기존 calendar 개체 계약 안에서 분리된 제목 배치를 전달한다. 사용자 서비스는 공유 relativeTitleFrame으로 원본 좌표를 변환해 표시한다. 독립 개체로서의 삭제·레이어 변경 및 인쇄 경로의 최종 정합 검증은 아직 완료하지 않았다.
+
+## 월 표시 스타일 확장 (Preview)
+
+`calendarLayout.monthTitle.style`에 선택적으로 글꼴, 굵기, 월 숫자·연도·영문 월·한글/직접 입력 제목 각각의 크기(px)와 색상, 구성 요소 간격, 연도/영문 월 세로 간격을 저장한다. 빈 값은 기존 스타일을 상속하며 별도의 기본값으로 덮어쓰지 않는다. 화면의 공통 월 표시 모듈이 에디터와 사용자 서비스에서 같은 마크업을 생성한다. 스타일 변경은 frame과 calendarRegion을 변경하지 않는다. 큰 글자는 월 표시 frame 안에서 잘리므로 frame 크기를 직접 조정해야 한다.
+
+요일 높이는 분리된 격자 영역의 실제 mm 높이를 기준으로 계산한다. titlePercent=0을 10%로 대체하지 않는다.
+
+유형·종류별 격자 기본값 관리에는 calendar_type_sizes에 새 저장 필드와 서버 매핑이 필요하다. 현재 DB에는 크기 숫자만 있으며 임의로 다른 필드를 재사용하지 않는다. 이 단계는 후속 마이그레이션과 함께 구현한다. 기존 템플릿의 자동 배치 변경은 하지 않는다. 네이티브 PDF 조판의 스타일 반영과 실제 폰트 출력은 별도 확인이 필요하다.

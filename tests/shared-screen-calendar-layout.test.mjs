@@ -39,3 +39,11 @@ test('title separation preserves grid frame and is idempotent after save and reo
  const saved=JSON.parse(JSON.stringify({source,region}));layout.separateMonthTitle(saved.source,catalog,saved.region,180);assert.equal(saved.region.y,oldGridY);assert.equal(saved.region.height,oldGridHeight);
  const titleY=title.frame.y;region.y+=5;region.height-=4;assert.equal(title.frame.y,titleY);const relative=layout.relativeTitleFrame(title,region);assert.ok(relative.y<0);assert.equal(region.y+relative.y/100*region.height,titleY);
 });
+
+ test('detached title consumes no grid space in physical weekday calculation',()=>{
+ const master={design:{monthTitleStyle:'number-stack'},calendarPreset:{presetId:'academic-boxed'}},region={x:5,y:16,width:90,height:79};
+ layout.separateMonthTitle(master,catalog,region,180);
+ const vertical=layout.resolveVerticalLayout(master,catalog),chrome=layout.resolveChromeLayout(vertical.preset.presentation,vertical,region,180,catalog);
+ assert.equal(vertical.title,0);
+ assert.ok(Math.abs(chrome.weekdayStage-chrome.trackMm/(180*region.height/100)*100)<1e-9);
+ });
