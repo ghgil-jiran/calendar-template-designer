@@ -50,3 +50,20 @@ test('date-cell mini calendars render all rows from the shared calendar model', 
  assert.equal(Object.keys(title.normalizeTypography({numberSize:Infinity,yearSize:-1,englishColor:'red;display:none',fontFamily:"evil'"})).length,0);
  assert.match(title.title(2027,3,'month-korean','<img>',{textSize:30}).markup,/&lt;img&gt;/);
  });
+
+test('four month title compositions support row, two lines, formats and reversed order',()=>{
+ const {ACDLSharedMonthTitle:title}=shared('shared-screen-month-title');
+ for(const composition of ['number','number-year','number-english','english']){
+  const style={composition,arrangement:'column',align:'right',numberFormat:'padded',englishFormat:'short',yearFormat:'short'};
+  const result=title.title(2027,3,'number-stack',undefined,JSON.parse(JSON.stringify(style)));
+  assert.equal(result.style,'composed');
+  const count=(result.markup.match(/<span/g)||[]).length;assert.equal(count,composition.includes('-')?2:1);
+  assert.equal(result.markup.includes('month-year'),composition==='number-year');
+  assert.equal(result.markup.includes('month-en'),composition.includes('english'));
+  assert.equal(title.rootStyle(style).flexDirection,'column');assert.equal(title.rootStyle(style).alignItems,'flex-end');
+ }
+ const markup=title.title(2027,3,'number-inline',undefined,{composition:'number-english',reverse:true,englishFormat:'title',numberFormat:'plain',englishFontFamily:'Arial',englishFontWeight:400}).markup;
+ assert.ok(markup.indexOf('March')<markup.indexOf('>3<'));assert.match(markup,/font-weight:400!important/);
+ assert.equal(title.rootStyle({composition:'number-year',arrangement:'row'}).flexDirection,'row');
+ assert.equal(title.normalizeTypography({composition:'all-three'}).composition,undefined);
+});

@@ -21,25 +21,48 @@
     for (const key of ["gap", "metaGap"]) {
       if (input[key] !== "" && input[key] != null && Number.isFinite(Number(input[key])) && Number(input[key]) >= 0 && Number(input[key]) <= 100) result[key] = Number(input[key]);
     }
+    if (["number", "number-year", "number-english", "english"].includes(input.composition)) result.composition=input.composition;
+    if (["row","column"].includes(input.arrangement)) result.arrangement=input.arrangement;
+    if (input.reverse === true) result.reverse=true;
+    if (["plain","padded"].includes(input.numberFormat)) result.numberFormat=input.numberFormat;
+    if (["upper","title","short"].includes(input.englishFormat)) result.englishFormat=input.englishFormat;
+    if (["full","short"].includes(input.yearFormat)) result.yearFormat=input.yearFormat;
+    if (["left","center","right"].includes(input.align)) result.align=input.align;
+    for (const component of ["number","year","english"]) {
+      if(fonts.includes(input[component+"FontFamily"]))result[component+"FontFamily"]=input[component+"FontFamily"];
+      if([100,200,300,400,500,600,700,800,900].includes(Number(input[component+"FontWeight"])))result[component+"FontWeight"]=Number(input[component+"FontWeight"]);
+    }
     return result;
   }
   function componentCss(input, component) {
     const style = normalizeTypography(input), rules = [];
-    if (style.fontFamily) rules.push(`font-family:'${style.fontFamily}'!important`);
-    if (style.fontWeight) rules.push(`font-weight:${style.fontWeight}!important`);
+    const family=style[component+"FontFamily"]||style.fontFamily;
+    if (family) rules.push(`font-family:'${family}'!important`);
+    const weight=style[component+"FontWeight"]||style.fontWeight;
+    if (weight) rules.push(`font-weight:${weight}!important`);
     if (style[`${component}Size`]) rules.push(`font-size:${style[`${component}Size`]}px!important`);
     if (style[`${component}Color`]) rules.push(`color:${style[`${component}Color`]}!important`);
     return rules.length ? ` style="${rules.join(';')}"` : "";
   }
   function rootStyle(input) {
     const style = normalizeTypography(input);
-    return style.gap == null ? {} : {gap: `${style.gap}px`};
+    const result=style.gap == null ? {} : {gap: `${style.gap}px`};
+    if(style.composition){const column=style.arrangement==="column",align=style.align||"left";Object.assign(result,{display:"flex",flexDirection:column?"column":"row",alignItems:column?(align==="left"?"flex-start":align==="right"?"flex-end":"center"):"center",justifyContent:column?"center":align==="left"?"flex-start":align==="right"?"flex-end":"center",lineHeight:"1",textAlign:align});}
+    return result;
   }
   function title(year, month, style, override, typography) {
     if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) throw new Error("Invalid monthly title date");
     const kind = styles.includes(style) ? style : "number-stack";
     const y = escape(year), m = escape(month), en = names[month - 1];
     if (override != null && String(override) !== "") return { style: kind, markup: typography ? `<span${componentCss(typography,"text")}>${escape(override)}</span>` : escape(override) };
+    const composition=normalizeTypography(typography);
+    if(composition.composition){
+      const english=composition.englishFormat==="short"?en.slice(0,3):composition.englishFormat==="title"?en[0]+en.slice(1).toLowerCase():en;
+      const parts={number:["month-number",composition.numberFormat==="plain"?m:String(month).padStart(2,"0")],year:["month-year",composition.yearFormat==="short"?y.slice(-2):y],english:["month-en",english]};
+      const keys={number:["number"],"number-year":["number","year"],"number-english":["number","english"],english:["english"]}[composition.composition];
+      if(composition.reverse)keys.reverse();
+      return {style:"composed",markup:keys.map(key=>`<span class="${parts[key][0]}"${componentCss(composition,key)}>${parts[key][1]}</span>`).join("")};
+    }
     let markup = {
       "number-stack": `<span class="month-number">${m}</span><span class="month-meta"><span>${y}</span><span class="month-en">${en}</span></span>`,
       "number-inline": `<span class="month-year">${y}</span><span class="month-number">${m}</span><span class="month-en">${en}</span>`,
