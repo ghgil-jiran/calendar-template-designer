@@ -1,4 +1,8 @@
 "use strict";
+let monthTitleEditing=false;
+function monthTitleRegion(){return project.template.masters.calendar.calendarLayout?.monthTitle?.frame}
+function calendarEditRegion(){return monthTitleEditing?monthTitleRegion():calendarRegion()}
+
 
 function calendarRegion(){
  const calendar=project.template.masters.calendar;
@@ -13,7 +17,7 @@ function calendarRegion(){
 }
 function startCalendarPointer(e){
  e.preventDefault();
- const r=calendarRegion(),node=e.currentTarget;
+ const r=calendarEditRegion(),node=e.currentTarget;
  snapshot();
  node.setPointerCapture(e.pointerId);
  calendarDrag={
@@ -31,7 +35,7 @@ function startCalendarPointer(e){
 }
 function moveCalendarPointer(e){
  if(!calendarDrag)return;
- const r=calendarRegion(),o=calendarDrag.original;
+ const r=calendarEditRegion(),o=calendarDrag.original;
  const dx=(e.clientX-calendarDrag.startX)/calendarDrag.pageRect.width*100;
  const dy=(e.clientY-calendarDrag.startY)/calendarDrag.pageRect.height*100;
  if(Math.abs(dx)>.05||Math.abs(dy)>.05)calendarDrag.changed=true;
@@ -40,7 +44,7 @@ function moveCalendarPointer(e){
  if(["s","se","sw"].includes(calendarDrag.handle))r.height=o.height+dy;
  if(["w","nw","sw"].includes(calendarDrag.handle)){r.x=o.x+dx;r.width=o.width-dx}
  if(["n","nw","ne"].includes(calendarDrag.handle)){r.y=o.y+dy;r.height=o.height-dy}
- const minW=25,minH=25;
+ const minW=monthTitleEditing?5:25,minH=monthTitleEditing?2:25;
  if(r.width<minW){
   if(["w","nw","sw"].includes(calendarDrag.handle))r.x-=minW-r.width;
   r.width=minW
@@ -73,6 +77,7 @@ function endCalendarPointer(e){
 }
 
 function applyCalendarRegionPreset(preset){
+ if(monthTitleEditing)return;
  change(()=>{
   const r=calendarRegion();
   if(preset==="full"){Object.assign(r,{x:3,y:12,width:94,height:84})}
@@ -881,7 +886,9 @@ function renderPage(){
  if(p.role==="monthly-front"){
   window.ACDLScheduleApiClient?.ensureCalendarReferences?.(project).catch(()=>{});
   const g=groupedEvents(),max=project.template.masters.calendar.eventMaxVisiblePerDay,title=p.overrides.monthTitle||`${p.calendarYear}년 ${p.calendarMonth}월`,cr=calendarRegion(),rows=calendarRowCountFor(p.calendarYear,p.calendarMonth),grid=calendarGridFor(p.calendarYear,p.calendarMonth,rows),design=project.template.masters.calendar.design||{},vertical=calendarVerticalLayout(design),preset=vertical.preset,presentation=preset?.presentation||design,chrome=calendarChromeLayout(presentation,vertical,cr),sharedTitle=window.ACDLSharedMonthTitle.title(p.calendarYear,p.calendarMonth,presentation.monthTitleStyle,p.overrides.monthTitle),monthTitleStyle=sharedTitle.style,titleMarkup=sharedTitle.markup,gridClass=window.ACDLSharedGridPresentation.resolve(presentation.gridStyle).className,calendarClasses=[presentation.monthTitleAlign==="center"?"month-title-center":"month-title-left",presentation.weekdayStyle==="outlined-pills"?"weekday-outlined-pills":"weekday-filled-tabs",gridClass].join(" "),presetAttr=preset?` data-calendar-preset="${preset.presetId}"`:"",presetVars=preset?`--calendar-cell-padding-x:${presentation.cellPaddingX}mm;--calendar-cell-padding-y:${presentation.cellPaddingY}mm;--calendar-line-width:${presentation.lineWidth}mm;--calendar-line-color:${presentation.lineColor};--calendar-weekday-radius:${presentation.weekdayCornerRadius}mm;--calendar-title-weekday-gap:${presentation.titleWeekdayGap}mm;`:"";
-  html+=`<div id="calendarRegion" class="calendar-region ${calendarClasses} ${calendarEditing?"editing":""}"${presetAttr} data-calendar-composition="${chrome.contract?.schemaVersion||"monthly-calendar-composition.v1"}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%;--calendar-title-share:${vertical.title}%;--calendar-weekday-track:${chrome.weekdayStage}%;--calendar-weekday-grid-gap:${chrome.gridGapMm/Math.max(.01,chrome.trackMm)*100}%;--calendar-title-responsive:${project.template.masters.calendar.monthTitleSize/8.5}cqw;${presetVars}"><div class="month-title ${monthTitleStyle}" style="font-size:${project.template.masters.calendar.monthTitleSize}px;color:var(--month-primary)">${titleMarkup}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
+  const titleFrame=monthTitleRegion();
+  if(titleFrame)html+=`<div id="monthlyTitleRegion" role="button" aria-label="월 표시 선택" tabindex="0" class="monthly-title-region ${monthTitleEditing?"editing":""}" style="left:${titleFrame.x}%;top:${titleFrame.y}%;width:${titleFrame.width}%;height:${titleFrame.height}%;--calendar-title-responsive:${project.template.masters.calendar.monthTitleSize/8.5}cqw;"><div class="shared-month-title month-title ${monthTitleStyle} month-title-${presentation.monthTitleAlign||"left"}" style="font-size:${project.template.masters.calendar.monthTitleSize}px;color:var(--month-primary)">${titleMarkup}</div></div>`;
+  html+=`<div id="calendarRegion" class="calendar-region ${calendarClasses} ${calendarEditing?"editing":""}"${presetAttr} data-calendar-composition="${chrome.contract?.schemaVersion||"monthly-calendar-composition.v1"}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%;--calendar-title-share:${vertical.title}%;--calendar-weekday-track:${chrome.weekdayStage}%;--calendar-weekday-grid-gap:${chrome.gridGapMm/Math.max(.01,chrome.trackMm)*100}%;--calendar-title-responsive:${project.template.masters.calendar.monthTitleSize/8.5}cqw;${presetVars}"><div class="month-title ${monthTitleStyle}" style="font-size:${project.template.masters.calendar.monthTitleSize}px;color:var(--month-primary)">${titleFrame?"":titleMarkup}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
   weekDayHeaders().forEach(h=>html+=`<div class="cell head">${h}</div>`);
   const miniCells=project.settings.showAdjacentMiniCalendars?selectAdjacentMiniCells(grid,p.calendarMonth):[];
   const hiddenScheduleByDate=assignRangeLanes(grid).hiddenByDate||{};
@@ -920,10 +927,10 @@ function renderPage(){
  }else if((project.book.elementsByPage?.[p.id]||[]).length===0)html+=`<div class="backface"><div><strong>${roleLabel(p)}</strong><br>실제 인쇄되는 뒷면 Surface</div></div>`;
  html+="</div>";page.innerHTML=html;
  if(p.role==="monthly-front"){const align=project.template.masters.calendar.calendarOverrides?.monthTitleAlign||project.template.masters.calendar.design?.monthTitleAlign||"left",regionNode=page.querySelector(".calendar-region");regionNode?.classList.remove("month-title-left","month-title-center","month-title-right");regionNode?.classList.add(`month-title-${["left","center","right"].includes(align)?align:"left"}`)}
- if(p.role==="monthly-front"&&calendarEditing&&!preview){
-  const region=el("calendarRegion");if(region){
-   const label=document.createElement("span");label.className="calendar-region-label";label.textContent="MONTHLY MASTER";region.appendChild(label);
-   const dragBar=document.createElement("span");dragBar.className="calendar-drag-bar";dragBar.dataset.calendarHandle="move";dragBar.textContent="월력 Master · 드래그하여 이동";region.appendChild(dragBar);
+ if(p.role==="monthly-front"&&(calendarEditing||monthTitleEditing)&&!preview){
+  const region=el(monthTitleEditing?"monthlyTitleRegion":"calendarRegion");if(region){
+   const label=document.createElement("span");label.className="calendar-region-label";label.textContent=monthTitleEditing?"MONTH TITLE":"MONTHLY GRID";region.appendChild(label);
+   const dragBar=document.createElement("span");dragBar.className="calendar-drag-bar";dragBar.dataset.calendarHandle="move";dragBar.textContent=monthTitleEditing?"월 표시 · 드래그하여 이동":"월력 격자 · 드래그하여 이동";region.appendChild(dragBar);
    ["n","e","s","w","nw","ne","se","sw"].forEach(pos=>{const h=document.createElement("span");h.className="calendar-handle "+pos;h.dataset.calendarHandle=pos;region.appendChild(h)});
    region.addEventListener("pointerdown",e=>{
     if(e.target.closest("[data-date]")&&!e.target.dataset.calendarHandle)return;
@@ -934,9 +941,10 @@ function renderPage(){
  renderFreeElements(page);
  const selectMonthlyCalendar=e=>{
   if(calendarEditing)return false;
-  e?.stopPropagation();calendarEditing=true;selectedElementId=null;selectedElementScope=null;render();
+  e?.stopPropagation();monthTitleEditing=false;calendarEditing=true;selectedElementId=null;selectedElementScope=null;render();
   showEditorToast("월력을 선택했습니다. 테두리 조절점이나 Inspector에서 크기를 변경하세요.");return true
  };
+ const titleRegionNode=el("monthlyTitleRegion");titleRegionNode?.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();titleRegionNode.click()}});if(titleRegionNode)titleRegionNode.addEventListener("click",e=>{e.stopPropagation();if(monthTitleEditing)return;monthTitleEditing=true;calendarEditing=false;selectedElementId=null;selectedElementScope=null;inspectorActiveTab="layout";render()});
  const calendarRegionNode=page.querySelector(".calendar-region");
  if(calendarRegionNode)calendarRegionNode.addEventListener("click",e=>{if(!e.target.closest("[data-date]"))selectMonthlyCalendar(e)});
  page.querySelectorAll("[data-date]").forEach(c=>c.addEventListener("click",e=>{if(selectMonthlyCalendar(e))return;e.stopPropagation();selectedDate=c.dataset.date;renderPage();renderInspector()}));
@@ -1034,11 +1042,13 @@ function confirmDiscardInspectorChanges(){
 }
 
 function renderInspector(){
+ if(sourceElement())monthTitleEditing=false;
  const p=selectedPage(),ins=el("inspector"),panels=elementInspectorPanels();
  let content=panels.content||"",design=panels.design||"",layout=panels.layout||"";
- if(p.role==="monthly-front"&&calendarEditing){
-  const r=calendarRegion();layout=`<div class="section"><span class="layer-chip">월력 앞면 Master · 달력 영역</span><div class="calendar-master-note">위치와 크기 변경은 12개월 모든 월력 앞면에 적용됩니다. Canvas의 파란 테두리를 드래그하거나 아래 값을 입력하세요.</div><div class="grid2"><label>X (%)<input id="calX" type="number" step=".5" value="${r.x.toFixed(1)}"></label><label>Y (%)<input id="calY" type="number" step=".5" value="${r.y.toFixed(1)}"></label><label>폭 (%)<input id="calW" type="number" step=".5" value="${r.width.toFixed(1)}"></label><label>높이 (%)<input id="calH" type="number" step=".5" value="${r.height.toFixed(1)}"></label></div><button id="applyCalendarRegion" class="action">월력 위치·크기 저장</button><div class="calendar-size-presets"><button id="calendarPresetFull" class="secondary">크게</button><button id="calendarPresetStandard" class="secondary">기본</button><button id="calendarPresetCompact" class="secondary">작게</button><button id="calendarPresetCenter" class="secondary">가운데 정렬</button></div><button id="closeCalendarEditing" class="action secondary" style="margin-top:6px">월력 선택 해제</button></div>`+layout
+ if(p.role==="monthly-front"&&(calendarEditing||monthTitleEditing)){
+  const r=calendarEditRegion();layout=`<div class="section"><span class="layer-chip">${monthTitleEditing?"월 표시 개체":"월력 격자 개체"}</span><div class="calendar-master-note">위치와 크기 변경은 12개월 모든 월력 앞면에 적용됩니다. Canvas의 파란 테두리를 드래그하거나 아래 값을 입력하세요.</div><div class="grid2"><label>X (%)<input id="calX" type="number" step=".5" value="${r.x.toFixed(1)}"></label><label>Y (%)<input id="calY" type="number" step=".5" value="${r.y.toFixed(1)}"></label><label>폭 (%)<input id="calW" type="number" step=".5" value="${r.width.toFixed(1)}"></label><label>높이 (%)<input id="calH" type="number" step=".5" value="${r.height.toFixed(1)}"></label></div><button id="applyCalendarRegion" class="action">${monthTitleEditing?"월 표시 배치 저장":"격자 배치 저장"}</button>${monthTitleEditing?"":`<div class="calendar-size-presets"><button id="calendarPresetFull" class="secondary">크게</button><button id="calendarPresetStandard" class="secondary">기본</button><button id="calendarPresetCompact" class="secondary">작게</button><button id="calendarPresetCenter" class="secondary">가운데 정렬</button></div>`}<button id="closeCalendarEditing" class="action secondary" style="margin-top:6px">월력 선택 해제</button></div>`+layout
  }
+ if(sourceElement())monthTitleEditing=false;
  if(!sourceElement()){
   content+=isInsertPage(p)?`<div class="section template-help-card"><strong>${p.role.includes("front-insert")?"앞 간지":"뒤 간지"} 자유 템플릿 면</strong><br>가운데 안내는 편집 화면에서만 보이며 출력되지 않습니다. 개체를 추가해 이 페이지의 실제 템플릿 구성을 만드세요.</div>`:`<div class="section template-help-card"><strong>템플릿 설계 안내</strong><br>개체를 선택하면 샘플 콘텐츠, 실제 학교 데이터 Binding, 레이아웃을 탭으로 나누어 편집할 수 있습니다.</div>`;
  }
@@ -1105,13 +1115,13 @@ function bindInspector(){
   syncMonthlySharedFields(i,["layoutPreset","showTitle","titleOverride","style"])
  }));
  bind("replaceSemanticImage",()=>{pendingSemanticRole=sourceElement()?.role;el("semanticImageInput").click()});
- bind("applyCalendarRegion",()=>change(()=>{const r=calendarRegion();r.x=Number(el("calX").value);r.y=Number(el("calY").value);r.width=Number(el("calW").value);r.height=Number(el("calH").value);r.width=Math.max(25,Math.min(100,r.width));r.height=Math.max(25,Math.min(100,r.height));r.x=Math.max(0,Math.min(r.x,100-r.width));r.y=Math.max(0,Math.min(r.y,100-r.height))}));
+ bind("applyCalendarRegion",()=>change(()=>{const r=calendarEditRegion();r.x=Number(el("calX").value);r.y=Number(el("calY").value);r.width=Number(el("calW").value);r.height=Number(el("calH").value);r.width=Math.max(monthTitleEditing?5:25,Math.min(100,r.width));r.height=Math.max(monthTitleEditing?2:25,Math.min(100,r.height));r.x=Math.max(0,Math.min(r.x,100-r.width));r.y=Math.max(0,Math.min(r.y,100-r.height))}));
  bind("resetCalendarRegion",()=>change(()=>project.template.masters.calendar.calendarRegion={x:5,y:16,width:90,height:79}));
  bind("calendarPresetFull",()=>applyCalendarRegionPreset("full"));
  bind("calendarPresetStandard",()=>applyCalendarRegionPreset("standard"));
  bind("calendarPresetCompact",()=>applyCalendarRegionPreset("compact"));
  bind("calendarPresetCenter",()=>applyCalendarRegionPreset("center"));
- bind("closeCalendarEditing",()=>{calendarEditing=false;render()});
+ bind("closeCalendarEditing",()=>{calendarEditing=false;monthTitleEditing=false;render()});
  bind("applyMemoWidget",()=>changeElement(i=>{i.memoLayout=el("memoLayout")?.value||"lines";i.title=el("widgetTitle").value;if(el("memoLineCount"))i.lineCount=Number(el("memoLineCount").value);if(el("memoWeekCount"))i.weekCount=Number(el("memoWeekCount").value);if(el("memoShowMemo"))i.showMemo=el("memoShowMemo").checked;if(el("memoItemCount"))i.itemCount=Number(el("memoItemCount").value);if(el("memoYearlyColumns"))i.yearlyColumns=Number(el("memoYearlyColumns").value);if(el("memoLinesPerMonth"))i.linesPerMonth=Number(el("memoLinesPerMonth").value);if(el("memoMonthLabelStyle"))i.monthLabelStyle=el("memoMonthLabelStyle").value}));
  bind("applyMonthlyQuoteContent",()=>change(()=>{const key=monthlyQuoteKey(selectedPage());if(!key)return;ensureMonthlyQuotes();const current=project.book.monthlyQuotes[key]||{};project.book.monthlyQuotes[key]={...current,title:el("quoteTitle").value.trim()||"이 달의 명언",quoteKo:el("quoteKo").value.trim(),quoteEn:el("quoteEn").value.trim(),source:el("quoteSource").value.trim(),sourceStatus:"edited",translationType:current.translationType||"editorial"}}));
  bind("applyMonthlyQuoteStyle",()=>changeElement(i=>{i.style||={};i.style.titleSize=Number(el("quoteTitleSize").value);i.style.quoteKoSize=Number(el("quoteKoSize").value);i.style.quoteEnSize=Number(el("quoteEnSize").value);i.style.sourceSize=Number(el("quoteSourceSize").value);i.style.textAlign=el("quoteAlign").value;i.style.color=el("quoteColor").value;i.style.accentColor=el("quoteAccentColor").value;i.style.secondaryColor=el("quoteSecondaryColor").value;i.style.itemGap=Number(el("quoteItemGap").value);syncMonthlySharedFields(i,["style"])}));

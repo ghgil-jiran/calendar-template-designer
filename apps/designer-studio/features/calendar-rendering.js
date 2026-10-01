@@ -40,7 +40,7 @@ function calendarRowCountFor(y,m){
 function calendarGrid(y,m){return calendarGridFor(y,m,calendarRowCountFor(y,m))}
 function calendarVerticalLayout(design=project.template.masters.calendar.design||{}){
  const master=project.template.masters.calendar;
- window.ACDLSharedCalendarLayout.preserveGeometry(master,window.ACDLCalendarPresetCatalog,calendarRegion(),project.productType?.pageSize?.height);
+ window.ACDLSharedCalendarLayout.separateMonthTitle(master,window.ACDLCalendarPresetCatalog,calendarRegion(),project.productType?.pageSize?.height);
  return window.ACDLSharedCalendarLayout.resolveVerticalLayout({design,calendarPreset:master.calendarPreset,calendarLayout:master.calendarLayout,calendarOverrides:master.calendarOverrides},window.ACDLCalendarPresetCatalog);
 }
 function calendarChromeLayout(presentation,vertical,region=calendarRegion()){
