@@ -138,7 +138,7 @@ test('system base templates start without sample school events', () => {
 test('postcard calendar editing uses the single shared toggle handler', () => {
   assert.match(
     html,
-    /el\("editCalendarBtn"\)\.addEventListener\("click",\(\)=>\{\s*calendarEditing=!calendarEditing;/,
+    /el\("editCalendarBtn"\)\.addEventListener\("click",\(\)=>\{[\s\S]{0,250}selectMonthlyPart\("grid"\)/,
     'the shared calendar edit button should toggle the selection once'
   );
   assert.doesNotMatch(
