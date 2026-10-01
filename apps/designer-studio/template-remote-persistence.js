@@ -38,7 +38,7 @@
  function aiDesignIntegrity(projectData){
   root.ACDLProjectAssetResolver?.normalize?.(projectData);const store=projectData?.template?.resources||{},resources=[...(store.assets||[]),...(store.aiDesignAssets||[])],backgrounds=Object.values(projectData?.book?.elementsByPage||{}).flat().filter(item=>item?.role==='ai-design-background'),byId=new Map(resources.map(item=>[item.id,item]));
   const unresolved=backgrounds.filter(item=>{const resourceId=item.assetId||item.aiDesign?.resourceId;return !item.src&&!(resourceId&&byId.get(resourceId)?.src)});
-  const draftStatus=String(projectData?.template?.aiDesignDraft?.status||''),expectsBackgrounds=Boolean(resources.length||draftStatus.includes('applied')||draftStatus.includes('complete'));
+  const draftStatus=String(projectData?.template?.aiDesignDraft?.status||''),expectsBackgrounds=Boolean((store.aiDesignAssets||[]).length||resources.some(item=>item.origin==='ai-generated')||backgrounds.length||draftStatus.includes('applied')||draftStatus.includes('complete'));
   return {expectsBackgrounds,resourceCount:resources.length,backgroundCount:backgrounds.length,resolvedBackgroundCount:backgrounds.length-unresolved.length,unresolvedBackgroundIds:unresolved.map(item=>item.id||'(unknown)')}
  }
  function assertAIDesignIntegrity(projectData){const integrity=aiDesignIntegrity(projectData);if(integrity.expectsBackgrounds&&(!integrity.resourceCount||!integrity.backgroundCount||integrity.resolvedBackgroundCount!==integrity.backgroundCount))throw Object.assign(new Error('AI 디자인 배경이 완전하지 않아 템플릿을 저장하거나 열 수 없습니다.'),{code:'AI_DESIGN_INCOMPLETE',integrity});return projectData}

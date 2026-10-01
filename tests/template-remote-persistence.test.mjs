@@ -5,11 +5,14 @@ import vm from 'node:vm';
 
 const source = await readFile(new URL('../apps/designer-studio/template-remote-persistence.js', import.meta.url), 'utf8');
 
-function runtime({ hostname = 'templates.example.com', fetch, accessToken = 'admin-jwt', localApiProxy = false } = {}) {
+const assetResolverSource=await readFile(new URL('../apps/designer-studio/project-asset-resolver.js',import.meta.url),'utf8');
+
+function runtime({ hostname = 'templates.example.com', fetch, accessToken = 'admin-jwt', localApiProxy = false, assetResolver = false } = {}) {
   const values = new Map();
   let blobSequence=0;class BrowserURL extends URL{}BrowserURL.createObjectURL=()=>`blob:template-asset-${++blobSequence}`;BrowserURL.revokeObjectURL=()=>{};
   const browserFetch=async(path,options)=>String(path).startsWith('/api/template-assets?content=')?{ok:true,status:200,blob:async()=>new Blob(['image'])}:fetch(path,options);
   const window = { location: { hostname }, ACDL_LOCAL_API_PROXY:localApiProxy, URL:BrowserURL, Image:class{naturalWidth=850;naturalHeight=588;decode(){return Promise.resolve()}}, sessionStorage: { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) }, ACDLAdminAuth: { accessToken: () => accessToken, signOut() {} }, fetch:browserFetch };
+  if(assetResolver)vm.runInNewContext(assetResolverSource,{window});
   vm.runInNewContext(source, { window, URL, console, structuredClone });
   return window.ACDLTemplateRemotePersistence;
 }
@@ -222,4 +225,17 @@ test('the Supabase access token reaches the Authorization header unchanged', asy
   await api.list();
   assert.equal(received, `Bearer ${accessToken}`);
   assert.equal(api.hasSession(), true);
+});
+
+
+test('common library images survive normalization, save and reopen without AI backgrounds',async()=>{
+ const assetId='11111111-1111-4111-8111-111111111111',api=runtime({assetResolver:true,fetch:async path=>{assert.match(path,/^\/api\/template-assets\?ids=/);return {ok:true,status:200,json:async()=>({assets:[{id:assetId}]})}}});
+ const image=await api.hydrateProjectData({src:'acdl-asset://'+assetId});
+ const project={template:{},book:{elementsByPage:{'month-back-03':[{id:'common-photo',type:'image',role:'graphic-library-image',src:image.src,graphicSource:{originalAssetId:assetId}}]}}};
+ const prepared=await api.prepareProjectData(project);assert.equal(prepared.book.elementsByPage['month-back-03'][0].src,'acdl-asset://'+assetId);assert.equal(api.aiDesignIntegrity(prepared).expectsBackgrounds,false);
+ const reopened=await api.hydrateProjectData(prepared);assert.match(reopened.book.elementsByPage['month-back-03'][0].src,/^blob:/);assert.equal(reopened.book.elementsByPage['month-back-03'][0].graphicSource.originalAssetId,assetId);
+});
+test('unresolved AI backgrounds still block saves alongside normal images',async()=>{
+ const api=runtime({assetResolver:true,fetch:async()=>{throw Error('must not upload')}}),project={template:{},book:{elementsByPage:{cover:[{id:'photo',type:'image',src:'data:image/png;base64,YQ=='},{id:'ai',type:'image',role:'ai-design-background',assetId:'missing'}]}}};
+ await assert.rejects(()=>api.prepareProjectData(project),error=>error.code==='AI_DESIGN_INCOMPLETE');
 });

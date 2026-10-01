@@ -452,7 +452,7 @@ test('local and deployed entry points include the shared project asset resolver'
 });
 
 test('critical template recovery modules use a deployment cache version',()=>{
- assert.match(studioHtml,/template-remote-persistence\.js\?v=20260923\.1/);
+ assert.match(studioHtml,/template-remote-persistence\.js\?v=20261001\.1/);
  assert.match(studioHtml,/template-project-loader\.js\?v=20260906\.4/);
 });
 
