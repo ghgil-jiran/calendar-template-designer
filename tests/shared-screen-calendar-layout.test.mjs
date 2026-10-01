@@ -18,3 +18,16 @@ test('authoring layout uses stored zone shares and editor preset contract',()=>{
   const chrome=layout.resolveChromeLayout(preset.preset.presentation,preset,{height:87},180,catalog);
   assert.ok(chrome.weekdayStage>2 && chrome.weekdayStage<10);
 });
+
+test('saved geometry survives title and weekday presentation changes and serialization',()=>{
+ const master={design:{monthTitleStyle:'number-stack',weekdayStyle:'filled-tabs',gridStyle:'boxed'},calendarPreset:{presetId:'academic-boxed'}};
+ const region={height:79},geometry=layout.preserveGeometry(master,catalog,region,180),before=layout.resolveVerticalLayout(master,catalog),chrome=layout.resolveChromeLayout(before.preset.presentation,before,region,180,catalog);
+ for(const title of ['number-inline','number-only','year-month-korean','english-month']){
+  const changed=JSON.parse(JSON.stringify(master));changed.calendarOverrides={monthTitleStyle:title,weekdayStyle:'outlined-pills'};const after=layout.resolveVerticalLayout(changed,catalog),afterChrome=layout.resolveChromeLayout(after.preset.presentation,after,region,180,catalog);
+  assert.equal(after.title,before.title);assert.equal(after.grid,before.grid);assert.equal(afterChrome.trackMm,chrome.trackMm);assert.equal(afterChrome.gridGapMm,chrome.gridGapMm);
+ }
+ assert.equal(layout.preserveGeometry(master,catalog,region,180),geometry);
+});
+test('geometry conversion preserves existing authored layout before freezing it',()=>{
+ const master={design:{verticalLayout:{title:16,weekday:5,grid:79}}};const before=layout.resolveVerticalLayout(master,catalog);layout.preserveGeometry(master,catalog,{height:79},180);const after=layout.resolveVerticalLayout(master,catalog);assert.equal(after.title,before.title);assert.equal(after.grid,before.grid);
+});
