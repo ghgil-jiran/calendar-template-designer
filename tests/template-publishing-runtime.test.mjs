@@ -55,7 +55,7 @@ test('the artifact summary distinguishes failed, unfinished, and fully passed ch
 
 test('catalog comparison distinguishes matching, missing, stale, and mismatched packages',()=>{const rows=runtime().compareCatalogs([{name:'일치',editorRevision:10,templateId:'same',version:'1.0.7'},{name:'신규',editorRevision:3,templateId:'new',version:'1.0.0'},{name:'변경',editorRevision:5,templateId:'changed',version:'1.0.2'}],[{name:'일치',templateId:'same',version:'1.0.7'},{name:'이전',templateId:'old',version:'1.0.4'},{name:'변경',templateId:'changed',version:'1.0.1'}]);const states=Object.fromEntries(rows.map(row=>[row.templateId,row.state]));assert.equal(states.same,'matched');assert.equal(states.new,'editor-only');assert.equal(states.old,'service-only');assert.equal(states.changed,'version-mismatch')});
 
-test('browser reuses the existing templates endpoint with bounded two-megabyte review chunks',()=>{assert.match(source,/fetch\('\/api\/templates'/);assert.match(source,/operation:'publish-review'/);assert.match(source,/CHUNK_BYTES=1800\*1024/)});
+test('browser reuses the existing templates endpoint with bounded two-megabyte review chunks',()=>{assert.match(source,/\('\/api\/templates'/);assert.match(source,/operation:'publish-review'/);assert.match(source,/CHUNK_BYTES=1800\*1024/)});
 
 test('missing review chunks trigger bounded re-upload and finalization recovery',()=>{assert.match(source,/for\(let attempt=0;attempt<3;attempt\+\+\)/);assert.match(source,/Review \(\?:asset \|package \)\?chunk missing/);assert.match(source,/await uploadAssets\(true\);await uploadPackage\(true\)/)});
 

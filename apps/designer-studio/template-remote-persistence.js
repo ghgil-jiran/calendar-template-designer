@@ -2,16 +2,17 @@
  const signedToMarker=new Map();
  let deletedCatalogKeys=[];
  const isRemote=()=>root.ACDL_LOCAL_API_PROXY===true||!['localhost','127.0.0.1',''].includes(root.location?.hostname||'');
+ const authenticatedFetch=(...args)=>(root.ACDLAdminAuth?.authorizedFetch||root.fetch.bind(root))(...args);
  const accessToken=()=>root.ACDLAdminAuth?.accessToken?.()||'';
  async function request(path,options={}){
   if(!isRemote())throw Object.assign(new Error('로컬 환경에서는 브라우저 저장을 사용합니다.'),{code:'REMOTE_DISABLED'});
   const token=accessToken();if(!token)throw Object.assign(new Error('Master Admin 로그인이 필요합니다.'),{code:'AUTH_REQUIRED'});
-  const response=await root.fetch(path,{...options,headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`,...options.headers}}),body=await response.json().catch(()=>({}));
-  if(!response.ok){if(response.status===401)root.ACDLAdminAuth?.signOut?.();throw Object.assign(new Error(response.status===401?'로그인이 만료되었습니다. 다시 로그인해주세요.':response.status===403?'Master Admin 권한이 필요합니다.':response.status===503?'원격 저장 환경 설정이 필요합니다.':'원격 저장 요청에 실패했습니다.'),{code:body.error||'REMOTE_REQUEST_FAILED',status:response.status})}
+  const response=await authenticatedFetch(path,{...options,headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`,...options.headers}}),body=await response.json().catch(()=>({}));
+  if(!response.ok){if(response.status===401)root.ACDLAdminAuth?.signOut?.();throw Object.assign(new Error((body.error==='INVALID_SESSION'||response.status===401)?'로그인이 만료되었습니다. 편집 내용을 유지한 채 다시 로그인해주세요.':response.status===403?'Master Admin 권한이 필요합니다.':response.status===503?'원격 저장 환경 설정이 필요합니다.':'원격 저장 요청에 실패했습니다.'),{code:body.error||'REMOTE_REQUEST_FAILED',status:response.status})}
   return body;
  }
  async function assetObjectUrl(id){
-  const token=accessToken(),response=await root.fetch(`/api/template-assets?content=${encodeURIComponent(id)}`,{headers:{Authorization:`Bearer ${token}`}});
+  const token=accessToken(),response=await authenticatedFetch(`/api/template-assets?content=${encodeURIComponent(id)}`,{headers:{Authorization:`Bearer ${token}`}});
   if(!response.ok)throw Object.assign(new Error('저장된 이미지 자산을 불러오지 못했습니다.'),{code:'TEMPLATE_ASSET_DOWNLOAD_FAILED',status:response.status});
   return root.URL.createObjectURL(await response.blob())
  }
