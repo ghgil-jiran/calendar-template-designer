@@ -89,7 +89,7 @@
     "api/ai-design-generate.js": {
       "maxDuration": 180
     },
-    "api/graphic-library.js": {
+    "api/template-assets.js": {
       "maxDuration": 300
     }
   }

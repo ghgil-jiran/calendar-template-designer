@@ -1,6 +1,8 @@
+import graphicLibraryHandler from '../server/graphic-library-handler.js';
 import { assertInternalAccess, readJson, readTemplateAsset, resolveTemplateAssets, resolveTemplateAssetsByPaths, sendError, sendJson, storeTemplateAsset } from '../server/template-persistence.js';
 
 export default async function handler(request,response){
+  if(new URL(request.url,'http://localhost').searchParams.get('graphicLibrary')==='1')return graphicLibraryHandler(request,response);
   try{
     await assertInternalAccess(request);
     if(request.method==='POST'){const body=await readJson(request);return sendJson(response,201,{asset:await storeTemplateAsset(body.dataUrl)})}

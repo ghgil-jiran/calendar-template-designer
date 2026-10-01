@@ -13,7 +13,7 @@
 
 ## API 계약
 
-GET /api/graphic-library → {graphics: Graphic[]}; ?id=UUID → {graphic: Graphic}.
+GET /api/template-assets?graphicLibrary=1 → {graphics: Graphic[]}; &id=UUID → {graphic: Graphic}.
 POST operation=chunk, uploadId(UUID), index, total(1..20), data(base64 1MB 이하) → {index}.
 POST uploadId, total, mimeType, previewDataUrl, width, height, name, category, tags, source, fileName → {graphic}.
 PATCH id, status(active|archived) → {graphic}.
