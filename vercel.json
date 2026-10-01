@@ -5,11 +5,21 @@
   "headers": [
     {
       "source": "/apps/designer-studio/(.*)\\.js",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
     },
     {
       "source": "/",
-      "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -78,6 +88,9 @@
     },
     "api/ai-design-generate.js": {
       "maxDuration": 180
+    },
+    "api/graphic-library.js": {
+      "maxDuration": 300
     }
   }
 }

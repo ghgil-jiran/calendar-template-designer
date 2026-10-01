@@ -20,7 +20,7 @@
  function syncTestLoginFields(){const automatic=testInput.checked;$('adminAuthEmail').disabled=automatic;$('adminAuthPassword').disabled=automatic;$('adminAuthEmail').required=!automatic;$('adminAuthPassword').required=!automatic;submit.textContent=automatic?'테스트 로그인':'Sign In'}
  async function openSignIn(action=null){pendingAction=action;error.textContent='';form.reset();syncTestLoginFields();testOption.hidden=true;modal.classList.remove('hidden');const available=(await auth.capabilities?.())?.testAutoLoginEnabled===true;testOption.hidden=!available;requestAnimationFrame(()=>$(available?'adminAuthTestLogin':'adminAuthEmail').focus())}
  function closeSignIn(){modal.classList.add('hidden');pendingAction=null}
- document.addEventListener('click',event=>{const button=event.target.closest('#designerHomeLibrary,#designerHomeNew,#designerHomeTypes');if(!button||auth.isSignedIn())return;event.preventDefault();event.stopImmediatePropagation();openSignIn(()=>button.click())},true);
+ document.addEventListener('click',event=>{const button=event.target.closest('#designerHomeLibrary,#designerHomeNew,#designerHomeTypes,#designerHomeGraphics');if(!button||auth.isSignedIn())return;event.preventDefault();event.stopImmediatePropagation();openSignIn(()=>button.click())},true);
  $('landingSignInBtn').addEventListener('click',()=>{if(auth.isSignedIn()){auth.signOut();showEntry();updateAuthView()}else openSignIn()});
  $('adminSessionBtn').addEventListener('click',()=>{if(auth.isSignedIn()){auth.signOut();showEntry();updateAuthView()}else openSignIn()});
  $('closeAdminAuthBtn').addEventListener('click',closeSignIn);
