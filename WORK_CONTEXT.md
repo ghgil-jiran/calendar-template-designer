@@ -8,3 +8,5 @@
 - 사용자 서비스 review/snapshot-renderer-parity-20260927의 결과 저장 API와 함께 Preview 배포. Production 변경 금지.
 - 검증: 전체 에디터 build와 이미지 검사·저장 처리 검증, 사용자 서비스 build 및 API 검증 통과.
 - 실제 관리자 세션의 저장·재조회와 최종 인쇄 PDF·실물 출력은 후속 검증. 탁상형 기본 배치와 적용 완료 SQL 유지.
+
+- 원본 검사 버튼 개선: 검사 중 비활성화, 완료 후 재검사, 자동검사 완료/육안 확인 대기 구분. Preview 배포 후 Production 전 전체 점검 진행.

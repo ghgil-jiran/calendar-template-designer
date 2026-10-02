@@ -25,3 +25,13 @@ test('history reload failure is reported as saved, rather than a failed write',a
 test('inspection UI shows persistent feedback and disables buttons while saving',()=>{
  assert.match(source,/id="templateImageReviewFeedback" role="status" aria-live="polite"/);assert.match(source,/templateImageReviewBusy\?'disabled'/);assert.doesNotMatch(handler,/automatic\.some/);
 });
+const probeHandler=source.slice(source.indexOf(' let templateImageProbeBusy='),source.indexOf(' let templateImageReviewBusy='));
+test('original inspection displays busy state, blocks duplicate runs and completes after probe',async()=>{
+ let release,calls=0;const renders=[];
+ const context=vm.createContext({preflightProject:{},preflightReport:{},window:{ACDLTemplateImageInspection:{probe:()=>{calls++;return new Promise(resolve=>release=resolve)}}},renderAiImageInspection:()=>renders.push('busy'),renderCurrentPreflight:message=>renders.push(message),showEditorToast:()=>{}});
+ vm.runInContext(probeHandler,context);const pending=context.inspectTemplateImageOriginals();await context.inspectTemplateImageOriginals();assert.equal(calls,1);assert.equal(vm.runInContext('templateImageProbeBusy',context),true);assert.equal(renders[0],'busy');release();await pending;assert.equal(vm.runInContext('templateImageProbeBusy',context),false);assert.match(renders.at(-1),/検査|검사를 완료/);
+});
+test('original inspection failure clears busy state and shows retryable failure',async()=>{
+ let message;const context=vm.createContext({preflightProject:{},preflightReport:{},window:{ACDLTemplateImageInspection:{probe:async()=>{throw Error('decode error')}}},renderAiImageInspection:()=>{},renderCurrentPreflight:m=>message=m,showEditorToast:()=>{}});
+ vm.runInContext(probeHandler,context);await context.inspectTemplateImageOriginals();assert.equal(vm.runInContext('templateImageProbeBusy',context),false);assert.match(message,/검사 실행 실패: decode error/);
+});
