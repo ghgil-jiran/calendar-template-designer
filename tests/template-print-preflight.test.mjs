@@ -29,7 +29,7 @@ test('supported page, element, style, binding and asset capabilities are invento
  assert.equal(report.inventory.elementTypes.image,1);
  assert.ok(report.inventory.capabilities.includes('binding.school'));
  assert.ok(report.inventory.capabilities.includes('style.fontFamily'));
- assert.deepEqual(report.gates.map(gate=>gate.name),['생성 준비','Print Document·화면','핵심 자동검사','AI 생성 이미지 검사','검사 완료']);
+ assert.deepEqual(report.gates.map(gate=>gate.name),['생성 준비','Print Document·화면','핵심 자동검사','템플릿 이미지 인쇄 품질 검사','검사 완료']);
 });
 
 test('unsupported capabilities and missing required assets block output',()=>{

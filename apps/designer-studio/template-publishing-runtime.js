@@ -120,6 +120,7 @@
  async function deletePrintPreflight(id){return request({mode:'delete-print-preflight',id})}
  async function recordTrimContentParityReview(id,review){return request({mode:'record-trim-content-parity-review',id,...review})}
  async function recordTemplateImageReview(id,review){return request({mode:'record-template-image-review',id,...review})}
+ async function recordTemplateImagePrintQualityReview(id,review){return request({mode:'record-template-image-print-quality-review',id,...review})}
  async function recordAiImagePrintQualityReview(id,review){return request({mode:'record-ai-image-print-quality-review',id,...review})}
  async function editorCatalog({strict=false}={}){
   const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return [];
@@ -180,5 +181,5 @@
  }
  if(typeof document!=='undefined')installSyncDialog();
  async function reconcile(){return synchronizeCatalog()}
- root.ACDLTemplatePublishing=Object.freeze({publish,preparePrintInspection,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,activeReviewCatalog,publishedIdentity,distinctPublicationIdentity,ensurePrintPreflight,printPreflightStatus,printPreflightDownload,printPreflightHistory,cancelPrintPreflight,deletePrintPreflight,recordTrimContentParityReview,recordTemplateImageReview,recordAiImagePrintQualityReview,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
+ root.ACDLTemplatePublishing=Object.freeze({publish,preparePrintInspection,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,activeReviewCatalog,publishedIdentity,distinctPublicationIdentity,ensurePrintPreflight,printPreflightStatus,printPreflightDownload,printPreflightHistory,cancelPrintPreflight,deletePrintPreflight,recordTrimContentParityReview,recordTemplateImageReview,recordAiImagePrintQualityReview,recordTemplateImagePrintQualityReview,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
 })(window);
