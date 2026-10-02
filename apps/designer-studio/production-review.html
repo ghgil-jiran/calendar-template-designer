@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>제작 검수 · Calendar Editor</title><link rel="stylesheet" href="../../design-system/09-css-tokens.css"><link rel="stylesheet" href="./designer-studio-overrides.css"><link rel="stylesheet" href="./production-review.css?v=20261002.1"><script src="./admin-auth.js"></script></head>
+<body class="production-review-page">
+<header class="review-header"><a href="./index.html" class="review-brand">CALENDAR EDITOR</a><nav aria-label="관리자 메뉴"><a href="./index.html">템플릿 관리</a><a href="./production-review.html" aria-current="page">제작 검수</a><span id="reviewAdminUser"></span></nav></header>
+<main>
+<section id="reviewLoginRequired" hidden class="review-card review-login"><h1>관리자 로그인이 필요합니다</h1><p>템플릿 에디터에서 관리자 로그인 후 제작 검수를 열어주세요.</p><a class="review-button primary" href="./index.html">로그인 화면으로 이동</a></section>
+<section id="reviewWorkspace" hidden>
+<div class="review-title"><div><p class="review-kicker">제작 요청 관리</p><h1>제작 검수</h1><p>사용자가 최종 확인한 접수본을 확인하고, 주문 전용 검수 사본에서 교정과 인쇄 검증을 진행합니다.</p></div></div>
+<p class="review-notice" role="status">접수 데이터 연결을 준비하고 있습니다. 현재는 목록과 상세 화면의 기본 구조만 제공됩니다.</p>
+<div class="review-layout">
+<section class="review-card" aria-labelledby="reviewListTitle"><h2 id="reviewListTitle">접수 목록</h2>
+<form id="reviewFilters" class="review-filters"><label>접수 검색<input id="reviewSearch" type="search" placeholder="접수 번호 또는 학교명"></label><label>검수 상태<select id="reviewStatus"><option value="all">전체</option><option value="received">제작 요청 접수</option><option value="reviewing">관리자 검수 중</option><option value="changes">수정 요청</option><option value="approved">인쇄 승인</option><option value="sent">인쇄소 전달</option></select></label><button class="review-button" type="submit">검색</button></form>
+<div class="review-table-wrap"><table><caption class="review-sr-only">제작 요청 접수 목록</caption><thead><tr><th scope="col">접수 번호</th><th scope="col">학교명</th><th scope="col">템플릿</th><th scope="col">접수일</th><th scope="col">검수 상태</th></tr></thead><tbody><tr><td colspan="5" class="review-empty"><strong>접수 목록 연결 준비 중</strong><p>연결이 완료되면 제작 요청이 이곳에 표시됩니다.</p><p id="reviewSearchFeedback" role="status" aria-live="polite"></p></td></tr></tbody></table></div></section>
+<aside class="review-card review-detail" aria-labelledby="reviewDetailTitle"><h2 id="reviewDetailTitle">접수 상세</h2><p>접수 목록에서 검수할 건을 선택해주세요.</p><dl><dt>접수 정보</dt><dd>접수 번호 · 학교명 · 제작 옵션 · 수량</dd><dt>사용자 확인본</dt><dd>최종 확인용 PDF · 입력 정보 · 원본 이미지</dd><dt>검수 사본</dt><dd>접수본을 보존하고 해당 주문의 교정본을 별도로 관리합니다.</dd><dt>인쇄 검증</dt><dd>CMYK 파일 · 검사 결과 · 승인 이력</dd></dl><button class="review-button primary" type="button" disabled>검수 사본 열기</button><small>접수 데이터와 편집 연결 후 사용할 수 있습니다.</small></aside>
+</div></section></main><script src="./production-review.js?v=20261002.1"></script></body></html>
