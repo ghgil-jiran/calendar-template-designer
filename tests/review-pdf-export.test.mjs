@@ -67,3 +67,22 @@ test('worker page dimensions follow standard, wide and portrait trim with three 
   if(width!==260)assert.throws(()=>dimensions(project),/editor_print_size_mismatch/);
  }
 });
+
+
+test('worker print CSS preserves trim container and bleed over the general review rule',()=>{
+ const source=fs.readFileSync(new URL('../apps/designer-studio/features/preview-pdf-review-export.js',import.meta.url),'utf8');
+ const begin=source.indexOf('style.textContent=',source.indexOf('async function prepareWorkerPrintPage'));
+ const end=source.indexOf(';document.head.appendChild(style)',begin);
+ assert.ok(begin>=0&&end>begin);
+ const expression=source.slice(begin+'style.textContent='.length,end);
+ for(const [width,height,sheetWidth,sheetHeight] of [[260,180,266,186],[297,148,303,154],[180,260,186,266]]){
+  const css=vm.runInNewContext(expression,{size:{width,height,sheetWidth,sheetHeight,left:3,top:3}});
+  const rule=css.match(/body\.review-pdf-printing \.editor-worker-print-root \.review-pdf-sheet>\.page\{([^}]+)\}/)?.[1];
+  assert.ok(rule,'worker rule must outrank body.review-pdf-printing .review-pdf-sheet>.page');
+  const properties=Object.fromEntries(rule.split(';').filter(Boolean).map(value=>value.split(':')));
+  assert.equal(properties.width,`${width}mm!important`);assert.equal(properties.height,`${height}mm!important`);
+  assert.equal(properties.position,'absolute!important');assert.equal(properties.inset,'auto!important');
+  assert.equal(properties.left,'3mm!important');assert.equal(properties.top,'3mm!important');
+  assert.match(css,new RegExp(`@page\\{size:${sheetWidth}mm ${sheetHeight}mm;margin:0\\}`));
+ }
+});

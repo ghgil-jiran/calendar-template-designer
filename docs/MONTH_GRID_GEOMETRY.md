@@ -28,3 +28,13 @@ Runtime은 기존 calendar 개체 계약 안에서 분리된 제목 배치를 �
 - 공통 폰트 stylesheet를 양쪽에서 동일하게 사용한다. Pretendard 1.3.9와 Noto Sans KR/Noto Serif KR/Nanum Gothic/Nanum Myeongjo/Playfair Display를 로드한다. Arial/Times New Roman은 시스템 폰트이며 외부 폰트 로드 실패와 합성 굵기 여부는 브라우저 확인이 필요하다.
 - 자동 검증: 원격 저장 API mock의 save/load 왕복, Package JSON 직렬화 및 사용자 데이터 교체 후 변환, 소수점 글자 크기·간격·색상·폰트·순서 보존, 320/기준폭/1100px에서 비례 계산 검증.
 - 실제 Supabase 저장·Preview 시각 비교 및 네이티브 PDF 검증을 완료한 것으로 보지 않는다. 별도 달력 개체의 실제 frame/변환 기준 정합, 공통 인쇄 Runtime 연결, 유형별 격자 기본값 관리가 남아 있다.
+
+## 별도 달력 개체·PDF 경계 검증 (2026-10-02 Preview)
+
+- 사용자가 월 표시의 변경값이 사용자 서비스에 반영되는 것을 확인했다. 전체 실물 인쇄 검증을 의미하지 않는다.
+- 별도 calendar/calendar-grid 개체는 실제 페이지 frame을 공통 contentRelativeFrame으로 환산해 월 표시의 기준으로 사용한다. 공통 Master의 월 표시 frame은 움직이지 않는다. 개체의 위치·크기 변경은 격자에만 적용되며, 이전의 authoredRegionFramePct가 남아 있어도 실제 개체 frame을 우선한다. 합성 기본 달력은 기존 공통 배치와 요일 높이 기준을 유지한다.
+- 에디터 Runtime export의 별도 달력도 Master 스타일과 개체별 override를 함께 전달한다. 표준/와이드/세로형, 사용자 지정 content frame, 이동 전후의 제목 절대 좌표 및 설정 보존을 자동 검증한다.
+- 공통 TemplateRuntime의 calendarLayout 정규화는 monthTitle, fixedGeometry 등 저장된 정보를 보존한다. titlePercent=0을 허용하고, 고정 격자에 제목 영역을 다시 삽입하지 않는다. screen/print 양쪽 변환을 검사한다. 별도 네이티브 Print Document 조판기의 제목 렌더링까지 완료한 것으로 보지 않는다.
+- 현재 실제 PDF Worker는 template-editor-review-dom.v1로 에디터 페이지 DOM을 사용한다. 이전 공통 인쇄 CSS가 작업자 페이지의 inline 재단 크기·여백보다 우선할 수 있던 문제를 수정했다. 작업자 전용 규칙은 재단 크기 컨테이너와 3mm 위치를 유지하고 sheet만 제작 크기로 설정한다. 검토용 PDF의 재단 크기 출력은 유지한다.
+- 미리보기/PDF clone에서는 월 표시·격자의 선택 테두리와 달력 조절점을 제거한다. 원본 편집 개체와 저장 좌표는 변경하지 않는다.
+- 실제 저장 템플릿을 사용한 PDF Worker 완주, 외부 폰트·아웃라인·CMYK/PDF/X-4 검사는 별도 실행이 필요하다. 이번 자동 검증은 변환과 인쇄 CSS 경계에 대한 것이며 실제 출력 합격을 대신하지 않는다.

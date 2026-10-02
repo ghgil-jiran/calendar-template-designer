@@ -27,6 +27,7 @@ const source = {
   querySelectorAll: selector => {
     if (selector === '[id]') return [{ removeAttribute: name => calls.push(['child-remove-attribute', name]) }];
     if (selector.startsWith('.editor-only')) return [{ remove: () => calls.push(['remove-editor-node']) }];
+    if (selector === '.calendar-region.editing,.monthly-title-region.editing') return [{classList:{remove:(name)=>calls.push(['remove-month-selection',name])}}];
     if (selector.startsWith('.selected')) return [{ classList: { remove: (...names) => calls.push(['remove-state-classes', ...names]) } }];
     return [];
   }
@@ -43,3 +44,5 @@ const posterSource = { ...source, dataset: {}, style: {} };
 const posterLive = { offsetWidth: 1, offsetHeight: 1, cloneNode: () => posterSource };
 state.clonePage(posterLive, { role: 'poster-annual' });
 assert.deepEqual(posterSource.dataset, { previewWidth: '720', previewHeight: '1018' });
+
+assert.ok(calls.some(call=>call[0]==='remove-month-selection'&&call[1]==='editing'));

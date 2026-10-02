@@ -45,6 +45,18 @@
       || ["monthly-goal", "monthly-todo", "weekly-planner"].includes(element?.role);
   }
 
+  // Page objects use page percentages; calendar Master frames use content percentages.
+  // Invert pageFrame before computing a detached title relative to an explicit grid.
+  function contentRelativeFrame(frame, content) {
+    if (!(content?.width > 0 && content?.height > 0)) throw new Error("Invalid content frame");
+    return {
+      x: (finite(frame?.x, 0) - content.x) / content.width * 100,
+      y: (finite(frame?.y, 0) - content.y) / content.height * 100,
+      width: finite(frame?.width, 100) / content.width * 100,
+      height: finite(frame?.height, 100) / content.height * 100,
+    };
+  }
+
   function visibleElements(page, masterElements = [], localElements = []) {
     const shadowed = new Set(localElements.map(element => element.shadowOfMasterElementId).filter(Boolean));
     return [
@@ -79,7 +91,7 @@
     };
   }
 
-  const api = Object.freeze({ version, contentFrame, pageFrame, visibleElements, isMonthBackCompositionElement, frameFromPercent, frameToPercent });
+  const api = Object.freeze({ version, contentFrame, pageFrame, contentRelativeFrame, visibleElements, isMonthBackCompositionElement, frameFromPercent, frameToPercent });
   root.ACDLSharedScreenComposition = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(globalThis);

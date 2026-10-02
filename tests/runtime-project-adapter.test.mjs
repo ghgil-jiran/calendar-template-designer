@@ -159,3 +159,27 @@ test('runtime project adapter resolves user assets before shadow composition',as
  assert.equal(result.diagnostics[0].code,'ASSET_NOT_FOUND');
  assert.equal(result.composition.complete,true);
 });
+
+test('explicit calendar uses its actual page frame while detached title retains Master content coordinates',()=>{
+ const composition=context.ACDLSharedScreenComposition;
+ const titleFrame={x:7.25,y:9.5,width:31.75,height:17.5},grid={x:5,y:32,width:90,height:63};
+ const title={schemaVersion:'monthly-title-object.v1',frame:titleFrame,style:{composition:'number-english',arrangement:'column',numberSize:68.5,englishSize:17.25,gap:6.5}};
+ const dataset={calendar:{year:2027}};
+ const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{buildRuntimeDataset:()=>dataset,resolvePageBinding:path=>path},parity:{buildDeskAcademicSurfacePlan:()=>[]},pageAdapter:{compose:()=>({pages:[],complete:true})}});
+ for(const [width,height] of [[260,180],[297,148],[180,260]])for(const frame of [{x:24,y:40,width:62,height:47},{x:38,y:50,width:43,height:35}]){
+  const page={id:'march',role:'monthly-front',calendarYear:2027,calendarMonth:3};
+  const content={x:10,y:12,width:80,height:75},element={id:'explicit',type:'calendar',...frame,style:{calendarOverrides:{lineColor:'#123456'}}};
+  const project={productType:{category:'desk',pageSize:{width,height}},settings:{year:2027},template:{id:'desk',resources:{fontTheme:{title:'Noto Serif KR'}},masters:{calendar:{calendarRegion:grid,calendarLayout:{monthTitle:title,fixedGeometry:{schemaVersion:'monthly-grid-geometry.v1',titlePercent:0}},monthTitleSize:22}},masterElements:{},screenComposition:{schemaVersion:'screen-composition.v1',surfaces:{'monthly-front':{contentFramePct:content}}}},book:{pageInstances:[page],elementsByPage:{march:[element]}}};
+  const before=JSON.stringify(project),object=adapter.adapt(project).template.pages[0].objects[0];
+  assert.equal(object.id,'explicit');assert.ok(Math.abs(object.frame.x-width*frame.x/100)<1e-9);assert.ok(Math.abs(object.frame.height-height*frame.height/100)<1e-9);
+  assert.deepEqual(JSON.parse(JSON.stringify(object.style.calendarLayout.monthTitle)),title);
+  assert.equal(object.style.monthTitleFontFamily,'Noto Serif KR');assert.equal(object.style.calendarOverrides.lineColor,'#123456');
+  const relative=object.style.authoredRegionFramePct,restored=composition.pageFrame(relative,content);
+  for(const key of ['x','y','width','height'])assert.ok(Math.abs(restored[key]-frame[key])<1e-9);
+  const expected=composition.pageFrame(titleFrame,content);
+  const relativeX=(titleFrame.x-relative.x)/relative.width*100,relativeY=(titleFrame.y-relative.y)/relative.height*100;
+  assert.ok(Math.abs(frame.x+relativeX*frame.width/100-expected.x)<1e-9);
+  assert.ok(Math.abs(frame.y+relativeY*frame.height/100-expected.y)<1e-9);
+  assert.equal(JSON.stringify(project),before);
+ }
+});

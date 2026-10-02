@@ -118,3 +118,19 @@ test("print target uses an approved Package asset without replacing the screen p
  assert.equal(screen.payload.asset.id,"screen-photo");
  assert.deepEqual(print.payload,printAsset);
 });
+
+test('screen and print normalization preserve detached title typography and fixed grid geometry',()=>{
+ const title={schemaVersion:'monthly-title-object.v1',frame:{x:7.25,y:9.5,width:31.75,height:17.5},style:{composition:'number-year',arrangement:'column',reverse:true,align:'right',numberFontFamily:'Playfair Display',yearFontFamily:'Noto Serif KR',numberSize:68.5,yearSize:17.25,numberColor:'#123456',gap:6.5}};
+ const geometry={schemaVersion:'monthly-grid-geometry.v1',titlePercent:0,weekdayTrackMm:7.06,weekdayGapMm:0};
+ const calendarLayout={rowsMode:'adaptive',monthTitle:title,fixedGeometry:geometry,regions:{titlePercent:0,weekdayPercent:4,dateGridPercent:96}};
+ const object={id:'calendar',type:'calendar',frame:{x:20,y:55,width:200,height:110},style:{calendarLayout,design:{presetId:'sample-6'}},value:{rows:6,calendarLayout:{rowsMode:'fixed-6'}}};
+ const input={...template,pages:[{id:'month',role:'monthly-front',size:{width:260,height:180,unit:'mm'},objects:[object]}]},before=JSON.stringify(input);
+ for(const target of ['screen','print']){
+  const result=new TemplateRuntime().execute(input,{schemaVersion:'1.0'},{target});
+  assert.equal(result.document.target,target);
+  const payload=result.document.pages[0].objects[0].payload;
+  assert.deepEqual(payload.calendarLayout.monthTitle,title);assert.deepEqual(payload.calendarLayout.fixedGeometry,geometry);
+  assert.deepEqual(payload.calendarLayout.regions,{titlePercent:0,weekdayPercent:4,dateGridPercent:96});assert.equal(payload.calendarLayout.rowsMode,'fixed-6');
+ }
+ assert.equal(JSON.stringify(input),before);
+});
