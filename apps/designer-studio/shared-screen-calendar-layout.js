@@ -56,7 +56,7 @@
     const stageHeightMm = Math.max(1,regionHeightMm*(100-Number(vertical.title ?? 10))/100);
     const geometry=vertical.fixedGeometry,fixedTrack=Number(geometry?.weekdayTrackMm),fixedGap=Number(geometry?.weekdayGapMm),hasFixedTrack=Number.isFinite(fixedTrack)&&fixedTrack>0&&Number.isFinite(fixedGap)&&fixedGap>=0&&fixedGap<fixedTrack;
     const gridGapMm=hasFixedTrack?fixedGap:Number(spec.gridGapMm||0),trackMm=hasFixedTrack?fixedTrack:Number(spec.boxHeightMm||7.06)+gridGapMm,boxHeightMm=trackMm-gridGapMm;
-    return {boxHeightMm,gridGapMm,trackMm,weekdayStage:Math.max(2,Math.min(20,trackMm/stageHeightMm*100)),contract:catalog?.compositionContract};
+    return {boxHeightMm,gridGapMm,trackMm,weekdayStage:geometry?.measurementSpace==="trim-page"?Math.max(0,Math.min(100,trackMm/stageHeightMm*100)):Math.max(2,Math.min(20,trackMm/stageHeightMm*100)),contract:catalog?.compositionContract};
   }
   root.ACDLSharedCalendarLayout = Object.freeze({version,resolveVerticalLayout,resolveChromeLayout,preserveGeometry,separateMonthTitle,relativeTitleFrame});
 })(globalThis);

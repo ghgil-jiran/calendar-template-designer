@@ -38,3 +38,15 @@ Runtime은 기존 calendar 개체 계약 안에서 분리된 제목 배치를 �
 - 현재 실제 PDF Worker는 template-editor-review-dom.v1로 에디터 페이지 DOM을 사용한다. 이전 공통 인쇄 CSS가 작업자 페이지의 inline 재단 크기·여백보다 우선할 수 있던 문제를 수정했다. 작업자 전용 규칙은 재단 크기 컨테이너와 3mm 위치를 유지하고 sheet만 제작 크기로 설정한다. 검토용 PDF의 재단 크기 출력은 유지한다.
 - 미리보기/PDF clone에서는 월 표시·격자의 선택 테두리와 달력 조절점을 제거한다. 원본 편집 개체와 저장 좌표는 변경하지 않는다.
 - 실제 저장 템플릿을 사용한 PDF Worker 완주, 외부 폰트·아웃라인·CMYK/PDF/X-4 검사는 별도 실행이 필요하다. 이번 자동 검증은 변환과 인쇄 CSS 경계에 대한 것이며 실제 출력 합격을 대신하지 않는다.
+
+## 탁상형 종류별 생성 기본값 (2026-10-02 Preview)
+
+`monthly-front-defaults.v1`은 재단 페이지 기준 `gridFrameMm`(x/y/width/height), `weekdayHeightMm`, `weekdayGapMm`를 저장한다. 대상은 desk-standard(13/45/234/120), desk-large(15/52/267/143), desk-wide(15/40/267/95), desk-portrait(12/67/156/174). 요일 높이 7mm, 간격 0mm가 초기 제안값이다.
+
+- 달력 종류 설정의 ‘월력 앞면 기본 배치’에서 조정한다. 활성 여부와 숫자값을 검사하고, Supabase 재조회 결과까지 확인한 후 저장 완료를 표시한다.
+- 공통 값은 `calendar_type_sizes.monthly_front_defaults` JSONB에 저장한다. SQL은 202610020001_desk_monthly_front_defaults.sql. 초기값은 컬럼 최초 생성 시, 등록 규격이 제안 규격과 같은 4종의 primary size에만 입력한다. 재실행으로 사용자가 조정하거나 비활성화한 값을 덮어쓰지 않는다. 템플릿/프로젝트 행은 변경하지 않는다.
+- SQL 적용 전 종류 조회와 내장 기본값에 의한 생성은 가능하다. 종류별 새 기본값 편집은 준비 안내와 함께 비활성화된다. 서버에서도 컬럼 유무를 먼저 확인하며, 새 값의 저장 요구는 어떤 쓰기도 하기 전에 명확한 오류로 중단한다. 기존 클라이언트의 값 없는 저장은 해당 컬럼을 덮어쓰지 않는다.
+- `applyNewProject`는 종류 선택으로 새 프로젝트를 만들 때만 실행한다. 스냅샷 첨부·크기 재확인·기존 프로젝트 로드·기본 설정 재구성에는 적용하지 않는다. 값은 종류 스냅샷과 calendar.monthlyFrontDefaultsSource에 보존한다.
+- mm를 contentRelativeFrame으로 환산해 기존 에디터 좌표 계약에 연결한다. 최초 생성부터 월 표시 frame과 fixedGeometry.titlePercent=0을 설정해 이중 분리를 방지한다. 월 표시의 기존 스타일은 유지하고 새 프로젝트의 초기 제목 영역만 격자 위쪽에 둔다.
+- fixedGeometry.measurementSpace='trim-page'인 새 배치는 실제 페이지에 환산한 격자 높이로 요일의 mm를 계산한다. 에디터와 사용자 서비스가 공통 resolveChromeLayout을 사용하며, 구형 템플릿의 높이 계산은 유지한다. 5/6행은 동일한 날짜 영역 높이를 나눠 사용한다.
+- 실제 Supabase SQL 적용/저장 재열기 및 사용자 Preview 시각 확인은 자동 테스트로 대체하지 않는다. 인쇄 검토는 사용자 요청에 따라 보류한다.

@@ -44,7 +44,8 @@ function calendarVerticalLayout(design=project.template.masters.calendar.design|
  return window.ACDLSharedCalendarLayout.resolveVerticalLayout({design,calendarPreset:master.calendarPreset,calendarLayout:master.calendarLayout,calendarOverrides:master.calendarOverrides},window.ACDLCalendarPresetCatalog);
 }
 function calendarChromeLayout(presentation,vertical,region=calendarRegion()){
- return window.ACDLSharedCalendarLayout.resolveChromeLayout(presentation,vertical,region,project.productType?.pageSize?.height,window.ACDLCalendarPresetCatalog);
+ const physicalRegion=vertical.fixedGeometry?.measurementSpace==='trim-page'?window.ACDLSharedScreenComposition.pageFrame(region,window.ACDLSharedScreenComposition.contentFrame(project,selectedPage())):region;
+ return window.ACDLSharedCalendarLayout.resolveChromeLayout(presentation,vertical,physicalRegion,project.productType?.pageSize?.height,window.ACDLCalendarPresetCatalog);
 }
 function yearCalendarRowCountFor(view,y,m){
  const mode=view?.rowsMode||"inherit";
