@@ -483,3 +483,6 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .page[data-standard-family="desk-6"] .monthly-title-region .month-title.number-stack .month-number{font-size:2.45em;font-weight:900;line-height:.76;letter-spacing:-.07em}
 .page[data-standard-family="desk-6"] .monthly-title-region .month-title.number-stack .month-meta{gap:1px;font-size:.58em;font-weight:750;line-height:1.03}
 .monthly-title-region>.month-title{height:100%;margin:0;min-height:0}
+
+/* Page-relative month typography uses the same containing page in both products. */
+.page{container-type:inline-size}

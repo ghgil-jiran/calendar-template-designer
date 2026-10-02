@@ -34,34 +34,40 @@
     }
     return result;
   }
-  function componentCss(input, component) {
+  function screenLength(value, context) {
+    const reference=Number(context?.referenceWidthPx);
+    return Number.isFinite(reference)&&reference>0 ? `${Number(value)/reference*100}cqw` : `${value}px`;
+  }
+  function componentCss(input, component, context) {
     const style = normalizeTypography(input), rules = [];
     const family=style[component+"FontFamily"]||style.fontFamily;
     if (family) rules.push(`font-family:'${family}'!important`);
     const weight=style[component+"FontWeight"]||style.fontWeight;
     if (weight) rules.push(`font-weight:${weight}!important`);
-    if (style[`${component}Size`]) rules.push(`font-size:${style[`${component}Size`]}px!important`);
+    if (style[`${component}Size`]) rules.push(`font-size:${screenLength(style[`${component}Size`],context)}!important`);
     if (style[`${component}Color`]) rules.push(`color:${style[`${component}Color`]}!important`);
     return rules.length ? ` style="${rules.join(';')}"` : "";
   }
-  function rootStyle(input) {
+  function rootStyle(input, context) {
     const style = normalizeTypography(input);
-    const result=style.gap == null ? {} : {gap: `${style.gap}px`};
-    if(style.composition){const column=style.arrangement==="column",align=style.align||"left";Object.assign(result,{display:"flex",flexDirection:column?"column":"row",alignItems:column?(align==="left"?"flex-start":align==="right"?"flex-end":"center"):"center",justifyContent:column?"center":align==="left"?"flex-start":align==="right"?"flex-end":"center",lineHeight:"1",textAlign:align});}
+    const result=style.gap == null ? {} : {gap: screenLength(style.gap,context)};
+    if(style.composition){const column=style.arrangement==="column",align=style.align||"left";Object.assign(result,{display:"flex",flexDirection:column?"column":"row",alignItems:column?(align==="left"?"flex-start":align==="right"?"flex-end":"center"):"center",justifyContent:column?"center":align==="left"?"flex-start":align==="right"?"flex-end":"center",lineHeight:"1",textAlign:align,padding:"0",margin:"0",fontWeight:style.fontWeight||800});}
+    if(Object.keys(style).length&&(style.fontFamily||context?.fontFamily))result.fontFamily=style.fontFamily||context.fontFamily;
+    if(Object.keys(style).length&&Number(context?.baseSize)>0)result.fontSize=screenLength(context.baseSize,context);
     return result;
   }
-  function title(year, month, style, override, typography) {
+  function title(year, month, style, override, typography, context) {
     if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) throw new Error("Invalid monthly title date");
     const kind = styles.includes(style) ? style : "number-stack";
     const y = escape(year), m = escape(month), en = names[month - 1];
-    if (override != null && String(override) !== "") return { style: kind, markup: typography ? `<span${componentCss(typography,"text")}>${escape(override)}</span>` : escape(override) };
+    if (override != null && String(override) !== "") return { style: kind, markup: typography ? `<span${componentCss(typography,"text",context)}>${escape(override)}</span>` : escape(override) };
     const composition=normalizeTypography(typography);
     if(composition.composition){
       const english=composition.englishFormat==="short"?en.slice(0,3):composition.englishFormat==="title"?en[0]+en.slice(1).toLowerCase():en;
       const parts={number:["month-number",composition.numberFormat==="plain"?m:String(month).padStart(2,"0")],year:["month-year",composition.yearFormat==="short"?y.slice(-2):y],english:["month-en",english]};
       const keys={number:["number"],"number-year":["number","year"],"number-english":["number","english"],english:["english"]}[composition.composition];
       if(composition.reverse)keys.reverse();
-      return {style:"composed",markup:keys.map(key=>`<span class="${parts[key][0]}"${componentCss(composition,key)}>${parts[key][1]}</span>`).join("")};
+      return {style:"composed",markup:keys.map(key=>`<span class="${parts[key][0]}"${componentCss(composition,key,context)}>${parts[key][1]}</span>`).join("")};
     }
     let markup = {
       "number-stack": `<span class="month-number">${m}</span><span class="month-meta"><span>${y}</span><span class="month-en">${en}</span></span>`,
@@ -72,13 +78,13 @@
       "english-month": `<span class="month-en">${en}</span><span class="month-year">${y}</span>`,
     }[kind];
     if (typography) {
-      markup = markup.replace(/<span class="month-number">/g, `<span class="month-number"${componentCss(typography,"number")}>`)
-        .replace(/<span class="month-en">/g, `<span class="month-en"${componentCss(typography,"english")}>`)
-        .replace(/<span class="month-year">/g, `<span class="month-year"${componentCss(typography,"year")}>`)
-        .replace(`<span>${y}</span>`, `<span${componentCss(typography,"year")}>${y}</span>`);
+      markup = markup.replace(/<span class="month-number">/g, `<span class="month-number"${componentCss(typography,"number",context)}>`)
+        .replace(/<span class="month-en">/g, `<span class="month-en"${componentCss(typography,"english",context)}>`)
+        .replace(/<span class="month-year">/g, `<span class="month-year"${componentCss(typography,"year",context)}>`)
+        .replace(`<span>${y}</span>`, `<span${componentCss(typography,"year",context)}>${y}</span>`);
       const metaGap = normalizeTypography(typography).metaGap;
-      if (metaGap != null) markup = markup.replace('<span class="month-meta">', `<span class="month-meta" style="gap:${metaGap}px">`);
-      if (kind === "year-month-korean" || kind === "month-korean") markup = `<span${componentCss(typography,"text")}>${markup}</span>`;
+      if (metaGap != null) markup = markup.replace('<span class="month-meta">', `<span class="month-meta" style="gap:${screenLength(metaGap,context)}">`);
+      if (kind === "year-month-korean" || kind === "month-korean") markup = `<span${componentCss(typography,"text",context)}>${markup}</span>`;
     }
     return { style: kind, markup };
   }

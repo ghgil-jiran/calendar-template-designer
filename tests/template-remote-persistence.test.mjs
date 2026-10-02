@@ -239,3 +239,10 @@ test('unresolved AI backgrounds still block saves alongside normal images',async
  const api=runtime({assetResolver:true,fetch:async()=>{throw Error('must not upload')}}),project={template:{},book:{elementsByPage:{cover:[{id:'photo',type:'image',src:'data:image/png;base64,YQ=='},{id:'ai',type:'image',role:'ai-design-background',assetId:'missing'}]}}};
  await assert.rejects(()=>api.prepareProjectData(project),error=>error.code==='AI_DESIGN_INCOMPLETE');
 });
+
+test('remote save and reopen preserve precise month title composition, geometry and typography',async()=>{
+ const monthTitle={schemaVersion:'monthly-title-object.v1',id:'master.monthly.title',frame:{x:7.25,y:9.5,width:31.75,height:17.5},style:{composition:'number-year',arrangement:'column',reverse:true,align:'right',numberFormat:'padded',yearFormat:'short',numberFontFamily:'Playfair Display',yearFontFamily:'Noto Serif KR',numberFontWeight:800,yearFontWeight:400,numberSize:68.5,yearSize:17.25,numberColor:'#123456',yearColor:'#654321',gap:6.5}};
+ const projectData={template:{masters:{calendar:{calendarRegion:{x:5,y:32,width:90,height:63},calendarLayout:{monthTitle}}}}};let persisted;
+ const api=runtime({fetch:async(path,options)=>{if(path==='/api/templates'&&options?.method==='POST'){persisted=JSON.parse(options.body).projectData;return {ok:true,status:201,json:async()=>({template:{id:'t1'},version:{id:'v1',versionNumber:1,projectData:persisted}})}}return {ok:true,status:200,json:async()=>({version:{id:'v1',projectData:JSON.parse(JSON.stringify(persisted))}})}}});
+ await api.save({stableKey:'month-typography',projectData});const reopened=await api.load('t1');assert.deepEqual(reopened.version.projectData.template.masters.calendar.calendarLayout.monthTitle,monthTitle);assert.deepEqual(reopened.version.projectData.template.masters.calendar.calendarRegion,projectData.template.masters.calendar.calendarRegion);
+});

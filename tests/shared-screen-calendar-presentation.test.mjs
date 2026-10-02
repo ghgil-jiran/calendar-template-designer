@@ -67,3 +67,21 @@ test('four month title compositions support row, two lines, formats and reversed
  assert.equal(title.rootStyle({composition:'number-year',arrangement:'row'}).flexDirection,'row');
  assert.equal(title.normalizeTypography({composition:'all-three'}).composition,undefined);
 });
+
+test('month title typography keeps page-relative scale across authoring, responsive service and portrait',()=>{
+ const {ACDLSharedMonthTitle:title}=shared('shared-screen-month-title');
+ const source={composition:'number-english',arrangement:'column',numberSize:68.5,englishSize:17.25,gap:6.5,numberFontFamily:'Playfair Display',englishFontFamily:'Noto Sans KR',numberFontWeight:800,englishFontWeight:400,numberColor:'#123456',englishColor:'#654321'};
+ for(const referenceWidthPx of [850,720]){
+  const context={referenceWidthPx,baseSize:22,fontFamily:"Noto Serif KR"},style=JSON.parse(JSON.stringify(source)),root=title.rootStyle(style,context);
+  assert.equal(root.flexDirection,'column');assert.equal(root.fontFamily,'Noto Serif KR');assert.equal(root.fontWeight,800);assert.equal(root.padding,'0');
+  for(const width of [320,referenceWidthPx,1100]){
+   const gap=parseFloat(root.gap)*width/100;
+   assert.ok(Math.abs(gap-6.5*width/referenceWidthPx)<1e-9);
+   assert.ok(Math.abs(parseFloat(root.fontSize)*width/100-22*width/referenceWidthPx)<1e-9);
+  }
+  const markup=title.title(2028,2,'number-stack',undefined,style,context).markup;
+  assert.match(markup,/cqw!important/);assert.match(markup,/Playfair Display/);assert.match(markup,/>02</);assert.match(markup,/>FEBRUARY</);
+  assert.deepEqual(style,source);
+ }
+ assert.match(title.title(2027,3,'number-only',undefined,{numberSize:68.5}).markup,/68.5px!important/);
+});
