@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import { validateUpload,inspectRaster,MAX_BYTES } from '../server/production-correction-assets.js';
+const png=()=>{const b=Buffer.alloc(24);Buffer.from([137,80,78,71,13,10,26,10]).copy(b);b.write('IHDR',12);b.writeUInt32BE(2048,16);b.writeUInt32BE(1365,20);return b;};
+test('PNG pixel dimensions and content fingerprint are derived from file bytes',()=>{const info=inspectRaster(png());assert.equal(info.width,2048);assert.equal(info.height,1365);assert.equal(info.mimeType,'image/png');assert.equal(info.contentHash.length,64);});
+test('JPEG dimensions are read from SOF rather than client metadata',()=>{const b=Buffer.from([255,216,255,192,0,8,8,4,0,6,0,3]);const info=inspectRaster(b);assert.equal(info.width,1536);assert.equal(info.height,1024);assert.equal(info.mimeType,'image/jpeg');});
+test('WebP VP8X dimensions are supported',()=>{const b=Buffer.alloc(30);b.write('RIFF',0);b.write('WEBP',8);b.write('VP8X',12);b.writeUIntLE(1535,24,3);b.writeUIntLE(1023,27,3);assert.equal(inspectRaster(b).width,1536);assert.equal(inspectRaster(b).height,1024);});
+test('unsupported, empty and oversized upload declarations are rejected',()=>{assert.throws(()=>validateUpload({name:'a.svg',mimeType:'image/svg+xml',byteSize:100}));assert.throws(()=>validateUpload({name:'a.png',mimeType:'image/png',byteSize:0}));assert.throws(()=>validateUpload({name:'a.png',mimeType:'image/png',byteSize:MAX_BYTES+1}));validateUpload({name:'a.png',mimeType:'image/png',byteSize:MAX_BYTES});});
+test('invalid bytes and zero dimensions are rejected',()=>{assert.throws(()=>inspectRaster(Buffer.from('not an image')));const b=png();b.writeUInt32BE(0,16);assert.throws(()=>inspectRaster(b));});
