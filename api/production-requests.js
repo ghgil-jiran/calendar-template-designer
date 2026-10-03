@@ -4,7 +4,19 @@ export default async function handler(request,response){
  try{
   await assertInternalAccess(request);
   response.setHeader('Cache-Control','no-store');
-  if(request.method!=='GET'){response.setHeader('Allow','GET');return sendJson(response,405,{error:'METHOD_NOT_ALLOWED'})}
+  if(request.method==='PATCH'){
+   const body=typeof request.body==='string'?JSON.parse(request.body):request.body;
+   const requestId=String(body?.id||'');
+   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestId)||body?.action!=='start-review')return sendJson(response,400,{error:'INVALID_REVIEW_ACTION',message:'검수 시작 요청을 확인해 주세요.'});
+   const fields='id,receipt_number,school_name,status,created_at';
+   const changed=await supabaseRequest(`calendar_production_requests?id=eq.${encodeURIComponent(requestId)}&status=eq.received&select=${fields}`,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({status:'reviewing'})});
+   if(changed?.[0])return sendJson(response,200,{receipt:changed[0]});
+   const rows=await supabaseRequest(`calendar_production_requests?id=eq.${encodeURIComponent(requestId)}&select=${fields}&limit=1`);
+   if(!rows[0])return sendJson(response,404,{error:'REQUEST_NOT_FOUND',message:'접수 건을 찾지 못했습니다.'});
+   if(rows[0].status==='reviewing')return sendJson(response,200,{receipt:rows[0]});
+   return sendJson(response,409,{error:'REVIEW_STATE_CHANGED',message:'접수 상태가 변경되어 검수를 시작할 수 없습니다. 팝업을 다시 열어 주세요.'});
+  }
+  if(request.method!=='GET'){response.setHeader('Allow','GET, PATCH');return sendJson(response,405,{error:'METHOD_NOT_ALLOWED'})}
   const id=String(request.query?.id||'');
   if(id){
    if(!/^[0-9a-f-]{36}$/i.test(id))return sendJson(response,400,{error:'INVALID_REQUEST_ID'});
