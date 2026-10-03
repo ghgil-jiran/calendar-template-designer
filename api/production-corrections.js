@@ -19,5 +19,5 @@ export default async function handler(request,response){
   let document;try{document=applyCorrections(latest?.document||receipt.snapshot.document,body.patches,receipt.snapshot.assets||[]);}catch(error){return sendJson(response,400,{message:error.message});}
   const result=await supabaseRequest('rpc/save_calendar_production_revision',{method:'POST',body:JSON.stringify({p_id:body.id,p_request_id:body.requestId,p_base_revision_id:body.baseRevisionId||null,p_document:document,p_document_hash:documentHash(document),p_note:body.note.trim(),p_created_by:admin.id})});
   return sendJson(response,201,{revision:Array.isArray(result)?result[0]:result});
- }catch(error){if(/revision conflict/i.test(error.message||''))return sendJson(response,409,{message:'다른 교정본이 저장되었습니다. 팝업을 다시 열어 주세요.'});if(/calendar_production_revisions|save_calendar_production_revision/.test(error.message||''))error.message='교정본 저장용 데이터베이스 설정을 먼저 적용해 주세요.';return sendError(response,error);}
+ }catch(error){if(/revision conflict/i.test(error.message||''))return sendJson(response,409,{message:'다른 교정본이 저장되었습니다. 팝업을 다시 열어 주세요.'});if(/calendar_production_revisions|save_calendar_production_revision/.test(error.message||''))return sendJson(response,503,{error:'CORRECTION_DATABASE_NOT_READY',message:'교정본 저장용 새 SQL(202610030002)을 Supabase에 적용한 뒤 팝업을 다시 열어 주세요.'});return sendError(response,error);}
 }
