@@ -14,9 +14,10 @@
   }catch(error){if(token===run)$('reviewFeedback').textContent=error.message}
  }
  const steps=[['접수 정보','정보·검사 기록'],['접수본 검토','면 구성·원본 이미지'],['교정·재작업','편집 연결 예정'],['인쇄 출력 검토','CMYK·검사 연결 예정'],['확정·전달','승인 연결 예정']];
- let current=null,step=0,reviewBusy=false,reviewError=null;
+ let current=null,step=0,reviewBusy=false,reviewError=null,showProof=false;
+ const proofBase='https://school-calendar-editor-service-feyoiccpq-gil-gighyun-s-projects.vercel.app';
  function button(label,action,disabled=false){const node=text('button',label);node.type='button';node.className='review-button';node.disabled=disabled||reviewBusy;if(action)node.addEventListener('click',action);return node}
- function closeDetail(){if(reviewBusy&&auth.isSignedIn())return;detailRun++;current=null;$('reviewDialog').close();$('reviewDetail').replaceChildren();$('reviewSteps').replaceChildren()}
+ function closeDetail(){if(reviewBusy&&auth.isSignedIn())return;detailRun++;current=null;showProof=false;$('reviewDialog').close();$('reviewDetail').replaceChildren();$('reviewSteps').replaceChildren()}
  function info(host,entries){const dl=document.createElement('dl');dl.className='review-info-grid';for(const [label,value] of entries){const group=document.createElement('div');group.append(text('dt',label),text('dd',value));dl.append(group)}host.append(dl)}
  function download(){if(!current)return;const {receipt}=current;const blob=new Blob([JSON.stringify({receipt},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`${number(receipt.receipt_number)}-snapshot.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
  async function startReview(){
@@ -44,7 +45,7 @@
    const actions=document.createElement('div');actions.className='review-actions';if(receipt.status==='received')actions.append(button(reviewBusy?'검수 시작 중…':'검수 시작 · 접수본 검토',startReview));actions.append(button('접수본 검토로 이동',()=>{step=1;renderDetail()}),button('접수 데이터 다운로드 (JSON)',download));host.append(actions,text('small','JSON은 백업·분석용입니다. 에디터에서 접수본을 직접 여는 기능은 후속 구현입니다.'));
   }else if(step===1){
    if(receipt.status==='reviewing'){const notice=text('p','관리자 검수 중으로 저장되었습니다. 사용자 서비스에서도 이 상태를 확인할 수 있습니다. 다음으로 원본과 이미지 검사 기록을 검토하세요.');notice.className='review-callout';host.append(notice)}host.append(text('p','보관된 원본 이미지를 확인하고, 저해상도 원본 재요청이 필요한지 판단하세요. 이미지를 클릭하면 원본을 새 탭에서 확인합니다.'));
-   const actions=document.createElement('div');actions.className='review-actions';actions.append(button('전체 면 미리보기 · 연결 예정',null,true),button('검수용 편집본 열기 · 연결 예정',null,true));host.append(actions,text('small','아래 원본 이미지 확인은 최종 배치 미리보기가 아닙니다. 전체 면은 공통 Runtime 렌더러를 연결한 뒤 확인할 수 있습니다.'));
+   const actions=document.createElement('div');actions.className='review-actions';actions.append(button(showProof?'전체 면 미리보기 다시 열기':'전체 면 미리보기',()=>{showProof=true;renderDetail()}),button('검수용 편집본 열기 · 연결 예정',null,true));host.append(actions,text('small','접수 당시 전체 면은 사용자 서비스의 공통 Runtime 렌더러로 표시합니다. 원본 이미지 확인과 최종 인쇄 품질 검증은 별도입니다.'));if(showProof){const frame=document.createElement('iframe');frame.id='reviewProofFrame';frame.title='접수본 전체 면 미리보기';frame.className='review-proof-frame';frame.referrerPolicy='no-referrer';frame.setAttribute('sandbox','allow-scripts allow-same-origin');frame.src=`${proofBase}/production-proof?parentOrigin=${encodeURIComponent(location.origin)}`;host.append(frame)}
    const pages=snapshot.document?.template?.pages||[];host.append(text('h4',`접수 면 구성 · ${pages.length}면`));const list=document.createElement('div');list.className='review-page-list';pages.forEach((page,index)=>list.append(text('span',`${index+1}면 · ${page.title||page.role||'페이지'}`)));host.append(list);
    host.append(text('h4',`보관 원본 · ${assets.length}개`));const grid=document.createElement('div');grid.className='review-image-grid';for(const asset of assets){let url;try{url=new URL(asset.url);if(!['https:','http:'].includes(url.protocol))continue}catch{continue}const link=document.createElement('a');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';link.className='review-image-card';const image=document.createElement('img');image.src=url.href;image.alt=asset.name||'보관 원본';image.loading='lazy';image.addEventListener('error',()=>{image.remove();link.prepend(text('span','이미지를 불러오지 못했습니다. 팝업을 다시 열어 주세요.'))},{once:true});link.append(image,text('span',asset.name||'보관 원본'));grid.append(link)}host.append(grid);
   }else{
@@ -53,10 +54,16 @@
   }
  }
  async function detail(id){
-  const token=++detailRun;current=null;step=0;reviewError=null;$('reviewDetail').replaceChildren(text('p','접수본을 불러오는 중…'));$('reviewSteps').replaceChildren();$('reviewDialogTitle').textContent='접수본 확인';$('reviewDialogMeta').textContent='';if(!$('reviewDialog').open)$('reviewDialog').showModal();
+  const token=++detailRun;current=null;step=0;reviewError=null;showProof=false;$('reviewDetail').replaceChildren(text('p','접수본을 불러오는 중…'));$('reviewSteps').replaceChildren();$('reviewDialogTitle').textContent='접수본 확인';$('reviewDialogMeta').textContent='';if(!$('reviewDialog').open)$('reviewDialog').showModal();
   try{const result=await api(new URLSearchParams({id}));if(token!==detailRun||!auth.isSignedIn())return;current=result;renderDetail()}
   catch(error){if(token===detailRun)$('reviewDetail').replaceChildren(text('p',error.message))}
  }
+ window.addEventListener('message',event=>{
+  const frame=$('reviewProofFrame');
+  if(!frame||event.source!==frame.contentWindow||event.origin!==proofBase||event.data?.type!=='calendar:production-proof-ready'||!current||!auth.isSignedIn())return;
+  const {receipt,assets}=current;
+  frame.contentWindow.postMessage({type:'calendar:production-proof',receipt:{receipt_number:receipt.receipt_number,school_name:receipt.school_name,snapshot:{document:receipt.snapshot.document,printProfile:receipt.snapshot.printProfile}},assets:assets.map(asset=>({id:asset.id,url:asset.url}))},proofBase);
+ });
  $('reviewDialogClose').addEventListener('click',closeDetail);$('reviewDialogDone').addEventListener('click',closeDetail);$('reviewDialog').addEventListener('cancel',event=>{event.preventDefault();closeDetail()});
  function sync(){const signed=auth?.isSignedIn()===true;$('reviewLoginRequired').hidden=signed;$('reviewWorkspace').hidden=!signed;$('reviewAdminUser').textContent=signed?`${auth.currentUser()?.email||''} · Master Admin`:'';if(signed)list();else{run++;detailRun++;$('reviewRows').replaceChildren();closeDetail()}}
  auth?.onChange(sync);sync();auth?.ensureSession().finally(sync);
