@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import handler from '../api/production-requests.js';
+const oldFetch=globalThis.fetch;
+process.env.SUPABASE_URL='https://example.invalid';process.env.SUPABASE_SERVICE_ROLE_KEY='test-only';
+function response(){return {statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v},status(code){this.statusCode=code;return this},json(body){this.body=body;return this},end(body){this.body=body?JSON.parse(body):null;return this}}}
+function mockFetch(admin=true){const calls=[];globalThis.fetch=async url=>{calls.push(url);if(url.includes('/auth/v1/user'))return new Response(JSON.stringify({id:'admin'}));if(url.includes('/template_admins?'))return new Response(JSON.stringify(admin?[{user_id:'admin'}]:[]));if(url.includes('/calendar_production_requests?'))return new Response(JSON.stringify([]));throw Error('Unexpected URL')};return calls}
+test('admin receipt API requires a bearer token before reading receipt data',async()=>{const calls=mockFetch(),res=response();await handler({method:'GET',headers:{},query:{}},res);assert.equal(res.statusCode,401);assert.equal(calls.length,0)});
+test('non-admin tokens cannot read receipt list',async()=>{const calls=mockFetch(false),res=response();await handler({method:'GET',headers:{authorization:'Bearer token'},query:{}},res);assert.equal(res.statusCode,403);assert.equal(calls.some(url=>url.includes('calendar_production_requests')),false)});
+test('admin can query receipt list with no-store response',async()=>{const calls=mockFetch(),res=response();await handler({method:'GET',headers:{authorization:'Bearer token'},query:{search:'학교',status:'received'}},res);assert.equal(res.statusCode,200);assert.deepEqual(res.body.receipts,[]);assert.equal(res.headers['Cache-Control'],'no-store');assert.ok(calls.some(url=>url.includes('status=eq.received')))});
+test.after(()=>{globalThis.fetch=oldFetch});
