@@ -13,18 +13,41 @@
    $('reviewMore').hidden=!body.hasMore;$('reviewFeedback').textContent=`${body.receipts.length}건 표시${offset?' · 이전 목록은 검색을 다시 실행해 확인하세요.':''}`;
   }catch(error){if(token===run)$('reviewFeedback').textContent=error.message}
  }
- async function detail(id){
-  const token=++detailRun,host=$('reviewDetail');host.replaceChildren(text('h2','접수 상세'),text('p','접수본을 불러오는 중…'));
-  try{const {receipt,assets}=await api(new URLSearchParams({id}));if(token!==detailRun||!auth.isSignedIn())return;
-   host.replaceChildren(text('h2',number(receipt.receipt_number)),text('h3',receipt.school_name),text('p',`${states[receipt.status]} · ${new Date(receipt.created_at).toLocaleString('ko-KR')}`));
-   const snapshot=receipt.snapshot,contact=receipt.contact,warnings=snapshot.imageChecks.filter(item=>item.status==='warning');
-   const dl=document.createElement('dl');for(const [title,value] of [['템플릿',`${snapshot.doc?.meta?.templateId||'선택 템플릿'} @${snapshot.doc?.meta?.templateVersion||'-'}`],['담당자',`${contact.name} · ${contact.email||contact.phone}${contact.email&&contact.phone?` · ${contact.phone}`:''}`],['확인한 면수',`${snapshot.confirmation.reviewedPageCount}면`],['이미지 검사',`${snapshot.imageChecks.length}개 배치 · 저해상도 ${warnings.length}개`],['사용자 동의',snapshot.confirmation.lowResolutionAccepted?'저해상도 품질 저하 가능성 및 원본 재요청 동의':'학교 정보·일정·사진 배치 확인'],['검수 안내','사용자 동의는 인쇄 품질 승인과 다릅니다. 원본을 검토한 뒤 CMYK 제작 또는 원본 재요청 여부를 결정하세요.']])dl.append(text('dt',title),text('dd',value));host.append(dl);
-   if(warnings.length){host.append(text('h3','저해상도 위치'));for(const item of warnings)host.append(text('p',`${item.label} · ${item.dpi} DPI`))}
-   const download=text('button','접수본 데이터 다운로드');download.type='button';download.className='review-button primary';download.addEventListener('click',()=>{const blob=new Blob([JSON.stringify({receipt,assets},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`${number(receipt.receipt_number)}-snapshot.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});host.append(download,text('small','편집 데이터·공통 Runtime·입력 정보·검사·동의 기록을 포함합니다. PDF/CMYK 생성과 교정본 편집 연결은 다음 단계입니다.'));
-   host.append(text('h3',`보관 원본 ${assets.length}개`));for(const asset of assets){const link=text('a',asset.name);link.href=asset.url;link.target='_blank';link.rel='noopener noreferrer';link.className='review-asset-link';host.append(link)}
-  }catch(error){if(token===detailRun)host.replaceChildren(text('h2','접수 상세'),text('p',error.message))}
+ const steps=[['접수 정보','정보·검사 기록'],['접수본 검토','면 구성·원본 이미지'],['교정·재작업','편집 연결 예정'],['인쇄 출력 검토','CMYK·검사 연결 예정'],['확정·전달','승인 연결 예정']];
+ let current=null,step=0;
+ function button(label,action,disabled=false){const node=text('button',label);node.type='button';node.className='review-button';node.disabled=disabled;if(action)node.addEventListener('click',action);return node}
+ function closeDetail(){detailRun++;current=null;$('reviewDialog').close();$('reviewDetail').replaceChildren();$('reviewSteps').replaceChildren()}
+ function info(host,entries){const dl=document.createElement('dl');dl.className='review-info-grid';for(const [label,value] of entries){const group=document.createElement('div');group.append(text('dt',label),text('dd',value));dl.append(group)}host.append(dl)}
+ function download(){if(!current)return;const {receipt}=current;const blob=new Blob([JSON.stringify({receipt},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`${number(receipt.receipt_number)}-snapshot.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+ function renderDetail(){
+  if(!current)return;const {receipt,assets}=current,snapshot=receipt.snapshot,checks=snapshot.imageChecks||[],warnings=checks.filter(item=>item.status==='warning'),host=$('reviewDetail');
+  $('reviewDialogTitle').textContent=`${number(receipt.receipt_number)} · ${receipt.school_name}`;$('reviewDialogMeta').textContent=`${states[receipt.status]||receipt.status} · 접수 ${new Date(receipt.created_at).toLocaleString('ko-KR')}`;
+  $('reviewSteps').replaceChildren();steps.forEach(([label,caption],index)=>{const node=button(`${index+1}. ${label}`,()=>{step=index;renderDetail()});node.className='review-step';if(step===index)node.setAttribute('aria-current','step');node.append(text('span',caption));$('reviewSteps').append(node)});
+  host.replaceChildren(text('h3',`${step+1}. ${steps[step][0]}`));
+  if(step===0){
+   host.append(text('p','담당자와 접수 내용을 확인하고, 사용자가 수행한 검사와 동의 기록을 검토하세요.'));
+   const contact=receipt.contact||{},confirmed=snapshot.confirmation||{};
+   info(host,[['템플릿·버전',`${snapshot.doc?.meta?.templateId||'선택 템플릿'} @${snapshot.doc?.meta?.templateVersion||'-'}`],['담당자',contact.name||'-'],['이메일',contact.email||'-'],['전화번호',contact.phone||'-'],['사용자 확인 면수',`${confirmed.reviewedPageCount||0}면`],['사용자 이미지 검사',`${checks.length}개 배치 · 저해상도 ${warnings.length}개`],['정보·배치 확인',confirmed.information&&confirmed.layout?'사용자 확인 완료':'확인 기록 없음'],['저해상도 동의',confirmed.lowResolutionAccepted?'품질 저하 가능성·원본 재요청에 동의':'동의 기록 없음']]);
+   host.append(text('h4','검사 출처와 확인 범위'));const callout=text('p','사용자 서비스 검사는 이미지 해상도와 정보·배치 확인 기록입니다. 템플릿 자체의 인쇄 검증 이력은 이 접수 데이터만으로 확인되지 않으며, 관리자 CMYK·최종 인쇄 검증은 아직 연결되지 않았습니다.');callout.className='review-callout';host.append(callout);
+   if(checks.length){host.append(text('h4','사용자 이미지 검사 기록'));const wrap=document.createElement('div');wrap.className='review-table-wrap';const table=document.createElement('table');table.className='review-check-table';const head=document.createElement('tr');for(const value of ['배치 위치','해상도','결과'])head.append(text('th',value));const thead=document.createElement('thead');thead.append(head);table.append(thead);const body=document.createElement('tbody');for(const item of checks){const row=document.createElement('tr');row.append(text('td',item.label||'-'),text('td',item.dpi?`${item.dpi} DPI`:'확인 불가'),text('td',item.status==='warning'?'저해상도 주의':'기준 통과'));body.append(row)}table.append(body);wrap.append(table);host.append(wrap)}
+   const actions=document.createElement('div');actions.className='review-actions';actions.append(button('접수본 검토로 이동',()=>{step=1;renderDetail()}),button('접수 데이터 다운로드 (JSON)',download));host.append(actions,text('small','JSON은 백업·분석용입니다. 에디터에서 접수본을 직접 여는 기능은 후속 구현입니다.'));
+  }else if(step===1){
+   host.append(text('p','보관된 원본 이미지를 확인하고, 저해상도 원본 재요청이 필요한지 판단하세요. 이미지를 클릭하면 원본을 새 탭에서 확인합니다.'));
+   const actions=document.createElement('div');actions.className='review-actions';actions.append(button('전체 면 미리보기 · 연결 예정',null,true),button('검수용 편집본 열기 · 연결 예정',null,true));host.append(actions,text('small','아래 원본 이미지 확인은 최종 배치 미리보기가 아닙니다. 전체 면은 공통 Runtime 렌더러를 연결한 뒤 확인할 수 있습니다.'));
+   const pages=snapshot.document?.template?.pages||[];host.append(text('h4',`접수 면 구성 · ${pages.length}면`));const list=document.createElement('div');list.className='review-page-list';pages.forEach((page,index)=>list.append(text('span',`${index+1}면 · ${page.title||page.role||'페이지'}`)));host.append(list);
+   host.append(text('h4',`보관 원본 · ${assets.length}개`));const grid=document.createElement('div');grid.className='review-image-grid';for(const asset of assets){let url;try{url=new URL(asset.url);if(!['https:','http:'].includes(url.protocol))continue}catch{continue}const link=document.createElement('a');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';link.className='review-image-card';const image=document.createElement('img');image.src=url.href;image.alt=asset.name||'보관 원본';image.loading='lazy';image.addEventListener('error',()=>{image.remove();link.prepend(text('span','이미지를 불러오지 못했습니다. 팝업을 다시 열어 주세요.'))},{once:true});link.append(image,text('span',asset.name||'보관 원본'));grid.append(link)}host.append(grid);
+  }else{
+   const descriptions=[null,null,['교정·재작업에서 할 일',['접수 원본을 보존한 별도 교정본 생성','필요한 정보·이미지·배치 교정 또는 사용자 원본 재요청','교정본 버전 저장과 변경 내용 기록'],'검수용 편집본 열기'],['인쇄 출력 검토에서 할 일',['검사할 교정본 버전 선택','네이티브 CMYK·PDF/X-4 생성','Worker 자동 검사와 관리자 육안 확인, 필요 시 시험 출력','수정한 새 버전은 다시 검증'],'인쇄 파일 생성·검사'],['확정·전달에서 할 일',['검증을 통과한 교정 버전과 최종 인쇄 파일 확정','관리자 승인 기록','인쇄소 전달 파일과 전달 일시 기록'],'최종 인쇄 승인']][step];
+   host.append(text('p',descriptions[0]));const list=document.createElement('ol');for(const item of descriptions[1])list.append(text('li',item));host.append(list,button(`${descriptions[2]} · 연결 예정`,null,true),text('small','이 단계는 작업 안내입니다. 교정본 저장·인쇄 생성·검사·승인 처리는 아직 연결되지 않았으며, 단계 선택만으로 검수 상태가 바뀌지 않습니다.'));
+  }
  }
- function sync(){const signed=auth?.isSignedIn()===true;$('reviewLoginRequired').hidden=signed;$('reviewWorkspace').hidden=!signed;$('reviewAdminUser').textContent=signed?`${auth.currentUser()?.email||''} · Master Admin`:'';if(signed)list();else{run++;detailRun++;$('reviewRows').replaceChildren();$('reviewDetail').replaceChildren(text('h2','접수 상세'))}}
+ async function detail(id){
+  const token=++detailRun;current=null;step=0;$('reviewDetail').replaceChildren(text('p','접수본을 불러오는 중…'));$('reviewSteps').replaceChildren();$('reviewDialogTitle').textContent='접수본 확인';$('reviewDialogMeta').textContent='';if(!$('reviewDialog').open)$('reviewDialog').showModal();
+  try{const result=await api(new URLSearchParams({id}));if(token!==detailRun||!auth.isSignedIn())return;current=result;renderDetail()}
+  catch(error){if(token===detailRun)$('reviewDetail').replaceChildren(text('p',error.message))}
+ }
+ $('reviewDialogClose').addEventListener('click',closeDetail);$('reviewDialogDone').addEventListener('click',closeDetail);$('reviewDialog').addEventListener('cancel',event=>{event.preventDefault();closeDetail()});
+ function sync(){const signed=auth?.isSignedIn()===true;$('reviewLoginRequired').hidden=signed;$('reviewWorkspace').hidden=!signed;$('reviewAdminUser').textContent=signed?`${auth.currentUser()?.email||''} · Master Admin`:'';if(signed)list();else{run++;detailRun++;$('reviewRows').replaceChildren();closeDetail()}}
  auth?.onChange(sync);sync();auth?.ensureSession().finally(sync);
  $('reviewFilters').addEventListener('submit',event=>{event.preventDefault();offset=0;list()});$('reviewMore').addEventListener('click',()=>{offset+=50;list()});
 })();
