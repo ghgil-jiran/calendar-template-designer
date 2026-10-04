@@ -13,7 +13,7 @@
    $('reviewMore').hidden=!body.hasMore;$('reviewFeedback').textContent=`${body.receipts.length}건 표시${offset?' · 이전 목록은 검색을 다시 실행해 확인하세요.':''}`;
   }catch(error){if(token===run)$('reviewFeedback').textContent=error.message}
  }
- const steps=[['접수 정보','정보·검사 기록'],['접수 자료 확인','원본·확인 필요 항목'],['교정·버전 저장','에디터에서 교정·저장'],['인쇄 품질 검증','에디터에서 교정 버전 검사'],['확정·전달','승인 연결 예정']];
+ const steps=[['접수 정보','정보·검사 기록'],['접수 자료 확인','원본·확인 필요 항목'],['교정·버전 저장','에디터에서 교정·저장'],['인쇄 품질 검증','저장한 교정 버전 검사'],['확정·전달','승인 연결 예정']];
  let current=null,step=0,reviewBusy=false,reviewError=null,proofDialog=null,proofFrame=null;
  const proofBase='https://school-calendar-editor-service-q08rq3end-gil-gighyun-s-projects.vercel.app';
  function button(label,action,disabled=false){const node=text('button',label);node.type='button';node.className='review-button';node.disabled=disabled||reviewBusy;if(action)node.addEventListener('click',action);return node}
@@ -60,8 +60,8 @@
    const actions=document.createElement('div');actions.className='review-actions';const next=button('3단계 교정으로 이동',()=>{step=2;renderDetail()});next.classList.add('primary');const proof=button('접수 당시 모습 보기',openProof);proof.classList.add('review-secondary-action');actions.append(next,proof);host.append(actions,text('small','접수 당시 모습은 수정 전 자료를 참고하는 보조 화면입니다. 최신 교정본은 3단계의 템플릿 에디터에서 확인하세요.'));
   }else if(step===2){window.ACDLProductionCorrection.mount(host,current,()=>{step=3;renderDetail()});
   }else if(step===3){
-   host.append(text('p','인쇄 품질 검증은 템플릿 에디터에서 저장된 교정 버전을 기준으로 진행합니다. 에디터 상단의 ‘저장 버전 인쇄 품질 검사’를 선택하세요.'));
-   const link=text('a','에디터에서 교정본·인쇄 검사 열기');link.className='review-button';link.href=`./index.html?productionRequest=${encodeURIComponent(receipt.id)}`;host.append(link,text('small','저장하지 않은 수정이 있으면 먼저 새 교정 버전을 저장해야 합니다. 원본 템플릿의 검사 결과를 이 접수 건의 승인으로 사용하지 않습니다.'));
+   host.append(text('p','3단계에서 교정을 마치고 저장한 버전을 기준으로 인쇄 품질을 검증하는 단계입니다. 교정이 필요하면 3단계로 돌아가 새 버전을 저장하세요.'));
+   host.append(button('3단계 교정·버전 저장으로 돌아가기',()=>{step=2;renderDetail()}),text('small','검수 화면에서 기존 인쇄 검사 경로를 실행하는 연결은 아직 준비 중입니다. 교정본 저장이나 이 단계 선택은 검사 완료·인쇄 승인을 의미하지 않습니다.')); 
   }else{
    const descriptions=[null,null,['교정·재작업에서 할 일',['접수 원본을 보존한 별도 교정본 생성','필요한 정보·이미지·배치 교정 또는 사용자 원본 재요청','교정본 버전 저장과 변경 내용 기록'],'검수용 편집본 열기'],['인쇄 출력 검토에서 할 일',['검사할 교정본 버전 선택','네이티브 CMYK·PDF/X-4 생성','Worker 자동 검사와 관리자 육안 확인, 필요 시 시험 출력','수정한 새 버전은 다시 검증'],'인쇄 파일 생성·검사'],['확정·전달에서 할 일',['검증을 통과한 교정 버전과 최종 인쇄 파일 확정','관리자 승인 기록','인쇄소 전달 파일과 전달 일시 기록'],'최종 인쇄 승인']][step];
    host.append(text('p',descriptions[0]));const list=document.createElement('ol');for(const item of descriptions[1])list.append(text('li',item));host.append(list,button(`${descriptions[2]} · 연결 예정`,null,true),text('small','이 단계는 작업 안내입니다. 교정본 저장·인쇄 생성·검사·승인 처리는 아직 연결되지 않았으며, 단계 선택만으로 검수 상태가 바뀌지 않습니다.'));
