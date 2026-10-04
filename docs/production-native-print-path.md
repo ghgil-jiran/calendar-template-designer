@@ -73,3 +73,17 @@ node tools/prepare-production-cmyk-images.mjs --bundle-dir "D:\학사달력\prod
 응답은 production-print-preflight.v1이고 jobCreated=false, status=blocked, finalApproved=false다. 네이티브 인쇄 정의·리소스와 Worker 연결이 아직 부족하므로 대기 Job이나 PDF를 생성하지 않는다. 기존 핵심 자동검사 영역에 버전·면수·원본 수·이미지 배치 수·전체 개체별 차단 사유를 표시한다. 같은 팝업에서 단계 이동 후 복귀하면 결과를 유지하며 검사 기록 JSON에도 productionInspection으로 포함한다. 다시 열면 결과를 재조회해야 하며 DB 검사 이력 저장은 아직 아니다. 새 SQL은 없다.
 
 이 변경은 저장 버전으로 검사 요청을 고정하는 경계와 기존 화면 연결이다. 실제 네이티브 PDF 작성/Worker 처리 완료를 뜻하지 않는다. 내부 진단 메뉴 숨김은 실제 출력 연결을 정리한 뒤 진행한다. 다음은 공통 Runtime 복합 개체의 손실 없는 인쇄 구성요소 확장, 폰트·CMYK 리소스 보관, 그 입력을 소비하는 native Worker 처리 경로다.
+
+## 신뢰된 Worker의 원본 직접 수집 → CMYK 준비 연결
+
+`tools/run-production-image-worker.mjs`는 관리자 이미지 검사 기록의 접수·버전·문서 해시로 DB 저장본을 읽고 private Storage 원본을 직접 수집한 뒤 기존 CMYK 준비 모듈을 호출한다. 원본 ZIP을 수동 전달할 필요는 없다. 검사 기록 JSON은 아직 필요하다. 기존 공통 이미지 계획·배치 검증·원본 헤더/SHA 검사 함수를 재사용한다. 기록의 내부 이미지 영역은 같은 버전에서 다시 검증하며 관리자 DOM 측정이라는 증거 수준을 유지한다.
+
+Worker 환경에 SUPABASE_URL과 SUPABASE_SERVICE_ROLE_KEY가 설정돼 있어야 한다. 브라우저에 키를 전달하거나 UI에서 이 스크립트를 실행하지 않는다. 환경변수 값은 출력하지 않는다. 로컬 Worker의 승인된 환경 설정을 사용하며 이 문서는 키를 만들거나 운영 설정을 바꾸지 않는다.
+
+```powershell
+node tools/run-production-image-worker.mjs --inspection "D:\work\production-v5-image-inspection.json" --work-dir "D:\work\production-v5-worker-01" --icc "D:\profiles\JapanColor2011Coated.icc" --icc-sha256 "검증한_실제_프로파일_SHA256" --srgb-icc "D:\profiles\sRGB.icc"
+```
+
+새 작업 폴더에 input/originals, input/document.json, input/inspection.json과 cmyk/manifest.json을 만든다. 보관 경로를 접수 ID·소유자·원본 ID와 대조하고 교정 업로드는 해당 접수의 ready만 허용한다. 관리자 검사 후 원본 바이트가 바뀌면 중단한다. 파일을 외부 URL에서 대체하거나 기존 원본/출력 폴더를 덮어쓰지 않는다. 수집 실패는 input/failure.json에 기록하며 완료 inspection.json은 만들지 않는다. CMYK 변환 실패 기록은 기존 cmyk/failure.json에 남는다.
+
+이 연결은 이미지 준비 Worker 실행 진입점이다. 웹에서 Job 요청·상태 저장·자동 실행, CMYK 파생 이미지 업로드, 공통 Runtime 네이티브 PDF 작성, 최종 PDF 검사와 승인은 아직 연결되지 않았다. 실제 47개와 공식 ICC 변환을 실행했다고 간주하지 않는다.
