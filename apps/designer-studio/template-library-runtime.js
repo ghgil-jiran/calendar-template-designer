@@ -463,6 +463,7 @@
     selectedPageId=pageInfo.id;renderPage();applyThemeTokens();
     const live=el('page');if(!live)throw new Error(`${pageInfo.id} 화면 렌더링 결과가 없습니다.`);
     if(!(live.offsetWidth>0&&live.offsetHeight>0)){const physical=candidate?.productType?.pageSize||{},width=pageInfo.role==='poster-annual'?720:960,height=pageInfo.role==='poster-annual'?1018:Math.round(width*(Number(physical.height)||180)/(Number(physical.width)||260));live.style.width=`${width}px`;live.style.height=`${height}px`}
+    if(candidate.productionCorrection)for(const image of live.querySelectorAll('img'))image.loading='eager';
     const imageReady=Promise.all([...live.querySelectorAll('img')].map(image=>image.complete?Promise.resolve():new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true})})));
     await Promise.race([imageReady,new Promise(resolve=>setTimeout(resolve,8000))]);
     const clone=window.ACDLPreviewState.clonePage(live,pageInfo);clone.classList.add('review-pdf-page');outputRoot.appendChild(clone);
@@ -580,7 +581,7 @@ async function refreshPreflightResult(){
  window.renderUserTemplateChoices=renderUserChoices;renderUserTemplateChoices=renderUserChoices;
  window.applyCalendarType=type=>{oldApplyType(type);selectedCalendarType=type;el('selectedTypeLabel')&&(el('selectedTypeLabel').textContent=label(type));renderTypeChoices();renderUserChoices()};applyCalendarType=window.applyCalendarType;
  window.ACDLTemplateCatalog={allTypes,records,typeMeta,renderTypeChoices,renderTypeFilters};
- window.ACDLProductionPreflight={open:openPrintPreflight};
+ window.ACDLProductionPreflight={open:openPrintPreflight,inspect:async(record)=>{await openPrintPreflight(record);await runRenderPreflight();return window.ACDLTemplatePrintPreflight.analyze(preflightProject,{runtimeDocument:preflightRuntimeDocument,renderParity:preflightRenderParity});}};
  ensureTypeOptions();renderTypeChoices();renderTypeFilters();renderUserChoices();installTemplateSaveProgress();installCloneDialog();installPermanentDeleteDialog();installTemplateOpenProgress();
  document.querySelectorAll('[data-library-state]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-library-state]').forEach(x=>x.classList.toggle('active',x===button));activeLibraryState=button.dataset.libraryState;setTimeout(()=>renderLibrary(button.dataset.libraryState),0)}));
  el('libraryStandardFilter')?.addEventListener('click',event=>{activeStandardOnly=!activeStandardOnly;event.currentTarget.classList.toggle('active',activeStandardOnly);event.currentTarget.setAttribute('aria-pressed',String(activeStandardOnly));renderLibrary(activeLibraryState)});

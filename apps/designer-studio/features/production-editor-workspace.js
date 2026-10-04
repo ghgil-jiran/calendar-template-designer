@@ -1,15 +1,11 @@
 (()=>{
  const requestId=new URLSearchParams(location.search).get('productionRequest');
  if(!requestId)return;
- const embedded=new URLSearchParams(location.search).get('productionEmbedded')==='1'&&window.parent!==window;let leaving=false;
+ const query=new URLSearchParams(location.search),inspectionMode=query.get('productionInspection')==='1';const embedded=query.get('productionEmbedded')==='1'&&window.parent!==window;let leaving=false,commandBusy=false,lastQuick=null;
  function launchUpdate(type,message,value){if(embedded)window.parent.postMessage({type:`calendar:production-editor-${type}`,requestId,message,value},location.origin);}
  function loadingError(message){launchUpdate('error',message);document.documentElement.classList.remove('production-editor-loading');}
  const auth=window.ACDLAdminAuth,adapter=window.ACDLProductionEditorAdapter,$=id=>document.getElementById(id);
  let state=null,busy=false,starting=false,saved='',pendingId=null,pendingFingerprint=null,assets=[],urls=new Map(),markers=new Map(),lastDirty=false;
- const normalizer=normalizeElementData;normalizeElementData=function(){if(project?.productionCorrection){project.book.elementsByPage||={};project.template.masterElements||={};return;}return normalizer();};
- const geometrySync=syncMonthlyGeometry;syncMonthlyGeometry=function(item){return project?.productionCorrection?0:geometrySync(item);};
- const visibleElements=allVisibleElements;allVisibleElements=function(){const items=visibleElements();return project?.productionCorrection?items.filter(item=>!['calendar','calendar-grid'].includes(item.type)):items;};
- const pageRenderer=renderPage;renderPage=function(){const page=project?.productionCorrection?selectedPage():null;if(page?.productionCalendarMaster)project.template.masters.calendar=page.productionCalendarMaster;return pageRenderer();};
  const bar=document.createElement('section');bar.className='production-editor-toolbar';bar.setAttribute('aria-label','접수본 교정');
  const title=document.createElement('strong'),status=document.createElement('span');status.setAttribute('role','status');
  const note=document.createElement('input');note.placeholder='교정 이유와 변경 내용';note.maxLength=2000;note.setAttribute('aria-label','교정 변경 기록');
@@ -22,7 +18,7 @@
  function dirty(){return state&&JSON.stringify(canonical())!==saved;}
  async function api(path,method='GET',body){const response=await auth.authorizedFetch(path,{method,...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});const result=await response.json();if(!response.ok)throw Error(result.message||result.error||'교정 작업을 완료하지 못했습니다.');return result;}
  function register(marker,url){urls.set(marker,url);markers.set(url,marker);}
- function setStatus(message){status.textContent=message;}
+ function setStatus(message){status.textContent=message;if(inspectionMode&&embedded)window.parent.postMessage({type:'calendar:production-inspection-progress',requestId,revisionId:state?.revision?.id,message},location.origin);}
  function sync(){saveState.textContent=!state?'불러오는 중…':busy?'작업 중…':dirty()?'저장하지 않은 변경 있음':state.revision?`저장됨 · 교정 v${state.revision.revision_number}`:'접수본 · 첫 교정 버전 저장 전';save.disabled=busy||!state||!auth.isSignedIn()||!dirty();inspect.disabled=busy||!state?.revision||!auth.isSignedIn()||dirty();note.disabled=busy;}
  async function load(){
   if(starting||state)return;if(!auth.isSignedIn()){setStatus('관리자 로그인 후 접수본을 불러옵니다.');return;}
@@ -32,7 +28,7 @@
    if(!auth.isSignedIn())throw Error('관리자 로그인이 필요합니다.');
    if(!['reviewing','changes'].includes(receipt.receipt.status))throw Error('제작 검수 1단계에서 검수를 시작한 뒤 교정할 수 있습니다.');
    assets=[...receipt.assets,...data.assets];for(const a of assets)register(`production-asset://${a.id}`,a.url);for(const a of data.editorSource.assets)register(a.marker,a.url);
-   const revision=data.revisions[0]||null,runtimeDocument=revision?.document||receipt.receipt.snapshot.document;
+   const revision=data.revisions[0]||null;if(inspectionMode&&(!revision||revision.id!==query.get('productionRevision')))throw Error('검사할 교정 버전이 변경되었습니다. 검수 화면에서 다시 선택해 주세요.');const runtimeDocument=revision?.document||receipt.receipt.snapshot.document;
    launchUpdate('progress','보관 이미지 연결·편집 화면 구성 중…',70);
    const raw=runtimeDocument.editorProject||adapter.createProject(data.editorSource.projectData,runtimeDocument,requestId);
    project=map(raw,'open');state={receipt:receipt.receipt,revision,identity:data.editorSource.identity,printInspection:data.printInspection,uploadAvailable:data.uploadAvailable};
@@ -112,16 +108,16 @@
    for(const pageId of [...new Set(targets.map(use=>use.pageId))]){
     if(!auth.isSignedIn()||state?.revision?.id!==revision.id)throw Error('관리자 세션이나 교정 버전이 변경되었습니다.');
     selectedPageId=pageId;renderPage();
-    await document.fonts?.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    await document.fonts?.ready;await Promise.race([new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))),new Promise(resolve=>setTimeout(resolve,100))]);
     for(const use of targets.filter(use=>use.pageId===pageId)){
      const box=[...document.querySelectorAll('.free-element[data-element-id]')].find(node=>node.dataset.elementId===use.objectId),image=box?.querySelector('.semantic-media img');
-     try{if(image)await image.decode();layouts.push(window.ACDLPrintImageLayout.capture(use,box,{imageSource:markers.get(image?.currentSrc||image?.src),readStyle:getComputedStyle}));}catch(error){setStatus(`${use.role} 이미지 영역은 아직 미확정입니다: ${error.message}`);}
+     try{if(image){image.loading='eager';await Promise.race([image.decode(),new Promise((_,reject)=>setTimeout(()=>reject(Error('이미지 읽기 시간이 초과되었습니다.')),30000))]);}layouts.push(window.ACDLPrintImageLayout.capture(use,box,{imageSource:markers.get(image?.currentSrc||image?.src),readStyle:getComputedStyle}));}catch(error){setStatus(`${use.role} 이미지 영역은 아직 미확정입니다: ${error.message}`);}
     }
    }
   }finally{const active=auth.isSignedIn()&&state?.revision?.id===revision.id;project=active?originalProject:null;selectedPageId=originalPage;selectedElementId=originalElement;selectedElementScope=originalScope;if(active){renderPage();renderInspector();}}
   return layouts;
  }
- imageCheck.onclick=async()=>{
+ async function inspectImages(){
   if(busy||!state?.revision||dirty())return;
   const revision=state.revision,query=`requestId=${encodeURIComponent(requestId)}&revisionId=${encodeURIComponent(revision.id)}`;
   busy=true;sync();setStatus('저장 버전의 사용 원본을 확인하는 중…');
@@ -134,15 +130,17 @@
    for(const [index,source] of plan.sources.entries()){
     setStatus(`원본 파일·배치 검사 중 · ${index+1}/${plan.sources.length}`);
     try{
-     if(!source.startsWith('production-asset://'))throw Error('이 이미지의 접수 보관 원본 연결이 필요합니다.');
+     if(!/^(production|package)-asset:\/\//.test(source))throw Error('이 이미지의 보관 원본 연결이 필요합니다.');
      const layouts=imageLayouts.filter(layout=>layout.source===source);
-     const {report}=layouts.length?await api('/api/production-print-images','POST',{requestId,revisionId:revision.id,assetId:source.slice(19),contentHash:plan.contentHash,imageLayouts:layouts}):await api(`/api/production-print-images?${query}&assetId=${encodeURIComponent(source.slice(19))}&contentHash=${encodeURIComponent(plan.contentHash)}`);
+     const imageUrl=urls.get(source);if(!imageUrl)throw Error('이미지 원본 주소를 확인할 수 없습니다.');const decoded=new Image();decoded.src=imageUrl;await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('원본 이미지 읽기 시간이 초과되었습니다.')),30000);decoded.decode().then(()=>{clearTimeout(timer);resolve();},()=>{clearTimeout(timer);reject(Error('원본 이미지를 읽을 수 없습니다.'));});});
+     const sourceKey=source.startsWith('package-asset://')?'packageAssetId':'assetId',sourceId=source.split('://')[1];const {report}=layouts.length?await api('/api/production-print-images','POST',{requestId,revisionId:revision.id,[sourceKey]:sourceId,contentHash:plan.contentHash,imageLayouts:layouts}):await api(`/api/production-print-images?${query}&${sourceKey}=${encodeURIComponent(sourceId)}&contentHash=${encodeURIComponent(plan.contentHash)}`);
      if(report.documentHash!==plan.documentHash||report.contentHash!==plan.contentHash||report.source!==source)throw Error('원본 검사 결과가 저장 버전과 일치하지 않습니다.');
      results.push(report);
      for(const placement of report.placements){const index=plan.uses.findIndex(use=>use.pageId===placement.pageId&&use.objectId===placement.objectId&&use.source===placement.source);if(index>=0)plan.uses[index]={...placement};}
     }catch(error){results.push({source,status:'blocked',message:error.message});}
    }
    if(!auth.isSignedIn()||state?.revision?.id!==revision.id)throw Error('관리자 세션이나 교정 버전이 변경되었습니다. 다시 열어 주세요.');
+   if(inspectionMode)return {schemaVersion:'production-image-inspection.v1',requestId,revisionId:revision.id,documentHash:plan.documentHash,plan,results,finalApproved:false};
    const dialog=document.createElement('dialog');dialog.className='production-print-readiness';
    const heading=document.createElement('h2');heading.textContent=`교정 v${plan.revisionNumber} · 원본·배치 검사`;
    const description=document.createElement('p');description.textContent=`사용 원본 ${plan.sources.length}개 · 이미지 사용 ${plan.uses.length}곳. 파일 크기·헤더·SHA-256과 실제 배치 해상도를 확인합니다. 완전한 이미지 디코딩·CMYK 생성·인쇄 승인은 포함하지 않습니다.`;
@@ -156,9 +154,40 @@
    const download=document.createElement('button');download.textContent='이 버전 검사 기록 다운로드';download.onclick=()=>downloadBlob(new Blob([JSON.stringify(record(),null,2)],{type:'application/json'}),`production-v${plan.revisionNumber}-image-inspection.json`);
    const close=document.createElement('button');close.textContent='닫기';close.onclick=()=>{if(!busy)dialog.close();};dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});dialog.append(heading,description,table,download,close);dialog.onclose=()=>dialog.remove();document.body.append(dialog);dialog.showModal();
    setStatus(`교정 v${plan.revisionNumber} 원본·배치 검사를 마쳤습니다. 결과는 인쇄 승인이 아닙니다.`);
-  }catch(error){setStatus(error.message);}finally{busy=false;sync();}
- };
+  }catch(error){setStatus(error.message);if(inspectionMode)throw error;}finally{busy=false;sync();}
+ }
+ imageCheck.onclick=inspectImages;
  window.ACDLProductionEditor={inlinePrintAssets,preparePrintPreflight:async()=>{if(!state?.revision||dirty())throw Error("저장한 교정 버전으로 검사해 주세요.");const revision=state.revision;const result=await api("/api/production-print-preflight","POST",{requestId,revisionId:revision.id,documentHash:revision.document_hash});if(state?.revision?.id!==revision.id||!auth.isSignedIn()||result.inspection.identity.revisionId!==revision.id||result.inspection.identity.documentHash!==revision.document_hash)throw Error("검사 버전이나 관리자 세션이 변경되었습니다. 다시 열어 주세요.");return result.inspection;}};
  setInterval(()=>{if(state){sync();const changed=dirty();if(changed&&!lastDirty&&!busy)status.textContent='저장하지 않은 교정 내용이 있습니다. 인쇄 검사는 저장 후 진행하세요.';lastDirty=changed;}},1000);
+ if(inspectionMode){
+  note.hidden=true;save.hidden=true;back.hidden=true;document.body.classList.add('production-inspection-mode');
+  const reply=(action,result,error)=>window.parent.postMessage({type:'calendar:production-inspection-result',requestId,revisionId:state?.revision?.id,action,result,error},location.origin);
+  window.addEventListener('message',async event=>{
+   if(!embedded||event.source!==window.parent||event.origin!==location.origin||event.data?.type!=='calendar:production-inspection-command'||event.data.requestId!==requestId)return;
+   const {action,revisionId,force,warningsAccepted}=event.data;
+   if(commandBusy)return;
+   if(!state?.revision||revisionId!==state.revision.id||!auth.isSignedIn())return reply(action,null,'검사할 교정 버전과 관리자 세션을 확인하세요.');
+   commandBusy=true;
+   try{
+    let result;
+    if(action==='quick'){
+     const candidate=map(state.revision.document.editorProject,'open');candidate.template.publishing={};
+     setStatus('기존 모듈로 문서·전체 면을 검사하는 중…');
+     const report=await window.ACDLProductionPreflight.inspect({id:`production-${revisionId}`,name:`${state.receipt.school_name} · 교정 v${state.revision.revision_number}`,type:candidate.productType.category,edition:candidate.settings.year,state:'draft',version:state.revision.revision_number,productionProject:candidate});
+     const images=await inspectImages();
+     const errors=(report.issues||[]).filter(item=>item.severity==='error');const warnings=(report.issues||[]).filter(item=>item.severity==='warning');
+     for(const item of images.results){if(item.status==='blocked')errors.push({message:item.message});for(const placement of item.placements||[])if(placement.status==='unresolved')errors.push({message:`${placement.pageNumber}면 · ${placement.role}: 배치 확인 불가`});else if(placement.status==='warning')warnings.push({message:`${placement.pageNumber}면 · ${placement.role}: ${placement.effectiveDpi} DPI`});}
+     lastQuick={revisionId,documentHash:state.revision.document_hash,errors:errors.length,warnings:warnings.length,completedAt:new Date().toISOString()};result={report,images,errors,warnings,identity:{revisionId,documentHash:state.revision.document_hash},finalApproved:false};
+    }else if(action==='request'){
+     if(!lastQuick||lastQuick.revisionId!==revisionId||lastQuick.errors)throw Error('빠른 검사를 완료하고 오류를 해결한 뒤 최종 생성을 요청하세요.');
+     if(lastQuick.warnings&&!warningsAccepted)throw Error('경고 내용을 확인한 뒤 최종 생성을 요청하세요.');
+     setStatus('저장 버전·원본 고정 후 기존 PDF Worker 작업을 요청하는 중…');
+     result=await api('/api/production-print-preflight','POST',{requestId,revisionId,documentHash:state.revision.document_hash,action:'request',force:force===true,quickInspection:lastQuick,warningsAccepted:warningsAccepted===true});
+    }else if(action==='status'||action==='download')result=await api('/api/production-print-preflight','POST',{requestId,revisionId,documentHash:state.revision.document_hash,action,jobId:event.data.jobId});
+    else throw Error('알 수 없는 검사 작업입니다.');
+    if(!auth.isSignedIn())throw Error('관리자 로그인이 만료되었습니다.');reply(action,result);
+   }catch(error){reply(action,null,error.message);}finally{commandBusy=false;}
+  });
+ }
  launchUpdate('progress','관리자 세션 확인 중…',10);auth.ensureSession().then(()=>{if(!auth.isSignedIn()){loadingError('관리자 로그인이 필요합니다. 제작 검수에서 로그인 후 다시 열어 주세요.');return;}return load();}).catch(error=>loadingError(error.message));
 })();

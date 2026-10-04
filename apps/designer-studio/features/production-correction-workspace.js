@@ -11,7 +11,7 @@
   const refresh=el('button','버전 목록 새로고침');refresh.type='button';refresh.className='review-button';actions.append(link,refresh);target.append(actions);if(!canEdit)target.append(el('small',receipt.status==='received'?'1단계에서 검수를 시작한 뒤 에디터로 이동할 수 있습니다.':'이 접수 상태에서는 교정본을 수정할 수 없습니다.'));host.append(target);
   const list=el('section');list.className='review-correction-versions';host.append(list);
   const next=el('button','4단계 인쇄 품질 검증으로 이동');next.type='button';next.className='review-button';next.disabled=true;next.addEventListener('click',()=>{if(!next.disabled&&!session?.launchBusy&&typeof onNext==='function')onNext();});
-  const nextInfo=el('small','교정본을 저장한 뒤 다음 단계로 이동하세요.');host.append(next,nextInfo,el('small','최종 PDF Worker 연결은 아직 완료되지 않았습니다. 4단계 이동이나 교정본 저장은 인쇄 검증 완료를 의미하지 않습니다.'));
+  const nextInfo=el('small','교정본을 저장한 뒤 다음 단계로 이동하세요.');host.append(next,nextInfo,el('small','4단계에서 빠른 검사 후 최종 PDF 생성·검사를 별도로 요청합니다. 4단계 이동이나 교정본 저장은 인쇄 검증 완료를 의미하지 않습니다.'));
   const progressHost=el('div');progressHost.className='review-editor-progress';progressHost.hidden=true;const progressText=el('p'),progress=el('progress');progress.max=100;progress.value=0;progress.setAttribute('aria-label','편집 화면 불러오기');progressText.setAttribute('role','status');progressHost.append(progressText,progress);target.append(progressHost);
   session={requestId:receipt.id,refresh:null,launchBusy:false,dispose:null};const local=session;let run=0,editorDialog=null,frame=null,timer=null;
   function dispose(){clearTimeout(timer);if(editorDialog){editorDialog.close();editorDialog.remove();editorDialog=null;frame=null;}local.launchBusy=false;}local.dispose=dispose;
