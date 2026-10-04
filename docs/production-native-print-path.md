@@ -37,3 +37,21 @@ GET /api/production-print-readiness?requestId=...&revisionId=... 는 Master Admi
 이전 버전은 JSON.stringify의 속성 순서로 document_hash를 계산했으므로 jsonb 저장 후 재조회할 때 같은 내용도 해시가 달라질 수 있었다. 신규 저장은 productionIntegrity.hashScheme=sorted-json.v1을 기록하고 모든 중첩 객체 키를 정렬해 SHA-256을 계산한다. 배열 순서는 유지하며 재조회한 문서의 정렬 해시를 저장 해시와 검증한다.
 
 이전 버전은 기존 document_hash를 버전 식별자로 보존한다. 원래 직렬화 순서는 복원할 수 없으므로 기존 저장 해시를 재검증했다고 표시하지 않는다(integrity.storedHashVerified=false). 현재 조회한 문서의 contentHash를 별도로 계산해 계획 조회와 각 원본 검사 사이의 동일 내용 여부를 검증한다. 기존 접수·교정본을 갱신하거나 새 버전 저장을 요구하지 않는다. 내용 불일치에는 409와 구체적인 안내를 반환한다.
+
+## 복합 이미지 영역과 CMYK 작업 입력
+
+원본·배치 검사 시 교가·교목·교화가 있는 면은 저장된 editorProject 사본을 기존 renderPage로 표시한다. print-image-layout.js는 기존 semantic-media의 실제 영역을 측정하며 별도 렌더러나 면별 크기 보정값을 만들지 않는다. 저장 원본과 표시 이미지 참조가 같은지 확인하고, 회전·이미지 CSS 변환·원본 누락은 측정에서 제외한다. 측정 후 기존 프로젝트와 선택 상태를 복원한다.
+
+POST /api/production-print-images는 동일 contentHash에서 전달한 내부 영역만 사용한다. 지원 역할·면·개체·원본·중복·양수 크기·부모 영역 안의 배치를 검사한다. layoutVerification=admin-renderer-measurement이며 서버에서 렌더링한 증거나 인쇄 승인이 아니다. 검사 결과에는 parentFrameMm과 실제 image frameMm을 함께 기록한다. 접수본·교정본을 수정하지 않는다.
+
+검사 결과의 ‘CMYK 작업 원본 묶음 다운로드’는 inspection.json, 동결 document.json, originals/원본ID를 ZIP으로 내려받는다. 각 원본 바이트 SHA와 크기를 검사 기록과 대조하며 서명 URL은 넣지 않는다. 브라우저 묶음은 총 96MiB까지 지원한다.
+
+tools/prepare-production-cmyk-images.mjs는 Worker용 이미지 준비 진입점이다. 묶음을 풀고 실행한다:
+
+```sh
+node tools/prepare-production-cmyk-images.mjs --inspection /path/input/inspection.json --document /path/input/document.json --source-dir /path/input/originals --output-dir /path/derived-new --icc /path/JapanColor2011Coated.icc --icc-sha256 ACTUAL_VERIFIED_PROFILE_SHA256 --srgb-icc /path/sRGB.icc
+```
+
+ImageMagick(LittleCMS 지원)이 필요하다. Windows는 ImageMagick 7의 magick 명령을 기본 사용하며 --magick 옵션으로 실행 파일 경로를 지정할 수 있다. Linux의 기본 경로는 identify/convert다. 출력 ICC는 CMYK 헤더·설명(Japan Color 2011 Coated)·지정 SHA를 확인한다. 공식 프로파일 파일 자체는 배포하지 않는다. embedded ICC가 없는 원본은 명시한 sRGB ICC를 입력 조건으로 쓰며 그 기준을 기록한다. 파일명만 바꾸거나 임의 CMYK 프로파일로 대체하지 않는다. 원본 폴더와 별도의 새 출력 폴더만 허용한다. sourceHash·revisionId·documentHash·contentHash를 유지하고 픽셀 크기 변경·업스케일·배경 제거를 하지 않는다. 투명·다중 프레임·EXIF 회전은 현재 차단한다.
+
+완료 manifest.json에는 원본 SHA, CMYK JPEG SHA, ICC SHA, 픽셀 크기, 각 배치 결과를 기록한다. 실패 시 pending.json만 있는 폴더는 사용하지 않는다. 기존 출력 폴더는 덮어쓰지 않는다. 준비 성공은 이미지 변환 완료이고 finalApproved=false다. 저장소 파생 이미지 업로드·DB Job 생성·native PDF 작성기·최종 검사 Worker의 자동 연결은 아직 없다. 전체 47개 실제 원본과 공식 ICC로 CMYK 준비를 실행한 것은 아니다. 기술 테스트만 별도 시험 ICC로 4채널 JPEG 및 픽셀 크기 보존을 확인하며 Japan Color 출력 성공으로 간주하지 않는다.

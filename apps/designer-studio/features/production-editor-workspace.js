@@ -95,6 +95,24 @@
  auth.onChange(()=>{if(!auth.isSignedIn()){state=null;urls.clear();markers.clear();saved='';project=null;showEntry();title.textContent='접수본 교정';setStatus('관리자 로그인이 필요합니다.');}else load();sync();});
  const imageCheck=document.createElement('button');imageCheck.type='button';imageCheck.className='review-button';imageCheck.textContent='원본·배치 검사';bar.insertBefore(imageCheck,readinessButton);
  const originalSync=sync;sync=function(){originalSync();imageCheck.disabled=busy||!state?.revision||!auth.isSignedIn()||dirty();};
+ async function captureImageLayouts(plan,revision){
+  const targets=plan.uses.filter(use=>!use.measurable&&['school-song','school-tree','school-flower'].includes(use.role)),layouts=[];
+  if(!targets.length)return layouts;
+  const originalProject=project,originalPage=selectedPageId,originalElement=selectedElementId,originalScope=selectedElementScope;
+  try{
+   project=map(revision.document.editorProject,'open');selectedElementId=null;selectedElementScope=null;
+   for(const pageId of [...new Set(targets.map(use=>use.pageId))]){
+    if(!auth.isSignedIn()||state?.revision?.id!==revision.id)throw Error('관리자 세션이나 교정 버전이 변경되었습니다.');
+    selectedPageId=pageId;renderPage();
+    await document.fonts?.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    for(const use of targets.filter(use=>use.pageId===pageId)){
+     const box=[...document.querySelectorAll('.free-element[data-element-id]')].find(node=>node.dataset.elementId===use.objectId),image=box?.querySelector('.semantic-media img');
+     try{if(image)await image.decode();layouts.push(window.ACDLPrintImageLayout.capture(use,box,{imageSource:markers.get(image?.currentSrc||image?.src),readStyle:getComputedStyle}));}catch(error){setStatus(`${use.role} 이미지 영역은 아직 미확정입니다: ${error.message}`);}
+    }
+   }
+  }finally{const active=auth.isSignedIn()&&state?.revision?.id===revision.id;project=active?originalProject:null;selectedPageId=originalPage;selectedElementId=originalElement;selectedElementScope=originalScope;if(active){renderPage();renderInspector();}}
+  return layouts;
+ }
  imageCheck.onclick=async()=>{
   if(busy||!state?.revision||dirty())return;
   const revision=state.revision,query=`requestId=${encodeURIComponent(requestId)}&revisionId=${encodeURIComponent(revision.id)}`;
@@ -102,14 +120,18 @@
   try{
    const {plan}=await api(`/api/production-print-images?${query}`);
    if(plan.documentHash!==revision.document_hash)throw Error('검사 버전이 저장본과 일치하지 않습니다. 다시 열어 주세요.');
+   setStatus('공통 에디터 렌더러의 실제 이미지 영역을 확인하는 중…');
+   const imageLayouts=await captureImageLayouts(plan,revision);
    const results=[];
    for(const [index,source] of plan.sources.entries()){
     setStatus(`원본 파일·배치 검사 중 · ${index+1}/${plan.sources.length}`);
     try{
      if(!source.startsWith('production-asset://'))throw Error('이 이미지의 접수 보관 원본 연결이 필요합니다.');
-     const {report}=await api(`/api/production-print-images?${query}&assetId=${encodeURIComponent(source.slice(19))}&contentHash=${encodeURIComponent(plan.contentHash)}`);
+     const layouts=imageLayouts.filter(layout=>layout.source===source);
+     const {report}=layouts.length?await api('/api/production-print-images','POST',{requestId,revisionId:revision.id,assetId:source.slice(19),contentHash:plan.contentHash,imageLayouts:layouts}):await api(`/api/production-print-images?${query}&assetId=${encodeURIComponent(source.slice(19))}&contentHash=${encodeURIComponent(plan.contentHash)}`);
      if(report.documentHash!==plan.documentHash||report.contentHash!==plan.contentHash||report.source!==source)throw Error('원본 검사 결과가 저장 버전과 일치하지 않습니다.');
      results.push(report);
+     for(const placement of report.placements){const index=plan.uses.findIndex(use=>use.pageId===placement.pageId&&use.objectId===placement.objectId&&use.source===placement.source);if(index>=0)plan.uses[index]={...placement};}
     }catch(error){results.push({source,status:'blocked',message:error.message});}
    }
    if(!auth.isSignedIn()||state?.revision?.id!==revision.id)throw Error('관리자 세션이나 교정 버전이 변경되었습니다. 다시 열어 주세요.');
@@ -122,8 +144,28 @@
     const detail=report?.message||(!placement?'배치 검사 결과 없음':placement.status==='unresolved'?placement.reason:`${report.pixelWidth}×${report.pixelHeight}px · ${placement.effectiveDpi} DPI / 기준 ${plan.minimumDpi} · ${placement.status==='passed'?'해상도 충족':'저해상도 확인 필요'}`);
     const row=document.createElement('tr');for(const value of [use.pageNumber,`${use.role} · ${use.objectId}`,detail]){const td=document.createElement('td');td.textContent=value;row.append(td);}table.append(row);
    }
-   const download=document.createElement('button');download.textContent='이 버전 검사 기록 다운로드';download.onclick=()=>{const record={schemaVersion:'production-image-inspection.v1',requestId,revisionId:revision.id,documentHash:plan.documentHash,generatedAt:new Date().toISOString(),plan,results,finalApproved:false};const url=URL.createObjectURL(new Blob([JSON.stringify(record,null,2)],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download=`production-v${plan.revisionNumber}-image-inspection.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-   const close=document.createElement('button');close.textContent='닫기';close.onclick=()=>dialog.close();dialog.append(heading,description,table,download,close);dialog.onclose=()=>dialog.remove();document.body.append(dialog);dialog.showModal();
+   const record=()=>({schemaVersion:'production-image-inspection.v1',requestId,revisionId:revision.id,documentHash:plan.documentHash,generatedAt:new Date().toISOString(),plan,results,finalApproved:false});
+   const download=document.createElement('button');download.textContent='이 버전 검사 기록 다운로드';download.onclick=()=>downloadBlob(new Blob([JSON.stringify(record(),null,2)],{type:'application/json'}),`production-v${plan.revisionNumber}-image-inspection.json`);
+   const bundle=document.createElement('button');bundle.textContent='CMYK 작업 원본 묶음 다운로드';
+   bundle.disabled=results.some(result=>result.message)||!plan.contentHash;
+   bundle.onclick=async()=>{
+    if(busy)return;busy=true;sync();bundle.disabled=true;close.disabled=true;download.disabled=true;
+    try{
+     if(results.reduce((sum,r)=>sum+r.byteSize,0)>96*1024*1024)throw Error('96MiB를 넘는 원본 묶음은 서버 Worker에서 준비해야 합니다.');
+     const entries=[{name:'inspection.json',data:JSON.stringify(record(),null,2)},{name:'document.json',data:JSON.stringify(revision.document,null,2)}];
+     for(const [index,result] of results.entries()){
+      setStatus(`CMYK 작업 원본 묶음 준비 중 · ${index+1}/${results.length}`);
+      const url=urls.get(result.source);if(!url)throw Error('보관 원본 주소를 다시 불러와 주세요.');
+      const response=await fetch(url);if(!response.ok)throw Error('보관 원본을 읽지 못했습니다. 다시 열어 주세요.');
+      const bytes=new Uint8Array(await response.arrayBuffer());if(bytes.length!==result.byteSize)throw Error('보관 원본 크기가 검사 결과와 다릅니다.');
+      const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');if(hash!==result.sourceHash)throw Error('보관 원본 SHA-256이 검사 결과와 다릅니다.');
+      entries.push({name:`originals/${result.source.slice(19)}`,data:bytes});
+     }
+     if(!auth.isSignedIn()||state?.revision?.id!==revision.id)throw Error('관리자 세션이나 교정 버전이 변경되었습니다.');
+     downloadBlob(new Blob([createStoredZip(entries)],{type:'application/zip'}),`production-v${plan.revisionNumber}-cmyk-input.zip`);setStatus('저장 버전과 원본 해시를 확인한 CMYK 작업 묶음을 내려받았습니다.');
+    }catch(error){setStatus(error.message);}finally{busy=false;sync();bundle.disabled=false;close.disabled=false;download.disabled=false;}
+   };
+   const close=document.createElement('button');close.textContent='닫기';close.onclick=()=>{if(!busy)dialog.close();};dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});dialog.append(heading,description,table,download,bundle,close);dialog.onclose=()=>dialog.remove();document.body.append(dialog);dialog.showModal();
    setStatus(`교정 v${plan.revisionNumber} 원본·배치 검사를 마쳤습니다. 결과는 인쇄 승인이 아닙니다.`);
   }catch(error){setStatus(error.message);}finally{busy=false;sync();}
  };

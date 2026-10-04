@@ -32,12 +32,26 @@ export function productionImagePlan(revision) {
       const scale = Number(payload.placement?.scale ?? payload.imageTransform?.scale ?? 1);
       const fit = payload.fit ?? (object.role === 'school-logo' ? 'contain' : 'cover');
       const measurable = fullFrame && !nested && refs.size === 1 && page.size?.unit !== 'px' && page.size?.unit !== 'pt' && [frame?.width, frame?.height, scale].every(v => Number.isFinite(v) && v > 0) && ['cover', 'contain'].includes(fit);
-      uses.push({pageId: page.id, pageNumber, objectId: object.id, role: object.role || object.type, source, frameMm: structuredClone(frame), fit, scale, measurable, ...(!measurable ? {reason: '복합 개체 내부의 실제 이미지 배치 연결이 필요합니다.'} : {})});
+      uses.push({pageId: page.id, pageNumber, objectId: object.id, role: object.role || object.type, source, frameMm: structuredClone(frame), fit, scale, rotation:Number(object.rotation||0), unit:page.size?.unit||'mm', nested, measurable, ...(!measurable ? {reason: '복합 개체 내부의 실제 이미지 배치 연결이 필요합니다.'} : {})});
     }
     (object.children || []).forEach(child => visit(child, page, pageNumber, true));
   }
   (revision.document.template?.pages || []).forEach((page, index) => (page.objects || []).forEach(object => visit(object, page, index + 1)));
   return {schemaVersion: 'production-image-plan.v1', revisionId: revision.id, revisionNumber: revision.revision_number, documentHash: revision.document_hash, contentHash, integrity:{scheme:scheme || 'legacy-stored-identity',storedHashVerified:scheme === 'sorted-json.v1'}, minimumDpi: 300, sources: [...new Set(uses.map(use => use.source))], uses};
+}
+
+export function applyProductionImageLayouts(plan, layouts){
+ const invalid=()=>{throw Object.assign(Error('저장 버전의 내부 이미지 영역과 측정 정보가 일치하지 않습니다.'),{statusCode:400,code:'PRINT_IMAGE_LAYOUT_INVALID'});};
+ if(!Array.isArray(layouts)||layouts.length>100)invalid();
+ const copy=structuredClone(plan),seen=new Set();
+ for(const layout of layouts){
+  const key=JSON.stringify([layout.pageId,layout.objectId,layout.source]),matches=copy.uses.filter(use=>use.pageId===layout.pageId&&use.objectId===layout.objectId&&use.source===layout.source),use=matches[0];
+  if(seen.has(key)||matches.length!==1||copy.uses.filter(item=>item.pageId===layout.pageId&&item.objectId===layout.objectId).length!==1||use.measurable||use.nested||(use.unit||'mm')!=='mm'||!['school-song','school-tree','school-flower'].includes(use.role)||use.rotation!==0||layout.basis!=='common-editor-dom.v1'||!['cover','contain'].includes(layout.fit)||layout.scale!==1)invalid();
+  seen.add(key);const f=layout.frameMm,p=use.frameMm;
+  if(!f||!['x','y','width','height'].every(k=>typeof f[k]==='number'&&Number.isFinite(f[k]))||f.width<=0||f.height<=0||f.x<p.x-.01||f.y<p.y-.01||f.x+f.width>p.x+p.width+.01||f.y+f.height>p.y+p.height+.01)invalid();
+  use.parentFrameMm=use.frameMm;use.frameMm={...f};use.fit=layout.fit;use.scale=layout.scale;use.measurable=true;use.layoutBasis=layout.basis;use.layoutVerification='admin-renderer-measurement';delete use.reason;
+ }
+ return copy;
 }
 
 export function inspectProductionImageBytes(plan, source, asset, bytes) {
