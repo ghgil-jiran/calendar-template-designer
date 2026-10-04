@@ -27,8 +27,8 @@
    if(session!==local||!local.ready||local.busy||!auth.isSignedIn())return;
    if(['request','retry'].includes(action)&&generate.disabled)return;
    if(action==='retry'&&!confirm('기존 결과를 보존하고 이 버전의 최종 PDF를 다시 생성할까요? 30분 이상 걸릴 수 있습니다.'))return;
-   local.busy=true;status.textContent=action==='quick'?'전체 면과 사용 원본을 검사하는 중…':action==='request'||action==='retry'?'보관 원본과 저장 버전을 고정하는 중…':'작업 결과 확인 중…';sync();
-   clearTimeout(local.timer);local.timer=setTimeout(()=>{if(session===local){local.busy=false;status.textContent='응답 대기 시간이 초과되었습니다. 생성 요청이었다면 결과 새로고침으로 기존 작업부터 확인하세요.';sync();}},action==='quick'?600000:360000);
+   local.pendingAction=action;local.startedAt=Date.now();local.busy=true;if(["request","retry"].includes(action))worker.replaceChildren(el("h4","최종 인쇄 PDF·Worker 검사"),el("p","저장한 교정 버전과 원본 이미지를 준비하고 있습니다. 원본 수와 용량에 따라 수 분 걸릴 수 있습니다. 준비가 끝나면 작업 번호와 기존 Worker 실행 명령이 표시됩니다."));status.textContent=action==='quick'?'전체 면과 사용 원본을 검사하는 중…':action==='request'||action==='retry'?'보관 원본과 저장 버전을 고정하는 중…':'작업 결과 확인 중…';sync();
+   local.progressMessage=status.textContent;clearTimeout(local.timer);local.timer=setTimeout(()=>{if(session===local){local.busy=false;status.textContent='응답 대기 시간이 초과되었습니다. 생성 요청이었다면 결과 새로고침으로 기존 작업부터 확인하세요.';sync();}},action==='quick'?600000:360000);
    local.frame.contentWindow.postMessage({type:'calendar:production-inspection-command',requestId,revisionId:local.revision.id,action:action==='retry'?'request':action,force:action==='retry',warningsAccepted:accepted.checked,jobId:local.job?.id},location.origin);
   }
   function showQuick(result){
@@ -49,7 +49,7 @@
   local.message=event=>{
    if(session!==local||!auth.isSignedIn()||!local.frame||event.source!==local.frame.contentWindow||event.origin!==location.origin||event.data?.requestId!==requestId)return;
    const data=event.data;
-   if(data.type==='calendar:production-editor-progress'||data.type==='calendar:production-inspection-progress'){status.textContent=data.message;return;}
+   if(data.type==='calendar:production-editor-progress'||data.type==='calendar:production-inspection-progress'){local.progressMessage=data.message;status.textContent=data.message;return;}
    if(data.type==='calendar:production-editor-error'){clearTimeout(local.timer);local.busy=false;local.ready=false;status.textContent=data.message;sync();return;}
    if(data.type==='calendar:production-editor-ready'){clearTimeout(local.timer);local.ready=true;local.busy=false;status.textContent='검사 준비 완료. 빠른 검사부터 진행하세요.';sync();command('status');return;}
    if(data.type!=='calendar:production-inspection-result'||data.revisionId!==local.revision?.id)return;
@@ -66,7 +66,7 @@
    const revision=data.revisions?.[0];if(!revision){basis.textContent='저장된 교정 버전이 없습니다. 3단계에서 교정 버전을 저장하세요.';return;}
    local.revision=revision;basis.textContent=`검사 대상: 교정 v${revision.revision_number} · ${new Date(revision.created_at).toLocaleString('ko-KR')}`;
    const frame=el('iframe');frame.className='review-print-engine';frame.title='기존 템플릿 검사 모듈';frame.setAttribute('aria-hidden','true');frame.tabIndex=-1;frame.src=`./index.html?productionRequest=${encodeURIComponent(requestId)}&productionRevision=${encodeURIComponent(revision.id)}&productionEmbedded=1&productionInspection=1`;local.frame=frame;host.append(frame);local.timer=setTimeout(()=>{if(session===local){status.textContent='검사 화면 준비 시간이 초과되었습니다. 다른 단계로 이동한 뒤 다시 열어 주세요.';local.busy=false;sync();}},120000);
-   local.poll=setInterval(()=>{if(session===local&&local.ready&&!local.busy&&['queued','processing'].includes(local.job?.status))command('status');},10000);
+   local.poll=setInterval(()=>{if(session!==local)return;if(local.busy&&['request','retry'].includes(local.pendingAction)){const seconds=Math.floor((Date.now()-local.startedAt)/1000);status.textContent=`${local.progressMessage} · ${Math.floor(seconds/60)}분 ${seconds%60}초 경과`;return;}if(local.ready&&!local.busy&&['queued','processing'].includes(local.job?.status))command('status');},10000);
   }catch(error){if(session===local)status.textContent=error.message;}})();
  }
  function clear(){if(session){clearTimeout(session.timer);clearInterval(session.poll);session.frame?.remove();session=null;}}
