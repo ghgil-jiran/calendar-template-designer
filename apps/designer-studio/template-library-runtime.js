@@ -546,16 +546,14 @@ async function runRenderPreflight(){
   try{preflightRenderParity=await captureRenderParity(preflightProject);renderCurrentPreflight(preflightRenderParity?.generated?'Print Document·화면 검사를 완료했습니다.':'Print Document·화면 검사 결과를 확인해 주세요.')}finally{setPreflightBusy('runTemplateRenderCheckBtn',false);setPreflightButtonLabel('runTemplateRenderCheckBtn','검사 완료 · 다시 검사')}
  }
 function renderProductionPreflight(inspection){
-  const status=el('templatePreflightStatus'),host=el('templatePreflightArtifact'),report=inspection.readiness;
-  status.className='template-preflight-status blocked';status.innerHTML=`<strong>교정 v${inspection.identity.revisionNumber} · 출력 연결 준비 중</strong><span>${escape(inspection.message)}</span>`;
-  host.classList.remove('hidden');host.innerHTML=`<h3>저장 교정 버전의 핵심 자동검사</h3><p>${inspection.inventory.pages}면 · 원본 ${inspection.inventory.sources}개 · 이미지 배치 ${inspection.inventory.imageUses}곳. PDF 작업 미생성 · 최종 승인 미완료.</p><p>${report.blockers.map(item=>escape(item.message)).join('<br>')}</p><table><thead><tr><th>면</th><th>개체</th><th>출력 연결에 필요한 항목</th></tr></thead><tbody>${report.items.map(item=>`<tr><td>${escape(item.pageNumber||item.pageId)}</td><td>${escape(item.role||item.type)} · ${escape(item.objectId)}</td><td>${escape(item.message)}</td></tr>`).join('')}</tbody></table>`;
+  const status=el('templatePreflightStatus'),host=el('templatePreflightArtifact');
+  status.className='template-preflight-status blocked';status.innerHTML=`<strong>교정 v${inspection.identity.revisionNumber} · 기존 PDF 검사 연결 전</strong><span>${escape(inspection.message)}</span>`;
+  host.classList.remove('hidden');host.innerHTML=`<h3>저장 교정 버전의 인쇄 검사</h3><p>${inspection.inventory.pages}면 · 원본 ${inspection.inventory.sources}개 · 이미지 배치 ${inspection.inventory.imageUses}곳.</p><p>기존 PDF Worker에 이 교정 버전의 문서와 보관 원본을 연결하는 작업이 필요합니다. PDF 작업과 최종 인쇄 승인 결과는 아직 없습니다.</p>`;
   el('downloadTemplatePrintPdfBtn').disabled=true;
-  const jobsHost=document.createElement('section');host.append(jobsHost);jobsHost.textContent='이 버전의 이미지 준비 작업을 조회합니다…';
-  window.ACDLProductionEditor.imageJobs().then(jobs=>{if(!jobsHost.isConnected)return;const labels={queued:'Worker 대기',processing:'이미지 준비 중',prepared:'CMYK 이미지 준비 완료 · 최종 PDF 별도',failed:'실패'};jobsHost.innerHTML='<h4>교정 버전 이미지 준비 작업</h4>'+(jobs.length?jobs.map(job=>`<p><strong>${escape(labels[job.status]||job.status)}</strong> · ${escape(job.id)}${job.progress?` · ${escape(job.progress.stage||'')} ${Number(job.progress.completed)||0}/${Number(job.progress.total)||0}`:''}${job.error?` · ${escape(job.error)}`:''}</p>`).join(''):'<p>원본·배치 검사 결과에서 CMYK 이미지 준비를 요청할 수 있습니다.</p>');}).catch(error=>{if(jobsHost.isConnected)jobsHost.textContent=error.message;});
  }
  async function runProductionFinalPreflight(){
   preflightActiveGate=2;setPreflightBusy('runTemplateFinalPreflightBtn',true,'저장 버전 확인 중…');
-  try{const inspection=await window.ACDLProductionEditor.prepareNativePreflight();preflightProductionInspection=inspection;renderCurrentPreflight();}catch(error){const status=el('templatePreflightStatus');status.className='template-preflight-status blocked';status.innerHTML=`<strong>교정 버전 검사 중단</strong><span>${escape(error.message)}</span>`;}finally{setPreflightBusy('runTemplateFinalPreflightBtn',false);setPreflightButtonLabel('runTemplateFinalPreflightBtn','출력 준비 다시 확인');}
+  try{const inspection=await window.ACDLProductionEditor.preparePrintPreflight();preflightProductionInspection=inspection;renderCurrentPreflight();}catch(error){const status=el('templatePreflightStatus');status.className='template-preflight-status blocked';status.innerHTML=`<strong>교정 버전 검사 중단</strong><span>${escape(error.message)}</span>`;}finally{setPreflightBusy('runTemplateFinalPreflightBtn',false);setPreflightButtonLabel('runTemplateFinalPreflightBtn','검사 연결 상태 확인');}
  }
  async function runFinalPreflight(){
   if(preflightRecord?.productionProject)return runProductionFinalPreflight();

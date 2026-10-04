@@ -1,4 +1,4 @@
-import './production-print-readiness.js';
+import '../apps/designer-studio/native-print-authoring.js';
 import { documentHash } from './production-corrections.js';
 import { inspectRaster, MAX_BYTES, storage } from './production-correction-assets.js';
 
