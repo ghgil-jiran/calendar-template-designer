@@ -43,6 +43,7 @@
   const parity=options.parity||root.ACDLIntegrationParity;
   const pageAdapter=options.pageAdapter||root.ACDLDeskAcademicPageAdapter;
   function adapt(project,pageInstances=project.book.pageInstances||[],datasetOverride){
+   if(project.productionCorrection&&root.ACDLProductionEditorAdapter){const document=root.ACDLProductionEditorAdapter.toDocument(project);return {template:{...document.template,pages:document.template.pages.map(page=>({...page,objects:page.objects.map(object=>({...object,value:object.payload}))}))},dataset:document.dataset};}
    const size=project.productType.pageSize,dataset=datasetOverride||datasetDomain.buildRuntimeDataset(project);
    const pages=pageInstances.map((page,index)=>{
     const sourcePageId=page.sourcePageId||page.id,master=project.template.masterElements?.[page.masterId]||[],pageElements=project.book.elementsByPage||{},local=Object.prototype.hasOwnProperty.call(pageElements,page.id)?pageElements[page.id]:(pageElements[sourcePageId]||[]),visibleElements=root.ACDLPageCompositionRuntime.visibleElements(page,master,local),objects=visibleElements.map((element,objectIndex)=>legacyObject(element,size.width,size.height,objectIndex,project,page));

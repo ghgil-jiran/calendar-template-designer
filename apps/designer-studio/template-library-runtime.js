@@ -238,6 +238,7 @@
   summary.textContent=`${scopeText} · ${countText}개 템플릿 · Edition ${el('libraryEditionFilter')?.value||'all'}`;
  }
  async function projectForRecord(record,{onProgress}={}){
+  if(record.productionProject)return structuredClone(record.productionProject);
   let source=await loadTemplateProjectData(record.id,{onProgress});
   if(source)return structuredClone(source);
   const preset=(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[]).find(item=>item.recommended)||(SIZE_PRESETS[record.type]||SIZE_PRESETS.desk||[])[0];
@@ -510,6 +511,15 @@
  }
  async function prepareDraftPrintInspectionPackage(){
   const publishing=window.ACDLTemplatePublishing,remote=window.ACDLTemplateRemotePersistence;
+  if(preflightRecord?.productionProject){
+   if(preflightIdentity?.sha256)return preflightIdentity;
+   const candidate=structuredClone(preflightProject);
+   if(candidate.template?.nativePrintAuthoring?.enabled!==true)throw new Error('이 교정본의 네이티브 인쇄 정의를 먼저 연결해야 합니다. 기존 PDF 변환 경로로 대체하지 않습니다.');
+   await window.ACDLProductionEditor.inlinePrintAssets(candidate);
+   const result=await publishing.preparePrintInspection({record:{packageId:candidate.template.publishing.packageId},projectData:candidate,name:preflightRecord.name,productType:preflightRecord.type});
+   preflightProject=candidate;preflightRecord.productionProject=structuredClone(candidate);publishing.completePublication?.(result.templateId,result.version);
+   return candidate.template.publishing.lastPrintInspectionPackage;
+  }
   if(!publishing?.preparePrintInspection)throw new Error('인쇄검사용 Package 준비 기능을 불러오지 못했습니다.');
   if(!remote?.isRemote?.())throw new Error('초안 인쇄검사 식별 정보를 저장하려면 원격 저장 연결이 필요합니다.');
   const candidate=window.ACDLPersistenceProject.clone(preflightProject),record=preflightRecord,state=record.state||candidate?.template?.metadata?.state||'draft';
@@ -557,6 +567,7 @@ async function refreshPreflightResult(){
  window.renderUserTemplateChoices=renderUserChoices;renderUserTemplateChoices=renderUserChoices;
  window.applyCalendarType=type=>{oldApplyType(type);selectedCalendarType=type;el('selectedTypeLabel')&&(el('selectedTypeLabel').textContent=label(type));renderTypeChoices();renderUserChoices()};applyCalendarType=window.applyCalendarType;
  window.ACDLTemplateCatalog={allTypes,records,typeMeta,renderTypeChoices,renderTypeFilters};
+ window.ACDLProductionPreflight={open:openPrintPreflight};
  ensureTypeOptions();renderTypeChoices();renderTypeFilters();renderUserChoices();installTemplateSaveProgress();installCloneDialog();installPermanentDeleteDialog();installTemplateOpenProgress();
  document.querySelectorAll('[data-library-state]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-library-state]').forEach(x=>x.classList.toggle('active',x===button));activeLibraryState=button.dataset.libraryState;setTimeout(()=>renderLibrary(button.dataset.libraryState),0)}));
  el('libraryStandardFilter')?.addEventListener('click',event=>{activeStandardOnly=!activeStandardOnly;event.currentTarget.classList.toggle('active',activeStandardOnly);event.currentTarget.setAttribute('aria-pressed',String(activeStandardOnly));renderLibrary(activeLibraryState)});
