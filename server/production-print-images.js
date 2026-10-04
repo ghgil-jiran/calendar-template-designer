@@ -12,9 +12,15 @@ export function productionImagePlan(revision) {
     function collect(value) {
       if (typeof value === 'string' && /^(production|package)-asset:\/\//.test(value)) refs.add(value);
       else if (Array.isArray(value)) value.forEach(collect);
-      else if (value && typeof value === 'object') Object.values(value).forEach(collect);
+      else if (value && typeof value === 'object') {
+        if (value.ref === 'package' && typeof value.id === 'string') refs.add(`package-asset://${value.id}`);
+        Object.values(value).forEach(collect);
+      }
     }
     collect(object.payload); collect(object.assetRef);
+    // A visible raster with an absent/foreign reference must not disappear from the report.
+    const hasImageField = object.payload && typeof object.payload === 'object' && ['image', 'imageRef', 'assetRef', 'src'].some(key => object.payload[key]);
+    if (!refs.size && (['image', 'image-frame'].includes(object.type) || object.type === 'semantic-object' && hasImageField)) refs.add(`unresolved-image://${object.id}`);
     for (const source of refs) {
       const payload = object.payload?.image && typeof object.payload.image === 'object' ? object.payload.image : object.payload || {};
       const fullFrame = ['image', 'image-frame'].includes(object.type) || object.type === 'semantic-object' && ['school-logo', 'school-building'].includes(object.role);
