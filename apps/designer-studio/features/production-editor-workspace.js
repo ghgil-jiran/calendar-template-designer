@@ -27,7 +27,7 @@
    const receipt=await api(`/api/production-requests?id=${encodeURIComponent(requestId)}`);launchUpdate('progress','템플릿과 최신 교정 버전 불러오는 중…',45);const data=await api(`/api/production-corrections?requestId=${encodeURIComponent(requestId)}&editor=1`);
    if(!auth.isSignedIn())throw Error('관리자 로그인이 필요합니다.');
    if(!['reviewing','changes'].includes(receipt.receipt.status))throw Error('제작 검수 1단계에서 검수를 시작한 뒤 교정할 수 있습니다.');
-   assets=[...receipt.assets,...data.assets];for(const a of assets)register(`production-asset://${a.id}`,a.url);for(const a of data.editorSource.assets)register(a.marker,a.url);
+   assets=[...receipt.assets.map(a=>({...a,inspectionOrigin:"receipt"})),...data.assets.map(a=>({...a,inspectionOrigin:"correction"}))];for(const a of assets)register(`production-asset://${a.id}`,a.url);for(const a of data.editorSource.assets)register(a.marker,a.url);
    const revision=data.revisions[0]||null;if(inspectionMode&&(!revision||revision.id!==query.get('productionRevision')))throw Error('검사할 교정 버전이 변경되었습니다. 검수 화면에서 다시 선택해 주세요.');const runtimeDocument=revision?.document||receipt.receipt.snapshot.document;
    launchUpdate('progress','보관 이미지 연결·편집 화면 구성 중…',70);
    const raw=runtimeDocument.editorProject||adapter.createProject(data.editorSource.projectData,runtimeDocument,requestId);
@@ -176,7 +176,7 @@
      const report=await window.ACDLProductionPreflight.inspect({id:`production-${revisionId}`,name:`${state.receipt.school_name} · 교정 v${state.revision.revision_number}`,type:candidate.productType.category,edition:candidate.settings.year,state:'draft',version:state.revision.revision_number,productionProject:candidate});
      const images=await inspectImages();
      const errors=(report.issues||[]).filter(item=>item.severity==='error');const warnings=(report.issues||[]).filter(item=>item.severity==='warning');
-     for(const item of images.results){if(item.status==='blocked')errors.push({message:item.message});for(const placement of item.placements||[])if(placement.status==='unresolved')errors.push({message:`${placement.pageNumber}면 · ${placement.role}: 배치 확인 불가`});else if(placement.status==='warning')warnings.push({message:`${placement.pageNumber}면 · ${placement.role}: ${placement.effectiveDpi} DPI`});}
+     for(const item of images.results){if(item.status==='blocked')errors.push({message:item.message});for(const placement of item.placements||[])if(placement.status==='unresolved')errors.push({message:`${placement.pageNumber}면 · ${placement.role}: 배치 확인 불가`});else if(placement.status==='warning')warnings.push({code:"IMAGE_LOW_DPI",source:item.source,origin:item.source.startsWith("package-asset://")?"template":assets.find(asset=>`production-asset://${asset.id}`===item.source)?.inspectionOrigin||"unknown",pageNumber:placement.pageNumber,role:placement.role,effectiveDpi:placement.effectiveDpi,minimumDpi:images.plan.minimumDpi,message:`${placement.pageNumber}면 · ${placement.role}: ${placement.effectiveDpi} DPI`});}
      lastQuick={revisionId,documentHash:state.revision.document_hash,errors:errors.length,warnings:warnings.length,completedAt:new Date().toISOString()};result={report,images,errors,warnings,identity:{revisionId,documentHash:state.revision.document_hash},finalApproved:false};
     }else if(action==='request'){
      if(!lastQuick||lastQuick.revisionId!==revisionId||lastQuick.errors)throw Error('빠른 검사를 완료하고 오류를 해결한 뒤 최종 생성을 요청하세요.');

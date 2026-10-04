@@ -320,3 +320,13 @@ test('a missing AI image set cannot bypass an unfinished core output gate',()=>{
  assert.equal(report.gates[3].access,'locked');
  assert.equal(report.gates[4].access,'locked');
 });
+
+test('calendar adapter metadata is cataloged only on calendar objects; unknown keys still warn',()=>{
+ const value=project(),keys=['design','presetId','gridStyle','eventStyle','sampleFamily','weekdayStyle','calendarLayout','calendarPreset','gridBackground','monthTitleSize','monthTitleAlign','monthTitleStyle','rangeEventStyle','calendarOverrides','showAdjacentMonths','monthTitleFontFamily','eventMaxVisiblePerDay','authoredRegionFramePct','authoredRegionHeightPct'];
+ value.book.elementsByPage['month-1']=[{id:'calendar',type:'calendar',style:Object.fromEntries(keys.map(key=>[key,{}]))}];
+ assert.equal(analyze(value).issues.filter(item=>item.code==='STYLE_NOT_CATALOGED').length,0);
+ value.book.elementsByPage['month-1'][0].style.unrecognizedCalendarToken=true;
+ assert.equal(analyze(value).issues.filter(item=>item.code==='STYLE_NOT_CATALOGED').length,1);
+ value.book.elementsByPage['month-1'][0].type='text';
+ assert.equal(analyze(value).issues.filter(item=>item.code==='STYLE_NOT_CATALOGED').length,20);
+});

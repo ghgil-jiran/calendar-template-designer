@@ -1,6 +1,14 @@
 (()=>{
  let session=null;
  const el=(tag,text)=>{const node=document.createElement(tag);if(text!==undefined)node.textContent=text;return node;};
+ function warningGroups(items){
+  const groups=new Map(),origins={template:'템플릿 이미지',receipt:'접수 보관 이미지',correction:'관리자 교정 이미지',unknown:'출처 확인 필요'},roles={'ai-design-background':'배경','ai-month-back-component':'월 뒤 구성 이미지','school-building':'학교사진','school-song':'교가'};
+  for(const item of items){
+   const image=item.code==='IMAGE_LOW_DPI',key=image?JSON.stringify([item.origin,item.source,item.role,item.effectiveDpi,item.minimumDpi]):JSON.stringify([item.code,item.message]);
+   const group=groups.get(key)||{...item,count:0,pages:new Set()};group.count++;if(item.pageNumber)group.pages.add(item.pageNumber);else{const match=item.path?.match(/^pages\[(\d+)\]/);if(match)group.pages.add(Number(match[1])+1);}groups.set(key,group);
+  }
+  return [...groups.values()].map(group=>{const pages=[...group.pages].sort((a,b)=>a-b),where=pages.length?` · ${pages.join(', ')}면`:'',repeated=group.count>1?` · ${group.count}건`:'';return group.code==='IMAGE_LOW_DPI'?`${origins[group.origin]||origins.unknown} · ${roles[group.role]||group.role} · ${group.effectiveDpi} DPI / 기준 ${group.minimumDpi} DPI${where}${repeated}`:`${group.message}${where}${repeated}`;});
+ }
  function mount(host,current,onCorrection){
   clear();const auth=window.ACDLAdminAuth,requestId=current.receipt.id,local={requestId,frame:null,revision:null,ready:false,busy:false,quick:null,job:null,timer:null,poll:null};session=local;
   const intro=el('section');intro.className='review-material-intro';intro.append(el('p','저장한 교정 버전으로 인쇄 품질을 확인합니다. 먼저 빠른 검사 결과와 경고를 검토하고, 교정이 끝났을 때만 최종 인쇄 PDF 생성·검사를 실행하세요.'));
@@ -25,7 +33,8 @@
   }
   function showQuick(result){
    local.quick=result;accepted.checked=false;consent.hidden=!result.warnings.length;record.hidden=false;results.replaceChildren(el('h4','빠른 검사 결과'),el('p',`오류 ${result.errors.length}개 · 경고 ${result.warnings.length}개 · ${result.images.plan.uses.length}개 이미지 배치`));
-   for(const [label,items] of [['오류 · 교정 필요',result.errors],['경고 · 관리자 확인',result.warnings]])if(items.length){const details=el('details');details.open=label.startsWith('오류');details.append(el('summary',`${label} ${items.length}개`));const list=el('ul');for(const item of items)list.append(el('li',item.message));details.append(list);results.append(details);}
+   for(const [label,items] of [['오류 · 교정 필요',result.errors],['경고 · 관리자 확인',result.warnings]])if(items.length){const details=el('details');details.open=label.startsWith('오류');details.append(el('summary',`${label} ${items.length}개`));const list=el('ul'),messages=label.startsWith('오류')?items.map(item=>item.message):warningGroups(items);if(!label.startsWith('오류'))details.append(el('p',`동일한 경고를 묶어 ${messages.length}개 항목으로 표시합니다. 검사 기록에는 전체 ${items.length}건을 보존합니다.`));for(const message of messages)list.append(el('li',message));details.append(list);results.append(details);}
+   if(result.warnings.some(item=>item.code==='IMAGE_LOW_DPI'))results.append(el('p','접수 보관 이미지는 사용자·템플릿 원본이 함께 포함될 수 있습니다. 출처가 기록된 범위에서 구분합니다. 저해상도 이미지는 최종 PDF에서 선명도를 확인하세요. 교가 등 글자가 포함된 이미지는 작은 글자까지 확인하고, 필요한 경우 3단계에서 원본을 교체하거나 배치 크기를 조정하세요. CMYK 변환은 해상도를 개선하지 않습니다.'));
    results.append(el('small','빠른 검사는 생성 전 점검입니다. CMYK 색상·PDF/X-4·서체·최종 PDF의 품질은 Worker 결과에서 확인합니다.'));
   }
   function showJob(job){
