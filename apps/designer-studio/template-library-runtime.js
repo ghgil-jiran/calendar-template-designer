@@ -514,7 +514,7 @@
   if(preflightRecord?.productionProject){
    if(preflightIdentity?.sha256)return preflightIdentity;
    const candidate=structuredClone(preflightProject);
-   if(candidate.template?.nativePrintAuthoring?.enabled!==true)throw new Error('이 교정본의 네이티브 인쇄 정의를 먼저 연결해야 합니다. 기존 PDF 변환 경로로 대체하지 않습니다.');
+   const readiness=await window.ACDLProductionEditor.inspectNativeReadiness();if(readiness.status!=='ready'){const reasons=[...readiness.blockers.map(item=>item.message),...readiness.items.slice(0,8).map(item=>`${item.pageNumber||'?'}면 · ${item.role||item.type} (${item.objectId}): ${item.message}${item.effectiveDpi!=null?' · '+item.effectiveDpi+' DPI':''}`)];throw new Error(`교정 v${readiness.revisionNumber} 출력 준비: ${readiness.counts.blocked}개 해결 필요, ${readiness.counts.pending}개 보관 필요. ${reasons.join(' / ')}${readiness.items.length>8?' / 전체 항목은 교정 에디터의 출력 준비 확인에서 조회하세요.':''}`);}
    await window.ACDLProductionEditor.inlinePrintAssets(candidate);
    const result=await publishing.preparePrintInspection({record:{packageId:candidate.template.publishing.packageId},projectData:candidate,name:preflightRecord.name,productType:preflightRecord.type});
    preflightProject=candidate;preflightRecord.productionProject=structuredClone(candidate);publishing.completePublication?.(result.templateId,result.version);

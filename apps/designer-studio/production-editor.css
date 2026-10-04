@@ -4,3 +4,5 @@
 
 .production-correction-mode .workspace{height:var(--production-workspace-height,calc(100dvh - 190px));min-height:0}
 @media(max-width:980px){.production-correction-mode .workspace{height:auto}}
+
+.production-print-readiness{width:min(1100px,92vw);max-height:85dvh;overflow:auto;border:1px solid var(--acds-border);border-radius:12px;padding:24px;color:var(--acds-text)}.production-print-readiness::backdrop{background:rgba(15,23,42,.5)}.production-print-readiness table{width:100%;border-collapse:collapse;text-align:left}.production-print-readiness th,.production-print-readiness td{padding:10px;border-bottom:1px solid var(--acds-border);overflow-wrap:anywhere}.production-print-readiness button{margin-top:20px;padding:8px 20px}
