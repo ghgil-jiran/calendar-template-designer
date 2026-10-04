@@ -31,3 +31,9 @@ GET /api/production-print-readiness?requestId=...&revisionId=... 는 Master Admi
 해상도는 공통 native-print-authoring.effectiveImageDpi를 사용한다. 직접 이미지와 교표/학교 전경의 전체 프레임에 대해 실제 mm·fit·확대율로 계산한다. 한 원본의 여러 면 배치를 각각 검사한다. 교가/교목/교화 등의 복합 개체, 중첩 개체, 여러 이미지 참조가 있는 개체는 내부 배치가 확정되기 전까지 unresolved다. 미리보기의 전체 프레임을 이미지 영역으로 가정해 통과시키지 않는다.
 
 결과 JSON은 접수·버전·문서 SHA·원본 SHA와 배치 결과를 포함하며 다운로드할 수 있다. 서버 검사 이력 저장이나 인쇄 승인 기록은 아니며 재진입 시 다시 검사한다. 픽셀 크기 검사는 헤더 기준이고 완전한 디코딩 검사는 아니다. RGB 원본의 CMYK 파생 이미지 생성과 native Worker 연결은 후속 구현이 필요하다. 새 SQL은 없다.
+
+### jsonb 문서 해시 호환
+
+이전 버전은 JSON.stringify의 속성 순서로 document_hash를 계산했으므로 jsonb 저장 후 재조회할 때 같은 내용도 해시가 달라질 수 있었다. 신규 저장은 productionIntegrity.hashScheme=sorted-json.v1을 기록하고 모든 중첩 객체 키를 정렬해 SHA-256을 계산한다. 배열 순서는 유지하며 재조회한 문서의 정렬 해시를 저장 해시와 검증한다.
+
+이전 버전은 기존 document_hash를 버전 식별자로 보존한다. 원래 직렬화 순서는 복원할 수 없으므로 기존 저장 해시를 재검증했다고 표시하지 않는다(integrity.storedHashVerified=false). 현재 조회한 문서의 contentHash를 별도로 계산해 계획 조회와 각 원본 검사 사이의 동일 내용 여부를 검증한다. 기존 접수·교정본을 갱신하거나 새 버전 저장을 요구하지 않는다. 내용 불일치에는 409와 구체적인 안내를 반환한다.

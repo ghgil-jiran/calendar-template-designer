@@ -1,6 +1,6 @@
 import { assertInternalAccess,sendError,sendJson,supabaseRequest } from '../server/template-persistence.js';
 import { correctionAssets,signedAsset } from '../server/production-correction-assets.js';
-import { uuid,applyCorrections,documentHash } from '../server/production-corrections.js';
+import { uuid,applyCorrections,sealProductionDocument } from '../server/production-corrections.js';
 import { loadProductionEditorSource } from '../server/production-editor-source.js';
 import { validateEditorCorrection } from '../server/production-editor-corrections.js';
 export default async function handler(request,response){
@@ -30,7 +30,8 @@ export default async function handler(request,response){
   const duplicate=revisions.find(r=>r.id===body.id);if(duplicate)return sendJson(response,200,{revision:duplicate});
   const latest=revisions[0];if((latest?.id||null)!==(body.baseRevisionId||null))return sendJson(response,409,{message:'다른 교정본이 저장되었습니다. 다시 불러온 뒤 작업해 주세요.'});
   let document;try{document=body.editorProject?await validateEditorCorrection(body.editorProject,latest?.document||receipt.snapshot.document,receipt.snapshot,body.requestId,[...(receipt.snapshot.assets||[]),...addedAssets]):applyCorrections(latest?.document||receipt.snapshot.document,body.patches,[...(receipt.snapshot.assets||[]),...addedAssets]);}catch(error){return sendJson(response,400,{message:error.message});}
-  const result=await supabaseRequest('rpc/save_calendar_production_revision',{method:'POST',body:JSON.stringify({p_id:body.id,p_request_id:body.requestId,p_base_revision_id:body.baseRevisionId||null,p_document:document,p_document_hash:documentHash(document),p_note:body.note.trim(),p_created_by:admin.id})});
+  const hash=sealProductionDocument(document);
+  const result=await supabaseRequest('rpc/save_calendar_production_revision',{method:'POST',body:JSON.stringify({p_id:body.id,p_request_id:body.requestId,p_base_revision_id:body.baseRevisionId||null,p_document:document,p_document_hash:hash,p_note:body.note.trim(),p_created_by:admin.id})});
   return sendJson(response,201,{revision:Array.isArray(result)?result[0]:result});
  }catch(error){if(/revision conflict/i.test(error.message||''))return sendJson(response,409,{message:'다른 교정본이 저장되었습니다. 팝업을 다시 열어 주세요.'});if(/calendar_production_revisions|save_calendar_production_revision/.test(error.message||''))return sendJson(response,503,{error:'CORRECTION_DATABASE_NOT_READY',message:'교정본 저장용 새 SQL(202610030002)을 Supabase에 적용한 뒤 팝업을 다시 열어 주세요.'});return sendError(response,error);}
 }

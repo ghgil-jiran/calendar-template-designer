@@ -107,8 +107,8 @@
     setStatus(`원본 파일·배치 검사 중 · ${index+1}/${plan.sources.length}`);
     try{
      if(!source.startsWith('production-asset://'))throw Error('이 이미지의 접수 보관 원본 연결이 필요합니다.');
-     const {report}=await api(`/api/production-print-images?${query}&assetId=${encodeURIComponent(source.slice(19))}`);
-     if(report.documentHash!==plan.documentHash||report.source!==source)throw Error('원본 검사 결과가 저장 버전과 일치하지 않습니다.');
+     const {report}=await api(`/api/production-print-images?${query}&assetId=${encodeURIComponent(source.slice(19))}&contentHash=${encodeURIComponent(plan.contentHash)}`);
+     if(report.documentHash!==plan.documentHash||report.contentHash!==plan.contentHash||report.source!==source)throw Error('원본 검사 결과가 저장 버전과 일치하지 않습니다.');
      results.push(report);
     }catch(error){results.push({source,status:'blocked',message:error.message});}
    }

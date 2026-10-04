@@ -4,7 +4,11 @@ import { inspectRaster, MAX_BYTES, storage } from './production-correction-asset
 
 // Read the frozen Runtime objects, never the current template or an editing draft.
 export function productionImagePlan(revision) {
-  if (documentHash(revision.document) !== revision.document_hash) throw Error('저장된 교정 문서의 해시가 일치하지 않습니다.');
+  const contentHash = documentHash(revision.document), scheme = revision.document.productionIntegrity?.hashScheme;
+  // Legacy hashes were computed before jsonb reordered keys; their original byte
+  // serialization is unavailable. Keep the stored revision identity unchanged.
+  if (scheme && scheme !== 'sorted-json.v1') throw Object.assign(Error('지원하지 않는 교정 문서 해시 형식입니다.'), {statusCode:409, code:'PRINT_DOCUMENT_HASH_SCHEME_UNSUPPORTED'});
+  if (scheme === 'sorted-json.v1' && contentHash !== revision.document_hash) throw Object.assign(Error('저장된 교정 문서의 내용이 해시와 일치하지 않습니다.'), {statusCode:409, code:'PRINT_DOCUMENT_HASH_MISMATCH'});
   const uses = [];
   function visit(object, page, pageNumber, nested = false) {
     if (object.visible === false) return;
@@ -33,7 +37,7 @@ export function productionImagePlan(revision) {
     (object.children || []).forEach(child => visit(child, page, pageNumber, true));
   }
   (revision.document.template?.pages || []).forEach((page, index) => (page.objects || []).forEach(object => visit(object, page, index + 1)));
-  return {schemaVersion: 'production-image-plan.v1', revisionId: revision.id, revisionNumber: revision.revision_number, documentHash: revision.document_hash, minimumDpi: 300, sources: [...new Set(uses.map(use => use.source))], uses};
+  return {schemaVersion: 'production-image-plan.v1', revisionId: revision.id, revisionNumber: revision.revision_number, documentHash: revision.document_hash, contentHash, integrity:{scheme:scheme || 'legacy-stored-identity',storedHashVerified:scheme === 'sorted-json.v1'}, minimumDpi: 300, sources: [...new Set(uses.map(use => use.source))], uses};
 }
 
 export function inspectProductionImageBytes(plan, source, asset, bytes) {
@@ -47,7 +51,7 @@ export function inspectProductionImageBytes(plan, source, asset, bytes) {
     const dpi = use.measurable ? globalThis.ACDLNativePrintAuthoring.effectiveImageDpi({pixelWidth: info.width, pixelHeight: info.height, frameWidthMm: use.frameMm.width, frameHeightMm: use.frameMm.height, fit: use.fit, scale: use.scale}) : null;
     return {...use, effectiveDpi: dpi, status: dpi === null ? 'unresolved' : dpi >= plan.minimumDpi ? 'passed' : 'warning'};
   });
-  return {revisionId: plan.revisionId, documentHash: plan.documentHash, source, sourceHash: info.contentHash, byteSize: bytes.length, pixelWidth: info.width, pixelHeight: info.height, mimeType: info.mimeType, inspectionBasis: 'file-size-header-sha256', placements, cmykDerived: false, finalApproved: false};
+  return {revisionId: plan.revisionId, documentHash: plan.documentHash, contentHash:plan.contentHash, integrity:plan.integrity, source, sourceHash: info.contentHash, byteSize: bytes.length, pixelWidth: info.width, pixelHeight: info.height, mimeType: info.mimeType, inspectionBasis: 'file-size-header-sha256', placements, cmykDerived: false, finalApproved: false};
 }
 
 export async function readProductionImage(asset, bucket) {

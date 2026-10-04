@@ -12,4 +12,15 @@ export function applyCorrections(document,patches,assets){
  }
  return copy;
 }
-export const documentHash = document => createHash('sha256').update(JSON.stringify(document)).digest('hex');
+// jsonb does not retain object insertion order. Arrays still carry semantic order.
+export function documentHash(document) {
+ const json=JSON.parse(JSON.stringify(document));
+ function ordered(value){if(Array.isArray(value))return value.map(ordered);if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(key=>[key,ordered(value[key])]));return value;}
+ return createHash('sha256').update(JSON.stringify(ordered(json))).digest('hex');
+}
+export function sealProductionDocument(document){
+ document.productionIntegrity={hashScheme:'sorted-json.v1'};
+ const base=document.editorProject?.productionCorrection?.baseDocument;
+ if(base)base.productionIntegrity={...document.productionIntegrity};
+ return documentHash(document);
+}

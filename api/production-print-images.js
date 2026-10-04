@@ -6,11 +6,12 @@ export default async function handler(request, response) {
   try {
     await assertInternalAccess(request); response.setHeader('Cache-Control', 'no-store');
     if (request.method !== 'GET') { response.setHeader('Allow', 'GET'); return sendJson(response, 405, {message: '조회만 가능합니다.'}); }
-    const {requestId, revisionId, assetId} = request.query || {};
+    const {requestId, revisionId, assetId, contentHash} = request.query || {};
     if (!uuid(requestId) || !uuid(revisionId) || assetId != null && !uuid(assetId)) return sendJson(response, 400, {message: '접수 건과 교정 버전을 확인해 주세요.'});
     const rows = await supabaseRequest(`calendar_production_revisions?request_id=eq.${requestId}&id=eq.${revisionId}&select=id,revision_number,document_hash,document&limit=1`);
     if (!rows[0]) return sendJson(response, 404, {message: '해당 접수 건의 교정 버전을 찾지 못했습니다.'});
     const plan = productionImagePlan(rows[0]);
+    if(contentHash != null && contentHash !== plan.contentHash) return sendJson(response,409,{message:'검사 중 교정 문서 내용이 변경되었습니다. 다시 열어 주세요.',error:'PRINT_DOCUMENT_CONTENT_CHANGED'});
     if (!assetId) return sendJson(response, 200, {plan});
     const source = `production-asset://${assetId}`;
     if (!plan.sources.includes(source)) return sendJson(response, 400, {message: '이 교정 버전에 사용된 원본만 검사할 수 있습니다.'});
@@ -25,5 +26,8 @@ export default async function handler(request, response) {
       if (asset.path !== `${requestId}/${assetId}`) throw Error('교정 원본 경로가 일치하지 않습니다.');
     }
     return sendJson(response, 200, {report: inspectProductionImageBytes(plan, source, asset, await readProductionImage(asset, bucket))});
-  } catch (error) { return sendError(response, error); }
+  } catch (error) {
+    if(error.code?.startsWith('PRINT_DOCUMENT_'))return sendJson(response,error.statusCode||409,{error:error.code,message:error.message});
+    return sendError(response, error);
+  }
 }
