@@ -65,3 +65,11 @@ node tools/prepare-production-cmyk-images.mjs --bundle-dir "D:\학사달력\prod
 ```
 
 경로는 실제 환경에 맞춘다. ICC SHA는 별도로 확인한 프로파일 값을 지정한다. 변환 도중 실패하면 새 출력 폴더의 failure.json에 실패 원본·교정 버전·내용 해시·완료 수·이유를 기록하고 종료 코드 1을 반환한다. 이 폴더는 완료 manifest가 없으므로 인쇄 입력으로 사용할 수 없다. 기존 출력 덮어쓰기나 실패 이미지 생략은 하지 않는다. 원인을 해결한 뒤 다른 새 출력 폴더로 재실행한다. 실제 47개 원본·공식 ICC 실행은 관리자 로컬 검증이 필요하다.
+
+## 기존 인쇄 품질 검사 화면의 교정 버전 요청 연결
+
+2026-10-04: 기존 화면의 최종 생성·검사 및 상태 갱신은 교정본일 때 POST /api/production-print-preflight로 분기한다. 관리자 인증 후 접수 ID + 교정 버전 ID로 저장본을 읽고, 클라이언트의 저장 해시와 비교한다. 현재 문서의 정렬 contentHash도 확인한다. 새 템플릿 Package 게시나 기존 DOM Worker 요청으로 보내지 않는다.
+
+응답은 production-print-preflight.v1이고 jobCreated=false, status=blocked, finalApproved=false다. 네이티브 인쇄 정의·리소스와 Worker 연결이 아직 부족하므로 대기 Job이나 PDF를 생성하지 않는다. 기존 핵심 자동검사 영역에 버전·면수·원본 수·이미지 배치 수·전체 개체별 차단 사유를 표시한다. 같은 팝업에서 단계 이동 후 복귀하면 결과를 유지하며 검사 기록 JSON에도 productionInspection으로 포함한다. 다시 열면 결과를 재조회해야 하며 DB 검사 이력 저장은 아직 아니다. 새 SQL은 없다.
+
+이 변경은 저장 버전으로 검사 요청을 고정하는 경계와 기존 화면 연결이다. 실제 네이티브 PDF 작성/Worker 처리 완료를 뜻하지 않는다. 내부 진단 메뉴 숨김은 실제 출력 연결을 정리한 뒤 진행한다. 다음은 공통 Runtime 복합 개체의 손실 없는 인쇄 구성요소 확장, 폰트·CMYK 리소스 보관, 그 입력을 소비하는 native Worker 처리 경로다.
