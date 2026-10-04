@@ -47,7 +47,7 @@
   try{
    const input=canonical();adapter.toDocument(input);const fingerprint=JSON.stringify(input)+note.value.trim();if(fingerprint!==pendingFingerprint){pendingId=crypto.randomUUID();pendingFingerprint=fingerprint;}
    const result=await api('/api/production-corrections','POST',{requestId,id:pendingId,baseRevisionId:state.revision?.id||null,note:note.value.trim(),editorProject:input});
-   state.revision=result.revision;state.printInspection=null;project=map(result.revision.document.editorProject,'open');saved=JSON.stringify(canonical());pendingId=null;note.value='';stable();render();
+   state.revision=result.revision;state.printInspection=null;project=map(result.revision.document.editorProject,'open');pendingId=null;pendingFingerprint=null;note.value='';render();stable();saved=JSON.stringify(canonical());lastDirty=false;
    title.textContent=`CAL-${String(state.receipt.receipt_number).padStart(6,'0')} · ${state.receipt.school_name} · 교정 v${result.revision.revision_number}`;setStatus('새 교정 버전을 저장했습니다. 이 버전의 인쇄 검사를 진행할 수 있습니다.');
   }catch(error){setStatus(error.message);}finally{busy=false;sync();}
  }
