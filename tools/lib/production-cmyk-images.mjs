@@ -43,7 +43,7 @@ export async function convertRasterToCmyk(sourcePath,outputPath,iccPath,{runComm
  return {bytes,info:infoJpeg,inputProfileBasis:profiles.toLowerCase().includes('icc')?'embedded-icc':'explicit-srgb',...(!profiles.toLowerCase().includes('icc')?{inputIccSha256:sha(await readFile(srgbProfilePath))}:{}),engine:'imagemagick-lcms'};
 }
 
-export async function prepareProductionCmykImages({inspection,document,sourceDir,outputDir,iccPath,expectedIccSha256,srgbProfilePath,magickCommand,convertImage=convertRasterToCmyk}){
+export async function prepareProductionCmykImages({inspection,document,sourceDir,outputDir,iccPath,expectedIccSha256,srgbProfilePath,magickCommand,onProgress=()=>{},convertImage=convertRasterToCmyk}){
  if(inspection?.schemaVersion!=='production-image-inspection.v1'||!inspection.revisionId||!inspection.plan?.contentHash||inspection.plan.revisionId!==inspection.revisionId||inspection.plan.documentHash!==inspection.documentHash)throw Error('교정 버전과 연결된 원본 검사 기록이 필요합니다.');
  if(!document||documentHash(document)!==inspection.plan.contentHash)throw Error('동결된 교정 문서가 검사 당시 내용과 일치하지 않습니다.');
  const icc=inspectProductionIcc(await readFile(iccPath),expectedIccSha256),sourceRoot=await realpath(sourceDir),output=path.resolve(outputDir);
@@ -56,10 +56,19 @@ export async function prepareProductionCmykImages({inspection,document,sourceDir
  await mkdir(finalOutput);
  await writeFile(path.join(finalOutput,'pending.json'),JSON.stringify({revisionId:inspection.revisionId,contentHash:inspection.plan.contentHash}),{flag:'wx'});
  const derived=[];
- for(const source of sources){const report=reports.find(r=>r.source===source),id=source.slice(19),file=await realpath(path.join(sourceRoot,id));if(!within(sourceRoot,file))throw Error('원본 파일 경로가 보관 폴더 밖을 가리킵니다.');const bytes=await readFile(file);if(sha(bytes)!==report.sourceHash||bytes.length!==report.byteSize)throw Error('검사 당시 원본 SHA-256 또는 크기가 일치하지 않습니다.');
+ let activeSource=null;
+ try {
+ for(const source of sources){
+  activeSource=source;
+  onProgress({status:"converting",completed:derived.length,total:sources.length,source});const report=reports.find(r=>r.source===source),id=source.slice(19),file=await realpath(path.join(sourceRoot,id));if(!within(sourceRoot,file))throw Error('원본 파일 경로가 보관 폴더 밖을 가리킵니다.');const bytes=await readFile(file);if(sha(bytes)!==report.sourceHash||bytes.length!==report.byteSize)throw Error('검사 당시 원본 SHA-256 또는 크기가 일치하지 않습니다.');
   const filename=`${id}.cmyk.jpg`,result=await convertImage(file,path.join(finalOutput,filename),iccPath,{srgbProfilePath,magickCommand});
   if(result.info.width!==report.pixelWidth||result.info.height!==report.pixelHeight)throw Error('변환 과정에서 원본 픽셀 크기가 바뀌었습니다.');
   derived.push({source,sourceHash:report.sourceHash,sha256:sha(result.bytes),file:filename,mimeType:'image/jpeg',colorSpace:'cmyk',pixelWidth:result.info.width,pixelHeight:result.info.height,icc,inputProfileBasis:result.inputProfileBasis,inputIccSha256:result.inputIccSha256||null,engine:result.engine,placements:report.placements,conversionStatus:'prepared',finalApproved:false});
+ onProgress({status:'converted',completed:derived.length,total:sources.length,source});
+ }
+ } catch(error) {
+  await writeFile(path.join(finalOutput,'failure.json'),JSON.stringify({schemaVersion:'production-cmyk-failure.v1',revisionId:inspection.revisionId,contentHash:inspection.plan.contentHash,status:'failed',failedSource:activeSource,completed:derived.length,total:sources.length,message:error.message,finalApproved:false},null,2),{flag:'wx'});
+  throw error;
  }
  const manifest={schemaVersion:'production-cmyk-images.v1',requestId:inspection.requestId,revisionId:inspection.revisionId,documentHash:inspection.documentHash,contentHash:inspection.plan.contentHash,icc,derived,status:'prepared',finalApproved:false};
  // A pending directory without this manifest is never a usable print resource.
