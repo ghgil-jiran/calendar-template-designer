@@ -23,12 +23,12 @@
   const results=el('section'),worker=el('section');host.append(results,worker);
   const record=el('button','빠른 검사 기록 다운로드');record.type='button';record.className='review-button';record.hidden=true;record.onclick=()=>{if(!local.quick)return;const url=URL.createObjectURL(new Blob([JSON.stringify(local.quick,null,2)],{type:'application/json'})),a=el('a');a.href=url;a.download=`production-v${local.revision.revision_number}-quick-inspection.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};host.append(record);
   function sync(){const disabled=!local.ready||local.busy;quick.disabled=disabled;refresh.disabled=disabled;correction.disabled=local.busy;generate.disabled=disabled||!local.quick||local.quick.errors.length>0||local.quick.warnings.length>0&&!accepted.checked;download.disabled=disabled||local.job?.status!=='done';retry.disabled=generate.disabled;retry.hidden=!local.job||!['done','error'].includes(local.job.status);}
-  function command(action){
-   if(session!==local||!local.ready||local.busy||!auth.isSignedIn())return;
+  function command(action,{silent=false}={}){
+   if(session!==local||!local.ready||local.busy||local.statusPending||!auth.isSignedIn())return;
    if(['request','retry'].includes(action)&&generate.disabled)return;
    if(action==='retry'&&!confirm('기존 결과를 보존하고 이 버전의 최종 PDF를 다시 생성할까요? 30분 이상 걸릴 수 있습니다.'))return;
-   local.pendingAction=action;local.startedAt=Date.now();local.busy=true;if(["request","retry"].includes(action))worker.replaceChildren(el("h4","최종 인쇄 PDF·Worker 검사"),el("p","저장한 교정 버전과 원본 이미지를 준비하고 있습니다. 원본 수와 용량에 따라 수 분 걸릴 수 있습니다. 준비가 끝나면 작업 번호와 기존 Worker 실행 명령이 표시됩니다."));status.textContent=action==='quick'?'전체 면과 사용 원본을 검사하는 중…':action==='request'||action==='retry'?'보관 원본과 저장 버전을 고정하는 중…':'작업 결과 확인 중…';sync();
-   local.progressMessage=status.textContent;clearTimeout(local.timer);local.timer=setTimeout(()=>{if(session===local){local.busy=false;status.textContent='응답 대기 시간이 초과되었습니다. 생성 요청이었다면 결과 새로고침으로 기존 작업부터 확인하세요.';sync();}},action==='quick'?600000:360000);
+   local.silentStatus=action==='status'&&silent;local.statusPending=action==='status';local.pendingAction=action;local.startedAt=Date.now();local.busy=!local.silentStatus;if(["request","retry"].includes(action))local.jobRendered=false;if(["request","retry"].includes(action))worker.replaceChildren(el("h4","최종 인쇄 PDF·Worker 검사"),el("p","저장한 교정 버전과 원본 이미지를 준비하고 있습니다. 원본 수와 용량에 따라 수 분 걸릴 수 있습니다. 준비가 끝나면 작업 번호와 기존 Worker 실행 명령이 표시됩니다."));if(!local.silentStatus)status.textContent=action==='quick'?'전체 면과 사용 원본을 검사하는 중…':action==='request'||action==='retry'?'보관 원본과 저장 버전을 고정하는 중…':'작업 결과 확인 중…';sync();
+   local.progressMessage=status.textContent;clearTimeout(local.timer);local.timer=setTimeout(()=>{if(session===local){local.busy=false;local.statusPending=false;status.textContent='응답 대기 시간이 초과되었습니다. 생성 요청이었다면 결과 새로고침으로 기존 작업부터 확인하세요.';sync();}},action==='quick'?600000:360000);
    local.frame.contentWindow.postMessage({type:'calendar:production-inspection-command',requestId,revisionId:local.revision.id,action:action==='retry'?'request':action,force:action==='retry',warningsAccepted:accepted.checked,jobId:local.job?.id},location.origin);
   }
   function showQuick(result){
@@ -37,12 +37,14 @@
    if(result.warnings.some(item=>item.code==='IMAGE_LOW_DPI'))results.append(el('p','접수 보관 이미지는 사용자·템플릿 원본이 함께 포함될 수 있습니다. 출처가 기록된 범위에서 구분합니다. 저해상도 이미지는 최종 PDF에서 선명도를 확인하세요. 교가 등 글자가 포함된 이미지는 작은 글자까지 확인하고, 필요한 경우 3단계에서 원본을 교체하거나 배치 크기를 조정하세요. CMYK 변환은 해상도를 개선하지 않습니다.'));
    results.append(el('small','빠른 검사는 생성 전 점검입니다. CMYK 색상·PDF/X-4·서체·최종 PDF의 품질은 Worker 결과에서 확인합니다.'));
   }
+  function jobStatus(job){return {queued:'PC에서 기존 PDF Worker 실행이 필요합니다. 아래 작업 명령을 실행해 주세요.',processing:'PC Worker가 최종 PDF를 생성·검사하고 있습니다. 상태를 자동으로 확인합니다.',done:'최종 PDF 생성이 완료되었습니다. PDF와 자동 검사 결과를 확인하세요.',error:'Worker 작업이 실패했습니다. 오류 내용을 확인하세요.'}[job?.status]||'아직 최종 PDF 작업을 요청하지 않았습니다. 빠른 검사 후 생성 요청을 진행하세요.';}
   function showJob(job){
-   local.job=job;worker.replaceChildren(el('h4','최종 인쇄 PDF·Worker 검사'));
+   if(local.jobRendered&&JSON.stringify(local.job)===JSON.stringify(job))return;local.jobRendered=true;local.job=job;worker.replaceChildren(el('h4','최종 인쇄 PDF·Worker 검사'));
    if(!job){worker.append(el('p','아직 최종 PDF 작업을 요청하지 않았습니다.'));return;}
    const labels={queued:'Worker 실행 대기',processing:'생성·검사 진행 중',done:'생성 완료',error:'작업 실패'};worker.append(el('p',`${labels[job.status]||job.status} · 작업 ${job.id}`));
    if(job.error)worker.append(el('p',job.error));
-   if(['queued','processing'].includes(job.status)){worker.append(el('p','먼저 기존 사용자 서비스 폴더의 PDF Worker 파일을 최신 Preview 브랜치로 갱신하세요. 갱신한 기존 Worker에서 이 작업을 실행합니다. ImageMagick이나 별도 이미지 Worker는 사용하지 않습니다.'));const code=el('code',`npm.cmd run pdf:worker -- --job ${job.id}`);worker.append(code);}
+   if(job.status==='queued'){worker.append(el('p','먼저 기존 사용자 서비스 폴더의 PDF Worker 파일을 최신 Preview 브랜치로 갱신하세요. 갱신한 기존 Worker에서 이 작업을 실행합니다. ImageMagick이나 별도 이미지 Worker는 사용하지 않습니다.'));const code=el('code',`npm.cmd run pdf:worker -- --job ${job.id}`);worker.append(code);}
+   if(job.status==='processing')worker.append(el('p','PC Worker가 이 작업을 처리하고 있습니다. PowerShell을 열어 둔 채 기다려 주세요. 같은 작업을 다시 실행하지 마세요.'));
    if(job.report){const verified=job.report.verified===true;worker.append(el('p',verified?'Worker 자동 검사 통과 · 관리자 PDF 확인과 최종 승인 필요':'Worker 검사 결과 확인 필요 · 최종 승인 전 오류·경고 검토'));const details=el('details');details.append(el('summary','Worker 검사 상세 결과'));const pre=el('pre',JSON.stringify(job.report,null,2));details.append(pre);worker.append(details);}
    if(job.status==='done')worker.append(el('small','PDF를 내려받아 전체 면과 교정 내용을 확인하세요. 최종 승인·인쇄소 전달은 5단계에서 처리합니다.'));
   }
@@ -53,10 +55,10 @@
    if(data.type==='calendar:production-editor-error'){clearTimeout(local.timer);local.busy=false;local.ready=false;status.textContent=data.message;sync();return;}
    if(data.type==='calendar:production-editor-ready'){clearTimeout(local.timer);local.ready=true;local.busy=false;status.textContent='검사 준비 완료. 빠른 검사부터 진행하세요.';sync();command('status');return;}
    if(data.type!=='calendar:production-inspection-result'||data.revisionId!==local.revision?.id)return;
-   clearTimeout(local.timer);local.busy=false;if(data.error){status.textContent=data.error;sync();return;}
+   clearTimeout(local.timer);local.busy=false;local.statusPending=false;if(data.error){status.textContent=data.error;sync();return;}
    if(data.action==='quick'){showQuick(data.result);status.textContent=data.result.errors.length?'오류를 확인하고 3단계에서 교정하세요.':'빠른 검사를 완료했습니다. 경고를 검토한 뒤 최종 생성 여부를 결정하세요.';}
-   else if(data.action==='request'){showJob(data.result.job);status.textContent='이 교정 버전의 PDF 작업을 확인했습니다.';}
-   else if(data.action==='status'){showJob(data.result.jobs[0]||null);status.textContent='저장된 Worker 상태를 확인했습니다.';}
+   else if(data.action==='request'){showJob(data.result.job);status.textContent=jobStatus(data.result.job);}
+   else if(data.action==='status'){const job=data.result.jobs[0]||null;showJob(job);status.textContent=jobStatus(job);}
    else if(data.action==='download'){const a=el('a');a.href=data.result.downloadUrl;a.target='_blank';a.rel='noopener noreferrer';a.click();status.textContent='완료 PDF 다운로드를 열었습니다.';}
    sync();
   };
@@ -66,7 +68,7 @@
    const revision=data.revisions?.[0];if(!revision){basis.textContent='저장된 교정 버전이 없습니다. 3단계에서 교정 버전을 저장하세요.';return;}
    local.revision=revision;basis.textContent=`검사 대상: 교정 v${revision.revision_number} · ${new Date(revision.created_at).toLocaleString('ko-KR')}`;
    const frame=el('iframe');frame.className='review-print-engine';frame.title='기존 템플릿 검사 모듈';frame.setAttribute('aria-hidden','true');frame.tabIndex=-1;frame.src=`./index.html?productionRequest=${encodeURIComponent(requestId)}&productionRevision=${encodeURIComponent(revision.id)}&productionEmbedded=1&productionInspection=1`;local.frame=frame;host.append(frame);local.timer=setTimeout(()=>{if(session===local){status.textContent='검사 화면 준비 시간이 초과되었습니다. 다른 단계로 이동한 뒤 다시 열어 주세요.';local.busy=false;sync();}},120000);
-   local.poll=setInterval(()=>{if(session!==local)return;if(local.busy&&['request','retry'].includes(local.pendingAction)){const seconds=Math.floor((Date.now()-local.startedAt)/1000);status.textContent=`${local.progressMessage} · ${Math.floor(seconds/60)}분 ${seconds%60}초 경과`;return;}if(local.ready&&!local.busy&&['queued','processing'].includes(local.job?.status))command('status');},10000);
+   local.poll=setInterval(()=>{if(session!==local)return;if(local.busy&&['request','retry'].includes(local.pendingAction)){const seconds=Math.floor((Date.now()-local.startedAt)/1000);status.textContent=`${local.progressMessage} · ${Math.floor(seconds/60)}분 ${seconds%60}초 경과`;return;}if(local.ready&&!local.busy&&['queued','processing'].includes(local.job?.status))command('status',{silent:true});},10000);
   }catch(error){if(session===local)status.textContent=error.message;}})();
  }
  function clear(){if(session){clearTimeout(session.timer);clearInterval(session.poll);session.frame?.remove();session=null;}}

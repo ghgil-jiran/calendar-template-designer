@@ -8,8 +8,8 @@ class Element{
 }
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0)),all=node=>[node,...node.children.flatMap(all)];
 test('stage 4 initializes without queuing, gates final request on current quick results, and rejects foreign messages',async()=>{
- const body=new Element('body'),document={body,createElement:tag=>new Element(tag)},events={},window={ACDLAdminAuth:{isSignedIn:()=>true,authorizedFetch:async()=>({ok:true,json:async()=>({revisions:[{id:'v5',revision_number:5,created_at:'2026-10-04'}]})})},addEventListener:(type,callback)=>events[type]=callback};
- vm.runInNewContext(readFileSync(new URL('../apps/designer-studio/features/production-print-workspace.js',import.meta.url),'utf8'),{window,document,location:{origin:'https://editor.invalid'},encodeURIComponent,setTimeout:()=>1,clearTimeout(){},setInterval:()=>2,clearInterval(){},confirm:()=>true,URL,Blob,Date});
+ let poll;const body=new Element('body'),document={body,createElement:tag=>new Element(tag)},events={},window={ACDLAdminAuth:{isSignedIn:()=>true,authorizedFetch:async()=>({ok:true,json:async()=>({revisions:[{id:'v5',revision_number:5,created_at:'2026-10-04'}]})})},addEventListener:(type,callback)=>events[type]=callback};
+ vm.runInNewContext(readFileSync(new URL('../apps/designer-studio/features/production-print-workspace.js',import.meta.url),'utf8'),{window,document,location:{origin:'https://editor.invalid'},encodeURIComponent,setTimeout:()=>1,clearTimeout(){},setInterval:callback=>{poll=callback;return 2;},clearInterval(){},confirm:()=>true,URL,Blob,Date});
  const host=new Element('section');window.ACDLProductionPrint.mount(host,{receipt:{id:'receipt'}});await tick();const frame=all(host).find(item=>item.tag==='iframe'),generate=all(host).find(item=>item.textContent==='최종 인쇄 PDF 생성·검사'),quick=all(host).find(item=>item.textContent==='빠른 검사 시작'),checkbox=all(host).find(item=>item.tag==='input');
  assert.ok(frame.src.includes('productionRevision=v5'));assert.equal(generate.disabled,true);assert.equal(frame.contentWindow.messages.length,0);
  const send=(data,origin='https://editor.invalid')=>events.message({source:frame.contentWindow,origin,data:{requestId:'receipt',...data}});
@@ -22,5 +22,12 @@ test('stage 4 initializes without queuing, gates final request on current quick 
  assert.ok(all(host).some(item=>item.textContent==='템플릿 이미지 · 배경 · 144.5 DPI / 기준 300 DPI · 1, 2면 · 2건'));
  assert.ok(all(host).some(item=>item.textContent==='접수 보관 이미지 · 교가 · 198 DPI / 기준 300 DPI · 2면'));
  assert.equal(all(host).filter(item=>item.tag==='li'&&item.textContent?.includes('템플릿 이미지')).length,1);
+ const job={id:'queued-job',status:'queued'};
+ send({type:'calendar:production-inspection-result',revisionId:'v5',action:'request',result:{job}});
+ const status=all(host).find(item=>item.attrs.role==='status'),worker=all(host).find(item=>item.tag==='section'&&item.children.some(child=>child.textContent==='최종 인쇄 PDF·Worker 검사'));
+ const beforeStatus=status.textContent,beforeChildren=worker.children;
+ assert.ok(beforeStatus.includes('PC에서 기존 PDF Worker 실행이 필요'));poll();assert.equal(status.textContent,beforeStatus);assert.equal(quick.disabled,false);
+ send({type:'calendar:production-inspection-result',revisionId:'v5',action:'status',result:{jobs:[job]}});assert.equal(status.textContent,beforeStatus);assert.equal(worker.children,beforeChildren);
+ poll();send({type:'calendar:production-inspection-result',revisionId:'v5',action:'status',result:{jobs:[{...job,status:'processing'}]}});assert.ok(status.textContent.includes('생성·검사하고 있습니다'));assert.equal(all(host).some(item=>item.tag==='code'),false);
  window.ACDLProductionPrint.clear();assert.equal(frame.removed,true);
 });
