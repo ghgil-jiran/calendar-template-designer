@@ -13,7 +13,7 @@
    $('reviewMore').hidden=!body.hasMore;$('reviewFeedback').textContent=`${body.receipts.length}건 표시${offset?' · 이전 목록은 검색을 다시 실행해 확인하세요.':''}`;
   }catch(error){if(token===run)$('reviewFeedback').textContent=error.message}
  }
- const steps=[['접수 정보','정보·검사 기록'],['접수 자료 확인','원본·확인 필요 항목'],['교정·재작업','교정본·버전 저장'],['인쇄 품질 검증','에디터에서 교정 버전 검사'],['확정·전달','승인 연결 예정']];
+ const steps=[['접수 정보','정보·검사 기록'],['접수 자료 확인','원본·확인 필요 항목'],['교정·버전 저장','에디터에서 교정·저장'],['인쇄 품질 검증','에디터에서 교정 버전 검사'],['확정·전달','승인 연결 예정']];
  let current=null,step=0,reviewBusy=false,reviewError=null,proofDialog=null,proofFrame=null;
  const proofBase='https://school-calendar-editor-service-q08rq3end-gil-gighyun-s-projects.vercel.app';
  function button(label,action,disabled=false){const node=text('button',label);node.type='button';node.className='review-button';node.disabled=disabled||reviewBusy;if(action)node.addEventListener('click',action);return node}
@@ -35,7 +35,7 @@
   if(!current)return;$('reviewDialogClose').disabled=reviewBusy;$('reviewDialogDone').disabled=reviewBusy;const {receipt,assets}=current,snapshot=receipt.snapshot,checks=snapshot.imageChecks||[],warnings=checks.filter(item=>item.status==='warning'),host=$('reviewDetail');
   $('reviewDialogTitle').textContent=`${number(receipt.receipt_number)} · ${receipt.school_name}`;$('reviewDialogMeta').textContent=`${states[receipt.status]||receipt.status} · 접수 ${new Date(receipt.created_at).toLocaleString('ko-KR')}`;
   $('reviewSteps').replaceChildren();steps.forEach(([label,caption],index)=>{const node=button(`${index+1}. ${label}`,()=>{if(window.ACDLProductionCorrection?.isBusy())return;step=index;renderDetail()});node.className='review-step';if(step===index)node.setAttribute('aria-current','step');node.append(text('span',caption));$('reviewSteps').append(node)});
-  host.replaceChildren(text('h3',`${step+1}. ${steps[step][0]}`));if(reviewError){const error=text('p',reviewError);error.setAttribute('role','alert');error.className='review-callout';host.append(error)}if(reviewBusy){const progress=text('p','검수 시작 상태를 저장하는 중…');progress.setAttribute('role','status');host.append(progress)}
+  window.ACDLProductionCorrection?.clear();host.replaceChildren(text('h3',`${step+1}. ${steps[step][0]}`));if(reviewError){const error=text('p',reviewError);error.setAttribute('role','alert');error.className='review-callout';host.append(error)}if(reviewBusy){const progress=text('p','검수 시작 상태를 저장하는 중…');progress.setAttribute('role','status');host.append(progress)}
   if(step===0){
    host.append(text('p','담당자와 접수 내용을 확인하고, 사용자가 수행한 검사와 동의 기록을 검토하세요.'));
    const contact=receipt.contact||{},confirmed=snapshot.confirmation||{};
@@ -58,7 +58,7 @@
    const grid=document.createElement('div');grid.className='review-image-grid';for(const asset of assets){let url;try{url=new URL(asset.url);if(!['https:','http:'].includes(url.protocol))continue}catch{originals.append(text('p',`${asset.name||'보관 원본'} · 원본 주소를 확인할 수 없습니다.`));continue}const link=document.createElement('a');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';link.className='review-image-card';const image=document.createElement('img');image.src=url.href;image.alt=asset.name||'보관 원본';image.loading='lazy';image.addEventListener('error',()=>{image.remove();link.prepend(text('span','이미지를 불러오지 못했습니다. 접수 건을 다시 열어 주세요.'))},{once:true});link.append(image,text('span',asset.name||'보관 원본'));grid.append(link);}originals.append(grid);if(!assets.length)originals.append(text('p','보관 원본 목록이 없습니다. 에디터에서 필요한 이미지가 누락되지 않았는지 확인하세요.'));host.append(originals);
    const composition=document.createElement('details');composition.className='review-material-section';composition.append(text('summary',`접수 면 구성 ${pages.length}면`));const pageList=document.createElement('div');pageList.className='review-page-list';pages.forEach((page,index)=>pageList.append(text('span',`${index+1}면 · ${page.title||page.role||'페이지'}`)));composition.append(pageList);host.append(composition);
    const actions=document.createElement('div');actions.className='review-actions';const next=button('3단계 교정으로 이동',()=>{step=2;renderDetail()});next.classList.add('primary');const proof=button('접수 당시 모습 보기',openProof);proof.classList.add('review-secondary-action');actions.append(next,proof);host.append(actions,text('small','접수 당시 모습은 수정 전 자료를 참고하는 보조 화면입니다. 최신 교정본은 3단계의 템플릿 에디터에서 확인하세요.'));
-  }else if(step===2){window.ACDLProductionCorrection.mount(host,current,proofBase);
+  }else if(step===2){window.ACDLProductionCorrection.mount(host,current,()=>{step=3;renderDetail()});
   }else if(step===3){
    host.append(text('p','인쇄 품질 검증은 템플릿 에디터에서 저장된 교정 버전을 기준으로 진행합니다. 에디터 상단의 ‘저장 버전 인쇄 품질 검사’를 선택하세요.'));
    const link=text('a','에디터에서 교정본·인쇄 검사 열기');link.className='review-button';link.href=`./index.html?productionRequest=${encodeURIComponent(receipt.id)}`;host.append(link,text('small','저장하지 않은 수정이 있으면 먼저 새 교정 버전을 저장해야 합니다. 원본 템플릿의 검사 결과를 이 접수 건의 승인으로 사용하지 않습니다.'));
@@ -67,8 +67,8 @@
    host.append(text('p',descriptions[0]));const list=document.createElement('ol');for(const item of descriptions[1])list.append(text('li',item));host.append(list,button(`${descriptions[2]} · 연결 예정`,null,true),text('small','이 단계는 작업 안내입니다. 교정본 저장·인쇄 생성·검사·승인 처리는 아직 연결되지 않았으며, 단계 선택만으로 검수 상태가 바뀌지 않습니다.'));
   }
  }
- async function detail(id){
-  const token=++detailRun;current=null;step=0;reviewError=null;closeProof();$('reviewDetail').replaceChildren(text('p','접수본을 불러오는 중…'));$('reviewSteps').replaceChildren();$('reviewDialogTitle').textContent='접수본 확인';$('reviewDialogMeta').textContent='';if(!$('reviewDialog').open)$('reviewDialog').showModal();
+ async function detail(id,initialStep=0){
+  const token=++detailRun;current=null;step=initialStep===2?2:0;reviewError=null;closeProof();$('reviewDetail').replaceChildren(text('p','접수본을 불러오는 중…'));$('reviewSteps').replaceChildren();$('reviewDialogTitle').textContent='접수본 확인';$('reviewDialogMeta').textContent='';if(!$('reviewDialog').open)$('reviewDialog').showModal();
   try{const result=await api(new URLSearchParams({id}));if(token!==detailRun||!auth.isSignedIn())return;current=result;renderDetail()}
   catch(error){if(token===detailRun)$('reviewDetail').replaceChildren(text('p',error.message))}
  }
@@ -86,7 +86,8 @@
   proofFrame.contentWindow.postMessage({type:'calendar:production-proof',mode:'receipt',pageIndex:0,receipt:{receipt_number:receipt.receipt_number,school_name:receipt.school_name,snapshot:{document:receipt.snapshot.document,printProfile:receipt.snapshot.printProfile}},assets:assets.map(asset=>({id:asset.id,url:asset.url}))},proofBase);
  });
  $('reviewDialogClose').addEventListener('click',closeDetail);$('reviewDialogDone').addEventListener('click',closeDetail);$('reviewDialog').addEventListener('cancel',event=>{event.preventDefault();closeDetail()});
- function sync(){const signed=auth?.isSignedIn()===true;$('reviewLoginRequired').hidden=signed;$('reviewWorkspace').hidden=!signed;$('reviewAdminUser').textContent=signed?`${auth.currentUser()?.email||''} · Master Admin`:'';if(signed)list();else{run++;detailRun++;$('reviewRows').replaceChildren();closeDetail()}}
+ const returnQuery=new URLSearchParams(location.search);let resumed=false;
+ function sync(){const signed=auth?.isSignedIn()===true;$('reviewLoginRequired').hidden=signed;$('reviewWorkspace').hidden=!signed;$('reviewAdminUser').textContent=signed?`${auth.currentUser()?.email||''} · Master Admin`:'';if(signed){list();if(!resumed&&returnQuery.get('reviewStep')==='3'&&/^[a-f0-9-]{36}$/i.test(returnQuery.get('productionRequest')||'')){resumed=true;detail(returnQuery.get('productionRequest'),2);}}else{run++;detailRun++;$('reviewRows').replaceChildren();closeDetail()}}
  auth?.onChange(sync);sync();auth?.ensureSession().finally(sync);
  $('reviewFilters').addEventListener('submit',event=>{event.preventDefault();offset=0;list()});$('reviewMore').addEventListener('click',()=>{offset+=50;list()});
 })();

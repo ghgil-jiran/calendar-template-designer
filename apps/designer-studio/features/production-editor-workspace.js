@@ -12,15 +12,15 @@
  const note=document.createElement('input');note.placeholder='교정 이유와 변경 내용';note.maxLength=2000;note.setAttribute('aria-label','교정 변경 기록');
  const save=document.createElement('button');save.textContent='새 교정 버전 저장';save.type='button';save.className='review-button';
  const inspect=document.createElement('button');inspect.textContent='저장 버전 인쇄 품질 검사';inspect.type='button';inspect.className='review-button';
- const back=document.createElement('a');back.href='./production-review.html';back.textContent='제작 검수로 돌아가기';
- bar.append(title,status,note,save,inspect,back);document.body.prepend(bar);const sizeWorkspace=()=>{const workspace=document.querySelector('.workspace');if(workspace)document.body.style.setProperty('--production-workspace-height',`${Math.max(400,innerHeight-(workspace.getBoundingClientRect().top+scrollY))}px`);};new ResizeObserver(sizeWorkspace).observe(bar);window.addEventListener('resize',sizeWorkspace);document.body.classList.add('production-correction-mode');
+ const back=document.createElement('a');back.href=`./production-review.html?productionRequest=${encodeURIComponent(requestId)}&reviewStep=3`;back.textContent='제작 검수로 돌아가기';
+ const saveState=document.createElement('span');saveState.className='production-save-state';saveState.setAttribute('role','status');bar.append(title,saveState,status,note,save,inspect,back);document.body.prepend(bar);const sizeWorkspace=()=>{const workspace=document.querySelector('.workspace');if(workspace)document.body.style.setProperty('--production-workspace-height',`${Math.max(400,innerHeight-(workspace.getBoundingClientRect().top+scrollY))}px`);};new ResizeObserver(sizeWorkspace).observe(bar);window.addEventListener('resize',sizeWorkspace);document.body.classList.add('production-correction-mode');
  function map(value,direction){if(typeof value==='string')return (direction==='open'?urls:markers).get(value)||value;if(Array.isArray(value))return value.map(v=>map(v,direction));if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,map(v,direction)]));return value;}
  function canonical(){const value=map(project,'save');if(value?.productionCorrection?.baseCalendarMaster)value.template.masters.calendar=value.productionCorrection.baseCalendarMaster;return value;}
  function dirty(){return state&&JSON.stringify(canonical())!==saved;}
  async function api(path,method='GET',body){const response=await auth.authorizedFetch(path,{method,...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});const result=await response.json();if(!response.ok)throw Error(result.message||result.error||'교정 작업을 완료하지 못했습니다.');return result;}
  function register(marker,url){urls.set(marker,url);markers.set(url,marker);}
  function setStatus(message){status.textContent=message;}
- function sync(){save.disabled=busy||!state||!auth.isSignedIn()||!dirty();inspect.disabled=busy||!state?.revision||!auth.isSignedIn()||dirty();note.disabled=busy;}
+ function sync(){saveState.textContent=!state?'불러오는 중…':busy?'작업 중…':dirty()?'저장하지 않은 변경 있음':state.revision?`저장됨 · 교정 v${state.revision.revision_number}`:'접수본 · 첫 교정 버전 저장 전';save.disabled=busy||!state||!auth.isSignedIn()||!dirty();inspect.disabled=busy||!state?.revision||!auth.isSignedIn()||dirty();note.disabled=busy;}
  async function load(){
   if(starting||state)return;if(!auth.isSignedIn()){setStatus('관리자 로그인 후 접수본을 불러옵니다.');return;}
   starting=true;busy=true;setStatus('접수 당시 템플릿과 최신 교정 버전을 불러오는 중…');sync();
@@ -48,7 +48,7 @@
    const input=canonical();adapter.toDocument(input);const fingerprint=JSON.stringify(input)+note.value.trim();if(fingerprint!==pendingFingerprint){pendingId=crypto.randomUUID();pendingFingerprint=fingerprint;}
    const result=await api('/api/production-corrections','POST',{requestId,id:pendingId,baseRevisionId:state.revision?.id||null,note:note.value.trim(),editorProject:input});
    state.revision=result.revision;state.printInspection=null;project=map(result.revision.document.editorProject,'open');pendingId=null;pendingFingerprint=null;note.value='';render();stable();saved=JSON.stringify(canonical());lastDirty=false;
-   title.textContent=`CAL-${String(state.receipt.receipt_number).padStart(6,'0')} · ${state.receipt.school_name} · 교정 v${result.revision.revision_number}`;setStatus('새 교정 버전을 저장했습니다. 이 버전의 인쇄 검사를 진행할 수 있습니다.');
+   title.textContent=`CAL-${String(state.receipt.receipt_number).padStart(6,'0')} · ${state.receipt.school_name} · 교정 v${result.revision.revision_number}`;setStatus(`교정 v${result.revision.revision_number} 저장 완료. 제작 검수로 돌아가 저장 버전을 확인하세요.`);
   }catch(error){setStatus(error.message);}finally{busy=false;sync();}
  }
  save.onclick=persist;note.oninput=()=>{pendingId=null;};
@@ -90,7 +90,7 @@
   }catch(error){setStatus(error.message);}finally{busy=false;sync();}
  },true);
  window.addEventListener('beforeunload',event=>{if(dirty()||busy){event.preventDefault();event.returnValue='';}});
- back.onclick=event=>{if((dirty()||busy)&&!confirm('저장하지 않은 교정 내용이 있습니다. 제작 검수로 돌아갈까요?'))event.preventDefault();};
+ back.onclick=event=>{if(busy){event.preventDefault();setStatus('진행 중인 작업이 끝난 뒤 제작 검수로 돌아가세요.');return;}if(dirty()&&!confirm('저장하지 않은 교정 내용이 있습니다. 제작 검수로 돌아갈까요?'))event.preventDefault();};
  auth.onChange(()=>{if(!auth.isSignedIn()){state=null;urls.clear();markers.clear();saved='';project=null;showEntry();title.textContent='접수본 교정';setStatus('관리자 로그인이 필요합니다.');}else load();sync();});
  const imageCheck=document.createElement('button');imageCheck.type='button';imageCheck.className='review-button';imageCheck.textContent='원본·배치 검사';bar.insertBefore(imageCheck,readinessButton);
  const originalSync=sync;sync=function(){originalSync();imageCheck.disabled=busy||!state?.revision||!auth.isSignedIn()||dirty();};
