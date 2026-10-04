@@ -23,7 +23,7 @@
     delete e.binding;delete e.bindingPattern;delete e.targetBindingPattern;delete e.sourceBinding;delete e.printSource;delete e.printAsset;
     if(original.printSource){e.printSource=clone(original.printSource);e.printSource.approved=false;delete e.printSource.approvedAt;delete e.printSource.approvedBy;}
     if(object.type==='image'){
-     const image=imageData(object.payload);const src=image.src||image.url||(typeof image==='string'?image:'');
+     const image=imageData(object.payload);const ref=image.assetRef;const src=image.src||image.url||ref?.src||(typeof image==='string'?image:'');
      if(!src)throw Error(`이미지 원본을 확인할 수 없습니다: ${object.id}`);
      e.src=src;e.image={...(original.image||{}),...clone(image),src,fit:image.fit||original.image?.fit||'cover'};delete e.image.binding;delete e.image.assetId;delete e.assetId;delete e.assetRef;delete e.aiDesign;
      e.type='image-frame';
@@ -70,7 +70,7 @@
      const source=e.image?.src||e.src;
      const payload=typeof o.payload==='object'&&o.payload?clone(o.payload):{};
      const image=payload.image&&typeof payload.image==='object'?payload.image:payload;
-     Object.assign(image,{src:source,fit:e.image?.fit||e.fit||'cover',placement:{...(image.placement||{}),scale:e.image?.scale??1,brightness:e.image?.brightness??100},imageTransform:{...(image.imageTransform||{}),offsetX:e.image?.offsetX??0,offsetY:e.image?.offsetY??0,contrast:e.image?.contrast??100,saturation:e.image?.saturation??100,flipX:e.image?.flipX===true,flipY:e.image?.flipY===true}});o.payload=payload;
+     if(image.assetRef)image.assetRef={ref:'url',src:source};Object.assign(image,{src:source,fit:e.image?.fit||e.fit||'cover',placement:{...(image.placement||{}),scale:e.image?.scale??1,brightness:e.image?.brightness??100},imageTransform:{...(image.imageTransform||{}),offsetX:e.image?.offsetX??0,offsetY:e.image?.offsetY??0,contrast:e.image?.contrast??100,saturation:e.image?.saturation??100,flipX:e.image?.flipX===true,flipY:e.image?.flipY===true}});o.payload=payload;
     }else if(o.type==='text'&&(e.content!==before.content||!same(e.value,before.value)))o.payload=e.content!==before.content?e.content:e.value;
     else if(o.type==='semantic-object'&&!same(e.sampleContent,before.sampleContent))o.payload=clone(e.sampleContent);
     else if(!same(e.value,before.value))o.payload=clone(e.value);
