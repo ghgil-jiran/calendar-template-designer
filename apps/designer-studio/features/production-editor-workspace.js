@@ -1,6 +1,9 @@
 (()=>{
  const requestId=new URLSearchParams(location.search).get('productionRequest');
  if(!requestId)return;
+ const embedded=new URLSearchParams(location.search).get('productionEmbedded')==='1'&&window.parent!==window;let leaving=false;
+ function launchUpdate(type,message,value){if(embedded)window.parent.postMessage({type:`calendar:production-editor-${type}`,requestId,message,value},location.origin);}
+ function loadingError(message){launchUpdate('error',message);document.documentElement.classList.remove('production-editor-loading');}
  const auth=window.ACDLAdminAuth,adapter=window.ACDLProductionEditorAdapter,$=id=>document.getElementById(id);
  let state=null,busy=false,starting=false,saved='',pendingId=null,pendingFingerprint=null,assets=[],urls=new Map(),markers=new Map(),lastDirty=false;
  const normalizer=normalizeElementData;normalizeElementData=function(){if(project?.productionCorrection){project.book.elementsByPage||={};project.template.masterElements||={};return;}return normalizer();};
@@ -23,13 +26,14 @@
  function sync(){saveState.textContent=!state?'불러오는 중…':busy?'작업 중…':dirty()?'저장하지 않은 변경 있음':state.revision?`저장됨 · 교정 v${state.revision.revision_number}`:'접수본 · 첫 교정 버전 저장 전';save.disabled=busy||!state||!auth.isSignedIn()||!dirty();inspect.disabled=busy||!state?.revision||!auth.isSignedIn()||dirty();note.disabled=busy;}
  async function load(){
   if(starting||state)return;if(!auth.isSignedIn()){setStatus('관리자 로그인 후 접수본을 불러옵니다.');return;}
-  starting=true;busy=true;setStatus('접수 당시 템플릿과 최신 교정 버전을 불러오는 중…');sync();
+  starting=true;busy=true;launchUpdate('progress','접수 자료 확인 중…',25);setStatus('접수 당시 템플릿과 최신 교정 버전을 불러오는 중…');sync();
   try{
-   const receipt=await api(`/api/production-requests?id=${encodeURIComponent(requestId)}`),data=await api(`/api/production-corrections?requestId=${encodeURIComponent(requestId)}&editor=1`);
+   const receipt=await api(`/api/production-requests?id=${encodeURIComponent(requestId)}`);launchUpdate('progress','템플릿과 최신 교정 버전 불러오는 중…',45);const data=await api(`/api/production-corrections?requestId=${encodeURIComponent(requestId)}&editor=1`);
    if(!auth.isSignedIn())throw Error('관리자 로그인이 필요합니다.');
    if(!['reviewing','changes'].includes(receipt.receipt.status))throw Error('제작 검수 1단계에서 검수를 시작한 뒤 교정할 수 있습니다.');
    assets=[...receipt.assets,...data.assets];for(const a of assets)register(`production-asset://${a.id}`,a.url);for(const a of data.editorSource.assets)register(a.marker,a.url);
    const revision=data.revisions[0]||null,runtimeDocument=revision?.document||receipt.receipt.snapshot.document;
+   launchUpdate('progress','보관 이미지 연결·편집 화면 구성 중…',70);
    const raw=runtimeDocument.editorProject||adapter.createProject(data.editorSource.projectData,runtimeDocument,requestId);
    project=map(raw,'open');state={receipt:receipt.receipt,revision,identity:data.editorSource.identity,printInspection:data.printInspection,uploadAvailable:data.uploadAvailable};
    beginProjectTransition({clearProject:false});appMode='designer';selectedPageId=project.book.pageInstances[0]?.id;selectedElementId=null;selectedElementScope=null;history=[];future=[];calendarEditing=false;preview=false;previewType=null;
@@ -38,8 +42,12 @@
    title.textContent=`CAL-${String(state.receipt.receipt_number).padStart(6,'0')} · ${state.receipt.school_name} · ${revision?'교정 v'+revision.revision_number:'접수본'}`;
    $('saveBtn').textContent='교정 버전 저장';$('templateMode').textContent='접수본 교정';$('modeHelp').textContent='면을 선택하고 기존 개체를 직접 수정하세요. 원본 템플릿과 접수본은 보존됩니다.';
    const remote=window.ACDLTemplateRemotePersistence;if(remote)window.ACDLTemplateRemotePersistence={...remote,save:async()=>{throw Error('교정 내용은 상단 새 교정 버전 저장으로 저장해 주세요.');},saveDraft:async()=>{throw Error('교정 내용은 접수 건의 교정 버전으로 저장해야 합니다.');}};
-   setStatus('접수본을 복원했습니다. 수정 후 변경 기록과 함께 저장하세요.');
-  }catch(error){setStatus(error.message);}finally{starting=false;busy=false;sync();}
+   launchUpdate('progress','편집 화면의 이미지 확인 중…',90);
+   const images=[...($('page')?.querySelectorAll('img')||[])];for(const image of images)image.loading='eager';
+   await Promise.all(images.map(image=>new Promise((resolve,reject)=>{if(image.complete)return image.naturalWidth?resolve():reject(Error('편집 화면의 이미지를 불러오지 못했습니다. 다시 열어 주세요.'));const timer=setTimeout(()=>{cleanup();reject(Error('이미지 불러오기 시간이 초과되었습니다. 다시 시도해 주세요.'));},30000);const cleanup=()=>{clearTimeout(timer);image.removeEventListener('load',done);image.removeEventListener('error',failed);};const done=()=>{cleanup();resolve();},failed=()=>{cleanup();reject(Error('편집 화면의 이미지를 불러오지 못했습니다. 다시 열어 주세요.'));};image.addEventListener('load',done);image.addEventListener('error',failed);})));
+   if(!auth.isSignedIn()||!state)throw Error('관리자 세션을 확인하고 다시 열어 주세요.');
+   await document.fonts?.ready;window.__acdlProductionEditorReady=true;document.documentElement.classList.remove('production-editor-loading');setStatus('접수본을 복원했습니다. 수정 후 변경 기록과 함께 저장하세요.');launchUpdate('ready','편집 화면 준비 완료',100);
+  }catch(error){state=null;setStatus(error.message);loadingError(error.message);}finally{starting=false;busy=false;sync();}
  }
  async function persist(){
   if(busy||!state||!dirty())return;if(!note.value.trim()){setStatus('교정 이유와 변경 내용을 입력해 주세요.');note.focus();return;}
@@ -89,10 +97,11 @@
    delete item.printSource;delete item.printAsset;markDirty();pendingId=null;render();setStatus('새 원본으로 교체했습니다. 교정 버전을 저장하세요.');
   }catch(error){setStatus(error.message);}finally{busy=false;sync();}
  },true);
- window.addEventListener('beforeunload',event=>{if(dirty()||busy){event.preventDefault();event.returnValue='';}});
- back.onclick=event=>{if(busy){event.preventDefault();setStatus('진행 중인 작업이 끝난 뒤 제작 검수로 돌아가세요.');return;}if(dirty()&&!confirm('저장하지 않은 교정 내용이 있습니다. 제작 검수로 돌아갈까요?'))event.preventDefault();};
- auth.onChange(()=>{if(!auth.isSignedIn()){state=null;urls.clear();markers.clear();saved='';project=null;showEntry();title.textContent='접수본 교정';setStatus('관리자 로그인이 필요합니다.');}else load();sync();});
- const imageCheck=document.createElement('button');imageCheck.type='button';imageCheck.className='review-button';imageCheck.textContent='원본·배치 검사';bar.insertBefore(imageCheck,readinessButton);
+ window.addEventListener('beforeunload',event=>{if(!leaving&&(dirty()||busy)){event.preventDefault();event.returnValue='';}});
+ back.onclick=event=>{if(busy){event.preventDefault();setStatus('진행 중인 작업이 끝난 뒤 제작 검수로 돌아가세요.');return;}if(dirty()&&!confirm('저장하지 않은 교정 내용이 있습니다. 제작 검수로 돌아갈까요?')){event.preventDefault();return;}if(embedded){event.preventDefault();leaving=true;launchUpdate('return','제작 검수로 복귀');}};
+ window.addEventListener('message',event=>{if(embedded&&event.origin===location.origin&&event.source===window.parent&&event.data?.type==='calendar:production-editor-close'&&event.data.requestId===requestId)back.click();});
+ auth.onChange(()=>{if(!auth.isSignedIn()){state=null;urls.clear();markers.clear();saved='';project=null;showEntry();title.textContent='접수본 교정';setStatus('관리자 로그인이 필요합니다.');loadingError('관리자 로그인이 필요합니다. 제작 검수에서 로그인 후 다시 열어 주세요.');}else load();sync();});
+ const imageCheck=document.createElement('button');imageCheck.type='button';imageCheck.className='review-button';imageCheck.textContent='원본·배치 검사';bar.insertBefore(imageCheck,inspect);
  const originalSync=sync;sync=function(){originalSync();imageCheck.disabled=busy||!state?.revision||!auth.isSignedIn()||dirty();};
  async function captureImageLayouts(plan,revision){
   const targets=plan.uses.filter(use=>!use.measurable&&['school-song','school-tree','school-flower'].includes(use.role)),layouts=[];
@@ -151,5 +160,5 @@
  };
  window.ACDLProductionEditor={inlinePrintAssets,preparePrintPreflight:async()=>{if(!state?.revision||dirty())throw Error("저장한 교정 버전으로 검사해 주세요.");const revision=state.revision;const result=await api("/api/production-print-preflight","POST",{requestId,revisionId:revision.id,documentHash:revision.document_hash});if(state?.revision?.id!==revision.id||!auth.isSignedIn()||result.inspection.identity.revisionId!==revision.id||result.inspection.identity.documentHash!==revision.document_hash)throw Error("검사 버전이나 관리자 세션이 변경되었습니다. 다시 열어 주세요.");return result.inspection;}};
  setInterval(()=>{if(state){sync();const changed=dirty();if(changed&&!lastDirty&&!busy)status.textContent='저장하지 않은 교정 내용이 있습니다. 인쇄 검사는 저장 후 진행하세요.';lastDirty=changed;}},1000);
- auth.ensureSession().then(load);
+ launchUpdate('progress','관리자 세션 확인 중…',10);auth.ensureSession().then(()=>{if(!auth.isSignedIn()){loadingError('관리자 로그인이 필요합니다. 제작 검수에서 로그인 후 다시 열어 주세요.');return;}return load();}).catch(error=>loadingError(error.message));
 })();
