@@ -31,7 +31,7 @@
      const placement=image.placement||{},transform=image.imageTransform||{};e.image.scale=placement.scale??transform.scale??e.image.scale??1;e.image.offsetX=transform.offsetX??e.image.offsetX??0;e.image.offsetY=transform.offsetY??e.image.offsetY??0;e.image.focalPoint={x:(placement.x??50)/100,y:(placement.y??50)/100};e.image.brightness=placement.brightness??transform.brightness??100;e.image.contrast=transform.contrast??100;e.image.saturation=transform.saturation??100;e.image.flipX=transform.flipX===true;e.image.flipY=transform.flipY===true;
     }
     if(object.type==='text')e.content=String(object.payload??object.value??'');
-    if(object.type==='semantic-object')e.sampleContent=clone(object.payload||{});
+    if(object.type==='semantic-object'){e.sampleContent=clone(object.payload||{});const image=imageData(object.payload);const ref=image.assetRef||image.imageRef;const src=typeof image==='string'?image:image.src||image.url||ref?.src;if(src)e.sampleContent.image=src;}
     return e;
    });
    const calendar=(page.objects||[]).find(object=>['calendar','calendar-grid'].includes(object.type));
@@ -42,7 +42,7 @@
   p.settings={...p.settings,year:cal.year??p.settings.year,startMonth:cal.startMonth??p.settings.startMonth,calendarRows:cal.gridRows??p.settings.calendarRows,weekStart:cal.weekStart??p.settings.weekStart,dataOptions:clone(cal.dataOptions||{})};
   p.book.sheets=(p.book.sheets||[]).map(sheet=>({...sheet,surfaces:(sheet.surfaces||[]).map(page=>p.book.pageInstances.find(item=>item.id===page.id)).filter(Boolean)}));
   p.template.id=`production-${requestId}`;delete p.template.remoteId;delete p.template.remoteStableKey;delete p.template.remoteVersionNumber;p.template.publishing={};p.template.metadata={...p.template.metadata,state:'draft',isStandard:false};
-  p.productionCorrection={schemaVersion:'production-editor.v1',requestId,baseDocument:doc,baselineElements:clone(p.book.elementsByPage),baselinePages:clone(p.book.pageInstances),baselineSettings:clone(p.settings),baselineBook:{school:clone(p.book.school),events:clone(p.book.events),monthlyImages:clone(p.book.monthlyImages),monthlyQuotes:clone(p.book.monthlyQuotes)},printInspection:null};
+  p.productionCorrection={schemaVersion:'production-editor.v1',requestId,baseDocument:doc,baselineElements:clone(p.book.elementsByPage),baselinePages:clone(p.book.pageInstances),baseCalendarMaster:clone(p.template.masters.calendar),baselineSettings:clone(p.settings),baselineBook:{school:clone(p.book.school),events:clone(p.book.events),monthlyImages:clone(p.book.monthlyImages),monthlyQuotes:clone(p.book.monthlyQuotes)},printInspection:null};
   return p;
  }
  function toDocument(project){
@@ -72,7 +72,7 @@
      const image=payload.image&&typeof payload.image==='object'?payload.image:payload;
      if(image.assetRef)image.assetRef={ref:'url',src:source};Object.assign(image,{src:source,fit:e.image?.fit||e.fit||'cover',placement:{...(image.placement||{}),scale:e.image?.scale??1,brightness:e.image?.brightness??100},imageTransform:{...(image.imageTransform||{}),offsetX:e.image?.offsetX??0,offsetY:e.image?.offsetY??0,contrast:e.image?.contrast??100,saturation:e.image?.saturation??100,flipX:e.image?.flipX===true,flipY:e.image?.flipY===true}});o.payload=payload;
     }else if(o.type==='text'&&(e.content!==before.content||!same(e.value,before.value)))o.payload=e.content!==before.content?e.content:e.value;
-    else if(o.type==='semantic-object'&&!same(e.sampleContent,before.sampleContent))o.payload=clone(e.sampleContent);
+    else if(o.type==='semantic-object'&&!same(e.sampleContent,before.sampleContent)){o.payload=clone(e.sampleContent);if(o.payload.assetRef)o.payload.assetRef={ref:'url',src:e.sampleContent.image};if(o.payload.imageRef)o.payload.imageRef={ref:'url',src:e.sampleContent.image};}
     else if(!same(e.value,before.value))o.payload=clone(e.value);
     const widget=o.runtimeWidget||{};for(const key of Object.keys(widget))if(!same(e[key],before[key]))widget[key]=clone(e[key]??null);o.runtimeWidget=widget;
     return o;

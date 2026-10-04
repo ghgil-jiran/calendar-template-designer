@@ -13,9 +13,9 @@
  const save=document.createElement('button');save.textContent='새 교정 버전 저장';save.type='button';save.className='review-button';
  const inspect=document.createElement('button');inspect.textContent='저장 버전 인쇄 품질 검사';inspect.type='button';inspect.className='review-button';
  const back=document.createElement('a');back.href='./production-review.html';back.textContent='제작 검수로 돌아가기';
- bar.append(title,status,note,save,inspect,back);document.body.prepend(bar);document.body.classList.add('production-correction-mode');
+ bar.append(title,status,note,save,inspect,back);document.body.prepend(bar);const sizeWorkspace=()=>{const workspace=document.querySelector('.workspace');if(workspace)document.body.style.setProperty('--production-workspace-height',`${Math.max(400,innerHeight-(workspace.getBoundingClientRect().top+scrollY))}px`);};new ResizeObserver(sizeWorkspace).observe(bar);window.addEventListener('resize',sizeWorkspace);document.body.classList.add('production-correction-mode');
  function map(value,direction){if(typeof value==='string')return (direction==='open'?urls:markers).get(value)||value;if(Array.isArray(value))return value.map(v=>map(v,direction));if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,map(v,direction)]));return value;}
- function canonical(){return map(project,'save');}
+ function canonical(){const value=map(project,'save');if(value?.productionCorrection?.baseCalendarMaster)value.template.masters.calendar=value.productionCorrection.baseCalendarMaster;return value;}
  function dirty(){return state&&JSON.stringify(canonical())!==saved;}
  async function api(path,method='GET',body){const response=await auth.authorizedFetch(path,{method,...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});const result=await response.json();if(!response.ok)throw Error(result.message||result.error||'교정 작업을 완료하지 못했습니다.');return result;}
  function register(marker,url){urls.set(marker,url);markers.set(url,marker);}
