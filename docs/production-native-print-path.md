@@ -87,3 +87,17 @@ node tools/run-production-image-worker.mjs --inspection "D:\work\production-v5-i
 새 작업 폴더에 input/originals, input/document.json, input/inspection.json과 cmyk/manifest.json을 만든다. 보관 경로를 접수 ID·소유자·원본 ID와 대조하고 교정 업로드는 해당 접수의 ready만 허용한다. 관리자 검사 후 원본 바이트가 바뀌면 중단한다. 파일을 외부 URL에서 대체하거나 기존 원본/출력 폴더를 덮어쓰지 않는다. 수집 실패는 input/failure.json에 기록하며 완료 inspection.json은 만들지 않는다. CMYK 변환 실패 기록은 기존 cmyk/failure.json에 남는다.
 
 이 연결은 이미지 준비 Worker 실행 진입점이다. 웹에서 Job 요청·상태 저장·자동 실행, CMYK 파생 이미지 업로드, 공통 Runtime 네이티브 PDF 작성, 최종 PDF 검사와 승인은 아직 연결되지 않았다. 실제 47개와 공식 ICC 변환을 실행했다고 간주하지 않는다.
+
+## 작업 요청·진행·결과 보관
+
+새 SQL `202610040002_calendar_production_image_jobs.sql`만 적용한다. 기존 SQL 재실행은 필요 없다. calendar_production_image_jobs는 접수·교정 버전·문서 해시·내용 해시·이미지 검사 기록을 고정한다. 원본·배치 검사 결과의 ‘CMYK 이미지 준비 요청’은 POST /api/production-image-jobs를 호출한다. 같은 버전의 활성 작업은 재사용한다. 상태는 queued/processing/prepared/failed이며 최종 PDF나 인쇄 승인 상태가 아니다.
+
+기존 핵심 자동검사 화면은 GET /api/production-image-jobs로 해당 버전의 최근 작업·진행 수·실패 이유를 조회한다. 상태 갱신 버튼으로 재조회한다. 미저장 변경이나 다른 버전의 검사 기록은 요청하지 않는다. API는 Master Admin만 허용하고, 작업 테이블은 RLS 및 anon/authenticated 접근 금지다. 서비스 역할도 직접 갱신 대신 제한된 RPC를 사용한다.
+
+```powershell
+node tools/run-production-image-worker.mjs --job "화면에 표시된_JOB_UUID" --work-dir "D:\work\production-jobs" --icc "D:\profiles\JapanColor2011Coated.icc" --icc-sha256 "검증한_실제_프로파일_SHA256" --srgb-icc "D:\profiles\sRGB.icc"
+```
+
+Worker는 queued 또는 lease가 만료된 processing 작업만 확보한다. 10분 lease와 토큰으로 진행·완료 업데이트를 제한한다. 원본 수집과 변환 사이마다 진행 기록을 기다린다. 만료 후 다른 Worker가 확보하면 이전 Worker의 완료 기록을 거부한다. 각 확보 시도는 별도 로컬 출력 폴더를 쓰므로 기존 산출물을 덮어쓰지 않는다. 이미지 준비 성공은 manifest만 결과로 저장하고 finalApproved=false다. 파생 파일 자체는 로컬 Worker 폴더에 있으며 private Storage 업로드는 아직 아니다.
+
+현재 웹 요청은 DB 대기 작업을 만든다. 상시 Worker/스케줄러 배포는 없으므로 자동 실행되었다고 표시하지 않는다. 실제 Supabase SQL 적용·로그인 화면 요청·로컬 공식 ICC 변환·진행 재조회 전체 검증은 별도 실행이 필요하다. 네이티브 PDF 구성요소 확장 및 최종 PDF 검사는 후속이다.

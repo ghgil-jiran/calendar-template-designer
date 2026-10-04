@@ -27,7 +27,7 @@ export async function collectProductionWorkerInput({requestId,revisionId,documen
    const id=source.slice(19);let asset=receipt.snapshot?.assets?.find(a=>a.id===id),bucket='calendar-production-assets';
    if(asset){if(asset.path!==`${receipt.owner_id}/${requestId}/${id}`)throw Error('접수 원본 경로가 일치하지 않습니다.');}
    else{asset=corrections.find(a=>a.id===id&&a.request_id===requestId&&a.status==='ready');bucket='calendar-correction-assets';if(!asset||asset.path!==`${requestId}/${id}`)throw Error('사용된 교정 원본의 보관 완료 기록이 없습니다.');}
-   onProgress({completed:results.length,total:plan.sources.length,source});
+   await onProgress({completed:results.length,total:plan.sources.length,source});
    const bytes=await readImage(asset,bucket),report=inspectProductionImageBytes(plan,source,asset,bytes);
    if(inspection){const previous=inspection.results?.filter(r=>r.source===source)||[];if(previous.length!==1||previous[0].sourceHash!==report.sourceHash||previous[0].byteSize!==report.byteSize)throw Error('관리자 검사 이후 원본 바이트가 변경되었습니다.');}
    await writeFile(path.join(root,'originals',id),bytes,{flag:'wx'});results.push(report);
