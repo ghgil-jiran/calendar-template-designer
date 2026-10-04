@@ -93,6 +93,40 @@
  window.addEventListener('beforeunload',event=>{if(dirty()||busy){event.preventDefault();event.returnValue='';}});
  back.onclick=event=>{if((dirty()||busy)&&!confirm('저장하지 않은 교정 내용이 있습니다. 제작 검수로 돌아갈까요?'))event.preventDefault();};
  auth.onChange(()=>{if(!auth.isSignedIn()){state=null;urls.clear();markers.clear();saved='';project=null;showEntry();title.textContent='접수본 교정';setStatus('관리자 로그인이 필요합니다.');}else load();sync();});
+ const imageCheck=document.createElement('button');imageCheck.type='button';imageCheck.className='review-button';imageCheck.textContent='원본·배치 검사';bar.insertBefore(imageCheck,readinessButton);
+ const originalSync=sync;sync=function(){originalSync();imageCheck.disabled=busy||!state?.revision||!auth.isSignedIn()||dirty();};
+ imageCheck.onclick=async()=>{
+  if(busy||!state?.revision||dirty())return;
+  const revision=state.revision,query=`requestId=${encodeURIComponent(requestId)}&revisionId=${encodeURIComponent(revision.id)}`;
+  busy=true;sync();setStatus('저장 버전의 사용 원본을 확인하는 중…');
+  try{
+   const {plan}=await api(`/api/production-print-images?${query}`);
+   if(plan.documentHash!==revision.document_hash)throw Error('검사 버전이 저장본과 일치하지 않습니다. 다시 열어 주세요.');
+   const results=[];
+   for(const [index,source] of plan.sources.entries()){
+    setStatus(`원본 파일·배치 검사 중 · ${index+1}/${plan.sources.length}`);
+    try{
+     if(!source.startsWith('production-asset://'))throw Error('이 이미지의 접수 보관 원본 연결이 필요합니다.');
+     const {report}=await api(`/api/production-print-images?${query}&assetId=${encodeURIComponent(source.slice(19))}`);
+     if(report.documentHash!==plan.documentHash||report.source!==source)throw Error('원본 검사 결과가 저장 버전과 일치하지 않습니다.');
+     results.push(report);
+    }catch(error){results.push({source,status:'blocked',message:error.message});}
+   }
+   if(!auth.isSignedIn()||state?.revision?.id!==revision.id)throw Error('관리자 세션이나 교정 버전이 변경되었습니다. 다시 열어 주세요.');
+   const dialog=document.createElement('dialog');dialog.className='production-print-readiness';
+   const heading=document.createElement('h2');heading.textContent=`교정 v${plan.revisionNumber} · 원본·배치 검사`;
+   const description=document.createElement('p');description.textContent=`사용 원본 ${plan.sources.length}개 · 이미지 사용 ${plan.uses.length}곳. 파일 크기·헤더·SHA-256과 실제 배치 해상도를 확인합니다. 완전한 이미지 디코딩·CMYK 생성·인쇄 승인은 포함하지 않습니다.`;
+   const table=document.createElement('table'),head=document.createElement('tr');
+   for(const label of ['면','개체','원본·배치 결과']){const th=document.createElement('th');th.textContent=label;head.append(th);}table.append(head);
+   for(const use of plan.uses){const report=results.find(item=>item.source===use.source),placement=report?.placements?.find(item=>item.pageId===use.pageId&&item.objectId===use.objectId);
+    const detail=report?.message||(!placement?'배치 검사 결과 없음':placement.status==='unresolved'?placement.reason:`${report.pixelWidth}×${report.pixelHeight}px · ${placement.effectiveDpi} DPI / 기준 ${plan.minimumDpi} · ${placement.status==='passed'?'해상도 충족':'저해상도 확인 필요'}`);
+    const row=document.createElement('tr');for(const value of [use.pageNumber,`${use.role} · ${use.objectId}`,detail]){const td=document.createElement('td');td.textContent=value;row.append(td);}table.append(row);
+   }
+   const download=document.createElement('button');download.textContent='이 버전 검사 기록 다운로드';download.onclick=()=>{const record={schemaVersion:'production-image-inspection.v1',requestId,revisionId:revision.id,documentHash:plan.documentHash,generatedAt:new Date().toISOString(),plan,results,finalApproved:false};const url=URL.createObjectURL(new Blob([JSON.stringify(record,null,2)],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download=`production-v${plan.revisionNumber}-image-inspection.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+   const close=document.createElement('button');close.textContent='닫기';close.onclick=()=>dialog.close();dialog.append(heading,description,table,download,close);dialog.onclose=()=>dialog.remove();document.body.append(dialog);dialog.showModal();
+   setStatus(`교정 v${plan.revisionNumber} 원본·배치 검사를 마쳤습니다. 결과는 인쇄 승인이 아닙니다.`);
+  }catch(error){setStatus(error.message);}finally{busy=false;sync();}
+ };
  readinessButton.onclick=async()=>{if(busy||!state?.revision||dirty())return;busy=true;sync();try{const report=await window.ACDLProductionEditor.inspectNativeReadiness(),dialog=document.createElement('dialog');dialog.className='production-print-readiness';const heading=document.createElement('h2');heading.textContent=`교정 v${report.revisionNumber} · 출력 준비 확인`;const close=document.createElement('button');close.textContent='닫기';close.onclick=()=>dialog.close();const summary=document.createElement('p');summary.textContent=`개체 ${report.counts.objects}개 · 준비 ${report.counts.ready}개 · 보관 대기 ${report.counts.pending}개 · 해결 필요 ${report.counts.blocked}개. 최종 PDF 검사나 인쇄 승인이 아닙니다.`;dialog.append(heading,summary);for(const item of report.blockers){const p=document.createElement('p');p.textContent=item.message;dialog.append(p);}const table=document.createElement('table');const head=document.createElement('tr');for(const label of ['면','개체','해결할 항목']){const cell=document.createElement('th');cell.textContent=label;head.append(cell);}table.append(head);for(const item of report.items){const row=document.createElement('tr');for(const value of [item.pageNumber||item.pageId,`${item.role||item.type} · ${item.objectId}`,item.message+(item.effectiveDpi!=null?` · ${item.effectiveDpi} DPI / 기준 ${item.minimumDpi}`:'')]){const cell=document.createElement('td');cell.textContent=value;row.append(cell);}table.append(row);}dialog.append(table,close);dialog.onclose=()=>dialog.remove();document.body.append(dialog);dialog.showModal();}catch(error){setStatus(error.message);}finally{busy=false;sync();}};
  window.ACDLProductionEditor={inlinePrintAssets,inspectNativeReadiness:async()=>{const result=await api(`/api/production-print-readiness?requestId=${encodeURIComponent(requestId)}&revisionId=${encodeURIComponent(state.revision.id)}`);if(result.report.documentHash!==state.revision.document_hash)throw Error('검사 버전이 저장본과 일치하지 않습니다. 다시 열어 주세요.');return result.report;}};
  setInterval(()=>{if(state){sync();const changed=dirty();if(changed&&!lastDirty&&!busy)status.textContent='저장하지 않은 교정 내용이 있습니다. 인쇄 검사는 저장 후 진행하세요.';lastDirty=changed;}},1000);
