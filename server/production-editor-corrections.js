@@ -21,11 +21,13 @@ export async function validateEditorCorrection(input,baseDocument,snapshot,reque
   if(value.startsWith('production-asset://')&&!allowed.has(value.slice(19)))throw Error('이 접수 건에 보관된 원본만 사용해 주세요.');
   if(value.startsWith('blob:')||value.startsWith('data:image/')&&!trustedImages.has(value)||/\/storage\/v1\/object\/sign\//.test(value))throw Error('이미지를 먼저 교정 원본으로 업로드해 주세요.');
  }else if(value&&typeof value==='object')Object.values(value).forEach(check);}
- try{check(project);}catch(error){
-  for(const [pageId,items] of Object.entries(project.book.elementsByPage||{}))for(const item of items){try{check(item);}catch{throw Error(`${error.message} · 면 ${pageId} · 개체 ${item.id}`);}}
+ const document=adapter.toDocument(project);
+ // Editor resource catalogs and previews are not edited through correction controls.
+ project.template.resources=structuredClone(trusted.template.resources||{});
+ try{check(document);}catch(error){
+  for(const page of document.template.pages||[])for(const item of page.objects||[]){try{check(item);}catch{throw Error(`${error.message} · 면 ${page.id} · 개체 ${item.id}`);}}
   throw error;
  }
- const document=adapter.toDocument(project);
  // A saved project starts a fresh editing baseline; approvals never carry forward.
  project.productionCorrection.baseDocument=adapter.withoutEditor(document);
  project.productionCorrection.baselineElements=structuredClone(project.book.elementsByPage);

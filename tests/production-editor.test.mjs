@@ -56,3 +56,13 @@ test('print document fingerprint ignores renderer resources but detects actual p
  assert.equal(JSON.stringify(adapter.toDocument(p)),baseline);
  p.book.elementsByPage.p1[1].x+=1;assert.notEqual(JSON.stringify(adapter.toDocument(p)),baseline);
 });
+
+test('unused editor catalog URLs do not block a no-change receipt save and catalogs remain server-owned',async()=>{
+ const {source,document}=fixture();source.template.resources.sampleAssets=[];
+ const p=adapter.createProject(source,document,id);p.template.resources.preview={src:'data:image/png;base64,GENERATED'};p.template.resources.catalog={src:'https://example.invalid/storage/v1/object/sign/catalog?token=temporary'};
+ const result=await validateEditorCorrection(p,document,{},id,[{id:assetId}],{loadSource:async()=>({projectData:source})});
+ assert.deepEqual(adapter.withoutEditor(result),document);assert.deepEqual(result.editorProject.template.resources,source.template.resources);
+ for(const src of ['blob:temporary','https://example.invalid/storage/v1/object/sign/photo?token=temporary']){
+ p.book.elementsByPage.p1[1].image.src=src;await assert.rejects(validateEditorCorrection(p,document,{},id,[{id:assetId}],{loadSource:async()=>({projectData:source})}),/개체 photo/);
+ }
+});
