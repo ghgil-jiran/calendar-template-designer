@@ -6,7 +6,7 @@
     if (value == null) return {...DEFAULT_POLICY};
     if (!value || typeof value !== "object" || Array.isArray(value)) throw Error("이미지 DPI 기준을 확인해 주세요.");
     const p = {...DEFAULT_POLICY, ...value};
-    if (p.schemaVersion !== DEFAULT_POLICY.schemaVersion || !["recommendedDpi","orderMinimumDpi","upscaleTargetDpi"].every(k => Number.isInteger(p[k]) && p[k] >= 72 && p[k] <= 1200) || p.orderMinimumDpi > p.recommendedDpi || p.upscaleTargetDpi < p.recommendedDpi) throw Error("DPI 기준은 72~1200의 정수이며 주문 최소 ≤ 권장 ≤ 보정 목표여야 합니다.");
+    if (p.schemaVersion !== DEFAULT_POLICY.schemaVersion || !["recommendedDpi","orderMinimumDpi","upscaleTargetDpi"].every(k => Number.isInteger(p[k]) && p[k] >= 72 && p[k] <= 1200) || p.orderMinimumDpi > p.recommendedDpi || p.upscaleTargetDpi < p.orderMinimumDpi) throw Error("DPI 기준은 72~1200의 정수이며 주문 최소는 권장과 보정 목표 이하이어야 합니다. 보정 목표는 권장보다 낮게 설정할 수 있습니다.");
     return {schemaVersion:p.schemaVersion,recommendedDpi:p.recommendedDpi,orderMinimumDpi:p.orderMinimumDpi,upscaleTargetDpi:p.upscaleTargetDpi};
   }
   function classifyDpi(dpi, policy) {
