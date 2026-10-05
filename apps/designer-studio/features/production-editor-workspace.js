@@ -31,10 +31,10 @@
    const revision=data.revisions[0]||null;if(inspectionMode&&(!revision||revision.id!==query.get('productionRevision')))throw Error('검사할 교정 버전이 변경되었습니다. 검수 화면에서 다시 선택해 주세요.');const runtimeDocument=revision?.document||receipt.receipt.snapshot.document;
    launchUpdate('progress','보관 이미지 연결·편집 화면 구성 중…',70);
    const raw=runtimeDocument.editorProject||adapter.createProject(data.editorSource.projectData,runtimeDocument,requestId);
-   project=map(raw,'open');state={receipt:receipt.receipt,revision,identity:data.editorSource.identity,printInspection:data.printInspection,uploadAvailable:data.uploadAvailable};
+   project=map(raw,'open');const importedBaseline=JSON.stringify(canonical());if(!inspectionMode)project=map(adapter.restoreImportedText(raw),'open');state={receipt:receipt.receipt,revision,identity:data.editorSource.identity,printInspection:data.printInspection,uploadAvailable:data.uploadAvailable};
    beginProjectTransition({clearProject:false});appMode='designer';selectedPageId=project.book.pageInstances[0]?.id;selectedElementId=null;selectedElementScope=null;history=[];future=[];calendarEditing=false;preview=false;previewType=null;
    for(const id of ['entryScreen','designerHome','setup','userSetup','templateLibraryModal'])$(id)?.classList.add('hidden');
-   document.body.classList.remove('user-mode');setEditorContext('3단계 · 접수본 교정');render();stable();saved=JSON.stringify(canonical());
+   document.body.classList.remove('user-mode');setEditorContext('3단계 · 접수본 교정');render();stable();saved=importedBaseline;
    title.textContent=`CAL-${String(state.receipt.receipt_number).padStart(6,'0')} · ${state.receipt.school_name} · ${revision?'교정 v'+revision.revision_number:'접수본'}`;
    $('saveBtn').textContent='교정 버전 저장';$('templateMode').textContent='접수본 교정';$('modeHelp').textContent='면을 선택하고 기존 개체를 직접 수정하세요. 원본 템플릿과 접수본은 보존됩니다.';
    const remote=window.ACDLTemplateRemotePersistence;if(remote)window.ACDLTemplateRemotePersistence={...remote,save:async()=>{throw Error('교정 내용은 상단 새 교정 버전 저장으로 저장해 주세요.');},saveDraft:async()=>{throw Error('교정 내용은 접수 건의 교정 버전으로 저장해야 합니다.');}};

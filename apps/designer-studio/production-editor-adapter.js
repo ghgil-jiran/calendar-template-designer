@@ -4,6 +4,25 @@
  const permissions={move:true,resize:true,rotate:true,color:true,delete:true,duplicate:true,layer:true,content:true};
  function withoutEditor(document){const copy=clone(document);delete copy.editorProject;return copy;}
  function imageData(payload){return typeof payload==='string'?{src:payload}:payload?.image||payload?.imageRef||payload||{};}
+ function importedText(value){
+  if(!Array.isArray(value))return String(value??'');
+  const labels={academic:'교무실',admin:'행정실',fax:'팩스'};
+  return value.map(contact=>{
+   if(typeof contact==='string')return contact;
+   if(!contact||typeof contact!=='object')return String(contact??'');
+   const label=contact.label||labels[contact.type]||contact.type||'연락처',number=contact.phone??contact.value??'';
+   return [label,number,contact.fax?`팩스 ${contact.fax}`:''].filter(Boolean).join(' ');
+  }).filter(Boolean).join(' · ');
+ }
+ function restoreImportedText(project){
+  const p=clone(project),context=p.productionCorrection;
+  if(!context)return p;
+  for(const page of context.baseDocument?.template?.pages||[])for(const o of page.objects||[]){
+   const value=o.payload??o.value,e=p.book.elementsByPage?.[page.id]?.find(e=>e.id===o.id),baseline=context.baselineElements?.[page.id]?.find(e=>e.id===o.id);
+   if(o.type==='text'&&Array.isArray(value)&&e&&baseline&&e.content===baseline.content&&e.content===String(value)&&e.content.includes('[object Object]'))e.content=importedText(value);
+  }
+  return p;
+ }
  function createProject(source,document,requestId){
   if(source?.format!=='acdl-project'||!source.book||!document?.template?.pages?.length)throw Error('에디터 교정 원본이 없습니다.');
   const p=clone(source),doc=withoutEditor(document),size=p.productType.pageSize,sourcePages=p.book.pageInstances;
@@ -30,7 +49,7 @@
      if(original.type!=='image-frame'){e.style.background='transparent';e.style.stroke='transparent';e.style.strokeWidth=0;}
      const placement=image.placement||{},transform=image.imageTransform||{};e.image.scale=placement.scale??transform.scale??e.image.scale??1;e.image.offsetX=transform.offsetX??e.image.offsetX??0;e.image.offsetY=transform.offsetY??e.image.offsetY??0;e.image.focalPoint={x:(placement.x??50)/100,y:(placement.y??50)/100};e.image.brightness=placement.brightness??transform.brightness??100;e.image.contrast=transform.contrast??100;e.image.saturation=transform.saturation??100;e.image.flipX=transform.flipX===true;e.image.flipY=transform.flipY===true;
     }
-    if(object.type==='text')e.content=String(object.payload??object.value??'');
+    if(object.type==='text')e.content=importedText(object.payload??object.value??'');
     if(object.type==='semantic-object'){e.sampleContent=clone(object.payload||{});const image=imageData(object.payload);const ref=image.assetRef||image.imageRef;const src=typeof image==='string'?image:image.src||image.url||ref?.src;if(src)e.sampleContent.image=src;}
     return e;
    });
@@ -85,5 +104,5 @@
   for(const [key,target] of [['year','year'],['startMonth','startMonth'],['weekStart','weekStart'],['calendarRows','gridRows'],['dataOptions','dataOptions']])if(!same(project.settings[key],context.baselineSettings?.[key]))doc.dataset.calendar[target]=clone(project.settings[key]??null);
   return doc;
  }
- root.ACDLProductionEditorAdapter=Object.freeze({createProject,toDocument,withoutEditor});
+ root.ACDLProductionEditorAdapter=Object.freeze({createProject,toDocument,withoutEditor,restoreImportedText});
 })(typeof window!=='undefined'?window:globalThis);
