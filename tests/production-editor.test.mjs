@@ -41,3 +41,18 @@ test('empty payload with an expected original or unresolved asset still blocks c
  assert.throws(()=>adapter.createProject(source,document,id),/이미지 원본/);
  }
 });
+
+test('server preserves trusted embedded template images but rejects new inline replacements with object context',async()=>{
+ const {source,document}=fixture();source.template.resources.sampleAssets=[{src:'data:image/png;base64,TRUSTED'}];
+ const p=adapter.createProject(source,document,id),options={loadSource:async()=>({projectData:source})};
+ const saved=await validateEditorCorrection(p,document,{},id,[{id:assetId}],options);
+ assert.equal(saved.editorProject.template.resources.sampleAssets[0].src,'data:image/png;base64,TRUSTED');
+ p.book.elementsByPage.p1[1].image.src='data:image/png;base64,NEW';
+ await assert.rejects(validateEditorCorrection(p,document,{},id,[{id:assetId}],options),/개체 photo/);
+});
+test('print document fingerprint ignores renderer resources but detects actual placement changes',()=>{
+ const {source,document}=fixture(),p=adapter.createProject(source,document,id),baseline=JSON.stringify(adapter.toDocument(p));
+ p.template.resources.preview={src:'data:image/png;base64,PREVIEW'};p.template.metadata.updatedAt='later';
+ assert.equal(JSON.stringify(adapter.toDocument(p)),baseline);
+ p.book.elementsByPage.p1[1].x+=1;assert.notEqual(JSON.stringify(adapter.toDocument(p)),baseline);
+});

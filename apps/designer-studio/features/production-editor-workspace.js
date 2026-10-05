@@ -15,11 +15,12 @@
  const saveState=document.createElement('span');saveState.className='production-save-state';saveState.setAttribute('role','status');bar.append(title,saveState,status,note,save,back);document.body.prepend(bar);const sizeWorkspace=()=>{const workspace=document.querySelector('.workspace');if(workspace)document.body.style.setProperty('--production-workspace-height',`${Math.max(400,innerHeight-(workspace.getBoundingClientRect().top+scrollY))}px`);};new ResizeObserver(sizeWorkspace).observe(bar);window.addEventListener('resize',sizeWorkspace);document.body.classList.add('production-correction-mode');
  function map(value,direction){if(typeof value==='string')return (direction==='open'?urls:markers).get(value)||value;if(Array.isArray(value))return value.map(v=>map(v,direction));if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,map(v,direction)]));return value;}
  function canonical(){const value=map(project,'save');if(value?.productionCorrection?.baseCalendarMaster)value.template.masters.calendar=value.productionCorrection.baseCalendarMaster;return value;}
- function dirty(){return state&&JSON.stringify(canonical())!==saved;}
+ function contentFingerprint(){return JSON.stringify(adapter.toDocument(canonical()));}
+ function dirty(){if(!state)return false;try{return contentFingerprint()!==saved;}catch{return true;}}
  async function api(path,method='GET',body){const response=await auth.authorizedFetch(path,{method,...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});const result=await response.json();if(!response.ok)throw Error(result.message||result.error||'교정 작업을 완료하지 못했습니다.');return result;}
  function register(marker,url){urls.set(marker,url);markers.set(url,marker);}
  function setStatus(message){status.textContent=message;if(inspectionMode&&embedded)window.parent.postMessage({type:'calendar:production-inspection-progress',requestId,revisionId:state?.revision?.id,message},location.origin);}
- function sync(){saveState.textContent=!state?'불러오는 중…':busy?'작업 중…':dirty()?'저장하지 않은 변경 있음':state.revision?`저장됨 · 교정 v${state.revision.revision_number}`:'접수본 · 첫 교정 버전 저장 전';save.disabled=busy||!state||!auth.isSignedIn()||!dirty();inspect.disabled=busy||!state?.revision||!auth.isSignedIn()||dirty();note.disabled=busy;}
+ function sync(){saveState.textContent=!state?'불러오는 중…':busy?'작업 중…':dirty()?'저장하지 않은 변경 있음':state.revision?`저장됨 · 교정 v${state.revision.revision_number}`:'접수본 · 첫 교정 버전 저장 전';save.disabled=busy||!state||!auth.isSignedIn()||!!state.revision&&!dirty();inspect.disabled=busy||!state?.revision||!auth.isSignedIn()||dirty();note.disabled=busy;}
  async function load(){
   if(starting||state)return;if(!auth.isSignedIn()){setStatus('관리자 로그인 후 접수본을 불러옵니다.');return;}
   starting=true;busy=true;launchUpdate('progress','접수 자료 확인 중…',25);setStatus('접수 당시 템플릿과 최신 교정 버전을 불러오는 중…');sync();
@@ -31,7 +32,7 @@
    const revision=data.revisions[0]||null;if(inspectionMode&&(!revision||revision.id!==query.get('productionRevision')))throw Error('검사할 교정 버전이 변경되었습니다. 검수 화면에서 다시 선택해 주세요.');const runtimeDocument=revision?.document||receipt.receipt.snapshot.document;
    launchUpdate('progress','보관 이미지 연결·편집 화면 구성 중…',70);
    const raw=runtimeDocument.editorProject||adapter.createProject(data.editorSource.projectData,runtimeDocument,requestId);
-   project=map(raw,'open');const importedBaseline=JSON.stringify(canonical());if(!inspectionMode)project=map(adapter.restoreImportedText(raw),'open');state={receipt:receipt.receipt,revision,identity:data.editorSource.identity,printInspection:data.printInspection,uploadAvailable:data.uploadAvailable};
+   project=map(raw,'open');const importedBaseline=JSON.stringify(adapter.toDocument(canonical()));if(!inspectionMode)project=map(adapter.restoreImportedText(raw),'open');state={receipt:receipt.receipt,revision,identity:data.editorSource.identity,printInspection:data.printInspection,uploadAvailable:data.uploadAvailable};
    beginProjectTransition({clearProject:false});appMode='designer';selectedPageId=project.book.pageInstances[0]?.id;selectedElementId=null;selectedElementScope=null;history=[];future=[];calendarEditing=false;preview=false;previewType=null;
    for(const id of ['entryScreen','designerHome','setup','userSetup','templateLibraryModal'])$(id)?.classList.add('hidden');
    document.body.classList.remove('user-mode');setEditorContext('3단계 · 접수본 교정');render();stable();saved=importedBaseline;
@@ -46,12 +47,12 @@
   }catch(error){state=null;setStatus(error.message);loadingError(error.message);}finally{starting=false;busy=false;sync();}
  }
  async function persist(){
-  if(busy||!state||!dirty())return;if(!note.value.trim()){setStatus('교정 이유와 변경 내용을 입력해 주세요.');note.focus();return;}
+  if(busy||!state||state.revision&&!dirty())return;if(!note.value.trim()&&dirty()){setStatus('교정 이유와 변경 내용을 입력해 주세요.');note.focus();return;}
   busy=true;sync();setStatus('새 교정 버전 저장 중…');
   try{
-   const input=canonical();adapter.toDocument(input);const fingerprint=JSON.stringify(input)+note.value.trim();if(fingerprint!==pendingFingerprint){pendingId=crypto.randomUUID();pendingFingerprint=fingerprint;}
-   const result=await api('/api/production-corrections','POST',{requestId,id:pendingId,baseRevisionId:state.revision?.id||null,note:note.value.trim(),editorProject:input});
-   state.revision=result.revision;state.printInspection=null;project=map(result.revision.document.editorProject,'open');pendingId=null;pendingFingerprint=null;note.value='';render();stable();saved=JSON.stringify(canonical());lastDirty=false;
+   const input=canonical();adapter.toDocument(input);const saveNote=note.value.trim()||'접수본 확인 완료 · 수정 없음';const fingerprint=JSON.stringify(input)+saveNote;if(fingerprint!==pendingFingerprint){pendingId=crypto.randomUUID();pendingFingerprint=fingerprint;}
+   const result=await api('/api/production-corrections','POST',{requestId,id:pendingId,baseRevisionId:state.revision?.id||null,note:saveNote,editorProject:input});
+   state.revision=result.revision;state.printInspection=null;project=map(result.revision.document.editorProject,'open');pendingId=null;pendingFingerprint=null;note.value='';render();stable();saved=contentFingerprint();lastDirty=false;
    title.textContent=`CAL-${String(state.receipt.receipt_number).padStart(6,'0')} · ${state.receipt.school_name} · 교정 v${result.revision.revision_number}`;setStatus(`교정 v${result.revision.revision_number} 저장 완료. 제작 검수로 돌아가 저장 버전을 확인하세요.`);
   }catch(error){setStatus(error.message);}finally{busy=false;sync();}
  }

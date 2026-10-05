@@ -29,6 +29,11 @@ export default async function handler(request,response){
   if(!uuid(body.id)||body.baseRevisionId!=null&&!uuid(body.baseRevisionId)||typeof body.note!=='string'||!body.note.trim()||body.note.length>2000)return sendJson(response,400,{message:'교정 내용과 버전 정보를 확인해 주세요.'});
   const duplicate=revisions.find(r=>r.id===body.id);if(duplicate)return sendJson(response,200,{revision:duplicate});
   const latest=revisions[0];if((latest?.id||null)!==(body.baseRevisionId||null))return sendJson(response,409,{message:'다른 교정본이 저장되었습니다. 다시 불러온 뒤 작업해 주세요.'});
+  if(body.action==='confirmReceipt'){
+   if(latest)return sendJson(response,409,{message:'저장된 교정 버전이 있습니다. 해당 버전으로 검사해 주세요.'});
+   const source=await loadProductionEditorSource(receipt.snapshot,{signAssets:false});
+   body.editorProject=globalThis.ACDLProductionEditorAdapter.createProject(source.projectData,receipt.snapshot.document,body.requestId);
+  }
   let document;try{document=body.editorProject?await validateEditorCorrection(body.editorProject,latest?.document||receipt.snapshot.document,receipt.snapshot,body.requestId,[...(receipt.snapshot.assets||[]),...addedAssets]):applyCorrections(latest?.document||receipt.snapshot.document,body.patches,[...(receipt.snapshot.assets||[]),...addedAssets]);}catch(error){return sendJson(response,400,{message:error.message});}
   const hash=sealProductionDocument(document);
   const result=await supabaseRequest('rpc/save_calendar_production_revision',{method:'POST',body:JSON.stringify({p_id:body.id,p_request_id:body.requestId,p_base_revision_id:body.baseRevisionId||null,p_document:document,p_document_hash:hash,p_note:body.note.trim(),p_created_by:admin.id})});

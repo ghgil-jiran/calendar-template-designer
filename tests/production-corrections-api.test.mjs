@@ -8,3 +8,20 @@ test('non-admin cannot access correction snapshots',async()=>{const calls=setup(
 test('stale version and approved receipt cannot create revisions',async()=>{setup({revisions:[{id:revisionId,document:{template:{pages:[]}}}]});let res=response();const request=req();request.body.id='33333333-3333-4333-a333-333333333333';await handler(request,res);assert.equal(res.statusCode,409);setup({status:'approved'});res=response();await handler(req(),res);assert.equal(res.statusCode,409);});
 test('new correction uses server receipt data and leaves original receipt untouched',async()=>{const calls=setup(),res=response();await handler(req(),res);assert.equal(res.statusCode,201);const mutation=calls.find(c=>c.options.method==='POST');assert.ok(mutation.url.includes('/rpc/save_calendar_production_revision'));const body=JSON.parse(mutation.options.body);assert.deepEqual(body.p_document,{template:{pages:[]},productionIntegrity:{hashScheme:'sorted-json.v1'}});assert.equal(body.p_document_hash,documentHash(body.p_document));assert.equal(body.p_created_by,id);assert.equal(calls.some(c=>c.options.method==='PATCH'),false);});
 test.after(()=>globalThis.fetch=old);
+
+test('confirmation without editor freezes the exact receipt into a revision and never updates receipt',async()=>{
+ const {createHash}=await import('node:crypto');const calls=setup(),mock=globalThis.fetch;
+ const source={format:'acdl-project',settings:{year:2027,startMonth:3},productType:{category:'desk',pageSize:{width:260,height:180}},template:{masters:{calendar:{}},masterElements:{},resources:{}},book:{pageInstances:[{id:'p1',role:'cover-front'}],elementsByPage:{p1:[]},school:{},events:[],monthlyImages:{},monthlyQuotes:{},sheets:[]}};
+ const document={template:{pages:[{id:'p1',role:'cover-front',size:{width:260,height:180},objects:[]}]},dataset:{school:{},calendar:{year:2027,events:[]},monthlyImages:{},monthlyQuotes:{}}};
+ const snapshot={doc:{meta:{templateId:'test-template',templateVersion:'1.0.6'}},document,assets:[]};
+ const bytes=JSON.stringify({manifest:{templateId:'test-template',version:'1.0.6'},template:{kind:'designer-project-snapshot',projectData:source},assets:[]});
+ globalThis.fetch=async(url,options={})=>{
+ if(url.includes('calendar_production_requests'))return new Response(JSON.stringify([{id,status:'reviewing',snapshot}]));
+ if(url.includes('/template_packages?'))return new Response(JSON.stringify([{package_storage_path:'test-template/1.0.6/package.json',package_sha256:createHash('sha256').update(bytes).digest('hex')}]));
+ if(url.includes('/storage/v1/object/template-packages/'))return new Response(bytes);
+ return mock(url,options);
+ };
+ const request=req();request.body.action='confirmReceipt';request.body.note='접수본 확인 완료 · 수정 없음';const res=response();await handler(request,res);assert.equal(res.statusCode,201,JSON.stringify(res.body));
+ const mutation=calls.find(c=>c.url.includes('/rpc/')),body=JSON.parse(mutation.options.body);
+ assert.deepEqual(body.p_document.template,document.template);assert.equal(body.p_document_hash,documentHash(body.p_document));assert.equal(calls.some(c=>c.options.method==='PATCH'),false);
+});
