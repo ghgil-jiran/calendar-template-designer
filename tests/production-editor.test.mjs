@@ -27,3 +27,17 @@ test('contact arrays import as readable text without changing frozen receipt dat
  const repaired=adapter.restoreImportedText(legacy);assert.equal(repaired.book.elementsByPage.p1[0].content,p.book.elementsByPage.p1[0].content);assert.deepEqual(adapter.toDocument(repaired).template.pages[0].objects[0].payload,p.book.elementsByPage.p1[0].content);assert.equal(legacy.book.elementsByPage.p1[0].content,String(contacts));
  legacy.book.elementsByPage.p1[0].content='관리자가 교정한 연락처';assert.equal(adapter.restoreImportedText(legacy).book.elementsByPage.p1[0].content,legacy.book.elementsByPage.p1[0].content);
 });
+
+test('explicit empty template placeholder opens and round trips without deleting the object',()=>{
+ const {source,document}=fixture();source.book.elementsByPage.p1.push({id:'photo',type:'image-frame',emptyBehavior:'placeholder',image:{src:'',binding:'',fit:'cover'}});document.template.pages[0].objects[1].payload=null;
+ const before=structuredClone(document),p=adapter.createProject(source,document,id);
+ assert.equal(p.book.elementsByPage.p1[1].image.src,'');assert.equal(p.book.elementsByPage.p1[1].type,'image-frame');assert.deepEqual(adapter.toDocument(p),before);assert.deepEqual(document,before);
+});
+test('empty payload with an expected original or unresolved asset still blocks correction',()=>{
+ for(const variant of ['source','reference','binding','not-placeholder']){
+ const {source,document}=fixture();const original={id:'photo',type:'image-frame',emptyBehavior:'placeholder',image:{src:'',binding:''}};
+ if(variant==='source')original.image.src='package-asset://expected';if(variant==='binding')original.image.binding='school.photo';if(variant==='not-placeholder')delete original.emptyBehavior;
+ source.book.elementsByPage.p1.push(original);document.template.pages[0].objects[1].payload=variant==='reference'?{assetRef:{ref:'idb',id:'missing'}}:null;
+ assert.throws(()=>adapter.createProject(source,document,id),/이미지 원본/);
+ }
+});

@@ -43,7 +43,8 @@
     if(original.printSource){e.printSource=clone(original.printSource);e.printSource.approved=false;delete e.printSource.approvedAt;delete e.printSource.approvedBy;}
     if(object.type==='image'){
      const image=imageData(object.payload);const ref=image.assetRef;const src=image.src||image.url||ref?.src||(typeof image==='string'?image:'');
-     if(!src)throw Error(`이미지 원본을 확인할 수 없습니다: ${object.id}`);
+     const emptyTemplateFrame=original.type==='image-frame'&&original.emptyBehavior==='placeholder'&&!original.src&&!original.assetId&&!original.assetRef&&!original.image?.src&&!original.image?.assetId&&!original.image?.assetRef&&!original.image?.binding&&!image.assetRef&&!image.imageRef&&!image.assetId;
+     if(!src&&!emptyTemplateFrame)throw Error(`이미지 원본을 확인할 수 없습니다: ${object.id}`);
      e.src=src;e.image={...(original.image||{}),...clone(image),src,fit:image.fit||original.image?.fit||'cover'};delete e.image.binding;delete e.image.assetId;delete e.assetId;delete e.assetRef;delete e.aiDesign;
      e.type='image-frame';
      if(original.type!=='image-frame'){e.style.background='transparent';e.style.stroke='transparent';e.style.strokeWidth=0;}
