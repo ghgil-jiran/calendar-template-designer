@@ -158,19 +158,8 @@ function renderWidgetContent(view,p){
   return window.ACDLSharedMiniCalendar.renderMiniCalendarMarkup(model,{style:view.style,monthLabelStyle:view.monthLabelStyle,sampleFamily:project.template?.metadata?.sampleFamily,holidayDates:(project.book.events||[]).filter(event=>event.category==="holiday").map(event=>event.startDate)});
  }
  if(view.type==="year-calendar"){
-  const annual=window.ACDLPageCompositionRuntime.resolveAnnualCalendar({...view,weekStart:project.settings.weekStart},p,{year:project.settings.year,startMonth:1,calendarRows:project.settings.calendarRows,calendarRowsMode:project.settings.calendarRowsMode,sampleFamily:project.template?.metadata?.sampleFamily,weekStart:project.settings.weekStart});
-  if(!annual)return "";
-  const renderMonth=mm=>{
-   const monthNames=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"],label=view.monthLabelStyle==="number-en"?`${mm.month} <small>${monthNames[mm.month-1]}${mm.transition?` · ${mm.year}`:""}</small>`:`${mm.transition?`<small class="year-transition">${mm.year}</small>`:""}${mm.month}월`;
-   let html=`<div class="year-month" data-month-key="${mm.year}-${String(mm.month).padStart(2,"0")}"><strong>${label}</strong><div class="year-month-grid" style="--year-calendar-rows:${mm.rows};grid-template-rows:${annual.showWeekdayHeader?"auto ":""}repeat(${mm.rows},1fr)">`;
-   if(annual.showWeekdayHeader)mm.headers.forEach(x=>html+=`<span class="mh">${x}</span>`);
-   mm.cells.forEach(cell=>html+=`<span class="${cell.month!==mm.month?"adj":""}">${cell.day}</span>`);
-   return html+"</div></div>"
-  };
-  let inner=`<div class="year-calendar-object annual-layout-${annual.layout}" style="--year-cols:${annual.columns};--year-rows:${Math.ceil(annual.months.length/annual.columns)}">`;
-  if(annual.groupSize){for(let index=0;index<annual.months.length;index+=annual.groupSize)inner+=`<div class="year-calendar-group">${annual.months.slice(index,index+annual.groupSize).map(renderMonth).join("")}</div>`}
-  else inner+=annual.months.map(renderMonth).join("");
-  return inner+"</div>"
+  const annual=window.ACDLSharedMiniCalendar.resolveAnnualCalendar({...view,weekStart:project.settings.weekStart},p,{year:project.settings.year,startMonth:1,calendarRows:project.settings.calendarRows,calendarRowsMode:project.settings.calendarRowsMode,sampleFamily:project.template?.metadata?.sampleFamily,weekStart:project.settings.weekStart});
+  return window.ACDLSharedMiniCalendar.renderAnnualCalendarMarkup(annual,view);
  }
  if(view.type==="month-date-strip"){
   const strip=window.ACDLPageCompositionRuntime.resolveMonthDateStrip(view,p,{year:project.settings.year,startMonth:project.settings.startMonth||1});

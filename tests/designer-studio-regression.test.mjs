@@ -37,8 +37,8 @@ test('monthly calendar uses sample-measured fixed vertical ratios', () => {
   assert.match(html, /"sample-6":\{title:10,weekday:4,grid:86\}/);
 assert.match(html, /"sample-3":\{title:21,weekday:4,grid:75\}/);
 assert.match(html, /data-standard-family="desk-3"\] \.widget-mini-calendar\{background:transparent;border:0/);
-assert.match(html, /view\.monthLabelStyle==="number-en"/);
-assert.match(html, /view\.showWeekdayHeader!==false/);
+assert.match(html, /ACDLSharedMiniCalendar\.renderAnnualCalendarMarkup\(annual,view\)/);
+assert.match(fs.readFileSync(path.resolve("apps/designer-studio/shared-screen-mini-calendar.js"),"utf8"), /element\?\.showWeekdayHeader !== false/);
   assert.match(html, /--calendar-title-share:\$\{vertical\.title\}%/);
   assert.match(html, /function calendarChromeLayout\(presentation,vertical,region=calendarRegion\(\)\)/);
   assert.match(html, /--calendar-weekday-track:\$\{chrome\.weekdayStage\}%/);

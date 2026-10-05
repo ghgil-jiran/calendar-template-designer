@@ -57,5 +57,45 @@
     }
     return html + "</div></div>";
   }
-  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup});
+  function resolveAnnualCalendar(element, page, defaults = {}) {
+    const baseYear = Number(page?.calendarYear || defaults.year);
+    const startMonth = Number(element?.startMonth || defaults.startMonth || 1);
+    if (!Number.isInteger(baseYear) || !Number.isInteger(startMonth) || startMonth < 1 || startMonth > 12) return null;
+    const count = Math.max(1, Math.min(12, Number(element?.monthCount || 12)));
+    const layout = ["open-grid","individual-month-boxes","vertical-three-month-groups","horizontal-four-month-groups"].includes(element?.layoutType) ? element.layoutType : "individual-month-boxes";
+    const columns = Math.max(1, Math.min(6, Number(element?.columns || 4)));
+    const groupSize = layout === "vertical-three-month-groups" ? 3 : layout === "horizontal-four-month-groups" ? 4 : 0;
+    const months = Array.from({ length: count }, (_, index) => {
+      const absolute = startMonth - 1 + index;
+      const year = baseYear + Math.floor(absolute / 12), month = absolute % 12 + 1;
+      const rowMode = String(element?.rowsMode || "inherit");
+      const mini = resolveMiniCalendar({
+        type: "mini-calendar", weekStart: element?.weekStart ?? defaults.weekStart,
+        calendarRows: rowMode === "5" || rowMode === "6" ? Number(rowMode) : defaults.calendarRows,
+        calendarRowsMode: rowMode === "adaptive" ? "adaptive" : defaults.calendarRowsMode,
+        sampleFamily: rowMode === "adaptive" ? "desk-6" : defaults.sampleFamily,
+      }, { calendarYear: year, calendarMonth: month }, { year, startMonth: month, ...defaults });
+      const transition = element?.showTransitionYear !== false && year !== baseYear;
+      const names = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+      const label = element?.monthLabelStyle === "number-en" ? month + " " + names[month - 1] + (transition ? " · " + year : "") : (transition ? year + " " : "") + month + "월";
+      return { year, month, transition, label, rows: mini?.rows ?? 6, cells: mini?.cells ?? [], headers: (element?.sampleFamily ?? defaults.sampleFamily) === "desk-6" ? (mini?.headers ?? []).map(label => label[0]) : (mini?.headers ?? []) };
+    });
+    return { baseYear, startMonth, columns, layout, groupSize, showWeekdayHeader: element?.showWeekdayHeader !== false, months };
+  }
+  function renderAnnualCalendarMarkup(annual, element = {}) {
+    if (!annual) return "";
+    const names = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    const renderMonth = mm => {
+      const label = element.monthLabelStyle === "number-en" ? `${mm.month} <small>${names[mm.month-1]}${mm.transition ? ` · ${mm.year}` : ""}</small>` : `${mm.transition ? `<small class="year-transition">${mm.year}</small>` : ""}${mm.month}월`;
+      let html = `<div class="year-month" data-month-key="${mm.year}-${String(mm.month).padStart(2,"0")}"><strong>${label}</strong><div class="year-month-grid" style="--year-calendar-rows:${mm.rows};grid-template-rows:${annual.showWeekdayHeader ? "auto " : ""}repeat(${mm.rows},1fr)">`;
+      if (annual.showWeekdayHeader) mm.headers.forEach(x => html += `<span class="mh">${escapeText(x)}</span>`);
+      mm.cells.forEach(cell => html += `<span class="${cell.month !== mm.month ? "adj" : ""}">${cell.day}${cell.extra ? ` · ${cell.extra.day}` : ""}</span>`);
+      return html + "</div></div>";
+    };
+    let inner = `<div class="year-calendar-object annual-layout-${annual.layout}" style="--year-cols:${annual.columns};--year-rows:${Math.ceil(annual.months.length/annual.columns)}">`;
+    if (annual.groupSize) for (let index=0; index<annual.months.length; index+=annual.groupSize) inner += `<div class="year-calendar-group">${annual.months.slice(index,index+annual.groupSize).map(renderMonth).join("")}</div>`;
+    else inner += annual.months.map(renderMonth).join("");
+    return inner + "</div>";
+  }
+  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup});
 })(globalThis);

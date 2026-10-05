@@ -121,3 +121,14 @@ test('first-page capture keeps styles aligned and loads thumbnails within each g
  });
 
 test('publication freezes the configurable image policy without changing the PDF output DPI',()=>{const api=runtime(),project={productType:{pageSize:{width:260,height:180}},template:{resources:{exportSettings:{dpi:300,imageQualityPolicy:{recommendedDpi:240,orderMinimumDpi:180,upscaleTargetDpi:320}}}},book:{pageInstances:[]}},bundle=api.buildBundle(project,{id:'quality-test',version:'1.0.0',name:'품질',productType:'desk'});assert.equal(bundle.print.imageQualityPolicy.orderMinimumDpi,180);assert.equal(bundle.print.imageQualityPolicy.recommendedDpi,240);assert.equal(bundle.print.dpi,300);project.template.resources.exportSettings.imageQualityPolicy.orderMinimumDpi=190;assert.equal(bundle.print.imageQualityPolicy.orderMinimumDpi,180);});
+
+
+test('publish retry identity follows actual editable content, not only the remote revision',()=>{
+ const api=runtime(),project={template:{remoteVersionNumber:2,publishing:{lastReviewPackage:{version:'1.0.0'}},thumbnail:{dataUrl:'generated'}},book:{elementsByPage:{cover:[{id:'title',style:{color:'#123456'}}]}}};
+ const first=api.publicationSource(project),copy=structuredClone(project);
+ copy.template.thumbnail={dataUrl:'regenerated'};copy.template.publishing.lastReviewPackage.version='1.0.1';
+ assert.equal(api.publicationSource(copy),first);
+ copy.book.elementsByPage.cover[0].style.color='#abcdef';
+ assert.notEqual(api.publicationSource(copy),first);
+ assert.equal(project.book.elementsByPage.cover[0].style.color,'#123456');
+});

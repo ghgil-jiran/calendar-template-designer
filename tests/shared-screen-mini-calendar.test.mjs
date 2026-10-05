@@ -19,3 +19,14 @@ test('shared mini calendar follows authored month, rows and adjacent month shift
   assert.equal(`${april.year}-${april.month}`, '2027-4');
   assert.doesNotMatch(mini.renderMiniCalendarMarkup(march,{style:{primary:'red" onload="x'}}), /onload=/);
 });
+
+
+test('shared annual calendar preserves open and grouped layouts with academic-year rollover',()=>{
+ const api=mini;
+ const widget={startMonth:3,monthCount:12,layoutType:'open-grid',columns:4,monthLabelStyle:'number-en',showWeekdayHeader:false};
+ const model=api.resolveAnnualCalendar(widget,{calendarYear:2027},{calendarRows:6});
+ const html=api.renderAnnualCalendarMarkup(model,widget);
+ assert.match(html,/annual-layout-open-grid/);assert.match(html,/data-month-key="2028-02"/);assert.doesNotMatch(html,/class="mh"/);assert.equal((html.match(/class="year-month"/g)||[]).length,12);
+ widget.layoutType='vertical-three-month-groups';const grouped=api.renderAnnualCalendarMarkup(api.resolveAnnualCalendar(widget,{calendarYear:2027}),widget);
+ assert.equal((grouped.match(/class="year-calendar-group"/g)||[]).length,4);
+});
