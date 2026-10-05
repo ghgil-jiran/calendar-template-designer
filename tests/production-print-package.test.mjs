@@ -19,12 +19,12 @@ function database(f,{missingAsset=false,publicBucket=false}={}){
   const method=options.method||'GET',body=options.body;calls.push({url,method});
   if(url.includes('/rest/v1/template_packages')){
    if(method==='POST'){const row=JSON.parse(body);packages.push(row);return Response.json([row]);}
-   if(url.includes('eq.production-'))return Response.json(packages);
+   if(url.includes('eq.production-')){const version=new URL(url).searchParams.get('version')?.slice(3);return Response.json(packages.filter(row=>row.version===version&&row.template_id===new URL(url).searchParams.get('template_id')?.slice(3)));}
    return Response.json([{package_storage_path:'desk-test/1.0.0/review/package.json',package_sha256:sha(original)}]);
   }
   if(url.includes('/rest/v1/template_print_preflight_jobs')){
    if(method==='POST'){const row={...JSON.parse(body),status:'queued'};jobs.unshift(row);return Response.json([row]);}
-   return Response.json(jobs);
+   const version=new URL(url).searchParams.get('template_version')?.slice(3);return Response.json(jobs.filter(row=>row.template_version===version&&row.template_id===new URL(url).searchParams.get('template_id')?.slice(3)));
   }
   if(url.endsWith('/bucket/template-packages'))return Response.json({public:publicBucket});
   if(url.includes('/object/template-packages/desk-test/'))return new Response(original);
@@ -38,7 +38,7 @@ function database(f,{missingAsset=false,publicBucket=false}={}){
 const oldFetch=globalThis.fetch;process.env.SUPABASE_URL='https://example.invalid';process.env.SUPABASE_SERVICE_ROLE_KEY='test-only';
 test('freeze uses saved project and exact stored bytes, creates private draft, and preserves receipt/revision',async()=>{
  const f=fixture(),before=structuredClone(f),db=database(f),row=await freezeProductionPackage(f.receipt,f.revision);
- assert.equal(row.status,'draft');assert.equal(row.template_id,`production-${revisionId}`);assert.equal(row.publishing_contract.lifecycle.userServiceVisible,false);
+ assert.equal(row.status,'draft');assert.ok(row.template_id.startsWith(`production-${revisionId}-print-`));assert.equal(row.publishing_contract.lifecycle.userServiceVisible,false);
  const bytes=db.objects.get(`https://example.invalid/storage/v1/object/template-packages/${row.package_storage_path}`),bundle=JSON.parse(bytes);
  assert.equal(sha(bytes),row.package_sha256);assert.equal(bundle.template.projectData.productionCorrection.savedRevisionId,revisionId);assert.ok(bundle.template.projectData.book.elementsByPage.p1[0].src.startsWith('package-asset://'));
  assert.equal(bundle.assets[0].sha256,sha(png));assert.equal(bundle.parity.status,'pending');assert.equal(bundle.print.nativeCompilation,undefined);assert.deepEqual(f,before);
@@ -60,3 +60,23 @@ test('production render requires Worker token; public job response excludes toke
  const value=JSON.stringify(publicProductionJob(job));assert.ok(!value.includes(token));assert.ok(!value.includes('private'));
 });
 test.after(()=>{globalThis.fetch=oldFetch;});
+
+test('a pipeline update creates a separate immutable package and job for the same saved revision',async()=>{
+ const f=fixture(),db=database(f),identity=productionIdentity(requestId,f.revision);
+ const oldIdentity={...identity,pipelineVersion:'2026-09-21-page-cmyk-k100-checkpoint-v1'};
+ const oldPackage={template_id:`production-${revisionId}`,version:'1.0.0',status:'draft',package_sha256:'old-sha',publishing_contract:{production:oldIdentity}};
+ const oldJob={id:'old-job',template_id:oldPackage.template_id,template_version:'1.0.0',package_sha256:'old-sha',status:'done',payload:{production:oldIdentity},report:{verified:true,pipelineVersion:oldIdentity.pipelineVersion},file_path:'old.pdf'};
+ db.packages.push(oldPackage);db.jobs.push(oldJob);const before=structuredClone({oldPackage,oldJob,revision:f.revision});
+ const job=await requestProductionJob(f.receipt,f.revision,owner,'https://editor.invalid');
+ assert.notEqual(job.id,oldJob.id);assert.notEqual(job.template_id,oldPackage.template_id);assert.equal(job.template_version,'1.0.0');assert.equal(db.packages.length,2);
+ assert.deepEqual(job.payload.production,identity);assert.deepEqual(db.packages[1].publishing_contract.production,identity);
+ assert.deepEqual({oldPackage,oldJob,revision:f.revision},before);
+ assert.equal((await requestProductionJob(f.receipt,f.revision,owner,'https://editor.invalid')).id,job.id);assert.equal(db.jobs.length,2);
+});
+
+test('current pipeline still rejects a mismatched frozen content identity',async()=>{
+ const f=fixture(),db=database(f),pkg=await freezeProductionPackage(f.receipt,f.revision);
+ db.packages[0].publishing_contract.production.contentHash='mismatch';
+ await assert.rejects(()=>requestProductionJob(f.receipt,f.revision,owner,'https://editor.invalid'),error=>error.statusCode===409&&error.code.includes('출력 계약'));
+ assert.equal(db.jobs.length,0);assert.equal(db.packages.length,1);
+});

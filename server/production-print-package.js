@@ -8,7 +8,9 @@ export const PRINT_CONTRACT='production-existing-pdf-worker.v1';
 export const EXPECTED_PIPELINE_VERSION='2026-10-05-rgb-outline-strict-pdf-v1';
 const digest=value=>createHash('sha256').update(value).digest('hex');
 const path=value=>value.split('/').map(encodeURIComponent).join('/');
-const conflict=message=>Object.assign(Error(message),{statusCode:409});
+const conflict=message=>Object.assign(Error(message),{statusCode:409,code:message});
+// A frozen package includes the execution contract; retain earlier versions unchanged.
+const packageId=identity=>`production-${identity.revisionId}-print-${digest(identity.pipelineVersion).slice(0,12)}`;
 export function productionIdentity(requestId,revision){
  const plan=productionImagePlan(revision);
  return {requestId,revisionId:revision.id,revisionNumber:revision.revision_number,documentHash:revision.document_hash,contentHash:plan.contentHash,contract:PRINT_CONTRACT,pipelineVersion:EXPECTED_PIPELINE_VERSION};
@@ -23,7 +25,7 @@ export function publicProductionJob(job){
  return {id:job.id,status:job.status,report:job.report||null,error:job.error||null,createdAt:job.created_at,completedAt:job.completed_at,identity:job.payload?.production||null};
 }
 async function existingPackage(identity){
- const rows=await supabaseRequest(`template_packages?template_id=eq.production-${identity.revisionId}&version=eq.1.0.0&select=*&limit=1`);
+ const rows=await supabaseRequest(`template_packages?template_id=eq.${packageId(identity)}&version=eq.1.0.0&select=*&limit=1`);
  const row=rows[0];if(!row)return null;
  if(row.status!=='draft'||JSON.stringify(row.publishing_contract?.production)!==JSON.stringify(identity)){
   // jsonb key order is not meaningful.
@@ -40,7 +42,7 @@ export async function freezeProductionPackage(receipt,revision){
  const source=await loadProductionEditorSource(receipt.snapshot,{includeBundle:true,signAssets:false}),project=structuredClone(revision.document.editorProject),references=new Set();
  function collect(value){if(typeof value==='string'&&/^(package|production)-asset:\/\//.test(value))references.add(value);else if(Array.isArray(value))value.forEach(collect);else if(value&&typeof value==='object')Object.values(value).forEach(collect);}
  collect(project);for(const asset of source.bundle.assets||[])references.add(`package-asset://${asset.id}`);
- const id=`production-${revision.id}`,version='1.0.0',assets=[],markers=new Map();
+ const id=packageId(identity),version='1.0.0',assets=[],markers=new Map();
  for(const reference of [...references].sort()){
   const assetId=reference.split('://')[1];let bytes,info;
   if(reference.startsWith('package-asset://')){
@@ -81,7 +83,7 @@ export async function freezeProductionPackage(receipt,revision){
  try{const inserted=await supabaseRequest('template_packages',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(row)});return inserted[0]||row;}catch(error){const stored=await existingPackage(identity);if(stored?.package_sha256===sha256)return stored;throw error;}
 }
 export async function productionJobs(identity){
- return supabaseRequest(`template_print_preflight_jobs?template_id=eq.production-${identity.revisionId}&template_version=eq.1.0.0&select=*&order=created_at.desc&limit=20`);
+ return supabaseRequest(`template_print_preflight_jobs?template_id=eq.${packageId(identity)}&template_version=eq.1.0.0&select=*&order=created_at.desc&limit=20`);
 }
 export async function requestProductionJob(receipt,revision,adminId,origin,{force=false,quickInspection=null}={}){
  const identity=productionIdentity(receipt.id,revision),pkg=await freezeProductionPackage(receipt,revision),jobs=await productionJobs(identity);
