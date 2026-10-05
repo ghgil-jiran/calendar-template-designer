@@ -132,3 +132,15 @@ test('publish retry identity follows actual editable content, not only the remot
  assert.notEqual(api.publicationSource(copy),first);
  assert.equal(project.book.elementsByPage.cover[0].style.color,'#123456');
 });
+
+ test('publication revision uses the latest saved record over stale embedded metadata',()=>{const api=runtime();assert.equal(api.publicationRevision({template:{remoteVersionNumber:1}},{version:4}),5);assert.equal(api.publicationRevision({template:{remoteVersionNumber:5}},{version:3}),6);assert.equal(api.publicationRevision({template:{}},{editorRevision:8}),9);assert.equal(api.publicationRevision({template:{}},{version:'invalid'}),1)});
+
+test('republishing saved v4 activates a new package tied to v5 and current document content',async()=>{
+ const calls=[],window={crypto:globalThis.crypto,TextEncoder,ACDLTemplateRemotePersistence:{accessToken:()=> 'test-token',isRemote:()=>false},ACDLRepresentativePreview:{capture:async()=> 'data:image/png;base64,aGVsbG8='},fetch:async(_url,options)=>{const body=JSON.parse(options.body).reviewBody;calls.push(body);return {ok:true,json:async()=>body.mode==='next-version'?{version:'1.0.3'}:{}}}};
+ vm.runInNewContext(source,{window,TextEncoder,structuredClone,btoa,atob,decodeURIComponent});
+ const project={template:{remoteVersionNumber:1,metadata:{version:'1.0.0'},publishing:{packageId:'desk-current'}},book:{pageInstances:[{id:'edited-cover',role:'cover-front'}],elementsByPage:{'edited-cover':[{id:'year',content:'edited-current-content'}]}}};
+ const result=await window.ACDLTemplatePublishing.publish({record:{id:'saved-template',version:4},projectData:project,name:'current',confirm:false});
+ const bytes=Buffer.concat(calls.filter(call=>call.mode==='chunk').map(call=>Buffer.from(call.data,'base64'))),bundle=JSON.parse(bytes.toString());
+ assert.equal(bundle.manifest.sourceEditorRevision,5);assert.equal(bundle.template.projectData.book.elementsByPage['edited-cover'][0].content,'edited-current-content');assert.equal(project.template.publishing.lastReviewPackage.sourceEditorRevision,5);assert.equal(result.version,'1.0.3');assert.ok(calls.some(call=>call.mode==='activate-review'&&call.version==='1.0.3'));
+ assert.equal(window.ACDLTemplatePublishing.activeReviewCatalog([{templateId:result.templateId,version:'1.0.3',editorRevision:5,packageEditorRevision:5}],[{templateId:result.templateId,version:'1.0.3',sourceEditorRevision:5}])[0].version,'1.0.3');
+});
