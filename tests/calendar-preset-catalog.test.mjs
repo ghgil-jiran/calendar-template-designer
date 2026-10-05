@@ -65,3 +65,12 @@ test('legacy sample 6 resolves without treating sample 3 as the same preset', ()
   assert.equal(catalog.resolve({ design: { presetId: 'sample-6' } }).presetId, 'academic-boxed');
   assert.equal(catalog.resolve({ design: { presetId: 'sample-3' } }), null);
 });
+
+test('blank Masters share the authoring presentation defaults with Runtime', () => {
+  assert.deepEqual(globalThis.ACDLCalendarPresetCatalog.resolvePresentation({}), {
+    monthTitleStyle:'number-stack',monthTitleAlign:'left',weekdayStyle:'filled-tabs',gridStyle:'boxed'
+  });
+  const authored=globalThis.ACDLCalendarPresetCatalog.resolvePresentation({design:{monthTitleStyle:'english-month'},calendarOverrides:{weekdayStyle:'outlined-pills'}});
+  assert.equal(authored.monthTitleStyle,'english-month');
+  assert.equal(authored.weekdayStyle,'outlined-pills');
+});

@@ -73,5 +73,14 @@
     };
   }
 
-  return Object.freeze({ schemaVersion, compositionContract, gridPresentations, weekdayPresentations, titlePresentations, presets, resolve });
+  // Both authoring and Runtime must use the same defaults for a blank Master.
+  function resolvePresentation(source = {}) {
+    return resolve(source)?.presentation || {
+      monthTitleStyle: 'number-stack', monthTitleAlign: 'left',
+      weekdayStyle: 'filled-tabs', gridStyle: 'boxed',
+      ...(source.design || {}), ...(source.calendarOverrides || {})
+    };
+  }
+
+  return Object.freeze({ schemaVersion, compositionContract, gridPresentations, weekdayPresentations, titlePresentations, presets, resolve, resolvePresentation });
 });
