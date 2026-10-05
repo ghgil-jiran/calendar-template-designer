@@ -1,4 +1,4 @@
-import '../apps/designer-studio/native-print-authoring.js';
+import '../apps/designer-studio/image-quality-policy.js';
 import { documentHash } from './production-corrections.js';
 import { inspectRaster, MAX_BYTES, storage } from './production-correction-assets.js';
 
@@ -9,6 +9,7 @@ export function productionImagePlan(revision) {
   // serialization is unavailable. Keep the stored revision identity unchanged.
   if (scheme && scheme !== 'sorted-json.v1') throw Object.assign(Error('지원하지 않는 교정 문서 해시 형식입니다.'), {statusCode:409, code:'PRINT_DOCUMENT_HASH_SCHEME_UNSUPPORTED'});
   if (scheme === 'sorted-json.v1' && contentHash !== revision.document_hash) throw Object.assign(Error('저장된 교정 문서의 내용이 해시와 일치하지 않습니다.'), {statusCode:409, code:'PRINT_DOCUMENT_HASH_MISMATCH'});
+  const imageQualityPolicy=globalThis.ACDLImageQualityPolicy.normalizePolicy(revision.document.editorProject?.template?.resources?.exportSettings?.imageQualityPolicy ?? revision.document.printProfile?.imageQualityPolicy ?? revision.document.imageQualityPolicy);
   const uses = [];
   function visit(object, page, pageNumber, nested = false) {
     if (object.visible === false) return;
@@ -37,7 +38,7 @@ export function productionImagePlan(revision) {
     (object.children || []).forEach(child => visit(child, page, pageNumber, true));
   }
   (revision.document.template?.pages || []).forEach((page, index) => (page.objects || []).forEach(object => visit(object, page, index + 1)));
-  return {schemaVersion: 'production-image-plan.v1', revisionId: revision.id, revisionNumber: revision.revision_number, documentHash: revision.document_hash, contentHash, integrity:{scheme:scheme || 'legacy-stored-identity',storedHashVerified:scheme === 'sorted-json.v1'}, minimumDpi: 300, sources: [...new Set(uses.map(use => use.source))], uses};
+  return {schemaVersion: 'production-image-plan.v1', revisionId: revision.id, revisionNumber: revision.revision_number, documentHash: revision.document_hash, contentHash, integrity:{scheme:scheme || 'legacy-stored-identity',storedHashVerified:scheme === 'sorted-json.v1'}, minimumDpi: imageQualityPolicy.recommendedDpi, imageQualityPolicy, sources: [...new Set(uses.map(use => use.source))], uses};
 }
 
 export function applyProductionImageLayouts(plan, layouts){
@@ -62,10 +63,11 @@ export function inspectProductionImageBytes(plan, source, asset, bytes) {
   if (info.mimeType !== (asset.mime_type ?? asset.mimeType)) throw Error('보관 원본의 파일 형식이 일치하지 않습니다.');
   if (asset.content_hash && asset.content_hash !== info.contentHash) throw Error('보관 원본의 SHA-256이 일치하지 않습니다.');
   const placements = plan.uses.filter(use => use.source === source).map(use => {
-    const dpi = use.measurable ? globalThis.ACDLNativePrintAuthoring.effectiveImageDpi({pixelWidth: info.width, pixelHeight: info.height, frameWidthMm: use.frameMm.width, frameHeightMm: use.frameMm.height, fit: use.fit, scale: use.scale}) : null;
-    return {...use, effectiveDpi: dpi, status: dpi === null ? 'unresolved' : dpi >= plan.minimumDpi ? 'passed' : 'warning'};
+    const dpi = use.measurable ? globalThis.ACDLImageQualityPolicy.placementDpi({width:info.width,height:info.height},use.frameMm.width,use.frameMm.height,use.fit,use.scale) : null;
+    const qualityStatus=globalThis.ACDLImageQualityPolicy.classifyDpi(dpi,plan.imageQualityPolicy);
+    return {...use,effectiveDpi:dpi,qualityStatus,status:qualityStatus==='upscale-candidate'?'warning':qualityStatus,upscaleApplied:false};
   });
-  return {revisionId: plan.revisionId, documentHash: plan.documentHash, contentHash:plan.contentHash, integrity:plan.integrity, source, sourceHash: info.contentHash, byteSize: bytes.length, pixelWidth: info.width, pixelHeight: info.height, mimeType: info.mimeType, inspectionBasis: 'file-size-header-sha256', placements, cmykDerived: false, finalApproved: false};
+  return {revisionId: plan.revisionId, documentHash: plan.documentHash, contentHash:plan.contentHash, integrity:plan.integrity, source, sourceHash: info.contentHash, byteSize: bytes.length, pixelWidth: info.width, pixelHeight: info.height, mimeType: info.mimeType, inspectionBasis: 'file-size-header-sha256', imageQualityPolicy:plan.imageQualityPolicy, placements, cmykDerived: false, finalApproved: false};
 }
 
 export async function readProductionImage(asset, bucket) {
