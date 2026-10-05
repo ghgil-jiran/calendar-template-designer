@@ -439,7 +439,10 @@ function renderSemanticObject(item){
  const d=semanticData(item),layout=item.layoutPreset||"image-top",role=item.role;
  const image=d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)} 이미지">`:`<span class="semantic-empty-visual non-output editor-only" aria-label="${semanticRoleLabel(role)} 이미지 슬롯"></span>`;
  const showTitle=semanticTitleVisible(item),title=showTitle?`<strong style="font-size:${item.style?.titleSize||18}px">${item.titleOverride||semanticRoleLabel(role)}</strong>`:"";
- if(role==="school-logo")return `<div class="semantic-object semantic-logo"><div class="semantic-media">${image}</div></div>`;
+ if(role==="school-logo"){
+  const style=item.style||{},background=style.background===true?(style.backgroundColor||"#ffffff"):typeof style.background==="string"?style.background:"transparent";
+  return `<div class="semantic-object semantic-logo" style="background:${escapeAttr(background)}"><div class="semantic-media">${image}</div></div>`;
+ }
  if(layout==="desk-six-symbol-card"){
   if(role==="school-motto")return `<div class="semantic-object desk-six-symbol-card semantic-motto"><strong style="font-size:${item.style?.titleSize||15}px">${item.titleOverride||d.name||"교훈"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
   return `<div class="semantic-object desk-six-symbol-card ${role==="school-song"?"semantic-song":""}">${title}<div class="semantic-media">${image}</div>${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||8}px">${d.description||""}</p>`}</div>`
@@ -1205,3 +1208,4 @@ function bindInspector(){
  document.querySelectorAll("[data-delete-event]").forEach(b=>b.addEventListener("click",()=>change(()=>project.book.events=project.book.events.filter(e=>e.id!==b.dataset.deleteEvent))));
  document.querySelectorAll("[data-edit-event]").forEach(b=>b.addEventListener("click",()=>openEventDialog(project.book.events.find(e=>e.id===b.dataset.editEvent))));
 }
+
