@@ -66,3 +66,11 @@ test('unused editor catalog URLs do not block a no-change receipt save and catal
  p.book.elementsByPage.p1[1].image.src=src;await assert.rejects(validateEditorCorrection(p,document,{},id,[{id:assetId}],{loadSource:async()=>({projectData:source})}),/개체 photo/);
  }
 });
+
+test('unchanged server-held signed image survives first save and movement but a new signed replacement is rejected',async()=>{
+ const {source,document}=fixture();const src='https://example.invalid/storage/v1/object/sign/template/graphic.png?token=original';document.template.pages[0].objects[1].payload.src=src;
+ const p=adapter.createProject(source,document,id),options={loadSource:async()=>({projectData:source})};
+ const saved=await validateEditorCorrection(p,document,{},id,[{id:assetId}],options);assert.equal(saved.template.pages[0].objects[1].payload.src,src);
+ p.book.elementsByPage.p1[1].x+=1;const moved=await validateEditorCorrection(p,document,{},id,[{id:assetId}],options);assert.equal(moved.template.pages[0].objects[1].payload.src,src);
+ p.book.elementsByPage.p1[1].image.src=src+'-replacement';await assert.rejects(validateEditorCorrection(p,document,{},id,[{id:assetId}],options),/개체 photo/);
+});

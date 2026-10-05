@@ -15,11 +15,15 @@ export async function validateEditorCorrection(input,baseDocument,snapshot,reque
  }
  const allowed=new Set(assets.map(a=>a.id));
  const trustedImages=new Set();
+ const existingSignedImages=new Set();
+ function collectExisting(value){if(typeof value==='string'&&/\/storage\/v1\/object\/sign\//.test(value))existingSignedImages.add(value);else if(value&&typeof value==='object')Object.values(value).forEach(collectExisting);}
+ // Only server-held document references qualify; client catalogs cannot grant trust.
+ collectExisting(adapter.withoutEditor(baseDocument));
  function collect(value){if(typeof value==='string'&&value.startsWith('data:image/'))trustedImages.add(value);else if(value&&typeof value==='object')Object.values(value).forEach(collect);}
  collect(trusted);
  function check(value){if(typeof value==='string'){
   if(value.startsWith('production-asset://')&&!allowed.has(value.slice(19)))throw Error('이 접수 건에 보관된 원본만 사용해 주세요.');
-  if(value.startsWith('blob:')||value.startsWith('data:image/')&&!trustedImages.has(value)||/\/storage\/v1\/object\/sign\//.test(value))throw Error('이미지를 먼저 교정 원본으로 업로드해 주세요.');
+  if(value.startsWith('blob:')||value.startsWith('data:image/')&&!trustedImages.has(value)||/\/storage\/v1\/object\/sign\//.test(value)&&!existingSignedImages.has(value))throw Error('이미지를 먼저 교정 원본으로 업로드해 주세요.');
  }else if(value&&typeof value==='object')Object.values(value).forEach(check);}
  const document=adapter.toDocument(project);
  // Editor resource catalogs and previews are not edited through correction controls.
