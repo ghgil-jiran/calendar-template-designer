@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
+await import('../apps/designer-studio/production-editor-adapter.js');
 await import('../apps/designer-studio/template-print-preflight.js');
 await import('../apps/designer-studio/render-parity-preflight.js');
 await import('../apps/designer-studio/desk-academic-print-parity.js');
@@ -329,4 +330,14 @@ test('calendar adapter metadata is cataloged only on calendar objects; unknown k
  assert.equal(analyze(value).issues.filter(item=>item.code==='STYLE_NOT_CATALOGED').length,1);
  value.book.elementsByPage['month-1'][0].type='text';
  assert.equal(analyze(value).issues.filter(item=>item.code==='STYLE_NOT_CATALOGED').length,20);
+});
+
+test('intentional empty month-back placeholder is preserved without a missing-image error',()=>{
+ const value=project(); const blank={id:'empty',type:'image-frame',role:'ai-month-back',emptyBehavior:'placeholder',src:'',image:{binding:''}};
+ value.book.elementsByPage.cover=[blank];
+ assert.equal(analyze(value).issues.some(issue=>issue.code==='REQUIRED_IMAGE_MISSING'),false);
+ blank.required=true;
+ assert.equal(analyze(value).issues.some(issue=>issue.code==='REQUIRED_IMAGE_MISSING'),true);
+ delete blank.required;blank.image.binding='school.photo';
+ assert.equal(analyze(value).issues.some(issue=>issue.code==='REQUIRED_IMAGE_MISSING'),true);
 });

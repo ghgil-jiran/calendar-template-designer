@@ -1,3 +1,4 @@
+import '../apps/designer-studio/production-editor-adapter.js';
 import '../apps/designer-studio/image-quality-policy.js';
 import { documentHash } from './production-corrections.js';
 import { inspectRaster, MAX_BYTES, storage } from './production-correction-assets.js';
@@ -25,7 +26,9 @@ export function productionImagePlan(revision) {
     collect(object.payload); collect(object.assetRef);
     // A visible raster with an absent/foreign reference must not disappear from the report.
     const hasImageField = object.payload && typeof object.payload === 'object' && ['image', 'imageRef', 'assetRef', 'src'].some(key => object.payload[key]);
-    if (!refs.size && (['image', 'image-frame'].includes(object.type) || object.type === 'semantic-object' && hasImageField)) refs.add(`unresolved-image://${object.id}`);
+    const original=revision.document.editorProject?.book?.elementsByPage?.[page.id]?.find(element=>element.id===object.id);
+    const emptyPlaceholder=globalThis.ACDLProductionEditorAdapter.isEmptyPlaceholder(original)&&!globalThis.ACDLProductionEditorAdapter.hasImageReference(object.payload)&&!object.assetRef;
+    if (!refs.size && !emptyPlaceholder && (['image', 'image-frame'].includes(object.type) || object.type === 'semantic-object' && hasImageField)) refs.add(`unresolved-image://${object.id}`);
     for (const source of refs) {
       const payload = object.payload?.image && typeof object.payload.image === 'object' ? object.payload.image : object.payload || {};
       const fullFrame = ['image', 'image-frame'].includes(object.type) || object.type === 'semantic-object' && ['school-logo', 'school-building'].includes(object.role);

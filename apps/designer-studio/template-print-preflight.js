@@ -75,7 +75,7 @@
     if(!ELEMENT_TYPES.has(type))problems.push(issue('error','ELEMENT_TYPE_UNSUPPORTED',`공통 Runtime 지원 목록에 없는 개체입니다: ${type}`,`${path}.type`));
     const binding=text(element?.binding||element?.dataBinding||element?.bindingPath);if(binding){bindings.add(binding);capabilities.add(`binding.${binding.split('.')[0]}`)}
     styleEntries(element).forEach(([key])=>{styleKeys.set(key,(styleKeys.get(key)||0)+1);capabilities.add(`style.${key}`);if(!STYLE_KEYS.has(key)&&!(CALENDAR_TYPES.has(type)&&CALENDAR_STYLE_KEYS.has(key)))problems.push(issue('warning','STYLE_NOT_CATALOGED',`아직 공식 스타일 목록에 등록되지 않은 속성입니다: ${key}`,`${path}.style.${key}`))});
-    if(['image','image-frame','frame'].includes(type)){const source=imageSource(element);if(source)assets.add(source);else if(isRequiredImage(element))problems.push(issue('error','REQUIRED_IMAGE_MISSING','필수 이미지 또는 AI 배경 자산이 없습니다.',path))}
+    if(['image','image-frame','frame'].includes(type)){const source=imageSource(element);if(source)assets.add(source);else if(isRequiredImage(element)&&!globalThis.ACDLProductionEditorAdapter?.isEmptyPlaceholder(element))problems.push(issue('error','REQUIRED_IMAGE_MISSING','필수 이미지 또는 AI 배경 자산이 없습니다.',path))}
    });
   });
   const expected=Number(project?.settings?.surfaceCount||project?.template?.surfacePlan?.surfaceCount||0);if(expected&&expected!==pages.length)problems.push(issue('error','SURFACE_COUNT_MISMATCH',`페이지 구성 ${expected}면과 실제 ${pages.length}면이 다릅니다.`,'book.pageInstances'));

@@ -17,3 +17,15 @@ test('unbound raster images remain in the report instead of disappearing',()=>{c
 test('invisible objects are excluded and ambiguous or nested placements are never measured as a whole parent',()=>{const revision=fixture(),page=revision.document.template.pages[0];page.objects[0].visible=false;page.objects[1].payload.second='production-asset://other';page.objects.push({id:'group',type:'group',children:[{id:'nested',type:'image',frame:{width:5,height:5},payload:{src:source}}]});revision.document_hash=documentHash(revision.document);const plan=productionImagePlan(revision);assert.equal(plan.uses.some(use=>use.objectId==='photo'),false);assert.ok(plan.uses.filter(use=>use.objectId==='logo').every(use=>!use.measurable));assert.equal(plan.uses.find(use=>use.objectId==='nested').measurable,false);});
 
 test('frozen revision policy changes admin classification at exact thresholds',()=>{const revision=fixture();revision.document.imageQualityPolicy={recommendedDpi:240,orderMinimumDpi:180,upscaleTargetDpi:300};revision.document_hash=documentHash(revision.document);const plan=productionImagePlan(revision);assert.equal(plan.imageQualityPolicy.recommendedDpi,240);const frame=plan.uses[0];frame.frameMm={width:127,height:127};frame.scale=1;for(const [pixels,status]of [[895,'blocked'],[900,'warning'],[1195,'warning'],[1200,'passed']]){const bytes=png(pixels,pixels);assert.equal(inspectProductionImageBytes(plan,source,{byteSize:24,mimeType:'image/png'},bytes).placements[0].status,status);}});
+
+test('only trusted explicitly empty placeholders are omitted, without changing frozen objects',()=>{
+ const revision=fixture(),page=revision.document.template.pages[0];
+ const blank={id:'empty',type:'image',frame:{width:100,height:100},payload:{src:'',fit:'cover'}};page.objects.push(blank);
+ const original={id:'empty',type:'image-frame',emptyBehavior:'placeholder',src:''};
+ revision.document.editorProject={book:{elementsByPage:{p1:[original]}}};
+ revision.document_hash=documentHash(revision.document);const before=structuredClone(revision);
+ assert.equal(productionImagePlan(revision).uses.some(use=>use.objectId==='empty'),false);assert.deepEqual(revision,before);
+ for(const modify of [()=>original.required=true,()=>{delete original.required;original.image={binding:'school.photo'};},()=>{delete original.image;blank.payload.src='https://example.invalid/missing.png';}]){
+  modify();revision.document_hash=documentHash(revision.document);assert.ok(productionImagePlan(revision).sources.includes('unresolved-image://empty'));
+ }
+});

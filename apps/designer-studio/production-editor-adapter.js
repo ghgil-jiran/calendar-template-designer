@@ -4,6 +4,12 @@
  const permissions={move:true,resize:true,rotate:true,color:true,delete:true,duplicate:true,layer:true,content:true};
  function withoutEditor(document){const copy=clone(document);delete copy.editorProject;return copy;}
  function imageData(payload){return typeof payload==='string'?{src:payload}:payload?.image||payload?.imageRef||payload||{};}
+ function hasImageReference(value){
+  if(typeof value==='string')return Boolean(value.trim());
+  if(!value||typeof value!=='object')return false;
+  return ['src','url','assetRef','assetId','imageRef','binding'].some(key=>Boolean(value[key]))||['image','value','payload'].some(key=>hasImageReference(value[key]));
+ }
+ function isEmptyPlaceholder(element){return element?.type==='image-frame'&&element.emptyBehavior==='placeholder'&&element.required!==true&&element.print?.required!==true&&!hasImageReference(element);}
  function importedText(value){
   if(!Array.isArray(value))return String(value??'');
   const labels={academic:'교무실',admin:'행정실',fax:'팩스'};
@@ -43,7 +49,7 @@
     if(original.printSource){e.printSource=clone(original.printSource);e.printSource.approved=false;delete e.printSource.approvedAt;delete e.printSource.approvedBy;}
     if(object.type==='image'){
      const image=imageData(object.payload);const ref=image.assetRef;const src=image.src||image.url||ref?.src||(typeof image==='string'?image:'');
-     const emptyTemplateFrame=original.type==='image-frame'&&original.emptyBehavior==='placeholder'&&!original.src&&!original.assetId&&!original.assetRef&&!original.image?.src&&!original.image?.assetId&&!original.image?.assetRef&&!original.image?.binding&&!image.assetRef&&!image.imageRef&&!image.assetId;
+     const emptyTemplateFrame=isEmptyPlaceholder(original)&&!hasImageReference(image);
      if(!src&&!emptyTemplateFrame)throw Error(`이미지 원본을 확인할 수 없습니다: ${object.id}`);
      e.src=src;e.image={...(original.image||{}),...clone(image),src,fit:image.fit||original.image?.fit||'cover'};delete e.image.binding;delete e.image.assetId;delete e.assetId;delete e.assetRef;delete e.aiDesign;
      e.type='image-frame';
@@ -105,5 +111,5 @@
   for(const [key,target] of [['year','year'],['startMonth','startMonth'],['weekStart','weekStart'],['calendarRows','gridRows'],['dataOptions','dataOptions']])if(!same(project.settings[key],context.baselineSettings?.[key]))doc.dataset.calendar[target]=clone(project.settings[key]??null);
   return doc;
  }
- root.ACDLProductionEditorAdapter=Object.freeze({createProject,toDocument,withoutEditor,restoreImportedText});
+ root.ACDLProductionEditorAdapter=Object.freeze({createProject,toDocument,withoutEditor,restoreImportedText,isEmptyPlaceholder,hasImageReference});
 })(typeof window!=='undefined'?window:globalThis);
