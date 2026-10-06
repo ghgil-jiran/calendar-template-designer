@@ -4,14 +4,14 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 class Element{
  constructor(tag){this.tag=tag;this.children=[];this.attrs={};this.events={};this.isConnected=true;this.classList={add(){}};this.contentWindow={messages:[],postMessage:message=>this.contentWindow.messages.push(message)};}
- append(...items){this.children.push(...items);}replaceChildren(...items){this.children=items;}setAttribute(key,value){this.attrs[key]=value;}remove(){this.removed=true;}click(){this.onclick?.();}
+ append(...items){for(const item of items){if(item.parent)item.parent.children=item.parent.children.filter(child=>child!==item);item.parent=this;this.children.push(item);}}replaceChildren(...items){for(const item of this.children)item.parent=null;this.children=[];this.append(...items);}setAttribute(key,value){this.attrs[key]=value;}remove(){this.removed=true;}click(){this.onclick?.();}
 }
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0)),all=node=>[node,...node.children.flatMap(all)];
 test('stage 4 initializes without queuing, gates final request on current quick results, and rejects foreign messages',async()=>{
  let poll;const body=new Element('body'),document={body,createElement:tag=>new Element(tag)},events={},window={ACDLAdminAuth:{isSignedIn:()=>true,authorizedFetch:async()=>({ok:true,json:async()=>({revisions:[{id:'v5',revision_number:5,created_at:'2026-10-04'}]})})},addEventListener:(type,callback)=>events[type]=callback};
  vm.runInNewContext(readFileSync(new URL('../apps/designer-studio/features/production-print-workspace.js',import.meta.url),'utf8'),{window,document,location:{origin:'https://editor.invalid',reload:()=>{throw Error('unexpected page reload')}},crypto:{randomUUID:()=> 'save-id'},encodeURIComponent,setTimeout:()=>1,clearTimeout(){},setInterval:callback=>{poll=callback;return 2;},clearInterval(){},confirm:()=>true,URL,Blob,Date});
  const host=new Element('section');window.ACDLProductionPrint.mount(host,{receipt:{id:'receipt'}});await tick();const frame=all(host).find(item=>item.tag==='iframe'),generate=all(host).find(item=>item.textContent==='최종 인쇄 PDF 생성·검사'),quick=all(host).find(item=>item.textContent==='빠른 검사 시작'),checkbox=all(host).find(item=>item.tag==='input');
- assert.ok(frame.src.includes('productionRevision=v5'));assert.equal(generate.disabled,true);assert.equal(frame.contentWindow.messages.length,0);
+ const phases=all(host).filter(node=>node.className==='review-print-stage');assert.equal(phases.length,3);assert.ok(all(phases[0]).includes(quick));assert.ok(all(phases[2]).includes(generate));assert.equal(all(phases[0]).includes(generate),false);assert.ok(all(phases[2]).some(node=>node.textContent==='Worker 결과 새로고침'));assert.ok(all(phases[1]).some(node=>node.textContent==='② 이미지 보정 · 선택사항'));assert.ok(frame.src.includes('productionRevision=v5'));assert.equal(generate.disabled,true);assert.equal(frame.contentWindow.messages.length,0);
  const send=(data,origin='https://editor.invalid')=>events.message({source:frame.contentWindow,origin,data:{requestId:'receipt',...data}});
  send({type:'calendar:production-editor-ready'},'https://foreign.invalid');assert.equal(frame.contentWindow.messages.length,0);
  send({type:'calendar:production-editor-ready'});assert.deepEqual(frame.contentWindow.messages.map(item=>item.action),['status']);
