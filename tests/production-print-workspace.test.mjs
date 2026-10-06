@@ -31,3 +31,21 @@ test('stage 4 initializes without queuing, gates final request on current quick 
  poll();send({type:'calendar:production-inspection-result',revisionId:'v5',action:'status',result:{jobs:[{...job,status:'processing'}]}});assert.ok(status.textContent.includes('생성·검사하고 있습니다'));assert.equal(all(host).some(item=>item.tag==='code'),false);
  window.ACDLProductionPrint.clear();assert.equal(frame.removed,true);
 });
+
+test('upscale click shows pending feedback, sends request, and exposes errors beside the button',async()=>{
+ let release,requestBody;const events={},document={createElement:tag=>new Element(tag)},window={addEventListener:(type,callback)=>events[type]=callback,ACDLAdminAuth:{isSignedIn:()=>true,authorizedFetch:async(path,options)=>{
+  if(path.startsWith('/api/production-corrections'))return {ok:true,json:async()=>({revisions:[{id:'v1',revision_number:1,document_hash:'hash'}]})};
+  const input=JSON.parse(options.body);if(input.action==='status')return {ok:true,json:async()=>({jobs:[]})};
+  requestBody=input;await new Promise(resolve=>release=resolve);return {ok:false,json:async()=>({message:'원본 준비 실패'})};
+ }}};
+ vm.runInNewContext(readFileSync(new URL('../apps/designer-studio/features/production-print-workspace.js',import.meta.url),'utf8'),{window,document,location:{origin:'https://editor.invalid'},encodeURIComponent,setTimeout:()=>1,clearTimeout(){},setInterval:()=>2,clearInterval(){},confirm:()=>true,URL,Blob,Date});
+ const host=new Element('section');window.ACDLProductionPrint.mount(host,{receipt:{id:'receipt'}});await tick();const frame=all(host).find(node=>node.tag==='iframe');
+ const send=data=>events.message({source:frame.contentWindow,origin:'https://editor.invalid',data:{requestId:'receipt',...data}});
+ send({type:'calendar:production-editor-ready'});send({type:'calendar:production-inspection-result',revisionId:'v1',action:'status',result:{jobs:[]}});
+ send({type:'calendar:production-inspection-result',revisionId:'v1',action:'quick',result:{errors:[],warnings:[],images:{plan:{uses:[],imageQualityPolicy:{upscaleTargetDpi:250}},results:[{placements:[{measurable:true,effectiveDpi:198}]}]}}});
+ await tick();const run=all(host).find(node=>node.textContent==='대상 이미지 일괄 업스케일');assert.equal(run.disabled,false);assert.equal(run.type,'button');run.click();
+ assert.equal(requestBody.action,'request');assert.equal(requestBody.documentHash,'hash');assert.ok(all(host).some(node=>node.textContent?.includes('업스케일 작업 준비 중')));assert.equal(all(host).find(node=>node.textContent==='업스케일 요청 처리 중…').disabled,true);
+ const generate=all(host).find(node=>node.textContent==='최종 인쇄 PDF 생성·검사');assert.equal(generate.disabled,false);
+ release();await tick();assert.ok(all(host).some(node=>node.textContent==='업스케일 요청 실패: 원본 준비 실패'));assert.equal(all(host).find(node=>node.textContent==='대상 이미지 일괄 업스케일').disabled,false);
+ window.ACDLProductionPrint.clear();
+});
