@@ -10,3 +10,13 @@ test('chunked originals survive catalog reload and archive keeps asset identity'
  try{const uploadId=randomUUID(),png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a9l0AAAAASUVORK5CYII=','base64');await uploadChunk({uploadId,index:0,total:1,data:png.toString('base64')});const saved=await createGraphic({name:'共通',category:'background',width:1,height:1,uploadId,total:1,mimeType:'image/png',previewDataUrl:'data:image/png;base64,'+png.toString('base64')});assert.equal((await listGraphics())[0].id,saved.id);const archived=await updateGraphic({id:saved.id,status:'archived'});assert.equal(archived.originalAssetId,saved.originalAssetId);assert.equal((await listGraphics())[0].status,'archived');assert.ok([...objects.values()].some(v=>Buffer.isBuffer(v)&&v.equals(png)))}finally{globalThis.fetch=originalFetch;delete process.env.SUPABASE_URL;delete process.env.SUPABASE_SERVICE_ROLE_KEY}});
 
 test('selected file supplies an editable default name without extension',()=>{assert.equal(model.defaultName('학교 봄 풍경.JPG'),'학교 봄 풍경');assert.equal(model.defaultName('spring.photo.webp'),'spring.photo');assert.equal(model.defaultName('가'.repeat(130)+'.png').length,120)});
+
+test('library addition reuses a selected optional empty frame without removing other objects',()=>{
+ const empty={id:'element.ai-month-back.image.3.0.0',type:'image-frame',emptyBehavior:'placeholder',x:12,y:15,width:70,height:65,image:{src:'',binding:'',fit:'cover'}},other={id:'other',type:'text'},items=[other,empty];
+ assert.equal(model.emptyFrameTarget(items,empty),empty);assert.equal(model.emptyFrameTarget(items,null),empty);model.replaceImage(empty,graphic,'new');assert.equal(model.emptyFrameTarget(items,empty),null);assert.equal(items.length,2);assert.equal(empty.id,'element.ai-month-back.image.3.0.0');assert.equal(empty.image.src,'new');assert.deepEqual([empty.x,empty.y,empty.width,empty.height],[12,15,70,65]);
+});
+test('library never guesses among multiple empty frames or fills required and bound slots',()=>{
+ const make=id=>({id,type:'image-frame',emptyBehavior:'placeholder',image:{src:'',binding:''}}),a=make('element.ai-month-back.image.a'),b=make('element.ai-month-back.image.b');
+ assert.equal(model.emptyFrameTarget([a,b],null),null);assert.equal(model.emptyFrameTarget([a,b],b),b);
+ for(const item of [{...a,required:true},{...a,image:{binding:'school.profile.building'}},{...a,image:{binding:'calendar.monthlyImages.current'}},{...a,assetRef:{ref:'template',id:'missing'}}])assert.equal(model.emptyFrameTarget([item],item),null);
+});

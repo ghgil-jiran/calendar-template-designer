@@ -7,6 +7,9 @@
   const byId=new Map(store.assets.map(asset=>[asset.id,asset]));
   aiAssets.forEach(asset=>{asset.kind='image';asset.origin=asset.origin||'ai-generated';byId.set(asset.id,asset)});
   Object.values(project.book?.elementsByPage||{}).flat().filter(item=>item?.type==='image'||item?.type==='image-frame').forEach(item=>{
+   // Frozen receipt objects already carry their own image reference. Opening them
+   // must not introduce authoring catalog IDs into correction change tracking.
+   if(item.productionObject===true)return;
    const id=item.assetRef?.ref==='template'?item.assetRef.id:item.assetId||item.aiDesign?.resourceId||item.aiDesign?.assetId;
    let linked=id?byId.get(id):null;
    if(!linked&&item.src){linked={id:id||`project.asset.${item.id||byId.size+1}`,kind:'image',src:item.src,alt:item.alt||'',origin:item.role==='ai-design-background'?'ai-generated':'editor'};store.assets.push(linked);byId.set(linked.id,linked)}

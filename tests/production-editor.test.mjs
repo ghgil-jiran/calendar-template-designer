@@ -74,3 +74,17 @@ test('unchanged server-held signed image survives first save and movement but a 
  p.book.elementsByPage.p1[1].x+=1;const moved=await validateEditorCorrection(p,document,{},id,[{id:assetId}],options);assert.equal(moved.template.pages[0].objects[1].payload.src,src);
  p.book.elementsByPage.p1[1].image.src=src+'-replacement';await assert.rejects(validateEditorCorrection(p,document,{},id,[{id:assetId}],options),/개체 photo/);
 });
+
+test('opening correction images does not create authoring asset references or dirty the frozen document',async()=>{
+ await import('../apps/designer-studio/project-asset-resolver.js');
+ const {source,document}=fixture();document.template.pages[0].objects[1].runtimeWidget={assetId:'authoring.photo',assetRef:{ref:'template',id:'authoring.photo'}};
+ const p=adapter.createProject(source,document,id),before=structuredClone(p.book.elementsByPage.p1),fingerprint=JSON.stringify(adapter.toDocument(p));
+ globalThis.ACDLProjectAssetResolver.normalize(p);
+ assert.deepEqual(p.book.elementsByPage.p1,before);assert.equal(JSON.stringify(adapter.toDocument(p)),fingerprint);
+ p.book.elementsByPage.p1[1].x+=1;const saved=await validateEditorCorrection(p,document,{},id,[{id:assetId}],{loadSource:async()=>({projectData:source})});assert.equal(saved.template.pages[0].objects[1].payload.src,document.template.pages[0].objects[1].payload.src);
+});
+
+test('cover initialization never inserts default objects into a correction or a populated master',async()=>{
+ const {readFileSync}=await import('node:fs'),vm=await import('node:vm');const code=readFileSync(new URL('../apps/designer-studio/features/object-editing.js',import.meta.url),'utf8').split('function ensureEditableCover(){')[1].split('\nfunction createPosterElements')[0];
+ for(const mode of ['correction','master','new']){const project={productionCorrection:mode==='correction'?{}:null,book:{pageInstances:[{id:'cover',role:'cover-front',masterId:'master.cover'}],elementsByPage:{cover:[]}},template:{masterElements:{'master.cover':mode==='master'?[{id:'school',role:'school-building'}]:[]}}};vm.runInNewContext('function ensureEditableCover(){'+code+';ensureEditableCover();',{project,createCoverElements:()=>[{id:'generated'}]});assert.equal(project.book.elementsByPage.cover.length,mode==='new'?1:0);}
+});

@@ -269,12 +269,13 @@ function createCoverElements(p){
  ]
 }
 function ensureEditableCover(){
+ if(project.productionCorrection)return;
  project.book.elementsByPage ||= {};
  project.book.coverElementsInitialized ||= {};
  project.book.pageInstances.filter(p=>p.role==="cover-front").forEach(p=>{
   if(project.book.coverElementsInitialized[p.id])return;
   const current=project.book.elementsByPage[p.id]||[];
-  if(current.length===0)project.book.elementsByPage[p.id]=createCoverElements(p);
+  if(current.length===0&&!(project.template.masterElements?.[p.masterId]||[]).length)project.book.elementsByPage[p.id]=createCoverElements(p);
   project.book.coverElementsInitialized[p.id]=true
  })
 }
