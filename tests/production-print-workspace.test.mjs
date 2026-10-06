@@ -9,7 +9,7 @@ class Element{
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0)),all=node=>[node,...node.children.flatMap(all)];
 test('stage 4 initializes without queuing, gates final request on current quick results, and rejects foreign messages',async()=>{
  let poll;const body=new Element('body'),document={body,createElement:tag=>new Element(tag)},events={},window={ACDLAdminAuth:{isSignedIn:()=>true,authorizedFetch:async()=>({ok:true,json:async()=>({revisions:[{id:'v5',revision_number:5,created_at:'2026-10-04'}]})})},addEventListener:(type,callback)=>events[type]=callback};
- vm.runInNewContext(readFileSync(new URL('../apps/designer-studio/features/production-print-workspace.js',import.meta.url),'utf8'),{window,document,location:{origin:'https://editor.invalid'},encodeURIComponent,setTimeout:()=>1,clearTimeout(){},setInterval:callback=>{poll=callback;return 2;},clearInterval(){},confirm:()=>true,URL,Blob,Date});
+ vm.runInNewContext(readFileSync(new URL('../apps/designer-studio/features/production-print-workspace.js',import.meta.url),'utf8'),{window,document,location:{origin:'https://editor.invalid',reload:()=>{throw Error('unexpected page reload')}},crypto:{randomUUID:()=> 'save-id'},encodeURIComponent,setTimeout:()=>1,clearTimeout(){},setInterval:callback=>{poll=callback;return 2;},clearInterval(){},confirm:()=>true,URL,Blob,Date});
  const host=new Element('section');window.ACDLProductionPrint.mount(host,{receipt:{id:'receipt'}});await tick();const frame=all(host).find(item=>item.tag==='iframe'),generate=all(host).find(item=>item.textContent==='최종 인쇄 PDF 생성·검사'),quick=all(host).find(item=>item.textContent==='빠른 검사 시작'),checkbox=all(host).find(item=>item.tag==='input');
  assert.ok(frame.src.includes('productionRevision=v5'));assert.equal(generate.disabled,true);assert.equal(frame.contentWindow.messages.length,0);
  const send=(data,origin='https://editor.invalid')=>events.message({source:frame.contentWindow,origin,data:{requestId:'receipt',...data}});
@@ -36,9 +36,10 @@ test('upscale click shows pending feedback, sends request, and exposes errors be
  let release,requestBody;const events={},document={createElement:tag=>new Element(tag)},window={addEventListener:(type,callback)=>events[type]=callback,ACDLAdminAuth:{isSignedIn:()=>true,authorizedFetch:async(path,options)=>{
   if(path.startsWith('/api/production-corrections'))return {ok:true,json:async()=>({revisions:[{id:'v1',revision_number:1,document_hash:'hash'}]})};
   const input=JSON.parse(options.body);if(input.action==='status')return {ok:true,json:async()=>({jobs:window.testJob?[window.testJob]:[]})};
+  if(input.action==='apply')return {ok:true,json:async()=>({revision:{id:'v2'}})};
   requestBody=input;await new Promise(resolve=>release=resolve);return {ok:false,json:async()=>({message:'원본 준비 실패'})};
  }}};
- vm.runInNewContext(readFileSync(new URL('../apps/designer-studio/features/production-print-workspace.js',import.meta.url),'utf8'),{window,document,location:{origin:'https://editor.invalid'},encodeURIComponent,setTimeout:()=>1,clearTimeout(){},setInterval:()=>2,clearInterval(){},confirm:()=>true,URL,Blob,Date});
+ vm.runInNewContext(readFileSync(new URL('../apps/designer-studio/features/production-print-workspace.js',import.meta.url),'utf8'),{window,document,location:{origin:'https://editor.invalid',reload:()=>{throw Error('unexpected page reload')}},crypto:{randomUUID:()=> 'save-id'},encodeURIComponent,setTimeout:()=>1,clearTimeout(){},setInterval:()=>2,clearInterval(){},confirm:()=>true,URL,Blob,Date});
  const host=new Element('section');window.ACDLProductionPrint.mount(host,{receipt:{id:'receipt'}});await tick();const frame=all(host).find(node=>node.tag==='iframe');
  const send=data=>events.message({source:frame.contentWindow,origin:'https://editor.invalid',data:{requestId:'receipt',...data}});
  send({type:'calendar:production-editor-ready'});send({type:'calendar:production-inspection-result',revisionId:'v1',action:'status',result:{jobs:[]}});
@@ -49,5 +50,8 @@ test('upscale click shows pending feedback, sends request, and exposes errors be
  const generate=all(host).find(node=>node.textContent==='최종 인쇄 PDF 생성·검사');assert.equal(generate.disabled,false);
  release();await tick();assert.ok(all(host).some(node=>node.textContent==='업스케일 요청 실패: 원본 준비 실패'));assert.equal(all(host).find(node=>node.textContent==='대상 이미지 일괄 업스케일').disabled,false);
  window.testJob={id:'existing-job',status:'queued'};all(host).find(node=>node.textContent==='빠른 검사 시작').click();send({type:'calendar:production-inspection-result',revisionId:'v1',action:'quick',result:{errors:[],warnings:[],images:{plan:{uses:[],imageQualityPolicy:{upscaleTargetDpi:250}},results:[{placements:[{measurable:true,effectiveDpi:198}]}]}}});await tick();assert.equal(all(host).find(node=>node.textContent==='보정 작업 생성 완료 · PC 실행 대기').disabled,true);assert.ok(all(host).some(node=>node.tag==='code'&&node.textContent.includes('run-upscale-job.ps1')&&node.textContent.includes('-JobId "existing-job"')));
+ window.testJob={id:'existing-job',status:'done',report:{results:[{source:'photo',status:'completed',assetId:'derived',width:100,height:200},{source:'logo',status:'skipped'}]}};all(host).find(node=>node.textContent==='업스케일 결과 새로고침').click();await tick();
+ const completed=all(host).find(node=>node.tag==='details'&&node.children.some(child=>child.tag==='summary'&&child.textContent.includes('보정 완료')));assert.equal(completed.open,false);assert.ok(all(host).some(node=>node.tag==='summary'&&node.textContent==='처리 제외 1개 원본 보기'));const selected=all(completed).find(node=>node.tag==='input');assert.equal(selected.checked,false);selected.checked=true;selected.onchange();all(host).find(node=>node.textContent==='선택한 결과 적용·새 교정 버전 저장').click();await tick();assert.equal(frame.removed,true);assert.notEqual(all(host).filter(node=>node.tag==='iframe'&&!node.removed).at(-1),frame);
+
  window.ACDLProductionPrint.clear();
 });
