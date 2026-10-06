@@ -43,6 +43,7 @@ test('upscale click shows pending feedback, sends request, and exposes errors be
  const send=data=>events.message({source:frame.contentWindow,origin:'https://editor.invalid',data:{requestId:'receipt',...data}});
  send({type:'calendar:production-editor-ready'});send({type:'calendar:production-inspection-result',revisionId:'v1',action:'status',result:{jobs:[]}});
  send({type:'calendar:production-inspection-result',revisionId:'v1',action:'quick',result:{errors:[],warnings:[],images:{plan:{uses:[],imageQualityPolicy:{upscaleTargetDpi:250}},results:[{placements:[{measurable:true,effectiveDpi:198}]}]}}});
+ assert.equal(requestBody,undefined);assert.equal(all(host).find(node=>node.textContent==='대상 이미지 일괄 업스케일').disabled,false);assert.equal(all(host).some(node=>node.textContent==='업스케일 요청 처리 중…'),false);
  await tick();const run=all(host).find(node=>node.textContent==='대상 이미지 일괄 업스케일');assert.equal(run.disabled,false);assert.equal(run.type,'button');run.click();
  assert.equal(requestBody.action,'request');assert.equal(requestBody.documentHash,'hash');assert.ok(all(host).some(node=>node.textContent?.includes('업스케일 작업 준비 중')));assert.equal(all(host).find(node=>node.textContent==='업스케일 요청 처리 중…').disabled,true);
  const generate=all(host).find(node=>node.textContent==='최종 인쇄 PDF 생성·검사');assert.equal(generate.disabled,false);
