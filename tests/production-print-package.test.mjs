@@ -80,3 +80,6 @@ test('current pipeline still rejects a mismatched frozen content identity',async
  await assert.rejects(()=>requestProductionJob(f.receipt,f.revision,owner,'https://editor.invalid'),error=>error.statusCode===409&&error.code.includes('출력 계약'));
  assert.equal(db.jobs.length,0);assert.equal(db.packages.length,1);
 });
+test('upscale preparation has a separate immutable package and retains verified original source mapping',async()=>{
+ const f=fixture(),db=database(f),before=structuredClone(f);const original=await freezeProductionPackage(f.receipt,f.revision),upscale=await freezeProductionPackage(f.receipt,f.revision,{purpose:'upscale'});assert.notEqual(original.template_id,upscale.template_id);const bundle=JSON.parse(db.objects.get(`https://example.invalid/storage/v1/object/template-packages/${upscale.package_storage_path}`));assert.equal(bundle.print.production.purpose,'upscale');assert.ok(bundle.print.upscaleSourceMarkers[`production-asset://${assetId}`].startsWith('package-asset://'));assert.deepEqual(f,before);
+});

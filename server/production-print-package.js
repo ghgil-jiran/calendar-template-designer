@@ -10,7 +10,7 @@ const digest=value=>createHash('sha256').update(value).digest('hex');
 const path=value=>value.split('/').map(encodeURIComponent).join('/');
 const conflict=message=>Object.assign(Error(message),{statusCode:409,code:message});
 // A frozen package includes the execution contract; retain earlier versions unchanged.
-const packageId=identity=>`production-${identity.revisionId}-print-${digest(identity.pipelineVersion).slice(0,12)}`;
+const packageId=identity=>`production-${identity.revisionId}-print-${digest(identity.pipelineVersion+(identity.purpose||'')).slice(0,12)}`;
 export function productionIdentity(requestId,revision){
  const plan=productionImagePlan(revision);
  return {requestId,revisionId:revision.id,revisionNumber:revision.revision_number,documentHash:revision.document_hash,contentHash:plan.contentHash,contract:PRINT_CONTRACT,pipelineVersion:EXPECTED_PIPELINE_VERSION};
@@ -33,8 +33,8 @@ async function existingPackage(identity){
  }
  return row;
 }
-export async function freezeProductionPackage(receipt,revision){
- const identity=productionIdentity(receipt.id,revision),existing=await existingPackage(identity);
+export async function freezeProductionPackage(receipt,revision,{purpose='print'}={}){
+ const identity={...productionIdentity(receipt.id,revision),...(purpose==='upscale'?{purpose}:{})},existing=await existingPackage(identity);
  if(existing)return existing;
  if(!revision.document.editorProject)throw conflict('이 교정 버전에는 에디터 프로젝트가 없습니다. 3단계에서 새 버전을 저장하세요.');
  const bucket=await (await storage('bucket/template-packages')).json();
@@ -75,7 +75,7 @@ export async function freezeProductionPackage(receipt,revision){
  bundle.manifest.name=`${receipt.school_name} · 교정 v${revision.revision_number}`;bundle.manifest.status='draft';bundle.manifest.publishable=false;delete bundle.manifest.representativePreview;delete bundle.manifest.pagePreviews;
  bundle.template.projectData=frozen;bundle.assets=assets;
  bundle.publishing={schemaVersion:'production-print-package.v1',templateId:id,version,production:identity,consumerSnapshot:false,lifecycle:{currentStatus:'draft',userServiceVisible:false}};
- bundle.print={...bundle.print,production:identity,pdfStandard:'PDF/X-4',outputConditionIdentifier:'Japan Color 2011 Coated',cropMarkWidthPt:0.540};
+ bundle.print={...bundle.print,production:identity,pdfStandard:'PDF/X-4',outputConditionIdentifier:'Japan Color 2011 Coated',cropMarkWidthPt:0.540,upscaleSourceMarkers:Object.fromEntries([...markers].filter(([key])=>/^(production|package)-asset:\/\//.test(key)))};
  const bytes=Buffer.from(JSON.stringify(bundle)),sha256=digest(bytes),storagePath=`${id}/${version}/production/package.json`;
  try{await storage(`object/template-packages/${path(storagePath)}`,{method:'POST',headers:{'Content-Type':'application/json','x-upsert':'false'},body:bytes});}
  catch(error){const found=Buffer.from(await (await storage(`object/template-packages/${path(storagePath)}`)).arrayBuffer());if(digest(found)!==sha256)throw error;}
@@ -83,7 +83,7 @@ export async function freezeProductionPackage(receipt,revision){
  try{const inserted=await supabaseRequest('template_packages',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(row)});return inserted[0]||row;}catch(error){const stored=await existingPackage(identity);if(stored?.package_sha256===sha256)return stored;throw error;}
 }
 export async function productionJobs(identity){
- return supabaseRequest(`template_print_preflight_jobs?template_id=eq.${packageId(identity)}&template_version=eq.1.0.0&select=*&order=created_at.desc&limit=20`);
+ const jobs=await supabaseRequest(`template_print_preflight_jobs?template_id=eq.${packageId(identity)}&template_version=eq.1.0.0&select=*&order=created_at.desc&limit=100`);return jobs.filter(job=>job.payload?.kind!=='production-image-upscale');
 }
 export async function requestProductionJob(receipt,revision,adminId,origin,{force=false,quickInspection=null}={}){
  const identity=productionIdentity(receipt.id,revision),pkg=await freezeProductionPackage(receipt,revision),jobs=await productionJobs(identity);
