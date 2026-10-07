@@ -447,7 +447,7 @@ test('local studio server proxies authenticated API requests to Production', () 
 
 test('local and deployed entry points include the shared project asset resolver',()=>{
  const server=fs.readFileSync(new URL('../tools/serve-designer-studio.mjs',import.meta.url),'utf8');
- assert.match(studioHtml,/src="\.\/project-asset-resolver\.js\?v=20260906\.4"/);
+ assert.match(studioHtml,/src="\.\/project-asset-resolver\.js\?v=\d{8}\.\d+"/);
  assert.match(server,/\['\/project-asset-resolver\.js', 'apps\/designer-studio\/project-asset-resolver\.js'\]/);
 });
 

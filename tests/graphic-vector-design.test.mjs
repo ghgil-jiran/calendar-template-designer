@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import '../apps/designer-studio/graphic-vector-design.js';
+import {validateGraphicSvg} from '../server/graphic-library.js';
+const model=globalThis.ACDLGraphicVectorDesign;
+test('all supported background pages export vector-only assets without layout examples',()=>{
+ for(const page of Object.keys(model.pages))for(const style of ['circle','curve','diagonal']){const design=model.normalize({page,style}),svg=model.svg(design);assert.equal(validateGraphicSvg(svg),svg);assert.ok(svg.includes('linearGradient'));assert.ok(!/<(?:image|text|filter|foreignObject)\b/.test(svg));assert.ok(!svg.includes('학교'));assert.ok(model.zones(design).length>0);}
+});
+test('illustration SVG has no full-page opaque background',()=>{for(const style of ['plant','stationery']){const p=model.normalize({kind:'illustration',style});assert.equal(model.zones(p).length,0);assert.ok(!model.svg(p).includes('<rect width="1300"'));validateGraphicSvg(model.svg(p));}});
+test('monthly variations preserve composition and include academic month order',()=>{const p=model.normalize({page:'month-front',variation:'monthly'}),set=model.setInfo(p);assert.deepEqual(set.monthOrder,[3,4,5,6,7,8,9,10,11,12,1,2]);assert.equal(set.scope,'background-only');assert.equal(set.months.length,12);assert.notEqual(model.svg(p,3),model.svg(p,4));assert.equal(model.svg(p,3).replace(/#[\da-f]{6}/gi,'COLOR'),model.svg(p,4).replace(/#[\da-f]{6}/gi,'COLOR'));assert.equal(model.setInfo({page:'cover'}),null);});
+test('stored recipe reproduces the exact vector and custom palette',()=>{const p=model.normalize({colors:['#ffffff','#aabbcc','#ddeeff','#112233'],gradient:0,scale:120});assert.equal(model.svg(p),model.svg(JSON.parse(JSON.stringify(p))));assert.ok(model.svg(p).includes('fill="#aabbcc"'));});
+test('invalid generated inputs cannot inject markup or expensive unbounded settings',()=>{for(const input of [{colors:['red','blue','white','black']},{scale:999},{style:'<script>'},{kind:'background',style:'plant'},{size:'unknown'},{gradient:NaN}])assert.throws(()=>model.normalize(input));});
+test('uploaded SVG rejects scripts, external content, filters, entities, and malformed markup',()=>{for(const content of ['<script>alert(1)</script>','<image href="https://example.com/a.png"/>','<rect onclick="evil()"/>','<foreignObject/>','<filter/>','<rect fill="url(https://example.com)"/>','<rect fill="&#106;avascript"/>','<g style="color:red"/>','<g><circle/></rect>'])assert.throws(()=>validateGraphicSvg(`<svg xmlns="http://www.w3.org/2000/svg">${content}</svg>`));assert.throws(()=>validateGraphicSvg('<!DOCTYPE svg><svg></svg>'));});

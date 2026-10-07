@@ -1,7 +1,8 @@
+import '../apps/designer-studio/graphic-vector-design.js';
 import {randomUUID} from 'node:crypto';
 import {storeTemplateAsset} from './template-persistence.js';
 const BUCKET='common-graphics',PREFIX='graphics-library',UUID=/^[0-9a-f-]{36}$/i;
-export const GRAPHIC_CATEGORIES=['background','illustration','decoration'];
+export const GRAPHIC_CATEGORIES=['background','photo','illustration','decoration','vector'];
 export function validateGraphicMetadata(body){
  const name=String(body.name||'').trim(),category=body.category||'illustration',width=Number(body.width),height=Number(body.height);
  if(!name||name.length>120||!GRAPHIC_CATEGORIES.includes(category)||!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width>60000||height>60000)throw Object.assign(new Error('이미지 정보를 확인해주세요'),{statusCode:400,code:'INVALID_GRAPHIC_METADATA'});
@@ -22,8 +23,28 @@ export async function listGraphics(){await ensureGraphicBucket();const items=[];
 export async function getGraphic(id){return storage(`object/${BUCKET}/${path(id)}`).then(r=>r.json())}
 async function write(value){await storage(`object/${BUCKET}/${path(value.id)}`,{method:'POST',headers:{'Content-Type':'application/json','x-upsert':'true'},body:JSON.stringify(value)});return value}
 export async function uploadChunk(body){await ensureGraphicBucket();const {uploadId,index,total,data}=body;if(!UUID.test(uploadId)||!Number.isInteger(index)||!Number.isInteger(total)||total<1||total>20||index<0||index>=total||typeof data!=='string'||!/^[A-Za-z0-9+/]*={0,2}$/.test(data))fail('INVALID_GRAPHIC_CHUNK');const bytes=Buffer.from(data,'base64');if(!bytes.length||bytes.length>1024*1024)fail('GRAPHIC_CHUNK_TOO_LARGE',413);await storage(`object/${BUCKET}/graphics-uploads/${uploadId}/${index}`,{method:'POST',headers:{'Content-Type':'application/octet-stream','x-upsert':'true'},body:bytes});return {index}}
-export async function createGraphic(body){const metadata=validateGraphicMetadata(body);if(!UUID.test(body.uploadId)||!Number.isInteger(body.total)||body.total<1||body.total>20||!['image/png','image/jpeg','image/webp'].includes(body.mimeType))fail('INVALID_GRAPHIC_UPLOAD');const chunks=[];for(let index=0;index<body.total;index++)chunks.push(Buffer.from(await storage(`object/${BUCKET}/graphics-uploads/${body.uploadId}/${index}`).then(r=>r.arrayBuffer())));const bytes=Buffer.concat(chunks);if(!bytes.length||bytes.length>20*1024*1024)fail('GRAPHIC_TOO_LARGE',413);
- const valid=body.mimeType==='image/png'?bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])):body.mimeType==='image/jpeg'?bytes[0]===255&&bytes[1]===216:bytes.toString('ascii',0,4)==='RIFF'&&bytes.toString('ascii',8,12)==='WEBP';if(!valid)fail('INVALID_GRAPHIC_IMAGE');
+export async function createGraphic(body){const metadata=validateGraphicMetadata(body);if(!UUID.test(body.uploadId)||!Number.isInteger(body.total)||body.total<1||body.total>20||!['image/png','image/jpeg','image/webp','image/svg+xml'].includes(body.mimeType))fail('INVALID_GRAPHIC_UPLOAD');const chunks=[];for(let index=0;index<body.total;index++)chunks.push(Buffer.from(await storage(`object/${BUCKET}/graphics-uploads/${body.uploadId}/${index}`).then(r=>r.arrayBuffer())));const bytes=Buffer.concat(chunks);if(!bytes.length||bytes.length>20*1024*1024)fail('GRAPHIC_TOO_LARGE',413);
+ const valid=body.mimeType==='image/svg+xml'?Boolean(validateGraphicSvg(bytes.toString('utf8'))):body.mimeType==='image/png'?bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])):body.mimeType==='image/jpeg'?bytes[0]===255&&bytes[1]===216:bytes.toString('ascii',0,4)==='RIFF'&&bytes.toString('ascii',8,12)==='WEBP';if(!valid)fail('INVALID_GRAPHIC_IMAGE');
  const original=await storeTemplateAsset(`data:${body.mimeType};base64,${bytes.toString('base64')}`),preview=await storeTemplateAsset(body.previewDataUrl);const record=await write({schemaVersion:'graphic-library.v1',id:randomUUID(),...metadata,originalAssetId:original.id,previewAssetId:preview.id,mimeType:body.mimeType,byteSize:bytes.length,fileName:String(body.fileName||'').slice(0,200),status:'active',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
  await storage(`object/${BUCKET}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:chunks.map((_,i)=>`graphics-uploads/${body.uploadId}/${i}`)})}).catch(()=>{});return record}
 export async function updateGraphic(body){const current=await getGraphic(body.id);if(!['active','archived'].includes(body.status))fail('INVALID_GRAPHIC_STATUS');return write({...current,status:body.status,updatedAt:new Date().toISOString()})}
+
+export function validateGraphicSvg(value){
+ if(typeof value!=='string'||value.length>1024*1024||!/^\s*<svg\s/.test(value)||!/<\/svg>\s*$/.test(value))fail('INVALID_GRAPHIC_SVG');
+ const tags=new Set(['svg','g','defs','rect','circle','ellipse','path','polygon','polyline','line','linearGradient','radialGradient','stop','clipPath']);
+ const attrs=new Set(['xmlns','width','height','viewBox','id','x','y','x1','y1','x2','y2','cx','cy','r','rx','ry','d','points','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','stroke-dasharray','fill-rule','clip-rule','opacity','fill-opacity','stroke-opacity','transform','offset','stop-color','stop-opacity','gradientUnits','gradientTransform','spreadMethod','fx','fy','clip-path','clipPathUnits']);
+ const stack=[];let cursor=0,roots=0;const tokens=value.matchAll(/<([^<>]+)>/g);
+ for(const token of tokens){if(value.slice(cursor,token.index).trim())fail('INVALID_GRAPHIC_SVG');cursor=token.index+token[0].length;const content=token[1],closing=content.startsWith('/'),match=content.match(/^\/?([A-Za-z]+)([\s\S]*?)\/?$/);if(!match||!tags.has(match[1]))fail('INVALID_GRAPHIC_SVG');
+  const tag=match[1],rest=match[2];if(closing){if(rest.trim()||stack.pop()!==tag)fail('INVALID_GRAPHIC_SVG');continue}
+  let end=0;const seen=new Set();for(const attribute of rest.matchAll(/\s+([\w-]+)\s*=\s*("[^"]*"|'[^']*')/g)){if(rest.slice(end,attribute.index).trim())fail('INVALID_GRAPHIC_SVG');end=attribute.index+attribute[0].length;const name=attribute[1],v=attribute[2].slice(1,-1);if(!attrs.has(name)||seen.has(name)||/[<>&]/.test(v)||/url\(/i.test(v)&&!/^url\(#[\w.-]+\)$/.test(v))fail('INVALID_GRAPHIC_SVG');if(name==='xmlns'&&v!=='http://www.w3.org/2000/svg')fail('INVALID_GRAPHIC_SVG');seen.add(name)}if(rest.slice(end).trim())fail('INVALID_GRAPHIC_SVG');if(!stack.length&&(tag!=='svg'||++roots>1))fail('INVALID_GRAPHIC_SVG');if(!content.endsWith('/'))stack.push(tag);
+ }
+ if(roots!==1||stack.length||value.slice(cursor).trim())fail('INVALID_GRAPHIC_SVG');return value;
+}
+export async function generateGraphic(body){
+ let design;try{design=globalThis.ACDLGraphicVectorDesign.normalize(body.design)}catch{fail('INVALID_VECTOR_DESIGN')}
+ const metadata=validateGraphicMetadata({...body,category:design.kind==='background'?'background':'vector',width:1300,height:900});
+ await ensureGraphicBucket();
+ let parent=null;if(body.parentGraphicId){parent=await getGraphic(body.parentGraphicId);if(!parent.design)fail('INVALID_GRAPHIC_PARENT')}
+ const svg=globalThis.ACDLGraphicVectorDesign.svg(design),asset=await storeTemplateAsset('data:image/svg+xml;base64,'+Buffer.from(svg).toString('base64'));
+ return write({schemaVersion:'graphic-library.v1',id:randomUUID(),...metadata,originalAssetId:asset.id,previewAssetId:asset.id,mimeType:'image/svg+xml',byteSize:Buffer.byteLength(svg),fileName:design.kind==='background'?'vector-background.svg':'vector-illustration.svg',status:'active',design,setInfo:globalThis.ACDLGraphicVectorDesign.setInfo(design),physicalSizeMm:{width:260,height:180},parentGraphicId:parent?.id||null,revision:(parent?.revision||0)+1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+}
