@@ -50,6 +50,14 @@ test('upscale click shows pending feedback, sends request, and exposes errors be
  const generate=all(host).find(node=>node.textContent==='최종 인쇄 PDF 생성·검사');assert.equal(generate.disabled,false);
  release();await tick();assert.ok(all(host).some(node=>node.textContent==='업스케일 요청 실패: 원본 준비 실패'));assert.equal(all(host).find(node=>node.textContent==='대상 이미지 일괄 업스케일').disabled,false);
  window.testJob={id:'existing-job',status:'queued'};all(host).find(node=>node.textContent==='빠른 검사 시작').click();send({type:'calendar:production-inspection-result',revisionId:'v1',action:'quick',result:{errors:[],warnings:[],images:{plan:{uses:[],imageQualityPolicy:{upscaleTargetDpi:250}},results:[{placements:[{measurable:true,effectiveDpi:198}]}]}}});await tick();assert.equal(all(host).find(node=>node.textContent==='보정 작업 생성 완료 · PC 실행 대기').disabled,true);assert.ok(all(host).some(node=>node.tag==='code'&&node.textContent.includes('run-upscale-job.ps1')&&node.textContent.includes('-JobId "existing-job"')));
+ const lastRequest=requestBody;
+ for(const job of [{id:'interrupted-job',status:'processing',report:{processed:5,total:17}},{id:'failed-job',status:'error',error:'engine failed'},{id:'partial-job',status:'done',report:{status:'partial',results:[{source:'photo',status:'failed'}]}}]){
+  window.testJob=job;all(host).find(node=>node.textContent==='업스케일 결과 새로고침').click();await tick();
+  const resume=all(host).find(node=>node.textContent==='중단·실패 작업 재개 방법');assert.ok(resume);resume.click();
+  const instructions=all(host).find(node=>node.tag==='details'&&node.children.some(child=>child.textContent==='기존 작업 ID로 재개'));assert.equal(instructions.open,true);
+  assert.ok(all(instructions).some(node=>node.tag==='code'&&node.textContent.includes('-JobId "'+job.id+'" -Resume')));assert.equal(requestBody,lastRequest);
+  if(job.status==='processing')assert.ok(all(host).some(node=>node.textContent?.includes('PC 실행 여부 확인 필요')));
+ }
  window.testJob={id:'existing-job',status:'done',report:{results:[{source:'photo',status:'completed',assetId:'derived',width:100,height:200},{source:'logo',status:'skipped'}]}};all(host).find(node=>node.textContent==='업스케일 결과 새로고침').click();await tick();
  const completed=all(host).find(node=>node.tag==='details'&&node.children.some(child=>child.tag==='summary'&&child.textContent.includes('보정 완료')));assert.equal(completed.open,false);assert.ok(all(host).some(node=>node.tag==='summary'&&node.textContent==='처리 제외 1개 원본 보기'));const selected=all(completed).find(node=>node.tag==='input');assert.equal(selected.checked,false);selected.checked=true;selected.onchange();all(host).find(node=>node.textContent==='선택한 결과 적용·새 교정 버전 저장').click();await tick();assert.equal(frame.removed,true);assert.notEqual(all(host).filter(node=>node.tag==='iframe'&&!node.removed).at(-1),frame);
 
