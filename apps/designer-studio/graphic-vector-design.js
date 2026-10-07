@@ -63,7 +63,12 @@
   let p=normalize(input);const applied=[];const rules=[[/그라데이션\s*(?:없|제거)|단색/,{gradient:0},'그라데이션 제거'],[/그라데이션\s*(?:강|진)/,{gradient:85},'그라데이션 강화'],[/장식\s*(?:없|제거)/,{density:0},'장식 제거'],[/장식\s*(?:적|줄|성기)|간결|단순/,{density:20},'장식 밀도 축소'],[/장식\s*(?:많|늘|촘촘)/,{density:85},'장식 밀도 증가'],[/작게|크기\s*(?:줄|작)/,{scale:75},'장식 크기 축소'],[/크게|크기\s*(?:늘|크)/,{scale:125},'장식 크기 확대'],[/좌우\s*(?:반전|바꾸)|반대쪽/,{orientation:'mirror'},'좌우 반전'],[/원형|동그라미/,{style:'circle'},'원형 구성'],[/곡선/,{style:'curve'},'곡선 구성'],[/사선/,{style:'diagonal'},'사선 구성']];
   for(const [pattern,change,label] of rules)if(pattern.test(text)&&!(change.style&&p.kind==='illustration')){Object.assign(p,change);applied.push(label)}
   for(const [word,id] of [['봄','spring'],['여름','summer'],['가을','autumn'],['겨울','winter'],['차분','mist']])if(text.includes(word)){p.palette=id;p.colors=[...palettes[id]];applied.push(word+' 색상')}
-  return {design:normalize(p),applied};
+  const numeric=[['그라데이션','gradient',0,100],['(?:장식\\s*)?밀도','density',0,100],['(?:장식\\s*)?크기','scale',60,140]];
+  for(const [word,key,min,max] of numeric){const match=text.match(new RegExp(word+'\\s*(?:을|를|은|는|:|=)?\\s*(\\d{1,4})\\s*%?'));if(match){const n=Number(match[1]);if(n>=min&&n<=max){p[key]=n;applied.push(word.replace('(?:장식\\s*)?','장식 ')+' '+n+'%')}}}
+  if(/더\s*은은|더\s*부드럽|연하게/.test(text)){p.density=Math.max(0,p.density-15);applied.push('장식 밀도 15%p 낮춤')}
+  for(const [word,index] of [['바탕',0],['강조 1',1],['강조 2',2],['선',3]]){const match=text.match(new RegExp(word+'\\s*(?:색상|색)?\\s*(?:을|를|:|=)?\\s*(#[0-9a-fA-F]{6})'));if(match){p.colors[index]=match[1];applied.push(word+' '+match[1])}}
+  const notices=[];if(p.composition){if(/반전|반대쪽|곡선|사선|사진.*(?:이동|크게|작게|추가)|잎|꽃|캐릭터/.test(text))notices.push('구성 01의 사진 배치·도형 유형은 유지됩니다. 새 소재 추가와 위치 변경은 지원하지 않습니다.');p.style='circle';p.orientation='normal';}
+  return {design:normalize(p),applied:applied.filter(label=>!p.composition||!['좌우 반전','곡선 구성','사선 구성'].includes(label)),notices};
  }
  function validateScene(scene){
   if(!scene||!Array.isArray(scene.shapes)||scene.shapes.length<1||scene.shapes.length>80)fail();

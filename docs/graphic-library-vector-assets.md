@@ -146,3 +146,14 @@ result, stale-save protection, persistence and variant reopening. Vector tests
 cover circular geometry and reproducibility. A raster rendering of the actual
 generated SVG was visually inspected; authenticated browser layout and final
 CMYK/PDF output remain separate unperformed checks. Template application is deferred.
+
+### Cover prompt refinement
+Composition 01 now exposes initial and refinement prompts. The local interpreter
+applies bounded supported instructions to visible recipe controls: seasonal colors,
+gradient/density percentages 0..100, scale 60..140, more/fewer ornaments, larger/
+smaller, and explicit hex colors for background/accent 1/accent 2/line. This is
+parameter interpretation, not unrestricted AI design. Applied changes are displayed;
+unsupported requests retain the prior result and show an explicit message. Known
+layout/new-motif requests in mixed prompts are reported as unsupported while valid
+parameter changes can proceed. Photo positions and base composition stay fixed.
+Final saved record retains the exact recipe, prompt, and variant ancestry.
