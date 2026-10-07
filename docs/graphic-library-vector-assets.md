@@ -12,7 +12,9 @@ Generation is deterministic geometry, not raster AI generation or bitmap tracing
 First supported size is desk standard 260 × 180 mm. Background compositions:
 circles, curves, diagonal shapes. Illustration compositions: plant and stationery.
 Colors, gradient strength, decoration density (backgrounds), and scale are bounded
-parameters. Free dragging and natural-language editing are outside this scope.
+parameters. Free dragging and unrestricted AI prompt interpretation are outside this scope.
+Bounded Korean prompt commands apply supported recipe controls, with unsupported
+requests explicitly reported instead of silently ignored.
 
 ## Persistence contract
 
@@ -60,3 +62,29 @@ than an obsolete exact date.
 Generated SVG raster preview was inspected. A real browser/admin persistence flow
 and final CMYK/PDF-X output have not been verified in this implementation session.
 These are required before connecting vector assets to template publishing.
+
+## Library interaction update
+
+The dialog keeps a fixed 92vh height and one content scroll area. Refresh is in the
+header. Search preserves its input element and waits for IME composition to finish.
+Clicking a thumbnail opens an accessible modal with original preview and editable
+name/category/tags/source. PATCH accepts only these metadata fields, status, and a
+validated raster thumbnail; asset identities and generation recipes are preserved.
+Vector recipe edits create a new variant through the generator.
+
+Generate confirms a result without persistence. Save registers that generated recipe.
+Changing recipe controls marks the result stale and disables save until regeneration.
+Prompt commands are deterministic supported adjustments (not an AI text model):
+geometry, seasonal colors, density, size, gradient, and horizontal mirroring.
+Unsupported prompt text leaves the result unchanged with an explicit message.
+
+Thumbnails are generated in the browser at at most 240 pixels per edge and saved as
+bounded WebP/PNG data URLs in private graphic metadata. Newly uploaded/generated
+assets save thumbnails immediately. Existing previews are progressively displayed
+and backfilled once; failures retain the existing preview. Catalog metadata loads
+with four bounded concurrent requests rather than sequential per-item requests.
+Original image resolution and content are never replaced by the thumbnail.
+
+UI callback tests cover generate-before-save, stale result protection, prompt
+application, metadata edits, and retry. Storage tests cover thumbnail validation,
+metadata persistence, and preservation of original asset identity.
