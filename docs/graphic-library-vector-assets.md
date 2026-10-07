@@ -157,3 +157,13 @@ unsupported requests retain the prior result and show an explicit message. Known
 layout/new-motif requests in mixed prompts are reported as unsupported while valid
 parameter changes can proceed. Photo positions and base composition stay fixed.
 Final saved record retains the exact recipe, prompt, and variant ancestry.
+
+## 원형 표지 기준 시안 · 2026-10-07
+첨부 시안을 참고해 얇은 사진 주변 호, 모서리 블루·세이지 원형 장식, 하단 블루 그라데이션 띠로 구성합니다. 순수 배경에는 사진·연도·학교정보가 들어가지 않으며 배치 예제에서 영역을 확인합니다.
+
+- 세 설정은 50~150%, 기본 100%입니다.
+- 그라데이션 농도: 색상·방향을 유지하며 배경 장식과 하단 띠의 색 농도를 변경합니다.
+- 장식 밀도: 개수를 유지하고 장식을 바깥쪽 또는 안쪽으로 이동해 간격을 변경합니다.
+- 장식 전체 크기: 원형 장식을 함께 확대·축소합니다. 사진 영역·연도·학교정보와 사진 주변 호는 고정합니다.
+- coverTuning에 실제 적용값을 저장합니다. 기존 coverTuning 없는 자산의 벡터 재현 경로는 유지합니다. 기존 자산을 변형할 때 원본을 보존하며 새 기준값으로 생성합니다.
+- 왼쪽 설정 변경 후 생성 버튼으로 결과에 적용합니다. 지원하는 프롬프트는 같은 설정값으로 변환하며 임의의 개체 편집은 지원하지 않습니다.
