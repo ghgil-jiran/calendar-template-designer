@@ -8,13 +8,13 @@ raster placement remain supported. New vector assets have no template placement
 buttons: page configuration, Runtime/Package delivery, production receipt, and
 print-worker integration are explicitly deferred.
 
-Generation is deterministic geometry, not raster AI generation or bitmap tracing.
+The current generator uses authenticated OpenAI Responses structured output to create new vector scene geometry. It does not generate bitmaps or trace them. Legacy deterministic recipes remain reproducible for existing assets.
 First supported size is desk standard 260 × 180 mm. Background compositions:
 circles, curves, diagonal shapes. Illustration compositions: plant and stationery.
 Colors, gradient strength, decoration density (backgrounds), and scale are bounded
 parameters. Free dragging and unrestricted AI prompt interpretation are outside this scope.
-Bounded Korean prompt commands apply supported recipe controls, with unsupported
-requests explicitly reported instead of silently ignored.
+Free-form design prompts are sent to the provider together with current page settings
+and, for revisions, the previous generated scene.
 
 ## Persistence contract
 
@@ -74,9 +74,8 @@ Vector recipe edits create a new variant through the generator.
 
 Generate confirms a result without persistence. Save registers that generated recipe.
 Changing recipe controls marks the result stale and disables save until regeneration.
-Prompt commands are deterministic supported adjustments (not an AI text model):
-geometry, seasonal colors, density, size, gradient, and horizontal mirroring.
-Unsupported prompt text leaves the result unchanged with an explicit message.
+Current prompt refinement uses an AI text model to generate new scene geometry.
+The former bounded-command helper remains only for legacy recipe compatibility.
 
 Thumbnails are generated in the browser at at most 240 pixels per edge and saved as
 bounded WebP/PNG data URLs in private graphic metadata. Newly uploaded/generated
@@ -88,3 +87,40 @@ Original image resolution and content are never replaced by the thumbnail.
 UI callback tests cover generate-before-save, stale result protection, prompt
 application, metadata edits, and retry. Storage tests cover thumbnail validation,
 metadata persistence, and preservation of original asset identity.
+
+## AI scene generation — 2026-10-07
+
+POST `operation: preview-vector` uses the existing admin auth and Vault key reader.
+Default model `gpt-4.1` (server optional `OPENAI_VECTOR_MODEL`). Responses API with
+strict JSON schema returns bounded ellipse/rect/path scene data, never executable
+SVG or code. New generation invokes the provider only when explicitly requested.
+It does not persist assets; Save sends the validated scene and settings through the
+existing generate-vector storage operation. Engine/model/generation ID/time/prompt
+are recorded, and original/variant ancestry remains unchanged.
+
+Page selection is always available, including illustrations: cover, school symbols,
+year overview, planner, month front/back, back cover. Role-specific constraints and
+reserved zones go into the prompt. Cover and month back expose content layout
+(one photo, two photos, information only, default). Background scene decorations
+are clipped outside reserved information/photo rectangles. Reference zones are
+preview overlays only and are not embedded as photos or text into the asset.
+
+No result is shown before generation. Current form selections and optional free
+prompt create a new composition. Regeneration includes previous scene data and
+all current selections; failures retain the prior scene. Up to five prior results
+can be restored in memory. Stale settings require regeneration before save.
+Monthly sets use one stored scene with seasonal/monthly colors, not 24 saved pages.
+
+Scene limits: 80 shapes, 120 KB normalized scene; per-path 6000 characters, finite
+coordinates within bounded ranges, safe numeric paint/transform controls. No text,
+external images, filters or scripts. Client and server use the same scene validation
+and SVG renderer. Save validates again and regenerates SVG server-side.
+
+Verification includes mocked provider responses for all pages, refinement context,
+refusal/incomplete/error handling, scene limits, pure SVG validation, safe-zone
+clipping, UI generation/save separation, stale protection and undo. Live paid
+provider generation and authenticated browser appearance were not exercised here;
+actual design quality and final CMYK/PDF must be reviewed separately. Template page
+application remains deferred as requested.
+
+API format reference: https://developers.openai.com/api/docs/guides/structured-outputs

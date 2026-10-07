@@ -59,3 +59,5 @@
 .gl-viewer .gl-upload p,.gl-viewer .gl-upload button{grid-column:1/-1}
 .gl-viewer details{margin-top:16px}.gl-viewer summary{cursor:pointer}
 @media(max-width:650px){.gl-generator-preview{position:static}.gl-filters{grid-template-columns:1fr 1fr}.gl-viewer .gl-upload{grid-template-columns:1fr}}
+
+.gl-generation-empty{height:100%;display:grid;place-content:center;text-align:center;padding:24px;box-sizing:border-box;color:var(--muted);font-size:13px;line-height:1.8}

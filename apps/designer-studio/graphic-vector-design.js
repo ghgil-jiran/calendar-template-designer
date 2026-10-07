@@ -4,7 +4,8 @@
  const palettes={mist:['#FAFBF9','#99B9CB','#B7C9B5','#455F75'],spring:['#FCFBF7','#B4CBA4','#E3BEBB','#52634D'],summer:['#F8FCFC','#94BEC7','#B6D4CC','#3E6571'],autumn:['#FCFAF6','#C9AF91','#D5C3A9','#70604D'],winter:['#FAFBFD','#ACBCD2','#C9C9DA','#526078']};
  const fail=()=>{throw new Error('벡터 생성 설정을 확인해주세요.');};
  function normalize(input={}){
-  const p={schemaVersion:'graphic-vector-design.v1',size:input.size||'desk-standard',kind:input.kind||'background',page:input.page||'cover',style:input.style||'circle',palette:input.palette||'mist',gradient:input.gradient??55,density:input.density??45,scale:input.scale??100,variation:input.variation||'same',orientation:input.orientation||'normal',colors:input.colors||null};
+  const p={schemaVersion:'graphic-vector-design.v1',size:input.size||'desk-standard',kind:input.kind||'background',page:input.page||'cover',style:input.style||'circle',palette:input.palette||'mist',gradient:input.gradient??55,density:input.density??45,scale:input.scale??100,variation:input.variation||'same',orientation:input.orientation||'normal',layout:input.layout||'auto',scene:input.scene||null,colors:input.colors||null};
+  if(!['auto','single-photo','two-photos','text-only'].includes(p.layout))fail();if(p.scene)p.scene=validateScene(p.scene);
   if(!['normal','mirror'].includes(p.orientation))fail();
   if(p.size!=='desk-standard'||!['background','illustration'].includes(p.kind)||!pages[p.page]||!['circle','curve','diagonal','plant','stationery'].includes(p.style)||!palettes[p.palette]||!['same','seasonal','monthly'].includes(p.variation))fail();
   if(p.kind==='background'&&!['circle','curve','diagonal'].includes(p.style)||p.kind==='illustration'&&!['plant','stationery'].includes(p.style))fail();
@@ -16,8 +17,12 @@
  }
  function zones(p){
   if(p.kind==='illustration')return [];
+  if(p.page==='cover'&&p.layout==='text-only')return [{type:'text',label:'연도 · 제목 · 학교명',x:12,y:22,w:76,h:44},{type:'footer',label:'교표 · 학교명 · 주소 · 연락처',x:0,y:88,w:100,h:12}];
+  if(p.page==='cover'&&p.layout==='single-photo')return [{type:'text',label:'연도 · 제목',x:8,y:8,w:44,h:15},{type:'photo',label:'학교 전경 사진',x:8,y:28,w:84,h:53},{type:'footer',label:'교표 · 학교명 · 주소 · 연락처',x:0,y:88,w:100,h:12}];
   if(p.page==='cover')return [{type:'text',label:'연도 · 제목',x:7,y:13,w:34,h:23},{type:'photo',label:'학교 전경 사진',x:43,y:11,w:49,h:67,shape:'circle'},{type:'photo',label:'활동 사진',x:9,y:44,w:30,h:42,shape:'circle'},{type:'footer',label:'교표 · 학교명 · 주소 · 연락처',x:0,y:88,w:100,h:12}];
   if(p.page==='month-front')return [{type:'text',label:'월 표시',x:7,y:9,w:24,h:13},{type:'grid',label:'월력 격자 · 일정',x:7,y:28,w:86,h:59}];
+  if(p.page==='month-back'&&p.layout==='two-photos')return [{type:'photo',label:'월별 사진 1',x:8,y:19,w:40,h:62},{type:'photo',label:'월별 사진 2',x:52,y:19,w:40,h:62}];
+  if(p.page==='month-back'&&p.layout==='text-only')return [{type:'text',label:'제목',x:8,y:9,w:55,h:12},{type:'grid',label:'일정 · 메모 콘텐츠',x:8,y:27,w:84,h:58}];
   if(p.page==='month-back')return [{type:'photo',label:'월별 사진 / 콘텐츠',x:9,y:16,w:82,h:67}];
   if(p.page==='symbols')return [{type:'text',label:'학교 상징',x:8,y:9,w:35,h:12},{type:'grid',label:'교표 · 교화 · 교목 · 교가',x:9,y:28,w:82,h:56}];
   if(p.page==='year')return [{type:'text',label:'연도 · 제목',x:8,y:8,w:36,h:12},{type:'grid',label:'12개월 연력',x:8,y:25,w:84,h:61}];
@@ -40,7 +45,8 @@
   }else if(p.style==='plant'){
    shapes=`<g transform="translate(650 770) scale(${s})"><path d="M0 0Q-50-240 0-570M-10-210Q110-270 175-360M-18-350Q-140-405-195-475" fill="none" stroke="${ink}" stroke-width="12" stroke-linecap="round"/><g fill="${fillB}"><ellipse cx="-82" cy="-430" rx="105" ry="43" transform="rotate(30 -82 -430)"/><ellipse cx="95" cy="-300" rx="100" ry="43" transform="rotate(-35 95 -300)"/><ellipse cx="-22" cy="-560" rx="43" ry="90"/></g><path d="M-135-120H135L105 0H-105Z" fill="${fillA}"/></g>`;
   }else shapes=`<g transform="translate(650 450) scale(${s})"><rect x="-230" y="-240" width="350" height="470" rx="22" fill="${fillA}"/><rect x="-192" y="-210" width="290" height="410" rx="10" fill="${bg}"/><g stroke="${b}" stroke-width="8"><path d="M-155-110H55M-155-50H55M-155 10H55M-155 70H55"/></g><g transform="rotate(20)"><rect x="175" y="-270" width="50" height="420" rx="8" fill="${fillB}"/><path d="M175 150H225L200 220Z" fill="${ink}"/></g></g>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${defs}${p.kind==='background'?`<rect width="${w}" height="${h}" fill="${bg}"/>`:''}${p.orientation==='mirror'?`<g transform="translate(1300 0) scale(-1 1)">${shapes}</g>`:shapes}</svg>`;
+  if(p.scene){shapes=p.scene.shapes.map(shape=>sceneShape(shape,{...p,colors:c})).join('');if(p.orientation==='mirror')shapes=`<g transform="translate(1300 0) scale(-1 1)">${shapes}</g>`;if(p.kind==='background'){const holes=zones(p).map(z=>{const x=z.x*13,y=z.y*9,w=z.w*13,h=z.h*9;return `M${x} ${y}h${w}v${h}h-${w}Z`}).join('');shapes=`<defs><clipPath id="gl-safe"><path d="M0 0H1300V900H0Z${holes}" clip-rule="evenodd" fill-rule="evenodd"/></clipPath></defs><g clip-path="url(#gl-safe)">${shapes}</g>${['cover','back-cover'].includes(p.page)?`<rect x="0" y="792" width="1300" height="108" fill="${fillA}" opacity=".15"/>`:''}`;} }
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${defs}${p.kind==='background'?`<rect width="${w}" height="${h}" fill="${bg}"/>`:''}${p.orientation==='mirror'&&!p.scene?`<g transform="translate(1300 0) scale(-1 1)">${shapes}</g>`:shapes}</svg>`;
  }
  function monthColors(p,month){
   if(p.variation==='same')return [...p.colors];
@@ -56,5 +62,13 @@
   for(const [word,id] of [['봄','spring'],['여름','summer'],['가을','autumn'],['겨울','winter'],['차분','mist']])if(text.includes(word)){p.palette=id;p.colors=[...palettes[id]];applied.push(word+' 색상')}
   return {design:normalize(p),applied};
  }
- root.ACDLGraphicVectorDesign=Object.freeze({pages,palettes,normalize,svg,zones,setInfo,applyPrompt});
+ function validateScene(scene){
+  if(!scene||!Array.isArray(scene.shapes)||scene.shapes.length<1||scene.shapes.length>80)fail();
+  const shapes=scene.shapes.map(v=>{if(!v||!['ellipse','rect','path'].includes(v.type)||!['flat','linear','radial'].includes(v.paint)||![0,1,2,3].includes(v.fill)||![-1,0,1,2,3].includes(v.stroke))fail();
+   const q={type:v.type,paint:v.paint,fill:v.fill,stroke:v.stroke};for(const [key,min,max] of [['x',-1300,2600],['y',-900,1800],['width',0,2600],['height',0,1800],['radius',0,450],['rotate',-360,360],['strokeWidth',0,25],['opacity',.05,1]]){if(typeof v[key]!=='number'||!Number.isFinite(v[key])||v[key]<min||v[key]>max)fail();q[key]=v[key]}
+   if(typeof v.path!=='string'||v.path.length>6000||!/^[MmLlHhVvCcSsQqTtAaZz0-9eE.,+\s-]*$/.test(v.path)||v.type==='path'&&!/^[Mm]/.test(v.path))fail();const numbers=v.path.match(/[-+]?(?:\d*\.)?\d+(?:e[-+]?\d+)?/gi)||[];if(numbers.some(n=>!Number.isFinite(Number(n))||Math.abs(Number(n))>5000))fail();q.path=v.path;return q;
+  });if(JSON.stringify(shapes).length>120000)fail();return {schemaVersion:'graphic-vector-scene.v1',shapes};
+ }
+ function sceneShape(q,p){const colors=p.colors,fill=q.paint==='flat'?colors[q.fill]:q.paint==='linear'?'url(#gl-a)':'url(#gl-b)',attrs=`fill="${fill}" stroke="${q.stroke<0?'none':colors[q.stroke]}" stroke-width="${q.strokeWidth}" opacity="${q.opacity}" transform="rotate(${q.rotate} ${q.x+q.width/2} ${q.y+q.height/2})"`;return q.type==='path'?`<path d="${q.path}" ${attrs}/>`:q.type==='ellipse'?`<ellipse cx="${q.x+q.width/2}" cy="${q.y+q.height/2}" rx="${q.width/2}" ry="${q.height/2}" ${attrs}/>`:`<rect x="${q.x}" y="${q.y}" width="${q.width}" height="${q.height}" rx="${q.radius}" ${attrs}/>`;}
+ root.ACDLGraphicVectorDesign=Object.freeze({pages,palettes,normalize,svg,zones,setInfo,applyPrompt,validateScene});
 })(typeof window==='undefined'?globalThis:window);
