@@ -124,3 +124,25 @@ actual design quality and final CMYK/PDF must be reviewed separately. Template p
 application remains deferred as requested.
 
 API format reference: https://developers.openai.com/api/docs/guides/structured-outputs
+
+## Focused cover composition 01
+
+Default generator is now `composition: cover-circle-01`: a parametric, locally
+generated pure SVG, without a paid AI request. This is an explicit composition
+choice, not a silent fallback after failed AI. Existing AI assets and free-generation
+mode are preserved as an experimental selection. New AI generation no longer sends
+the previous scene; only prompt refinement does.
+
+Composition 01 fixes an upper-left year/title area, large right circular photo,
+small lower-left circular photo, and school-info footer. Photos and text are
+reference overlays only. Background ribbons flow behind photo positions, with
+circular accent borders and a footer band. There is no rectangular photo-zone
+clipping. Photo position and circular proportions stay fixed while selected colors,
+gradient strength, decorative detail density, and ornament scale affect the SVG.
+Irrelevant layout/style/orientation controls are fixed/hidden for this composition.
+
+UI tests cover local generation with no API call, changed controls affecting the
+result, stale-save protection, persistence and variant reopening. Vector tests
+cover circular geometry and reproducibility. A raster rendering of the actual
+generated SVG was visually inspected; authenticated browser layout and final
+CMYK/PDF output remain separate unperformed checks. Template application is deferred.
