@@ -1,5 +1,6 @@
 import '../apps/designer-studio/graphic-vector-design.js';
 import '../apps/designer-studio/graphic-package-model.js';
+import '../apps/designer-studio/graphic-illustration-model.js';
 import {randomUUID} from 'node:crypto';
 import {storeTemplateAsset} from './template-persistence.js';
 const BUCKET='common-graphics',PREFIX='graphics-library',UUID=/^[0-9a-f-]{36}$/i;
@@ -20,9 +21,9 @@ export async function ensureGraphicBucket(){
  return bucketReady;
 }
 const path=id=>{if(!UUID.test(id))fail('INVALID_GRAPHIC_ID');return `${PREFIX}/${id}.json`};
-async function listGraphicRecords(){await ensureGraphicBucket();const items=[];let offset=0;while(true){const r=await storage(`object/list/${BUCKET}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix:PREFIX,limit:100,offset,sortBy:{column:'name',order:'asc'}})}),rows=await r.json();const validRows=rows.filter(row=>UUID.test(row.name.replace(/\.json$/,''))&&row.name.endsWith('.json'));let next=0;await Promise.all(Array.from({length:Math.min(4,validRows.length)},async()=>{while(next<validRows.length){const row=validRows[next++],value=await storage(`object/${BUCKET}/${PREFIX}/${row.name}`).then(r=>r.json());if(['graphic-library.v1','graphic-package.v1'].includes(value.schemaVersion))items.push(value)}}));if(rows.length<100)break;offset+=100}return items.sort((a,b)=>b.createdAt.localeCompare(a.createdAt))}
+async function listGraphicRecords(){await ensureGraphicBucket();const items=[];let offset=0;while(true){const r=await storage(`object/list/${BUCKET}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix:PREFIX,limit:100,offset,sortBy:{column:'name',order:'asc'}})}),rows=await r.json();const validRows=rows.filter(row=>UUID.test(row.name.replace(/\.json$/,''))&&row.name.endsWith('.json'));let next=0;await Promise.all(Array.from({length:Math.min(4,validRows.length)},async()=>{while(next<validRows.length){const row=validRows[next++],value=await storage(`object/${BUCKET}/${PREFIX}/${row.name}`).then(r=>r.json());if(['graphic-library.v1','graphic-package.v1','graphic-illustration-theme.v1'].includes(value.schemaVersion))items.push(value)}}));if(rows.length<100)break;offset+=100}return items.sort((a,b)=>b.createdAt.localeCompare(a.createdAt))}
 export async function listGraphics(){return (await listGraphicRecords()).filter(g=>g.schemaVersion==='graphic-library.v1')}
-export async function listGraphicCatalog(){const records=await listGraphicRecords();return {graphics:records.filter(g=>g.schemaVersion==='graphic-library.v1'),packages:records.filter(g=>g.schemaVersion==='graphic-package.v1')}}
+export async function listGraphicCatalog(){const records=await listGraphicRecords();return {graphics:records.filter(g=>g.schemaVersion==='graphic-library.v1'),packages:records.filter(g=>g.schemaVersion==='graphic-package.v1'),themes:records.filter(g=>g.schemaVersion==='graphic-illustration-theme.v1')}}
 export async function getGraphic(id){return storage(`object/${BUCKET}/${path(id)}`).then(r=>r.json())}
 async function write(value){await storage(`object/${BUCKET}/${path(value.id)}`,{method:'POST',headers:{'Content-Type':'application/json','x-upsert':'true'},body:JSON.stringify(value)});return value}
 export async function uploadChunk(body){await ensureGraphicBucket();const {uploadId,index,total,data}=body;if(!UUID.test(uploadId)||!Number.isInteger(index)||!Number.isInteger(total)||total<1||total>20||index<0||index>=total||typeof data!=='string'||!/^[A-Za-z0-9+/]*={0,2}$/.test(data))fail('INVALID_GRAPHIC_CHUNK');const bytes=Buffer.from(data,'base64');if(!bytes.length||bytes.length>1024*1024)fail('GRAPHIC_CHUNK_TOO_LARGE',413);await storage(`object/${BUCKET}/graphics-uploads/${uploadId}/${index}`,{method:'POST',headers:{'Content-Type':'application/octet-stream','x-upsert':'true'},body:bytes});return {index}}
@@ -44,13 +45,13 @@ export function validateGraphicSvg(value){
  }
  if(roots!==1||stack.length||value.slice(cursor).trim())fail('INVALID_GRAPHIC_SVG');return value;
 }
-export async function generateGraphic(body){
+export async function generateGraphic(body,{packageOwnerId=null}={}){
  let design;try{design=globalThis.ACDLGraphicVectorDesign.normalize(body.design)}catch{fail('INVALID_VECTOR_DESIGN')}
  const metadata=validateGraphicMetadata({...body,category:design.kind==='background'?'background':'vector',width:1300,height:900});
  await ensureGraphicBucket();
  let parent=null;if(body.parentGraphicId){parent=await getGraphic(body.parentGraphicId);if(!parent.design)fail('INVALID_GRAPHIC_PARENT')}
  const svg=globalThis.ACDLGraphicVectorDesign.svg(design),asset=await storeTemplateAsset('data:image/svg+xml;base64,'+Buffer.from(svg).toString('base64'));
- return write({schemaVersion:'graphic-library.v1',id:randomUUID(),...metadata,thumbnailDataUrl:validateThumbnail(body.thumbnailDataUrl),originalAssetId:asset.id,previewAssetId:asset.id,mimeType:'image/svg+xml',byteSize:Buffer.byteLength(svg),fileName:design.kind==='background'?'vector-background.svg':'vector-illustration.svg',status:'active',design,generationInfo:body.generationInfo?{generationId:String(body.generationInfo.generationId||'').slice(0,80),engine:String(body.generationInfo.engine||'').slice(0,80),model:String(body.generationInfo.model||'').slice(0,100),generatedAt:String(body.generationInfo.generatedAt||'').slice(0,40),prompt:String(body.generationInfo.prompt||'').slice(0,2000)}:null,setInfo:globalThis.ACDLGraphicVectorDesign.setInfo(design),physicalSizeMm:{width:260,height:180},parentGraphicId:parent?.id||null,revision:(parent?.revision||0)+1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+ return write({schemaVersion:'graphic-library.v1',id:randomUUID(),...metadata,thumbnailDataUrl:validateThumbnail(body.thumbnailDataUrl),originalAssetId:asset.id,previewAssetId:asset.id,mimeType:'image/svg+xml',byteSize:Buffer.byteLength(svg),fileName:design.kind==='background'?'vector-background.svg':'vector-illustration.svg',status:'active',design,generationInfo:body.generationInfo?{generationId:String(body.generationInfo.generationId||'').slice(0,80),engine:String(body.generationInfo.engine||'').slice(0,80),model:String(body.generationInfo.model||'').slice(0,100),generatedAt:String(body.generationInfo.generatedAt||'').slice(0,40),prompt:String(body.generationInfo.prompt||'').slice(0,2000)}:null,setInfo:globalThis.ACDLGraphicVectorDesign.setInfo(design),physicalSizeMm:{width:260,height:180},ownership:packageOwnerId?{kind:'background-package',id:packageOwnerId}:null,parentGraphicId:parent?.id||null,revision:(parent?.revision||0)+1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
 }
 
 const packageModel=globalThis.ACDLGraphicPackageModel;
@@ -62,10 +63,25 @@ export async function saveGraphicPackagePage(body){
  const pkg=await packageForUpdate(body),page=body.page;if(!packageModel.pages[page]||pkg.status!=='active')fail('INVALID_GRAPHIC_PACKAGE_PAGE');
  if(page!=='cover'&&!pkg.pages.cover?.graphicId)fail('GRAPHIC_PACKAGE_COVER_REQUIRED');
  let graphic;if(body.graphicId){graphic=await getGraphic(body.graphicId);if(graphic.schemaVersion!=='graphic-library.v1'||graphic.status!=='active'||graphic.design?.page!==page||graphic.design?.kind!=='background')fail('INVALID_GRAPHIC_PACKAGE_ASSET')}
- else {let design;try{design=globalThis.ACDLGraphicVectorDesign.normalize(body.design)}catch{fail('INVALID_VECTOR_DESIGN')}if(design.page!==page||design.kind!=='background')fail('INVALID_GRAPHIC_PACKAGE_ASSET');graphic=await generateGraphic({...body,design})}
+ else {let design;try{design=globalThis.ACDLGraphicVectorDesign.normalize(body.design)}catch{fail('INVALID_VECTOR_DESIGN')}if(design.page!==page||design.kind!=='background')fail('INVALID_GRAPHIC_PACKAGE_ASSET');graphic=await generateGraphic({...body,design},{packageOwnerId:pkg.id})}
  // Each page points to an immutable asset. Replacing a page never overwrites its previous asset.
  const latest=await packageForUpdate(body),now=new Date().toISOString(),slot={graphicId:graphic.id,derivedFromCoverId:page==='cover'?null:pkg.pages.cover.graphicId,updatedAt:now};
  const updated=await write({...latest,pages:{...latest.pages,[page]:slot},thumbnailDataUrl:page==='cover'?graphic.thumbnailDataUrl:latest.thumbnailDataUrl,revision:latest.revision+1,updatedAt:now});return {graphic,package:updated};
 }
 
 export async function deleteGraphicPackage(body){const pkg=await packageForUpdate(body);await storage(`object/${BUCKET}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:[path(pkg.id)]})});return {deletedPackageId:pkg.id}}
+
+const illustrationModel=globalThis.ACDLGraphicIllustrationModel;
+function themeMetadata(body){try{return illustrationModel.metadata(body)}catch{fail('INVALID_ILLUSTRATION_THEME')}}
+export async function createIllustrationTheme(body){await ensureGraphicBucket();const now=new Date().toISOString();return write({schemaVersion:'graphic-illustration-theme.v1',id:randomUUID(),...themeMetadata(body),status:'active',revision:1,assets:{},createdAt:now,updatedAt:now})}
+async function themeForUpdate(body){const theme=await getGraphic(body.themeId||body.id);if(theme.schemaVersion!=='graphic-illustration-theme.v1'||theme.status!=='active')fail('INVALID_ILLUSTRATION_THEME');if(!Number.isInteger(body.expectedRevision)||theme.revision!==body.expectedRevision)fail('ILLUSTRATION_THEME_CONFLICT',409);return theme}
+export async function updateIllustrationTheme(body){const theme=await themeForUpdate(body),metadata=themeMetadata({...theme,...body});if(metadata.category!==theme.category||Object.keys(theme.assets).some(slot=>Number(slot)>=metadata.count))fail('INVALID_ILLUSTRATION_THEME');return write({...theme,...metadata,revision:theme.revision+1,updatedAt:new Date().toISOString()})}
+export async function saveIllustrationAsset(body){
+ const theme=await themeForUpdate(body);let recipe;try{recipe=illustrationModel.normalize(body.recipe)}catch{fail('INVALID_ILLUSTRATION_RECIPE')}
+ if(recipe.category!==theme.category||!Number.isInteger(body.slot)||body.slot<0||body.slot>=theme.count)fail('INVALID_ILLUSTRATION_RECIPE');
+ const previousId=theme.assets[body.slot]?.graphicId,previous=previousId?await getGraphic(previousId):null;
+ const item=illustrationModel.catalogs[recipe.category].find(i=>i.id===recipe.item),metadata=validateGraphicMetadata({name:body.name||item.name,category:recipe.category==='frame'||recipe.category==='shape'?'vector':'illustration',width:100,height:100,tags:theme.name+', '+globalThis.ACDLGraphicIllustrationModel.categories[recipe.category],source:'라이브러리 기본 샘플 · 직접 제작 벡터'});
+ const svg=validateGraphicSvg(illustrationModel.svg(recipe)),asset=await storeTemplateAsset('data:image/svg+xml;base64,'+Buffer.from(svg).toString('base64')),now=new Date().toISOString();
+ const graphic=await write({schemaVersion:'graphic-library.v1',id:randomUUID(),...metadata,illustrationCategory:recipe.category,themeId:theme.id,themeName:theme.name,illustrationRecipe:recipe,vectorObject:illustrationModel.definition(recipe),printQuality:{structure:'passed',output:'not_run',referenceSizeMm:40,strokeMm:recipe.strokeMm,colorSpace:'sRGB',notes:'배치 크기·CMYK·프레임 마스크는 최종 PDF에서 검증 필요'},originalAssetId:asset.id,previewAssetId:asset.id,thumbnailDataUrl:validateThumbnail(body.thumbnailDataUrl),mimeType:'image/svg+xml',byteSize:Buffer.byteLength(svg),fileName:recipe.item+'.svg',status:'active',parentGraphicId:previousId||null,revision:(previous?.revision||0)+1,createdAt:now,updatedAt:now});
+ const latest=await themeForUpdate(body),updated=await write({...latest,assets:{...latest.assets,[body.slot]:{graphicId:graphic.id,name:graphic.name}},revision:latest.revision+1,updatedAt:now});return {graphic,theme:updated};
+}

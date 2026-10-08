@@ -31,7 +31,7 @@
   $('graphicPackagePage').addEventListener('change',()=>selectPage($('graphicPackagePage').value));
   $('graphicPackageAction').addEventListener('change',async()=>{const action=$('graphicPackageAction').value;$('graphicPackageAction').value='';if(action==='rebase'){selectPage(selectedPage,true);return}const id=action.startsWith('asset:')?action.slice(6):null;if(!id||!current||!selectedPage)return;if(!leave())return;setBusy(true);try{const response=await api({method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation:'save-package-page',...context(selectedPage),graphicId:id})});await saved(response);generator.clearChanges();selectPage(selectedPage);feedback('기존 이미지 원본을 유지하고 패키지에 연결했습니다.')}catch(error){feedback(error.message)}finally{setBusy(false)}});
   async function saved(response){current=response.package;await onChanged(response);render();feedback('페이지를 저장했습니다. 상단에서 다음 페이지를 선택할 수 있습니다.')}
-  return {open,saved,hasChanges:()=>formDirty,refresh:render};
+  return {open,resume:()=>{if(stage==='info'){if(current&&selectedPage){selectPage(selectedPage);stage='info';render()}else render()}else if(current)selectPage(selectedPage||'cover');else render()},saved,hasChanges:()=>formDirty,refresh:render};
  }
  root.ACDLGraphicLibraryPackages=Object.freeze({markup,mount});
 })(window);

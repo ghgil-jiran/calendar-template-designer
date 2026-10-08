@@ -224,3 +224,29 @@ The cover generator offers cover-rectangle-02, defaults its palette to warm ivor
 - Monthly front/back have independent same/seasonal/monthly color options, defaulting to monthly. Saved settings live in the template snapshot's monthlyVariations, never mutate the library package, and are copied into each actual page's effective design. Tuned standard recipes expose tone, spacing and scale (50–150%); legacy/custom recipes keep color controls without unsupported tuning sliders. Existing tuned package values are inherited.
 - The monthly palette is now passed into circle/rectangular decoration generators as well as the canvas and global gradients. Shape geometry remains identical while actual ornament colors change. Preview thumbnails are regenerated from the same effective recipe used by editor background application, in actual academic-month order including January/February.
 - Footer/menu handlers, independent monthly choices, foreground preservation and actual decorative color differences are covered by regression tests. Full Studio suite: 779 tests passed; full build passed. Circle and rectangular monthly SVGs were rendered to PNG for separate visual inspection; actual deployed-screen and final-PDF verification are not claimed. Native PDF/User Service scope boundaries from the previous section still apply.
+
+
+## 카테고리·테마별 벡터 자산 (2026-10-08)
+
+라이브러리 생성·관리 단계만 구현했다. 템플릿 에디터·사용자 서비스에서 새 테마 자산을 배치하는 연결은 후속 작업이다. 기존 도형·프레임·샘플 메뉴는 변경하지 않았다.
+
+| 카테고리 | 기본 샘플 수 | 구성 |
+| --- | ---: | --- |
+| 학교·학습 | 8 | 연필, 책, 자, 학교, 지구본, 책가방, 학사모, 플라스크 |
+| 계절·자연 | 8 | 새싹, 봄꽃, 햇살, 구름, 비, 잎, 눈꽃, 나무 |
+| 행사·활동 | 8 | 깃발, 메달, 풍선, 버스, 달력, 트로피, 선물, 안내 |
+| 장식 | 4 | 월계수, 배지, 모서리 장식, 물결 |
+| 기본 도형 | 16 | 기존 에디터 분류를 참고한 새 경로 |
+| 사진 프레임 | 8 | 사각·둥근·원·타원·아치·육각·별·하트 |
+
+기본 샘플은 직접 작성한 도형·경로이다. AI 자유 생성이나 임의 프롬프트 생성으로 표시하지 않는다. 생성 개수는 사용자가 선택하며, 현재 카테고리의 고유 샘플 수를 상한으로 명시한다. 하나의 합성 그림이 아니라 개별 SVG 자산을 만든다. 표지/기준 개체 선행 저장을 요구하지 않는다.
+
+흐름: 카테고리 → 새 테마/기존 테마 → 이름·개수·색상·선 두께 저장 → 현재 설정으로 생성 → 개별 이름·개체·색상 수정/재생성 → 개별 또는 전체 저장. 개체 선택과 색상 선택 변경은 다시 생성 버튼으로 반영한다. 선 두께는 40mm 기준 0.2~1.2mm이다. 테마 정보 수정 뒤 생성 버튼으로 전체 결과를 재생성할 수 있다.
+
+`graphic-illustration-theme.v1`은 메타데이터와 슬롯별 자산 ID, optimistic revision을 저장한다. `graphic-illustration-recipe.v1`은 재현 설정이다. 개별 자산은 기존 `graphic-library.v1`에 저장하며 `vectorObject`에 100×100 좌표계의 경로·도형·색상·기준 크기·선 두께를 보관한다. 사진 프레임은 테두리와 별도 mask 경로를 함께 보관한다. 테마 수정 시 다른 카테고리로 이동하거나 저장된 슬롯을 생성 개수 밖으로 줄이지 않는다. 개별 재저장 시 부모 ID·개체 revision을 남기며 원본을 덮어쓰지 않는다. 원본은 버전으로 이미지 자산 목록에 남는다.
+
+서버가 SVG를 재생성하고 허용 태그·속성을 검사한다. 외부 참조·사진·텍스트·폰트·필터가 없다. 구조 검사 통과는 PDF 출력 품질 인증이 아니다. `printQuality.structure=passed`, `output=not_run`, sRGB와 실제 기준 크기를 저장한다. 최종 크기에서의 선 두께·프레임 마스크·공통 Runtime/PDF Worker 매핑·CMYK 출력은 후속 연결 검증이 필요하다. 직접 SVG 검사를 native PDF 통과로 표시하지 않는다.
+
+이미지 자산 첫 화면은 패키지 카드를 표시하지 않는다. 새 패키지 생성 자산은 서버 소유 메타데이터로 구분한다. 기존 패키지는 패키지 이름 접두어가 있는 생성 자산을 화면에서 제외하는 보수적 호환 규칙을 사용한다. 독립 자산을 기존 이미지 사용으로 패키지에 연결해도 소유권을 바꾸지 않는다. 과거에 이름이 변경되거나 패키지가 삭제된 자산은 자동 소유 분류가 어려워 목록에 남을 수 있다. 데이터 일괄 수정·삭제는 하지 않는다.
+
+라이브러리 메뉴 이동과 닫기/재열기는 작성 초안을 보존하며 저장 확인을 요청하지 않는다. 실제 생성 작업을 다른 작업으로 교체하거나 테마/페이지를 바꿔 초안을 버리는 시점에는 대상이 명확한 확인을 유지한다. 업로드는 기존 원본 등록 경로를 유지하며 설정/미리보기/하단 등록 버튼으로 정리했다. SVG 업로드 한도는 1MB로 유지한다.

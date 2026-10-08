@@ -1,0 +1,49 @@
+(function(root){
+ 'use strict';
+ const categories={school:'학교·학습',nature:'계절·자연',event:'행사·활동',decoration:'장식',shape:'기본 도형',frame:'사진 프레임'};
+ const palettes={warm:{label:'따뜻한 테라코타',colors:['#B86146','#E4B870','#688A77','#394B57']},blue:{label:'차분한 블루·세이지',colors:['#527EAC','#8DA998','#E2BD7B','#334E66']},spring:{label:'봄의 코랄·그린',colors:['#D77D8E','#8EAB70','#E8BF72','#4C6658']}};
+ const catalogs={};
+ const path=(d,color=0,fill=true)=>({type:'path',d,fill:fill?color:-1,stroke:3});
+ const rect=(x,y,width,height,color=0,rx=0)=>({type:'rect',x,y,width,height,rx,fill:color,stroke:3});
+ const circle=(cx,cy,r,color=0)=>({type:'circle',cx,cy,r,fill:color,stroke:3});
+ const line=(d,color=3)=>({type:'path',d,fill:-1,stroke:color});
+ function add(category,id,name,parts,mask=null){(catalogs[category]??=[]).push({id,name,parts,mask})}
+ add('school','pencil','연필',[path('M24 72 L65 17 L80 28 L39 83 Z',1),path('M24 72 L20 91 L39 83 Z',2),line('M30 77 L71 22'),path('M65 17 L71 9 Q74 5 78 8 L89 16 Q93 20 89 25 L80 28 Z',0)]);
+ add('school','book','펼친 책',[path('M50 29 Q31 14 12 23 L12 76 Q31 68 50 83 Q69 68 88 76 L88 23 Q69 14 50 29 Z',1),line('M50 29 L50 83 M21 35 Q34 31 42 38 M21 46 Q34 42 42 49 M58 38 Q70 31 80 35 M58 49 Q70 42 80 46')]);
+ add('school','ruler','자',[path('M16 67 L67 16 L85 34 L34 85 Z',1),line('M28 61 L35 68 M38 51 L43 56 M48 41 L55 48 M58 31 L63 36 M68 21 L75 28')]);
+ add('school','school','학교 건물',[rect(16,38,68,47,1,2),path('M10 38 L50 12 L90 38 Z',0),rect(43,62,14,23,2),rect(25,49,10,12,2),rect(65,49,10,12,2),circle(50,30,7,2),line('M50 26 L50 30 L54 32')]);
+ add('school','globe','지구본',[circle(49,42,28,2),line('M23 32 Q50 44 76 32 M22 51 Q50 60 76 51 M49 14 C26 30 26 54 49 70 C72 54 72 30 49 14'),line('M72 15 Q98 48 63 74 L49 82 M49 70 L49 87 M30 88 L68 88')]);
+ add('school','backpack','책가방',[line('M37 22 L37 15 Q50 7 63 15 L63 22'),rect(23,22,54,65,0,15),rect(31,52,38,24,1,6),line('M34 35 L66 35 M39 62 L61 62')]);
+ add('school','cap','학사모',[path('M8 36 L50 16 L92 36 L50 56 Z',0),path('M25 45 L25 64 Q50 80 75 64 L75 45 L50 56 Z',2),line('M50 36 L85 48 L85 76'),circle(85,80,4,1)]);
+ add('school','flask','실험 플라스크',[path('M40 14 L60 14 L60 45 L82 78 Q87 88 75 88 L25 88 Q13 88 18 78 L40 45 Z',2),path('M28 64 L72 64 L81 80 Q83 85 75 85 L25 85 Q17 85 20 80 Z',0),line('M37 14 L63 14'),circle(42,73,3,1),circle(59,79,4,1)]);
+ add('nature','sprout','새싹',[line('M50 87 L50 43'),path('M50 58 Q15 59 18 27 Q50 24 50 58 Z',2),path('M50 48 Q51 13 82 18 Q82 51 50 48 Z',2),line('M29 39 L50 58 M69 29 L50 48 M29 88 Q50 81 71 88')]);
+ add('nature','flower','봄꽃',[path('M50 36 C30 9 12 30 33 47 C6 57 27 81 44 60 C49 89 73 73 60 53 C90 57 89 28 63 36 C74 9 46 4 50 36 Z',0),circle(49,47,9,1),line('M49 61 L49 90'),path('M49 80 Q68 61 77 73 Q72 90 49 80 Z',2)]);
+ add('nature','sun','햇살',[circle(50,50,22,1),line('M50 8 L50 19 M50 81 L50 92 M8 50 L19 50 M81 50 L92 50 M20 20 L28 28 M72 72 L80 80 M20 80 L28 72 M72 28 L80 20')]);
+ add('nature','cloud','구름',[path('M22 70 C2 69 8 41 27 43 C29 13 70 14 73 42 C97 37 100 70 78 70 Z',1)]);
+ add('nature','rain','비 오는 날',[path('M22 57 C5 54 9 34 27 35 C31 10 65 11 70 35 C90 31 99 56 77 57 Z',2),line('M27 69 L21 82 M48 69 L42 82 M69 69 L63 82')]);
+ add('nature','leaf','가을 잎',[path('M20 79 Q9 18 82 15 Q88 80 20 79 Z',0),line('M17 88 L69 29 M34 70 L31 46 M47 57 L64 59')]);
+ add('nature','snow','눈꽃',[line('M50 12 L50 88 M17 31 L83 69 M17 69 L83 31 M40 20 L50 30 L60 20 M40 80 L50 70 L60 80 M19 42 L34 41 L31 26 M69 74 L66 59 L81 58 M19 58 L34 59 L31 74 M69 26 L66 41 L81 42',0)]);
+ add('nature','tree','나무',[rect(44,64,12,26,1,2),path('M50 9 L21 45 L33 45 L14 70 L86 70 L67 45 L79 45 Z',2)]);
+ add('event','flag','운동회 깃발',[line('M20 13 L20 89'),path('M21 16 Q42 5 61 18 Q73 27 86 16 L86 52 Q70 63 56 51 Q40 40 21 52 Z',0)]);
+ add('event','medal','메달',[path('M28 10 L43 10 L58 47 L43 54 Z',0),path('M57 10 L73 10 L59 54 L44 47 Z',2),circle(50,67,22,1),path('M50 51 L54 61 L65 62 L57 69 L60 80 L50 74 L40 80 L43 69 L35 62 L46 61 Z',0)]);
+ add('event','balloon','축제 풍선',[path('M49 16 C12 15 15 62 42 71 L49 80 L56 71 C83 62 86 15 49 16 Z',0),line('M49 80 Q36 86 52 94'),line('M31 35 Q31 25 41 24')]);
+ add('event','bus','체험학습 버스',[rect(12,26,76,51,1,8),rect(20,34,25,21,2,3),rect(53,34,25,21,2,3),circle(30,78,9,3),circle(70,78,9,3),line('M15 65 L85 65')]);
+ add('event','calendar','행사 달력',[rect(16,24,68,61,1,6),rect(16,24,68,17,0,5),line('M32 16 L32 32 M68 16 L68 32 M29 54 L39 54 M47 54 L57 54 M65 54 L73 54 M29 68 L39 68 M47 68 L57 68')]);
+ add('event','trophy','성취 트로피',[path('M31 17 L69 17 L66 48 Q62 64 50 64 Q38 64 34 48 Z',1),line('M32 25 L15 25 Q14 52 36 50 M68 25 L85 25 Q86 52 64 50 M50 64 L50 80'),rect(31,80,38,8,0,2)]);
+ add('event','gift','축하 선물',[rect(19,42,62,44,0,2),rect(15,32,70,13,1,2),rect(44,32,12,54,2),path('M49 31 Q20 27 29 15 Q39 6 49 31 Q61 6 71 15 Q81 28 49 31 Z',1)]);
+ add('event','megaphone','행사 안내',[path('M16 37 L47 37 L78 18 L78 78 L47 59 L16 59 Z',0),path('M29 59 L44 59 L49 85 L35 85 Z',1),line('M87 30 L95 24 M88 48 L98 48 M87 66 L95 72')]);
+ add('decoration','laurel','월계수',[line('M50 86 C19 78 10 40 28 16 M50 86 C81 78 90 40 72 16'),path('M26 30 Q7 11 18 7 Q33 15 26 30 M21 47 Q1 31 10 25 Q27 30 21 47 M26 66 Q4 60 9 47 Q28 47 26 66 M37 80 Q16 81 17 67 Q34 64 37 80',2),path('M74 30 Q93 11 82 7 Q67 15 74 30 M79 47 Q99 31 90 25 Q73 30 79 47 M74 66 Q96 60 91 47 Q72 47 74 66 M63 80 Q84 81 83 67 Q66 64 63 80',2)]);
+ add('decoration','badge','배지',[path('M35 59 L22 92 L43 83 L50 95 L58 63 Z',0),path('M65 59 L78 92 L57 83 L50 95 L42 63 Z',2),circle(50,41,30,1),circle(50,41,21,0)]);
+ add('decoration','corner','모서리 장식',[line('M17 82 L17 17 L82 17 M28 70 L28 28 L70 28',0),circle(17,17,5,1),path('M40 17 Q49 1 60 9 Q61 22 40 17 Z',2),path('M17 40 Q1 49 9 60 Q22 61 17 40 Z',2)]);
+ add('decoration','wave','물결 장식',[path('M8 42 Q28 18 50 42 Q72 66 92 42 L92 62 Q72 86 50 62 Q28 38 8 62 Z',2),line('M8 28 Q28 4 50 28 Q72 52 92 28',0)]);
+ const shapes={rect:'M15 20 H85 V80 H15 Z',rounded:'M25 20 H75 Q85 20 85 30 V70 Q85 80 75 80 H25 Q15 80 15 70 V30 Q15 20 25 20 Z',circle:'M50 12 A38 38 0 1 0 50 88 A38 38 0 1 0 50 12 Z',ellipse:'M50 22 A42 28 0 1 0 50 78 A42 28 0 1 0 50 22 Z',triangle:'M50 12 L90 85 H10 Z',diamond:'M50 8 L91 50 L50 92 L9 50 Z',pentagon:'M50 9 L89 38 L74 84 H26 L11 38 Z',hexagon:'M29 14 H71 L92 50 L71 86 H29 L8 50 Z',octagon:'M32 10 H68 L90 32 V68 L68 90 H32 L10 68 V32 Z',star:'M50 8 L61 36 L91 38 L68 57 L76 87 L50 70 L24 87 L32 57 L9 38 L39 36 Z',heart:'M50 85 C-8 48 14 2 50 30 C86 2 108 48 50 85 Z',cross:'M37 12 H63 V37 H88 V63 H63 V88 H37 V63 H12 V37 H37 Z',speech:'M20 16 H80 Q89 16 89 25 V67 Q89 76 80 76 H46 L25 91 V76 H20 Q11 76 11 67 V25 Q11 16 20 16 Z',ribbon:'M13 26 H87 L74 50 L87 74 H13 L26 50 Z',cloud:'M22 70 C2 69 8 41 27 43 C29 13 70 14 73 42 C97 37 100 70 78 70 Z',arch:'M16 88 V46 A34 34 0 0 1 84 46 V88 Z'};
+ const names=['사각형','둥근 사각형','원','타원','삼각형','마름모','오각형','육각형','팔각형','별','하트','십자','말풍선','리본','구름','아치'];
+ Object.entries(shapes).forEach(([id,d],i)=>add('shape',id,names[i],[path(d,0)]));
+ for(const id of ['rect','rounded','circle','ellipse','arch','hexagon','star','heart'])add('frame',id,names[Object.keys(shapes).indexOf(id)]+' 프레임',[{...path(shapes[id],0,false),stroke:0}],{type:'path',d:shapes[id]});
+ function normalize(input={}){const category=input.category||'school',catalog=catalogs[category];if(!catalog)throw new Error('카테고리를 확인해주세요.');const item=catalog.find(x=>x.id===input.item);if(!item)throw new Error('샘플 개체를 확인해주세요.');const colors=input.colors||palettes[input.palette||'warm']?.colors;if(!Array.isArray(colors)||colors.length!==4||colors.some(c=>!/^#[0-9a-f]{6}$/i.test(c)))throw new Error('색상을 확인해주세요.');const strokeMm=Number(input.strokeMm??.35);if(!Number.isFinite(strokeMm)||strokeMm<.2||strokeMm>1.2)throw new Error('선 두께는 0.2~1.2mm로 설정해주세요.');return {schemaVersion:'graphic-illustration-recipe.v1',category,item:item.id,palette:input.palette||'warm',colors:colors.map(c=>c.toUpperCase()),strokeMm,sizeMm:40}}
+ function definition(input){const r=normalize(input),item=catalogs[r.category].find(i=>i.id===r.item);return {schemaVersion:'graphic-vector-object.v1',coordinateSize:{width:100,height:100},physicalSizeMm:{width:40,height:40},parts:JSON.parse(JSON.stringify(item.parts)),mask:item.mask?{...item.mask}:null,colors:r.colors,strokeWidth:Number((r.strokeMm/40*100).toFixed(6))}}
+ function svg(input){const o=definition(input),attrs=p=>`fill="${p.fill<0?'none':o.colors[p.fill]}" stroke="${o.colors[p.stroke]}" stroke-width="${o.strokeWidth}" stroke-linecap="round" stroke-linejoin="round"`;return `<svg xmlns="http://www.w3.org/2000/svg" width="40mm" height="40mm" viewBox="0 0 100 100">${o.parts.map(p=>p.type==='path'?`<path d="${p.d}" ${attrs(p)}/>`:p.type==='circle'?`<circle cx="${p.cx}" cy="${p.cy}" r="${p.r}" ${attrs(p)}/>`:`<rect x="${p.x}" y="${p.y}" width="${p.width}" height="${p.height}" rx="${p.rx}" ${attrs(p)}/>`).join('')}</svg>`}
+ function metadata(input){const name=String(input.name||'').trim(),category=input.category,count=Number(input.count);if(!name||name.length>120||!categories[category]||!Number.isInteger(count)||count<1||count>catalogs[category].length)throw new Error('테마 이름과 생성 개수를 확인해주세요.');const recipe=normalize({...input,item:catalogs[category][0].id});return {name,category,count,palette:recipe.palette,colors:recipe.colors,strokeMm:recipe.strokeMm,tags:String(input.tags||'').trim().slice(0,500)}}
+ function recipes(input){const m=metadata(input);return catalogs[m.category].slice(0,m.count).map(item=>({name:item.name,recipe:normalize({...m,item:item.id})}))}
+ root.ACDLGraphicIllustrationModel=Object.freeze({categories,palettes,catalogs,normalize,definition,svg,metadata,recipes});
+})(typeof window==='undefined'?globalThis:window);
