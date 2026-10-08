@@ -4,7 +4,8 @@
  const palettes={mist:['#FAFBF9','#99B9CB','#B7C9B5','#455F75'],spring:['#FCFBF7','#B4CBA4','#E3BEBB','#52634D'],summer:['#F8FCFC','#94BEC7','#B6D4CC','#3E6571'],autumn:['#FCFAF6','#C9AF91','#D5C3A9','#70604D'],winter:['#FAFBFD','#ACBCD2','#C9C9DA','#526078']};
  const fail=()=>{throw new Error('벡터 생성 설정을 확인해주세요.');};
  function normalize(input={}){
-  const p={schemaVersion:'graphic-vector-design.v1',composition:input.composition||null,coverTuning:input.coverTuning||null,familyTuning:input.familyTuning||null,size:input.size||'desk-standard',kind:input.kind||'background',page:input.page||'cover',style:input.style||'circle',palette:input.palette||'mist',gradient:input.gradient??55,density:input.density??45,scale:input.scale??100,variation:input.variation||'same',orientation:input.orientation||'normal',layout:input.layout||'auto',scene:input.scene||null,colors:input.colors||null};
+  const p={schemaVersion:'graphic-vector-design.v1',composition:input.composition||null,backgroundRevision:input.backgroundRevision||1,coverTuning:input.coverTuning||null,familyTuning:input.familyTuning||null,size:input.size||'desk-standard',kind:input.kind||'background',page:input.page||'cover',style:input.style||'circle',palette:input.palette||'mist',gradient:input.gradient??55,density:input.density??45,scale:input.scale??100,variation:input.variation||'same',orientation:input.orientation||'normal',layout:input.layout||'auto',scene:input.scene||null,colors:input.colors||null};
+  if(![1,2].includes(p.backgroundRevision))fail();
   if(p.familyTuning){if(p.kind!=='background'||p.style!=='circle'||p.composition)fail();const q={};for(const key of ['tone','density','scale']){const v=p.familyTuning[key];if(!Number.isInteger(v)||v<50||v>150)fail();q[key]=v}p.familyTuning=q}
   if(p.coverTuning){if(p.composition!=='cover-circle-01')fail();const q={};for(const key of ['tone','density','scale']){const value=p.coverTuning[key];if(!Number.isInteger(value)||value<50||value>150)fail();q[key]=value}p.coverTuning=q}
   if(p.composition!==null&&p.composition!=='cover-circle-01')fail();if(p.composition&&(p.page!=='cover'||p.kind!=='background'))fail();if(p.composition){p.style='circle';p.layout='two-photos';p.orientation='normal';p.scene=null}
@@ -51,8 +52,8 @@
   }else if(p.style==='plant'){
    shapes=`<g transform="translate(650 770) scale(${s})"><path d="M0 0Q-50-240 0-570M-10-210Q110-270 175-360M-18-350Q-140-405-195-475" fill="none" stroke="${ink}" stroke-width="12" stroke-linecap="round"/><g fill="${fillB}"><ellipse cx="-82" cy="-430" rx="105" ry="43" transform="rotate(30 -82 -430)"/><ellipse cx="95" cy="-300" rx="100" ry="43" transform="rotate(-35 95 -300)"/><ellipse cx="-22" cy="-560" rx="43" ry="90"/></g><path d="M-135-120H135L105 0H-105Z" fill="${fillA}"/></g>`;
   }else shapes=`<g transform="translate(650 450) scale(${s})"><rect x="-230" y="-240" width="350" height="470" rx="22" fill="${fillA}"/><rect x="-192" y="-210" width="290" height="410" rx="10" fill="${bg}"/><g stroke="${b}" stroke-width="8"><path d="M-155-110H55M-155-50H55M-155 10H55M-155 70H55"/></g><g transform="rotate(20)"><rect x="175" y="-270" width="50" height="420" rx="8" fill="${fillB}"/><path d="M175 150H225L200 220Z" fill="${ink}"/></g></g>`;
-  if(p.composition==='cover-circle-01')shapes=p.coverTuning?coverReference(p):coverCircle(p,{bg,a,b,ink,fillA,fillB,s,d});
-  else if(p.familyTuning){shapes=familyReference(p,{bg,a,b,ink});}
+  if(p.composition==='cover-circle-01')shapes=p.backgroundRevision===2?independentReference(p):p.coverTuning?coverReference(p):coverCircle(p,{bg,a,b,ink,fillA,fillB,s,d});
+  else if(p.familyTuning){shapes=p.backgroundRevision===2?independentReference(p):familyReference(p,{bg,a,b,ink});}
   else if(p.scene){shapes=p.scene.shapes.map(shape=>sceneShape(shape,{...p,colors:c})).join('');if(p.orientation==='mirror')shapes=`<g transform="translate(1300 0) scale(-1 1)">${shapes}</g>`;if(p.kind==='background'){const holes=zones(p).map(z=>{const x=z.x*13,y=z.y*9,w=z.w*13,h=z.h*9;return `M${x} ${y}h${w}v${h}h-${w}Z`}).join('');shapes=`<defs><clipPath id="gl-safe"><path d="M0 0H1300V900H0Z${holes}" clip-rule="evenodd" fill-rule="evenodd"/></clipPath></defs><g clip-path="url(#gl-safe)">${shapes}</g>${['cover','back-cover'].includes(p.page)?`<rect x="0" y="792" width="1300" height="108" fill="${fillA}" opacity=".15"/>`:''}`;} }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${defs}${p.kind==='background'?`<rect width="${w}" height="${h}" fill="${bg}"/>`:''}${p.orientation==='mirror'&&!p.scene&&!p.composition?`<g transform="translate(1300 0) scale(-1 1)">${shapes}</g>`:shapes}</svg>`;
  }
@@ -83,6 +84,23 @@
   });if(JSON.stringify(shapes).length>120000)fail();return {schemaVersion:'graphic-vector-scene.v1',shapes};
  }
  function sceneShape(q,p){const colors=p.colors,fill=q.paint==='flat'?colors[q.fill]:q.paint==='linear'?'url(#gl-a)':'url(#gl-b)',attrs=`fill="${fill}" stroke="${q.stroke<0?'none':colors[q.stroke]}" stroke-width="${q.strokeWidth}" opacity="${q.opacity}" transform="rotate(${q.rotate} ${q.x+q.width/2} ${q.y+q.height/2})"`;return q.type==='path'?`<path d="${q.path}" ${attrs}/>`:q.type==='ellipse'?`<ellipse cx="${q.x+q.width/2}" cy="${q.y+q.height/2}" rx="${q.width/2}" ry="${q.height/2}" ${attrs}/>`:`<rect x="${q.x}" y="${q.y}" width="${q.width}" height="${q.height}" rx="${q.radius}" ${attrs}/>`;}
+ function independentReference(p){
+  const [bg,a,b,ink]=p.colors,q=p.coverTuning||p.familyTuning||{tone:100,density:100,scale:100},t=q.tone/100,k=q.scale/100,shift=(100-q.density)*1.1;
+  const tint=(c,v)=>'#'+[1,3,5].map(i=>Math.round(parseInt(bg.slice(i,i+2),16)*(1-Math.min(1,v))+parseInt(c.slice(i,i+2),16)*Math.min(1,v)).toString(16).padStart(2,'0')).join('');
+  const quiet=p.page==='month-front'||['year','planner'].includes(p.page),strength=quiet?.55:1;
+  let out=`<defs><linearGradient id="ind-blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${tint(a,.65*t*strength)}"/><stop offset="1" stop-color="${tint(a,.12*t*strength)}"/></linearGradient><linearGradient id="ind-sage" x1="0" y1="1" x2="1" y2="0"><stop stop-color="${tint(b,.6*t*strength)}"/><stop offset="1" stop-color="${tint(b,.09*t*strength)}"/></linearGradient></defs>`;
+  // A page-wide composition; content example zones never participate in geometry.
+  const cover=p.page==='cover',back=p.page==='month-back';
+  const circles=cover?[[-65,-90,340,'sage'],[1230,-115,305,'blue'],[-170,675,380,'blue'],[1420,810,350,'sage'],[1100,145,135,'sage'],[85,365,95,'sage']]:back?[[-100,105,355,'blue'],[55,35,190,'sage'],[1390,815,390,'sage'],[1200,925,230,'blue'],[-55,775,185,'sage'],[1270,120,120,'blue']]:[[-130,100,330,'sage'],[1360,850,335,'blue'],[-85,790,165,'blue'],[1300,-70,200,'sage']];
+  const mirror=['interleaf-back','rear-interleaf-front','back-cover'].includes(p.page);
+  out+=`<g${mirror?' transform="translate(1300 0) scale(-1 1)"':''}>`;
+  for(const [cx,cy,r,color] of circles){const x=cx+(cx<650?-shift:shift),y=cy+(cy<450?-shift*.45:shift*.45);out+=`<circle cx="${x}" cy="${y}" r="${r*k}" fill="url(#ind-${color})"/><circle cx="${x}" cy="${y}" r="${(r+26)*k}" fill="none" stroke="${tint(color==='blue'?a:b,.42*t*strength)}" stroke-width="1.8"/>`;}
+  const arcs=cover?[[110,110,245],[1190,750,260],[40,760,340]]:back?[[10,90,420],[1300,850,440],[1120,-90,235]]:[[0,120,385],[1300,850,390]];
+  for(const [x,y,r] of arcs)out+=`<circle cx="${x+(x<650?-shift:shift)}" cy="${y}" r="${r*k}" fill="none" stroke="${tint(ink,.2*t*strength)}" stroke-width="1.4" stroke-dasharray="${r*2.3} ${r*4}" transform="rotate(24 ${x} ${y})"/>`;
+  const dots=cover?[[235,80,13],[75,480,17],[1190,315,14],[1060,800,10]]:back?[[275,100,12],[105,365,16],[1085,735,14],[1220,555,10]]:[[160,185,12],[1160,715,14]];
+  for(const [x,y,r] of dots)out+=`<circle cx="${x+(x<650?-shift:shift)}" cy="${y}" r="${r*k}" fill="${tint(x<650?a:b,.68*t*strength)}"/>`;
+  return out+'</g>';
+ }
  function familyReference(p,{bg,a,b,ink}){
   const q=p.familyTuning,s=q.scale/100,d=q.density/100,t=q.tone/100;
   const tint=c=>'#'+[1,3,5].map(i=>Math.round(parseInt(bg.slice(i,i+2),16)*(1-Math.min(1,t*.65))+parseInt(c.slice(i,i+2),16)*Math.min(1,t*.65)).toString(16).padStart(2,'0')).join('');

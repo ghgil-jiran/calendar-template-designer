@@ -196,3 +196,6 @@ Live feedback is a separate labeled status panel. Page selector and page actions
 
 ### Package deletion
 Package cards expose Edit and Delete. The authenticated DELETE API checks package schema and expected revision, then removes only its private JSON record from common-graphics storage. It does not archive the package or delete linked individual assets, template packages or snapshots. Confirmation is required; failures retain the visible card.
+
+### Independent background revision 2
+New generation explicitly saves backgroundRevision:2. Cover and month-back use layered large pale circles, secondary overlapping circles, fine arcs and small accents with different geometry. Other derived pages use a quieter shared family. Content example zones never clip these backgrounds; only page boundaries crop decorations. Tone changes color strength, density changes spacing without adding shapes, scale changes all ornament sizes. Legacy recipes without the revision retain revision 1 reproduction. Existing assets are not overwritten; regenerating creates a new result which must be saved explicitly.
