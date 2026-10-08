@@ -179,3 +179,11 @@ Final saved record retains the exact recipe, prompt, and variant ancestry.
 - Standard circle covers derive page-aware margin compositions sharing palette and `familyTuning` (tone/spacing/scale, 50–150%, default 100). Safe content zones are clipped out. Cover photo zones are never copied to every page. AI-generated covers send a validated reference recipe to the experimental generator for subsequent pages.
 - Create: POST `create-package`; metadata/archive: PATCH `update-package`; page save or existing-asset link: POST `save-package-page`. Revision conflicts return 409 and require reopening the package. The existing authenticated internal route and private graphics storage are reused; no SQL migrations or public diagnostic routes are added.
 - This package is distinct from a Template Package. Selection/application in template page settings, User Service delivery and final print-PDF verification remain follow-up work.
+
+## 2026-10-08: Simplified package and generator workspace
+
+- The Package tab begins with only Edit existing package / Create new package. Existing packages are selected in a separate list. New-package metadata is saved before opening the page workspace; failed metadata requests retain the form.
+- Existing and newly saved packages share one workspace: package identity, metadata edit, and a page selector with saved/uncreated/cover-required status. Linking an existing page asset and restarting from the cover are secondary collapsed actions. The full page-card grid is no longer repeated above the generator.
+- Vector generation uses one form: basic settings across the top, design parameters and one generation/edit prompt at left, result and save/undo at right. Package name, size, kind and page are inherited rather than repeated as disabled inputs. Fixed SVG format and fixed composition controls are not selectable duplicates.
+- First generation and regeneration use the same prompt and submit action. Editing retains the previous scene for the same page, and undo restores the matching prompt. Switching page/purpose in standalone generation does not reuse an unrelated page scene.
+- Storage schemas, authenticated APIs, immutable asset preservation, template/runtime integration and print paths are unchanged.
