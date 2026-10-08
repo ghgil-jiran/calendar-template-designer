@@ -60,3 +60,17 @@ test('actual editor renderer places vector background in background layer beneat
  assert.equal(page.children[0].className,'ai-background-layer');assert.equal(page.children[0].childElementCount,1);assert.equal(page.children[0].children[0].querySelector('svg').attrs.viewBox,'-15 -15 1330 930');assert.equal(page.children[0].children[0].listeners.pointerdown,undefined);
  assert.equal(page.children[1].className,'free-layer');assert.equal(page.children[1].childElementCount,1);
 });
+
+
+test('top menus keep mapping in design types; monthly default visibly changes actual editor backgrounds independently',async()=>{
+ const e=setup();for(const key of ['month-front','month-back']){e.catalog.packages[0].pages[key]={graphicId:key};e.catalog.graphics.push({id:key,name:key,design:e.window.ACDLGraphicVectorDesign.normalize({page:key,backgroundRevision:2,familyTuning:{tone:100,density:100,scale:100}})})}
+ e.project.book.pageInstances.push({id:'april',role:'monthly-front',calendarMonth:4},{id:'back',role:'monthly-back',calendarMonth:3});await select(e);
+ const host=e.$('graphicTemplateMapping');assert.equal(host.parent.parent.attrs['data-resource-content'],'design-types');assert.equal(e.$('graphicTemplateMonthly').hidden,true);
+ const nav=host.parent.querySelector('nav');await nav.fire('click',nav.querySelector('[data-graphic-settings-tab="monthly"]'));assert.equal(host.hidden,true);assert.equal(e.$('graphicTemplateMonthly').hidden,false);
+ const monthly=e.$('graphicTemplateMonthly');const front=monthly.querySelector('[data-graphic-month-role="monthly-front"]');assert.equal(front.value,'monthly');e.window.ACDLGraphicTemplateSettings.apply();const first=e.project.book.elementsByPage.month[0],next=e.project.book.elementsByPage.april[0];assert.notEqual(e.window.ACDLGraphicTemplateMapping.svg(first.colors),e.window.ACDLGraphicTemplateMapping.svg(next.colors));
+ front.value='same';await monthly.fire('change',front);e.window.ACDLGraphicTemplateSettings.apply();assert.equal(e.window.ACDLGraphicTemplateMapping.svg(e.project.book.elementsByPage.month[0].colors),e.window.ACDLGraphicTemplateMapping.svg(e.project.book.elementsByPage.april[0].colors));assert.equal(e.project.book.elementsByPage.back[0].colors.graphicDesign.variation,'monthly');
+ const tone=monthly.querySelector('[data-graphic-month-field="tone"]');tone.value='125';await monthly.fire('change',tone);e.window.ACDLGraphicTemplateSettings.apply();assert.equal(e.project.book.elementsByPage.month[0].colors.graphicDesign.familyTuning.tone,125);assert.equal(e.project.book.elementsByPage.back[0].colors.graphicDesign.familyTuning.tone,100);
+});
+test('footer enters editing for existing template after applying backgrounds and is also available for no-AI without vector',async()=>{
+ const e=setup();await select(e);e.context.newTemplateSetupInProgress=false;e.context.document.body.classList={remove(){}};e.$('resourceModal').classList={add(){}};await e.$('graphicTemplateEnter').fire('click');assert.equal(e.project.book.elementsByPage.cover[0].role,'graphic-package-background');assert.ok(e.toasts.at(-1).includes('편집 화면'));e.$('vectorBackgroundCheckbox').checked=false;await e.$('vectorBackgroundCheckbox').fire('change');assert.equal(e.$('graphicTemplateEnter').parent.hidden,false);assert.equal(e.$('graphicTemplateEnter').textContent,'편집으로 이동');
+});

@@ -53,3 +53,6 @@ test('common screen helpers render package SVG and runtime adapter preserves the
  const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{buildRuntimeDataset:()=>({}),resolvePageBinding:p=>p},parity:{buildDeskAcademicSurfacePlan:()=>[]},pageAdapter:{compose:()=>({pages:[],complete:true})}});const result=adapter.adapt(project,undefined,{}),node=result.template.pages[0].objects.find(x=>x.id===e.id);
  assert.equal(JSON.stringify(node.value.graphicDesign),JSON.stringify(e.value.graphicDesign));assert.equal(node.frame.x,-3);assert.equal(node.frame.width,266);assert.equal(node.style.graphicBleedMm,3);assert.equal(node.printIntent.structure,'runtime-expansion-required');
 });
+
+
+test('back-cover year and contact composition uses physical back-cover, while annual purpose takes priority',()=>{const {project}=setup();const page={id:'back-contact',role:'back-cover-back',contentPurpose:'year-school-information'};assert.deepEqual(m.candidates(project,page),['back-cover']);project.template.settings.aiDesignSpec.dividerPages[page.id]={purpose:'school-symbols'};assert.deepEqual(m.candidates(project,page),['symbols','back-cover']);});
