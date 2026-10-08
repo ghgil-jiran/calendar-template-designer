@@ -167,3 +167,15 @@ Final saved record retains the exact recipe, prompt, and variant ancestry.
 - 장식 전체 크기: 원형 장식을 함께 확대·축소합니다. 사진 영역·연도·학교정보와 사진 주변 호는 고정합니다.
 - coverTuning에 실제 적용값을 저장합니다. 기존 coverTuning 없는 자산의 벡터 재현 경로는 유지합니다. 기존 자산을 변형할 때 원본을 보존하며 새 기준값으로 생성합니다.
 - 왼쪽 설정 변경 후 생성 버튼으로 결과에 적용합니다. 지원하는 프롬프트는 같은 설정값으로 변환하며 임의의 개체 편집은 지원하지 않습니다.
+
+## 2026-10-08: Template graphic packages
+
+- Catalog GET returns `graphics` (unchanged `graphic-library.v1` assets) and `packages` (`graphic-package.v1`). Old assets are never converted or overwritten.
+- Asset browsing offers All / Individual images / Packages. Desktop cards use five columns, with responsive four/three/two column layouts. Existing upload, image detail, metadata and archive operations remain available.
+- Package creation stores a named desk-standard 260 × 180mm draft. Save a cover first, then select and generate each page. The available roles cover cover/inside, interleaves, monthly front/back, rear interleaves/back-cover, and optional symbols/year/planner.
+- Packages contain immutable asset references under `pages[role] = {graphicId, derivedFromCoverId, updatedAt}`. Each edit generates a separate asset and updates only that page reference. Cover replacement leaves all other pages untouched; the UI labels previous-cover-derived pages and provides explicit restart from the current cover.
+- Monthly front/back retain one composition and a 12-month academic color set (March–February), rather than independent incompatible geometry.
+- A saved vector asset for the selected role can be linked without altering its original. Current generation is vector-only; photo uploads retain the individual-asset flow.
+- Standard circle covers derive page-aware margin compositions sharing palette and `familyTuning` (tone/spacing/scale, 50–150%, default 100). Safe content zones are clipped out. Cover photo zones are never copied to every page. AI-generated covers send a validated reference recipe to the experimental generator for subsequent pages.
+- Create: POST `create-package`; metadata/archive: PATCH `update-package`; page save or existing-asset link: POST `save-package-page`. Revision conflicts return 409 and require reopening the package. The existing authenticated internal route and private graphics storage are reused; no SQL migrations or public diagnostic routes are added.
+- This package is distinct from a Template Package. Selection/application in template page settings, User Service delivery and final print-PDF verification remain follow-up work.
