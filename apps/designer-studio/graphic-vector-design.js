@@ -6,13 +6,13 @@
  function normalize(input={}){
   const p={schemaVersion:'graphic-vector-design.v1',composition:input.composition||null,backgroundRevision:input.backgroundRevision||1,coverTuning:input.coverTuning||null,familyTuning:input.familyTuning||null,size:input.size||'desk-standard',kind:input.kind||'background',page:input.page||'cover',style:input.style||'circle',palette:input.palette||'mist',gradient:input.gradient??55,density:input.density??45,scale:input.scale??100,variation:input.variation||'same',orientation:input.orientation||'normal',layout:input.layout||'auto',scene:input.scene||null,colors:input.colors||null};
   if(![1,2].includes(p.backgroundRevision))fail();
-  if(p.familyTuning){if(p.kind!=='background'||p.style!=='circle'||p.composition)fail();const q={};for(const key of ['tone','density','scale']){const v=p.familyTuning[key];if(!Number.isInteger(v)||v<50||v>150)fail();q[key]=v}p.familyTuning=q}
-  if(p.coverTuning){if(p.composition!=='cover-circle-01')fail();const q={};for(const key of ['tone','density','scale']){const value=p.coverTuning[key];if(!Number.isInteger(value)||value<50||value>150)fail();q[key]=value}p.coverTuning=q}
-  if(p.composition!==null&&p.composition!=='cover-circle-01')fail();if(p.composition&&(p.page!=='cover'||p.kind!=='background'))fail();if(p.composition){p.style='circle';p.layout='two-photos';p.orientation='normal';p.scene=null}
+  if(p.familyTuning){if(p.kind!=='background'||!['circle','rectangle'].includes(p.style)||p.composition)fail();const q={};for(const key of ['tone','density','scale']){const v=p.familyTuning[key];if(!Number.isInteger(v)||v<50||v>150)fail();q[key]=v}p.familyTuning=q}
+  if(p.coverTuning){if(!['cover-circle-01','cover-rectangle-02'].includes(p.composition))fail();const q={};for(const key of ['tone','density','scale']){const value=p.coverTuning[key];if(!Number.isInteger(value)||value<50||value>150)fail();q[key]=value}p.coverTuning=q}
+  if(p.composition!==null&&!['cover-circle-01','cover-rectangle-02'].includes(p.composition))fail();if(p.composition&&(p.page!=='cover'||p.kind!=='background'))fail();if(p.composition){p.style=p.composition==='cover-rectangle-02'?'rectangle':'circle';p.layout=p.composition==='cover-rectangle-02'?'single-photo':'two-photos';p.orientation='normal';p.scene=null}
   if(!['auto','single-photo','two-photos','text-only'].includes(p.layout))fail();if(p.scene)p.scene=validateScene(p.scene);
   if(!['normal','mirror'].includes(p.orientation))fail();
-  if(p.size!=='desk-standard'||!['background','illustration'].includes(p.kind)||!pages[p.page]||!['circle','curve','diagonal','plant','stationery'].includes(p.style)||!palettes[p.palette]||!['same','seasonal','monthly'].includes(p.variation))fail();
-  if(p.kind==='background'&&!['circle','curve','diagonal'].includes(p.style)||p.kind==='illustration'&&!['plant','stationery'].includes(p.style))fail();
+  if(p.size!=='desk-standard'||!['background','illustration'].includes(p.kind)||!pages[p.page]||!['circle','rectangle','curve','diagonal','plant','stationery'].includes(p.style)||!palettes[p.palette]||!['same','seasonal','monthly'].includes(p.variation))fail();
+  if(p.kind==='background'&&!['circle','rectangle','curve','diagonal'].includes(p.style)||p.kind==='illustration'&&!['plant','stationery'].includes(p.style))fail();
   for(const [key,min,max] of [['gradient',0,100],['density',0,100],['scale',60,140]])if(!Number.isInteger(p[key])||p[key]<min||p[key]>max)fail();
   if(p.colors!==null&&(!Array.isArray(p.colors)||p.colors.length!==4||p.colors.some(c=>typeof c!=='string'||!/^#[0-9a-f]{6}$/i.test(c))))fail();
   p.colors=p.colors?[...p.colors]:[...palettes[p.palette]];
@@ -21,6 +21,7 @@
  }
  function zones(p){
   if(p.kind==='illustration')return [];
+  if(p.composition==='cover-rectangle-02')return [{type:'photo',label:'학교 전경 사진 · 1장',x:18,y:12,w:64,h:54},{type:'text',label:'연도 · CALENDAR',x:25,y:70,w:50,h:12},{type:'text',label:'교표 · 학교명 · 주소 · 연락처',x:17,y:86,w:66,h:9}];
   if(p.composition==='cover-circle-01'&&p.coverTuning)return [{type:'text',label:'연도 · SCHOOL CALENDAR',x:7,y:13,w:34,h:23},{type:'photo',label:'학교 전경 사진',x:42,y:8,w:51,h:73.666667,shape:'circle'},{type:'photo',label:'활동 사진',x:12,y:42,w:29,h:41.888889,shape:'circle'},{type:'footer',label:'교표 · 학교명 · 주소 · 연락처',x:0,y:84.4,w:100,h:15.6}];
   if(p.composition==='cover-circle-01')return [{type:'text',label:'연도 · 제목',x:7,y:13,w:34,h:23},{type:'photo',label:'학교 전경 사진',x:43,y:10,w:49,h:70.777778,shape:'circle'},{type:'photo',label:'활동 사진',x:9,y:46,w:28,h:40.444444,shape:'circle'},{type:'footer',label:'교표 · 학교명 · 주소 · 연락처',x:0,y:88,w:100,h:12}];
   if(p.page==='cover'&&p.layout==='text-only')return [{type:'text',label:'연도 · 제목 · 학교명',x:12,y:22,w:76,h:44},{type:'footer',label:'교표 · 학교명 · 주소 · 연락처',x:0,y:88,w:100,h:12}];
@@ -52,8 +53,9 @@
   }else if(p.style==='plant'){
    shapes=`<g transform="translate(650 770) scale(${s})"><path d="M0 0Q-50-240 0-570M-10-210Q110-270 175-360M-18-350Q-140-405-195-475" fill="none" stroke="${ink}" stroke-width="12" stroke-linecap="round"/><g fill="${fillB}"><ellipse cx="-82" cy="-430" rx="105" ry="43" transform="rotate(30 -82 -430)"/><ellipse cx="95" cy="-300" rx="100" ry="43" transform="rotate(-35 95 -300)"/><ellipse cx="-22" cy="-560" rx="43" ry="90"/></g><path d="M-135-120H135L105 0H-105Z" fill="${fillA}"/></g>`;
   }else shapes=`<g transform="translate(650 450) scale(${s})"><rect x="-230" y="-240" width="350" height="470" rx="22" fill="${fillA}"/><rect x="-192" y="-210" width="290" height="410" rx="10" fill="${bg}"/><g stroke="${b}" stroke-width="8"><path d="M-155-110H55M-155-50H55M-155 10H55M-155 70H55"/></g><g transform="rotate(20)"><rect x="175" y="-270" width="50" height="420" rx="8" fill="${fillB}"/><path d="M175 150H225L200 220Z" fill="${ink}"/></g></g>`;
-  if(p.composition==='cover-circle-01')shapes=p.backgroundRevision===2?independentReference(p):p.coverTuning?coverReference(p):coverCircle(p,{bg,a,b,ink,fillA,fillB,s,d});
-  else if(p.familyTuning){shapes=p.backgroundRevision===2?independentReference(p):familyReference(p,{bg,a,b,ink});}
+  if(p.composition==='cover-rectangle-02')shapes=rectangleReference(p);
+  else if(p.composition==='cover-circle-01')shapes=p.backgroundRevision===2?independentReference(p):p.coverTuning?coverReference(p):coverCircle(p,{bg,a,b,ink,fillA,fillB,s,d});
+  else if(p.familyTuning){shapes=p.style==='rectangle'?rectangleReference(p):p.backgroundRevision===2?independentReference(p):familyReference(p,{bg,a,b,ink});}
   else if(p.scene){shapes=p.scene.shapes.map(shape=>sceneShape(shape,{...p,colors:c})).join('');if(p.orientation==='mirror')shapes=`<g transform="translate(1300 0) scale(-1 1)">${shapes}</g>`;if(p.kind==='background'){const holes=zones(p).map(z=>{const x=z.x*13,y=z.y*9,w=z.w*13,h=z.h*9;return `M${x} ${y}h${w}v${h}h-${w}Z`}).join('');shapes=`<defs><clipPath id="gl-safe"><path d="M0 0H1300V900H0Z${holes}" clip-rule="evenodd" fill-rule="evenodd"/></clipPath></defs><g clip-path="url(#gl-safe)">${shapes}</g>${['cover','back-cover'].includes(p.page)?`<rect x="0" y="792" width="1300" height="108" fill="${fillA}" opacity=".15"/>`:''}`;} }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${defs}${p.kind==='background'?`<rect width="${w}" height="${h}" fill="${bg}"/>`:''}${p.orientation==='mirror'&&!p.scene&&!p.composition?`<g transform="translate(1300 0) scale(-1 1)">${shapes}</g>`:shapes}</svg>`;
  }
@@ -84,6 +86,15 @@
   });if(JSON.stringify(shapes).length>120000)fail();return {schemaVersion:'graphic-vector-scene.v1',shapes};
  }
  function sceneShape(q,p){const colors=p.colors,fill=q.paint==='flat'?colors[q.fill]:q.paint==='linear'?'url(#gl-a)':'url(#gl-b)',attrs=`fill="${fill}" stroke="${q.stroke<0?'none':colors[q.stroke]}" stroke-width="${q.strokeWidth}" opacity="${q.opacity}" transform="rotate(${q.rotate} ${q.x+q.width/2} ${q.y+q.height/2})"`;return q.type==='path'?`<path d="${q.path}" ${attrs}/>`:q.type==='ellipse'?`<ellipse cx="${q.x+q.width/2}" cy="${q.y+q.height/2}" rx="${q.width/2}" ry="${q.height/2}" ${attrs}/>`:`<rect x="${q.x}" y="${q.y}" width="${q.width}" height="${q.height}" rx="${q.radius}" ${attrs}/>`;}
+ function rectangleReference(p){
+  const [bg,a,b]=p.colors,q=p.coverTuning||p.familyTuning||{tone:100,density:100,scale:100},t=q.tone/100,k=q.scale/100,shift=(100-q.density)*1.1,quiet=['month-front','year','planner'].includes(p.page)?.55:1;
+  const tint=(c,v)=>'#'+[1,3,5].map(i=>Math.round(parseInt(bg.slice(i,i+2),16)*(1-Math.min(1,v))+parseInt(c.slice(i,i+2),16)*Math.min(1,v)).toString(16).padStart(2,'0')).join('');
+  let out=`<defs><linearGradient id="rect-warm" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${tint(a,.36*t*quiet)}"/><stop offset="1" stop-color="${tint(a,.035*t*quiet)}"/></linearGradient><linearGradient id="rect-sand" x1="1" y1="0" x2="0" y2="1"><stop stop-color="${tint(b,.42*t*quiet)}"/><stop offset="1" stop-color="${tint(b,.04*t*quiet)}"/></linearGradient></defs>`;
+  const cover=p.page==='cover',back=p.page==='month-back';
+  const shapes=cover?[[95,105,480,280,30,0],[-45,365,255,225,26,0],[90,540,255,185,25,1],[1130,145,365,170,30,1],[1300,340,355,260,28,0],[1060,535,240,200,28,0],[-35,830,265,180,24,0],[1260,825,225,260,26,1],[1160,870,195,180,26,1]]:back?[[-10,110,390,270,30,0],[145,300,245,170,25,1],[1310,620,430,280,30,1],[1140,785,245,180,25,0],[-40,845,260,180,24,1],[1290,70,260,180,24,0]]:[[-15,100,365,240,28,1],[1300,800,365,255,28,0],[-40,805,225,150,24,0],[1280,90,220,180,24,1]];
+  for(const [cx,cy,w,h,r,color] of shapes){const x=cx+(cx<650?-shift:shift),y=cy+(cy<450?-shift*.35:shift*.35);out+=`<rect x="${x-w*k/2}" y="${y-h*k/2}" width="${w*k}" height="${h*k}" rx="${r*k}" fill="url(#rect-${color?'sand':'warm'})"/>`;}
+  return out;
+ }
  function independentReference(p){
   const [bg,a,b,ink]=p.colors,q=p.coverTuning||p.familyTuning||{tone:100,density:100,scale:100},t=q.tone/100,k=q.scale/100,shift=(100-q.density)*1.1;
   const tint=(c,v)=>'#'+[1,3,5].map(i=>Math.round(parseInt(bg.slice(i,i+2),16)*(1-Math.min(1,v))+parseInt(c.slice(i,i+2),16)*Math.min(1,v)).toString(16).padStart(2,'0')).join('');

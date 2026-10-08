@@ -202,3 +202,6 @@ New generation explicitly saves backgroundRevision:2. Cover and month-back use l
 
 ### Warm ivory / terracotta / sand palette
 The palette selector includes terracotta (#FCF9F3, #C48770, #D6C4A8, #745344). It works with existing compositions and package derivation; palette and exact colors are saved for reproduction. Korean terracotta, sand and warm ivory prompts select it. Composition 02 remains a design proposal at this stage.
+
+### Composition 02: rectangular background
+The cover generator offers cover-rectangle-02, defaults its palette to warm ivory / terracotta / sand when selected, and uses locally generated rounded rectangular planes. The layout example has one centered landscape photo, year beneath, and school information below; no footer band is painted. Pure SVG contains only background rectangles and gradients, without photo/text references or content-area cutouts. Tone, density and scale remain 50–150%; decoration count and example zones stay fixed. Stored style:rectangle carries the family into derived package pages and monthly sets. Composition 01 and existing records are preserved.
