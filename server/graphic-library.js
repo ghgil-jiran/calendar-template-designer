@@ -67,3 +67,5 @@ export async function saveGraphicPackagePage(body){
  const latest=await packageForUpdate(body),now=new Date().toISOString(),slot={graphicId:graphic.id,derivedFromCoverId:page==='cover'?null:pkg.pages.cover.graphicId,updatedAt:now};
  const updated=await write({...latest,pages:{...latest.pages,[page]:slot},thumbnailDataUrl:page==='cover'?graphic.thumbnailDataUrl:latest.thumbnailDataUrl,revision:latest.revision+1,updatedAt:now});return {graphic,package:updated};
 }
+
+export async function deleteGraphicPackage(body){const pkg=await packageForUpdate(body);await storage(`object/${BUCKET}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:[path(pkg.id)]})});return {deletedPackageId:pkg.id}}

@@ -193,3 +193,6 @@ The Package tab immediately displays saved active package cards and a New Packag
 
 ### Compact page toolbar and work feedback
 Live feedback is a separate labeled status panel. Page selector and page actions share one row, with contextual guidance underneath. The action dropdown lists existing compatible backgrounds and (for non-cover pages) restarts from the current cover style. Selecting an asset attaches it immediately without replacing its original record; selecting rebase resets only the current draft. Unsaved-change confirmation and API revision checks remain in place. Saved cover guidance no longer says the cover must be saved first.
+
+### Package deletion
+Package cards expose Edit and Delete. The authenticated DELETE API checks package schema and expected revision, then removes only its private JSON record from common-graphics storage. It does not archive the package or delete linked individual assets, template packages or snapshots. Confirmation is required; failures retain the visible card.
