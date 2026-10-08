@@ -12,6 +12,7 @@
     return typeof value === "string" && /^#[0-9a-fA-F]{3,8}$/.test(value) ? value : fallback;
   }
   function renderVectorSvg(assetId, colors = {}) {
+    if(assetId==='graphic-package-background')return root.ACDLGraphicTemplateMapping?root.ACDLGraphicTemplateMapping.svg(colors):"";
     const asset = VECTOR_LIBRARY.find(item => item.id === assetId);
     if (!asset) return "";
     const primary = vectorColor(colors?.primary, "#4777bd");
@@ -21,7 +22,7 @@
       '<path d="M50 5 L58 35 L90 35 L64 54 L74 86 L50 67 L26 86 L36 54 L10 35 L42 35 Z" fill="' + primary + '" opacity=".12"/>' +
       '<text x="50" y="61" text-anchor="middle" font-size="44" font-family="Arial, sans-serif" fill="' + primary + '">' + escapeText(asset.icon) + '</text></svg>';
   }
-  function supportsVectorAsset(assetId) { return VECTOR_LIBRARY.some(item => item.id === assetId); }
+  function supportsVectorAsset(assetId) { return assetId==='graphic-package-background'?Boolean(root.ACDLGraphicTemplateMapping):VECTOR_LIBRARY.some(item => item.id === assetId); }
   const api = Object.freeze({ version, renderVectorSvg, supportsVectorAsset });
   root.ACDLSharedVector = api;
   if (typeof module === "object" && module.exports) module.exports = api;

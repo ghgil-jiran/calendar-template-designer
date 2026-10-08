@@ -17,6 +17,7 @@
 
 async function startTemplateEditorWithoutAI(){
  if(!newTemplateSetupInProgress)return;
+ if(project.template?.settings?.vectorBackgroundEnabled&&!project.template.settings.graphicPackage){showEditorToast('디자인 유형 설정에서 그래픽 패키지를 선택해주세요.');return}
  const before=structuredClone(project),button=el('newTemplateEnterEditorBtn');
  try{
   button.disabled=true;
@@ -25,6 +26,7 @@ async function startTemplateEditorWithoutAI(){
   const layout=window.ACDLDesignLayoutApplication.apply(project,spec);
   const back=window.ACDLMonthBackComposition.applyConfigured(spec);
   for(const page of project.book.pageInstances||[]){for(const item of project.book.elementsByPage[page.id]||[]){if(item.type!=='image-frame')continue;const schoolBound=item.binding?.startsWith('school.')||item.image?.binding?.startsWith('school.');if(schoolBound)continue;item.image={...(item.image||{}),src:'',binding:'',sampleFallback:false};item.emptyBehavior='placeholder';item.replaceable=true;item.mediaPurpose='user-replaceable-photo';item.style={...(item.style||{}),background:'#eef2f7',stroke:'#cbd5e1',strokeWidth:1}}}
+  window.ACDLGraphicTemplateSettings?.apply();
   project.template.aiDesignDraft={status:'not-requested',generationMode:'none',layoutApplication:layout,monthBackApplication:back};
   project.template.metadata={...(project.template.metadata||{}),state:'draft',isStandard:false};
   newTemplateSetupInProgress=false;document.body.classList.remove('resource-modal-open');el('resourceModal').classList.add('hidden');updateNewTemplateSettingsActions();setEditorContext('새 템플릿 만들기 · 기본 구성');stable();render();window.ACDLReturnToLibraryOnSaveCancel=true;showEditorToast('페이지 설정의 기본 개체와 사진 프레임으로 편집을 시작했습니다.');
