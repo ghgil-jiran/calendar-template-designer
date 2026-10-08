@@ -190,3 +190,6 @@ Final saved record retains the exact recipe, prompt, and variant ancestry.
 
 ### Direct package entry
 The Package tab immediately displays saved active package cards and a New Package button. Clicking a saved package opens its page workspace directly; there is no Edit Existing gate or separate browse step. New Package still opens metadata entry before saving and entering the workspace. Refresh updates the visible package list.
+
+### Compact page toolbar and work feedback
+Live feedback is a separate labeled status panel. Page selector and page actions share one row, with contextual guidance underneath. The action dropdown lists existing compatible backgrounds and (for non-cover pages) restarts from the current cover style. Selecting an asset attaches it immediately without replacing its original record; selecting rebase resets only the current draft. Unsaved-change confirmation and API revision checks remain in place. Saved cover guidance no longer says the cover must be saved first.
