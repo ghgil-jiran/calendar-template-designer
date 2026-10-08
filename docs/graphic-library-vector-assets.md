@@ -182,8 +182,11 @@ Final saved record retains the exact recipe, prompt, and variant ancestry.
 
 ## 2026-10-08: Simplified package and generator workspace
 
-- The Package tab begins with only Edit existing package / Create new package. Existing packages are selected in a separate list. New-package metadata is saved before opening the page workspace; failed metadata requests retain the form.
+- The Package tab immediately displays existing active package cards and a Create new package button. Selecting a card opens the workspace directly. New-package metadata is saved before opening the page workspace; failed metadata requests retain the form.
 - Existing and newly saved packages share one workspace: package identity, metadata edit, and a page selector with saved/uncreated/cover-required status. Linking an existing page asset and restarting from the cover are secondary collapsed actions. The full page-card grid is no longer repeated above the generator.
 - Vector generation uses one form: basic settings across the top, design parameters and one generation/edit prompt at left, result and save/undo at right. Package name, size, kind and page are inherited rather than repeated as disabled inputs. Fixed SVG format and fixed composition controls are not selectable duplicates.
 - First generation and regeneration use the same prompt and submit action. Editing retains the previous scene for the same page, and undo restores the matching prompt. Switching page/purpose in standalone generation does not reuse an unrelated page scene.
 - Storage schemas, authenticated APIs, immutable asset preservation, template/runtime integration and print paths are unchanged.
+
+### Direct package entry
+The Package tab immediately displays saved active package cards and a New Package button. Clicking a saved package opens its page workspace directly; there is no Edit Existing gate or separate browse step. New Package still opens metadata entry before saving and entering the workspace. Refresh updates the visible package list.

@@ -108,3 +108,6 @@
 .gl-result-actions{padding:12px;margin-top:12px}.gl-result-actions .gl-actions{justify-content:flex-end}
 @media(max-width:900px){.gl-generator-basics{grid-template-columns:repeat(3,minmax(0,1fr))}.gl-generator-form{grid-template-columns:220px minmax(0,1fr)}}
 @media(max-width:650px){.gl-package-choices{grid-template-columns:1fr}.gl-package-start{margin:16px auto}.gl-generator-form{grid-template-columns:1fr}.gl-generator-preview{grid-column:1}.gl-generator-basics{grid-template-columns:1fr 1fr}.gl-package-workbar>label{width:100%}.gl-package-workbar>label select{min-width:0;flex:1}}
+
+/* Saved packages are selectable immediately at entry. */
+.gl-package-start{max-width:none;margin:0}.gl-package-start>.gl-package-heading{margin-bottom:20px}.gl-package-start h3{margin-bottom:7px}
