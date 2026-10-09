@@ -18,7 +18,7 @@ test('interrupted registration resumes after the cover without creating another 
 test('curve tuning changes paint and geometry while keeping decoration count and example zones fixed',()=>{
  const p=flowCover(),svg=model.svg(p),zones=model.zones(p);validateGraphicSvg(svg);assert.equal(zones.filter(z=>z.type==='photo').length,1);assert.ok(!/<(?:image|text|filter|clipPath)\b/.test(svg));assert.equal((svg.match(/<rect\b/g)||[]).length,1);
  for(const key of ['tone','density','scale'])for(const v of [50,150]){const d={...p,coverTuning:{...p.coverTuning,[key]:v}},changed=model.svg(d);assert.notEqual(changed,svg);assert.equal((changed.match(/<path\b/g)||[]).length,(svg.match(/<path\b/g)||[]).length);assert.deepEqual(model.zones(d),zones);validateGraphicSvg(changed);}
- const derived=globalThis.ACDLGraphicPackageModel.derive({design:p},'month-front');assert.equal(derived.style,'curve');assert.ok(model.svg(derived).includes('flow-teal'));assert.notEqual(model.svg({...derived,variation:'monthly'},3),model.svg({...derived,variation:'monthly'},7));
+ const derived=globalThis.ACDLGraphicPackageModel.derive({design:p},'month-front');assert.equal(derived.style,'curve');assert.ok(model.svg(derived).includes('ribbon-deep'));assert.notEqual(model.svg({...derived,variation:'monthly'},3),model.svg({...derived,variation:'monthly'},7));
  const prompt=model.applyPrompt(p,'그라데이션 115%, 장식 밀도 85%, 크기 120%');assert.deepEqual(prompt.design.coverTuning,{tone:115,density:85,scale:120});
- const bleed=globalThis.ACDLGraphicTemplateMapping.svg({graphicDesign:p,graphicBleedMm:3});assert.ok(bleed.includes('viewBox="-15 -15 1330 930"'));assert.ok(bleed.includes('M160 -160'));validateGraphicSvg(bleed);
+ const bleed=globalThis.ACDLGraphicTemplateMapping.svg({graphicDesign:p,graphicBleedMm:3});assert.ok(bleed.includes('viewBox="-15 -15 1330 930"'));assert.ok(bleed.includes('M-100 -90'));validateGraphicSvg(bleed);
 });
