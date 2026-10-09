@@ -17,7 +17,15 @@
           shadowY: Number(values.shadowY ?? item.style?.shadowY ?? 0)
         };
       }
-      if (item.type === 'vector') {
+      if (item.type === 'vector' && item.assetId === 'graphic-library-vector') {
+        const object = root.ACDLGraphicVectorObject.normalize({...item.colors.graphicVectorObject, ...(values.vectorColors?.length ? {colors: values.vectorColors} : {})});
+        item.colors = {...item.colors, graphicVectorObject: object};
+        item.style = {...item.style, graphicVectorObject: JSON.parse(JSON.stringify(object))};
+        item.value = {...item.value, graphicVectorObject: JSON.parse(JSON.stringify(object))};
+        item.flipX = values.flipX === true || values.flipX === 'true';
+        item.flipY = values.flipY === true || values.flipY === 'true';
+      }
+      if (item.type === 'vector' && item.assetId !== 'graphic-library-vector') {
         item.assetId = values.assetId || item.assetId;
         item.colors = {
           primary: values.primary || item.colors?.primary,
