@@ -5,10 +5,10 @@
  const fail=()=>{throw new Error('벡터 생성 설정을 확인해주세요.');};
  function normalize(input={}){
   const p={schemaVersion:'graphic-vector-design.v1',composition:input.composition||null,backgroundRevision:input.backgroundRevision||1,coverTuning:input.coverTuning||null,familyTuning:input.familyTuning||null,size:input.size||'desk-standard',kind:input.kind||'background',page:input.page||'cover',style:input.style||'circle',palette:input.palette||'mist',gradient:input.gradient??55,density:input.density??45,scale:input.scale??100,variation:input.variation||'same',orientation:input.orientation||'normal',layout:input.layout||'auto',scene:input.scene||null,colors:input.colors||null};
-  if(![1,2,3,4].includes(p.backgroundRevision))fail();
+  if(![1,2,3,4,5].includes(p.backgroundRevision))fail();
   if(p.familyTuning){if(p.kind!=='background'||!['circle','rectangle','curve'].includes(p.style)||p.composition)fail();const q={};for(const key of ['tone','density','scale']){const v=p.familyTuning[key];if(!Number.isInteger(v)||v<50||v>150)fail();q[key]=v}p.familyTuning=q}
-  if(p.coverTuning){if(!['cover-circle-01','cover-rectangle-02','cover-curve-03','cover-ribbon-03','cover-geometry-04'].includes(p.composition))fail();const q={};for(const key of ['tone','density','scale']){const value=p.coverTuning[key];if(!Number.isInteger(value)||value<50||value>150)fail();q[key]=value}p.coverTuning=q}
-  if(p.composition!==null&&!['cover-circle-01','cover-rectangle-02','cover-curve-03','cover-ribbon-03','cover-geometry-04'].includes(p.composition))fail();if(p.composition&&(p.page!=='cover'||p.kind!=='background'))fail();if(p.composition){if(p.composition==='cover-geometry-04')p.backgroundRevision=4;if(p.composition==='cover-ribbon-03')p.backgroundRevision=3;p.style=['cover-curve-03','cover-ribbon-03','cover-geometry-04'].includes(p.composition)?'curve':p.composition==='cover-rectangle-02'?'rectangle':'circle';p.layout=p.composition==='cover-circle-01'?'two-photos':'single-photo';p.orientation='normal';p.scene=null}
+  if(p.coverTuning){if(!['cover-circle-01','cover-rectangle-02','cover-curve-03','cover-ribbon-03','cover-geometry-04','cover-arch-05'].includes(p.composition))fail();const q={};for(const key of ['tone','density','scale']){const value=p.coverTuning[key];if(!Number.isInteger(value)||value<50||value>150)fail();q[key]=value}p.coverTuning=q}
+  if(p.composition!==null&&!['cover-circle-01','cover-rectangle-02','cover-curve-03','cover-ribbon-03','cover-geometry-04','cover-arch-05'].includes(p.composition))fail();if(p.composition&&(p.page!=='cover'||p.kind!=='background'))fail();if(p.composition){if(p.composition==='cover-arch-05')p.backgroundRevision=5;if(p.composition==='cover-geometry-04')p.backgroundRevision=4;if(p.composition==='cover-ribbon-03')p.backgroundRevision=3;p.style=['cover-curve-03','cover-ribbon-03','cover-geometry-04','cover-arch-05'].includes(p.composition)?'curve':p.composition==='cover-rectangle-02'?'rectangle':'circle';p.layout=p.composition==='cover-circle-01'?'two-photos':'single-photo';p.orientation='normal';p.scene=null}
   if(!['auto','single-photo','two-photos','text-only'].includes(p.layout))fail();if(p.scene)p.scene=validateScene(p.scene);
   if(!['normal','mirror'].includes(p.orientation))fail();
   if(p.size!=='desk-standard'||!['background','illustration'].includes(p.kind)||!pages[p.page]||!['circle','rectangle','curve','diagonal','plant','stationery'].includes(p.style)||!palettes[p.palette]||!['same','seasonal','monthly'].includes(p.variation))fail();
@@ -21,6 +21,7 @@
  }
  function zones(p){
   if(p.kind==='illustration')return [];
+  if(p.composition==='cover-arch-05')return [{type:'photo',label:'학교 전경 사진 · 1장',x:30,y:9,w:70,h:56},{type:'text',label:'연도 · SCHOOL CALENDAR',x:6,y:68,w:39,h:22},{type:'text',label:'교표 · 학교명 · 주소 · 연락처',x:72,y:85,w:25,h:10}];
   if(p.composition==='cover-geometry-04')return [{type:'photo',label:'학교 사진 · 자유 배치 예제',x:22,y:23,w:45,h:42},{type:'text',label:'연도 · CALENDAR',x:23,y:69,w:29,h:14},{type:'text',label:'교표 · 학교정보',x:57,y:74,w:33,h:14}];
   if(p.composition==='cover-ribbon-03')return [{type:'photo',label:'학교 전경 사진 · 1장',x:25,y:19,w:65,h:49},{type:'text',label:'연도 · CALENDAR',x:28,y:74,w:25,h:13},{type:'text',label:'교표 · 학교명 · 주소 · 연락처',x:55,y:75,w:35,h:12}];
   if(p.composition==='cover-curve-03')return [{type:'photo',label:'학교 전경 사진 · 1장',x:19,y:18,w:70,h:51},{type:'text',label:'연도 · CALENDAR',x:21,y:74,w:26,h:14},{type:'text',label:'교표 · 학교명 · 주소 · 연락처',x:52,y:75,w:38,h:13}];
@@ -56,19 +57,21 @@
   }else if(p.style==='plant'){
    shapes=`<g transform="translate(650 770) scale(${s})"><path d="M0 0Q-50-240 0-570M-10-210Q110-270 175-360M-18-350Q-140-405-195-475" fill="none" stroke="${ink}" stroke-width="12" stroke-linecap="round"/><g fill="${fillB}"><ellipse cx="-82" cy="-430" rx="105" ry="43" transform="rotate(30 -82 -430)"/><ellipse cx="95" cy="-300" rx="100" ry="43" transform="rotate(-35 95 -300)"/><ellipse cx="-22" cy="-560" rx="43" ry="90"/></g><path d="M-135-120H135L105 0H-105Z" fill="${fillA}"/></g>`;
   }else shapes=`<g transform="translate(650 450) scale(${s})"><rect x="-230" y="-240" width="350" height="470" rx="22" fill="${fillA}"/><rect x="-192" y="-210" width="290" height="410" rx="10" fill="${bg}"/><g stroke="${b}" stroke-width="8"><path d="M-155-110H55M-155-50H55M-155 10H55M-155 70H55"/></g><g transform="rotate(20)"><rect x="175" y="-270" width="50" height="420" rx="8" fill="${fillB}"/><path d="M175 150H225L200 220Z" fill="${ink}"/></g></g>`;
-  if(p.style==='curve'&&p.backgroundRevision===4)shapes=geometricReference({...p,colors:c});
+  if(p.style==='curve'&&p.backgroundRevision===5)shapes=archReference({...p,colors:c});
+  else if(p.style==='curve'&&p.backgroundRevision===4)shapes=geometricReference({...p,colors:c});
   else if(p.style==='curve'&&p.backgroundRevision===3)shapes=ribbonReference({...p,colors:c});
-  else if(['cover-curve-03','cover-ribbon-03','cover-geometry-04'].includes(p.composition)||p.familyTuning&&p.style==='curve')shapes=curveReference({...p,colors:c});
+  else if(['cover-curve-03','cover-ribbon-03','cover-geometry-04','cover-arch-05'].includes(p.composition)||p.familyTuning&&p.style==='curve')shapes=curveReference({...p,colors:c});
   else if(p.composition==='cover-rectangle-02')shapes=rectangleReference({...p,colors:c});
   else if(p.composition==='cover-circle-01')shapes=p.backgroundRevision===2?independentReference({...p,colors:c}):p.coverTuning?coverReference({...p,colors:c}):coverCircle(p,{bg,a,b,ink,fillA,fillB,s,d});
   else if(p.familyTuning){shapes=p.style==='rectangle'?rectangleReference({...p,colors:c}):p.backgroundRevision===2?independentReference({...p,colors:c}):familyReference(p,{bg,a,b,ink});}
   else if(p.scene){shapes=p.scene.shapes.map(shape=>sceneShape(shape,{...p,colors:c})).join('');if(p.orientation==='mirror')shapes=`<g transform="translate(1300 0) scale(-1 1)">${shapes}</g>`;if(p.kind==='background'){const holes=zones(p).map(z=>{const x=z.x*13,y=z.y*9,w=z.w*13,h=z.h*9;return `M${x} ${y}h${w}v${h}h-${w}Z`}).join('');shapes=`<defs><clipPath id="gl-safe"><path d="M0 0H1300V900H0Z${holes}" clip-rule="evenodd" fill-rule="evenodd"/></clipPath></defs><g clip-path="url(#gl-safe)">${shapes}</g>${['cover','back-cover'].includes(p.page)?`<rect x="0" y="792" width="1300" height="108" fill="${fillA}" opacity=".15"/>`:''}`;} }
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${p.style==='curve'&&p.backgroundRevision===4?'':defs}${p.kind==='background'?`<rect width="${w}" height="${h}" fill="${bg}"/>`:''}${p.orientation==='mirror'&&!p.scene&&!p.composition?`<g transform="translate(1300 0) scale(-1 1)">${shapes}</g>`:shapes}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${p.style==='curve'&&[4,5].includes(p.backgroundRevision)?'':defs}${p.kind==='background'?`<rect width="${w}" height="${h}" fill="${bg}"/>`:''}${p.orientation==='mirror'&&!p.scene&&!p.composition?`<g transform="translate(1300 0) scale(-1 1)">${shapes}</g>`:shapes}</svg>`;
  }
  function monthColors(p,month){
   if(p.variation==='same')return [...p.colors];
+  if(p.style==='curve'&&p.backgroundRevision===5){const pairs=month>=3&&month<=5?['#254653','#AC7955']:month>=6&&month<=8?['#1C455C','#AA835A']:month>=9&&month<=11?['#384152','#B37C54']:['#293D58','#987D69'],c=[p.colors[0],...pairs,p.colors[3]];if(p.variation==='monthly')c[1]=mixColor(c[1],p.colors[0],month%3*.035);return c;}
   const season=month>=3&&month<=5?'spring':month>=6&&month<=8?'summer':month>=9&&month<=11?'autumn':'winter';
-  if(p.style==='curve'&&(['cover-curve-03','cover-ribbon-03','cover-geometry-04'].includes(p.composition)||p.familyTuning)){const pairs={spring:['#378F80','#E5B2A0'],summer:['#246F8A','#E4BE78'],autumn:['#7A6844','#CD9374'],winter:['#526C85','#B6B5D5']},c=[p.colors[0],...pairs[season],p.colors[3]];if(p.variation==='monthly')c[1]=mixColor(c[1],p.colors[0],month%3*.07);return c;}
+  if(p.style==='curve'&&(['cover-curve-03','cover-ribbon-03','cover-geometry-04','cover-arch-05'].includes(p.composition)||p.familyTuning)){const pairs={spring:['#378F80','#E5B2A0'],summer:['#246F8A','#E4BE78'],autumn:['#7A6844','#CD9374'],winter:['#526C85','#B6B5D5']},c=[p.colors[0],...pairs[season],p.colors[3]];if(p.variation==='monthly')c[1]=mixColor(c[1],p.colors[0],month%3*.07);return c;}
   if(p.variation==='seasonal')return [...palettes[season]];
   const c=[...palettes[season]],blend=month%3*.08;
   c[1]='#'+[1,3,5].map(i=>Math.round(parseInt(c[1].slice(i,i+2),16)*(1-blend)+255*blend).toString(16).padStart(2,'0')).join('');return c;
@@ -94,6 +97,13 @@
  }
  function sceneShape(q,p){const colors=p.colors,fill=q.paint==='flat'?colors[q.fill]:q.paint==='linear'?'url(#gl-a)':'url(#gl-b)',attrs=`fill="${fill}" stroke="${q.stroke<0?'none':colors[q.stroke]}" stroke-width="${q.strokeWidth}" opacity="${q.opacity}" transform="rotate(${q.rotate} ${q.x+q.width/2} ${q.y+q.height/2})"`;return q.type==='path'?`<path d="${q.path}" ${attrs}/>`:q.type==='ellipse'?`<ellipse cx="${q.x+q.width/2}" cy="${q.y+q.height/2}" rx="${q.width/2}" ry="${q.height/2}" ${attrs}/>`:`<rect x="${q.x}" y="${q.y}" width="${q.width}" height="${q.height}" rx="${q.radius}" ${attrs}/>`;}
  function mixColor(from,to,t){return '#'+[1,3,5].map(i=>Math.round(parseInt(from.slice(i,i+2),16)*(1-t)+parseInt(to.slice(i,i+2),16)*t).toString(16).padStart(2,'0')).join('');}
+ function archReference(p){
+  const q=p.coverTuning||p.familyTuning||{tone:100,density:100,scale:100},[bg,a,b,ink]=p.colors;
+  const profile={cover:[0,0,1,1,false],'cover-inside':[85,-20,1.03,.70,true],'interleaf-front':[0,35,.96,.85,false],'interleaf-back':[130,-10,1.08,.62,true],'rear-interleaf-front':[45,20,1,.80,true],'rear-interleaf-back':[140,-20,1.06,.62,false],'month-front':[235,-35,1.06,.50,false],'month-back':[45,15,.97,.78,true],year:[180,-10,1.08,.55,true],symbols:[90,25,1,.70,false],'back-cover':[40,-15,1.02,.75,true]}[p.page]||[120,0,1,.60,false];
+  const [x,y,s,quiet,mirror]=profile,strength=q.tone/100*quiet,paint=c=>strength<=1?mixColor(bg,c,strength):mixColor(c,'#000000',Math.min(.25,(strength-1)*.3));
+  const navy=paint(a),grey=paint(ink),copper=paint(b),k=s*q.scale/100,gap=(100-q.density)*.55;
+  return `<g${mirror?' transform="translate(1300 0) scale(-1 1)"':''}><g transform="translate(${x} ${y}) translate(780 340) scale(${k}) translate(-780 -340)"><g transform="scale(0.862069 0.862895)" fill="none" stroke-linecap="round"><path d="M273 667C148 550 114 407 199 231C290 41 515 -76 773 -96C1142 -128 1503 64 1600 344C1685 589 1434 742 1137 818C917 875 726 856 555 778" stroke="${navy}" stroke-width="2.8"/><g transform="translate(${gap} ${-gap*.35})"><path d="M465 651C298 560 235 413 305 234C382 41 606 -77 872 -97C1236 -123 1565 76 1632 319C1680 495 1532 628 1332 682" stroke="${grey}" stroke-width="1.15"/></g><path d="M120 95V309M89 956H221" stroke="${copper}" stroke-width="2.5"/></g></g></g>`;
+ }
  function geometricReference(p){
   const q=p.coverTuning||p.familyTuning||{tone:100,density:100,scale:100},[bg,a,b,ink]=p.colors;
   const quiet=p.page==='month-front'?.58:p.page==='cover'?1:.82;
