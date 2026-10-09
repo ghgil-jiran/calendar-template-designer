@@ -1,0 +1,25 @@
+import data from './graphic-curated-data.js';
+import {createHash} from 'node:crypto';
+import '../apps/designer-studio/graphic-illustration-model.js';
+const model=globalThis.ACDLGraphicIllustrationModel;
+export const CURATED_EDITION=data.edition;
+export function curatedId(key){const hex=createHash('sha256').update(CURATED_EDITION+':'+key).digest('hex');return `${hex.slice(0,8)}-${hex.slice(8,12)}-5${hex.slice(13,16)}-a${hex.slice(17,20)}-${hex.slice(20,32)}`;}
+export function curatedThemes(){return ['stationery','seasons'].map(themeKind=>{const items=data.items.filter(i=>i.themeKind===themeKind);return {themeKind,items,id:curatedId('theme:'+themeKind),name:(themeKind==='stationery'?'학용품':'계절')+' · 직접 제작 01',category:items[0].recipe.category,count:items.length,plan:{subjects:items.map(i=>({name:i.name,description:i.description})),colors:items[0].recipe.colors,styleDescription:'또렷한 윤곽과 절제된 색상으로 직접 제작한 달력용 일러스트',strokeMm:.28}};});}
+// Create-only writes and deterministic identities preserve edited/archived records,
+// prevent duplicate imports, and allow interrupted imports to resume.
+export async function installCuratedIllustrations({records,createRecord,storeAsset,validateSvg,validateThumbnail}){
+ const existing=new Map(records.map(r=>[r.id,r])),added=[];
+ for(const entry of curatedThemes()){
+  if(existing.has(entry.id))continue;
+  const now=new Date().toISOString(),assets={};
+  for(const [slot,item] of entry.items.entries()){
+   const id=curatedId('asset:'+item.key);let record=existing.get(id);
+   if(!record){const recipe=model.normalize(item.recipe),svg=validateSvg(model.svg(recipe)),asset=await storeAsset('data:image/svg+xml;base64,'+Buffer.from(svg).toString('base64'));
+    record=await createRecord({schemaVersion:'graphic-library.v1',id,name:item.name,category:'illustration',width:100,height:100,tags:entry.name+', '+item.name,source:'직접 제작 · 달력용 벡터 기준 시안 01',illustrationCategory:entry.category,themeId:entry.id,themeName:entry.name,illustrationRecipe:recipe,vectorObject:model.definition(recipe),printQuality:{structure:'passed',output:'not_run',referenceSizeMm:40,strokeMm:recipe.strokeMm,colorSpace:'sRGB',notes:'실제 배치와 최종 CMYK PDF에서 검증 필요'},originalAssetId:asset.id,previewAssetId:asset.id,thumbnailDataUrl:validateThumbnail(item.thumbnailDataUrl),mimeType:'image/svg+xml',byteSize:Buffer.byteLength(svg),fileName:item.key+'.svg',physicalSizeMm:{width:40,height:40},generationInfo:{engine:'direct-authored-vector',edition:CURATED_EDITION,generatedAt:now},curatedEdition:CURATED_EDITION,status:'active',parentGraphicId:null,revision:1,createdAt:now,updatedAt:now});existing.set(id,record);added.push(record);
+   }
+   assets[slot]={graphicId:id,name:record.name};
+  }
+  const theme=await createRecord({schemaVersion:'graphic-illustration-theme.v1',id:entry.id,generationMode:'ai',themeKind:entry.themeKind,name:entry.name,category:entry.category,count:entry.count,style:'clean',brief:'대상의 특징이 또렷한 개별 달력용 일러스트',colorHint:'',tags:'직접 제작 01',plan:entry.plan,assets,curatedEdition:CURATED_EDITION,status:'active',revision:1,createdAt:now,updatedAt:now});existing.set(theme.id,theme);added.push(theme);
+ }
+ return added;
+}
