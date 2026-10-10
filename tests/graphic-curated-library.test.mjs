@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {curatedThemes,curatedId,installCuratedIllustrations} from '../server/graphic-curated-library.js';
+import {RETIRED_STUDENT_KEYS,curatedThemes,curatedId,installCuratedIllustrations} from '../server/graphic-curated-library.js';
 import {validateGraphicSvg,validateThumbnail} from '../server/graphic-library.js';
 const model=globalThis.ACDLGraphicIllustrationModel;
-function fixture(){const records=[],sources=[];return {records,sources,createRecord:async r=>{assert.ok(!records.some(x=>x.id===r.id));records.push(r);return r},updateRecord:async(r,revision)=>{const i=records.findIndex(x=>x.id===r.id);assert.equal(records[i].revision,revision);records[i]=r;return r},storeAsset:async src=>{sources.push(src);return {id:'asset-'+sources.length}},validateSvg:validateGraphicSvg,validateThumbnail};}
+function fixture(){const records=[],sources=[];return {records,sources,deleteRecord:async id=>{const index=records.findIndex(r=>r.id===id);assert.ok(index>=0);records.splice(index,1);},createRecord:async r=>{assert.ok(!records.some(x=>x.id===r.id));records.push(r);return r},updateRecord:async(r,revision)=>{const i=records.findIndex(x=>x.id===r.id);assert.equal(records[i].revision,revision);records[i]=r;return r},storeAsset:async src=>{sources.push(src);return {id:'asset-'+sources.length}},validateSvg:validateGraphicSvg,validateThumbnail};}
 test('64 directly authored vectors persist as eight complete themes and reload without duplicates or overwriting edits',async()=>{const f=fixture(),added=await installCuratedIllustrations(f);assert.equal(added.length,72);assert.equal(f.sources.length,64);const themes=f.records.filter(r=>r.schemaVersion==='graphic-illustration-theme.v1'),graphics=f.records.filter(r=>r.schemaVersion==='graphic-library.v1');assert.equal(themes.length,8);assert.equal(graphics.length,64);assert.equal(new Set(graphics.map(g=>g.id)).size,64);for(const t of themes){assert.equal(Object.keys(t.assets).length,8);assert.equal(model.validatePlan(t.plan,t).subjects.length,8);for(const a of Object.values(t.assets))assert.ok(graphics.some(g=>g.id===a.graphicId));}for(const g of graphics){assert.equal(g.generationInfo.engine,'direct-authored-vector');assert.equal(g.physicalSizeMm.width,40);assert.equal(g.printQuality.output,'not_run');assert.equal(g.vectorObject.parts.length,g.illustrationRecipe.scene.parts.length);const svg=Buffer.from(f.sources[graphics.indexOf(g)].split(',')[1],'base64').toString();assert.equal(validateGraphicSvg(svg),svg);assert.ok(!/<image|<text|href|filter/.test(svg));}graphics[0].name='관리자 수정';graphics[0].status='archived';assert.equal((await installCuratedIllustrations(f)).length,0);assert.equal(graphics[0].name,'관리자 수정');assert.equal(graphics[0].status,'archived');});
 test('partial installation resumes existing immutable assets after a storage failure',async()=>{const f=fixture(),create=f.createRecord;let writes=0;f.createRecord=async r=>{if(++writes===3)throw Error('storage unavailable');return create(r)};await assert.rejects(()=>installCuratedIllustrations(f));assert.equal(f.records.length,3);const originals=f.records.map(r=>JSON.stringify(r));f.createRecord=create;await installCuratedIllustrations(f);assert.equal(f.records.length,72);assert.deepEqual(f.records.slice(0,3).map(r=>JSON.stringify(r)),originals);});
 test('eight themes contain eight distinct editable vector recipes with preview thumbnails',()=>{assert.equal(curatedThemes().length,8);for(const theme of curatedThemes()){assert.equal(theme.items.length,8);const silhouettes=new Set();for(const item of theme.items){const r=model.normalize(item.recipe);assert.equal(r.subject,item.name);assert.ok(r.scene.parts.length>=2);silhouettes.add(JSON.stringify(r.scene.parts));assert.ok(validateThumbnail(item.thumbnailDataUrl));}assert.equal(silhouettes.size,8);}});
@@ -22,5 +22,15 @@ test('student installation adds only the new theme to a complete edited seven-th
  assert.deepEqual(f.records.slice(0,63).map(r=>JSON.stringify(r)),originals);
  const t=f.records.find(r=>r.id===student.id);assert.equal(t.themeKind,'students');assert.equal(Object.keys(t.assets).length,8);
  assert.ok(student.items.some(i=>i.description.includes('휠체어')));
+ assert.equal((await installCuratedIllustrations(f)).length,0);
+});
+
+
+test('replace the rejected student edition and remove only its eight known originals',async()=>{
+ const f=fixture();await installCuratedIllustrations(f);const entry=curatedThemes().find(t=>t.themeKind==='students');
+ const theme=f.records.find(r=>r.id===entry.id);theme.curatedCatalogRevision=1;theme.assets={};
+ for(const [slot,key] of RETIRED_STUDENT_KEYS.entries()){const id=curatedId('asset:'+key);f.records.push({id,schemaVersion:'graphic-library.v1',curatedEdition:'calendar-themes-01',generationInfo:{engine:'direct-authored-vector'}});theme.assets[slot]={graphicId:id,name:'이전 시안'};}
+ await installCuratedIllustrations(f);assert.ok(RETIRED_STUDENT_KEYS.every(key=>!f.records.some(r=>r.id===curatedId('asset:'+key))));
+ const updated=f.records.find(r=>r.id===entry.id);assert.equal(updated.curatedCatalogRevision,2);assert.equal(Object.keys(updated.assets).length,8);assert.equal(f.records.length,72);
  assert.equal((await installCuratedIllustrations(f)).length,0);
 });
