@@ -7,7 +7,7 @@ const model=globalThis.ACDLGraphicIllustrationModel;
 export const CURATED_EDITION=data.edition;
 export const CURATED_CATALOG_REVISION=data.catalogRevision||1;
 export function curatedId(key){const hex=createHash('sha256').update(CURATED_EDITION+':'+key).digest('hex');return `${hex.slice(0,8)}-${hex.slice(8,12)}-5${hex.slice(13,16)}-a${hex.slice(17,20)}-${hex.slice(20,32)}`;}
-export function curatedThemes(){return ['stationery','seasons','traditional','plants','animals','music','sports','students'].map(themeKind=>{const items=[...data.items,...students].filter(i=>i.themeKind===themeKind);return {themeKind,items,catalogRevision:themeKind==='students'?2:CURATED_CATALOG_REVISION,id:curatedId('theme:'+themeKind),name:model.themeProfiles[themeKind].label+' · 직접 제작 01',category:items[0].recipe.category,count:items.length,plan:{subjects:items.map(i=>({name:i.name,description:i.description})),colors:items[0].recipe.colors,styleDescription:'또렷한 윤곽과 절제된 색상으로 직접 제작한 달력용 일러스트',strokeMm:.28}};});}
+export function curatedThemes(){return ['stationery','seasons','traditional','plants','animals','music','sports','students'].map(themeKind=>{const items=[...data.items,...students].filter(i=>i.themeKind===themeKind);return {themeKind,items,catalogRevision:themeKind==='students'?3:CURATED_CATALOG_REVISION,id:curatedId('theme:'+themeKind),name:model.themeProfiles[themeKind].label+' · 직접 제작 01',category:items[0].recipe.category,count:items.length,plan:{subjects:items.map(i=>({name:i.name,description:i.description})),colors:items[0].recipe.colors,styleDescription:'또렷한 윤곽과 절제된 색상으로 직접 제작한 달력용 일러스트',strokeMm:.28}};});}
 // Create-only writes and deterministic identities preserve edited/archived records,
 // prevent duplicate imports, and allow interrupted imports to resume.
 export async function installCuratedIllustrations({records,createRecord,updateRecord,storeAsset,validateSvg,validateThumbnail,deleteRecord}){
@@ -15,9 +15,10 @@ export async function installCuratedIllustrations({records,createRecord,updateRe
  for(const entry of curatedThemes()){
   const current=existing.get(entry.id),retiredIds=new Set(RETIRED_STUDENT_KEYS.map(key=>curatedId('asset:'+key)));
   async function removeRetired(){if(entry.themeKind!=='students')return;for(const id of retiredIds){const old=existing.get(id);if(!old||old.curatedEdition!==CURATED_EDITION||old.generationInfo?.engine!=='direct-authored-vector')continue;if(!deleteRecord)throw new Error('CURATED_STUDENT_DELETE_REQUIRED');await deleteRecord(id);existing.delete(id);const index=records.findIndex(r=>r.id===id);if(index>=0)records.splice(index,1);}}
-  if(current&&((current.status!=='active'&&entry.themeKind!=='students')||current.curatedCatalogRevision>=entry.catalogRevision)){await removeRetired();continue;}
+  const studentSlotsComplete=entry.themeKind!=='students'||entry.items.every((item,slot)=>current?.assets?.[slot]?.graphicId===curatedId('asset:'+item.key)&&existing.has(curatedId('asset:'+item.key)));
+  if(current&&((current.status!=='active'&&entry.themeKind!=='students')||current.curatedCatalogRevision>=entry.catalogRevision&&studentSlotsComplete)){await removeRetired();continue;}
   const now=new Date().toISOString(),assets={...current?.assets};
-  if(entry.themeKind==='students')for(const [slot,value] of Object.entries(assets))if(retiredIds.has(value.graphicId))delete assets[slot];
+  if(entry.themeKind==='students')for(const [slot,value] of Object.entries(assets))if(retiredIds.has(value.graphicId)||!existing.has(value.graphicId))delete assets[slot];
   const slots=Array.from(entry.items.entries());
   async function installSlot([slot,item]){
    if(assets[slot])return;

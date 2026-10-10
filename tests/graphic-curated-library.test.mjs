@@ -31,6 +31,15 @@ test('replace the rejected student edition and remove only its eight known origi
  const theme=f.records.find(r=>r.id===entry.id);theme.curatedCatalogRevision=1;theme.assets={};
  for(const [slot,key] of RETIRED_STUDENT_KEYS.entries()){const id=curatedId('asset:'+key);f.records.push({id,schemaVersion:'graphic-library.v1',curatedEdition:'calendar-themes-01',generationInfo:{engine:'direct-authored-vector'}});theme.assets[slot]={graphicId:id,name:'이전 시안'};}
  await installCuratedIllustrations(f);assert.ok(RETIRED_STUDENT_KEYS.every(key=>!f.records.some(r=>r.id===curatedId('asset:'+key))));
- const updated=f.records.find(r=>r.id===entry.id);assert.equal(updated.curatedCatalogRevision,2);assert.equal(Object.keys(updated.assets).length,8);assert.equal(f.records.length,72);
+ const updated=f.records.find(r=>r.id===entry.id);assert.equal(updated.curatedCatalogRevision,3);assert.equal(Object.keys(updated.assets).length,8);assert.equal(f.records.length,72);
  assert.equal((await installCuratedIllustrations(f)).length,0);
+});
+
+
+test('student revision collision repairs revision 2 slots even after originals were deleted',async()=>{
+ for(const oldRecordsPresent of [true,false]){const f=fixture();await installCuratedIllustrations(f);const entry=curatedThemes().find(t=>t.themeKind==='students');const theme=f.records.find(r=>r.id===entry.id);theme.curatedCatalogRevision=2;theme.assets={};
+ const newIds=new Set(entry.items.map(i=>curatedId('asset:'+i.key)));f.records.splice(0,f.records.length,...f.records.filter(r=>!newIds.has(r.id)));
+ for(const [slot,key] of RETIRED_STUDENT_KEYS.entries()){const id=curatedId('asset:'+key);theme.assets[slot]={graphicId:id,name:'이전 학생'};if(oldRecordsPresent)f.records.push({id,schemaVersion:'graphic-library.v1',curatedEdition:'calendar-themes-01',generationInfo:{engine:'direct-authored-vector'}});}
+ await installCuratedIllustrations(f);const updated=f.records.find(r=>r.id===entry.id);assert.equal(updated.curatedCatalogRevision,3);for(const [slot,item] of entry.items.entries()){assert.equal(updated.assets[slot].graphicId,curatedId('asset:'+item.key));assert.ok(f.records.some(r=>r.id===updated.assets[slot].graphicId));}
+ assert.equal(f.records.length,72);assert.equal((await installCuratedIllustrations(f)).length,0);}
 });
