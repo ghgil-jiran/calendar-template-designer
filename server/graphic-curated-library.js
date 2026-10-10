@@ -1,11 +1,12 @@
 import data from './graphic-curated-data.js';
+import students from './graphic-student-data.js';
 import {createHash} from 'node:crypto';
 import '../apps/designer-studio/graphic-illustration-model.js';
 const model=globalThis.ACDLGraphicIllustrationModel;
 export const CURATED_EDITION=data.edition;
 export const CURATED_CATALOG_REVISION=data.catalogRevision||1;
 export function curatedId(key){const hex=createHash('sha256').update(CURATED_EDITION+':'+key).digest('hex');return `${hex.slice(0,8)}-${hex.slice(8,12)}-5${hex.slice(13,16)}-a${hex.slice(17,20)}-${hex.slice(20,32)}`;}
-export function curatedThemes(){return ['stationery','seasons','traditional','plants','animals','music','sports'].map(themeKind=>{const items=data.items.filter(i=>i.themeKind===themeKind);return {themeKind,items,id:curatedId('theme:'+themeKind),name:model.themeProfiles[themeKind].label+' · 직접 제작 01',category:items[0].recipe.category,count:items.length,plan:{subjects:items.map(i=>({name:i.name,description:i.description})),colors:items[0].recipe.colors,styleDescription:'또렷한 윤곽과 절제된 색상으로 직접 제작한 달력용 일러스트',strokeMm:.28}};});}
+export function curatedThemes(){return ['stationery','seasons','traditional','plants','animals','music','sports','students'].map(themeKind=>{const items=[...data.items,...students].filter(i=>i.themeKind===themeKind);return {themeKind,items,id:curatedId('theme:'+themeKind),name:model.themeProfiles[themeKind].label+' · 직접 제작 01',category:items[0].recipe.category,count:items.length,plan:{subjects:items.map(i=>({name:i.name,description:i.description})),colors:items[0].recipe.colors,styleDescription:'또렷한 윤곽과 절제된 색상으로 직접 제작한 달력용 일러스트',strokeMm:.28}};});}
 // Create-only writes and deterministic identities preserve edited/archived records,
 // prevent duplicate imports, and allow interrupted imports to resume.
 export async function installCuratedIllustrations({records,createRecord,updateRecord,storeAsset,validateSvg,validateThumbnail}){
