@@ -148,3 +148,10 @@
 .gl-search-expanded .gl-tabs{padding:0;border:0;height:auto;flex-wrap:wrap}
 @media(max-width:900px){.gl-theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.gl-advanced-search{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.gl-basic-search{grid-template-columns:1fr 1fr}.gl-basic-search label:first-child{grid-column:1/-1}.gl-theme-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gl-theme-search{grid-template-columns:1fr}}
+
+/* Keep the theme selector and its action on the same baseline. */
+.graphic-library-dialog .gl-theme-search{display:flex;align-items:flex-end;gap:12px}
+.graphic-library-dialog .gl-theme-search label{flex:0 1 320px;margin:0;min-width:0}
+.graphic-library-dialog .gl-theme-search select{height:42px;box-sizing:border-box;margin:0}
+.graphic-library-dialog #illustrationEditTheme{flex:0 0 auto;align-self:flex-end;width:auto;height:42px;box-sizing:border-box;margin:0;padding:0 16px}
+@media(max-width:650px){.graphic-library-dialog .gl-theme-search{flex-wrap:wrap}.graphic-library-dialog .gl-theme-search label{flex:1 1 180px}}

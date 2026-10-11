@@ -29,3 +29,13 @@ test('rectangle cover has one photo example, no footer band or content clipping,
 test('monthly palette reaches standard circle and rectangular decorations, not only the canvas fill',()=>{
  for(const style of ['circle','rectangle']){const design=model.normalize({style,page:'month-back',backgroundRevision:2,familyTuning:{tone:100,density:100,scale:100},variation:'monthly'}),body=month=>model.svg(design,month).replace(/^.*?<rect width="1300" height="900" fill="[^"]+"\/>/s,'');const march=body(3),april=body(4);assert.notEqual(march,april);assert.equal(march.replace(/#[\da-f]{6}/gi,'COLOR'),april.replace(/#[\da-f]{6}/gi,'COLOR'));assert.equal(model.svg({...design,variation:'same'},3),model.svg({...design,variation:'same'},4));assert.equal(model.svg({...design,variation:'seasonal'},3),model.svg({...design,variation:'seasonal'},4));assert.notEqual(model.svg({...design,variation:'seasonal'},3),model.svg({...design,variation:'seasonal'},6));}
 });
+
+test('ribbon tails keep their closed ends beyond the canvas at reduced sizes and varied spacing',()=>{
+ for(const scale of [50,64,79,100,150])for(const density of [50,71,100,150]){
+  const svg=model.svg({composition:'cover-ribbon-03',page:'cover',palette:'mist',coverTuning:{tone:64,density,scale}});
+  const tail=Number(svg.match(/508 (\d+)H-100Z/)[1]),gap=(100-density)*.65;
+  assert.ok(tail*scale/100-gap*.4>=923,`visible ribbon end: ${scale}/${density}`);
+  assert.ok(svg.includes('scale('+scale/100+')'));validateGraphicSvg(svg);
+ }
+ const normal=model.svg({composition:'cover-ribbon-03',coverTuning:{tone:100,density:100,scale:100}});assert.match(normal,/508 980H-100Z/);
+});
