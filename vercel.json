@@ -90,7 +90,8 @@
       "maxDuration": 180
     },
     "api/template-assets.js": {
-      "maxDuration": 300
+      "maxDuration": 300,
+      "includeFiles": "assets/{student-image-prototypes,student-calendar-illustrations}/*.png"
     }
   }
 }
