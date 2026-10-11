@@ -129,3 +129,22 @@
 .gl-theme-info{display:grid;grid-template-columns:2fr 1.4fr .7fr 1.4fr 1.2fr;gap:12px;align-items:end;margin:16px 0}.gl-theme-info label,.gl-illustration-grid label{display:grid;gap:5px;font-size:12px}.gl-theme-info input,.gl-theme-info select,.gl-illustration-grid input,.gl-illustration-grid select{width:100%;box-sizing:border-box;padding:8px}.gl-checker{background-color:#fff;background-image:linear-gradient(45deg,#eef1f4 25%,transparent 25%),linear-gradient(-45deg,#eef1f4 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#eef1f4 75%),linear-gradient(-45deg,transparent 75%,#eef1f4 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}.gl-illustration-grid .gl-thumb{height:150px;display:flex;justify-content:center;align-items:center}.gl-illustration-grid svg{width:140px;height:140px}.gl-upload-workspace{display:grid!important;grid-template-columns:minmax(260px,1fr) minmax(260px,1.3fr);max-width:none!important;gap:20px}.gl-upload-workspace[hidden]{display:none!important}.gl-upload-workspace h3,.gl-upload-workspace>p,.gl-upload-workspace footer{grid-column:1/-1}.gl-upload-fields{display:grid;gap:12px}.gl-upload-preview{margin:0;min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;border-radius:10px}.gl-upload-preview img{max-width:100%;max-height:330px;object-fit:contain}.gl-upload-workspace footer{display:flex;justify-content:flex-end;border-top:1px solid #e2e7ee;padding-top:12px}@media(max-width:800px){.gl-theme-info{grid-template-columns:1fr 1fr}.gl-upload-workspace{grid-template-columns:1fr}} 
 
 .gl-theme-ai{grid-template-columns:2fr 1.3fr .8fr 1.3fr}.gl-theme-brief,.gl-theme-style,.gl-theme-footer{grid-column:1/-1}.gl-theme-ai textarea,.gl-illustration-grid textarea{width:100%;box-sizing:border-box;padding:10px;resize:vertical;font:inherit}.gl-theme-style summary{cursor:pointer;color:#536779}.gl-theme-style label{margin-top:10px}.gl-error{font-size:12px;color:#ad4239}.gl-illustration-grid .gl-thumb span{color:#66788b;font-size:12px}.gl-theme-footer{justify-content:flex-end}@media(max-width:800px){.gl-theme-ai{grid-template-columns:1fr 1fr}}
+
+/* Library search keeps common conditions visible and specialist conditions folded. */
+.gl-basic-search{grid-template-columns:2fr 1fr 1fr;margin-bottom:12px}
+.gl-search-expanded{border:1px solid var(--line);border-radius:9px;padding:12px;margin-bottom:12px}
+.gl-search-expanded summary{cursor:pointer;font-size:12px;color:var(--muted)}
+.gl-search-expanded[open] summary{margin-bottom:12px}
+.gl-advanced-search{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:0}
+.gl-search-results{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-size:12px;color:var(--muted)}
+.gl-search-results button{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);cursor:pointer}
+.gl-theme-search{grid-template-columns:minmax(180px,320px) auto;align-items:end}
+.gl-theme-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:14px 0}
+.gl-theme-card{display:flex;flex-direction:column;gap:8px;text-align:left;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);font:inherit;cursor:pointer}
+.gl-theme-card img,.gl-theme-placeholder{width:100%;height:130px;object-fit:contain;background:var(--surface,var(--panel));border-radius:8px}
+.gl-theme-placeholder{display:grid;place-items:center;color:var(--muted);font-size:12px}
+.gl-theme-card small{color:var(--muted);font-size:12px}
+.gl-theme-tools{margin-bottom:14px}
+.gl-search-expanded .gl-tabs{padding:0;border:0;height:auto;flex-wrap:wrap}
+@media(max-width:900px){.gl-theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.gl-advanced-search{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.gl-basic-search{grid-template-columns:1fr 1fr}.gl-basic-search label:first-child{grid-column:1/-1}.gl-theme-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gl-theme-search{grid-template-columns:1fr}}

@@ -22,3 +22,17 @@ test('library never guesses among multiple empty frames or fills required and bo
 });
 
 test('stored thumbnails reject SVG, malformed bytes and excessive payloads',()=>{assert.throws(()=>validateThumbnail('data:image/svg+xml;base64,AAAA'));assert.throws(()=>validateThumbnail('data:image/png;base64,AAAA'));assert.throws(()=>validateThumbnail('data:image/webp;base64,'+'A'.repeat(180001)));});
+
+
+test('asset theme and subject edits persist without changing original assets or generation history',async()=>{
+ const previousFetch=globalThis.fetch,previousUrl=process.env.SUPABASE_URL,previousKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
+ process.env.SUPABASE_URL='https://test.supabase.co';process.env.SUPABASE_SERVICE_ROLE_KEY='test-only';
+ const assetId=randomUUID(),themeId=randomUUID(),oldThemeId=randomUUID(),record={schemaVersion:'graphic-library.v1',id:assetId,name:'독서',category:'illustration',width:1024,height:1536,themeId:oldThemeId,themeName:'학생',illustrationCategory:'school',originalAssetId:randomUUID(),illustrationRecipe:{kind:'generated'},status:'active'},theme={schemaVersion:'graphic-illustration-theme.v1',id:themeId,name:'학교생활',category:'school',status:'active'},objects=new Map([[assetId,record],[themeId,theme]]);
+ globalThis.fetch=async(url,options={})=>{const id=new URL(url).pathname.split('/').at(-1).replace(/\.json$/,'');if(options.method==='POST'){objects.set(id,JSON.parse(options.body));return new Response('{}')}return objects.has(id)?new Response(JSON.stringify(objects.get(id))):new Response('{}',{status:404})};
+ try{
+  const changed=await updateGraphic({id:assetId,themeId,illustrationCategory:'event'});assert.equal(changed.themeId,themeId);assert.equal(changed.themeName,'학교생활');assert.equal(changed.illustrationCategory,'event');assert.equal(changed.originalAssetId,record.originalAssetId);assert.equal(changed.generationThemeId,oldThemeId);
+  const cleared=await updateGraphic({id:assetId,themeId:'',illustrationCategory:''});assert.equal(cleared.themeId,null);assert.equal(cleared.themeName,null);assert.equal(cleared.illustrationCategory,null);assert.equal(cleared.originalAssetId,record.originalAssetId);
+  await assert.rejects(()=>updateGraphic({id:assetId,illustrationCategory:'invalid'}),e=>e.code==='INVALID_ILLUSTRATION_CATEGORY');await assert.rejects(()=>updateGraphic({id:assetId,themeId:'invalid'}),e=>e.code==='INVALID_ILLUSTRATION_THEME');
+  theme.status='archived';await assert.rejects(()=>updateGraphic({id:assetId,themeId}),e=>e.code==='INVALID_ILLUSTRATION_THEME');
+ }finally{globalThis.fetch=previousFetch;if(previousUrl===undefined)delete process.env.SUPABASE_URL;else process.env.SUPABASE_URL=previousUrl;if(previousKey===undefined)delete process.env.SUPABASE_SERVICE_ROLE_KEY;else process.env.SUPABASE_SERVICE_ROLE_KEY=previousKey}
+});
