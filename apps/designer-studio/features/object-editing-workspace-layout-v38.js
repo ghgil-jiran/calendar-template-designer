@@ -1,4 +1,21 @@
 (()=>{
+
+ const policy=window.ACDLUserEditingPolicy;
+ const previousNormalize=normalizeElementData;
+ normalizeElementData=function(){const result=previousNormalize.apply(this,arguments);policy.normalizeProject(project);return result};
+ const permissionControls=[['move','위치 이동'],['resize','크기 변경'],['rotate','개체 회전'],['color','색상·스타일 변경'],['content','콘텐츠 편집'],['delete','삭제'],['duplicate','복제'],['layer','겹침 순서 변경']];
+ const previousPermissionHTML=permissionHTML;
+ permissionHTML=function(item){
+  if(project?.productionCorrection)return previousPermissionHTML(item);
+  policy.normalizeProject(project);policy.normalizeElement(item);
+  const p=item.permissions,page=selectedPage(),editing=project.template.userEditing,photo=policy.isImage(item),managed=policy.managedImage(item);
+  const checkbox=(key,label,disabled=false)=>`<label class="permission-compact-option"><input type="checkbox" data-user-permission="${key}" ${p[key]?'checked':''} ${disabled?'disabled':''}><span>${label}</span></label>`;
+  const additionLabel={image:'새 이미지 추가',text:'자유 텍스트 추가'};
+  const additions=['image','text'].map(key=>`<label class="permission-compact-option"><input type="checkbox" data-template-addition="${key}" ${editing.additions[key]?'checked':''}><span>${additionLabel[key]} 허용</span></label>`).join('');
+  const overrides=['image','text'].map(key=>{const value=page?.userEditing?.additions?.[key],selected=typeof value==='boolean'?String(value):'inherit';return `<label>${additionLabel[key]}<select data-page-addition="${key}" ${page?'':'disabled'}>${[['inherit','템플릿 기본값 사용'],['true','이 면에서 허용'],['false','이 면에서 금지']].map(([value,label])=>`<option value="${value}" ${selected===value?'selected':''}>${label}</option>`).join('')}</select></label>`}).join('');
+  const monthlyScope=['monthly-front','monthly-back'].includes(page?.role)&&matchingMonthlyObjectsFor(item).length>1;
+  return `<div class="section element-inspector"><div class="inspector-group"><div class="inspector-group-title"><span>선택 개체의 사용자 편집</span></div><p class="permission-help">사용자가 바꿀 수 있는 항목을 선택합니다. 학교 정보·일정 입력은 연결 데이터에서 관리합니다.</p>${photo?checkbox('replaceImage','이미지 교체',managed)+checkbox('imageFit','프레임 안쪽 위치·확대·회전 조정'):''}${managed?'<p class="hint">학교 공통 이미지는 입력 정보에서 교체합니다. 면별 이미지 교체는 보호됩니다.</p>':''}${permissionControls.map(([key,label])=>checkbox(key,label,key==='delete'&&item.required===true)).join('')}<label class="permission-compact-option"><input type="checkbox" id="graphicRequired" ${item.required?'checked':''}><span>필수 개체 · 사용자 삭제 방지</span></label>${monthlyScope?`<label class="permission-compact-option"><input type="checkbox" id="applyMonthlyPermissions" ${item.shadowOfMasterElementId?'':'checked'}><span>같은 월력 ${page.role==='monthly-front'?'앞면':'뒷면'} 전체에 개체 권한 적용</span></label>`:''}</div><div class="inspector-group"><div class="inspector-group-title"><span>템플릿의 추가 허용</span></div>${additions}<p class="hint">추가한 이미지·텍스트는 사용자가 편집할 수 있습니다. 면수·순서·출력 규격은 보호됩니다.</p></div><div class="inspector-group"><div class="inspector-group-title"><span>현재 면의 추가 허용</span></div>${overrides}</div><p class="hint">사용자 서비스의 편집 기능 연결은 다음 단계에서 적용됩니다.</p><button id="applyGraphicPermissions" class="action">권한 설정 저장</button></div>`;
+ };
  const $=id=>document.getElementById(id),host=$('insertSidebarHost'),drawer=$('objectDrawer'),body=drawer?.querySelector('.drawer-body');
  if(!host||!body)return;
  const previewMenu=$('previewMenuBtn'),previewDropdown=$('previewMenuDropdown');
@@ -72,14 +89,15 @@
   let permissionPanel=ins.querySelector('[data-panel="permission"]');if(!permissionPanel){permissionPanel=document.createElement('div');permissionPanel.className='inspector-tab-panel';permissionPanel.dataset.panel='permission';ins.appendChild(permissionPanel)}permissionPanel.innerHTML=permissionHTML(item);
   const permissionSave=permissionPanel.querySelector('#applyGraphicPermissions');
   if(permissionSave){
-   const controls=[...permissionPanel.querySelectorAll('#allowUserImageFit,#graphicRequired')];
-   const baseline=controls.map(control=>control.checked);
+   const controls=[...permissionPanel.querySelectorAll('[data-user-permission],[data-template-addition],[data-page-addition],#graphicRequired,#applyMonthlyPermissions,#allowUserImageFit')];
+   const controlValue=control=>control.type==='checkbox'?control.checked:control.value;
+   const baseline=controls.map(controlValue);
    const refresh=()=>{
-    const changed=controls.some((control,index)=>control.checked!==baseline[index]);
+    const changed=controls.some((control,index)=>controlValue(control)!==baseline[index]);
     permissionSave.disabled=!changed;
     permissionSave.classList.toggle('has-changes',changed);
    };
-   controls.forEach(control=>{control.addEventListener('change',refresh);control.addEventListener('input',refresh)});
+   controls.forEach(control=>{control.addEventListener('change',()=>{const required=permissionPanel.querySelector('#graphicRequired'),remove=permissionPanel.querySelector('[data-user-permission="delete"]');if(remove&&required){remove.disabled=required.checked;if(required.checked)remove.checked=false}refresh()});control.addEventListener('input',refresh)});
    refresh();
   }
   ins.querySelectorAll('.inspector-tab').forEach(button=>button.onclick=()=>{inspectorActiveTab=button.dataset.tab;ins.querySelectorAll('.inspector-tab').forEach(n=>n.classList.toggle('active',n.dataset.tab===inspectorActiveTab));ins.querySelectorAll('.inspector-tab-panel').forEach(n=>n.classList.toggle('active',n.dataset.panel===inspectorActiveTab))});
@@ -91,19 +109,31 @@
   const button=event.target.closest('#applyGraphicPermissions');if(!button||button.disabled)return;
   event.preventDefault();event.stopImmediatePropagation();
   const item=sourceElement();if(!item)return;
-  const imageFit=$('allowUserImageFit'),required=$('graphicRequired');
+  if(project?.productionCorrection){
+   const imageFit=$('allowUserImageFit'),required=$('graphicRequired'),applyAll=$('applyMonthlyPermissions')?.checked===true,targets=applyAll?matchingMonthlyObjectsFor(item):[item];
+   snapshot();targets.forEach(target=>{target.permissions={...(target.permissions||{}),move:false,resize:false,rotate:false,color:false,delete:false,duplicate:false,layer:false};if(imageFit){target.permissions.replaceImage=imageFit.checked;target.permissions.content=imageFit.checked;target.userReplaceable=imageFit.checked}if(required)target.required=required.checked});markDirty();render();showEditorToast('현재 개체의 사용자 편집 설정을 저장했습니다.');return;
+  }
+  const panel=button.closest('[data-panel="permission"]'),required=$('graphicRequired');
   const applyAll=$('applyMonthlyPermissions')?.checked===true;
   const targets=applyAll?matchingMonthlyObjectsFor(item):[item];
+  const values=Object.fromEntries([...panel.querySelectorAll('[data-user-permission]')].map(control=>[control.dataset.userPermission,control.checked]));
   snapshot();
   targets.forEach(target=>{
-   target.permissions={...(target.permissions||{}),move:false,resize:false,rotate:false,color:false,delete:false,duplicate:false,layer:false};
-   if(imageFit){
-    target.permissions.replaceImage=imageFit.checked;
-    target.permissions.content=imageFit.checked;
-    target.userReplaceable=imageFit.checked;
-   }
+   target.permissions={...(target.permissions||{}),...values};
    if(required)target.required=required.checked;
+   if(policy.isImage(target)){
+    target.userReplaceable=values.replaceImage===true;
+    if(typeof target.replaceable==='boolean')target.replaceable=target.userReplaceable;
+   }
+   policy.normalizeElement(target);
   });
+  for(const control of panel.querySelectorAll('[data-template-addition]'))project.template.userEditing.additions[control.dataset.templateAddition]=control.checked;
+  const page=selectedPage();
+  if(page)for(const control of panel.querySelectorAll('[data-page-addition]')){
+   const key=control.dataset.pageAddition;
+   if(control.value==='inherit')delete page.userEditing.additions[key];else page.userEditing.additions[key]=control.value==='true';
+  }
+  policy.normalizeProject(project);
   markDirty();render();
   showEditorToast(applyAll?`같은 월력 ${selectedPage().role==="monthly-front"?"앞면":"뒷면"}의 개체 ${targets.length}개에 권한을 저장했습니다.`:'현재 개체의 사용자 편집 설정을 저장했습니다.');
  },true);
