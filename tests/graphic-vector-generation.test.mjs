@@ -10,3 +10,14 @@ test('missing key, refusal, incomplete and bad upstream scenes never become gene
 });
 test('scene bounds and free prompts are validated before provider call',()=>{assert.throws(()=>generationInput({design:{scene:{shapes:Array(81).fill(scene.shapes[0])}}}));assert.throws(()=>generationInput({design:{},prompt:'a'.repeat(2001)}));assert.throws(()=>generationInput({design:{},previousScene:{shapes:[{...scene.shapes[0],x:Infinity}]}}));assert.match(buildVectorPrompt(generationInput({design:{page:'planner'}})),/계획·메모/);});
 test('page layouts reserve distinct actual content zones and illustrations remain transparent',()=>{const m=globalThis.ACDLGraphicVectorDesign;assert.notDeepEqual(m.zones(m.normalize({page:'cover',layout:'single-photo'})),m.zones(m.normalize({page:'cover',layout:'two-photos'})));const svg=m.svg({kind:'illustration',style:'plant',page:'symbols',scene});validateGraphicSvg(svg);assert.ok(!svg.includes('rect width="1300"'));assert.ok(!svg.includes('gl-safe'));const mirrored=m.svg({page:'cover',scene,orientation:'mirror'});assert.ok(mirrored.indexOf('clip-path=')<mirrored.indexOf('translate(1300 0)'));});
+test('reference image reaches vision input and produces a reusable vector without forced cutouts',async()=>{
+ const referenceImage='data:image/png;base64,iVBORw0KGgo=';let request;
+ const result=await generateVectorPreview({design:{page:'cover'},prompt:'원호와 가는 선, 연도 공간 확보',referenceImage},{getKey:async()=> 'test-only',fetchImpl:async(url,options)=>{request=JSON.parse(options.body);return new Response(JSON.stringify({status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify(scene)}]}]}))}});
+ assert.equal(request.input[1].content[1].image_url,referenceImage);assert.equal(request.input[1].content[1].type,'input_image');assert.match(request.input[1].content[0].text,/no forced cutouts/);
+ assert.equal(result.design.referenceBackground,true);assert.ok(!result.svg.includes('gl-safe'));assert.ok(!result.svg.includes('y="792"'));assert.ok(!result.svg.includes('<image'));validateGraphicSvg(result.svg);
+ assert.equal(globalThis.ACDLGraphicVectorDesign.svg(JSON.parse(JSON.stringify(result.design))),result.svg);
+});
+test('invalid or oversized reference images and empty instructions are rejected before any provider access',async()=>{
+ for(const referenceImage of ['https://example.com/image.png','data:image/svg+xml;base64,PHN2Zz4=','data:image/png;base64,YmFk','x'.repeat(2800001)])await assert.rejects(generateVectorPreview({design:{},prompt:'선 중심',referenceImage},{getKey:async()=>{throw new Error('must not access key')}}),e=>e.code==='INVALID_VECTOR_REFERENCE_IMAGE');
+ assert.throws(()=>generationInput({design:{},referenceImage:'data:image/png;base64,iVBORw0KGgo='}),e=>e.code==='INVALID_VECTOR_PROMPT');
+});

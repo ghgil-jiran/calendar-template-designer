@@ -155,3 +155,5 @@
 .graphic-library-dialog .gl-theme-search select{height:42px;box-sizing:border-box;margin:0}
 .graphic-library-dialog #illustrationEditTheme{flex:0 0 auto;align-self:flex-end;width:auto;height:42px;box-sizing:border-box;margin:0;padding:0 16px}
 @media(max-width:650px){.graphic-library-dialog .gl-theme-search{flex-wrap:wrap}.graphic-library-dialog .gl-theme-search label{flex:1 1 180px}}
+
+.gl-reference-dialog{width:min(760px,92vw);max-height:90vh;overflow:auto;border:1px solid var(--gl-border,#d9e2ee);border-radius:16px;padding:24px}.gl-reference-dialog::backdrop{background:rgba(18,30,48,.45)}.gl-reference-dialog .gl-upload{display:grid;gap:16px}.gl-reference-dialog label{display:grid;gap:8px}.gl-reference-dialog textarea{width:100%;box-sizing:border-box;font:inherit;padding:12px;resize:vertical}.gl-reference-preview{margin:0;min-height:120px;display:grid;place-items:center}.gl-reference-preview img{max-width:100%;max-height:240px;object-fit:contain}
