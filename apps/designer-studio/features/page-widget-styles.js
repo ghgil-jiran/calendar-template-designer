@@ -24,15 +24,17 @@
   }else{
    html+=input('fontSize','일정 글자 크기 (px)','number',s.fontSize??item.fontSize??8)+select('fontWeight','글자 굵기',s.fontWeight||400,[[400,'보통'],[500,'중간'],[700,'굵게']])+input('color','일정 글자색','color',s.color||'#17202e')+input('lineHeight','행간','number',s.lineHeight??1.3);
    html+=input('titleSize','각 월 제목 크기 (px)','number',s.titleSize??10)+input('titleColor','각 월 제목 글자색','color',s.titleColor||'#173b63')+select('titleAlign','각 월 제목 정렬',s.titleAlign||'left',[['left','왼쪽'],['center','가운데'],['right','오른쪽']])+select('titlePosition','각 월 제목 위치',s.titlePosition||'top',[['top','내용 위'],['bottom','내용 아래']]);
-   for(const [key,label] of [['titleBackground','월 제목 배경'],['contentBackground','월 내용 배경'],['monthBackground','각 월 전체 영역 배경'],['containerBackground','전체 일정 영역 배경']])html+=input(key,label+' (색상 또는 transparent)','text',s[key]||'transparent');
+   for(const [key,label] of [['titleBackground','월 제목 배경'],['contentBackground','월 내용 배경'],['monthBackground','각 월 전체 영역 배경'],['containerBackground','전체 일정 영역 배경']])html+=`<label class="inline-check"><input type="checkbox" data-page-background="${key}" ${s[key]&&s[key]!=='transparent'?'checked':''}><span>${label} 사용</span></label>`+input(key,label,'color',s[key]&&s[key]!=='transparent'?s[key]:'#ffffff');
    html+=input('monthBorderWidth','각 월 사각 테두리 두께 (px)','number',s.monthBorderWidth??0)+input('lineColor','각 월 테두리색','color',s.lineColor||'#d8dbe2')+input('containerBorderWidth','전체 영역 사각 테두리 두께 (px)','number',s.containerBorderWidth??0)+input('containerBorderColor','전체 영역 테두리색','color',s.containerBorderColor||'#d8dbe2');
   }
   section.innerHTML=html+'<button id="savePageWidgetStyles" type="button" class="action" disabled>스타일 저장</button>';panel.append(section);
-  const controls=[...section.querySelectorAll('[data-page-style]')],baseline=controls.map(e=>e.value),button=$('savePageWidgetStyles');
-  controls.forEach(control=>control.addEventListener('input',()=>{button.disabled=!controls.some((e,i)=>e.value!==baseline[i]);inspectorDirty=!button.disabled;}));
+  const controls=[...section.querySelectorAll('[data-page-style]')],baseline=controls.map(e=>e.value),modes=[...section.querySelectorAll('[data-page-background]')],modeBaseline=modes.map(e=>e.checked),button=$('savePageWidgetStyles');
+  const refresh=()=>{modes.forEach(mode=>{const color=controls.find(e=>e.dataset.pageStyle===mode.dataset.pageBackground);if(color)color.disabled=!mode.checked;});button.disabled=!controls.some((e,i)=>e.value!==baseline[i])&&!modes.some((e,i)=>e.checked!==modeBaseline[i]);inspectorDirty=!button.disabled;};
+  [...controls,...modes].forEach(control=>{control.addEventListener('input',refresh);control.addEventListener('change',refresh);});refresh();
   button.onclick=()=>{
    if(button.disabled)return;
    const values=Object.fromEntries(controls.map(e=>[e.dataset.pageStyle,e.type==='number'?Number(e.value):e.value]));
+   modes.forEach(mode=>{if(!mode.checked)values[mode.dataset.pageBackground]='transparent';});
    for(const key of ['titleBackground','contentBackground','monthBackground','containerBackground'])if(values[key]&&!/^(#[0-9a-f]{3,8}|transparent)$/i.test(values[key])){showEditorToast('배경색은 #RRGGBB 또는 transparent로 입력해 주세요.');return;}
    change(()=>{item.style={...item.style,...values};if(values.fontSize!==undefined){item.fontSize=values.fontSize;item.minFontSize=Math.min(item.minFontSize||values.fontSize,values.fontSize);}syncMonthlySharedFields(item,['style','fontSize','minFontSize']);});
   };

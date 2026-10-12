@@ -159,7 +159,7 @@ function renderWidgetContent(view,p){
  }
  if(view.type==="year-calendar"){
   const annual=window.ACDLSharedMiniCalendar.resolveAnnualCalendar({...view,weekStart:project.settings.weekStart},p,{year:project.settings.year,startMonth:1,calendarRows:project.settings.calendarRows,calendarRowsMode:project.settings.calendarRowsMode,sampleFamily:project.template?.metadata?.sampleFamily,weekStart:project.settings.weekStart});
-  return window.ACDLSharedMiniCalendar.renderAnnualCalendarMarkup(annual,{...view,holidayDates:project.settings.calendarData?.includeHolidays===false?[]:[...(project.book.events||[]).filter(e=>e.category==="holiday").map(e=>e.startDate),...Object.values(project.book.calendarReference?.years||{}).flatMap(year=>(year.public_holiday?.items||[]).filter(item=>item.isHoliday!==false).map(item=>item.date))]});
+  return window.ACDLSharedMiniCalendar.renderAnnualCalendarMarkup(annual,{...view,weekStart:project.settings.weekStart,holidayDates:project.settings.calendarData?.includeHolidays===false?[]:[...(project.book.events||[]).filter(e=>e.category==="holiday").map(e=>e.startDate),...Object.values(project.book.calendarReference?.years||{}).flatMap(year=>(year.public_holiday?.items||[]).filter(item=>item.isHoliday!==false).map(item=>item.date))]});
  }
  if(view.type==="month-date-strip"){
   const strip=window.ACDLPageCompositionRuntime.resolveMonthDateStrip(view,p,{year:project.settings.year,startMonth:project.settings.startMonth||1});
