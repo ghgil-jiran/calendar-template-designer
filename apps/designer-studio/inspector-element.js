@@ -16,6 +16,7 @@
     if (action === 'text-content') {
       item.content = values.content;
       item.binding = values.binding || null;
+      if (item.metadata?.coverYearPart === 'year') item.bindingEnabled = Boolean(item.binding);
       if (item.format === 'plan-month' && item.binding !== 'calendar.year') item.format = 'year-plain';
     }
     if (action === 'text-style') {

@@ -12,6 +12,11 @@
   return undefined
  }
  function formatYearText(element,page,project){
+  if(element?.metadata?.coverYearPart==='year'){
+   if(element.binding!=='calendar.year'||element.bindingEnabled===false)return element.content||'';
+   const year=String(project?.settings?.year||page?.calendarYear||element.content||'');
+   return root.ACDLPageObjectModel.coverYearText(element,year);
+  }
   if(element?.format==='plan-month'&&element?.binding==='calendar.year'&&element?.bindingEnabled!==false)return root.ACDLPageObjectModel.monthText(element,project?.settings?.year);
   const year=String(page?.calendarYear||project?.settings?.year||element?.value||element?.content||'');
   const role=page?.role==='cover-front'?'cover':page?.role==='back-cover-back'?'back-cover-back':null;
@@ -33,9 +38,9 @@
 
   let value=element.value!==undefined?element.value:element.content;
   if(value===undefined&&(element.type==='image'||element.type==='image-frame'))value=root.ACDLProjectAssetResolver?.elementValue(project,element)||element.src||element.image||null;
-  const binding=typeof element.binding==='string'?element.binding:typeof element.image?.binding==='string'?element.image.binding:undefined;
+  const binding=element.metadata?.coverYearPart==='year'&&element.bindingEnabled===false?undefined:typeof element.binding==='string'?element.binding:typeof element.image?.binding==='string'?element.image.binding:undefined;
   const printIntent=element.printIntent||root.ACDLNativePrintAuthoring?.intentFor(element),compiled=project?.template?.nativePrintAuthoring?.enabled===true?root.ACDLNativePrintPackageCompiler?.compileElement({...element,printIntent},project.template.resources?.nativePrint||{}):null;
-  return {id:String(element.id||`legacy.object.${index}`),sourceObjectId:String(element.id||`legacy.object.${index}`),type:objectType(element.type),role:String(element.role||''),frame:{x:pct(element.x,width),y:pct(element.y,height),width:pct(element.width==null?10:element.width,width),height:pct(element.height==null?10:element.height,height)},binding,value,...(printIntent?{printIntent:structuredClone(printIntent)}:{}),...(compiled?.status==='promoted'?{print:structuredClone(compiled.policy),...(compiled.asset?{printAsset:structuredClone(compiled.asset)}:{})}:{}),runtimeWidget:{year:element.year,yearFormat:element.yearFormat,yearLines:element.yearLines,month:element.month,rows:element.rows,weekStart:element.weekStart,showWeekday:element.showWeekday,showDate:element.showDate,memoLayout:element.memoLayout,title:element.title,lineCount:element.lineCount,itemCount:element.itemCount,weekCount:element.weekCount,showMemo:element.showMemo,columns:element.columns,startMonth:element.startMonth,monthCount:element.monthCount,monthLabelStyle:element.monthLabelStyle,yearlyColumns:element.yearlyColumns,linesPerMonth:element.linesPerMonth,baseYear:element.baseYear,yearlyLayoutType:element.yearlyLayoutType,yearlyGroupSize:element.yearlyGroupSize,yearlyContainerStyle:element.yearlyContainerStyle,scheduleLayoutType:element.scheduleLayoutType,displayMode:element.displayMode,dateBased:element.dateBased,equalCells:element.equalCells,monthSource:element.monthSource,showEmptyMessage:element.showEmptyMessage,emptyStatePresentation:element.emptyStatePresentation,layoutType:element.layoutType},style:{...style,legacyRole:element.role,maxItems:element.maxItems},visible:element.visible!==false,zIndex:Number(element.zIndex==null?index:element.zIndex)}
+  return {id:String(element.id||`legacy.object.${index}`),sourceObjectId:String(element.id||`legacy.object.${index}`),type:objectType(element.type),role:String(element.role||''),frame:{x:pct(element.x,width),y:pct(element.y,height),width:pct(element.width==null?10:element.width,width),height:pct(element.height==null?10:element.height,height)},binding,value,...(element.metadata?.coverYearPart?{metadata:{...element.metadata},format:element.format}:{}),...(printIntent?{printIntent:structuredClone(printIntent)}:{}),...(compiled?.status==='promoted'?{print:structuredClone(compiled.policy),...(compiled.asset?{printAsset:structuredClone(compiled.asset)}:{})}:{}),runtimeWidget:{year:element.year,yearFormat:element.yearFormat,yearLines:element.yearLines,month:element.month,rows:element.rows,weekStart:element.weekStart,showWeekday:element.showWeekday,showDate:element.showDate,memoLayout:element.memoLayout,title:element.title,lineCount:element.lineCount,itemCount:element.itemCount,weekCount:element.weekCount,showMemo:element.showMemo,columns:element.columns,startMonth:element.startMonth,monthCount:element.monthCount,monthLabelStyle:element.monthLabelStyle,yearlyColumns:element.yearlyColumns,linesPerMonth:element.linesPerMonth,baseYear:element.baseYear,yearlyLayoutType:element.yearlyLayoutType,yearlyGroupSize:element.yearlyGroupSize,yearlyContainerStyle:element.yearlyContainerStyle,scheduleLayoutType:element.scheduleLayoutType,displayMode:element.displayMode,dateBased:element.dateBased,equalCells:element.equalCells,monthSource:element.monthSource,showEmptyMessage:element.showEmptyMessage,emptyStatePresentation:element.emptyStatePresentation,layoutType:element.layoutType},style:{...style,legacyRole:element.role,maxItems:element.maxItems},visible:element.visible!==false,zIndex:Number(element.zIndex==null?index:element.zIndex)}
  }
  function create(options={}){
   const datasetDomain=options.datasetDomain||root.ACDLDatasetDomain;
@@ -44,6 +49,7 @@
   const parity=options.parity||root.ACDLIntegrationParity;
   const pageAdapter=options.pageAdapter||root.ACDLDeskAcademicPageAdapter;
   function adapt(project,pageInstances=project.book.pageInstances||[],datasetOverride){
+   root.ACDLPageObjectModel?.normalizeProject(project);
    if(project.productionCorrection&&root.ACDLProductionEditorAdapter){const document=root.ACDLProductionEditorAdapter.toDocument(project);return {template:{...document.template,pages:document.template.pages.map(page=>({...page,objects:page.objects.map(object=>({...object,value:object.payload}))}))},dataset:document.dataset};}
    const size=project.productType.pageSize,dataset=datasetOverride||datasetDomain.buildRuntimeDataset(project);
    const pages=pageInstances.map((page,index)=>{

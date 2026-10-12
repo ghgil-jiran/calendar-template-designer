@@ -7,11 +7,30 @@
   const start=Number(element.planStartMonth||1),offset=Number(element.planMonthOffset||0),zero=start-1+offset,month=zero%12+1,target=Number(year)+Math.floor(zero/12),transition=target!==Number(year);
   return element.planMonthLabelStyle==='number-ko'?(transition?target+' ':'')+month+'월':month+' '+['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][month-1]+(transition?' · '+target:'');
  }
+ function coverYearText(element,year){
+  const value=String(year??element.content??'');
+  return element.format==='year-ko'?value+'년':element.format==='academic-year'?value+'학년도':element.format==='year-range'?value+'–'+(Number(value)+1):value;
+ }
+ function splitCoverYear(elements,project,composition){
+  for(const source of [...elements]){
+   if(source.type!=='text'||source.role!=='year'||source.binding!=='calendar.year'||source.bindingEnabled===false||source.metadata?.coverYearPart)continue;
+   const format=source.yearFormat||composition?.yearFormat;
+   if(format!=='number-calendar')continue;
+   const two=(source.yearLines||composition?.yearLines)==='two',x=Number(source.x||0),y=Number(source.y||0),w=Number(source.width||40),h=Number(source.height||16),style=copy(source.style||{});
+   const label={...copy(source),id:source.id+'.calendar-label',role:'cover-calendar-label',binding:null,content:'CALENDAR',format:null,yearFormat:'number',yearLines:'one',style,metadata:{...source.metadata,editablePart:true,parentObjectId:source.id,coverYearPart:'label'}};
+   source.metadata={...source.metadata,editablePart:true,coverYearPart:'year'};source.content=String(project.settings?.year||source.content||'').replace(/\s*CALENDAR\s*/g,'').trim();source.yearFormat='number';source.yearLines='one';
+   if(two){source.height=h*.58;Object.assign(label,{x,y:y+h*.62,width:w,height:h*.38});}
+   else {source.width=w*.4;Object.assign(label,{x:x+w*.43,y,width:w*.57,height:h});}
+   elements.splice(elements.indexOf(source)+1,0,label);
+  }
+  return elements;
+ }
  function normalizeProject(project){
   if(!project?.book||!project?.template||project.productionCorrection)return project;
   const pages=project.book.pageInstances||[],symbolPage=p=>[p?.role,p?.contentPurpose,p?.semanticPageRole,p?.packageRole].some(v=>v==='school-symbols');
-  const arrays=[...Object.entries(project.template.masterElements||{}).map(([id,arr])=>({arr,symbols:pages.some(p=>p.masterId===id&&symbolPage(p))})),...Object.entries(project.book.elementsByPage||{}).map(([id,arr])=>({arr,symbols:symbolPage(pages.find(p=>p.id===id))}))];
-  for(const {arr,symbols} of arrays){
+  const arrays=[...Object.entries(project.template.masterElements||{}).map(([id,arr])=>({arr,symbols:pages.some(p=>p.masterId===id&&symbolPage(p)),cover:pages.some(p=>p.masterId===id&&p.role==='cover-front')})),...Object.entries(project.book.elementsByPage||{}).map(([id,arr])=>({arr,symbols:symbolPage(pages.find(p=>p.id===id)),cover:pages.some(p=>p.id===id&&p.role==='cover-front')}))];
+  for(const {arr,symbols,cover} of arrays){
+   if(cover)splitCoverYear(arr,project,project.template.settings?.aiDesignSpec?.pageSettings?.roleCompositions?.cover);
    const next=[];
    for(const source of arr){
     if(symbols&&source.type==='semantic-object'&&labels[source.role]&&!source.metadata?.editablePartsVersion){
@@ -46,5 +65,5 @@
   const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),s=element.style||{},line=/^#[0-9a-f]{3,8}$/i.test(s.lineColor||'')?s.lineColor:'#d7dce5',count=Math.max(0,Math.min(20,Number(element.lineCount??4)));
   return '<div class="widget-memo editable-plan-lines" style="border:0;border-radius:0;background:transparent;padding:4px;height:100%;box-sizing:border-box"><div style="position:relative;height:100%">'+Array.from({length:count},(_,i)=>'<span data-print-rule="'+(i+1)+'" style="position:absolute;left:0;right:0;top:'+((i+1)/count*100)+'%;border-bottom:1px solid '+escape(line)+'"></span>').join('')+'</div></div>';
  }
- root.ACDLPageObjectModel=Object.freeze({version:'1.0.0',normalizeProject,monthText,renderPlanLines});
+ root.ACDLPageObjectModel=Object.freeze({version:'1.1.0',normalizeProject,splitCoverYear,coverYearText,monthText,renderPlanLines});
 })(globalThis);

@@ -302,6 +302,7 @@ function schoolBindingValue(binding){
  return "";
 }
 function resolveTextContent(view,p=selectedPage()){
+ if(view.metadata?.coverYearPart==="year"&&(view.binding!=="calendar.year"||view.bindingEnabled===false))return view.content||"";
  if(view.format==="plan-month"&&view.binding==="calendar.year"&&view.bindingEnabled!==false)return window.ACDLPageObjectModel.monthText(view,project.settings.year);
  if(view.binding?.startsWith("school."))return schoolBindingValue(view.binding)||view.content||"학교 정보 입력";
  if(view.binding==="calendar.year"||view.type==="text"&&view.role==="year"&&["cover-front","back-cover-back"].includes(p?.role))return window.ACDLRuntimeProjectAdapter.formatYearText(view,p,project);
