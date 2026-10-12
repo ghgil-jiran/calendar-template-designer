@@ -44,10 +44,10 @@
  }
  function effectiveAdditions(project,page){return Object.fromEntries(ADDITIONS.map(key=>[key,typeof page?.userEditing?.additions?.[key]==='boolean'?page.userEditing.additions[key]:project?.template?.userEditing?.additions?.[key]===true]))}
  root.ACDLUserEditingPolicy=Object.freeze({schemaVersion:POLICY_SCHEMA,actions:Object.freeze(ACTIONS),isImage,managedImage,normalizeElement,normalizeProject:normalizeUserEditing,effectiveAdditions});
- function serialize(project){return JSON.stringify(normalizeUserEditing(project))}
+ function serialize(project){root.ACDLPageObjectModel?.normalizeProject(project);return JSON.stringify(normalizeUserEditing(project))}
  function deserialize(text){return normalizeUserEditing(JSON.parse(text))}
  function clone(project){return deserialize(serialize(project))}
- function hash(project){return JSON.stringify(normalizeUserEditing(project),(_key,value)=>typeof value==='string'&&value.startsWith('data:image/')&&value.length>512?`data-image:${value.length}:${value.slice(0,96)}:${value.slice(-96)}`:value)}
+ function hash(project){root.ACDLPageObjectModel?.normalizeProject(project);return JSON.stringify(normalizeUserEditing(project),(_key,value)=>typeof value==='string'&&value.startsWith('data:image/')&&value.length>512?`data-image:${value.length}:${value.slice(0,96)}:${value.slice(-96)}`:value)}
  function createRecoveryRecord(project,selectedPageId,options={}){
   const compact=typeof options.compact==="function"?options.compact:value=>value;
   const now=typeof options.now==="function"?options.now:()=>new Date();
