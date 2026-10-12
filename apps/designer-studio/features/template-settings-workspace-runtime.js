@@ -96,16 +96,7 @@
   },true);
   $('userCancelBtn')?.addEventListener('click',e=>{if(!editingExistingCalendar)return;e.preventDefault();e.stopImmediatePropagation();editingExistingCalendar=false;$('userCreateBtn').textContent='달력 만들기';$('userSetup').classList.add('hidden');render()},true);
 
-  // Annual calendar shares event and holiday styling with monthly calendars.
-  const oldRenderWidgetContent=window.renderWidgetContent;
-  window.renderWidgetContent=function(view,p){
-    if(view?.type!=='year-calendar')return oldRenderWidgetContent.apply(this,arguments);
-    const cols=Number(view.columns||4),count=Number(view.monthCount||12),start=Number(view.startMonth||1),seq=monthSequence(p.calendarYear||project.settings.year,start).slice(0,count);
-    const byDate={};(project.book.events||[]).forEach(ev=>{(byDate[ev.startDate]||=[]).push(ev)});
-    const layout=['open-grid','individual-month-boxes','vertical-three-month-groups','horizontal-four-month-groups'].includes(view.layoutType)?view.layoutType:'individual-month-boxes',baseYear=seq[0]?.year,renderMonth=mm=>{const rows=yearCalendarRowCountFor(view,mm.year,mm.month),monthNames=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'],transition=view.showTransitionYear!==false&&mm.year!==baseYear,yearMark=transition?`<small class="year-transition">${mm.year}</small>`:'',label=view.monthLabelStyle==='number-en'?`${mm.month} <small>${monthNames[mm.month-1]}${transition?` · ${mm.year}`:''}</small>`:`${yearMark}${mm.month}월`,weekdayRows=view.showWeekdayHeader===false?'':'auto ';let html=`<div class="year-month" data-month-key="${mm.year}-${String(mm.month).padStart(2,'0')}"><strong>${label}</strong><div class="year-month-grid" style="--year-calendar-rows:${rows};grid-template-rows:${weekdayRows}repeat(${rows},1fr)">`;if(view.showWeekdayHeader!==false)weekDayHeaders(true).forEach(x=>html+=`<span class="mh">${x}</span>`);calendarGridFor(mm.year,mm.month,rows).forEach(c=>{const date=`${c.year}-${String(c.month).padStart(2,'0')}-${String(c.day).padStart(2,'0')}`,evs=byDate[date]||[],holiday=evs.some(e=>e.category==='holiday'),dow=new Date(c.year,c.month-1,c.day).getDay(),cls=[c.month!==mm.month?'adj':'','year-day',dow===0?'sun':dow===6?'sat':'',holiday?'holiday':''].filter(Boolean).join(' '),dot=evs.length?`<i class="year-event-dot" style="--event-dot:${eventColor(evs[0])}" title="${evs.map(e=>v21Escape(e.title)).join(' · ')}"></i>${evs.length>1?`<b class="year-event-count">${evs.length}</b>`:''}`:'';html+=`<span class="${cls}">${c.day}${dot}</span>`});return html+'</div></div>'};
-    let inner=`<div class="year-calendar-object annual-layout-${layout}" style="--year-cols:${cols};--year-rows:${Math.ceil(count/cols)}">`;if(layout==='vertical-three-month-groups'||layout==='horizontal-four-month-groups'){const size=layout==='vertical-three-month-groups'?3:4;for(let index=0;index<seq.length;index+=size)inner+=`<div class="year-calendar-group">${seq.slice(index,index+size).map(renderMonth).join('')}</div>`}else inner+=seq.map(renderMonth).join('');
-    return inner+'</div>';
-  };
+  // Annual calendars use the shared authoring renderer; do not override it here.
 
   // Dedicated, non-destructive preview path with explicit poster dimensions.
   function cleanPreviewClone(live,pageInfo){
@@ -201,6 +192,7 @@
  const basicSection=document.querySelector('[data-library-section="basic"] .object-grid');if(basicSection&&!basicSection.querySelector('[data-v36-year]')){const y=document.createElement('button');y.className='object-card';y.dataset.v36Year='1';y.innerHTML='<strong>해당 연도</strong><span>프로젝트 연도 자동 연결</span>';const m=document.createElement('button');m.className='object-card';m.dataset.v36Month='1';m.innerHTML='<strong>해당 월</strong><span>현재 페이지 월 자동 연결</span>';basicSection.prepend(m);basicSection.prepend(y);y.onclick=()=>addBoundText('calendar.year','2027','year-plain');m.onclick=()=>addBoundText('calendar.month','3월','month-ko')}
  const oldResolve=window.resolveTextContent||resolveTextContent;window.resolveTextContent=resolveTextContent=function(view,p=selectedPage()){
   if(view.binding==='calendar.month'){const month=Number(p.calendarMonth||project.settings?.startMonth||1),year=Number(p.calendarYear||project.settings?.year||'');return view.format==='year-month-ko'?`${year}년 ${month}월`:view.format==='month-2'?String(month).padStart(2,'0'):`${month}월`}
+  if(view.format==='plan-month')return oldResolve(view,p);
   if(view.binding==='calendar.year'){
    if((p.role==='cover-front'||p.role==='back-cover-back')&&project.template?.settings?.aiDesignSpec?.pageSettings?.roleCompositions?.[p.role==='cover-front'?'cover':'back-cover-back'])return oldResolve(view,p);
    const year=Number(p.calendarYear||project.settings?.year||view.content||'');if(!year)return view.content||'';if(view.format==='academic-year')return `${year}학년도`;if(view.format==='year-range')return `${year}–${year+1}`;if(view.format==='year-ko')return `${year}년`;return String(year)

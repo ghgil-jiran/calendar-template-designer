@@ -11,6 +11,7 @@ function context(){
  c.selectedPage=()=>c.project.book.pageInstances[0];c.v21Escape=x=>String(x);c.schoolBindingValue=()=>'';
  const source=read('features/object-editing.js');
  for(const name of ['renderWidgetContent','resolveTextContent']){const start=source.indexOf('function '+name+'('),end=source.indexOf('\nfunction ',start+1);vm.runInContext(source.slice(start,end),c);}
+ const workspace=read('features/template-settings-workspace-runtime.js'),ws=workspace.indexOf(' const oldResolve='),we=workspace.indexOf(' // Make text color authoritative',ws);vm.runInContext(workspace.slice(ws,we),c);
  return c;
 }
 test('all schedule modes paint authored typography and retain it after project save and load',()=>{
@@ -78,4 +79,16 @@ test('shared schedule fitting respects manual type and the configured minimum wi
  const warning={};const widget={dataset:{eventColumns:'2',eventFontSize:'12',eventMinFontSize:'5',eventFit:'auto'},classList:classes(),querySelector:selector=>selector==='.annual-event-items'?list:warning};
  const fit=c.ACDLSharedSchedule.fitEventList(widget);assert.equal(fit.fontSize,6);assert.equal(fit.columns,2);assert.equal(fit.overflow,false);
  widget.dataset.eventFit='manual';assert.equal(c.ACDLSharedSchedule.fitEventList(widget).fontSize,12);assert.equal(widget.classList.contains('has-event-overflow'),true);
+});
+
+test('workspace wrappers preserve the shared annual renderer and formatted Yearly Plan labels',()=>{
+ const c=context(),source=read('features/template-settings-workspace-runtime.js');
+ assert.doesNotMatch(source,/window\.renderWidgetContent\s*=/);
+ const item={type:'year-calendar',startMonth:3,style:{dateSize:12,dayGridStyle:'boxes'}};assert.match(c.renderWidgetContent(item,c.selectedPage()),/font-size:12px/);assert.match(c.renderWidgetContent(item,c.selectedPage()),/annual-day/);
+ assert.equal(c.resolveTextContent({type:'text',role:'yearly-plan-month',binding:'calendar.year',format:'plan-month',planStartMonth:3,planMonthOffset:11},c.selectedPage()),'2 FEB · 2028');
+});
+
+test('all content/style/layout save buttons participate in shared validation and dirty tracking',()=>{
+ const source=read('features/object-editing.js'),start=source.indexOf('const INSPECTOR_SAVE_MESSAGES='),end=source.indexOf('const INSPECTOR_SAVE_IDS',start),map=source.slice(start,end);
+ for(const id of ['applyEventListWidget','applyEventListLayout','applyMiniCalendarContent','applyMiniCalendarStyle','applyDateStripContent','applyDateStripDesign','applyMonthlyQuoteContent','applyMonthlyQuoteStyle','applyGraphicStyle','applyGraphicLayout','applyFrameImage'])assert.match(map,new RegExp(id+':'));
 });

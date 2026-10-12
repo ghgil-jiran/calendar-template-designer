@@ -944,6 +944,17 @@ let pendingCanvasGeometrySaveId=null;
 const INSPECTOR_SAVE_MESSAGES={
  applySemanticSample:"샘플 콘텐츠를 저장했습니다.",
  applySemanticBinding:"데이터 연결 설정을 저장했습니다.",
+ applyEventListWidget:"학사일정 콘텐츠를 저장했습니다.",
+ applyEventListLayout:"학사일정 단 구성과 자동 축소를 저장했습니다.",
+ applyMiniCalendarContent:"미니 월력 콘텐츠를 저장했습니다.",
+ applyMiniCalendarStyle:"미니 월력 스타일을 저장했습니다.",
+ applyDateStripContent:"띠력 콘텐츠를 저장했습니다.",
+ applyDateStripDesign:"띠력 스타일을 저장했습니다.",
+ applyMonthlyQuoteContent:"명언 콘텐츠를 저장했습니다.",
+ applyMonthlyQuoteStyle:"명언 스타일을 저장했습니다.",
+ applyGraphicStyle:"그래픽 스타일을 저장했습니다.",
+ applyGraphicLayout:"그래픽 배치를 저장했습니다.",
+ applyFrameImage:"프레임 이미지 설정을 저장했습니다.",
  savePageWidgetStyles:"개체 스타일을 저장했습니다.",
  applySemanticTemplate:"개체 레이아웃과 스타일을 저장했습니다.",
  applyCalendarRegion:"월력 위치와 크기를 저장했습니다.",
@@ -993,11 +1004,13 @@ function captureInspectorDrafts(){
 }
 function registerInspectorSaveButton(button){
  if(!button||inspectorTracked.some(entry=>entry.button===button))return;
- const id=button.id,container=inspectorContainerFor(button),initial=inspectorSignature(container);
+ const id=button.id,container=inspectorContainerFor(button);
+ container.querySelectorAll("input,select,textarea").forEach((node,index)=>{if(!node.id)node.id=`inspector-field-${id}-${index}`;});
+ const initial=inspectorSignature(container);
  button.classList.add("inspector-save");button.dataset.initialSignature=initial;
  const entry={button,container,initial};inspectorTracked.push(entry);
  const update=()=>{
-  const draftChanged=(id==="applySemanticSample"&&semanticImageDraftElementId===sourceElement()?.id&&!!semanticImageDraft)||(id==="applyElementGeometry"&&pendingCanvasGeometrySaveId===selectedElementId);
+  const draftChanged=(id==="applySemanticSample"&&semanticImageDraftElementId===sourceElement()?.id&&!!semanticImageDraft)||(["applyElementGeometry","applyGraphicLayout"].includes(id)&&pendingCanvasGeometrySaveId===selectedElementId);
   const changed=inspectorSignature(container)!==initial||draftChanged;
   button.classList.toggle("has-changes",changed);button.disabled=!changed;
   container.classList.toggle("is-dirty",changed);
@@ -1014,7 +1027,7 @@ function registerInspectorSaveButton(button){
    setInspectorNotice("error",message);showEditorToast(message);return;
   }
   inspectorSavedContainer=container;
-  if(id==="applyElementGeometry")pendingCanvasGeometrySaveId=null;
+  if(["applyElementGeometry","applyGraphicLayout"].includes(id))pendingCanvasGeometrySaveId=null;
   inspectorNotice={type:"success",message:INSPECTOR_SAVE_MESSAGES[id]||"설정을 저장했습니다."};
   setTimeout(()=>showEditorToast("저장되었습니다."),0);
  },true);
@@ -1116,7 +1129,7 @@ function renderInspector(){
   const node=el(id);if(node&&value&&![...node.options].some(option=>option.value===value)){node.add(new Option(value,value,true,true));}
  }
  const planStyle=el("elemPlanMonthStyle"),bindingControl=el("elemTextBinding");
- if(planStyle&&bindingControl){const refresh=()=>{planStyle.disabled=bindingControl.value!=="calendar.year";};bindingControl.addEventListener("change",refresh);refresh();}
+ if(planStyle&&bindingControl){const refresh=()=>{planStyle.disabled=bindingControl.value!=="calendar.year";};bindingControl.addEventListener("change",refresh);bindingControl.addEventListener("input",refresh);refresh();}
  setupInspectorTabs();bindInspector();setupInspectorFeedback();
  inspectorRenderedKey=inspectorSelectionKey();
  if(drafts.length){const current=ins;queueMicrotask(()=>{
@@ -1128,7 +1141,7 @@ function renderInspector(){
 function bindInspector(){
  const bind=(id,fn)=>{if(el(id))el(id).addEventListener("click",fn)};
  const titleMode=el("eventListTitleMode"),titleInput=el("eventListTitle");
- if(titleMode&&titleInput){const refresh=()=>{titleInput.disabled=titleMode.value==="auto";};titleMode.addEventListener("change",refresh);refresh();}
+ if(titleMode&&titleInput){const refresh=()=>{titleInput.disabled=titleMode.value==="auto";};titleMode.addEventListener("change",refresh);titleMode.addEventListener("input",refresh);refresh();}
  if(project.template?.metadata?.sampleFamily==="desk-6")el("masterCalendarDesignPreset")?.querySelector('option[value="sample-3"]')?.remove();
  bind("applySemanticSample",()=>{
   const i=sourceElement();if(!i||i.type!=="semantic-object")return;
