@@ -10,6 +10,7 @@
     const fields = [...container.querySelectorAll('input,select,textarea')];
     fields.forEach(node => node.classList.remove('inspector-field-error'));
     for (const node of container.querySelectorAll('input[type="number"]')) {
+      if (node.disabled || node.readOnly) continue;
       if (node.value === "" && node.dataset?.optional === "true") continue;
       const value = Number(node.value);
       const min = node.min === '' ? null : Number(node.min);
@@ -21,6 +22,7 @@
       }
     }
     for (const node of container.querySelectorAll('input[pattern]')) {
+      if (node.disabled || node.readOnly) continue;
       if (node.pattern && node.value && !new RegExp(`^(?:${node.pattern})$`).test(node.value)) {
         node.classList.add('inspector-field-error');
         return {valid:false,message:'색상을 #RRGGBB 형식으로 입력하세요.'};

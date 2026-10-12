@@ -186,23 +186,10 @@ function renderWidgetContent(view,p){
   const q=monthlyQuoteForPage(p),s=view.style||{},css=`--quote-title-size:${Number(s.titleSize||13)}px;--quote-ko-size:${Number(s.quoteKoSize||18)}px;--quote-en-size:${Number(s.quoteEnSize||10)}px;--quote-source-size:${Number(s.sourceSize||9)}px;--quote-align:${s.textAlign||"center"};--quote-color:${s.color||"#17202e"};--quote-accent:${s.accentColor||"#315e9e"};--quote-secondary:${s.secondaryColor||"#667085"};--quote-gap:${Number(s.itemGap||7)}px`;
   return `<div class="widget-monthly-quote" style="${css}"><div class="quote-title">${v21Escape(q.title||view.title||"이 달의 명언")}</div><div class="quote-ko">${v21Escape(q.quoteKo||"")}</div>${q.quoteEn?`<div class="quote-en">${v21Escape(q.quoteEn)}</div>`:""}${q.source?`<div class="quote-source">— ${v21Escape(q.source)}</div>`:""}</div>`
  }
- if(view.type==="monthly-schedule"){
-  const sizeScale=Math.max(.62,Math.min(1.35,Math.min(Number(view.width||35)/35,Number(view.height||28)/28)));
-  const items=window.ACDLPageCompositionRuntime.resolveScheduleEvents(project.book.events||[],view,p,{year:project.settings.year,startMonth:project.settings.startMonth||1}).items;let inner=`<div class="widget-schedule" style="--schedule-pad:${(7*sizeScale).toFixed(1)}px;--schedule-title-size:${(12*sizeScale).toFixed(1)}px;--schedule-font-size:${(9*sizeScale).toFixed(1)}px;--schedule-date-width:${(26*sizeScale).toFixed(1)}px;--schedule-gap:${(4*sizeScale).toFixed(1)}px;--schedule-item-gap:${(4*sizeScale).toFixed(1)}px"><strong>${view.title||"이달의 일정"}</strong>`;
-  inner+=items.length?items.map(ev=>`<div class="schedule-item"><time>${ev.startDate.slice(8,10)}일</time><span>${ev.title}</span></div>`).join(""):`<div class="schedule-empty">등록된 일정이 없습니다.</div>`;
-  return inner+"</div>"
- }
- if(view.type==="event-list"){
-  const monthMode=view.displayMode==="month",year=monthMode?Number(p.calendarYear||project.settings.year):Number(project.settings.year),startMonth=monthMode?Number(p.calendarMonth||project.settings.startMonth||1):Number(view.startMonth||project.settings.startMonth||1);
-  if(view.displayMode==="year-by-month")return window.ACDLSharedSchedule.renderYearScheduleMarkup(
-   window.ACDLSharedSchedule.resolveYearScheduleEvents(project.book.events||[],view,year),view,year);
-  const schedule=window.ACDLPageCompositionRuntime.resolveScheduleEvents(project.book.events||[],view,p,{year:project.settings.year,startMonth:project.settings.startMonth||1});
-  const items=schedule.items;
-  const requestedColumns=view.columns==="auto"?"auto":Math.max(1,Math.min(4,Number(view.columns||1))),fontSize=Math.max(5,Math.min(18,Number(view.fontSize||8))),minFontSize=Math.max(5,Math.min(fontSize,Number(view.minFontSize||6)));
-  const title=monthMode?`${startMonth}월 학사일정`:view.title||"전체 학사일정";
-  let inner=`<div class="widget-event-list${monthMode?" is-current-month-schedule":""}${!items.length&&view.emptyStatePresentation==="quiet-guide"?" is-empty-quiet-guide":""}" data-event-fit="${view.autoShrink===false?"manual":"auto"}" data-event-columns="${requestedColumns}" data-event-width="${Number(view.width||20)}" data-event-height="${Number(view.height||40)}" data-event-font-size="${fontSize}" data-event-min-font-size="${minFontSize}"><strong>${title}</strong><div class="annual-event-items" style="--event-list-columns:${requestedColumns==="auto"?1:requestedColumns};--event-list-font-size:${fontSize}px">`;
-  inner+=items.length?items.map(ev=>{const end=view.showEndDate&&ev.endDate&&ev.endDate!==ev.startDate?`–${ev.endDate.slice(5).replace("-",".")}`:"";return `<div class="annual-event-item"><time>${ev.startDate.slice(5).replace("-",".")}${end}</time><span>${v21Escape(ev.title)}</span></div>`}).join(""):view.emptyStatePresentation==="blank"?"":`<div class="annual-event-empty">등록된 일정이 없습니다.</div>`;
-  return inner+`</div><div class="event-list-overflow-warning" aria-hidden="true"></div></div>`
+ if(["monthly-schedule","event-list"].includes(view.type)){
+  if(view.displayMode==="year-by-month")return window.ACDLSharedSchedule.renderYearScheduleMarkup(window.ACDLSharedSchedule.resolveYearScheduleEvents(project.book.events||[],view,project.settings.year),view,project.settings.year);
+  const schedule=window.ACDLSharedSchedule.resolveScheduleEvents(project.book.events||[],view,p,{year:project.settings.year,startMonth:project.settings.startMonth||1});
+  return window.ACDLSharedSchedule.renderScheduleMarkup(schedule,view,p);
  }
  return ""
 }
@@ -315,7 +302,7 @@ function schoolBindingValue(binding){
  return "";
 }
 function resolveTextContent(view,p=selectedPage()){
- if(view.format==="plan-month")return window.ACDLPageObjectModel.monthText(view,project.settings.year);
+ if(view.format==="plan-month"&&view.binding==="calendar.year"&&view.bindingEnabled!==false)return window.ACDLPageObjectModel.monthText(view,project.settings.year);
  if(view.binding?.startsWith("school."))return schoolBindingValue(view.binding)||view.content||"학교 정보 입력";
  if(view.binding==="calendar.year"||view.type==="text"&&view.role==="year"&&["cover-front","back-cover-back"].includes(p?.role))return window.ACDLRuntimeProjectAdapter.formatYearText(view,p,project);
  return view.content||""
@@ -833,7 +820,7 @@ function elementInspectorPanels(){
   let c=head+`<div class="template-help-card">이 개체에는 템플릿 선택 화면에서 보여줄 <strong>샘플 콘텐츠</strong>와 실제 학교 정보가 들어올 <strong>데이터 연결</strong>이 함께 저장됩니다.</div>`;
   c+=`<div class="inspector-group"><div class="inspector-group-title"><span>샘플 콘텐츠</span><span class="sample-badge">TEMPLATE SAMPLE</span></div>`;
   if(item.role!=="school-motto")c+=`<label>${semanticRoleLabel(item.role)} 샘플 이미지</label><div class="semantic-image-preview">${previewImage?`<img src="${previewImage}" alt="${semanticRoleLabel(item.role)} 샘플 이미지">`:"샘플 이미지를 선택하세요."}</div><button id="replaceSemanticImage" class="action secondary">${previewImage?"샘플 이미지 교체":"샘플 이미지 선택"}</button>`;
-  if(item.role!=="school-logo"){
+  if(item.role!=="school-logo"&&item.layoutPreset!=="image-only"){
    c+=`<label>${item.role==="school-song"?"샘플 교가 제목":"샘플 명칭"}<input id="semanticName" value="${d.name||""}"></label>`;
    c+=`<label>${item.role==="school-song"?"샘플 작사·작곡/설명":"샘플 설명"}<textarea id="semanticDescription" rows="4">${d.description||""}</textarea></label>`;
   }
@@ -841,12 +828,12 @@ function elementInspectorPanels(){
   c+=`<div class="inspector-group"><div class="inspector-group-title"><span>데이터 연결</span><span class="${item.bindingEnabled?"binding-badge":"fixed-badge"}">${item.bindingEnabled?"BOUND DATA":"FIXED"}</span></div><label>개체 동작<select id="semanticBindingMode"><option value="bound" ${item.bindingEnabled?"selected":""}>실제 학교 데이터와 연결</option><option value="fixed" ${!item.bindingEnabled?"selected":""}>고정 콘텐츠로 사용</option></select></label><label>연결 대상<select id="semanticBindingPath"><option value="${defaultBindingForRole(item.role)}">${semanticRoleLabel(item.role)} · ${defaultBindingForRole(item.role)}</option></select></label><div class="binding-path">${item.bindingEnabled?(item.binding||defaultBindingForRole(item.role)):"Binding 없음 — 샘플 콘텐츠가 최종 콘텐츠로 유지됩니다."}</div><label class="inline-check"><input id="semanticFallback" type="checkbox" ${item.fallbackToSample!==false?"checked":""}><span>실제 학교 데이터가 없으면 샘플 콘텐츠 표시</span></label><button id="applySemanticBinding" class="action">데이터 연결 저장</button></div></div>`;
   panels.content=c;
   let dsg=head+`<div class="inspector-group"><div class="inspector-group-title"><span>레이아웃과 스타일</span><small>표현 방식</small></div>`;
-  if(!["school-logo","school-motto"].includes(item.role))dsg+=`<label>내부 배치<select id="semanticLayout"><option value="image-top" ${item.layoutPreset==="image-top"?"selected":""}>이미지 위 · 설명 아래</option><option value="image-left" ${item.layoutPreset==="image-left"?"selected":""}>이미지 왼쪽 · 설명 오른쪽</option></select></label>`;
-  dsg+=`<div class="grid2"><label>제목 크기<input id="semanticTitleSize" type="number" min="8" max="60" value="${item.style?.titleSize||18}"></label><label>설명 크기<input id="semanticDescriptionSize" type="number" min="7" max="32" value="${item.style?.descriptionSize||11}"></label></div><label>텍스트 정렬<select id="semanticTextAlign"><option value="left" ${item.style?.textAlign==="left"?"selected":""}>왼쪽</option><option value="center" ${item.style?.textAlign==="center"?"selected":""}>가운데</option><option value="right" ${item.style?.textAlign==="right"?"selected":""}>오른쪽</option></select></label><button id="applySemanticTemplate" class="action">레이아웃·스타일 저장</button></div></div>`;
-  panels.design=dsg;
+  if(item.layoutPreset!=="image-only"&&!["school-logo","school-motto"].includes(item.role))dsg+=`<label>내부 배치<select id="semanticLayout"><option value="image-top" ${item.layoutPreset==="image-top"?"selected":""}>이미지 위 · 설명 아래</option><option value="image-left" ${item.layoutPreset==="image-left"?"selected":""}>이미지 왼쪽 · 설명 오른쪽</option></select></label>`;
+  if(item.layoutPreset!=="image-only")dsg+=`<div class="grid2"><label>제목 크기<input id="semanticTitleSize" type="number" min="8" max="60" value="${item.style?.titleSize||18}"></label><label>설명 크기<input id="semanticDescriptionSize" type="number" min="7" max="32" value="${item.style?.descriptionSize||11}"></label></div><label>텍스트 정렬<select id="semanticTextAlign"><option value="left" ${item.style?.textAlign==="left"?"selected":""}>왼쪽</option><option value="center" ${item.style?.textAlign==="center"?"selected":""}>가운데</option><option value="right" ${item.style?.textAlign==="right"?"selected":""}>오른쪽</option></select></label><button id="applySemanticTemplate" class="action">레이아웃·스타일 저장</button></div></div>`;
+  panels.design=item.layoutPreset==="image-only"?"":dsg;
  }else if(item.type==="text"){
   const boundText=!!item.binding,resolvedText=resolveTextContent(item,selectedPage());
-  const yearFormat=item.binding==="calendar.year"?`<label>연도 형식<select id="elemYearFormat"><option value="year-plain" ${!item.format||item.format==="year-plain"?"selected":""}>2028</option><option value="year-ko" ${item.format==="year-ko"?"selected":""}>2028년</option><option value="academic-year" ${item.format==="academic-year"?"selected":""}>2028학년도</option><option value="year-range" ${item.format==="year-range"?"selected":""}>2028–2029</option></select></label>`:"";
+  const yearFormat=item.role==="yearly-plan-month"?`<label>자동 월 표시 형식<select id="elemPlanMonthStyle"><option value="number-en" ${item.planMonthLabelStyle!=="number-ko"?"selected":""}>3 MAR</option><option value="number-ko" ${item.planMonthLabelStyle==="number-ko"?"selected":""}>3월</option></select></label>`:item.binding==="calendar.year"?`<label>연도 형식<select id="elemYearFormat"><option value="year-plain" ${!item.format||item.format==="year-plain"?"selected":""}>2028</option><option value="year-ko" ${item.format==="year-ko"?"selected":""}>2028년</option><option value="academic-year" ${item.format==="academic-year"?"selected":""}>2028학년도</option><option value="year-range" ${item.format==="year-range"?"selected":""}>2028–2029</option></select></label>`:"";
   panels.content=head+`<label>표시 방식<select id="elemTextBinding"><option value="" ${!item.binding?"selected":""}>고정 텍스트 · 아래 입력값 표시</option><option value="school.name" ${item.binding==="school.name"?"selected":""}>학교 이름과 연결</option><option value="school.englishName" ${item.binding==="school.englishName"?"selected":""}>영문 학교명과 연결</option><option value="school.slogan" ${item.binding==="school.slogan"?"selected":""}>슬로건과 연결</option><option value="school.address" ${item.binding==="school.address"?"selected":""}>학교 주소와 연결</option><option value="school.website" ${item.binding==="school.website"?"selected":""}>홈페이지와 연결</option><option value="school.contacts" ${item.binding==="school.contacts"?"selected":""}>연락처 목록과 연결</option><option value="school.profile.motto.description" ${item.binding==="school.profile.motto.description"?"selected":""}>교훈과 연결</option><option value="school.profile.tree.description" ${item.binding==="school.profile.tree.description"?"selected":""}>교목 설명과 연결</option><option value="school.profile.flower.description" ${item.binding==="school.profile.flower.description"?"selected":""}>교화 설명과 연결</option><option value="school.profile.song.description" ${item.binding==="school.profile.song.description"?"selected":""}>교가 정보와 연결</option><option value="calendar.year" ${item.binding==="calendar.year"?"selected":""}>달력 연도와 연결</option></select></label>${yearFormat}<label>${boundText?"데이터가 없을 때 표시할 대체 텍스트":"표시할 텍스트"}<textarea id="elemText" rows="4">${item.content||""}</textarea></label>${boundText?`<div class="binding-path">현재 화면 표시: ${v21Escape(resolvedText||"연결 데이터 없음")}</div><div class="hint">연결된 프로젝트 데이터가 우선이며, 위 문구는 연도 데이터가 없을 때만 표시됩니다.</div>`:`<div class="hint">입력한 문구가 편집 화면과 출력물에 그대로 표시됩니다.</div>`}<button id="applyTextContent" class="action">표시 방식·텍스트 저장</button></div>`;
   const s=item.style||{},decoration=String(s.textDecoration||"");
   panels.design=head+`<div class="inspector-group"><div class="inspector-group-title"><span>글꼴과 글자</span><small>모든 텍스트 공통</small></div><label>글꼴<select id="elemFontFamily"><option value="" ${!s.fontFamily?"selected":""}>템플릿 기본 글꼴</option><option value="Pretendard" ${s.fontFamily==="Pretendard"?"selected":""}>Pretendard</option><option value="Noto Sans KR" ${s.fontFamily==="Noto Sans KR"?"selected":""}>Noto Sans KR</option><option value="Noto Serif KR" ${s.fontFamily==="Noto Serif KR"?"selected":""}>Noto Serif KR</option><option value="Nanum Gothic" ${s.fontFamily==="Nanum Gothic"?"selected":""}>나눔고딕</option><option value="Nanum Myeongjo" ${s.fontFamily==="Nanum Myeongjo"?"selected":""}>나눔명조</option><option value="Arial" ${s.fontFamily==="Arial"?"selected":""}>Arial</option><option value="Times New Roman" ${s.fontFamily==="Times New Roman"?"selected":""}>Times New Roman</option><option value="Playfair Display" ${s.fontFamily==="Playfair Display"?"selected":""}>Playfair Display</option></select></label><div class="grid2"><label>글자 크기<input id="elemFontSize" type="number" min="1" max="240" step=".5" value="${s.fontSize||18}"></label><label>글자 굵기<select id="elemFontWeight">${[100,200,300,400,500,600,700,800,900].map(weight=>`<option value="${weight}" ${Number(s.fontWeight||400)===weight?"selected":""}>${weight}${weight===400?" · 보통":weight===700?" · 굵게":""}</option>`).join("")}</select></label></div><div class="text-style-checks"><label><input id="elemItalic" type="checkbox" ${s.fontStyle==="italic"?"checked":""}>기울임</label><label><input id="elemUnderline" type="checkbox" ${decoration.includes("underline")?"checked":""}>밑줄</label><label><input id="elemStrike" type="checkbox" ${decoration.includes("line-through")?"checked":""}>취소선</label></div><div class="grid2"><label>가로 정렬<select id="elemAlign"><option value="left" ${s.textAlign==="left"?"selected":""}>왼쪽</option><option value="center" ${s.textAlign==="center"?"selected":""}>가운데</option><option value="right" ${s.textAlign==="right"?"selected":""}>오른쪽</option><option value="justify" ${s.textAlign==="justify"?"selected":""}>양쪽</option></select></label><label>세로 정렬<select id="elemVerticalAlign"><option value="top" ${!s.verticalAlign||s.verticalAlign==="top"?"selected":""}>위</option><option value="middle" ${s.verticalAlign==="middle"?"selected":""}>가운데</option><option value="bottom" ${s.verticalAlign==="bottom"?"selected":""}>아래</option></select></label><label>자간(px)<input id="elemLetterSpacing" type="number" min="-20" max="100" step=".1" value="${s.letterSpacing||0}"></label><label>행간<input id="elemLineHeight" type="number" min=".5" max="4" step=".05" value="${s.lineHeight||1.2}"></label></div><div class="grid2"><label>글자색<input id="elemColor" type="color" value="${s.color||"#17202e"}"></label><label>불투명도<input id="elemOpacity" type="number" min="0" max="1" step=".05" value="${s.opacity??1}"></label></div><div class="text-effect-group"><strong>배경</strong><div class="text-style-checks"><label><input id="elemBackground" type="checkbox" ${s.background?"checked":""}>배경 표시</label></div><label>배경색<input id="elemBackgroundColor" type="color" value="${s.backgroundColor||"#ffffff"}"></label></div><div class="text-effect-group"><strong>외곽선</strong><div class="grid2"><label>두께(px)<input id="elemStrokeWidth" type="number" min="0" max="10" step=".1" value="${s.strokeWidth||0}"></label><label>색상<input id="elemStrokeColor" type="color" value="${s.strokeColor||"#ffffff"}"></label></div></div><div class="text-effect-group"><strong>그림자</strong><div class="text-style-checks"><label><input id="elemShadow" type="checkbox" ${s.shadow?"checked":""}>그림자 표시</label></div><div class="grid2"><label>X(px)<input id="elemShadowX" type="number" min="-50" max="50" step=".5" value="${s.shadowX||0}"></label><label>Y(px)<input id="elemShadowY" type="number" min="-50" max="50" step=".5" value="${s.shadowY||0}"></label><label>흐림(px)<input id="elemShadowBlur" type="number" min="0" max="50" step=".5" value="${s.shadowBlur||0}"></label><label>색상<input id="elemShadowColor" type="color" value="${s.shadowColor||"#000000"}"></label></div></div><button id="applyElementStyle" class="action">텍스트 스타일 적용</button></div></div>`;
@@ -862,11 +849,11 @@ function elementInspectorPanels(){
  else if(item.type==="monthly-schedule")panels.content=head+`<label>일정 제목<input id="widgetTitle" value="${item.title||"이달의 일정"}"></label><label>최대 표시 일정<input id="scheduleMaxItems" type="number" min="1" max="30" value="${item.maxItems||10}"></label><button id="applyScheduleWidget" class="action">일정 설정 적용</button></div>`;
  else if(item.type==="year-calendar"){
   panels.content=head+`<label>시작월<input id="yearCalendarStartMonth" type="number" min="1" max="12" value="${item.startMonth||1}"></label><button id="applyYearCalendarContent" class="action">연간 월력 콘텐츠 저장</button></div>`;
-  panels.design=head+`<label>배열<select id="yearCalendarColumns"><option value="3" ${item.columns===3?"selected":""}>3열 × 4행</option><option value="4" ${item.columns!==3?"selected":""}>4열 × 3행</option><option value="6" ${item.columns===6?"selected":""}>6열 × 2행</option></select></label><label>월 표시 행 수<select id="yearCalendarRowsMode"><option value="inherit" ${(item.rowsMode||"inherit")==="inherit"?"selected":""}>월력 설정 따름</option><option value="adaptive" ${item.rowsMode==="adaptive"?"selected":""}>월별 자동 · 5/6주</option><option value="5" ${item.rowsMode==="5"?"selected":""}>항상 5주</option><option value="6" ${item.rowsMode==="6"?"selected":""}>항상 6주</option></select></label><button id="applyYearCalendarLayout" class="action">연간 월력 배열·행 수 저장</button></div>`;
+  panels.design=head+`<label>배열<select id="yearCalendarColumns"><option value="3" ${item.columns===3?"selected":""}>3열 × 4행</option><option value="4" ${![3,6].includes(item.columns)?"selected":""}>4열 × 3행</option><option value="6" ${item.columns===6?"selected":""}>6열 × 2행</option></select></label><label>월 표시 행 수<select id="yearCalendarRowsMode"><option value="inherit" ${(item.rowsMode||"inherit")==="inherit"?"selected":""}>월력 설정 따름</option><option value="adaptive" ${item.rowsMode==="adaptive"?"selected":""}>월별 자동 · 5/6주</option><option value="5" ${item.rowsMode==="5"?"selected":""}>항상 5주</option><option value="6" ${item.rowsMode==="6"?"selected":""}>항상 6주</option></select></label><button id="applyYearCalendarLayout" class="action">연간 월력 배열·행 수 저장</button></div>`;
  }else if(item.type==="month-date-strip"){
   panels.content=head+`<label>월 연결<select id="dateStripMonthSource"><option value="page" ${item.monthSource!=="fixed"?"selected":""}>현재 페이지 월 자동 연결</option><option value="fixed" ${item.monthSource==="fixed"?"selected":""}>연·월 직접 선택</option></select></label><div class="grid2"><label>연도<input id="dateStripYear" type="number" value="${item.year||project.settings.year}"></label><label>월<input id="dateStripMonth" type="number" min="1" max="12" value="${item.month||project.settings.startMonth||1}"></label></div><label><input id="dateStripShowWeekday" type="checkbox" ${item.showWeekday!==false?"checked":""} style="width:auto;height:auto"> 요일(SMTWTFS) 표시</label><label><input id="dateStripShowDate" type="checkbox" ${item.showDate!==false?"checked":""} style="width:auto;height:auto"> 일자 표시</label><button id="applyDateStripContent" class="action">날짜 띠 콘텐츠 저장</button></div>`;
   panels.design=head+`<div class="hint">요일은 영문 한 글자(SMTWTFS), 날짜는 아래 줄에 표시됩니다. 일요일과 토요일은 자동 구분됩니다.</div><label><input id="dateStripBackground" type="checkbox" ${item.style?.background!==false?"checked":""} style="width:auto;height:auto"> 배경·구분선 표시</label><button id="applyDateStripDesign" class="action">날짜 띠 디자인 저장</button></div>`;
- }else if(item.type==="event-list"){const limitedMode=!['all','year-by-month','month'].includes(item.displayMode);panels.content=head+`<label>목록 제목<input id="eventListTitle" value="${item.title||"전체 학사일정"}"></label><div class="grid2"><label>시작월<input id="eventListStartMonth" type="number" min="1" max="12" value="${item.startMonth||1}"></label><label>표시 개월<input id="eventListMonthCount" type="number" min="1" max="24" value="${item.monthCount||12}"></label></div><label>일정 표시 범위<select id="eventListDisplayMode"><option value="limit" ${limitedMode?"selected":""}>최대 개수 표시</option><option value="all" ${item.displayMode==="all"?"selected":""}>전체 일정 표시</option><option value="year-by-month" ${item.displayMode==="year-by-month"?"selected":""}>12개월 월별 학사일정</option><option value="month" ${item.displayMode==="month"?"selected":""}>해당 월 학사일정</option></select></label><label id="eventListMaxItemsField" ${limitedMode?'':'class="hidden"'}>최대 표시 일정<input id="eventListMaxItems" type="number" min="1" max="500" value="${item.maxItems||24}"></label><label><input id="eventListShowEndDate" type="checkbox" ${item.showEndDate?"checked":""} style="width:auto;height:auto"> 종료일 함께 표시</label><button id="applyEventListWidget" class="action">학사일정 설정 적용</button></div>`;panels.design=head+`<label>단 구성<select id="eventListColumns"><option value="auto" ${item.columns==="auto"?"selected":""}>자동 · 개체 크기에 맞춤</option><option value="1" ${item.columns!=="auto"&&Number(item.columns||1)===1?"selected":""}>1단 · 세로 목록</option><option value="2" ${Number(item.columns||1)===2?"selected":""}>2단</option><option value="3" ${Number(item.columns||1)===3?"selected":""}>3단</option><option value="4" ${Number(item.columns||1)===4?"selected":""}>4단</option></select></label><div class="grid2"><label>기본 글자 크기<input id="eventListFontSize" type="number" min="5" max="18" step="0.5" value="${item.fontSize||8}"></label><label>최소 글자 크기<input id="eventListMinFontSize" type="number" min="5" max="18" step="0.5" value="${item.minFontSize||6}"></label></div><label><input id="eventListAutoShrink" type="checkbox" ${item.autoShrink!==false?"checked":""} style="width:auto;height:auto"> 내용에 맞게 자동 축소</label><div class="hint">자동은 먼저 단 수를 조정하고, 필요할 때만 설정한 최소 크기까지 글자를 줄입니다. 그래도 넘치면 편집 화면에 안내가 표시됩니다.</div><button id="applyEventListLayout" class="action">단 구성·글자 적용</button></div>`;}
+ }else if(item.type==="event-list"){const limitedMode=!['all','year-by-month','month'].includes(item.displayMode);panels.content=head+`<label>목록 제목<input id="eventListTitle" value="${item.title||"전체 학사일정"}"></label><div class="grid2"><label>시작월<input id="eventListStartMonth" type="number" min="1" max="12" value="${item.startMonth||1}"></label><label>표시 개월<input id="eventListMonthCount" type="number" min="1" max="12" value="${item.monthCount||12}"></label></div><label>일정 표시 범위<select id="eventListDisplayMode"><option value="limit" ${limitedMode?"selected":""}>최대 개수 표시</option><option value="all" ${item.displayMode==="all"?"selected":""}>전체 일정 표시</option><option value="year-by-month" ${item.displayMode==="year-by-month"?"selected":""}>12개월 월별 학사일정</option><option value="month" ${item.displayMode==="month"?"selected":""}>해당 월 학사일정</option></select></label><label id="eventListMaxItemsField" ${limitedMode?'':'class="hidden"'}>최대 표시 일정<input id="eventListMaxItems" type="number" min="1" max="500" value="${item.maxItems||24}"></label><label><input id="eventListShowEndDate" type="checkbox" ${item.showEndDate?"checked":""} style="width:auto;height:auto"> 종료일 함께 표시</label><button id="applyEventListWidget" class="action">학사일정 설정 적용</button></div>`;panels.design=head+`<label>단 구성<select id="eventListColumns"><option value="auto" ${item.columns==="auto"?"selected":""}>자동 · 개체 크기에 맞춤</option><option value="1" ${item.columns!=="auto"&&Number(item.columns||1)===1?"selected":""}>1단 · 세로 목록</option><option value="2" ${Number(item.columns||1)===2?"selected":""}>2단</option><option value="3" ${Number(item.columns||1)===3?"selected":""}>3단</option><option value="4" ${Number(item.columns||1)===4?"selected":""}>4단</option></select></label><div class="grid2"><label>기본 글자 크기<input id="eventListFontSize" type="number" min="3" max="72" step="0.5" value="${item.fontSize||8}"></label><label>최소 글자 크기<input id="eventListMinFontSize" type="number" min="3" max="72" step="0.5" value="${item.minFontSize||6}"></label></div><label><input id="eventListAutoShrink" type="checkbox" ${item.autoShrink!==false?"checked":""} style="width:auto;height:auto"> 내용에 맞게 자동 축소</label><div class="hint">자동은 먼저 단 수를 조정하고, 필요할 때만 설정한 최소 크기까지 글자를 줄입니다. 그래도 넘치면 편집 화면에 안내가 표시됩니다.</div><button id="applyEventListLayout" class="action">단 구성·글자 적용</button></div>`;}
  else if(["mini-calendar","mini-calendar-prev","mini-calendar-next"].includes(item.type)){
   const label=item.type==="mini-calendar-prev"?"이전 달":item.type==="mini-calendar-next"?"다음 달":"현재 달",s=item.style||{};
   panels.content=head+`<div class="hint">이 개체는 월력 뒷면의 ${label}을 자동 표시합니다. 빈 날짜 셀용 미니 월력과 별개의 독립 디자인 개체입니다.</div><label>월 표시 형식<select id="miniMonthLabelStyle"><option value="number-en" ${item.monthLabelStyle==="number-en"?"selected":""}>3 MAR · 숫자+영문월</option><option value="year-month-ko" ${item.monthLabelStyle!=="number-en"?"selected":""}>2028년 3월</option></select></label><label><input id="miniShowWeekday" type="checkbox" ${item.showWeekdayHeader!==false?"checked":""} style="width:auto;height:auto"> 요일 머리글 표시</label><button id="applyMiniCalendarContent" class="action">미니 월력 콘텐츠 저장</button></div>`;
@@ -957,6 +944,7 @@ let pendingCanvasGeometrySaveId=null;
 const INSPECTOR_SAVE_MESSAGES={
  applySemanticSample:"샘플 콘텐츠를 저장했습니다.",
  applySemanticBinding:"데이터 연결 설정을 저장했습니다.",
+ savePageWidgetStyles:"개체 스타일을 저장했습니다.",
  applySemanticTemplate:"개체 레이아웃과 스타일을 저장했습니다.",
  applyCalendarRegion:"월력 위치와 크기를 저장했습니다.",
  applyMemoWidget:"메모 설정을 저장했습니다.",
@@ -989,51 +977,52 @@ function inspectorSignature(container){
 function validateInspectorContainer(container){
  return window.ACDLInspectorForm.validate(container)
 }
+let inspectorTracked=[];
+let inspectorSavedContainer=null;
+let inspectorRenderedKey="";
+let inspectorRenderVersion=0;
+function inspectorSelectionKey(){return `${selectedPage()?.id}:${selectedElementScope}:${selectedElementId}:${calendarEditing}:${monthTitleEditing}`}
+function captureInspectorDrafts(){
+ const key=inspectorSelectionKey();
+ if(key!==inspectorRenderedKey||(!inspectorDirty&&!inspectorSavedContainer))return [];
+ const fields=new Map();
+ inspectorTracked.filter(entry=>entry.container!==inspectorSavedContainer&&entry.button.classList.contains("has-changes")).forEach(entry=>{
+  entry.container.querySelectorAll("input,select,textarea").forEach(node=>{if(node.id&&node.type!=="file")fields.set(node.id,{id:node.id,value:node.value,checked:node.checked});});
+ });
+ return [...fields.values()];
+}
+function registerInspectorSaveButton(button){
+ if(!button||inspectorTracked.some(entry=>entry.button===button))return;
+ const id=button.id,container=inspectorContainerFor(button),initial=inspectorSignature(container);
+ button.classList.add("inspector-save");button.dataset.initialSignature=initial;
+ const entry={button,container,initial};inspectorTracked.push(entry);
+ const update=()=>{
+  const draftChanged=(id==="applySemanticSample"&&semanticImageDraftElementId===sourceElement()?.id&&!!semanticImageDraft)||(id==="applyElementGeometry"&&pendingCanvasGeometrySaveId===selectedElementId);
+  const changed=inspectorSignature(container)!==initial||draftChanged;
+  button.classList.toggle("has-changes",changed);button.disabled=!changed;
+  container.classList.toggle("is-dirty",changed);
+  inspectorDirty=inspectorTracked.some(item=>item.button.classList.contains("has-changes"));
+  if(changed)setInspectorNotice("dirty","변경사항이 있습니다. 해당 영역의 저장 버튼을 눌러 반영하세요.");
+  else if(!inspectorDirty&&inspectorNotice.type==="dirty")setInspectorNotice("ready","저장할 변경사항이 없습니다.");
+ };
+ container.querySelectorAll("input,select,textarea").forEach(node=>{node.addEventListener("input",update);node.addEventListener("change",update);});update();
+ button.addEventListener("click",event=>{
+  const validation=validateInspectorContainer(container);
+  if(!validation.valid||!button.classList.contains("has-changes")){
+   event.preventDefault();event.stopImmediatePropagation();
+   const message=validation.valid?"변경된 내용이 없습니다.":validation.message;
+   setInspectorNotice("error",message);showEditorToast(message);return;
+  }
+  inspectorSavedContainer=container;
+  if(id==="applyElementGeometry")pendingCanvasGeometrySaveId=null;
+  inspectorNotice={type:"success",message:INSPECTOR_SAVE_MESSAGES[id]||"설정을 저장했습니다."};
+  setTimeout(()=>showEditorToast("저장되었습니다."),0);
+ },true);
+}
 function setupInspectorFeedback(){
- const feedback=el("inspectorFeedback");
- if(feedback)setInspectorNotice(inspectorNotice.type,inspectorNotice.message);
- const tracked=[];
- INSPECTOR_SAVE_IDS.forEach(id=>{
-  const button=el(id);if(!button)return;
-  const container=inspectorContainerFor(button),initial=inspectorSignature(container);
-  button.classList.add("inspector-save");
-  button.dataset.initialSignature=initial;
-  tracked.push({button,container,initial});
-  const update=()=>{
-   const draftChanged=(id==="applySemanticSample"&&semanticImageDraftElementId===sourceElement()?.id&&!!semanticImageDraft)||(id==="applyElementGeometry"&&pendingCanvasGeometrySaveId===selectedElementId);
-   const changed=inspectorSignature(container)!==initial||draftChanged;
-   button.classList.toggle("has-changes",changed);
-   container.classList.toggle("is-dirty",changed);
-   inspectorDirty=tracked.some(item=>item.button.classList.contains("has-changes"));
-   if(changed)setInspectorNotice("dirty","변경사항이 있습니다. 해당 영역의 저장 버튼을 눌러 반영하세요.");
-   else if(!inspectorDirty&&inspectorNotice.type==="dirty")setInspectorNotice("ready","변경된 값을 원래대로 되돌렸습니다. 저장할 내용이 없습니다.")
-  };
-  container.querySelectorAll("input,select,textarea").forEach(node=>{
-   node.addEventListener("input",update);
-   node.addEventListener("change",update)
-  });
-  update();
-  button.addEventListener("click",event=>{
-   const validation=validateInspectorContainer(container);
-   if(!validation.valid){
-    event.preventDefault();event.stopImmediatePropagation();
-    setInspectorNotice("error",validation.message);
-    showEditorToast(validation.message);
-    return
-   }
-   const changed=button.classList.contains("has-changes");
-   if(!changed){
-    event.preventDefault();event.stopImmediatePropagation();
-    const message="변경된 내용이 없습니다. 먼저 설정값을 변경하세요.";
-    setInspectorNotice("info",message);showEditorToast(message);
-    return
-   }
-   inspectorDirty=false;
-   if(id==="applyElementGeometry")pendingCanvasGeometrySaveId=null;
-   inspectorNotice={type:"success",message:INSPECTOR_SAVE_MESSAGES[id]};
-   setTimeout(()=>showEditorToast("저장되었습니다."),0);
-  },true)
- })
+ inspectorTracked=[];
+ const feedback=el("inspectorFeedback");if(feedback)setInspectorNotice(inspectorNotice.type,inspectorNotice.message);
+ INSPECTOR_SAVE_IDS.forEach(id=>registerInspectorSaveButton(el(id)));
 }
 function confirmDiscardInspectorChanges(){
  if(!inspectorDirty)return true;
@@ -1046,6 +1035,7 @@ function confirmDiscardInspectorChanges(){
 }
 
 function renderInspector(){
+ const drafts=captureInspectorDrafts(),draftKey=inspectorSelectionKey(),draftVersion=++inspectorRenderVersion;inspectorSavedContainer=null;
  if(sourceElement())monthTitleEditing=false;
  const p=selectedPage(),ins=el("inspector"),panels=elementInspectorPanels();
  let content=panels.content||"",design=panels.design||"",layout=panels.layout||"";
@@ -1093,13 +1083,52 @@ function renderInspector(){
   const item=sourceElement(),overridden=monthlyPagesForRole(p.role).filter(page=>pageElements(page).some(local=>local.shadowOfMasterElementId===item.id));
   layout+=`<div class="section master-apply-card"><strong>12개월 공통 개체</strong><p>이 개체의 위치와 크기는 ${monthlyMasterLabel(p)}에 공통으로 반영됩니다.${overridden.length?` 단, 별도 편집된 ${overridden.length}개 월은 현재 공통 배치를 따르지 않습니다.`:""}</p><button id="detachMonthlyMaster" class="secondary" type="button">이 월만 별도 편집</button></div>`;
  }
- const empty=tab=>`<div class="inspector-tab-empty">${tab==="content"?"선택한 개체의 콘텐츠 설정이 없습니다.":tab==="design"?"선택한 개체의 디자인 설정이 없습니다.":"선택한 개체의 배치 설정이 없습니다."}</div>`;
+ const selected=sourceElement();
+ if(selected?.type==="event-list"&&selected.displayMode==="month"){
+  const automatic=selected.titleMode==="auto"||selected.titleMode!=="custom"&&(selected.titleTemplate||/^\d+월 학사일정$/.test(selected.title||""));
+  content=content.replace('<label>목록 제목',`<label>제목 표시<select id="eventListTitleMode"><option value="auto" ${automatic?"selected":""}>해당 월 제목 자동 표시</option><option value="custom" ${!automatic?"selected":""}>직접 입력한 제목</option></select></label><label>목록 제목`);
+  content=content.replace(/<label(?: [^>]*)?>[\s\S]*?<\/label>/g,label=>/id="eventList(?:StartMonth|MonthCount)"/.test(label)?"":label);
+ }
+ if(selected?.type==="event-list"&&selected.displayMode==="year-by-month"){
+  for(const id of ["eventListTitle","eventListMonthCount","eventListMaxItems","eventListColumns","eventListFontSize","eventListMinFontSize","eventListAutoShrink"]){
+   // Remove only the label that contains this control, without consuming earlier labels.
+   content=content.replace(/<label(?: [^>]*)?>[\s\S]*?<\/label>/g,label=>label.includes(`id="${id}"`)?"":label);
+   design=design.replace(/<label(?: [^>]*)?>[\s\S]*?<\/label>/g,label=>label.includes(`id="${id}"`)?"":label);
+  }
+  design="";
+  content+=`<div class="section hint">12개월 일정은 선택한 월별 배치에 따라 표시합니다. 각 월 제목과 영역은 스타일 탭에서 편집합니다.</div>`;
+ }
+ if(selected?.type==="year-calendar"&&["vertical-three-month-groups","horizontal-four-month-groups"].includes(selected.layoutType)){
+  design=design.replace(/<label(?: [^>]*)?>[\s\S]*?<\/label>/g,label=>label.includes('id="yearCalendarColumns"')?"":label);
+ }
+ if(selected?.type==="event-list"&&selected.displayMode!=="year-by-month"){
+  design=design.replace(/<label(?: [^>]*)?>[\s\S]*?<\/label>/g,label=>label.includes('id="eventListFontSize"')?"":label);
+ }
+ if(selected?.type==="memo"&&selected.hideTitle){
+  content=content.replace(/<label(?: [^>]*)?>[\s\S]*?<\/label>/g,label=>/id="(?:memoLayout|widgetTitle)"/.test(label)?"":label);
+  content=content.replace('min="3" max="20"','min="0" max="20"').replace('value="'+(selected.lineCount||8)+'"','value="'+(selected.lineCount??8)+'"');
+  content+=`<div class="section hint">제목과 월 표시는 각각의 텍스트 개체에서 편집합니다.</div>`;
+ }
+ const empty=tab=>`<div class="inspector-tab-empty">${!sourceElement()?"개체를 선택하면 해당 개체의 콘텐츠·스타일·배치 설정이 표시됩니다.":tab==="content"?"선택한 개체의 콘텐츠 설정이 없습니다.":tab==="design"?"선택한 개체의 디자인 설정이 없습니다.":"선택한 개체의 배치 설정이 없습니다."}</div>`;
  ins.innerHTML=`${p.role==="monthly-front"&&(monthTitleEditing||calendarEditing)?`<div class="section"><strong>현재 선택: ${monthTitleEditing?"월 표시":"월력 격자"}</strong></div>`:""}${inspectorTabsHTML()}<div class="inspector-tab-panel ${inspectorActiveTab==="content"?"active":""}" data-panel="content">${content||empty("content")}</div><div class="inspector-tab-panel ${inspectorActiveTab==="design"?"active":""}" data-panel="design">${design||empty("design")}</div><div class="inspector-tab-panel ${inspectorActiveTab==="layout"?"active":""}" data-panel="layout">${layout||empty("layout")}</div>`;
+ const selectedItem=sourceElement();
+ for(const [id,value] of [["elemTextBinding",selectedItem?.binding],["elemFontFamily",selectedItem?.style?.fontFamily]]){
+  const node=el(id);if(node&&value&&![...node.options].some(option=>option.value===value)){node.add(new Option(value,value,true,true));}
+ }
+ const planStyle=el("elemPlanMonthStyle"),bindingControl=el("elemTextBinding");
+ if(planStyle&&bindingControl){const refresh=()=>{planStyle.disabled=bindingControl.value!=="calendar.year";};bindingControl.addEventListener("change",refresh);refresh();}
  setupInspectorTabs();bindInspector();setupInspectorFeedback();
+ inspectorRenderedKey=inspectorSelectionKey();
+ if(drafts.length){const current=ins;queueMicrotask(()=>{
+  if(draftVersion!==inspectorRenderVersion||current!==el("inspector")||draftKey!==inspectorSelectionKey())return;
+  for(const draft of drafts){const node=el(draft.id);if(!node||!current.contains(node))continue;node.value=draft.value;node.checked=draft.checked;node.dispatchEvent(new Event("input",{bubbles:true}));}
+ });}
 }
 
 function bindInspector(){
  const bind=(id,fn)=>{if(el(id))el(id).addEventListener("click",fn)};
+ const titleMode=el("eventListTitleMode"),titleInput=el("eventListTitle");
+ if(titleMode&&titleInput){const refresh=()=>{titleInput.disabled=titleMode.value==="auto";};titleMode.addEventListener("change",refresh);refresh();}
  if(project.template?.metadata?.sampleFamily==="desk-6")el("masterCalendarDesignPreset")?.querySelector('option[value="sample-3"]')?.remove();
  bind("applySemanticSample",()=>{
   const i=sourceElement();if(!i||i.type!=="semantic-object")return;
@@ -1129,9 +1158,9 @@ function bindInspector(){
   if(el("semanticLayout"))i.layoutPreset=el("semanticLayout").value;
   if(el("semanticShowTitle"))i.showTitle=el("semanticShowTitle").checked;
   if(el("semanticTitleOverride"))i.titleOverride=el("semanticTitleOverride").value.trim()||semanticRoleLabel(i.role);
-  i.style.titleSize=Number(el("semanticTitleSize").value);
-  i.style.descriptionSize=Number(el("semanticDescriptionSize").value);
-  i.style.textAlign=el("semanticTextAlign").value;
+  if(el("semanticTitleSize"))i.style.titleSize=Number(el("semanticTitleSize").value);
+  if(el("semanticDescriptionSize"))i.style.descriptionSize=Number(el("semanticDescriptionSize").value);
+  if(el("semanticTextAlign"))i.style.textAlign=el("semanticTextAlign").value;
   syncMonthlySharedFields(i,["layoutPreset","showTitle","titleOverride","style"])
  }));
  bind("replaceSemanticImage",()=>{pendingSemanticRole=sourceElement()?.role;el("semanticImageInput").click()});
@@ -1142,19 +1171,19 @@ function bindInspector(){
  bind("calendarPresetCompact",()=>applyCalendarRegionPreset("compact"));
  bind("calendarPresetCenter",()=>applyCalendarRegionPreset("center"));
  bind("closeCalendarEditing",()=>{calendarEditing=false;monthTitleEditing=false;render()});
- bind("applyMemoWidget",()=>changeElement(i=>{i.memoLayout=el("memoLayout")?.value||"lines";i.title=el("widgetTitle").value;if(el("memoLineCount"))i.lineCount=Number(el("memoLineCount").value);if(el("memoWeekCount"))i.weekCount=Number(el("memoWeekCount").value);if(el("memoShowMemo"))i.showMemo=el("memoShowMemo").checked;if(el("memoItemCount"))i.itemCount=Number(el("memoItemCount").value);if(el("memoYearlyColumns"))i.yearlyColumns=Number(el("memoYearlyColumns").value);if(el("memoLinesPerMonth"))i.linesPerMonth=Number(el("memoLinesPerMonth").value);if(el("memoMonthLabelStyle"))i.monthLabelStyle=el("memoMonthLabelStyle").value}));
+ bind("applyMemoWidget",()=>changeElement(i=>{i.memoLayout=el("memoLayout")?.value||"lines";if(el("widgetTitle"))i.title=el("widgetTitle").value;if(el("memoLineCount"))i.lineCount=Number(el("memoLineCount").value);if(el("memoWeekCount"))i.weekCount=Number(el("memoWeekCount").value);if(el("memoShowMemo"))i.showMemo=el("memoShowMemo").checked;if(el("memoItemCount"))i.itemCount=Number(el("memoItemCount").value);if(el("memoYearlyColumns"))i.yearlyColumns=Number(el("memoYearlyColumns").value);if(el("memoLinesPerMonth"))i.linesPerMonth=Number(el("memoLinesPerMonth").value);if(el("memoMonthLabelStyle"))i.monthLabelStyle=el("memoMonthLabelStyle").value}));
  bind("applyMonthlyQuoteContent",()=>change(()=>{const key=monthlyQuoteKey(selectedPage());if(!key)return;ensureMonthlyQuotes();const current=project.book.monthlyQuotes[key]||{};project.book.monthlyQuotes[key]={...current,title:el("quoteTitle").value.trim()||"이 달의 명언",quoteKo:el("quoteKo").value.trim(),quoteEn:el("quoteEn").value.trim(),source:el("quoteSource").value.trim(),sourceStatus:"edited",translationType:current.translationType||"editorial"}}));
  bind("applyMonthlyQuoteStyle",()=>changeElement(i=>{i.style||={};i.style.titleSize=Number(el("quoteTitleSize").value);i.style.quoteKoSize=Number(el("quoteKoSize").value);i.style.quoteEnSize=Number(el("quoteEnSize").value);i.style.sourceSize=Number(el("quoteSourceSize").value);i.style.textAlign=el("quoteAlign").value;i.style.color=el("quoteColor").value;i.style.accentColor=el("quoteAccentColor").value;i.style.secondaryColor=el("quoteSecondaryColor").value;i.style.itemGap=Number(el("quoteItemGap").value);syncMonthlySharedFields(i,["style"])}));
  bind("applyYearCalendarContent",()=>change(()=>{const i=sourceElement();i.startMonth=Number(el("yearCalendarStartMonth").value)}));
- bind("applyYearCalendarLayout",()=>change(()=>{const i=sourceElement();i.columns=Number(el("yearCalendarColumns").value);i.rowsMode=el("yearCalendarRowsMode")?.value||"inherit"}));
+ bind("applyYearCalendarLayout",()=>change(()=>{const i=sourceElement();if(el("yearCalendarColumns"))i.columns=Number(el("yearCalendarColumns").value);i.rowsMode=el("yearCalendarRowsMode")?.value||"inherit"}));
  bind("applyMiniCalendarContent",()=>changeElement(i=>{i.monthLabelStyle=el("miniMonthLabelStyle").value;i.showWeekdayHeader=el("miniShowWeekday").checked;syncMonthlySharedFields(i,["monthLabelStyle","showWeekdayHeader"])}));
  bind("applyMiniCalendarStyle",()=>changeElement(i=>{i.style||={};i.style.titleSize=Number(el("miniTitleSize").value);i.style.titleAlign=el("miniTitleAlign").value;i.style.primary=el("miniPrimary").value;i.style.weekdayColor=el("miniWeekdayColor").value;i.style.dateColor=el("miniDateColor").value;i.style.sunday=el("miniSunday").value;i.style.saturday=el("miniSaturday").value;i.style.gridLine=el("miniGridLine").checked;syncMonthlySharedFields(i,["style"])}));
  bind("applyScheduleWidget",()=>change(()=>{const i=sourceElement();i.title=el("widgetTitle").value;i.maxItems=Number(el("scheduleMaxItems").value)}));
- bind("applyEventListWidget",()=>change(()=>{const i=sourceElement();i.title=el("eventListTitle").value;i.startMonth=Number(el("eventListStartMonth").value);i.monthCount=Number(el("eventListMonthCount").value);i.displayMode=el("eventListDisplayMode")?.value||"limit";i.maxItems=Number(el("eventListMaxItems")?.value||i.maxItems||24);i.showEndDate=el("eventListShowEndDate").checked}));
- bind("applyEventListLayout",()=>change(()=>{const i=sourceElement(),columns=el("eventListColumns").value;i.columns=columns==="auto"?"auto":Number(columns||1);i.fontSize=Number(el("eventListFontSize").value||8);i.style||={};i.style.fontSize=i.fontSize;i.minFontSize=Math.min(i.fontSize,Number(el("eventListMinFontSize").value||6));i.autoShrink=el("eventListAutoShrink").checked}));
+ bind("applyEventListWidget",()=>change(()=>{const i=sourceElement();if(el("eventListTitle"))i.title=el("eventListTitle").value;if(el("eventListTitleMode"))i.titleMode=el("eventListTitleMode").value;if(el("eventListStartMonth"))i.startMonth=Number(el("eventListStartMonth").value);if(el("eventListMonthCount"))i.monthCount=Number(el("eventListMonthCount").value);i.displayMode=el("eventListDisplayMode")?.value||"limit";i.maxItems=Number(el("eventListMaxItems")?.value||i.maxItems||24);i.showEndDate=el("eventListShowEndDate").checked}));
+ bind("applyEventListLayout",()=>change(()=>{const i=sourceElement(),columns=el("eventListColumns").value;i.columns=columns==="auto"?"auto":Number(columns||1);i.fontSize=Number(el("eventListFontSize")?.value||i.style?.fontSize||i.fontSize||8);i.style||={};i.style.fontSize=i.fontSize;i.minFontSize=Math.min(i.fontSize,Number(el("eventListMinFontSize").value||6));i.autoShrink=el("eventListAutoShrink").checked}));
  bind("applyDateStripContent",()=>change(()=>{const i=sourceElement();i.monthSource=el("dateStripMonthSource").value;i.year=Number(el("dateStripYear").value);i.month=Number(el("dateStripMonth").value);i.showWeekday=el("dateStripShowWeekday").checked;i.showDate=el("dateStripShowDate").checked}));
  bind("applyDateStripDesign",()=>change(()=>{const i=sourceElement();i.style||={};i.style.background=el("dateStripBackground").checked;syncMonthlySharedFields(i,["style"])}));
- bind("applyTextContent",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"text-content",{content:el("elemText").value,binding:el("elemTextBinding")?.value});if(item.binding==="calendar.year"&&item.role!=="yearly-plan-month")item.format=el("elemYearFormat")?.value||"year-plain"}));
+ bind("applyTextContent",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"text-content",{content:el("elemText").value,binding:el("elemTextBinding")?.value});if(item.role==="yearly-plan-month"){item.planMonthLabelStyle=el("elemPlanMonthStyle")?.value||"number-en";item.format=item.binding==="calendar.year"?"plan-month":"year-plain";}else if(item.binding==="calendar.year")item.format=el("elemYearFormat")?.value||"year-plain"}));
  bind("applyElementStyle",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"text-style",{fontFamily:el("elemFontFamily").value,fontSize:el("elemFontSize").value,fontWeight:el("elemFontWeight").value,fontStyle:el("elemItalic").checked?"italic":"normal",underline:el("elemUnderline").checked,strike:el("elemStrike").checked,textAlign:el("elemAlign").value,verticalAlign:el("elemVerticalAlign").value,color:el("elemColor").value,letterSpacing:el("elemLetterSpacing").value,lineHeight:el("elemLineHeight").value,opacity:el("elemOpacity").value,background:el("elemBackground").checked,backgroundColor:el("elemBackgroundColor").value,strokeWidth:el("elemStrokeWidth").value,strokeColor:el("elemStrokeColor").value,shadow:el("elemShadow").checked,shadowX:el("elemShadowX").value,shadowY:el("elemShadowY").value,shadowBlur:el("elemShadowBlur").value,shadowColor:el("elemShadowColor").value});syncMonthlySharedFields(item,["style","opacity"])}));
  bind("applyImageStyle",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"image-style",{fit:el("elemFit").value,alt:el("elemAlt").value,lockAspect:el("elemLockAspect")?.value,brightness:el("elemBrightness")?.value,contrast:el("elemContrast")?.value,saturation:el("elemSaturation")?.value,opacity:el("elemImageOpacity")?.value,flipX:el("elemImageFlipX")?.value,flipY:el("elemImageFlipY")?.value});syncMonthlySharedFields(item,["style","fit","opacity"])}));
  bind("replaceImageBtn",()=>{pendingImageElementId=selectedElementId;pendingImageElementScope=selectedElementScope;el("elementImageInput").click()});

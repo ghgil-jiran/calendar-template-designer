@@ -12,7 +12,7 @@
   return undefined
  }
  function formatYearText(element,page,project){
-  if(element?.format==='plan-month')return root.ACDLPageObjectModel.monthText(element,project?.settings?.year);
+  if(element?.format==='plan-month'&&element?.binding==='calendar.year'&&element?.bindingEnabled!==false)return root.ACDLPageObjectModel.monthText(element,project?.settings?.year);
   const year=String(page?.calendarYear||project?.settings?.year||element?.value||element?.content||'');
   const role=page?.role==='cover-front'?'cover':page?.role==='back-cover-back'?'back-cover-back':null;
   const composition=role?project?.template?.settings?.aiDesignSpec?.pageSettings?.roleCompositions?.[role]:null;
