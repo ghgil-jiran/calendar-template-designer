@@ -16,7 +16,8 @@
  function templateCell(receipt){const cell=document.createElement('td');cell.className='review-template-cell';cell.append(text('strong',receipt.template_name||receipt.template_title||(receipt.template_id||'선택 템플릿').replace(/-[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i,'')),text('small',`버전 ${receipt.template_version||'-'}`));const details=document.createElement('details');details.append(text('summary','Package ID'),text('code',receipt.template_id||'-'));cell.append(details);return cell;}
  const steps=[['접수 정보','정보·검사 기록'],['접수 자료 확인','원본·확인 필요 항목'],['교정·버전 저장','에디터에서 교정·저장'],['인쇄 품질 검증','저장한 교정 버전 검사'],['확정·전달','승인 연결 예정']];
  let current=null,step=0,reviewBusy=false,reviewError=null,proofDialog=null,proofFrame=null;
- const proofBase='https://school-calendar-editor-service-q08rq3end-gil-gighyun-s-projects.vercel.app';
+ // Follow the verified user-service Preview branch so receipt proofs use its current shared Runtime.
+ const proofBase='https://school-calendar-editor-servic-git-8cf1b7-gil-gighyun-s-projects.vercel.app';
  function button(label,action,disabled=false){const node=text('button',label);node.type='button';node.className='review-button';node.disabled=disabled||reviewBusy;if(action)node.addEventListener('click',action);return node}
  function closeDetail(){if((reviewBusy||(window.ACDLProductionCorrection?.isBusy()||window.ACDLProductionPrint?.isBusy()))&&auth.isSignedIn())return;if(auth.isSignedIn()&&!window.ACDLProductionCorrection?.canClose())return;window.ACDLProductionCorrection?.clear();window.ACDLProductionPrint?.clear();detailRun++;current=null;closeProof();$('reviewDialog').close();$('reviewDetail').replaceChildren();$('reviewSteps').replaceChildren()}
  function info(host,entries){const dl=document.createElement('dl');dl.className='review-info-grid';for(const [label,value] of entries){const group=document.createElement('div');group.append(text('dt',label),text('dd',value));dl.append(group)}host.append(dl)}
