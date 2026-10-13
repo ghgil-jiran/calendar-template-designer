@@ -1,6 +1,7 @@
 # 현재 작업 · 2026-10-13
 
-preview/cover-prompt-20261008: 그래픽 라이브러리 저장소 400 오류 수정.
-독립 배경 설치 기록 누락 때문에 목록 새로고침 때 중복 설치 발생. 완료 기록 보존 및 400 Duplicate 안전 처리.
-실행 로그 확인, 이전 코드 실패 재현, 수정 후 반복 조회 통과. 전체 build/Studio 858개 통과.
-상세 docs/graphic-catalog-reload-fix-20261013.md. Production 변경 금지. 사용자 서비스 변경 없음.
+preview/cover-prompt-20261008: 공통 그래픽 라이브러리 메뉴 단순화.
+전체 자산 / 그래픽 패키지 / 자산 추가. 자산 추가는 이미지 추가 / 새 테마 만들기.
+기존 자산 보존, 기본 테마 선택 UI와 개별 생성 진입 제거, 전체 자산 카테고리/검색 및 돌아가기 제공.
+상세 docs/graphic-library-navigation-20261013.md. 전체 build/Studio 860개 통과.
+이전 저장소 조회 오류는 29a783b에서 수정됨. 사용자 서비스 변경 없음. Production 변경 금지.
