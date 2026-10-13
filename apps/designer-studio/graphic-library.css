@@ -160,3 +160,5 @@
 
 .gl-add-menu{padding-top:10px;padding-bottom:10px;background:var(--bg,#f4f7fb)}.gl-subject-tabs{padding:0 0 16px;border-bottom:0;flex-wrap:wrap}.gl-basic-search{grid-template-columns:minmax(220px,1fr) 220px}.gl-basic-search>select[hidden]{display:none}@media(max-width:600px){.gl-basic-search{grid-template-columns:1fr}}
 .gl-upload-workspace>.gl-preview-heading{grid-column:1/-1}
+
+.gl-subject-tabs{max-height:150px;overflow:auto;gap:6px}.gl-theme-ai{grid-template-columns:minmax(240px,1fr) 150px}.gl-image-brief,.gl-theme-ai .gl-theme-footer{grid-column:1/-1}.gl-theme-ai textarea{width:100%;box-sizing:border-box;font:inherit;padding:10px}@media(max-width:600px){.gl-theme-ai{grid-template-columns:1fr}}
