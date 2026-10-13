@@ -162,3 +162,7 @@
 .gl-upload-workspace>.gl-preview-heading{grid-column:1/-1}
 
 .gl-subject-tabs{max-height:150px;overflow:auto;gap:6px}.gl-theme-ai{grid-template-columns:minmax(240px,1fr) 150px}.gl-image-brief,.gl-theme-ai .gl-theme-footer{grid-column:1/-1}.gl-theme-ai textarea{width:100%;box-sizing:border-box;font:inherit;padding:10px}@media(max-width:600px){.gl-theme-ai{grid-template-columns:1fr}}
+
+/* Keep the all-assets filter fixed while subjects scroll in one row. */
+.gl-subject-tabs{display:flex;flex-wrap:nowrap;align-items:center;max-height:none;overflow:hidden;gap:8px;min-width:0}.gl-subject-tabs>button{flex:0 0 auto}.gl-subject-track{display:flex;flex:1 1 auto;min-width:0;gap:6px;overflow-x:auto;scrollbar-width:none}.gl-subject-track::-webkit-scrollbar{display:none}.gl-subject-track button{flex:0 0 auto;white-space:nowrap}.gl-subject-tabs>button:disabled{opacity:.4;cursor:default}
+.gl-theme-ai{grid-template-columns:minmax(180px,300px) 120px;align-items:start}.gl-theme-ai>label:first-child,.gl-theme-ai>label:nth-child(2){align-content:start}.gl-theme-ai>label:first-child select,.gl-theme-ai input[name="count"]{height:36px}.gl-theme-ai .gl-image-brief{min-width:0}@media(max-width:600px){.gl-theme-ai{grid-template-columns:minmax(0,1fr) 100px}}
