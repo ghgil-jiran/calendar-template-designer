@@ -25,6 +25,8 @@
   function renderImage(object, className = '') {
     const source = imageSource(object.payload);
     if (!source) return `<div class="shadow-empty-image ${className}" data-empty-image="true"></div>`;
+    const id=object.metadata?.frameType;
+    if(id&&root.ACDLPhotoFrameModel)return `<div style="position:relative;width:100%;height:100%;overflow:hidden;clip-path:${root.ACDLPhotoFrameModel.clip(id)}"><img class="shadow-image ${className}" src="${escapeHtml(source)}" alt="" />${root.ACDLPhotoFrameModel.outline(id,object.style?.stroke,object.style?.strokeWidth??3)}</div>`;
     return `<img class="shadow-image ${className}" src="${escapeHtml(source)}" alt="" />`;
   }
 

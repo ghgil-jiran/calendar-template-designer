@@ -6,7 +6,7 @@ const base=new URL('../apps/designer-studio/',import.meta.url);
 const read=name=>fs.readFileSync(new URL(name,base),'utf8');
 function context(){
  const c={console,queueMicrotask,setTimeout:()=>{},Event};c.window=c;c.globalThis=c;vm.createContext(c);
- for(const file of ['shared-screen-composition.js','page-composition-runtime.js','shared-screen-mini-calendar.js','shared-screen-schedule.js','shared-page-object-model.js','inspector-element.js','inspector-form.js','persistence-project.js'])vm.runInContext(read(file),c);
+ for(const file of ['photo-frame-model.js','shared-screen-composition.js','page-composition-runtime.js','shared-screen-mini-calendar.js','shared-screen-schedule.js','shared-page-object-model.js','inspector-element.js','inspector-form.js','persistence-project.js'])vm.runInContext(read(file),c);
  c.project={settings:{year:2027,startMonth:3,weekStart:'sunday'},template:{metadata:{},masterElements:{}},book:{events:[{startDate:'2027-03-02',title:'입학식',category:'school'}],pageInstances:[{id:'p',role:'monthly-back',calendarYear:2027,calendarMonth:3}],elementsByPage:{p:[]}}};
  c.selectedPage=()=>c.project.book.pageInstances[0];c.v21Escape=x=>String(x);c.schoolBindingValue=()=>'';
  const source=read('features/object-editing.js');
