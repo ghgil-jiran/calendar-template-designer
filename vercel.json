@@ -91,7 +91,7 @@
     },
     "api/template-assets.js": {
       "maxDuration": 300,
-      "includeFiles": "assets/{student-image-prototypes,student-calendar-illustrations,learning-garden}/*"
+      "includeFiles": "assets/{student-image-prototypes,student-calendar-illustrations,learning-garden,learning-garden-illustrations}/*"
     }
   }
 }
