@@ -184,3 +184,13 @@ test('asset detail opens with complete vector geometry fetched on demand',async(
  await $('graphicLibraryDialog').fire('click',$('graphicLibraryGrid').querySelector('[data-gl-action="preview"]'));
  assert.equal(detailReads,1);assert.deepEqual(records[0].vectorObject,full.vectorObject);assert.equal(records[0].detailsPending,undefined);assert.equal($('graphicViewer').open,true);
 });
+
+test('authored cover shows its original with photo/text zones and permits the next page workflow',async()=>{
+ const env=setup(),{$,window,records,packages}=env,id=randomUUID();
+ records.push({id,name:'배움의 정원 표지',category:'background',status:'active',mimeType:'image/svg+xml',thumbnailDataUrl:'data:image/webp;base64,UklGRgAAAABXRUJQ',previewAssetId:randomUUID(),assetComposition:{kind:'authored-svg',zones:[{type:'photo',label:'학교 사진',x:50,y:20,w:40,h:60,shape:'ellipse'}]},design:{kind:'background',page:'cover',style:'curve',palette:'spring',gradient:0}});
+ packages.push({id:randomUUID(),name:'배움의 정원',size:'desk-standard',status:'active',revision:1,pages:{cover:{graphicId:id}},thumbnailDataUrl:records[0].thumbnailDataUrl});
+ await window.ACDLGraphicLibrary.open();await $('graphicLibraryDialog').querySelector('[data-gl-tab="packages"]').fire('click');await $('graphicPackageBrowseList').fire('click',$('graphicPackageBrowseList').querySelector('[data-gl-package-edit]'));
+ assert.equal($('graphicPackageAuthoredPreview').hidden,false);assert.equal($('graphicGeneratePanel').hidden,true);assert.ok($('graphicPackageAuthoredPreview').querySelector('img'));assert.ok($('graphicPackageAuthoredPreview').querySelector('.gl-example-zone'));
+ $('graphicPackagePage').value='month-front';await $('graphicPackagePage').fire('change');assert.equal($('graphicPackageAuthoredPreview').hidden,true);assert.equal($('graphicGeneratePanel').hidden,false);assert.equal($('graphicGenerateForm').elements.page.value,'month-front');
+ $('graphicPackagePage').value='cover';await $('graphicPackagePage').fire('change');assert.equal($('graphicPackageAuthoredPreview').hidden,false);assert.equal(packages[0].pages.cover.graphicId,id);
+});
