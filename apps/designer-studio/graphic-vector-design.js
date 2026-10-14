@@ -182,6 +182,14 @@
   out+=`<circle cx="113" cy="421" r="${22*s}" fill="${a}" opacity=".7"/><circle cx="480" cy="771" r="${32*s}" fill="${b}" opacity=".75"/><rect x="0" y="792" width="1300" height="108" fill="${fillB}"/><path d="M0 792H1300" stroke="${b}" stroke-width="2" opacity=".6"/>`;
   return out;
  }
+ function authoredPageSvg(svg,page,scale=100){
+  if(page==='cover')return scaleAuthoredSvg(svg,scale);
+  const value=Number(scale);if(!pages[page]||!Number.isFinite(value)||value<60||value>140)throw new Error('INVALID_AUTHORED_SCALE');
+  const marker='<g transform="translate(60 173) scale(.21)">',start=svg.indexOf(marker);
+  if(start<0)throw new Error('INVALID_AUTHORED_SOURCE');
+  const art=svg.slice(start,svg.lastIndexOf('</svg>')).replace(marker,`<g transform="translate(1120 10) scale(${.035*value/100})">`);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="260mm" height="180mm" viewBox="0 0 1300 900"><rect width="1300" height="900" fill="#F7F3E8"/>${art}<path d="M90 860H1210" fill="none" stroke="#728567" stroke-width="2"/></svg>`;
+ }
  function scaleAuthoredSvg(svg,scale=100){
   const value=Number(scale);if(!Number.isFinite(value)||value<60||value>140)throw new Error('INVALID_AUTHORED_SCALE');
   if(!svg.includes('<g transform="translate(60 173) scale(.21)">'))throw new Error('INVALID_AUTHORED_SOURCE');
@@ -189,5 +197,5 @@
   const ratio=value/100,x=318.3-258.3*ratio,y=441.38-268.38*ratio;
   return svg.replace('<g transform="translate(60 173) scale(.21)">',`<g transform="translate(${x} ${y}) scale(${.21*ratio})">`);
  }
- root.ACDLGraphicVectorDesign=Object.freeze({scaleAuthoredSvg,pages,palettes,normalize,svg,zones,setInfo,applyPrompt,validateScene});
+ root.ACDLGraphicVectorDesign=Object.freeze({authoredPageSvg,scaleAuthoredSvg,pages,palettes,normalize,svg,zones,setInfo,applyPrompt,validateScene});
 })(typeof window==='undefined'?globalThis:window);
