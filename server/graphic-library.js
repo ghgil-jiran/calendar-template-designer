@@ -8,7 +8,7 @@ import {installCuratedIllustrations} from './graphic-curated-library.js';
 import {installCuratedBackground} from './graphic-curated-background.js';
 import {installGeometricBackground} from './graphic-geometric-background.js';
 import {installArchBackground} from './graphic-arch-background.js';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 import {planIllustrationTheme,generateIllustrationObject} from './graphic-illustration-generation.js';
 import {storeTemplateAsset} from './template-persistence.js';
 const BUCKET='common-graphics',PREFIX='graphics-library',UUID=/^[0-9a-f-]{36}$/i;
@@ -29,7 +29,25 @@ export async function ensureGraphicBucket(){
  return bucketReady;
 }
 const path=id=>{if(!UUID.test(id))fail('INVALID_GRAPHIC_ID');return `${PREFIX}/${id}.json`};
-async function listGraphicRecords(){await ensureGraphicBucket();const items=[];let offset=0;while(true){const r=await storage(`object/list/${BUCKET}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix:PREFIX,limit:100,offset,sortBy:{column:'name',order:'asc'}})}),rows=await r.json();const validRows=rows.filter(row=>UUID.test(row.name.replace(/\.json$/,''))&&row.name.endsWith('.json'));let next=0;await Promise.all(Array.from({length:Math.min(4,validRows.length)},async()=>{while(next<validRows.length){const row=validRows[next++],value=await storage(`object/${BUCKET}/${PREFIX}/${row.name}`).then(r=>r.json());if(['graphic-library.v1','graphic-package.v1','graphic-illustration-theme.v1','graphic-package-installation.v1','graphic-asset-installation.v1'].includes(value.schemaVersion))items.push(value)}}));if(rows.length<100)break;offset+=100}return items.sort((a,b)=>b.createdAt.localeCompare(a.createdAt))}
+const CATALOG_INDEX_PATH='graphics-catalog/index-v1.json';
+const RECORD_SCHEMAS=new Set(['graphic-library.v1','graphic-package.v1','graphic-illustration-theme.v1','graphic-package-installation.v1','graphic-asset-installation.v1']);
+export async function listGraphicRecords(){
+ await ensureGraphicBucket();const rows=[];let offset=0;
+ while(true){const response=await storage(`object/list/${BUCKET}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix:PREFIX,limit:100,offset,sortBy:{column:'name',order:'asc'}})}),page=await response.json();rows.push(...page.filter(row=>UUID.test(row.name.replace(/\.json$/,''))&&row.name.endsWith('.json')));if(page.length<100)break;offset+=100}
+ // The Storage listing is the authority. The index is disposable and never restores
+ // deleted or archived assets; each entry must match the current file revision.
+ let previous={};try{const response=await storage(`object/${BUCKET}/${CATALOG_INDEX_PATH}`),index=await response.json();if(index.schemaVersion==='graphic-catalog-index.v1')previous=index.entries||{}}catch{ /* Missing/corrupt index: read source files. */ }
+ const entries={},items=[];let next=0;
+ await Promise.all(Array.from({length:Math.min(8,rows.length)},async()=>{while(next<rows.length){const row=rows[next++],id=row.name.slice(0,-5),revision=row.updated_at?createHash('sha256').update(JSON.stringify([row.name,row.updated_at,row.created_at,row.metadata])).digest('hex'):null,cached=previous[row.name];let value;
+ if(revision&&cached?.revision===revision&&cached.record?.id===id&&RECORD_SCHEMAS.has(cached.record.schemaVersion))value=cached.record;
+ else value=await storage(`object/${BUCKET}/${PREFIX}/${row.name}`).then(r=>r.json());
+ if(RECORD_SCHEMAS.has(value.schemaVersion)){items.push(value);entries[row.name]={revision,record:value}}
+ }}));
+ if(Object.keys(entries).length!==Object.keys(previous).length||Object.keys(entries).some(key=>JSON.stringify(entries[key])!==JSON.stringify(previous[key])))try{await storage(`object/${BUCKET}/${CATALOG_INDEX_PATH}`,{method:'POST',headers:{'Content-Type':'application/json','x-upsert':'true'},body:JSON.stringify({schemaVersion:'graphic-catalog-index.v1',entries})})}catch{ /* An index write failure must not prevent browsing. */ }
+ return items.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+}
+export function compactGraphicCatalog(catalog){return {...catalog,graphics:catalog.graphics.map(({vectorObject,...graphic})=>({...graphic,...(vectorObject?{vectorObject:true,detailsPending:true}:{} )}))}}
+
 export async function listGraphics(){return (await listGraphicRecords()).filter(g=>g.schemaVersion==='graphic-library.v1')}
 export async function listGraphicCatalog({installCurated=false}={}){const records=await listGraphicRecords();if(installCurated){const deps={records,createRecord:writeNew,updateRecord:upgradeCuratedTheme,deleteRecord:async id=>{await storage(`object/${BUCKET}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:[path(id)]})})},storeAsset:storeTemplateAsset,validateSvg:validateGraphicSvg,validateThumbnail},added=await installCuratedIllustrations(deps);added.push(...await installStudentImages({...deps,records:[...records,...added]}));added.push(...await installCuratedBackground({...deps,records:[...records,...added]}));added.push(...await installGeometricBackground({...deps,records:[...records,...added]}));added.push(...await installArchBackground({...deps,records:[...records,...added]}));added.push(...await installBookPencilBackground({...deps,records:[...records,...added]}));added.push(...await installPhotoFrames({...deps,records:[...records,...added]}));for(const value of added){const index=records.findIndex(r=>r.id===value.id);if(index<0)records.unshift(value);else records[index]=value;}}return {graphics:records.filter(g=>g.schemaVersion==='graphic-library.v1'),packages:records.filter(g=>g.schemaVersion==='graphic-package.v1'),themes:records.filter(g=>g.schemaVersion==='graphic-illustration-theme.v1')}}
 export async function getGraphic(id){return storage(`object/${BUCKET}/${path(id)}`).then(r=>r.json())}

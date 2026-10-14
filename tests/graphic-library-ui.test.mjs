@@ -164,3 +164,23 @@ test('theme category is used when an existing asset has no explicit subject; reo
 test('listing and image creation share detailed subjects; one submit creates vectors and excludes package-owned assets',async()=>{
  const env=setup(),{$}=env;env.records.push({id:'package-background',name:'패키지 배경',category:'background',status:'active',mimeType:'image/svg+xml',thumbnailDataUrl:'data:image/png;base64,AAA',ownership:{kind:'background-package',id:'pkg'}},{id:'photo',name:'학생',category:'illustration',subjectId:'students',status:'active',mimeType:'image/png',thumbnailDataUrl:'data:image/png;base64,AAA'});await env.window.ACDLGraphicLibrary.open();assert.equal($('graphicLibraryGrid').querySelectorAll('article').length,1);await env.openTheme();const form=$('illustrationThemeForm');const listed=$('graphicSubjectCategories').querySelectorAll('[data-gl-subject]').map(b=>b.dataset.glSubject).filter(id=>id!=='all');assert.deepEqual(listed,form.elements.themeKind.options.map(o=>o.attrs.value));assert.ok(listed.includes('science')&&listed.includes('frames')&&listed.includes('spring'));assert.equal(Number(form.elements.count.value),1);assert.equal(form.elements.category.attrs.type,'hidden');assert.equal(form.elements.name.attrs.type,'hidden');form.elements.themeKind.value='science';await form.fire('input',form.elements.themeKind);await form.fire('submit');assert.equal(env.requests.filter(r=>r.operation==='create-illustration-theme').length,1);assert.equal(env.requests.filter(r=>r.operation==='preview-illustration-asset').length,1);assert.equal(env.requests.find(r=>r.operation==='create-illustration-theme').category,'school');await $('illustrationSaveAll').fire('click');await $('illustrationBackToAssets').fire('click');assert.equal($('graphicLibraryGrid').querySelectorAll('article').length,2);assert.equal(env.records.find(g=>g.id==='package-background').ownership.id,'pkg');
 });
+
+test('library opening does not wait for thumbnail downloads and reopening displays saved cards',async()=>{
+ const env=setup(),{$,window,records}=env;
+ records.push({id:randomUUID(),name:'천천히 내려오는 이미지',category:'photo',status:'active',mimeType:'image/png',width:100,height:100,byteSize:10,originalAssetId:randomUUID(),previewAssetId:randomUUID(),createdAt:'2026-10-14'});
+ window.ACDLTemplateRemotePersistence.assetObjectUrl=()=>new Promise(()=>{});
+ const result=await Promise.race([window.ACDLGraphicLibrary.open().then(()=>true),new Promise(resolve=>setTimeout(()=>resolve(false),100))]);
+ assert.equal(result,true);assert.equal($('graphicLibraryGrid').querySelectorAll('.gl-card').length,1);
+ $('graphicLibraryDialog').close();await window.ACDLGraphicLibrary.open();assert.equal($('graphicLibraryGrid').querySelectorAll('.gl-card').length,1);
+});
+
+test('asset detail opens with complete vector geometry fetched on demand',async()=>{
+ const env=setup(),{$,window,records}=env,id=randomUUID();
+ const full={id,name:'꽃 벡터',category:'illustration',subjectId:'flowers',status:'active',mimeType:'image/svg+xml',width:100,height:100,byteSize:10,originalAssetId:randomUUID(),thumbnailDataUrl:'data:image/webp;base64,UklGRgAAAABXRUJQ',vectorObject:{parts:[{type:'circle',cx:50,cy:50,r:20}]}};
+ records.push({...full,vectorObject:true,detailsPending:true});let detailReads=0;
+ const fetcher=window.ACDLAdminAuth.authorizedFetch;
+ window.ACDLAdminAuth.authorizedFetch=async(path,options)=>{if(path.includes('&id=')){detailReads++;return {ok:true,json:async()=>({graphic:full})}}return fetcher(path,options)};
+ await window.ACDLGraphicLibrary.open();assert.equal(detailReads,0);
+ await $('graphicLibraryDialog').fire('click',$('graphicLibraryGrid').querySelector('[data-gl-action="preview"]'));
+ assert.equal(detailReads,1);assert.deepEqual(records[0].vectorObject,full.vectorObject);assert.equal(records[0].detailsPending,undefined);assert.equal($('graphicViewer').open,true);
+});
