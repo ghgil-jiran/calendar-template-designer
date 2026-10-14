@@ -182,5 +182,12 @@
   out+=`<circle cx="113" cy="421" r="${22*s}" fill="${a}" opacity=".7"/><circle cx="480" cy="771" r="${32*s}" fill="${b}" opacity=".75"/><rect x="0" y="792" width="1300" height="108" fill="${fillB}"/><path d="M0 792H1300" stroke="${b}" stroke-width="2" opacity=".6"/>`;
   return out;
  }
- root.ACDLGraphicVectorDesign=Object.freeze({pages,palettes,normalize,svg,zones,setInfo,applyPrompt,validateScene});
+ function scaleAuthoredSvg(svg,scale=100){
+  const value=Number(scale);if(!Number.isFinite(value)||value<60||value>140)throw new Error('INVALID_AUTHORED_SCALE');
+  if(!svg.includes('<g transform="translate(60 173) scale(.21)">'))throw new Error('INVALID_AUTHORED_SOURCE');
+  if(value===100)return svg;
+  const ratio=value/100,x=318.3-258.3*ratio,y=441.38-268.38*ratio;
+  return svg.replace('<g transform="translate(60 173) scale(.21)">',`<g transform="translate(${x} ${y}) scale(${.21*ratio})">`);
+ }
+ root.ACDLGraphicVectorDesign=Object.freeze({scaleAuthoredSvg,pages,palettes,normalize,svg,zones,setInfo,applyPrompt,validateScene});
 })(typeof window==='undefined'?globalThis:window);

@@ -1,4 +1,4 @@
-import {installLearningGarden} from './graphic-learning-garden.js';
+import {installLearningGarden,gardenAssetSvg,GARDEN_ASSET_ID} from './graphic-learning-garden.js';
 import {installPhotoFrames} from './graphic-photo-frames.js';
 import {installBookPencilBackground} from './graphic-book-pencil-background.js';
 import {installStudentImages} from './graphic-student-images.js';
@@ -76,13 +76,19 @@ export function validateGraphicSvg(value){
  }
  if(roots!==1||stack.length||value.slice(cursor).trim())fail('INVALID_GRAPHIC_SVG');return value;
 }
+export async function previewAuthoredVector(body){
+ const parent=await getGraphic(body.graphicId);
+ if(parent.status!=='active'||parent.assetComposition?.kind!=='authored-svg'||parent.assetComposition.sourceGraphicId!==GARDEN_ASSET_ID)fail('INVALID_GRAPHIC_PARENT');
+ return {svg:validateGraphicSvg(gardenAssetSvg(true))};
+}
 export async function generateGraphic(body,{packageOwnerId=null}={}){
  let design;try{design=globalThis.ACDLGraphicVectorDesign.normalize(body.design)}catch{fail('INVALID_VECTOR_DESIGN')}
  const metadata=validateGraphicMetadata({...body,category:design.kind==='background'?'background':'vector',width:1300,height:900});
  await ensureGraphicBucket();
  let parent=null;if(body.parentGraphicId){parent=await getGraphic(body.parentGraphicId);if(!parent.design)fail('INVALID_GRAPHIC_PARENT')}
- const svg=globalThis.ACDLGraphicVectorDesign.svg(design),asset=await storeTemplateAsset('data:image/svg+xml;base64,'+Buffer.from(svg).toString('base64'));
- return write({schemaVersion:'graphic-library.v1',id:randomUUID(),...metadata,thumbnailDataUrl:validateThumbnail(body.thumbnailDataUrl),originalAssetId:asset.id,previewAssetId:asset.id,mimeType:'image/svg+xml',byteSize:Buffer.byteLength(svg),fileName:design.kind==='background'?'vector-background.svg':'vector-illustration.svg',status:'active',design,generationInfo:body.generationInfo?{generationId:String(body.generationInfo.generationId||'').slice(0,80),engine:String(body.generationInfo.engine||'').slice(0,80),model:String(body.generationInfo.model||'').slice(0,100),generatedAt:String(body.generationInfo.generatedAt||'').slice(0,40),prompt:String(body.generationInfo.prompt||'').slice(0,2000)}:null,setInfo:globalThis.ACDLGraphicVectorDesign.setInfo(design),physicalSizeMm:{width:260,height:180},ownership:packageOwnerId?{kind:'background-package',id:packageOwnerId}:null,parentGraphicId:parent?.id||null,revision:(parent?.revision||0)+1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+ if(body.authoredScale!==undefined){if(!packageOwnerId||!parent||parent.assetComposition?.kind!=='authored-svg'||parent.assetComposition.sourceGraphicId!==GARDEN_ASSET_ID||parent.status!=='active'||design.page!=='cover')fail('INVALID_GRAPHIC_PARENT');const scale=Number(body.authoredScale);if(!Number.isFinite(scale)||scale<60||scale>140)fail('INVALID_VECTOR_DESIGN');design.scale=scale;}
+ const svg=validateGraphicSvg(body.authoredScale!==undefined?globalThis.ACDLGraphicVectorDesign.scaleAuthoredSvg(gardenAssetSvg(true),body.authoredScale):globalThis.ACDLGraphicVectorDesign.svg(design)),asset=await storeTemplateAsset('data:image/svg+xml;base64,'+Buffer.from(svg).toString('base64'));
+ return write({schemaVersion:'graphic-library.v1',id:randomUUID(),...metadata,thumbnailDataUrl:validateThumbnail(body.thumbnailDataUrl),originalAssetId:asset.id,previewAssetId:asset.id,mimeType:'image/svg+xml',byteSize:Buffer.byteLength(svg),fileName:design.kind==='background'?'vector-background.svg':'vector-illustration.svg',status:'active',design,...(body.authoredScale!==undefined?{assetComposition:{...parent.assetComposition},registrationMethod:'authored-cover'}:{}),generationInfo:body.generationInfo?{generationId:String(body.generationInfo.generationId||'').slice(0,80),engine:String(body.generationInfo.engine||'').slice(0,80),model:String(body.generationInfo.model||'').slice(0,100),generatedAt:String(body.generationInfo.generatedAt||'').slice(0,40),prompt:String(body.generationInfo.prompt||'').slice(0,2000)}:null,setInfo:globalThis.ACDLGraphicVectorDesign.setInfo(design),physicalSizeMm:{width:260,height:180},ownership:packageOwnerId?{kind:'background-package',id:packageOwnerId}:null,parentGraphicId:parent?.id||null,revision:(parent?.revision||0)+1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
 }
 
 const packageModel=globalThis.ACDLGraphicPackageModel;
