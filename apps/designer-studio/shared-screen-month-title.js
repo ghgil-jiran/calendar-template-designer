@@ -5,7 +5,7 @@
   const names = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
   const styles = ["number-stack", "number-inline", "number-only", "year-month-korean", "month-korean", "english-month"];
   const escape = (value) => String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
-  const fonts = ["Pretendard", "Noto Sans KR", "Noto Serif KR", "Nanum Gothic", "Nanum Myeongjo", "Arial", "Times New Roman", "Playfair Display"];
+  const fonts = ["Pretendard", "Noto Sans KR", "Noto Serif KR", "Nanum Gothic", "Nanum Myeongjo", "IBM Plex Sans KR", "IBM Plex Sans", "Playfair Display", "Montserrat", "Bodoni Moda", "Bebas Neue", "DM Sans", "Arial", "Times New Roman"];
   function normalizeTypography(input = {}) {
     input = input && typeof input === "object" ? input : {};
     const result = {};

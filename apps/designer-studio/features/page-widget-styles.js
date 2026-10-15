@@ -9,7 +9,7 @@
  const limits={dateSize:[3,36,.5],titleSize:[3,72,.5],fontSize:[3,72,.5],lineHeight:[.8,4,.05],monthBorderWidth:[0,8,.5],containerBorderWidth:[0,8,.5]};
  const input=(key,label,type,value)=>`<label>${label}<input data-page-style="${key}" type="${type}" ${type==='number'?`min="${limits[key][0]}" max="${limits[key][1]}" step="${limits[key][2]}"`:''} value="${escape(value)}"></label>`;
  const select=(key,label,value,options)=>`<label>${label}<select data-page-style="${key}">${options.map(([id,name])=>`<option value="${id}" ${String(value)===String(id)?'selected':''}>${name}</option>`).join('')}</select></label>`;
- const fonts=['','Pretendard','Noto Sans KR','Noto Serif KR','Nanum Gothic','Nanum Myeongjo','Arial','Times New Roman','Playfair Display'].map(font=>[font,font||'템플릿 기본 글꼴']);
+ const fonts=["", "Pretendard", "Noto Sans KR", "Noto Serif KR", "Nanum Gothic", "Nanum Myeongjo", "IBM Plex Sans KR", "IBM Plex Sans", "Playfair Display", "Montserrat", "Bodoni Moda", "Bebas Neue", "DM Sans", "Arial", "Times New Roman"].map(font=>[font,font||'템플릿 기본 글꼴']);
  const previous=renderInspector;
  renderInspector=function(){
   const result=previous.apply(this,arguments),item=target(),panel=$('inspector')?.querySelector('[data-panel="design"]');
