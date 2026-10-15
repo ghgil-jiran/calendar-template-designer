@@ -112,3 +112,5 @@
 .calendar-grid-geometry.calendar-grid-geometry.grid-boxed .shared-month-weekdays {
   border-top:var(--calendar-grid-line)!important;border-left:var(--calendar-grid-line)!important;
 }
+
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed {--calendar-grid-gap:0px}
