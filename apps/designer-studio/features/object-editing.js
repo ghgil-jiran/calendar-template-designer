@@ -1025,7 +1025,7 @@ function registerInspectorSaveButton(button){
   if(!validation.valid||!button.classList.contains("has-changes")){
    event.preventDefault();event.stopImmediatePropagation();
    const message=validation.valid?"변경된 내용이 없습니다.":validation.message;
-   setInspectorNotice("error",message);showEditorToast(message);return;
+   setInspectorNotice("error",message);showEditorToast(message);const invalid=container.querySelector(".inspector-field-error");if(invalid){for(let node=invalid.parentElement;node&&node!==container.parentElement;node=node.parentElement)if(node.tagName==="DETAILS")node.open=true;invalid.focus({preventScroll:true});invalid.scrollIntoView({block:"nearest"});}return;
   }
   inspectorSavedContainer=container;
   if(["applyElementGeometry","applyGraphicLayout"].includes(id))pendingCanvasGeometrySaveId=null;
@@ -1132,6 +1132,7 @@ function renderInspector(){
  const planStyle=el("elemPlanMonthStyle"),bindingControl=el("elemTextBinding");
  if(planStyle&&bindingControl){const refresh=()=>{planStyle.disabled=bindingControl.value!=="calendar.year";};bindingControl.addEventListener("change",refresh);bindingControl.addEventListener("input",refresh);refresh();}
  if(calendarEditing&&!monthTitleEditing&&!sourceElement())setupCalendarGridAppearance(ins);
+ if((calendarEditing||monthTitleEditing)&&!sourceElement())setupCalendarInspectorSections(ins);
  setupInspectorTabs();bindInspector();setupInspectorFeedback();setupCalendarFontPreviews(ins);
  inspectorRenderedKey=inspectorSelectionKey();
  if(drafts.length){const current=ins;queueMicrotask(()=>{
@@ -1254,8 +1255,8 @@ function setupCalendarFontPreviews(container){
  for(const select of container.querySelectorAll('select')){
   if(![...select.options].some(option=>option.value==='Pretendard')||select.dataset.fontPreviewReady)continue;
   select.dataset.fontPreviewReady='1';
-  const sample=document.createElement('span');sample.className='calendar-font-sample';sample.setAttribute('aria-label','선택한 글꼴 미리보기');sample.style.cssText='display:block;padding:8px 0;font-size:20px;line-height:1.5;overflow-wrap:anywhere';const row=document.createElement('span');row.style.cssText='display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:center';select.parentNode.insertBefore(row,select);row.append(select,sample);
-  const update=()=>{const family=select.value||getComputedStyle(document.querySelector('.page')||document.body).fontFamily;sample.style.fontFamily=family+', "Noto Sans KR", sans-serif';sample.textContent='2027 CALENDAR · March · 배움';};
+  const sample=document.createElement('span');sample.className='calendar-font-sample';sample.setAttribute('aria-label','선택한 글꼴 미리보기');select.insertAdjacentElement('afterend',sample);
+  const update=()=>{const family=select.value||getComputedStyle(document.querySelector('.page')||document.body).fontFamily;sample.style.fontFamily=family+', "Noto Sans KR", sans-serif';sample.textContent='2027 CALENDAR · 가나다';sample.title='선택한 글꼴: '+(select.selectedOptions[0]?.textContent||'템플릿 기본 글꼴');};
   select.addEventListener('change',update);select.addEventListener('input',update);update();
  }
 }
@@ -1268,15 +1269,23 @@ function readCalendarGridAppearance(){
 }
 function setupCalendarGridAppearance(container){
  const save=el('applyMaster');if(!save)return;const section=save.closest('.section'),s=window.ACDLSharedGridPresentation.normalizeAppearance(project.template.masters.calendar.calendarLayout?.gridAppearance),panels={};
- const add=(key,title)=>{const details=document.createElement('details');details.dataset.gridPanel=key;details.open=calendarGridPanelState[key];details.style.cssText='border-top:1px solid var(--line);padding:10px 0';details.innerHTML='<summary style="cursor:pointer;font-weight:600">'+title+' <small data-grid-summary></small></summary><div data-grid-fields></div>';details.addEventListener('toggle',()=>calendarGridPanelState[key]=details.open);section.insertBefore(details,save);panels[key]=details;return details.querySelector('[data-grid-fields]')};
+ const add=(key,title)=>{const details=document.createElement('details');details.dataset.gridPanel=key;details.open=calendarGridPanelState[key];details.className='calendar-style-panel';details.innerHTML='<summary><span>'+title+'</span><small data-grid-summary></small></summary><div class="calendar-style-fields" data-grid-fields></div>';details.addEventListener('toggle',()=>calendarGridPanelState[key]=details.open);section.insertBefore(details,save);panels[key]=details;return details.querySelector('[data-grid-fields]')};
  const background=add('background','배경'),text=add('text','글자·표시'),lines=add('lines','격자선'),mini=add('mini','미니월력');
  const paint=(key,label)=>`<fieldset style="border:0;padding:6px 0;margin:0"><legend>${label}</legend><label>배경<select id="grid-${key}-mode">${(key==='mini'?[['inherit','날짜 격자와 동일'],['transparent','투명'],['solid','별도 색상']]:[['transparent','투명'],['solid','단색']]).map(([value,name])=>`<option value="${value}" ${s[key].mode===value?'selected':''}>${name}</option>`).join('')}</select></label><div data-paint-fields="${key}"><label>배경색<input id="grid-${key}-color" type="color" value="${s[key].color}"></label><label>불투명도 (%)<input id="grid-${key}-opacity" type="number" min="0" max="100" value="${s[key].opacity}"></label></div></fieldset>`;
  background.innerHTML=paint('weekday','요일 행')+paint('date','날짜 격자');
  const fonts=['Pretendard','Noto Sans KR','Noto Serif KR','Nanum Gothic','Nanum Myeongjo','IBM Plex Sans KR','IBM Plex Sans','Playfair Display','Montserrat','Bodoni Moda','Bebas Neue','DM Sans'];
- text.innerHTML=['weekday','date'].map((key)=>`<label>${key==='weekday'?'요일':'날짜'} 글꼴<select id="grid-${key}Font"><option value="">기존 글꼴 유지</option>${fonts.map(font=>`<option ${s[key+'Font']===font?'selected':''}>${font}</option>`).join('')}</select></label><label>${key==='weekday'?'요일':'날짜'} 크기 (px)<input id="grid-${key}Size" type="number" min="3" max="72" step=".5" placeholder="기존 크기 유지" value="${s[key+'Size']??''}"></label><label>${key==='weekday'?'요일':'평일 날짜'} 글자색<input id="grid-${key}Color" placeholder="기존 색 유지 · #RRGGBB" pattern="#[a-fA-F0-9]{6}" value="${s[key+'Color']||''}"></label>`).join('');
- lines.innerHTML=`<label>선색<input id="grid-lineColor" placeholder="기존 선색 유지 · #RRGGBB" pattern="#[a-fA-F0-9]{6}" value="${s.lineColor||''}"></label><label>선 굵기 (px)<input id="grid-lineWidth" type="number" min="0" max="8" step=".5" placeholder="기존 굵기 유지" value="${s.lineWidth??''}"></label>`;
- mini.innerHTML=`<label><input id="grid-mini-visible" type="checkbox" ${project.settings.showAdjacentMiniCalendars?'checked':''}>이전·다음 달 미니월력 표시</label>`+paint('mini','남은 날짜 칸의 미니월력');
+ text.innerHTML=['weekday','date'].map((key)=>`<label>${key==='weekday'?'요일':'날짜'} 글꼴<select id="grid-${key}Font"><option value="">기존 글꼴 유지</option>${fonts.map(font=>`<option ${s[key+'Font']===font?'selected':''}>${font}</option>`).join('')}</select></label><label>${key==='weekday'?'요일':'날짜'} 크기 (px)<input id="grid-${key}Size" data-optional="true" type="number" min="3" max="72" step=".5" placeholder="기존 크기 유지" value="${s[key+'Size']??''}"></label><label>${key==='weekday'?'요일':'평일 날짜'} 글자색<input id="grid-${key}Color" placeholder="기존 색 유지 · #RRGGBB" pattern="#[a-fA-F0-9]{6}" value="${s[key+'Color']||''}"></label>`).join('');
+ lines.innerHTML=`<label>선색<input id="grid-lineColor" placeholder="기존 선색 유지 · #RRGGBB" pattern="#[a-fA-F0-9]{6}" value="${s.lineColor||''}"></label><label>선 굵기 (px)<input id="grid-lineWidth" data-optional="true" type="number" min="0" max="8" step=".5" placeholder="기존 굵기 유지" value="${s.lineWidth??''}"></label>`;
+ mini.innerHTML=`<label class="inline-check calendar-style-check"><input id="grid-mini-visible" type="checkbox" ${project.settings.showAdjacentMiniCalendars?'checked':''}>이전·다음 달 미니월력 표시</label>`+paint('mini','남은 날짜 칸의 미니월력');
  for(const [id,target] of [['masterWeekdayStyle',text],['masterMaxEvents',text],['masterGridStyle',lines]]){const node=el(id);if(node)target.prepend(node.closest('label'));}
  const update=()=>{for(const key of ['weekday','date','mini']){const mode=el('grid-'+key+'-mode').value;container.querySelector('[data-paint-fields="'+key+'"]').hidden=mode!=='solid';}const brief=key=>el('grid-'+key+'-mode').value==='solid'?el('grid-'+key+'-color').value+' · '+el('grid-'+key+'-opacity').value+'%':el('grid-'+key+'-mode').selectedOptions[0].textContent;panels.text.querySelector('[data-grid-summary]').textContent='요일 '+(el('grid-weekdaySize').value||'기존')+' / 날짜 '+(el('grid-dateSize').value||'기존');panels.lines.querySelector('[data-grid-summary]').textContent=(el('grid-lineColor').value||'기존 선색')+' · '+(el('grid-lineWidth').value||'기존')+'px';panels.background.querySelector('[data-grid-summary]').textContent='요일 '+brief('weekday')+' / 날짜 '+brief('date');panels.mini.querySelector('[data-grid-summary]').textContent=el('grid-mini-visible').checked?brief('mini'):'표시 안 함';};
  section.addEventListener('input',update);section.addEventListener('change',update);update();
+}
+
+const calendarInspectorSectionState={};
+function setupCalendarInspectorSections(container){
+ for(const [id,title] of [['applyMonthComposition','월 표시 구성'],['applyMonthTypography','월 표시 글자'],['applyRangeEventStyle','구간 일정'],['applyCoverMaster','표지 제목']]){
+  const button=el(id),section=button?.closest('.section');if(!section||section.parentElement?.tagName==='DETAILS')continue;
+  const panel=document.createElement('details');panel.className='calendar-style-panel calendar-style-section';panel.open=calendarInspectorSectionState[id]??(monthTitleEditing&&id==='applyMonthComposition');panel.innerHTML='<summary><span>'+title+'</span></summary>';section.parentNode.insertBefore(panel,section);panel.append(section);panel.addEventListener('toggle',()=>calendarInspectorSectionState[id]=panel.open);
+ }
 }
