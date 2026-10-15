@@ -105,12 +105,9 @@
 .calendar-grid-geometry.calendar-grid-geometry.grid-boxed :is(.calendar>.cell:not(.head),.shared-month-day-cell) {
   border-right:var(--calendar-grid-line)!important;border-bottom:var(--calendar-grid-line)!important;
 }
-.calendar-grid-geometry.calendar-grid-geometry.grid-boxed :is(.calendar>.head,.shared-month-weekdays>div) {
-  height:100%!important;border:0!important;border-right:var(--calendar-grid-line)!important;
-  border-bottom:var(--calendar-grid-line)!important;border-radius:0!important;
-}
-.calendar-grid-geometry.calendar-grid-geometry.grid-boxed .shared-month-weekdays {
-  border-top:var(--calendar-grid-line)!important;border-left:var(--calendar-grid-line)!important;
+/* Weekday chrome is independent of date-grid style. */
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed .shared-month-date-grid {
+  border-top:var(--calendar-grid-line)!important;
 }
 
 .calendar-grid-geometry.calendar-grid-geometry.grid-boxed {--calendar-grid-gap:0px}
