@@ -46,7 +46,7 @@ function decodeDataUrl(value){
   if(typeof value!=='string'||!value.startsWith('data:image/'))throw Object.assign(new Error('Invalid image data'),{statusCode:400,code:'INVALID_IMAGE'});
   const match=value.match(/^data:([^;,]+)(;base64)?,(.*)$/s);if(!match||!ALLOWED_IMAGE_TYPES.has(match[1]))throw Object.assign(new Error('Unsupported image type'),{statusCode:400,code:'INVALID_IMAGE'});
   const bytes=match[2]?Buffer.from(match[3],'base64'):Buffer.from(decodeURIComponent(match[3]));
-  if(!bytes.length||bytes.length>20*1024*1024)throw Object.assign(new Error('Invalid image size'),{statusCode:413,code:'IMAGE_TOO_LARGE'});
+  if(!bytes.length||bytes.length>25*1024*1024)throw Object.assign(new Error('Invalid image size'),{statusCode:413,code:'IMAGE_TOO_LARGE'});
   return {mimeType:match[1],bytes};
 }
 
@@ -60,6 +60,7 @@ async function signedAsset(row){
 
 export async function storeTemplateAsset(dataUrl){
   const {mimeType,bytes}=decodeDataUrl(dataUrl),contentHash=createHash('sha256').update(bytes).digest('hex');
+  if(bytes.length>20*1024*1024){const bucket=await storageRequest(`bucket/${ASSET_BUCKET}`);if(bucket.file_size_limit!=null&&Number(bucket.file_size_limit)<25*1024*1024)await storageRequest(`bucket/${ASSET_BUCKET}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({public:bucket.public,allowed_mime_types:bucket.allowed_mime_types,file_size_limit:25*1024*1024})});}
   let rows=await supabaseRequest(`template_assets?select=*&content_hash=eq.${contentHash}&limit=1`);let row=rows[0];
   if(!row){
     const storagePath=`sha256/${contentHash}.${extensionFor(mimeType)}`;
