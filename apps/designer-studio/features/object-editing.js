@@ -753,6 +753,14 @@ function canPromoteSelectedToMonthlyMaster(){
  if(item.shadowOfMasterElementId)return false;
  return matchingMonthlyObjectsFor(item).filter(other=>other!==item).length===0
 }
+function applySelectedMonthlySettings(kind){
+ const item=sourceElement(),page=selectedPage();if(!item||!['monthly-front','monthly-back'].includes(page.role))return;
+ if(inspectorDirty){showEditorToast('먼저 변경한 설정을 저장한 뒤 전체 월에 적용하세요.');return;}
+ const fields=kind==='geometry'?['x','y','width','height']:['style','colors','fontSize','minFontSize','autoShrink','columns','fit','opacity','imageStyle','lockAspect','layoutPreset','showTitle','showWeekdayHeader','monthLabelStyle','memoLayout','lineCount','weekCount','showMemo','itemCount','yearlyColumns','linesPerMonth','monthLabelStyle'];
+ snapshot();const matches=matchingMonthlyObjectsFor(item);
+ for(const other of matches){if(other===item)continue;for(const key of fields){if(Object.hasOwn(item,key))other[key]=structuredClone(item[key]);else delete other[key];}}
+ markDirty();render();showEditorToast(`저장된 ${kind==='geometry'?'배치':'스타일'}을 ${monthlyMasterLabel(page)}의 대응 개체에 적용했습니다. (${matches.length}개 개체)`);
+}
 function promoteSelectedToMonthlyMaster(){
  if(!canPromoteSelectedToMonthlyMaster())return;
  const p=selectedPage(),role=p.role,pageArr=pageElements(p),idx=pageArr.findIndex(x=>x.id===selectedElementId);
@@ -970,7 +978,7 @@ const INSPECTOR_SAVE_MESSAGES={
  applyMaster:"월력 기본 설정을 저장했습니다.",
  applyMonthComposition:"월 표시 구성과 배치를 저장했습니다.",
  applyMonthTypography:"월 표시 글꼴과 색상을 저장했습니다.",
- applyRangeEventStyle:"구간 일정 스타일을 저장했습니다.",
+ applyRangeEventStyle:"일정 표시 설정을 저장했습니다.",
  applyCoverMaster:"표지 Master 설정을 저장했습니다."
 };
 const INSPECTOR_SAVE_IDS=Object.keys(INSPECTOR_SAVE_MESSAGES);
@@ -1081,7 +1089,7 @@ function renderInspector(){
  }
  if(!monthTitleEditing){
  const rs=project.template.masters.calendar.rangeEventStyle;
- design+=`<div class="section"><span class="layer-chip">구간 일정 자동 조판</span><div class="range-event-legend">시작일과 종료일이 다른 일정은 주 단위 막대로 자동 분할합니다. 겹치는 일정은 Lane에 자동 배치하고 다음 주나 다른 달로 이어지는 구간도 표시합니다.</div><div class="range-style-preview"><div class="demo-bar">교육과정 집중 운영기간</div></div><label class="inline-check"><input id="rangeEnabled" type="checkbox" ${rs.enabled?"checked":""}><span>구간 일정을 막대 형태로 표시</span></label><div class="range-style-grid"><label>일정명 표시<select id="rangeLabelMode"><option value="first" ${rs.labelMode==="first"?"selected":""}>첫 구간만</option><option value="every" ${rs.labelMode==="every"?"selected":""}>매주 반복</option><option value="continued" ${rs.labelMode==="continued"?"selected":""}>후속 구간에 계속 표시</option><option value="none" ${rs.labelMode==="none"?"selected":""}>표시 안 함</option></select></label><label>일정명 위치<select id="rangeLabelPosition"><option value="inside" ${rs.labelPosition==="inside"?"selected":""}>막대 안</option><option value="above" ${rs.labelPosition==="above"?"selected":""}>막대 위</option></select></label><label>막대 높이(px)<input id="rangeBarHeight" type="number" min="6" max="24" value="${rs.barHeight}"></label><label>Lane 간격(px)<input id="rangeLaneGap" type="number" min="0" max="10" value="${rs.laneGap}"></label><label>최대 Lane<input id="rangeMaxLanes" type="number" value="4" readonly><small>사용자 서비스 표준 · 단일/기간 일정 공통</small></label><label>초과 일정<select id="rangeOverflowStyle"><option value="count" ${rs.overflowStyle==="count"?"selected":""}>+N개 표시</option><option value="hide" ${rs.overflowStyle==="hide"?"selected":""}>숨김</option></select></label></div><button id="applyRangeEventStyle" class="action">구간 일정 스타일 저장</button></div>`;
+ design+=`<div class="section"><span class="layer-chip">일정 표시</span><div class="range-event-legend">시작일과 종료일이 다른 일정은 주 단위 막대로 자동 분할합니다. 겹치는 일정은 Lane에 자동 배치하고 다음 주나 다른 달로 이어지는 구간도 표시합니다.</div><div class="range-style-preview"><div class="demo-bar">교육과정 집중 운영기간</div></div><label class="inline-check"><input id="rangeEnabled" type="checkbox" ${rs.enabled?"checked":""}><span>학사일정을 막대 형태로 표시</span></label><div class="range-style-grid"><label>일정명 표시<select id="rangeLabelMode"><option value="first" ${rs.labelMode==="first"?"selected":""}>첫 구간만</option><option value="every" ${rs.labelMode==="every"?"selected":""}>매주 반복</option><option value="continued" ${rs.labelMode==="continued"?"selected":""}>후속 구간에 계속 표시</option><option value="none" ${rs.labelMode==="none"?"selected":""}>표시 안 함</option></select></label><label>일정명 위치<select id="rangeLabelPosition"><option value="inside" ${rs.labelPosition==="inside"?"selected":""}>막대 안</option><option value="above" ${rs.labelPosition==="above"?"selected":""}>막대 위</option></select></label><label>막대 높이(px)<input id="rangeBarHeight" type="number" min="6" max="24" value="${rs.barHeight}"></label><label>Lane 간격(px)<input id="rangeLaneGap" type="number" min="0" max="10" value="${rs.laneGap}"></label><label>최대 Lane<input id="rangeMaxLanes" type="number" value="4" readonly><small>사용자 서비스 표준 · 단일/기간 일정 공통</small></label><label>초과 일정<select id="rangeOverflowStyle"><option value="count" ${rs.overflowStyle==="count"?"selected":""}>+N개 표시</option><option value="hide" ${rs.overflowStyle==="hide"?"selected":""}>숨김</option></select></label></div><button id="applyRangeEventStyle" class="action">일정 표시 설정 저장</button></div>`;
  if(p.role.includes('cover-front'))design+=`<div class="section"><label>표지 제목 크기<input id="coverTitleSize" type="number" min="20" max="50" value="${project.template.masters.cover.titleSize}"></label><button id="applyCoverMaster" class="action">표지 Master 설정 저장</button></div>`;
  }
  const validationMessages=validate();
@@ -1096,6 +1104,11 @@ function renderInspector(){
  }else if(sourceElement()&&selectedElementScope==="master"&&(p.role==="monthly-front"||p.role==="monthly-back")){
   const item=sourceElement(),overridden=monthlyPagesForRole(p.role).filter(page=>pageElements(page).some(local=>local.shadowOfMasterElementId===item.id));
   layout+=`<div class="section master-apply-card"><strong>12개월 공통 개체</strong><p>이 개체의 위치와 크기는 ${monthlyMasterLabel(p)}에 공통으로 반영됩니다.${overridden.length?` 단, 별도 편집된 ${overridden.length}개 월은 현재 공통 배치를 따르지 않습니다.`:""}</p><button id="detachMonthlyMaster" class="secondary" type="button">이 월만 별도 편집</button></div>`;
+ }
+ if(sourceElement()&&['monthly-front','monthly-back'].includes(p.role)){
+  const note=`<p>먼저 위의 변경사항을 저장한 뒤 적용하세요. 월별 사진·문구·연결 데이터는 유지됩니다.</p>`;
+  design+=`<div class="section master-apply-card"><strong>${monthlyMasterLabel(p)}에 적용</strong>${note}<button id="applyMonthlyObjectStyle" class="action">저장된 스타일을 전체 월에 적용</button></div>`;
+  layout+=`<div class="section master-apply-card"><strong>${monthlyMasterLabel(p)}에 적용</strong>${note}<button id="applyMonthlyObjectGeometry" class="action">저장된 배치를 전체 월에 적용</button></div>`;
  }
  const selected=sourceElement();
  if(selected?.type==="event-list"&&selected.displayMode==="month"){
@@ -1213,8 +1226,9 @@ function bindInspector(){
  el("masterCalendarDesignPreset")?.addEventListener("change",event=>{let preset=event.target.value;if(project.template?.metadata?.sampleFamily==="desk-6"&&preset==="sample-3"){preset="sample-6";event.target.value=preset;showEditorToast("6번 템플릿에는 6번 원본형 조합만 적용할 수 있습니다. 개별 스타일은 아래에서 수정할 수 있습니다.")}const map={"sample-6":{title:"number-stack",align:"left",weekday:"filled-tabs",grid:"boxed"},"sample-3":{title:"number-inline",align:"center",weekday:"outlined-pills",grid:"open-rows"}}[preset];if(!map)return;el("masterMonthTitleStyle").value=map.title;el("masterMonthTitleAlign").value=map.align;el("masterWeekdayStyle").value=map.weekday;el("masterGridStyle").value=map.grid});
  bind("applyMonthComposition",()=>change(()=>{const title=project.template.masters.calendar.calendarLayout.monthTitle;title.style=window.ACDLSharedMonthTitle.normalizeTypography({...title.style,composition:el("monthComposition").value,arrangement:el("monthArrangement").value,reverse:el("monthReverse").value==="yes",align:el("monthAlign").value,numberFormat:el("monthNumberFormat").value,englishFormat:el("monthEnglishFormat").value,yearFormat:el("monthYearFormat").value})}));
  bind("applyMonthTypography",()=>change(()=>{const input={fontFamily:el("monthFontFamily").value,fontWeight:el("monthFontWeight").value,gap:el("monthGap").value,metaGap:el("monthMetaGap").value};for(const key of ["number","year","english","text"]){input[key+"Size"]=el(`month-${key}-size`).value;input[key+"Color"]=el(`month-${key}-color`).value;if(key!=="text"){input[key+"FontFamily"]=el(`month-${key}-font`).value;input[key+"FontWeight"]=el(`month-${key}-weight`).value}}project.template.masters.calendar.calendarLayout.monthTitle.style=window.ACDLSharedMonthTitle.normalizeTypography({...project.template.masters.calendar.calendarLayout.monthTitle.style,...input})}));
- bind("applyMaster",()=>change(()=>{const calendar=project.template.masters.calendar;if(el("grid-weekday-mode")){calendar.calendarLayout||={};calendar.calendarLayout.gridAppearance=readCalendarGridAppearance();project.settings.showAdjacentMiniCalendars=el("grid-mini-visible").checked;}calendar.design||={};calendar.design.monthTitleAlign=el("masterMonthTitleAlign")?.value||calendar.design.monthTitleAlign||"left";calendar.design.monthTitleStyle=el("masterMonthTitleStyle")?.value||calendar.design.monthTitleStyle||"number-stack";calendar.design.weekdayStyle=el("masterWeekdayStyle")?.value||calendar.design.weekdayStyle||"filled-tabs";calendar.design.gridStyle=el("masterGridStyle")?.value||calendar.design.gridStyle||"boxed";calendar.design.presetId=el("masterCalendarDesignPreset")?.value||"custom";calendar.design.eventStyle="strong-bars";calendar.calendarOverrides={...(calendar.calendarOverrides||{}),monthTitleAlign:calendar.design.monthTitleAlign,monthTitleStyle:calendar.design.monthTitleStyle,weekdayStyle:calendar.design.weekdayStyle,gridStyle:calendar.design.gridStyle,eventStyle:calendar.design.eventStyle};if(el("masterTitleSize"))calendar.monthTitleSize=Number(el("masterTitleSize").value);if(el("masterMaxEvents"))calendar.eventMaxVisiblePerDay=Number(el("masterMaxEvents").value)}));
+ bind("applyMaster",()=>change(()=>{const calendar=project.template.masters.calendar;if(el("grid-weekday-mode")){calendar.calendarLayout||={};calendar.calendarLayout.gridAppearance=readCalendarGridAppearance();project.settings.showAdjacentMiniCalendars=el("grid-mini-visible").checked;}calendar.design||={};calendar.design.monthTitleAlign=el("masterMonthTitleAlign")?.value||calendar.design.monthTitleAlign||"left";calendar.design.monthTitleStyle=el("masterMonthTitleStyle")?.value||calendar.design.monthTitleStyle||"number-stack";calendar.design.weekdayStyle=el("masterWeekdayStyle")?.value||calendar.design.weekdayStyle||"filled-tabs";calendar.design.gridStyle=el("masterGridStyle")?.value||calendar.design.gridStyle||"boxed";calendar.design.presetId=el("masterCalendarDesignPreset")?.value||"custom";calendar.design.eventStyle="strong-bars";calendar.calendarOverrides={...(calendar.calendarOverrides||{}),monthTitleAlign:calendar.design.monthTitleAlign,monthTitleStyle:calendar.design.monthTitleStyle,weekdayStyle:calendar.design.weekdayStyle,gridStyle:calendar.design.gridStyle,eventStyle:calendar.design.eventStyle};if(el("masterTitleSize"))calendar.monthTitleSize=Number(el("masterTitleSize").value);if(el("masterMaxEvents")&&!el("rangeEnabled"))calendar.eventMaxVisiblePerDay=Number(el("masterMaxEvents").value)}));
  bind("applyRangeEventStyle",()=>change(()=>{
+  if(el("masterMaxEvents"))project.template.masters.calendar.eventMaxVisiblePerDay=Number(el("masterMaxEvents").value);
   const s=project.template.masters.calendar.rangeEventStyle;
   s.enabled=el("rangeEnabled").checked;
   s.labelMode=el("rangeLabelMode").value;
@@ -1224,6 +1238,8 @@ function bindInspector(){
   s.maxLanes=window.ACDLCalendarDomain.SCHEDULE_MAX_LANES;
   s.overflowStyle=el("rangeOverflowStyle").value
  }));
+ bind("applyMonthlyObjectStyle",()=>applySelectedMonthlySettings("style"));
+ bind("applyMonthlyObjectGeometry",()=>applySelectedMonthlySettings("geometry"));
  bind("promoteToMonthlyMaster",promoteSelectedToMonthlyMaster);
  bind("detachMonthlyMaster",()=>{
   const item=sourceElement();
@@ -1277,15 +1293,16 @@ function setupCalendarGridAppearance(container){
  const typographyFields=key=>`<label>${key==='weekday'?'요일':'날짜'} 글꼴<select id="grid-${key}Font"><option value="">기존 글꼴 유지</option>${fonts.map(font=>`<option ${s[key+'Font']===font?'selected':''}>${font}</option>`).join('')}</select></label><label>${key==='weekday'?'요일':'날짜'} 크기 (px)<input id="grid-${key}Size" data-optional="true" type="number" min="3" max="72" step=".5" placeholder="기존 크기 유지" value="${s[key+'Size']??''}"></label><label>${key==='weekday'?'요일':'평일 날짜'} 글자색<input id="grid-${key}Color" placeholder="기존 색 유지 · #RRGGBB" pattern="#[a-fA-F0-9]{6}" value="${s[key+'Color']||''}"></label>`;
  text.innerHTML=typographyFields('weekday');
  lines.innerHTML=typographyFields('date')+`<label>선색<input id="grid-lineColor" placeholder="기존 선색 유지 · #RRGGBB" pattern="#[a-fA-F0-9]{6}" value="${s.lineColor||''}"></label><label>선 굵기 (px)<input id="grid-lineWidth" data-optional="true" type="number" min="0" max="8" step=".5" placeholder="기존 굵기 유지" value="${s.lineWidth??''}"></label>`;
+ const scheduleFields=el('applyRangeEventStyle')?.closest('.section');const singleCount=el('masterMaxEvents')?.closest('label');if(scheduleFields&&singleCount)scheduleFields.insertBefore(singleCount,scheduleFields.querySelector('.range-event-legend'));
  mini.innerHTML=`<label class="inline-check calendar-style-check"><input id="grid-mini-visible" type="checkbox" ${project.settings.showAdjacentMiniCalendars?'checked':''}>이전·다음 달 미니월력 표시</label>`+paint('mini','남은 날짜 칸의 미니월력');
- for(const [id,target] of [['masterWeekdayStyle',text],['masterMaxEvents',lines],['masterGridStyle',lines]]){const node=el(id);if(node)target.prepend(node.closest('label'));}
+ for(const [id,target] of [['masterWeekdayStyle',text],['masterGridStyle',lines]]){const node=el(id);if(node)target.prepend(node.closest('label'));}
  const update=()=>{for(const key of ['weekday','date','mini']){const mode=el('grid-'+key+'-mode').value;container.querySelector('[data-paint-fields="'+key+'"]').hidden=mode!=='solid';}const brief=key=>el('grid-'+key+'-mode').value==='solid'?el('grid-'+key+'-color').value+' · '+el('grid-'+key+'-opacity').value+'%':el('grid-'+key+'-mode').selectedOptions[0].textContent;panels.text.querySelector('[data-grid-summary]').textContent='글자 '+(el('grid-weekdaySize').value||'기존')+' · '+el('masterWeekdayStyle').selectedOptions[0].textContent;panels.lines.querySelector('[data-grid-summary]').textContent=(el('grid-lineColor').value||'기존 선색')+' · '+(el('grid-lineWidth').value||'기존')+'px';panels.background.querySelector('[data-grid-summary]').textContent='요일 '+brief('weekday')+' / 날짜 '+brief('date');panels.mini.querySelector('[data-grid-summary]').textContent=el('grid-mini-visible').checked?brief('mini'):'표시 안 함';};
  section.addEventListener('input',update);section.addEventListener('change',update);update();
 }
 
 const calendarInspectorSectionState={};
 function setupCalendarInspectorSections(container){
- for(const [id,title] of [['applyMonthComposition','월 표시 구성'],['applyMonthTypography','월 표시 글자'],['applyRangeEventStyle','구간 일정'],['applyCoverMaster','표지 제목']]){
+ for(const [id,title] of [['applyMonthComposition','월 표시 구성'],['applyMonthTypography','월 표시 글자'],['applyRangeEventStyle','일정 표시'],['applyCoverMaster','표지 제목']]){
   const button=el(id),section=button?.closest('.section');if(!section||section.parentElement?.tagName==='DETAILS')continue;
   const panel=document.createElement('details');panel.className='calendar-style-panel calendar-style-section';panel.open=calendarInspectorSectionState[id]??(monthTitleEditing&&id==='applyMonthComposition');panel.innerHTML='<summary><span>'+title+'</span></summary>';section.parentNode.insertBefore(panel,section);panel.append(section);panel.addEventListener('toggle',()=>calendarInspectorSectionState[id]=panel.open);
  }

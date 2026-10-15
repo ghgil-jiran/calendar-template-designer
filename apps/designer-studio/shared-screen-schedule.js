@@ -108,5 +108,26 @@
     const items = mode === "all" || mode === "year-by-month" ? all : all.slice(0, Number(element?.maxItems || 24));
     return { mode, groups, items };
   }
-  root.ACDLSharedSchedule = Object.freeze({ version, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
+  function monthSchedule(layout, style = {}, singleLimit = 4) {
+    if (style.enabled === false) return {segments: [], hiddenByDate: {}};
+    const firstRows = new Map(), singles = new Map();
+    const hiddenByDate = {...layout.hiddenByDate};
+    const limit = Math.max(1, Math.min(4, Number(singleLimit) || 4));
+    for (const seg of layout.segments || []) firstRows.set(seg.eventId, Math.min(firstRows.get(seg.eventId) ?? Infinity, seg.row));
+    const segments = (layout.segments || []).filter(seg => {
+      if (seg.startDate !== seg.endDate) return true;
+      const count = (singles.get(seg.startDate) || 0) + 1;
+      singles.set(seg.startDate, count);
+      if (count <= limit) return true;
+      hiddenByDate[seg.startDate] = (hiddenByDate[seg.startDate] || 0) + 1;
+      return false;
+    }).map(seg => {
+      const first = seg.row === firstRows.get(seg.eventId);
+      const label = style.labelMode === 'none' || style.labelMode === 'first' && !first ? ''
+        : style.labelMode === 'continued' && !first ? seg.title + ' · 계속' : seg.title;
+      return {...seg, label};
+    });
+    return {segments, hiddenByDate: style.overflowStyle === 'hide' ? {} : hiddenByDate};
+  }
+  root.ACDLSharedSchedule = Object.freeze({ version, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
 })(globalThis);

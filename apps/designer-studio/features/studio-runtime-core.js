@@ -899,13 +899,14 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
   assignRangeLanes=function(grid){
     const p=selectedPage(),weekStart=project.settings.weekStart==="monday"?"monday":"sunday",rows=Math.max(1,Math.ceil(grid.length/7));
     const displayEvents=window.ACDLCalendarDomain.assignCalendarScheduleColors((project.book.events||[]).filter(event=>!isPublicReferenceEvent(event)));
-    const layout=window.ACDLCalendarDomain.buildCalendarScheduleLanes(
+    const rawLayout=window.ACDLCalendarDomain.buildCalendarScheduleLanes(
       Number(p?.calendarYear),
       Number(p?.calendarMonth),
       displayEvents,
       weekStart,
       rows
     );
+    const layout={...rawLayout,...window.ACDLSharedSchedule.monthSchedule(rawLayout,project.template.masters.calendar.rangeEventStyle,project.template.masters.calendar.eventMaxVisiblePerDay)};
     const eventsById=new Map(displayEvents.map(event=>[event.id,event]));
     return {
       segments:layout.segments.map(segment=>({
@@ -921,9 +922,8 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
   };
   renderRangeEventLayer=function(grid,rows){
     const style=project.template.masters.calendar.rangeEventStyle;
-    const hasSampleSchedule=Boolean(project.book.scheduleImport?.events?.length);
-    if(!style || (style.enabled===false && !hasSampleSchedule))return '';
-    const layout=assignRangeLanes(grid),rowHeight=100/rows,gap=Number(style.laneGap||1);
+    if(!style || style.enabled===false)return '';
+    const layout=assignRangeLanes(grid),rowHeight=100/rows,gap=Number(style.laneGap??1);
     const pageHeight=el("page")?.clientHeight||700,region=calendarRegion(),vertical=calendarVerticalLayout(),design=project.template.masters.calendar.design||{},presentation=vertical.preset?.presentation||design,chrome=calendarChromeLayout(presentation,vertical,region);
     const regionHeight=Math.max(1,pageHeight*(region.height/100));
     const titleHeight=regionHeight*vertical.title/100,stageHeight=Math.max(1,regionHeight-titleHeight);
@@ -933,8 +933,8 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     const fittedHeight=Math.max(1,Math.floor((cellHeight-reservedTop-Math.max(0,layout.maxLanes-1)*gap)/Math.max(1,layout.maxLanes)));
     const barHeight=Math.min(requestedHeight,fittedHeight),activeGridStyle=calendarVerticalLayout().preset?.presentation?.gridStyle||project.template.masters.calendar.design?.gridStyle,detachedCards=activeGridStyle==='detached-cards';let html='<div class="range-event-layer">';
     layout.segments.forEach(seg=>{
-      const left=seg.startColumn/7*100,width=(seg.endColumn-seg.startColumn+1)/7*100,classes=['range-event-bar',detachedCards?'detached-cell-range':'',style.labelPosition==='above'?'label-above':''].filter(Boolean).join(' '),color=eventColor(seg.event),bottomPx=3+(seg.lane+1)*(barHeight+gap)-gap,typography=window.ACDLCalendarDomain.calendarScheduleTypography(seg.title,seg.span),span=Math.max(1,seg.span||seg.endColumn-seg.startColumn+1),stops=Array.from({length:span},(_,i)=>`${color} ${i/span*100}% calc(${(i+1)/span*100}% - 3px),transparent calc(${(i+1)/span*100}% - 3px) ${(i+1)/span*100}%`).join(','),background=detachedCards&&span>1?`linear-gradient(90deg,${stops})`:color;
-      html+=`<div class="${classes}" title="${escapeAttr(seg.event.title)} · ${seg.event.startDate} ~ ${seg.event.endDate}" style="left:calc(${left}% + 2px);width:calc(${width}% - 4px);top:calc(${(seg.week+1)*rowHeight}% - ${bottomPx}px);height:${barHeight}px;background:${background};font-size:${typography.fontPx}px;-webkit-line-clamp:${typography.maxLines}">${seg.title}</div>`
+      const left=seg.startColumn/7*100,width=(seg.endColumn-seg.startColumn+1)/7*100,classes=['range-event-bar',detachedCards?'detached-cell-range':'',style.labelPosition==='above'?'range-label-above':''].filter(Boolean).join(' '),color=eventColor(seg.event),bottomPx=3+(seg.lane+1)*(barHeight+gap)-gap,typography=window.ACDLCalendarDomain.calendarScheduleTypography(seg.title,seg.span),span=Math.max(1,seg.span||seg.endColumn-seg.startColumn+1),stops=Array.from({length:span},(_,i)=>`${color} ${i/span*100}% calc(${(i+1)/span*100}% - 3px),transparent calc(${(i+1)/span*100}% - 3px) ${(i+1)/span*100}%`).join(','),background=detachedCards&&span>1?`linear-gradient(90deg,${stops})`:color;
+      html+=`<div class="${classes}" title="${escapeAttr(seg.event.title)} · ${seg.event.startDate} ~ ${seg.event.endDate}" style="left:calc(${left}% + 2px);width:calc(${width}% - 4px);top:calc(${(seg.week+1)*rowHeight}% - ${bottomPx}px);height:${barHeight}px;background:${background};${style.labelPosition==='above'?'overflow:visible;':''}font-size:${typography.fontPx}px;-webkit-line-clamp:${typography.maxLines}"><span${style.labelPosition==='above'?` style="position:absolute;bottom:100%;left:0;color:${color}"`:""}>${escapeAttr(seg.label??seg.title)}</span></div>`
     });
     return html+'</div>'
   };
