@@ -101,6 +101,7 @@ export async function saveGraphicPackagePage(body){
  const pkg=await packageForUpdate(body),page=body.page;if(!packageModel.pages[page]||pkg.status!=='active')fail('INVALID_GRAPHIC_PACKAGE_PAGE');
  if(page!=='cover'&&!pkg.pages.cover?.graphicId)fail('GRAPHIC_PACKAGE_COVER_REQUIRED');
  let graphic;if(body.graphicId){graphic=await getGraphic(body.graphicId);if(graphic.schemaVersion!=='graphic-library.v1'||graphic.status!=='active'||graphic.design?.page!==page||graphic.design?.kind!=='background')fail('INVALID_GRAPHIC_PACKAGE_ASSET')}
+ else if(body.uploadId){if(!['image/png','image/jpeg','image/webp'].includes(body.mimeType))fail('INVALID_GRAPHIC_UPLOAD');const uploaded=await createGraphic({...body,category:'background'});graphic=await write({...uploaded,registrationMethod:'package-upload',design:globalThis.ACDLGraphicVectorDesign.normalize({page,kind:'background'}),ownership:{kind:'background-package',id:pkg.id},physicalSizeMm:{width:260,height:180}})}
  else {let design;try{design=globalThis.ACDLGraphicVectorDesign.normalize(body.design)}catch{fail('INVALID_VECTOR_DESIGN')}if(design.page!==page||design.kind!=='background')fail('INVALID_GRAPHIC_PACKAGE_ASSET');graphic=await generateGraphic({...body,design},{packageOwnerId:pkg.id})}
  // Each page points to an immutable asset. Replacing a page never overwrites its previous asset.
  const latest=await packageForUpdate(body),now=new Date().toISOString(),slot={graphicId:graphic.id,derivedFromCoverId:page==='cover'?null:pkg.pages.cover.graphicId,updatedAt:now};
