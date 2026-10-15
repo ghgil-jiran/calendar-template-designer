@@ -54,3 +54,18 @@
 /* Date-cell mini calendars use the same six/five-row markup on both screens. */
 .cell-mini-calendar{position:absolute;inset:0;display:flex;flex-direction:column;padding:4px;background:rgba(248,250,252,.96);overflow:hidden}.cell-mini-calendar strong{text-align:left;font-size:9px;line-height:1;margin-bottom:3px}.cell-mini-grid{display:flex;min-height:0;flex:1;flex-direction:column;justify-content:space-between;padding-bottom:1px;font-size:6px;line-height:1}.cell-mini-week{display:grid;grid-template-columns:repeat(7,1fr)}.cell-mini-week span{text-align:center;min-width:0}.cell-mini-week .merged{font-size:4.5px;white-space:nowrap}.cell-mini-week .adj{color:transparent}.cell-mini-week .sun-mini{color:#d92d20}.cell-mini-week .sat-mini{color:#175cd3}.cell.mini-host{position:relative;padding:0}.cell.mini-host .day-stack{display:none}
 .cell-mini-grid{display:grid;grid-template-rows:repeat(var(--mini-calendar-rows,6),minmax(0,1fr));justify-content:normal}.cell-mini-week{align-items:center}
+
+/* Backgrounds are painted once per cell; text and schedules stay opaque. */
+.cell-mini-calendar{background:transparent}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head,.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>div{background:var(--calendar-weekday-background)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-weekday-color"] .calendar>.head:not(:first-child):not(:nth-child(7)),.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-weekday-color"] .shared-month-weekdays>div:not(:first-child):not(:nth-child(7)){color:var(--calendar-weekday-color)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.cell:not(.head),.calendar-grid-appearance.calendar-grid-appearance .shared-month-date-grid>div{background:var(--calendar-date-background)!important}
+.calendar-grid-appearance.calendar-grid-appearance .shared-month-date-grid>div>div:first-child{background:transparent!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.cell.mini-host,.calendar-grid-appearance.calendar-grid-appearance .shared-month-date-grid>div:has(.cell-mini-calendar){background:var(--calendar-mini-background)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-date-size"] :is(.day,.calendar-date-number){font-size:var(--calendar-date-size)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-date-font"] :is(.day,.calendar-date-number){font-family:var(--calendar-date-font)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-weekday-size"] :is(.calendar>.head,.shared-month-weekdays>div){font-size:var(--calendar-weekday-size)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-weekday-font"] :is(.calendar>.head,.shared-month-weekdays>div){font-family:var(--calendar-weekday-font)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-date-color"] .cell:not(.sun):not(.sat) .day-block:not(.public-holiday) .day,.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-date-color"] .calendar-date-number[data-day-tone=weekday]{color:var(--calendar-date-color)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-line-color"] :is(.calendar>.cell:not(.head),.shared-month-date-grid,.shared-month-day-cell,.shared-month-date-grid>div>div:first-child){border-color:var(--calendar-line-color)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-line-width"] :is(.calendar>.cell:not(.head),.shared-month-date-grid,.shared-month-day-cell,.shared-month-date-grid>div>div:first-child){border-width:var(--calendar-line-width)!important}
