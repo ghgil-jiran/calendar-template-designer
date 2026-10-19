@@ -248,3 +248,10 @@ test('remote save and reopen preserve precise month title composition, geometry 
 });
 
  test('remote loading attaches the authoritative revision before publishing or deferred hydration',async()=>{for(const deferAssets of [false,true]){const original={template:{remoteVersionNumber:1},book:{pageInstances:[{id:'edited-cover'}]}},api=runtime({fetch:async()=>({ok:true,status:200,json:async()=>({version:{versionNumber:4,projectData:original}})})});const result=await api.load('template-1',{deferAssets});assert.equal(result.version.projectData.template.remoteVersionNumber,4);assert.equal(result.version.storedProjectData.template.remoteVersionNumber,4);assert.equal(result.version.projectData.book.pageInstances[0].id,'edited-cover');assert.equal(original.template.remoteVersionNumber,1)}});
+
+test('archiving preserves stored asset markers and missing thumbnails without rendering or image uploads',async()=>{
+ const projectData={template:{metadata:{state:'archived'},thumbnail:null,resources:{assets:[{id:'broken',src:'acdl-asset://00000000-0000-4000-8000-000000000001'}]},aiDesignDraft:{status:'complete'}},book:{elementsByPage:{}}};
+ const calls=[];const api=runtime({fetch:async(path,options)=>{calls.push({path,body:JSON.parse(options.body)});return {ok:true,status:200,json:async()=>({template:{id:'t1'},version:{id:'v1',projectData}})}}});
+ await api.save({state:'archived',projectData},{verifyThumbnail:false});
+ assert.equal(calls.length,1);assert.equal(calls[0].path,'/api/templates');assert.deepEqual(calls[0].body.projectData,projectData);
+});
