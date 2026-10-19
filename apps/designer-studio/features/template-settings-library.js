@@ -68,7 +68,7 @@ async function loadTemplateProjectData(id,{onProgress}={}){
 }
 async function refreshRemoteTemplateLibrary(){
  const remote=window.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return false;
- try{const remoteRecords=await remote.list();window.ACDLTemplateCatalogDeletions?.replace?.(remote.deletedCatalogKeys?.()||[]);const current=v22Library().filter(item=>item.source!=="catalog"),remoteIds=new Set(remoteRecords.map(item=>item.id)),remoteKeys=new Set(remoteRecords.map(item=>item.stableKey)),localOnly=current.filter(item=>!remoteIds.has(item.id)&&!remoteKeys.has(item.stableKey));v22SaveLibrary([...remoteRecords,...localOnly]);renderTemplateLibrary?.("all");return true}
+ try{const remoteRecords=await remote.list();window.ACDLTemplateCatalogDeletions?.replace?.(remote.deletedCatalogKeys?.()||[]);const current=v22Library().filter(item=>item.source!=="catalog"),remoteIds=new Set(remoteRecords.map(item=>item.id)),remoteKeys=new Set(remoteRecords.map(item=>item.stableKey)),localOnly=current.filter(item=>!item.remoteId&&item.storage!=="supabase"&&!remoteIds.has(item.id)&&!remoteKeys.has(item.stableKey));v22SaveLibrary([...remoteRecords,...localOnly]);renderTemplateLibrary?.("all");return true}
  catch(error){console.warn("원격 템플릿 목록 동기화 실패",error);showEditorToast?.(error?.message||"원격 템플릿 목록을 불러오지 못했습니다.");return false}
 }
 window.refreshRemoteTemplateLibrary=refreshRemoteTemplateLibrary;

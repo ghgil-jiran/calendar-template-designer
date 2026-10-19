@@ -145,3 +145,13 @@ test('legacy storage paths resolve to stable private asset ids',async()=>{
  globalThis.fetch=async url=>{assert.match(url,/storage_path=in\.\(sha256%2Flegacy\.webp\)/);return response([{id:'11111111-1111-4111-8111-111111111111',storage_path:'sha256/legacy.webp',mime_type:'image/webp',byte_size:10}])};
  const [asset]=await resolveTemplateAssetsByPaths(['sha256/legacy.webp']);assert.equal(asset.id,'11111111-1111-4111-8111-111111111111');assert.equal(asset.storagePath,'sha256/legacy.webp')
 });
+
+test('retrying a missing template completes without touching a replacement project',async()=>{
+ const calls=[];globalThis.fetch=async(url,options)=>{calls.push(JSON.parse(options.body));return {ok:false,status:400,text:async()=>JSON.stringify({code:'P0001',message:'template_not_found'})}};
+ const result=await deleteTemplate({templateId:'22222222-2222-4222-8222-222222222222',stableKey:'removed',hideCatalog:false});
+ assert.equal(result.deleted,true);assert.equal(calls.length,1);assert.equal(result.templateDeleted,false);
+});
+test('a stable-key mismatch remains an error and cannot delete another template',async()=>{
+ globalThis.fetch=async()=>({ok:false,status:400,text:async()=>JSON.stringify({code:'P0001',message:'template_stable_key_mismatch'})});
+ await assert.rejects(deleteTemplate({templateId:'22222222-2222-4222-8222-222222222222',stableKey:'different'}),/template_stable_key_mismatch/);
+});

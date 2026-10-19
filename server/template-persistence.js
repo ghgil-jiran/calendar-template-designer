@@ -111,6 +111,8 @@ export async function supabaseRequest(path, options = {}) {
     const error = new Error(body?.message || 'Supabase request failed');
     error.statusCode = 502;
     error.code = 'SUPABASE_REQUEST_FAILED';
+    error.supabaseCode = body?.code;
+    console.error('[template-persistence] database request rejected',{path:path.split('?')[0],status:response.status,code:body?.code,message:body?.message});
     throw error;
   }
   return body;
@@ -234,7 +236,14 @@ export async function deleteTemplate(input){
   const stableKey=requiredText(body.stableKey,'stableKey',160);
   const hideCatalog=body.hideCatalog===true;
   if(!templateId&&!hideCatalog)throw Object.assign(new Error('Template id is required'),{statusCode:400,code:'INVALID_REQUEST'});
-  const result=firstRow(await supabaseRequest('rpc/delete_template_permanently',{method:'POST',body:JSON.stringify({p_template_id:templateId,p_stable_key:stableKey,p_hide_catalog:hideCatalog})}));
+  let result;
+  try{result=firstRow(await supabaseRequest('rpc/delete_template_permanently',{method:'POST',body:JSON.stringify({p_template_id:templateId,p_stable_key:stableKey,p_hide_catalog:hideCatalog})}));}
+  catch(error){
+    if(error?.message!=='template_not_found')throw error;
+    // A previous deletion can have succeeded while the browser retained its card.
+    // Never delete a different project with the same stable key on this retry.
+    result=hideCatalog?firstRow(await supabaseRequest('rpc/delete_template_permanently',{method:'POST',body:JSON.stringify({p_template_id:null,p_stable_key:stableKey,p_hide_catalog:true})})):{templateDeleted:false,catalogHidden:false,orphanAssets:[]};
+  }
   const orphanAssets=Array.isArray(result?.orphanAssets)?result.orphanAssets:[];
   const byBucket=new Map();
   orphanAssets.forEach(asset=>{const bucket=asset.storage_bucket||ASSET_BUCKET;if(!byBucket.has(bucket))byBucket.set(bucket,[]);byBucket.get(bucket).push(asset.storage_path)});

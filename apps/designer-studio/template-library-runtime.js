@@ -284,7 +284,7 @@
    if(!target)return;const confirmButton=el('confirmTemplateDeleteBtn'),cancelButton=el('cancelTemplateDeleteBtn'),feedback=el('templateDeleteFeedback'),remote=window.ACDLTemplateRemotePersistence,hideCatalog=target.source==='catalog'||Boolean(target.catalogId),remoteId=target.remoteId||(/^[0-9a-f-]{36}$/i.test(String(target.id))?target.id:null);
    dialog.setAttribute('aria-busy','true');confirmButton.disabled=true;cancelButton.disabled=true;confirmButton.textContent='삭제 중…';feedback.className='save-feedback info';feedback.textContent='템플릿과 버전 이력을 삭제하고 있습니다.';
    try{
-    if(remote?.isRemote?.())await remote.remove({templateId:remoteId,stableKey:target.stableKey||target.catalogId||target.id,hideCatalog});
+    if(remote?.isRemote?.()){await remote.remove({templateId:remoteId,stableKey:target.stableKey||target.catalogId||target.id,hideCatalog});await window.ACDLTemplatePublishing?.synchronizeCatalog?.();}
     if(hideCatalog)hideCatalogKey(target.stableKey||target.catalogId||target.id);
     await deleteTemplateProjectData(target.id);if(remoteId&&remoteId!==target.id)await deleteTemplateProjectData(remoteId);
     const remaining=oldLibrary().filter(item=>item.id!==target.id&&item.id!==remoteId&&item.stableKey!==(target.stableKey||target.id));saveRecords(remaining);versionHistoryCache.delete(target.id);if(remoteId)versionHistoryCache.delete(remoteId);
