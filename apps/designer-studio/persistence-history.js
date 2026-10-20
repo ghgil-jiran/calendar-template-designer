@@ -19,9 +19,14 @@
         if (!current || typeof current !== 'object') return current;
         if (seen.has(current)) return null;
         seen.add(current);
-        if (Array.isArray(current)) return current.map(walk);
-        const output = {};
-        for (const [key, entry] of Object.entries(current)) output[key] = walk(entry);
+        let output;
+        if (Array.isArray(current)) output = current.map(walk);
+        else {
+          output = {};
+          for (const [key, entry] of Object.entries(current)) output[key] = walk(entry);
+        }
+        // Only ancestors are circular; repeated references elsewhere are valid data.
+        seen.delete(current);
         return output;
       }
       return walk(value);

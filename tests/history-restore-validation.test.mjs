@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const source=fs.readFileSync(new URL('../apps/designer-studio/features/studio-runtime-core.js',import.meta.url),'utf8');
+const code=source.slice(source.indexOf('function restoreHistoryProject('),source.indexOf('el("undoBtn").addEventListener',source.indexOf('function restoreHistoryProject(')));
+const c=vm.createContext({__historyParse:JSON.parse,showEditorToast(){}});vm.runInContext(code,c);
+assert.equal(c.restoreHistoryProject('{broken'),null);
+assert.equal(c.restoreHistoryProject(JSON.stringify({book:{pageInstances:[null]}})),null);
+assert.equal(c.restoreHistoryProject(JSON.stringify({book:{pageInstances:[]}})),null);
+assert.equal(c.restoreHistoryProject(JSON.stringify({book:{pageInstances:[{id:'page'}]}})).book.pageInstances[0].id,'page');

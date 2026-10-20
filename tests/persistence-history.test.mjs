@@ -21,3 +21,16 @@ assert.equal(restored.second, image);
 
 assert.equal(codec.restore({ __acdlBinaryRef: 'missing' }), '');
 assert.equal(codec.compact('short data:text/plain,value'), 'short data:text/plain,value');
+
+// Pages are referenced both by sheets and by the ordered page list.
+const front = { id: 'front', role: 'cover-front', image };
+const back = { id: 'back', role: 'back-cover' };
+const shared = { book: { sheets: [{ front, back }], pageInstances: [front, back] }, template: { firstPage: front } };
+const roundTrip = codec.parse(codec.stringify(shared));
+assert.deepEqual(roundTrip.book.pageInstances.map(page => page.id), ['front', 'back']);
+assert.equal(roundTrip.book.sheets[0].front.image, image);
+assert.equal(roundTrip.book.pageInstances[0].image, image);
+assert.equal(roundTrip.template.firstPage.id, 'front');
+assert.deepEqual(codec.parse(codec.stringify(roundTrip)), roundTrip);
+const style = { color: '#123456' };
+assert.deepEqual(codec.parse(codec.stringify({ elements: [{ style }, { style }] })).elements[1].style, style);
