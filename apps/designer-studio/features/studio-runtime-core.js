@@ -611,7 +611,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
   // Bound semantic objects show the current project's registered school data in both workspaces.
   const oldSemanticData=semanticData;
   semanticData=function(item){
-    if(!project?.book?.school||item.bindingEnabled===false)return oldSemanticData(item);
+    if((project?.mode!=='calendar-workspace'&&!project?.productionCorrection)||!project?.book?.school||item.bindingEnabled===false)return oldSemanticData(item);
     ensureSchoolProfile();const school=project.book.school;
     const map={'school-logo':'logo','school-building':'building','school-flower':'flower','school-tree':'tree','school-motto':'motto','school-song':'song'};
     if(item.role==='school-custom-image'){

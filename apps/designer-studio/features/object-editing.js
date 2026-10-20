@@ -421,7 +421,8 @@ function renderSemanticObject(item){
  const d=semanticData(item),layout=item.layoutPreset||"image-top",role=item.role;
  if(layout==="image-only"&&item.showTitle===false&&item.showCaption===false)return `<div class="semantic-object semantic-logo"><div class="semantic-media">${d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)}">`:""}</div></div>`;
  const image=d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)} 이미지">`:`<span class="semantic-empty-visual non-output editor-only" aria-label="${semanticRoleLabel(role)} 이미지 슬롯"></span>`;
- const showTitle=semanticTitleVisible(item),title=showTitle?`<strong style="font-size:${item.style?.titleSize||18}px">${item.titleOverride||semanticRoleLabel(role)}</strong>`:"";
+ const align=["left","center","right"].includes(item.style?.textAlign)?item.style.textAlign:"center";
+ const showTitle=semanticTitleVisible(item),title=showTitle?`<strong style="display:block;width:100%;text-align:${align};font-size:${item.style?.titleSize||18}px">${item.titleOverride||(role==="school-song"?d.name:"")||semanticRoleLabel(role)}</strong>`:"";
  if(role==="school-logo"){
   const style=item.style||{},background=style.background===true?(style.backgroundColor||"#ffffff"):typeof style.background==="string"?style.background:"transparent";
   return `<div class="semantic-object semantic-logo" style="background:${escapeAttr(background)}"><div class="semantic-media">${image}</div></div>`;
@@ -431,7 +432,7 @@ function renderSemanticObject(item){
   return `<div class="semantic-object desk-six-symbol-card ${role==="school-song"?"semantic-song":""}">${title}<div class="semantic-media">${image}</div>${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||8}px">${d.description||""}</p>`}</div>`
  }
  if(role==="school-motto")return `<div class="semantic-object semantic-motto"><strong style="font-size:${item.style?.titleSize||18}px">${item.titleOverride||d.name||"교훈"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
- if(role==="school-song")return `<div class="semantic-object semantic-song"><div class="semantic-media">${image}</div><div class="semantic-copy">${title}<p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div></div>`;
+ if(role==="school-song")return `<div class="semantic-object semantic-song"><div class="semantic-media">${image}</div><div class="semantic-copy" style="width:100%;text-align:${align}">${title}${item.showCaption===false?"":`<p style="text-align:${align};font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p>`}</div></div>`;
  return `<div class="semantic-object ${layout==="image-left"?"semantic-layout-row":""}"><div class="semantic-media">${image}</div>${item.showCaption===true||showTitle?`<div class="semantic-copy" style="text-align:${item.style?.textAlign||"center"}">${title}${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p>`}</div>`:""}</div>`
 }
 function pageRecommendations(p){
@@ -1164,7 +1165,7 @@ function bindInspector(){
   change(()=>{
    ensureSemanticTemplateData(i);
    const next={...(i.sampleContent||{})};
-   if(el("semanticName"))next.name=el("semanticName").value;
+   if(el("semanticName")){next.name=el("semanticName").value;if(i.role==="school-song")i.titleOverride=next.name;}
    if(el("semanticDescription"))next.description=el("semanticDescription").value;
    if(semanticImageDraftElementId===i.id&&semanticImageDraft)next.image=semanticImageDraft;
    i.sampleContent=next;
