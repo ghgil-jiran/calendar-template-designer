@@ -28,3 +28,13 @@ test('user calendars and production correction retain bound school data',()=>{
  c.item.bindingEnabled=false;assert.equal(vm.runInContext('semanticData(item).description',c),'샘플 설명');
  c.item.bindingEnabled=true;c.project.mode='template';c.project.productionCorrection=true;assert.equal(vm.runInContext('semanticData(item).description',c),'실제 설명');
 });
+test('new and cloned templates retain linked images without replacing authored text',()=>{
+ for(const role of ['school-logo','school-building','school-song','school-tree','school-flower']){
+  const c=setup(),key=role.replace('school-','');c.item.role=role;c.item.sampleContent.image='';
+  c.project.book.school.profile[key]={name:'학교 정보 명칭',description:'학교 정보 설명',image:'linked-'+key+'.png'};
+  const actual=vm.runInContext('semanticData(item)',c);assert.equal(actual.image,'linked-'+key+'.png');assert.equal(actual.name,'샘플 교가');assert.equal(actual.description,'샘플 설명');
+  c.item=JSON.parse(JSON.stringify(c.item));assert.equal(vm.runInContext('semanticData(item).image',c),'linked-'+key+'.png');
+  c.item.sampleContent.image='authored.png';assert.equal(vm.runInContext('semanticData(item).image',c),'authored.png');
+  c.item.sampleContent.image='';c.item.bindingEnabled=false;assert.equal(vm.runInContext('semanticData(item).image',c),'');
+ }
+});

@@ -611,16 +611,18 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
   // Bound semantic objects show the current project's registered school data in both workspaces.
   const oldSemanticData=semanticData;
   semanticData=function(item){
-    if((project?.mode!=='calendar-workspace'&&!project?.productionCorrection)||!project?.book?.school||item.bindingEnabled===false)return oldSemanticData(item);
+    if(!project?.book?.school||item.bindingEnabled===false)return oldSemanticData(item);
+    const authoring=project?.mode!=='calendar-workspace'&&!project?.productionCorrection,sample=authoring?oldSemanticData(item):null;
+    const resolve=data=>authoring?{...sample,image:sample?.image||data?.image||''}:data;
     ensureSchoolProfile();const school=project.book.school;
     const map={'school-logo':'logo','school-building':'building','school-flower':'flower','school-tree':'tree','school-motto':'motto','school-song':'song'};
     if(item.role==='school-custom-image'){
       const a=(school.customAssets||[])[Number(item.customAssetIndex||0)]||(school.customAssets||[])[0];
-      return a?{name:a.name||'사용자 지정 이미지',description:a.description||'',image:a.image||''}:oldSemanticData(item);
+      return a?resolve({name:a.name||'사용자 지정 이미지',description:a.description||'',image:a.image||''}):oldSemanticData(item);
     }
     const key=map[item.role],d=key?school.profile?.[key]:null;
     if(!d)return oldSemanticData(item);
-    return {name:d.name||semanticRoleLabel(item.role),description:d.description||'',image:d.image||''};
+    return resolve({name:d.name||semanticRoleLabel(item.role),description:d.description||'',image:d.image||''});
   };
 
   const oldApply=applyUserSchoolData;
