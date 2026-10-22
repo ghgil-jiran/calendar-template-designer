@@ -5,9 +5,10 @@ import vm from 'node:vm';
 
 const source = fs.readFileSync(new URL('../apps/designer-studio/features/object-editing.js', import.meta.url), 'utf8');
 const start = source.indexOf('function matchingMonthlyObjectsFor(item){');
-const end = source.indexOf('\nfunction syncMonthlySharedFields(', start);
+const end = source.indexOf('\nfunction verifyMonthlyMasterPropagation(', start);
 const match = vm.runInNewContext(`${source.slice(start, end)}; matchingMonthlyObjectsFor`, {
   selectedPage: () => ({ role: 'monthly-back' }),
+  canonicalMasterIdForPage: () => 'master.monthly.back',
   pageElements: page => pages.get(page.id),
   monthlyPagesForRole: () => [{ id: 'march' }, { id: 'april' }],
   project: { template: { masterElements: {} } }
@@ -34,3 +35,4 @@ test('older month-back memo objects without component IDs keep memo and To Do Li
   }
   assert.deepEqual(Array.from(match(pages.get('march')[0]), item => item.id), ['todo-march', 'todo-april']);
 });
+

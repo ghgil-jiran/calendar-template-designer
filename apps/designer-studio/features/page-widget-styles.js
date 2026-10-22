@@ -42,9 +42,10 @@
    const values=Object.fromEntries(controls.map(e=>[e.dataset.pageStyle,e.type==='number'||e.dataset.pageStyle==='fontWeight'?Number(e.value):e.value]));
    modes.forEach(mode=>{if(!mode.checked)values[mode.dataset.pageBackground]='transparent';});
    for(const key of ['titleBackground','contentBackground','monthBackground','containerBackground'])if(values[key]&&!/^(#[0-9a-f]{3,8}|transparent)$/i.test(values[key])){showEditorToast('배경색은 #RRGGBB 또는 transparent로 입력해 주세요.');return;}
-   const apply=item=>{item.style={...item.style,...values};if(values.fontSize!==undefined){item.fontSize=values.fontSize;item.minFontSize=Math.min(item.minFontSize||values.fontSize,values.fontSize);}syncMonthlySharedFields(item,['style','fontSize','minFontSize']);};
+   const apply=item=>{item.style={...item.style,...values};if(values.fontSize!==undefined){item.fontSize=values.fontSize;item.minFontSize=Math.min(item.minFontSize||values.fontSize,values.fontSize);}};
    if(sourceElement())changeElement(apply);else change(()=>apply(item));
   };
   return result;
  };
 })();
+

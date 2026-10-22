@@ -22,8 +22,12 @@ items.delete('page:first');
 assert.deepEqual(selection.sync({ id: 'second', scope: 'page' }), { id: 'second', scope: 'page' });
 assert.deepEqual(selection.views().map(view => view.id), ['second']);
 
+assert.equal(selection.sync({ id: 'missing-object', scope: 'page' }), null);
+assert.deepEqual(selection.views(), []);
+items.set('page:new-object', { id: 'new-object' });
 assert.deepEqual(selection.sync({ id: 'new-object', scope: 'page' }), { id: 'new-object', scope: 'page' });
 assert.equal(selection.has(selection.key('second', 'page')), false);
 assert.equal(selection.has(selection.key('new-object', 'page')), true);
 assert.equal(selection.toggle('new-object', 'page', { id: 'new-object', scope: 'page' }), null);
 assert.deepEqual(selection.views(), []);
+

@@ -14,7 +14,7 @@
       startY,
       handle,
       rect,
-      originals: views.map(view => ({ ...view, original: clone(view.item) })),
+      originals: views.filter(view => !view.item.locked).map(view => ({ ...view, original: clone(view.item) })),
       primary: { ...primary, original: clone(primary.item) },
       startAngle: Math.atan2(startY - center.y, startX - center.x),
       center,

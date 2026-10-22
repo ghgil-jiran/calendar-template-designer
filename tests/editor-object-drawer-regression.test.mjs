@@ -68,12 +68,10 @@ test('the reorganized workspace completes insertion scope, search and inspector 
 test('current-page editing shadows a Master object without mutating other pages', () => {
   assert.match(html, /shadowOfMasterElementId/);
   assert.match(html, /masterElements\.filter\(element => !shadowed\.has\(element\.id\)/);
-  assert.match(html, /scope==='master'&&el\('elementScope'\)\?\.value==='page'/);
   assert.match(html, /pageItem\.originScope="master"/);
   assert.match(html, /pageOverrideCreated/);
   assert.match(html, /function ensureCurrentPageEditTarget/);
-  assert.match(html, /const usePageOverride=scope==='master'&&el\('elementScope'\)\?\.value==='page'/);
-  assert.match(html, /if\(usePageOverride\)\{snapshot\(\);snapshotTaken=true;const target=ensureCurrentPageEditTarget/);
+  assert.match(html, /ensureCurrentPageEditTarget\(item\.id,"master",\{explicit:true\}\)/);
   assert.match(html, /function changeElement\(fn\)\{snapshot\(\);const target=ensureCurrentPageEditTarget\(\)/);
   assert.match(html, /function applyGraphicInspector\(action\)\{snapshot\(\);const target=ensureCurrentPageEditTarget\(\)/);
   assert.match(html, /같은 Master 전체/);
@@ -87,3 +85,4 @@ test('print memo rules are independent opaque fills instead of a repeating gradi
   assert.match(coreCss, /\.memo-rule\{[^}]*position:absolute[^}]*height:1px[^}]*background:#cfd5df/);
   assert.doesNotMatch(coreCss, /\.memo-lines\{[^}]*repeating-linear-gradient/);
 });
+

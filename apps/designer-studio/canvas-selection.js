@@ -36,7 +36,7 @@
     }
 
     function sync(primary) {
-      if (!primary?.id || !primary?.scope) {
+      if (!primary?.id || !primary?.scope || !resolveItem(primary.id, primary.scope)) {
         selected.clear();
         return null;
       }
