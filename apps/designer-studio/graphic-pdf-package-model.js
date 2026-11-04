@@ -8,7 +8,7 @@
  function uploadMetadata(value={}){
   const fileName=String(value.fileName||'').trim(),byteSize=Number(value.byteSize),sha256=String(value.sha256||'');
   if(!fileName||fileName.length>240||!/\.pdf$/i.test(fileName)||!Number.isSafeInteger(byteSize)||byteSize<8||byteSize>MAX_BYTES||!/^[a-f0-9]{64}$/.test(sha256)||!['reference','background'].includes(value.kind))error('PDF 파일명·용량·종류를 확인해주세요. PDF는 파일당 최대 250MB입니다.');
-  const pages=value.pages;if(!Array.isArray(pages)||!pages.length||pages.length>MAX_PAGES)error('PDF는 1~160페이지까지 등록할 수 있습니다.');
+  const pages=value.pages;if(value.deferredProcessing===true&&Array.isArray(pages)&&pages.length===0)return {fileName,byteSize,sha256,kind:value.kind,chunkCount:Math.ceil(byteSize/CHUNK_BYTES),pages:[]};if(!Array.isArray(pages)||!pages.length||pages.length>MAX_PAGES)error('PDF는 1~160페이지까지 등록할 수 있습니다.');
   return {fileName,byteSize,sha256,kind:value.kind,chunkCount:Math.ceil(byteSize/CHUNK_BYTES),pages:pages.map((p,i)=>{const widthPt=Number(p.widthPt),heightPt=Number(p.heightPt);if(!(widthPt>0&&heightPt>0&&widthPt<15000&&heightPt<15000))error('PDF 페이지 크기를 확인해주세요.');return {pageNumber:i+1,widthPt,heightPt,widthMm:widthPt*25.4/72,heightMm:heightPt*25.4/72};})};
  }
  function pageKey(page){return slots[page]?page:null}

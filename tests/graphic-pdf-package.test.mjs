@@ -44,3 +44,17 @@ test('metadata and cross-package operations reject invalid size, pages, kind, ha
  for(const change of [{byteSize:model.MAX_BYTES+1},{pages:[]},{pages:[{widthPt:0,heightPt:1}]},{sha256:'bad'},{kind:'other'},{fileName:'x.exe'}])assert.throws(()=>model.uploadMetadata({fileName:'x.pdf',byteSize:128,sha256:'a'.repeat(64),kind:'background',pages:[{widthPt:100,heightPt:100}],...change}));
  const f=fixture(),m=await start(f,bytes());await assert.rejects(()=>f.call({operation:'pdf-status',documentId:m.id,packageId:randomUUID()}),e=>e.code==='INVALID_PDF_PACKAGE');await assert.rejects(()=>f.call({operation:'pdf-source',documentId:'../bad'}),e=>e.code==='INVALID_PDF_ID');
 });
+
+test('deferred registration checks receipts without rereading original bytes, then verifies explicitly',async()=>{
+ const f=fixture(),b=bytes(1048576+64),m=await start(f,b,'background',{pages:[],deferredProcessing:true});await chunk(f,m,b,0);
+ await assert.rejects(()=>f.call({operation:'pdf-register',documentId:m.id,expectedRevision:1}));await chunk(f,m,b,1);
+ const read=f.d.readBytes;let reads=0;f.d.readBytes=async k=>{reads++;return read(k)};
+ const registered=await f.call({operation:'pdf-register',documentId:m.id,expectedRevision:1});assert.equal(reads,0);assert.ok(registered.document.uploadedAt);assert.equal(registered.document.verifiedAt,undefined);assert.equal(registered.package.pdfDocuments[0].processingStatus,'pending');
+ assert.equal((await f.call({operation:'pdf-document',documentId:m.id})).document.pages.length,0);
+ await assert.rejects(()=>f.call({operation:'pdf-source',documentId:m.id}),e=>e.code==='PDF_NOT_REGISTERED');await assert.rejects(()=>chunk(f,m,b),e=>e.code==='PDF_SOURCE_IMMUTABLE');
+ const verified=await complete(f,m,2);assert.equal(reads,2);assert.ok(verified.document.verifiedAt);assert.equal(verified.package.pdfDocuments.length,1);
+ await f.call({operation:'pdf-pages',documentId:m.id,pages:[{widthPt:737,heightPt:510}]});assert.equal((await f.call({operation:'pdf-document',documentId:m.id})).document.pages.length,1);
+});
+test('old interrupted uploads can be registered and resumed without original replacement',async()=>{
+ const f=fixture(),b=bytes(),m=await start(f,b);await chunk(f,m,b);await f.call({operation:'pdf-register',documentId:m.id,expectedRevision:1});assert.equal((await start(f,b,'background',{resumeId:m.id})).id,m.id);await complete(f,m,2);assert.equal(f.records.get(f.id).pdfDocuments.length,1);
+});
