@@ -20,6 +20,7 @@
     const count = new Date(Date.UTC(year, month, 0)).getUTCDate();
     return {
       year, month,
+      stripStyle:(element.style?.stripStyle??widget.stripStyle??value.stripStyle)==="editorial-inline"?"editorial-inline":"weekday-grid",
       showWeekday: (element.showWeekday ?? widget.showWeekday ?? value.showWeekday) !== false,
       showDate: (element.showDate ?? widget.showDate ?? value.showDate) !== false,
       cells: Array.from({ length: count }, (_, index) => {
@@ -41,7 +42,7 @@
     if (type === "year-calendar") return { year: Number(config.baseYear), startMonth: Number(config.startMonth || 3), monthCount: Number(config.monthCount || 12), columns: Number(config.columns || 4), weekStart: config.weekStart || "sunday" };
     if (type === "month-date-strip") {
       const strip = resolveMonthDateStrip(element, page, { year, startMonth: month });
-      return strip ? { year: strip.year, month: strip.month, showWeekday: strip.showWeekday, showDate: strip.showDate } : element.value;
+      return strip ? { year: strip.year, month: strip.month, showWeekday: strip.showWeekday, showDate: strip.showDate, ...(strip.stripStyle==="editorial-inline"?{stripStyle:strip.stripStyle}:{}) } : element.value;
     }
     if (!Number.isInteger(year) || month < 1 || month > 12) return element.value;
     if (type === "calendar" || type === "calendar-grid") return { ...storedValue, year, month, rows: config.rows, weekStart: config.weekStart, showAdjacentMonths: config.showAdjacentMonths };
@@ -54,11 +55,18 @@
   // The same page object must produce the same widget DOM in authoring and user editing.
   // Values inserted into HTML are generated calendar numbers or escaped labels.
   const monthDateStripCss = ".month-date-strip{width:100%;height:100%;display:grid;grid-template-columns:repeat(var(--date-count,31),minmax(0,1fr));align-items:stretch;background:rgba(255,255,255,.96);border:1px solid var(--line,#d8dbe2);border-radius:6px;overflow:hidden}.month-date-cell{min-width:0;display:grid;grid-template-rows:1fr 1.15fr;align-items:center;text-align:center;border-right:1px solid rgba(23,32,46,.09);font-variant-numeric:tabular-nums}.month-date-cell:last-child{border-right:0}.month-date-cell .dow{font-size:clamp(5px,1.05vw,10px);font-weight:800;color:#6b7280;line-height:1}.month-date-cell .date{font-size:clamp(6px,1.35vw,13px);font-weight:750;line-height:1}.month-date-cell.sun .dow,.month-date-cell.sun .date{color:#d04444}.month-date-cell.sat .dow,.month-date-cell.sat .date{color:#3569b8}";
+  const editorialStripCss=".month-date-strip.editorial-inline{display:flex;align-items:center;gap:1.5%;border:0;border-radius:0;padding:0 1%;box-sizing:border-box;background:rgba(255,255,255,.92);container-type:size}.editorial-inline .strip-month-label{flex:0 0 13%;font-size:clamp(4px,1.05cqw,12px);line-height:1.2;text-align:left;font-weight:400}.editorial-inline .strip-inline-dates{display:grid;grid-template-columns:repeat(var(--date-count),minmax(0,1fr));flex:1;min-width:0}.editorial-inline .strip-inline-date{font-size:clamp(4px,1.2cqw,13px);text-align:center;font-weight:400;color:var(--strip-date-color,#202020)}.editorial-inline .strip-inline-date.sun{color:var(--strip-sunday,#df5666)}.editorial-inline .strip-inline-date.sat{color:var(--strip-saturday,#202020)}";
   function escapeMonthStripText(value) {
     return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
   }
   function renderMonthDateStripMarkup(strip, transparent = false) {
     if (!strip || !Array.isArray(strip.cells)) return "";
+    if(strip.stripStyle==="editorial-inline"){
+      const names=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+      const title='<span class="strip-month-label">'+strip.year+' '+strip.month+'<br>'+names[strip.month-1]+'</span>';
+      const dates=strip.cells.map(cell=>'<span class="strip-inline-date'+(cell.weekday===0?' sun':cell.weekday===6?' sat':'')+'">'+(strip.showDate?escapeMonthStripText(cell.day):'')+'</span>').join('');
+      return '<div class="month-date-strip editorial-inline" style="--date-count:'+strip.cells.length+(transparent?';background:transparent':'')+'">'+title+'<div class="strip-inline-dates">'+dates+'</div></div>';
+    }
     const cells = strip.cells.map(cell => {
       const kind = cell.weekday === 0 ? " sun" : cell.weekday === 6 ? " sat" : "";
       return '<div class="month-date-cell' + kind + '">' +
@@ -72,7 +80,7 @@
     if (typeof document === "undefined" || document.getElementById("acdl-month-date-strip-style")) return;
     const style = document.createElement("style");
     style.id = "acdl-month-date-strip-style";
-    style.textContent = monthDateStripCss;
+    style.textContent = monthDateStripCss+editorialStripCss;
     document.head.appendChild(style);
   }
   const VECTOR_LIBRARY=[
@@ -240,5 +248,6 @@
     const content = groupSize ? Array.from({length: Math.ceil(months.length / groupSize)}, (_, index) => '<div class="academic-schedule-group">' + months.slice(index * groupSize, (index + 1) * groupSize).join("") + '</div>').join("") : months.join("");
     return '<div class="widget-event-list academic-year-schedule ' + layout + '" data-event-fit="manual"><div class="academic-year-grid">' + content + '</div></div>';
   }
-  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar, resolveAnnualCalendar, resolveMemoLayout, resolveScheduleEvents, renderYearScheduleMarkup, yearScheduleCss });
+  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss:monthDateStripCss+editorialStripCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar, resolveAnnualCalendar, resolveMemoLayout, resolveScheduleEvents, renderYearScheduleMarkup, yearScheduleCss });
 })(typeof window !== "undefined" ? window : globalThis);
+

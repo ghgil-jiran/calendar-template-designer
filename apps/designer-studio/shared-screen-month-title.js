@@ -21,7 +21,7 @@
     for (const key of ["gap", "metaGap"]) {
       if (input[key] !== "" && input[key] != null && Number.isFinite(Number(input[key])) && Number(input[key]) >= 0 && Number(input[key]) <= 100) result[key] = Number(input[key]);
     }
-    if (["number", "number-year", "number-english", "english"].includes(input.composition)) result.composition=input.composition;
+    if (["number", "number-year", "number-english", "number-year-english", "english"].includes(input.composition)) result.composition=input.composition;
     if (["row","column"].includes(input.arrangement)) result.arrangement=input.arrangement;
     if (input.reverse === true) result.reverse=true;
     if (["plain","padded"].includes(input.numberFormat)) result.numberFormat=input.numberFormat;
@@ -65,7 +65,7 @@
     if(composition.composition){
       const english=composition.englishFormat==="short"?en.slice(0,3):composition.englishFormat==="title"?en[0]+en.slice(1).toLowerCase():en;
       const parts={number:["month-number",composition.numberFormat==="plain"?m:String(month).padStart(2,"0")],year:["month-year",composition.yearFormat==="short"?y.slice(-2):y],english:["month-en",english]};
-      const keys={number:["number"],"number-year":["number","year"],"number-english":["number","english"],english:["english"]}[composition.composition];
+      const keys={number:["number"],"number-year":["number","year"],"number-english":["number","english"],"number-year-english":["number","year","english"],english:["english"]}[composition.composition];
       if(composition.reverse)keys.reverse();
       return {style:"composed",markup:keys.map(key=>`<span class="${parts[key][0]}"${componentCss(composition,key,context)}>${parts[key][1]}</span>`).join("")};
     }
@@ -92,3 +92,4 @@
   root.ACDLSharedMonthTitle = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(globalThis);
+

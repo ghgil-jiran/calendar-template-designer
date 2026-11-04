@@ -146,3 +146,20 @@
 .calendar-grid-geometry.calendar-grid-geometry:is(.grid-boxed,.grid-row-underlines) .shared-month-weekdays:is(.weekday-outlined-pills,.weekday-outlined-rects)>.head {
  margin-left:3px!important;margin-right:3px!important;
 }
+
+/* Explicit background and border controls shared by authoring and Runtime. */
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(1),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(1){background:var(--calendar-weekday-bg-1)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(2),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(2){background:var(--calendar-weekday-bg-2)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(3),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(3){background:var(--calendar-weekday-bg-3)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(4),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(4){background:var(--calendar-weekday-bg-4)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(5),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(5){background:var(--calendar-weekday-bg-5)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(6),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(6){background:var(--calendar-weekday-bg-6)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(7),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(7){background:var(--calendar-weekday-bg-7)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-child(7n+8){border-left-width:var(--calendar-outer-line-width)!important}
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-child(7n+7):not(.head){border-right-width:var(--calendar-outer-line-width)!important}
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-date-grid{border-left-width:var(--calendar-outer-line-width)!important;border-right-width:var(--calendar-outer-line-width)!important}
+
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-child(n+8):nth-child(-n+14){border-top-width:var(--calendar-outer-line-width)!important}
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-last-child(-n+7):not(.head),.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-day-cell:nth-last-child(-n+7){border-bottom-width:var(--calendar-outer-line-width)!important}
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-date-grid{border-top-width:var(--calendar-outer-line-width)!important}
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-day-cell:nth-child(7n){border-right-width:var(--calendar-outer-line-width)!important}
