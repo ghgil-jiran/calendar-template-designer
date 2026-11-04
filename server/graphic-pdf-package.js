@@ -57,6 +57,9 @@ export async function pdfPackageOperation(body,d){
  if(op==='pdf-document'){
   const p=await packageOf(d,body.packageId),m=await manifest(d,body.documentId);if(m.packageId!==p.id||!p.pdfDocuments?.some(x=>x.id===m.id))fail('PDF_NOT_REGISTERED');const previews={};await Promise.all(m.pages.map(async p=>{try{previews[p.pageNumber]=await d.readJson(key(m.id,`preview-${p.pageNumber}.json`))}catch(e){if(e.storageStatus!==404&&e.storageStatus!==400)throw e;}}));return {document:{...publicDocument(m),pages:m.pages.map(p=>({...p,...previews[p.pageNumber]}))}};
  }
+ if(op==='pdf-uploaded-source'){
+  const p=await packageOf(d,body.packageId),m=await manifest(d,body.documentId);if(m.packageId!==p.id||!p.pdfDocuments?.some(x=>x.id===m.id)||!(m.uploadedAt||m.verifiedAt))fail('PDF_NOT_REGISTERED');const chunks=[];for(let i=0;i<m.chunkCount;i++)chunks.push({index:i,url:await d.sign(key(m.id,`chunk-${i}.bin`))});return {fileName:m.fileName,sha256:m.sha256,byteSize:m.byteSize,chunks};
+ }
  if(op==='pdf-source'){
   const {m}=await linked(d,body);const chunks=[];for(let i=0;i<m.chunkCount;i++)chunks.push({index:i,url:await d.sign(key(m.id,`chunk-${i}.bin`))});return {fileName:m.fileName,sha256:m.sha256,byteSize:m.byteSize,chunks};
  }

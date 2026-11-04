@@ -58,3 +58,5 @@ test('deferred registration checks receipts without rereading original bytes, th
 test('old interrupted uploads can be registered and resumed without original replacement',async()=>{
  const f=fixture(),b=bytes(),m=await start(f,b);await chunk(f,m,b);await f.call({operation:'pdf-register',documentId:m.id,expectedRevision:1});assert.equal((await start(f,b,'background',{resumeId:m.id})).id,m.id);await complete(f,m,2);assert.equal(f.records.get(f.id).pdfDocuments.length,1);
 });
+
+test('registered originals can be prepared from storage before full verification without enabling print source',async()=>{const f=fixture(),b=bytes(),m=await start(f,b,'background',{pages:[],deferredProcessing:true});await chunk(f,m,b);await assert.rejects(()=>f.call({operation:'pdf-uploaded-source',documentId:m.id}));await f.call({operation:'pdf-register',documentId:m.id,expectedRevision:1});const source=await f.call({operation:'pdf-uploaded-source',documentId:m.id});assert.equal(source.sha256,sha(b));assert.equal(source.chunks.length,1);await assert.rejects(()=>f.call({operation:'pdf-source',documentId:m.id}));});
