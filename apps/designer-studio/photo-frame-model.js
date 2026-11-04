@@ -3,6 +3,7 @@
  'use strict';
  const catalog=[
  ['rect','사각 사진','M0 0 H100 V100 H0 Z'],
+ ['soft-rounded','완만한 둥근 사진','M6 0 H94 Q100 0 100 6 V94 Q100 100 94 100 H6 Q0 100 0 94 V6 Q0 0 6 0 Z'],
  ['rounded','둥근 사진','M16 0 H84 Q100 0 100 16 V84 Q100 100 84 100 H16 Q0 100 0 84 V16 Q0 0 16 0 Z'],
  ['circle','원형 사진','M50 0 C77.614 0 100 22.386 100 50 C100 77.614 77.614 100 50 100 C22.386 100 0 77.614 0 50 C0 22.386 22.386 0 50 0 Z'],
  ['ellipse','타원 사진','M50 0 C77.614 0 100 22.386 100 50 C100 77.614 77.614 100 50 100 C22.386 100 0 77.614 0 50 C0 22.386 22.386 0 50 0 Z'],
@@ -31,3 +32,4 @@
  function outline(id,color='#ffffff',width=3){color=/^#[0-9a-f]{3,8}$/i.test(color)?color:'transparent';width=Math.max(0,Math.min(20,Number(width)||0));return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" aria-hidden="true"><path d="${get(id).path}" fill="none" stroke="${color}" stroke-width="${width*2}" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;}
  root.ACDLPhotoFrameModel=Object.freeze({catalog,get,clip,outline});
 })(globalThis);
+
