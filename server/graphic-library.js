@@ -133,9 +133,9 @@ export async function previewIllustrationAsset(body,deps){const theme=await them
 // Private PDF originals are kept in bounded chunks in the existing private bucket.
 export const graphicPdfDependencies={
  ensureBucket:ensureGraphicBucket,getRecord:getGraphic,putRecord:write,
- readJson:async path=>storage(`object/${BUCKET}/${path}`).then(r=>r.json()),
+ readJson:async path=>storage(`object/${BUCKET}/${path}`,{signal:AbortSignal.timeout(30000)}).then(r=>r.json()),
  writeJson:async(path,value,upsert=true)=>storage(`object/${BUCKET}/${path}`,{method:'POST',headers:{'Content-Type':'application/json','x-upsert':String(upsert)},body:JSON.stringify(value)}),
- readBytes:async path=>Buffer.from(await storage(`object/${BUCKET}/${path}`).then(r=>r.arrayBuffer())),
+ readBytes:async path=>Buffer.from(await storage(`object/${BUCKET}/${path}`,{signal:AbortSignal.timeout(30000)}).then(r=>r.arrayBuffer())),
  writeBytes:async(path,bytes,upsert=false)=>storage(`object/${BUCKET}/${path}`,{method:'POST',headers:{'Content-Type':'application/octet-stream','x-upsert':String(upsert)},body:bytes}),
  list:async prefix=>{const rows=[];for(let offset=0;;offset+=100){const page=await storage(`object/list/${BUCKET}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix:prefix.replace(/\/$/,''),limit:100,offset})}).then(r=>r.json());rows.push(...page);if(page.length<100)return rows;}},
  storePreview:storeTemplateAsset,validateThumbnail,
