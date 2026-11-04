@@ -17,16 +17,18 @@
     const year = Number(fixed ? (element.year ?? widget.year ?? value.year ?? defaults.year) : (page?.calendarYear ?? value.year ?? defaults.year));
     const month = Number(fixed ? (element.month ?? widget.month ?? value.month ?? defaults.startMonth) : (page?.calendarMonth ?? value.month ?? defaults.startMonth));
     if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return null;
+    const holidayDates=[...new Set(element.holidayDates??widget.holidayDates??value.holidayDates??defaults.holidayDates??[])].filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v))),holidays=new Set(holidayDates);
     const count = new Date(Date.UTC(year, month, 0)).getUTCDate();
     return {
       year, month,
+      ...(holidayDates.length?{holidayDates}:{}),
       stripStyle:(element.style?.stripStyle??widget.stripStyle??value.stripStyle)==="editorial-inline"?"editorial-inline":"weekday-grid",
       showWeekday: (element.showWeekday ?? widget.showWeekday ?? value.showWeekday) !== false,
       showDate: (element.showDate ?? widget.showDate ?? value.showDate) !== false,
       cells: Array.from({ length: count }, (_, index) => {
         const day = index + 1;
         const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-        return { day, weekday, weekdayLabel: "SMTWTFS"[weekday] };
+        const date=year+"-"+String(month).padStart(2,"0")+"-"+String(day).padStart(2,"0");return { day, weekday, weekdayLabel: "SMTWTFS"[weekday],...(holidays.has(date)?{isHoliday:true}:{}) };
       })
     };
   }
@@ -34,15 +36,15 @@
     const date = new Date(Date.UTC(Number(year), Number(month) - 1 + offset, 1));
     return { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1 };
   }
-  function widgetValue(element, page) {
+  function widgetValue(element, page, defaults = {}) {
     const storedValue = element?.value && typeof element.value === "object" && !Array.isArray(element.value) ? element.value : {};
     const runtimeConfig = Object.fromEntries(Object.entries({ rows: element.rows, weekStart: element.weekStart, showWeekday: element.showWeekday, showDate: element.showDate, baseYear: element.baseYear, startMonth: element.startMonth, monthCount: element.monthCount, columns: element.columns, memoLayout: element.memoLayout, title: element.title, lineCount: element.lineCount, itemCount: element.itemCount, weekCount: element.weekCount, showMemo: element.showMemo, showAdjacentMonths: element.showAdjacentMonths, ...element.runtimeWidget }).filter(([, value]) => value !== undefined));
     const config = { ...storedValue, ...runtimeConfig };
     const type = alias(element.type), year = Number(page?.calendarYear), month = Number(page?.calendarMonth);
     if (type === "year-calendar") return { year: Number(config.baseYear), startMonth: Number(config.startMonth || 3), monthCount: Number(config.monthCount || 12), columns: Number(config.columns || 4), weekStart: config.weekStart || "sunday" };
     if (type === "month-date-strip") {
-      const strip = resolveMonthDateStrip(element, page, { year, startMonth: month });
-      return strip ? { year: strip.year, month: strip.month, showWeekday: strip.showWeekday, showDate: strip.showDate, ...(strip.stripStyle==="editorial-inline"?{stripStyle:strip.stripStyle}:{}) } : element.value;
+      const strip = resolveMonthDateStrip(element, page, { ...defaults,year, startMonth: month });
+      return strip ? { year: strip.year, month: strip.month, showWeekday: strip.showWeekday, showDate: strip.showDate, ...(strip.holidayDates?.length?{holidayDates:strip.holidayDates}:{}), ...(strip.stripStyle==="editorial-inline"?{stripStyle:strip.stripStyle}:{}) } : element.value;
     }
     if (!Number.isInteger(year) || month < 1 || month > 12) return element.value;
     if (type === "calendar" || type === "calendar-grid") return { ...storedValue, year, month, rows: config.rows, weekStart: config.weekStart, showAdjacentMonths: config.showAdjacentMonths };
@@ -64,11 +66,11 @@
     if(strip.stripStyle==="editorial-inline"){
       const names=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
       const title='<span class="strip-month-label">'+strip.year+' '+strip.month+'<br>'+names[strip.month-1]+'</span>';
-      const dates=strip.cells.map(cell=>'<span class="strip-inline-date'+(cell.weekday===0?' sun':cell.weekday===6?' sat':'')+'">'+(strip.showDate?escapeMonthStripText(cell.day):'')+'</span>').join('');
+      const dates=strip.cells.map(cell=>'<span class="strip-inline-date'+(cell.weekday===0||cell.isHoliday?' sun':cell.weekday===6?' sat':'')+'">'+(strip.showDate?escapeMonthStripText(cell.day):'')+'</span>').join('');
       return '<div class="month-date-strip editorial-inline" style="--date-count:'+strip.cells.length+(transparent?';background:transparent':'')+'">'+title+'<div class="strip-inline-dates">'+dates+'</div></div>';
     }
     const cells = strip.cells.map(cell => {
-      const kind = cell.weekday === 0 ? " sun" : cell.weekday === 6 ? " sat" : "";
+      const kind = cell.weekday === 0 || cell.isHoliday ? " sun" : cell.weekday === 6 ? " sat" : "";
       return '<div class="month-date-cell' + kind + '">' +
         (strip.showWeekday ? '<span class="dow">' + escapeMonthStripText(cell.weekdayLabel) + '</span>' : "") +
         (strip.showDate ? '<span class="date">' + escapeMonthStripText(cell.day) + '</span>' : "") + '</div>';
