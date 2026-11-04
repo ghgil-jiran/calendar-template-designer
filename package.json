@@ -26,9 +26,13 @@
     "test:sprint2-product": "node tools/check-sprint2-product.mjs",
     "test:wizard": "node --test tests/wizard-flow.test.mjs",
     "build:user-service-runtime": "npm run test:integration && node tools/build-user-service-runtime-package.mjs",
-    "print:reference:resolve": "npm run test:runtime && node tools/build-native-print-reference.mjs"
+    "print:reference:resolve": "npm run test:runtime && node tools/build-native-print-reference.mjs",
+    "postinstall": "node scripts/prepare-pdfjs.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "pdfjs-dist": "6.5.438"
   }
 }

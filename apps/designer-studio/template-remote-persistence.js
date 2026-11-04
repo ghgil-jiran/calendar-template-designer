@@ -14,7 +14,7 @@
  async function assetObjectUrl(id){
   const token=accessToken(),response=await authenticatedFetch(`/api/template-assets?content=${encodeURIComponent(id)}`,{headers:{Authorization:`Bearer ${token}`}});
   if(!response.ok)throw Object.assign(new Error('저장된 이미지 자산을 불러오지 못했습니다.'),{code:'TEMPLATE_ASSET_DOWNLOAD_FAILED',status:response.status});
-  return root.URL.createObjectURL(await response.blob())
+  const objectUrl=root.URL.createObjectURL(await response.blob());signedToMarker.set(objectUrl,`acdl-asset://${id}`);return objectUrl
  }
  async function assetObjectUrls(ids,{concurrency=4}={}){
   const unique=[...new Set((ids||[]).filter(id=>/^[0-9a-f-]{36}$/i.test(id)))],urls={},failures=[];let next=0;
@@ -80,3 +80,4 @@
  async function remove({templateId=null,stableKey,hideCatalog=false}){return request('/api/templates',{method:'DELETE',body:JSON.stringify({templateId,stableKey,hideCatalog})})}
  root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,remove,deletedCatalogKeys:()=>[...deletedCatalogKeys],toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareProjectData,hydrateProjectData,assetObjectUrl,assetObjectUrls,resolveAssetUrls,legacyStoragePath,canonicalAssetSource:src=>signedToMarker.get(src)||src});
 })(window);
+

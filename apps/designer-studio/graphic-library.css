@@ -176,3 +176,7 @@
 #graphicUploadForm>.gl-preview-heading h3{margin:0}
 #graphicUploadForm>.gl-note{margin:0}
 #graphicUploadForm .gl-upload-fields{align-content:start}
+
+
+/* PDF source package registration stays in the shared graphic workspace. */
+#graphicPdfWorkspace{min-width:0;padding:16px}#graphicPdfWorkspace>p{font-size:12px;line-height:1.6}#graphicPdfProgress{white-space:pre-wrap;padding:10px;background:#eef4ff;border-radius:8px}#graphicPdfDocuments details{margin:14px 0;border:1px solid #d9e1ec;border-radius:10px;padding:12px}#graphicPdfDocuments summary{cursor:pointer;font-size:13px;font-weight:700}.gl-pdf-pages{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:12px}.gl-pdf-page{display:flex;flex-direction:column;gap:9px;border:1px solid #dfe5ee;border-radius:8px;padding:10px;min-width:0}.gl-pdf-page img{width:100%;height:140px;object-fit:contain;background:#f5f7fa}.gl-pdf-page strong,.gl-pdf-page small{font-size:11px;overflow-wrap:anywhere}.gl-pdf-page select{width:100%;margin-top:6px}.gl-pdf-page button{min-height:34px}#graphicPdfCancel{margin-bottom:10px}

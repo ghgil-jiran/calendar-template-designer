@@ -28,3 +28,7 @@ backup/
 old/
 node_modules/
 **/dist/
+
+# PDF.js browser distribution is prepared from the pinned dependency.
+apps/designer-studio/pdfjs/
+

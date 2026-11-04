@@ -56,3 +56,16 @@ test('common screen helpers render package SVG and runtime adapter preserves the
 
 
 test('back-cover year and contact composition uses physical back-cover, while annual purpose takes priority',()=>{const {project}=setup();const page={id:'back-contact',role:'back-cover-back',contentPurpose:'year-school-information'};assert.deepEqual(m.candidates(project,page),['back-cover']);project.template.settings.aiDesignSpec.dividerPages[page.id]={purpose:'school-symbols'};assert.deepEqual(m.candidates(project,page),['symbols','back-cover']);});
+
+
+test('PDF backgrounds keep source metadata, trim/bleed frames and existing content after reopen',async()=>{
+ await import('../apps/designer-studio/graphic-pdf-package-model.js');
+ const {project}=setup(),source={documentId:'source',pageNumber:2,sha256:'a'.repeat(64)};
+ for(const [width,height] of [[260,180],[266,186]]){
+ const graphics=[{id:'pdf',name:'PDF',previewAssetId:'preview',pdfSource:source,physicalSizeMm:{width,height}}];
+ project.template.settings.graphicPackage=m.capture({id:'pdfpkg',name:'PDF',size:'desk-standard',mode:'pdf',revision:1,pages:{cover:{graphicId:'pdf'},'month-back-01':{graphicId:'pdf'}}},graphics,project.productType.pageSize);
+ m.apply(project);const reopened=clone(project);m.apply(reopened);const background=reopened.book.elementsByPage.cover[0];
+ assert.equal(background.type,'image');assert.deepEqual(background.graphicSource.pdfSource,source);assert.equal(background.src,'acdl-asset://preview');assert.equal(background.printIntent.directPdfMapping,false);assert.equal(background.x,width===260?0:-3/260*100);assert.deepEqual(reopened.book.elementsByPage.cover.slice(1).map(x=>x.id),['photo','text']);assert.equal(m.mapping(reopened).find(x=>x.pageId==='month-0').key,'month-back-01');
+ }
+ assert.throws(()=>m.capture({size:'desk-standard',mode:'pdf',pages:{cover:{graphicId:'bad'}}},[{id:'bad',name:'bad',previewAssetId:'x',pdfSource:source,physicalSizeMm:{width:100,height:100}}],project.productType.pageSize));
+});

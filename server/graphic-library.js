@@ -94,11 +94,11 @@ export async function generateGraphic(body,{packageOwnerId=null}={}){
 
 const packageModel=globalThis.ACDLGraphicPackageModel;
 function packageMetadata(body){try{return packageModel.metadata(body)}catch{fail('INVALID_GRAPHIC_PACKAGE')}}
-export async function createGraphicPackage(body){await ensureGraphicBucket();const metadata=packageMetadata(body),now=new Date().toISOString();return write({schemaVersion:'graphic-package.v1',id:randomUUID(),...metadata,status:'active',revision:1,pages:{},thumbnailDataUrl:null,createdAt:now,updatedAt:now})}
+export async function createGraphicPackage(body){await ensureGraphicBucket();const metadata=packageMetadata(body),now=new Date().toISOString();return write({schemaVersion:'graphic-package.v1',id:randomUUID(),...metadata,mode:body.mode==='pdf'?'pdf':'vector',status:'active',revision:1,pages:{},thumbnailDataUrl:null,createdAt:now,updatedAt:now})}
 async function packageForUpdate(body){const pkg=await getGraphic(body.packageId||body.id);if(pkg.schemaVersion!=='graphic-package.v1')fail('INVALID_GRAPHIC_PACKAGE');if(!Number.isInteger(body.expectedRevision)||pkg.revision!==body.expectedRevision)fail('GRAPHIC_PACKAGE_CONFLICT',409);return pkg}
 export async function updateGraphicPackage(body){const pkg=await packageForUpdate(body),changes={};if(body.status!==undefined){if(!['active','archived'].includes(body.status))fail('INVALID_GRAPHIC_STATUS');changes.status=body.status}if(['name','tags','source'].some(k=>Object.hasOwn(body,k)))Object.assign(changes,packageMetadata({...pkg,...body}));return write({...pkg,...changes,revision:pkg.revision+1,updatedAt:new Date().toISOString()})}
 export async function saveGraphicPackagePage(body){
- const pkg=await packageForUpdate(body),page=body.page;if(!packageModel.pages[page]||pkg.status!=='active')fail('INVALID_GRAPHIC_PACKAGE_PAGE');
+ const pkg=await packageForUpdate(body),page=body.page;if(pkg.mode==='pdf')fail('PDF_PACKAGE_USE_PDF_ASSIGNMENT');if(!packageModel.pages[page]||pkg.status!=='active')fail('INVALID_GRAPHIC_PACKAGE_PAGE');
  if(page!=='cover'&&!pkg.pages.cover?.graphicId)fail('GRAPHIC_PACKAGE_COVER_REQUIRED');
  let graphic;if(body.graphicId){graphic=await getGraphic(body.graphicId);if(graphic.schemaVersion!=='graphic-library.v1'||graphic.status!=='active'||graphic.design?.page!==page||graphic.design?.kind!=='background')fail('INVALID_GRAPHIC_PACKAGE_ASSET')}
  else if(body.uploadId){if(!['image/png','image/jpeg','image/webp'].includes(body.mimeType))fail('INVALID_GRAPHIC_UPLOAD');const uploaded=await createGraphic({...body,category:'background'});graphic=await write({...uploaded,registrationMethod:'package-upload',design:globalThis.ACDLGraphicVectorDesign.normalize({page,kind:'background'}),ownership:{kind:'background-package',id:pkg.id},physicalSizeMm:{width:260,height:180}})}
@@ -128,3 +128,16 @@ export async function saveIllustrationAsset(body){
 
 export async function prepareIllustrationTheme(body,deps){const theme=await themeForUpdate(body),plan=await planIllustrationTheme(theme,deps);const latest=await themeForUpdate(body);return write({...latest,plan,revision:latest.revision+1,updatedAt:new Date().toISOString()})}
 export async function previewIllustrationAsset(body,deps){const theme=await themeForUpdate(body);if(!theme.plan)fail('ILLUSTRATION_PLAN_REQUIRED');return generateIllustrationObject({theme,plan:theme.plan,slot:body.slot,instruction:body.instruction||'',previous:body.previous||null},deps)}
+
+
+// Private PDF originals are kept in bounded chunks in the existing private bucket.
+export const graphicPdfDependencies={
+ ensureBucket:ensureGraphicBucket,getRecord:getGraphic,putRecord:write,
+ readJson:async path=>storage(`object/${BUCKET}/${path}`).then(r=>r.json()),
+ writeJson:async(path,value,upsert=true)=>storage(`object/${BUCKET}/${path}`,{method:'POST',headers:{'Content-Type':'application/json','x-upsert':String(upsert)},body:JSON.stringify(value)}),
+ readBytes:async path=>Buffer.from(await storage(`object/${BUCKET}/${path}`).then(r=>r.arrayBuffer())),
+ writeBytes:async(path,bytes,upsert=false)=>storage(`object/${BUCKET}/${path}`,{method:'POST',headers:{'Content-Type':'application/octet-stream','x-upsert':String(upsert)},body:bytes}),
+ list:async prefix=>{const rows=[];for(let offset=0;;offset+=100){const page=await storage(`object/list/${BUCKET}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix:prefix.replace(/\/$/,''),limit:100,offset})}).then(r=>r.json());rows.push(...page);if(page.length<100)return rows;}},
+ storePreview:storeTemplateAsset,validateThumbnail,
+ sign:async path=>{const value=await storage(`object/sign/${BUCKET}/${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:900})}).then(r=>r.json()),signed=value.signedURL||value.signedUrl;if(!signed)fail('PDF_SOURCE_URL_FAILED',502);return signed.startsWith('http')?signed:process.env.SUPABASE_URL.replace(/\/$/,'')+(signed.startsWith('/storage/v1/')?'':'/storage/v1')+signed;}
+};

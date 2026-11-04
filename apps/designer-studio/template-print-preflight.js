@@ -70,6 +70,7 @@
    const elements=elementsFor(project,page);
    elements.forEach((element,elementIndex)=>{
     const type=elementType(element),path=`pages[${pageIndex}].elements[${elementIndex}]`;
+    if(element?.graphicSource?.pdfSource)problems.push(issue('error','PDF_SOURCE_EMBEDDING_REQUIRED','PDF 배경 원본 합성 경로의 출력 검증이 필요합니다. 화면용 미리보기를 인쇄 원본으로 사용할 수 없습니다.',path));
     if(!type){problems.push(issue('error','ELEMENT_TYPE_MISSING','개체 종류가 없습니다.',path));return}
     elementTypes.set(type,(elementTypes.get(type)||0)+1);capabilities.add(`element.${type}`);
     if(!ELEMENT_TYPES.has(type))problems.push(issue('error','ELEMENT_TYPE_UNSUPPORTED',`공통 Runtime 지원 목록에 없는 개체입니다: ${type}`,`${path}.type`));
@@ -103,3 +104,4 @@
  }
  globalThis.ACDLTemplatePrintPreflight=Object.freeze({analyze,catalog:Object.freeze({pageRoles:[...PAGE_ROLES],elementTypes:[...ELEMENT_TYPES],styleKeys:[...STYLE_KEYS]})});
 })();
+

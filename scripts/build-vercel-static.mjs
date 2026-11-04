@@ -1,9 +1,11 @@
+import {preparePdfJs} from './prepare-pdfjs.mjs';
 import { cp, mkdir, readdir, rm } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(process.cwd(), 'public');
+await preparePdfJs(root);
 
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
@@ -23,3 +25,4 @@ for (const directory of ['design-system', 'templates']) {
 }
 
 console.log('VERCEL_STATIC_OUTPUT_OK');
+
