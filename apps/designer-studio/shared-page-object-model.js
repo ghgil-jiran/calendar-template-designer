@@ -65,5 +65,30 @@
   const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),s=element.style||{},line=/^#[0-9a-f]{3,8}$/i.test(s.lineColor||'')?s.lineColor:'#d7dce5',count=Math.max(0,Math.min(20,Number(element.lineCount??4)));
   return '<div class="widget-memo editable-plan-lines" style="border:0;border-radius:0;background:transparent;padding:4px;height:100%;box-sizing:border-box"><div style="position:relative;height:100%">'+Array.from({length:count},(_,i)=>'<span data-print-rule="'+(i+1)+'" style="position:absolute;left:0;right:0;top:'+((i+1)/count*100)+'%;border-bottom:1px solid '+escape(line)+'"></span>').join('')+'</div></div>';
  }
- root.ACDLPageObjectModel=Object.freeze({version:'1.1.0',normalizeProject,splitCoverYear,coverYearText,monthText,renderPlanLines});
+
+ // Contact display order is independent of input-row order. Keep complete
+ // label/number pairs together and let the authored frame decide line breaks.
+ function schoolContactItems(input){
+  const school=input&&typeof input==='object'&&!Array.isArray(input)?input:{},rows=Array.isArray(input)?input:Array.isArray(school.contacts)?school.contacts:[],phones=[],faxes=[];
+  const clean=value=>value==null?'':String(value).trim(),isFax=label=>/팩스|fax/i.test(label),rank=label=>label.includes('교무실')?0:label.includes('행정실')?1:2;
+  rows.forEach((row,index)=>{
+   if(!row||typeof row!=='object')return;
+   const label=clean(row.label)||({academic:'교무실',admin:'행정실',fax:'팩스'}[row.type])||'연락처',phone=clean(row.phone||row.value),fax=clean(row.fax);
+   if(isFax(label)){if(phone||fax)faxes.push({label,value:fax||phone,index});}
+   else {if(phone)phones.push({label,value:phone,index});if(fax)faxes.push({label,value:fax,index});}
+  });
+  if(!phones.length&&clean(school.phone))phones.push({label:'교무실',value:clean(school.phone),index:0});
+  if(!faxes.length&&clean(school.fax))faxes.push({label:'팩스',value:clean(school.fax),index:0});
+  const order=(a,b)=>rank(a.label)-rank(b.label)||a.index-b.index;
+  phones.sort(order);faxes.sort(order);
+  return [...phones.map(({label,value})=>({label,value,kind:'phone'})),...faxes.map(({label,value})=>({label:isFax(label)?label:faxes.length>1?label+' 팩스':'팩스',value,kind:'fax'}))];
+ }
+ function schoolContactsText(input){return schoolContactItems(input).map(item=>item.label+' '+item.value).join(' · ');}
+ function renderSchoolContacts(input){
+  const items=schoolContactItems(input);if(!items.length)return '';
+  const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return '<div class="school-contact-list" style="display:flex;flex-wrap:wrap;justify-content:inherit;align-content:flex-start;column-gap:.8em;row-gap:0;width:100%;min-width:0;white-space:normal">'+items.map(item=>'<span class="school-contact-item" style="display:inline-block;white-space:nowrap">'+escape(item.label)+'&nbsp;'+escape(item.value)+'</span>').join('')+'</div>';
+ }
+ root.ACDLPageObjectModel=Object.freeze({version:'1.1.0',normalizeProject,splitCoverYear,coverYearText,monthText,renderPlanLines,schoolContactItems,schoolContactsText,renderSchoolContacts});
 })(globalThis);
+

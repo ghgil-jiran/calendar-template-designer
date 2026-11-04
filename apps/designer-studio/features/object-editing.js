@@ -298,7 +298,7 @@ function schoolBindingValue(binding){
  if(binding==="school.profile.song.description")return school.profile?.song?.description;
  if(binding==="school.profile.tree.description")return school.profile?.tree?.description;
  if(binding==="school.profile.flower.description")return school.profile?.flower?.description;
- if(binding==="school.contacts")return (school.contacts||[]).map(c=>{const label=c.label||"연락처",fax=c.fax?(String(label).includes("팩스")?` ${c.fax}`:` · 팩스 ${c.fax}`):"";return `${label}${c.phone?` ${c.phone}`:""}${fax}`}).join("\n");
+ if(binding==="school.contacts")return window.ACDLPageObjectModel.schoolContactsText(school);
  return "";
 }
 function resolveTextContent(view,p=selectedPage()){
@@ -614,7 +614,7 @@ function renderFreeElements(pageNode){
    box.innerHTML=renderSemanticObject(view);
    const badge=document.createElement("span");badge.className=`semantic-role-badge non-output editor-only ${view.bindingEnabled===false?"binding-off":""}`;badge.textContent=`${semanticRoleLabel(view.role)} · ${view.bindingEnabled===false?"고정":"연결"}`;box.appendChild(badge)
   }else if(view.type==="text"){
-   const t=document.createElement("div");t.className="free-text";t.textContent=resolveTextContent(view,selectedPage());applyTextElementStyles(t,view);box.appendChild(t)
+   const t=document.createElement("div");t.className="free-text";t.textContent=resolveTextContent(view,selectedPage());applyTextElementStyles(t,view);if(view.binding==="school.contacts"&&view.bindingEnabled!==false){const contacts=window.ACDLPageObjectModel.renderSchoolContacts(project.book.school);if(contacts){t.innerHTML=contacts;t.style.padding=Number(view.style?.padding||0)+"px";}}box.appendChild(t)
   }else if(resolveElementImageSource(view)){
    const img=document.createElement("img");img.className="free-image";img.src=resolveElementImageSource(view);img.alt=view.alt||"사용자 이미지";img.style.objectFit=view.fit||"cover";box.appendChild(img)
   }else{
@@ -1267,4 +1267,5 @@ function setupCalendarInspectorSections(container){
   const panel=document.createElement('details');panel.className='calendar-style-panel calendar-style-section';panel.open=calendarInspectorSectionState[id]??(monthTitleEditing&&id==='applyMonthComposition');panel.innerHTML='<summary><span>'+title+'</span></summary>';section.parentNode.insertBefore(panel,section);panel.append(section);panel.addEventListener('toggle',()=>calendarInspectorSectionState[id]=panel.open);
  }
 }
+
 

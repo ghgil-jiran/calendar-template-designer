@@ -608,7 +608,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
       if(item.binding==='school.slogan')item.content=school.slogan||item.content;
       if(item.binding==='school.address')item.content=school.address||item.content;
       if(item.binding==='school.website')item.content=school.website||item.content;
-      if(item.binding==='school.contacts')item.content=(school.contacts||[]).map(contact=>[contact.label,contact.phone,contact.fax&&`팩스 ${contact.fax}`].filter(Boolean).join(' ')).filter(Boolean).join(' · ')||[school.phone,school.fax&&`팩스 ${school.fax}`].filter(Boolean).join(' · ')||item.content;
+      if(item.binding==='school.contacts')item.content=window.ACDLPageObjectModel.schoolContactsText(school)||item.content;
       if(item.binding==='calendar.year'){
         const year=String(prj.settings?.year||item.content||'');
         item.content=item.yearFormat==='number-calendar'
@@ -1180,3 +1180,4 @@ const v33OldRender=typeof window.render==='function'?window.render:render; if(ty
   window.addEventListener('error',()=>{if(previewType==='template')hardResetPreviewState()});
   window.addEventListener('unhandledrejection',()=>{if(previewType==='template')hardResetPreviewState()});
 })();
+
