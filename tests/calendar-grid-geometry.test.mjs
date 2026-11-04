@@ -9,7 +9,8 @@ test('grid backgrounds do not paint the schedule overlay or fade adjacent cell s
 });
 test('grid geometry owns directional strokes and matches weekday/date/range gaps',()=>{
  assert.doesNotMatch(css,/\[style\*="--calendar-line-width"\]/);
- assert.match(css,/\.shared-month-range-grid\)\s*\{[\s\S]*?column-gap:var\(--calendar-grid-gap\)!important;row-gap:var\(--calendar-grid-gap\)!important/);
+ assert.match(css,/\.shared-month-range-grid\)\s*\{[\s\S]*?column-gap:var\(--calendar-grid-column-gap,var\(--calendar-grid-gap\)\)!important;row-gap:var\(--calendar-grid-gap\)!important/);
  assert.match(css,/grid-boxed[\s\S]*?border-right:var\(--calendar-grid-line\)!important;border-bottom:var\(--calendar-grid-line\)!important/);
  assert.match(css,/grid-open-rows[\s\S]*?border-bottom:var\(--calendar-grid-line\)!important/);
 });
+

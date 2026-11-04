@@ -1,6 +1,6 @@
 /* Calendar weekday chrome shared by the authoring canvas and Runtime preview. */
-.calendar-region.weekday-outlined-pills .calendar > .head,
-.shared-month-weekdays.weekday-outlined-pills > .head {
+.calendar-region:is(.weekday-outlined-pills,.weekday-outlined-rects) .calendar > .head,
+.shared-month-weekdays:is(.weekday-outlined-pills,.weekday-outlined-rects) > .head {
   box-sizing: border-box;
   align-self: start;
   height: calc(100% - var(--calendar-weekday-grid-gap, 0%));
@@ -19,13 +19,13 @@
   line-height: 1;
   text-align: center;
 }
-.calendar-region.weekday-outlined-pills .calendar > .head:first-child,
-.shared-month-weekdays.weekday-outlined-pills > .head:first-child {
+.calendar-region:is(.weekday-outlined-pills,.weekday-outlined-rects) .calendar > .head:first-child,
+.shared-month-weekdays:is(.weekday-outlined-pills,.weekday-outlined-rects) > .head:first-child {
   border-color: #f04455 !important;
   color: #d92d20;
 }
-.calendar-region.weekday-outlined-pills .calendar > .head:nth-child(7),
-.shared-month-weekdays.weekday-outlined-pills > .head:nth-child(7) {
+.calendar-region:is(.weekday-outlined-pills,.weekday-outlined-rects) .calendar > .head:nth-child(7),
+.shared-month-weekdays:is(.weekday-outlined-pills,.weekday-outlined-rects) > .head:nth-child(7) {
   border-color: #7aa7d9 !important;
   color: #2864b5;
 }
@@ -78,7 +78,7 @@
   --calendar-grid-line: var(--calendar-line-width, 1px) solid var(--calendar-line-color, #b8bec7);
 }
 .calendar-grid-geometry.calendar-grid-geometry :is(.calendar,.shared-month-weekdays,.shared-month-date-grid,.shared-month-range-grid) {
-  box-sizing:border-box;column-gap:var(--calendar-grid-gap)!important;row-gap:var(--calendar-grid-gap)!important;
+  box-sizing:border-box;column-gap:var(--calendar-grid-column-gap,var(--calendar-grid-gap))!important;row-gap:var(--calendar-grid-gap)!important;
 }
 .calendar-grid-geometry.calendar-grid-geometry :is(.calendar>.head,.shared-month-weekdays>div) {
   margin-left:0!important;margin-right:0!important;min-width:0;box-sizing:border-box;
@@ -104,7 +104,7 @@
 .calendar-grid-geometry.calendar-grid-geometry.grid-boxed :is(.calendar,.shared-month-date-grid) {
   border:0!important;border-left:var(--calendar-grid-line)!important;
 }
-.calendar-grid-geometry.calendar-grid-geometry.grid-boxed .calendar {border-top:var(--calendar-grid-line)!important}
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed .calendar {border-top:0!important}
 .calendar-grid-geometry.calendar-grid-geometry.grid-boxed :is(.calendar>.cell:not(.head),.shared-month-day-cell) {
   border-right:var(--calendar-grid-line)!important;border-bottom:var(--calendar-grid-line)!important;
 }
@@ -123,4 +123,26 @@
 .calendar-grid-geometry.calendar-grid-geometry.grid-open-rows .calendar>.cell:not(.head):not(.mini-host),
 .calendar-grid-geometry.calendar-grid-geometry.grid-open-rows .shared-month-day-cell>div:first-child {
   padding-top: 3px !important;
+}
+
+
+/* Independent weekday rectangles keep their own frame; date-grid strokes never
+   close the weekday track. Both editor and Runtime use these same selectors. */
+.calendar-region.weekday-outlined-rects .calendar>.head,
+.shared-month-weekdays.weekday-outlined-rects>.head {border-radius:4px}
+.calendar-grid-geometry.calendar-grid-geometry .calendar>.head {border:0}
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed .calendar {border-left:0!important}
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-child(7n+8) {border-left:var(--calendar-grid-line)!important}
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-child(n+8):nth-child(-n+14) {border-top:var(--calendar-grid-line)!important}
+/* A continuous underline spans all seven days, including empty/mini cells.
+   The schedule overlay uses the exact same column tracks. */
+.calendar-grid-geometry.calendar-grid-geometry.grid-row-underlines {--calendar-grid-column-gap:0px}
+.calendar-grid-geometry.calendar-grid-geometry.grid-row-underlines :is(.calendar>.cell:not(.head),.shared-month-day-cell) {
+ border-bottom:var(--calendar-grid-line)!important;
+}
+.calendar-grid-geometry.calendar-grid-geometry.grid-row-underlines .calendar>.cell:not(.head):not(.mini-host),
+.calendar-grid-geometry.calendar-grid-geometry.grid-row-underlines .shared-month-day-cell>div:first-child {padding:3px 8px 42px!important}
+.calendar-grid-geometry.calendar-grid-geometry:is(.grid-boxed,.grid-row-underlines):is(.weekday-outlined-pills,.weekday-outlined-rects) .calendar>.head,
+.calendar-grid-geometry.calendar-grid-geometry:is(.grid-boxed,.grid-row-underlines) .shared-month-weekdays:is(.weekday-outlined-pills,.weekday-outlined-rects)>.head {
+ margin-left:3px!important;margin-right:3px!important;
 }

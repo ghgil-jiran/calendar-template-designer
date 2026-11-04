@@ -6,12 +6,14 @@
   const schemaVersion = 'monthly-calendar-preset.v1';
   const gridPresentations = Object.freeze({
     boxed: Object.freeze({ id: 'boxed', label: '전체 박스 격자', supportedRows: Object.freeze([5, 6]) }),
+    'row-underlines': Object.freeze({ id: 'row-underlines', label: '밑줄', supportedRows: Object.freeze([5, 6]) }),
     'open-rows': Object.freeze({ id: 'open-rows', label: '독립 밑줄', supportedRows: Object.freeze([5, 6]), source: '월력-날짜 격자 디자인 1.pdf' }),
     minimal: Object.freeze({ id: 'minimal', label: '미니멀 무선', supportedRows: Object.freeze([5, 6]), source: '월력-날짜 격자 디자인 2.pdf' }),
     'detached-cards': Object.freeze({ id: 'detached-cards', label: '개별 사각 셀', supportedRows: Object.freeze([5, 6]) })
   });
   const weekdayPresentations = Object.freeze({
     'filled-tabs': Object.freeze({ id: 'filled-tabs', label: '연결형 채움 탭', boxHeightMm: 7.06, gridGapMm: 0 }),
+    'outlined-rects': Object.freeze({ id: 'outlined-rects', label: '독립 테두리 사각', boxHeightMm: 5.5, gridGapMm: 1.6 }),
     'outlined-pills': Object.freeze({ id: 'outlined-pills', label: '독립 테두리 캡슐', boxHeightMm: 7, gridGapMm: 1.6 })
   });
   const compositionContract = Object.freeze({
@@ -84,3 +86,4 @@
 
   return Object.freeze({ schemaVersion, compositionContract, gridPresentations, weekdayPresentations, titlePresentations, presets, resolve, resolvePresentation });
 });
+

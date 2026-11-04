@@ -5,8 +5,8 @@ await import('../apps/designer-studio/calendar-preset-catalog.js');
 
 const catalog = globalThis.ACDLCalendarPresetCatalog;
 
-test('grid presentation catalog exposes four date-cell structures for five and six rows', () => {
-  assert.deepEqual(Object.keys(catalog.gridPresentations), ['boxed', 'open-rows', 'minimal', 'detached-cards']);
+test('grid presentation catalog exposes five date-cell structures for five and six rows', () => {
+  assert.deepEqual(Object.keys(catalog.gridPresentations), ['boxed', 'row-underlines', 'open-rows', 'minimal', 'detached-cards']);
   Object.values(catalog.gridPresentations).forEach(grid => assert.deepEqual([...grid.supportedRows], [5, 6]));
   assert.equal(catalog.gridPresentations['open-rows'].source, '월력-날짜 격자 디자인 1.pdf');
   assert.equal(catalog.gridPresentations.minimal.source, '월력-날짜 격자 디자인 2.pdf');
@@ -74,3 +74,4 @@ test('blank Masters share the authoring presentation defaults with Runtime', () 
   assert.equal(authored.monthTitleStyle,'english-month');
   assert.equal(authored.weekdayStyle,'outlined-pills');
 });
+

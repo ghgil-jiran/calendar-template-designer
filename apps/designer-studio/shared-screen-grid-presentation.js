@@ -4,6 +4,7 @@
   const version = "1.0.0-preview.1";
   const classes = Object.freeze({
     "open-rows": "grid-open-rows",
+    "row-underlines": "grid-row-underlines",
     minimal: "grid-minimal",
     "detached-cards": "grid-detached-cards",
     boxed: "grid-boxed",
@@ -39,3 +40,4 @@
   root.ACDLSharedGridPresentation = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(globalThis);
+
