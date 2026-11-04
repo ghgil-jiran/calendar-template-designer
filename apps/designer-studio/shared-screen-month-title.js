@@ -22,6 +22,7 @@
       if (input[key] !== "" && input[key] != null && Number.isFinite(Number(input[key])) && Number(input[key]) >= 0 && Number(input[key]) <= 100) result[key] = Number(input[key]);
     }
     if (["number", "number-year", "number-english", "number-year-english", "english"].includes(input.composition)) result.composition=input.composition;
+    if (["center","baseline"].includes(input.verticalAlign)) result.verticalAlign=input.verticalAlign;
     if (["row","column"].includes(input.arrangement)) result.arrangement=input.arrangement;
     if (input.reverse === true) result.reverse=true;
     if (["plain","padded"].includes(input.numberFormat)) result.numberFormat=input.numberFormat;
@@ -51,7 +52,7 @@
   function rootStyle(input, context) {
     const style = normalizeTypography(input);
     const result=style.gap == null ? {} : {gap: screenLength(style.gap,context)};
-    if(style.composition){const column=style.arrangement==="column",align=style.align||"left";Object.assign(result,{display:"flex",flexDirection:column?"column":"row",alignItems:column?(align==="left"?"flex-start":align==="right"?"flex-end":"center"):"center",justifyContent:column?"center":align==="left"?"flex-start":align==="right"?"flex-end":"center",lineHeight:"1",textAlign:align,padding:"0",margin:"0",fontWeight:style.fontWeight||800});}
+    if(style.composition){const column=style.arrangement==="column",align=style.align||"left";Object.assign(result,{display:"flex",flexDirection:column?"column":"row",alignItems:column?(align==="left"?"flex-start":align==="right"?"flex-end":"center"):(style.verticalAlign==="baseline"?"baseline":"center"),justifyContent:column?"center":align==="left"?"flex-start":align==="right"?"flex-end":"center",lineHeight:"1",textAlign:align,padding:"0",margin:"0",fontWeight:style.fontWeight||800});}
     if(Object.keys(style).length&&(style.fontFamily||context?.fontFamily))result.fontFamily=style.fontFamily||context.fontFamily;
     if(Object.keys(style).length&&Number(context?.baseSize)>0)result.fontSize=screenLength(context.baseSize,context);
     return result;
