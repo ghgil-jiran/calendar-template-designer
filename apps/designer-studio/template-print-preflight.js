@@ -1,9 +1,18 @@
 (()=>{
- const PAGE_ROLES=new Set(['cover','cover-front','cover-back','cover-inside','front-cover-inside','inside-cover','divider','divider-front','divider-back','front-divider','front-divider-front','front-divider-back','front-insert-front','front-insert-back','rear-divider','rear-divider-front','rear-divider-back','rear-insert-front','rear-insert-back','yearly-calendar','yearly-plan','school-symbol','school-symbols','school-introduction','academic-schedule','monthly-calendar','monthly-front','monthly-back','back-cover-inside','rear-cover-inside','back-cover','back-cover-front','back-cover-back','back-cover-information','back-contact','poster-annual','page']);
+ const PAGE_ROLES=new Set(['cover','cover-front','cover-back','cover-inside','front-cover-inside','inside-cover','divider','divider-front','divider-back','front-divider','front-divider-front','front-divider-back','front-insert-front','front-insert-back','rear-divider','rear-divider-front','rear-divider-back','rear-insert-front','rear-insert-back','yearly-calendar','yearly-plan','school-symbol','school-symbols','school-introduction','academic-schedule','monthly-calendar','monthly-front','monthly-back','month-calendar','month-back','back-cover-inside','rear-cover-inside','back-cover','back-cover-front','back-cover-back','back-cover-information','back-contact','poster-annual','page']);
  const ELEMENT_TYPES=new Set(['text','year-text','image','image-frame','frame','shape','line','vector','graphic','calendar','calendar-grid','mini-calendar','mini-calendar-prev','mini-calendar-next','year-calendar','monthly-schedule','event-list','month-date-strip','monthly-quote','planner-goal','planner-weekly','planner-checklist','memo','semantic-object','contact-card','group']);
- const STYLE_KEYS=new Set(['fontFamily','fontSize','fontWeight','fontStyle','lineHeight','letterSpacing','textAlign','verticalAlign','whiteSpace','textDecoration','color','background','backgroundColor','border','borderColor','borderWidth','borderStyle','borderRadius','stroke','strokeColor','strokeWidth','lineColor','gridLine','primary','titleColor','dateColor','weekdayColor','sunday','sundayColor','saturday','saturdayColor','opacity','rotation','rotate','transform','boxShadow','shadow','shadowColor','shadowX','shadowY','shadowBlur','fit','objectFit','objectPosition','focalPoint','clipPath','mask','overflow','zIndex','legacyRole','containerStyle','sectionDivider','protectedClearArea','titleAlign','titleSize','descriptionSize','padding','paddingTop','paddingRight','paddingBottom','paddingLeft']);
+ const STYLE_KEYS=new Set(['fontFamily','fontSize','fontWeight','fontStyle','lineHeight','letterSpacing','textAlign','verticalAlign','whiteSpace','textDecoration','color','background','backgroundColor','border','borderColor','borderWidth','borderStyle','borderRadius','fill','stroke','strokeColor','strokeWidth','lineColor','gridLine','primary','titleColor','dateColor','weekdayColor','sunday','sundayColor','saturday','saturdayColor','opacity','rotation','rotate','transform','boxShadow','shadow','shadowColor','shadowX','shadowY','shadowBlur','fit','objectFit','objectPosition','focalPoint','clipPath','mask','overflow','zIndex','legacyRole','containerStyle','sectionDivider','protectedClearArea','titleAlign','titleSize','descriptionSize','padding','paddingTop','paddingRight','paddingBottom','paddingLeft']);
  // Calendar metadata emitted by runtime-project-adapter and resolved by the shared calendar modules.
  // Scope these keys to calendar objects; unrelated objects must still report unknown styles.
+ const WIDGET_STYLE_KEYS={
+  'mini-calendar':new Set(['titleStyle','dateSize','dayGridStyle']),
+  'mini-calendar-prev':new Set(['titleStyle','dateSize','dayGridStyle']),
+  'mini-calendar-next':new Set(['titleStyle','dateSize','dayGridStyle']),
+  'year-calendar':new Set(['dateSize','dayGridStyle','monthBorderWidth','containerBorderWidth','containerBorderColor','showAdjacentMonths']),
+  'event-list':new Set(['titleBackground','contentBackground','containerBackground','containerBorderRadius','containerBorderWidth','containerBorderColor','titlePosition']),
+  'monthly-schedule':new Set(['titleBackground','contentBackground','containerBackground','containerBorderRadius','containerBorderWidth','containerBorderColor','titlePosition']),
+  memo:new Set(['dateScale','titleScale','stripeColor'])
+ };
  const CALENDAR_TYPES=new Set(['calendar','calendar-grid']);
  const CALENDAR_STYLE_KEYS=new Set(['design','presetId','gridStyle','eventStyle','sampleFamily','weekdayStyle','calendarLayout','calendarPreset','gridBackground','monthTitleSize','monthTitleAlign','monthTitleStyle','rangeEventStyle','calendarOverrides','showAdjacentMonths','monthTitleFontFamily','eventMaxVisiblePerDay','authoredRegionFramePct','authoredRegionHeightPct']);
  const issue=(severity,code,message,path='')=>({severity,code,message,path});
@@ -38,7 +47,14 @@
    const ids=new Set(listOf(resolved.objects).map(object=>text(object.sourceObjectId||object.id)));
    listOf(project?.book?.elementsByPage?.[sourceId]).filter(element=>element?.visible!==false).forEach(element=>{const id=text(element?.id);if(id&&!ids.has(id))problems.push(issue('error','RUNTIME_OBJECT_MISSING',`Runtime에서 개체가 누락됐습니다: ${id}`,`pages[${pageIndex}].elements`));});
   });
-  listOf(runtimeDocument.diagnostics).forEach((item,index)=>problems.push(issue(item.severity==='error'?'error':'warning',`RUNTIME_${text(item.code||'DIAGNOSTIC')}`,text(item.message||'Runtime 진단 항목입니다.'),item.pageId?`runtime.pages.${item.pageId}${item.objectId?`.objects.${item.objectId}`:''}`:`runtime.diagnostics[${index}]`)));
+  listOf(runtimeDocument.diagnostics).forEach((item,index)=>{
+   // Percentage bounds are trim bounds. A verified PDF background may occupy the declared bleed.
+   if(item.code==='OBJECT_OUT_OF_BOUNDS'){
+    try{const page=sourcePages.find(page=>page.id===item.pageId),plan=page&&globalThis.ACDLPdfBackgroundPrint?.pagePlan(project,page),layer=plan?.layers.find(layer=>layer.elementId===item.objectId),f=layer?.frameMm;
+     if(f&&f.x>=-.02&&f.y>=-.02&&f.x+f.width<=plan.sheetWidth+.02&&f.y+f.height<=plan.sheetHeight+.02)return;
+    }catch{ /* Invalid source or placement remains a blocking contract finding. */ }
+   }
+   problems.push(issue(item.severity==='error'?'error':'warning',`RUNTIME_${text(item.code||'DIAGNOSTIC')}`,text(item.message||'Runtime 진단 항목입니다.'),item.pageId?`runtime.pages.${item.pageId}${item.objectId?`.objects.${item.objectId}`:''}`:`runtime.diagnostics[${index}]`));});
   return problems;
  }
  function renderParityIssues(renderParity){
@@ -78,7 +94,7 @@
     elementTypes.set(type,(elementTypes.get(type)||0)+1);capabilities.add(`element.${type}`);
     if(!ELEMENT_TYPES.has(type))problems.push(issue('error','ELEMENT_TYPE_UNSUPPORTED',`공통 Runtime 지원 목록에 없는 개체입니다: ${type}`,`${path}.type`));
     const binding=text(element?.binding||element?.dataBinding||element?.bindingPath);if(binding){bindings.add(binding);capabilities.add(`binding.${binding.split('.')[0]}`)}
-    styleEntries(element).forEach(([key])=>{styleKeys.set(key,(styleKeys.get(key)||0)+1);capabilities.add(`style.${key}`);if(!STYLE_KEYS.has(key)&&!(CALENDAR_TYPES.has(type)&&CALENDAR_STYLE_KEYS.has(key)))problems.push(issue('warning','STYLE_NOT_CATALOGED',`아직 공식 스타일 목록에 등록되지 않은 속성입니다: ${key}`,`${path}.style.${key}`))});
+    styleEntries(element).forEach(([key])=>{styleKeys.set(key,(styleKeys.get(key)||0)+1);capabilities.add(`style.${key}`);if(!STYLE_KEYS.has(key)&&!WIDGET_STYLE_KEYS[type]?.has(key)&&!(CALENDAR_TYPES.has(type)&&CALENDAR_STYLE_KEYS.has(key)))problems.push(issue('warning','STYLE_NOT_CATALOGED',`아직 공식 스타일 목록에 등록되지 않은 속성입니다: ${key}`,`${path}.style.${key}`))});
     if(['image','image-frame','frame'].includes(type)){const source=imageSource(element);if(source)assets.add(source);else if(isRequiredImage(element)&&!globalThis.ACDLProductionEditorAdapter?.isEmptyPlaceholder(element))problems.push(issue('error','REQUIRED_IMAGE_MISSING','필수 이미지 또는 AI 배경 자산이 없습니다.',path))}
    });
   });

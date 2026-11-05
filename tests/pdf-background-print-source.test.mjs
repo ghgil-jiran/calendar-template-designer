@@ -29,3 +29,12 @@ test('verification requires the exact source page, fit and frame for every page'
  const check={status:'passed',evidence:{schemaVersion:model.version,required:1,embedded:1,pages:[{pageId:p.pageId,required:1,embedded:1,layers:[{elementId:layer.elementId,documentId:layer.source.documentId,sha256:layer.source.sha256,pageNumber:1,frameMm:layer.frameMm,fit:layer.fit,vectorEmbedding:true}]}]}};
  assert.equal(model.verifyEvidence(f.project,check),true);const wrong=structuredClone(check);wrong.evidence.pages[0].layers[0].sha256='f'.repeat(64);assert.equal(model.verifyEvidence(f.project,wrong),false);
 });
+await import('../apps/designer-studio/template-print-preflight.js');
+test('preflight recognizes current monthly aliases/styles and validates intended PDF bleed only',()=>{
+ const f=fixture();f.bg.src='package-asset://preview';f.project.book.pageInstances[0].role='monthly-back';f.project.book.pageInstances[0].semanticPageRole='month-back';
+ f.project.book.elementsByPage.p.push({id:'memo',type:'memo',memoLayout:'daily-plan',zIndex:2,style:{dateScale:110,titleScale:100,stripeColor:'#eeeeee'}});
+ const runtime={pages:[{id:'p',role:'monthly-back',objects:[{id:'bg'},{id:'text'},{id:'memo'}]}],diagnostics:[{code:'OBJECT_OUT_OF_BOUNDS',severity:'warning',pageId:'p',objectId:'bg',message:'outside trim'}]};
+ const report=globalThis.ACDLTemplatePrintPreflight.analyze(f.project,{runtimeDocument:runtime});
+ assert.ok(!report.issues.some(i=>['PAGE_ROLE_UNSUPPORTED','STYLE_NOT_CATALOGED','RUNTIME_OBJECT_OUT_OF_BOUNDS'].includes(i.code)));
+ f.bg.x=-5;const outside=globalThis.ACDLTemplatePrintPreflight.analyze(f.project,{runtimeDocument:runtime});assert.ok(outside.issues.some(i=>i.code==='RUNTIME_OBJECT_OUT_OF_BOUNDS'));
+});
