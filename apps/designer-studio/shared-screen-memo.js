@@ -65,12 +65,14 @@
     if (!model) return '';
     const color = (key, fallback) => /^#[0-9a-f]{3,8}$/i.test(style[key] || '') ? style[key] : fallback;
     const ink=color('color','#20282b'), sunday=color('sundayColor','#b53443'), saturday=color('saturdayColor','#35659b');
+    const scale=key=>Math.max(.6,Math.min(2,Number(style[key]||100)/100));
+    const dateScale=scale('dateScale'),titleScale=scale('titleScale');
     const accent=color('titleColor','#719da4'), line=color('lineColor','#d5dbd7'), stripe=color('stripeColor','#edf0e9');
     const rows=model.rows.map((pair,i) => {
       const y=136+i*47;
-      return '<rect x="0" y="'+y+'" width="1000" height="47" fill="'+(i%2?stripe:'#ffffff')+'"/><path d="M0 '+(y+47)+'H1000" stroke="'+line+'" stroke-width=".7"/>'+pair.map((entry,col)=>entry?'<text data-plan-date="'+entry.date+'" data-weekday="'+entry.weekday+'" x="'+(col*500+22)+'" y="'+(y+30)+'" fill="'+(entry.holiday||entry.weekday===0?sunday:entry.weekday===6?saturday:ink)+'" font-size="23" font-weight="700">'+entry.day+'<tspan font-size="16"> '+entry.label+'</tspan></text>':'').join('');
+      return '<rect x="0" y="'+y+'" width="1000" height="47" fill="'+(i%2?stripe:'#ffffff')+'"/><path d="M0 '+(y+47)+'H1000" stroke="'+line+'" stroke-width=".7"/>'+pair.map((entry,col)=>entry?'<text data-plan-date="'+entry.date+'" data-weekday="'+entry.weekday+'" x="'+(col*500+22)+'" y="'+(y+30)+'" fill="'+(entry.holiday||entry.weekday===0?sunday:entry.weekday===6?saturday:ink)+'" font-size="'+(23*dateScale)+'" font-weight="700">'+entry.day+'<tspan font-size="'+(16*dateScale)+'"> '+entry.label+'</tspan></text>':'').join('');
     }).join('');
-    return '<svg class="shared-daily-plan" data-memo-layout="daily-plan" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1000 900" preserveAspectRatio="none" role="img" aria-label="'+model.year+'년 '+model.month+'월 '+escapeText(model.title)+'"><text x="500" y="48" text-anchor="middle" fill="'+accent+'" font-size="35" font-weight="700">'+model.month+'월의</text><text x="500" y="100" text-anchor="middle" fill="'+accent+'" font-size="40" font-weight="700">'+escapeText(model.title)+'</text>'+rows+'<path d="M88 136V888 M500 136V888 M588 136V888" stroke="'+line+'" stroke-width=".7"/></svg>';
+    return '<svg class="shared-daily-plan" style="font-family:'+escapeText(String(style.fontFamily||'inherit').replace(/[;{}]/g,''))+'" data-memo-layout="daily-plan" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1000 900" preserveAspectRatio="none" role="img" aria-label="'+model.year+'년 '+model.month+'월 '+escapeText(model.title)+'"><text x="500" y="48" text-anchor="middle" fill="'+accent+'" font-size="'+(35*titleScale)+'" font-weight="700">'+model.month+'월의</text><text x="500" y="100" text-anchor="middle" fill="'+accent+'" font-size="'+(40*titleScale)+'" font-weight="700">'+escapeText(model.title)+'</text>'+rows+'<path d="M88 136V888 M500 136V888 M588 136V888" stroke="'+line+'" stroke-width=".7"/></svg>';
   }
   root.ACDLSharedMemo = Object.freeze({ version, resolveDailyPlan, renderDailyPlan, renderChecklist, resolveYearlyPlan, renderYearlyPlan });
 })(globalThis);

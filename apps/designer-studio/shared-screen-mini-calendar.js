@@ -28,7 +28,7 @@
       : (monday ? ["월","화","수","목","금","토","일"] : ["일","월","화","수","목","금","토"]);
     const monthNames = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
     const label = element?.monthLabelStyle === "number-en" ? month + " " + monthNames[month - 1] : year + "년 " + month + "월";
-    return { year, month, rows, headers, label, showWeekdayHeader: element?.showWeekdayHeader !== false, cells };
+    return { year, month, rows, headers, label, showWeekdayHeader: element?.showWeekdayHeader !== false, showAdjacentMonths:element?.showAdjacentMonths !== false, cells };
   }
   function renderMiniCalendarMarkup(model, options = {}) {
     if (!model || !Array.isArray(model.cells) || !Array.isArray(model.headers)) return "";
@@ -40,7 +40,7 @@
     const holidays = new Set(Array.isArray(options.holidayDates) ? options.holidayDates : []);
     let inner = `<div class="widget-mini-calendar shared-screen-mini-calendar${s.gridLine ? " mini-grid-lines" : ""}" style="${css}"><strong${s.titleStyle === "editorial-photo"?' style="display:flex;align-items:baseline;justify-content:flex-start;border-bottom:1px dotted #9da7a5;padding-bottom:6px"':''}>${label}</strong><div class="mini-grid" style="--mini-calendar-rows:${model.rows};grid-template-rows:${model.showWeekdayHeader ? "auto " : ""}repeat(${model.rows},1fr)">`;
     if (model.showWeekdayHeader) model.headers.forEach(name => { inner += `<span class="mh">${escapeText(name)}</span>`; });
-    model.cells.forEach(cell => { const classes = [cell.month !== model.month ? "adj" : "", cell.weekday === 0 ? "sun" : "", cell.weekday === 6 ? "sat" : "", holidays.has(cell.date) ? "holiday" : ""].filter(Boolean).join(" "); inner += `<span class="${classes}">${cell.day}${cell.extra ? ` · ${cell.extra.day}` : ""}</span>`; });
+    model.cells.forEach(cell => { const classes = [cell.month !== model.month ? "adj" : "", cell.weekday === 0 ? "sun" : "", cell.weekday === 6 ? "sat" : "", holidays.has(cell.date) ? "holiday" : ""].filter(Boolean).join(" "); inner += `<span class="${classes}">${cell.month!==model.month&&model.showAdjacentMonths===false?"":cell.day}${cell.extra ? ` · ${cell.extra.day}` : ""}</span>`; });
     return inner + "</div></div>";
   }
   function renderCellMiniCalendarMarkup(model) {

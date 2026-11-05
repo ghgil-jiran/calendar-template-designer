@@ -6,21 +6,24 @@
   const candidates=allVisibleElements().filter(e=>e.type==='year-calendar');if(candidates.length!==1)return null;const annual=candidates[0];
   return (project.book.elementsByPage[selectedPage().id]||[]).find(e=>e.id===annual.id)||(project.template.masterElements[selectedPage().masterId]||[]).find(e=>e.id===annual.id)||null;
  }
- const limits={dateSize:[3,36,.5],titleSize:[3,72,.5],fontSize:[3,72,.5],lineHeight:[.8,4,.05],monthBorderWidth:[0,8,.5],containerBorderWidth:[0,8,.5]};
+ const limits={dateScale:[60,200,5],titleScale:[60,200,5],dateSize:[3,36,.5],titleSize:[3,72,.5],fontSize:[3,72,.5],lineHeight:[.8,4,.05],monthBorderWidth:[0,8,.5],containerBorderWidth:[0,8,.5]};
  const input=(key,label,type,value)=>`<label>${label}<input data-page-style="${key}" type="${type}" ${type==='number'?`min="${limits[key][0]}" max="${limits[key][1]}" step="${limits[key][2]}"`:''} value="${escape(value)}"></label>`;
  const select=(key,label,value,options)=>`<label>${label}<select data-page-style="${key}">${options.map(([id,name])=>`<option value="${id}" ${String(value)===String(id)?'selected':''}>${name}</option>`).join('')}</select></label>`;
  const fonts=["", "Pretendard", "Noto Sans KR", "Noto Serif KR", "Nanum Gothic", "Nanum Myeongjo", "IBM Plex Sans KR", "IBM Plex Sans", "Playfair Display", "Montserrat", "Bodoni Moda", "Bebas Neue", "DM Sans", "Arial", "Times New Roman"].map(font=>[font,font||'템플릿 기본 글꼴']);
  const previous=renderInspector;
  renderInspector=function(){
   const result=previous.apply(this,arguments),item=target(),panel=$('inspector')?.querySelector('[data-panel="design"]');
-  if(!item||!panel||!['year-calendar','event-list','monthly-schedule'].includes(item.type))return result;
+  if(!item||!panel||!(['year-calendar','event-list','monthly-schedule'].includes(item.type)||item.type==='memo'&&item.memoLayout==='daily-plan'))return result;
+  const daily=item.type==='memo';
   const s=item.style||{},annual=item.type==='year-calendar',yearly=item.type==='event-list'&&item.displayMode==='year-by-month';limits.titleSize=annual?[5,40,.5]:[3,72,.5];
   panel.querySelector('.inspector-tab-empty')?.remove();
   const section=document.createElement('div');section.className='section element-inspector';section.id='pageWidgetStyles';
-  let html=`<strong>${annual?'연력 · 월 영역 스타일':'학사일정 · 글자와 월 영역 스타일'}</strong><p class="hint">${annual?'요일·날짜 색과 날짜 격자를 이 연력 개체에 저장합니다.':'저장한 글꼴·색·크기는 사용자 서비스와 출력에도 동일하게 전달됩니다.'}</p>`;
+  let html=`<strong>${daily?'자기주도계획표 · 글자와 표 스타일':annual?'연력 · 월 영역 스타일':'학사일정 · 글자와 월 영역 스타일'}</strong><p class="hint">${annual?'요일·날짜 색과 날짜 격자를 이 연력 개체에 저장합니다.':'저장한 글꼴·색·크기는 사용자 서비스와 출력에도 동일하게 전달됩니다.'}</p>`;
   if(!sourceElement())html+=`<p class="hint">선택 전 설정 대상: 이 페이지의 연력 개체 · ${escape(item.id)}</p>`;
   html+=select('fontFamily','글꼴',s.fontFamily||'',s.fontFamily&&!fonts.some(([value])=>value===s.fontFamily)?[...fonts,[s.fontFamily,s.fontFamily]]:fonts);
-  if(annual){
+  if(daily){
+   html+=input('dateScale','날짜·요일 크기 (%)','number',s.dateScale??100)+input('titleScale','제목 크기 (%)','number',s.titleScale??100)+input('titleColor','제목 색','color',s.titleColor||'#719da4')+input('color','평일 날짜색','color',s.color||'#20282b')+input('sundayColor','일요일·공휴일색','color',s.sundayColor||'#b53443')+input('saturdayColor','토요일색','color',s.saturdayColor||'#35659b')+input('stripeColor','교차 행 배경색','color',s.stripeColor||'#edf0e9')+input('lineColor','표 선색','color',s.lineColor||'#d5dbd7');
+  }else if(annual){
    html+=input('dateSize','날짜 글자 크기 (px)','number',s.dateSize??7)+input('titleSize','월 제목 크기 (px)','number',s.titleSize??10);
    html+=select('dayGridStyle','날짜 격자',s.dayGridStyle||'none',[['boxes','독립 박스'],['underline','독립 밑줄'],['none','무선']]);
    html+=input('dateColor','평일 날짜색','color',s.dateColor||'#293878')+input('sunday','일요일·공휴일색','color',s.sunday||'#ef3340')+input('saturday','토요일색','color',s.saturday||'#4777bd')+input('lineColor','격자 선색','color',s.lineColor||'#d8dbe2');
@@ -48,4 +51,5 @@
   return result;
  };
 })();
+
 
