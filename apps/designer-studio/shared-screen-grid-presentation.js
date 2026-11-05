@@ -24,6 +24,7 @@
       result[key]={mode:(key==='mini'?['inherit','transparent','solid']:['transparent','solid']).includes(value.mode)?value.mode:key==='mini'?'inherit':'transparent',color:/^#[0-9a-f]{6}$/i.test(value.color)?value.color:'#ffffff',opacity:Number.isFinite(Number(value.opacity))?Math.max(0,Math.min(100,Number(value.opacity))):100};
     }
     for(const key of ['weekdaySize','dateSize','lineWidth'])if(input[key]!==''&&input[key]!=null&&Number.isFinite(Number(input[key])))result[key]=Math.max(key==='lineWidth'?0:3,Math.min(key==='lineWidth'?8:72,Number(input[key])));
+    for(const key of ['weekdayRadius','datePadding'])if(input[key]!==''&&input[key]!=null&&Number.isFinite(Number(input[key])))result[key]=Math.max(0,Math.min(20,Number(input[key])));
     for(const key of ['weekdayColor','dateColor','lineColor'])if(/^#[0-9a-f]{6}$/i.test(input[key]))result[key]=input[key];
     for(const key of ['weekdayFont','dateFont'])if(typeof input[key]==='string'&&/^[a-zA-Z0-9 -]{1,80}$/.test(input[key]))result[key]=input[key];
     for(const key of ['sundayBackground','saturdayBackground','weekdayRuleColor'])if(/^#[0-9a-f]{6}$/i.test(input[key]))result[key]=input[key];
@@ -36,6 +37,7 @@
     const s=normalizeAppearance(input),paint=v=>v.mode==='transparent'?'transparent':`rgba(${parseInt(v.color.slice(1,3),16)},${parseInt(v.color.slice(3,5),16)},${parseInt(v.color.slice(5,7),16)},${v.opacity/100})`,date=paint(s.date);
     const vars={'--calendar-weekday-background':paint(s.weekday),'--calendar-date-background':date,'--calendar-mini-background':s.mini.mode==='inherit'?date:paint(s.mini)};
     for(const key of ['weekdaySize','dateSize','lineWidth'])if(s[key]!=null)vars['--calendar-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())]=s[key]+'px';
+    for(const key of ['weekdayRadius','datePadding'])if(s[key]!=null)vars['--calendar-authored-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())]=s[key]+'px';
     for(const key of ['weekdayColor','dateColor','lineColor','weekdayFont','dateFont'])if(s[key])vars['--calendar-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())]=s[key];
     if(s.sundayBackground||s.saturdayBackground)for(let i=0;i<7;i++){const day=(i+(weekStart==='monday'?1:0))%7;vars['--calendar-weekday-bg-'+(i+1)]=day===0&&s.sundayBackground?s.sundayBackground:day===6&&s.saturdayBackground?s.saturdayBackground:paint(s.weekday);}
     if(s.frameMode==='internal')vars['--calendar-outer-line-width']='0px';

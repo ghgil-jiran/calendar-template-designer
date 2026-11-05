@@ -1241,7 +1241,7 @@ const calendarGridPanelState={background:true,text:false,lines:false,mini:false}
 function readCalendarGridAppearance(){
  const value={};for(const key of ['weekday','date','mini'])value[key]={mode:el('grid-'+key+'-mode').value,color:el('grid-'+key+'-color').value,opacity:Number(el('grid-'+key+'-opacity').value)};
  for(const key of ['weekdaySize','dateSize','weekdayColor','dateColor','weekdayFont','dateFont','lineColor','lineWidth'])value[key]=el('grid-'+key).value;
- for(const key of ['sundayBackground','saturdayBackground','weekdayRuleColor','weekdayRuleWidth','frameMode'])value[key]=el('grid-'+key).value;
+ for(const key of ['sundayBackground','saturdayBackground','weekdayRuleColor','weekdayRuleWidth','frameMode','weekdayRadius','datePadding'])value[key]=el('grid-'+key).value;
  return window.ACDLSharedGridPresentation.normalizeAppearance(value);
 }
 function setupCalendarGridAppearance(container){
@@ -1252,8 +1252,8 @@ function setupCalendarGridAppearance(container){
  background.innerHTML=paint('weekday','요일 행')+paint('date','날짜 격자')+`<label>일요일 요일 배경<input id="grid-sundayBackground" placeholder="기존 배경 유지 · #RRGGBB" value="${s.sundayBackground||''}"></label><label>토요일 요일 배경<input id="grid-saturdayBackground" placeholder="기존 배경 유지 · #RRGGBB" value="${s.saturdayBackground||''}"></label>`;
  const fonts=['Pretendard','Noto Sans KR','Noto Serif KR','Nanum Gothic','Nanum Myeongjo','IBM Plex Sans KR','IBM Plex Sans','Playfair Display','Montserrat','Bodoni Moda','Bebas Neue','DM Sans'];
  const typographyFields=key=>`<label>${key==='weekday'?'요일':'날짜'} 글꼴<select id="grid-${key}Font"><option value="">기존 글꼴 유지</option>${fonts.map(font=>`<option ${s[key+'Font']===font?'selected':''}>${font}</option>`).join('')}</select></label><label>${key==='weekday'?'요일':'날짜'} 크기 (px)<input id="grid-${key}Size" data-optional="true" type="number" min="3" max="72" step=".5" placeholder="기존 크기 유지" value="${s[key+'Size']??''}"></label><label>${key==='weekday'?'요일':'평일 날짜'} 글자색<input id="grid-${key}Color" placeholder="기존 색 유지 · #RRGGBB" pattern="#[a-fA-F0-9]{6}" value="${s[key+'Color']||''}"></label>`;
- text.innerHTML=typographyFields('weekday');
- lines.innerHTML=typographyFields('date')+`<label>선색<input id="grid-lineColor" placeholder="기존 선색 유지 · #RRGGBB" pattern="#[a-fA-F0-9]{6}" value="${s.lineColor||''}"></label><label>선 굵기 (px)<input id="grid-lineWidth" data-optional="true" type="number" min="0" max="8" step=".5" placeholder="기존 굵기 유지" value="${s.lineWidth??''}"></label>`;
+ text.innerHTML=typographyFields('weekday')+`<label>요일 모서리 반경 (px)<input id="grid-weekdayRadius" data-optional="true" type="number" min="0" max="20" value="${s.weekdayRadius??''}" placeholder="기존 모양 유지"></label>`;
+ lines.innerHTML=typographyFields('date')+`<label>날짜 안쪽 여백 (px)<input id="grid-datePadding" data-optional="true" type="number" min="0" max="20" value="${s.datePadding??''}" placeholder="기존 여백 유지"></label><label>선색<input id="grid-lineColor" placeholder="기존 선색 유지 · #RRGGBB" pattern="#[a-fA-F0-9]{6}" value="${s.lineColor||''}"></label><label>선 굵기 (px)<input id="grid-lineWidth" data-optional="true" type="number" min="0" max="8" step=".5" placeholder="기존 굵기 유지" value="${s.lineWidth??''}"></label>`;
  lines.innerHTML+=`<label>격자 외곽<select id="grid-frameMode"><option value="boxed" ${s.frameMode!=='internal'?'selected':''}>외곽선 포함</option><option value="internal" ${s.frameMode==='internal'?'selected':''}>내부선만</option></select></label><label>요일 아래 선 굵기<input id="grid-weekdayRuleWidth" type="number" min="0" max="8" step=".5" value="${s.weekdayRuleWidth??''}"></label><label>요일 아래 선색<input id="grid-weekdayRuleColor" placeholder="기존 선색 유지 · #RRGGBB" value="${s.weekdayRuleColor||''}"></label>`;
  const scheduleFields=el('applyRangeEventStyle')?.closest('.section');const singleCount=el('masterMaxEvents')?.closest('label');if(scheduleFields&&singleCount)scheduleFields.insertBefore(singleCount,scheduleFields.querySelector('.range-event-legend'));
  mini.innerHTML=`<label class="inline-check calendar-style-check"><input id="grid-mini-visible" type="checkbox" ${project.settings.showAdjacentMiniCalendars?'checked':''}>이전·다음 달 미니월력 표시</label>`+paint('mini','남은 날짜 칸의 미니월력');
@@ -1269,6 +1269,7 @@ function setupCalendarInspectorSections(container){
   const panel=document.createElement('details');panel.className='calendar-style-panel calendar-style-section';panel.open=calendarInspectorSectionState[id]??(monthTitleEditing&&id==='applyMonthComposition');panel.innerHTML='<summary><span>'+title+'</span></summary>';section.parentNode.insertBefore(panel,section);panel.append(section);panel.addEventListener('toggle',()=>calendarInspectorSectionState[id]=panel.open);
  }
 }
+
 
 
 
