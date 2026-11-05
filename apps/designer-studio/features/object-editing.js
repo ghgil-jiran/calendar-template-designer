@@ -868,14 +868,14 @@ function renderPage(){
  }else if(p.role==="poster-annual"){
   if((project.book.elementsByPage?.[p.id]||[]).length===0)html+=`<div class="poster-empty-guide non-output editor-only">개체 추가에서 연간 월력, 학교 정보, 일정 목록을 배치하세요.</div>`;
  }else if(p.role==="monthly-back"){
-  if(project.template.metadata?.sampleFamily!=="desk-6")html+=`<div class="editor-guide non-output editor-only">${p.calendarYear}년 ${p.calendarMonth}월의 뒷면</div>`;
+  if(!pageElements(p).some(item=>item.visible!==false&&!["graphic-package-background","background-decoration"].includes(item.role)))html+=`<div class="editor-guide non-output editor-only">${p.calendarYear}년 ${p.calendarMonth}월의 뒷면</div>`;
  }else if(p.role.includes("cover-front")){
   html+=`<div class="cover-art cover-base"></div>`;
  }else if(p.role.includes("intro-front")){
   html+=`<div class="cover-art"><h3>${p.overrides.title||"우리 학교의 한 해"}</h3><p>${project.book.school.name}</p></div>`;
  }else if(isInsertPage(p)){
   const insertKind=p.role.includes("front-insert")?"앞 간지":"뒤 간지",side=p.role.endsWith("-back")?"뒷면":"앞면";
-  html+=`<div class="template-surface-guide non-output editor-only"><div class="template-surface-guide-inner"><span class="guide-kicker">FREE TEMPLATE SURFACE</span><strong>${insertKind} ${p.insertIndex||1} · ${side}</strong><p>이 문구는 실제 출력 콘텐츠가 아닌 템플릿 제작용 작업면 안내입니다.<br>학교 개체, 텍스트, 이미지 등을 배치해 이 면의 구성을 설계하세요.</p><div class="guide-meta"><span>자유 배치</span><span>페이지 전용 개체</span><span>Master 개체 지원</span></div></div></div>`;
+  if(!pageElements(p).some(item=>item.visible!==false&&!["graphic-package-background","background-decoration"].includes(item.role)))html+=`<div class="template-surface-guide non-output editor-only"><div class="template-surface-guide-inner"><span class="guide-kicker">FREE TEMPLATE SURFACE</span><strong>${insertKind} ${p.insertIndex||1} · ${side}</strong><p>이 문구는 실제 출력 콘텐츠가 아닌 템플릿 제작용 작업면 안내입니다.<br>학교 개체, 텍스트, 이미지 등을 배치해 이 면의 구성을 설계하세요.</p><div class="guide-meta"><span>자유 배치</span><span>페이지 전용 개체</span><span>Master 개체 지원</span></div></div></div>`;
  }else if(p.role.includes("back-cover-front")){
   if((project.book.elementsByPage?.[p.id]||[]).length===0)html+=`<div class="cover-art"><h3>${p.overrides.title||"함께 만든 학교의 기록"}</h3><p>${project.book.school.name}</p></div>`;
  }else if((project.book.elementsByPage?.[p.id]||[]).length===0)html+=`<div class="backface"><div><strong>${roleLabel(p)}</strong><br>실제 인쇄되는 뒷면 Surface</div></div>`;
