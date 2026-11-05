@@ -36,7 +36,7 @@
     });
     const groupSize=layout==='schedule-vertical-groups'?3:layout==='schedule-horizontal-groups'?4:0;
     const content=groupSize?Array.from({length:Math.ceil(months.length/groupSize)},(_,index)=>'<div class="academic-schedule-group">'+months.slice(index*groupSize,(index+1)*groupSize).join('')+'</div>').join(''):months.join('');
-    const outer='height:100%;box-sizing:border-box;font-family:'+font+';border:'+Math.max(0,Math.min(8,num(s.containerBorderWidth,0)))+'px solid '+color(s.containerBorderColor,'#d8dbe2')+';background:'+color(s.containerBackground,'transparent')+';padding:4px';
+    const outer='height:100%;box-sizing:border-box;font-family:'+font+';border:'+Math.max(0,Math.min(8,num(s.containerBorderWidth,0)))+'px solid '+color(s.containerBorderColor,'#d8dbe2')+';border-radius:'+Math.max(0,Math.min(40,num(s.containerBorderRadius,0)))+'px;overflow:hidden'+';background:'+color(s.containerBackground,'transparent')+';padding:4px';
     return '<div class="widget-event-list academic-year-schedule '+layout+'" data-event-fit="manual" style="'+outer+'"><div class="academic-year-grid">'+content+'</div></div>';
   }
   function renderScheduleMarkup(schedule, element, page = {}) {
@@ -60,7 +60,7 @@
     }).join('') || (element?.emptyStatePresentation === 'blank' ? '' : '<div class="annual-event-empty" style="'+textCss+'">등록된 일정이 없습니다.</div>');
     const body = '<div class="'+(monthly?'schedule-items':'annual-event-items')+'" style="--event-list-columns:'+(columns==='auto'?1:columns)+';--event-list-row-count:'+Math.max(1,Math.ceil((schedule?.items?.length||0)/(columns==='auto'?1:columns)))+';--event-list-font-size:'+fontSize+'px;min-height:0;flex:1;background:'+color(s.contentBackground,'transparent')+'">'+entries+'</div>';
     const heading = '<strong style="'+titleCss+'">'+escape(title)+'</strong>';
-    const outer = 'height:100%;box-sizing:border-box;display:flex;flex-direction:column;font-family:'+font+';background:'+color(s.containerBackground,'transparent')+';border:'+Math.max(0,Math.min(8,num(s.containerBorderWidth,0)))+'px solid '+color(s.containerBorderColor,'#d8dbe2')+';--schedule-font-size:'+fontSize+'px;--schedule-line-height:'+Math.max(.8,Math.min(4,num(s.lineHeight,1.3)))+';--schedule-pad:'+(7*scale).toFixed(1)+'px;--schedule-date-width:'+(26*scale).toFixed(1)+'px;--schedule-gap:'+(4*scale).toFixed(1)+'px;--schedule-item-gap:'+(4*scale).toFixed(1)+'px';
+    const outer = 'height:100%;box-sizing:border-box;display:flex;flex-direction:column;font-family:'+font+';background:'+color(s.containerBackground,'transparent')+';border:'+Math.max(0,Math.min(8,num(s.containerBorderWidth,0)))+'px solid '+color(s.containerBorderColor,'#d8dbe2')+';border-radius:'+Math.max(0,Math.min(40,num(s.containerBorderRadius,0)))+'px;overflow:hidden'+';--schedule-font-size:'+fontSize+'px;--schedule-line-height:'+Math.max(.8,Math.min(4,num(s.lineHeight,1.3)))+';--schedule-pad:'+(7*scale).toFixed(1)+'px;--schedule-date-width:'+(26*scale).toFixed(1)+'px;--schedule-gap:'+(4*scale).toFixed(1)+'px;--schedule-item-gap:'+(4*scale).toFixed(1)+'px';
     return '<div class="'+(monthly?'widget-schedule':'widget-event-list'+(schedule?.mode==='month'?' is-current-month-schedule':'')+(!schedule?.items?.length&&element?.emptyStatePresentation==='quiet-guide'?' is-empty-quiet-guide':''))+'" data-event-fit="'+(element?.autoShrink===false?'manual':'auto')+'" data-event-columns="'+columns+'" data-event-width="'+num(element?.width,20)+'" data-event-height="'+num(element?.height,40)+'" data-event-font-size="'+fontSize+'" data-event-min-font-size="'+minSize+'" style="'+outer+'">'+(s.titlePosition==='bottom'?body+heading:heading+body)+(monthly?'':'<div class="event-list-overflow-warning" aria-hidden="true"></div>')+'</div>';
   }
   function fitEventList(widget) {
@@ -131,3 +131,4 @@
   }
   root.ACDLSharedSchedule = Object.freeze({ version, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
 })(globalThis);
+

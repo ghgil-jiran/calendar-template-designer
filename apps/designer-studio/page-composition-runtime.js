@@ -51,6 +51,7 @@
     if (type === "mini-calendar-prev") return { ...storedValue, ...shiftedMonth(year, month, -1), rows: config.rows, weekStart: config.weekStart };
     if (type === "mini-calendar-next") return { ...storedValue, ...shiftedMonth(year, month, 1), rows: config.rows, weekStart: config.weekStart };
     if (type === "mini-calendar") return { year, month, rows: config.rows, weekStart: config.weekStart, showWeekday: config.showWeekday !== false, showDate: config.showDate !== false };
+    if (type === "memo" && config.memoLayout === "daily-plan") return {memoLayout:"daily-plan", layout:"daily-plan", year, month, calendarYear:year, calendarMonth:month, title:config.title || "일일 자기주도 계획", dateBased:true};
     if (type === "memo") return { layout: config.memoLayout || "lines", title: config.title || "MEMO", lineCount: Number(config.lineCount || 8), itemCount: Number(config.itemCount || 9), weekCount: Number(config.weekCount || 5), showMemo: config.showMemo !== false };
     return element.value;
   }
@@ -258,6 +259,7 @@
   }
   root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss:monthDateStripCss+editorialStripCss+editorialTwoRowCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar, resolveAnnualCalendar, resolveMemoLayout, resolveScheduleEvents, renderYearScheduleMarkup, yearScheduleCss });
 })(typeof window !== "undefined" ? window : globalThis);
+
 
 
 

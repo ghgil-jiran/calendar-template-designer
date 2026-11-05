@@ -24,6 +24,7 @@
  function monthlyVariations(months=[]){return months.map((value,index)=>{const key=typeof value==='string'?value:value.key,month=Number(String(key).slice(-2));return {key,month,season:monthSeason(month),paletteStep:index,monthFrontAsset:`month.${key}.accent`,monthBackIllustration:`month-back.${key}.illustration`,sharedVisualLanguage:true}})}
  function pagePlans(monthBackComponents=[]){return PAGE_PLAN_BLUEPRINTS.map(item=>item.role!=='month-back'?{...item,revision:0,status:'sample-ready'}:{...item,selectedComponents:[...monthBackComponents],editableObjects:monthBackComponents.map(value=>MONTH_BACK_COMPONENT_LABELS[value]||value),revision:0,status:'sample-ready'})}
  const MONTH_BACK_LAYOUTS=Object.freeze([
+  {id:'self-directed-plan',name:'자기주도계획표',description:'왼쪽 사진·월력·학사일정과 오른쪽 두 단 일일 계획표를 구성합니다.'},
   {id:'photo-calendar-split',name:'대형 이미지·미니월력형',description:'오른쪽 대형 이미지와 왼쪽 월력 정보열을 분리합니다.'},
   {id:'monthly-plan',name:'월간 계획표 중심형',description:'상단 절반에 사진을 배치하고 아래에 월력·계획표·메모를 나눕니다.'},
   {id:'image-memo-column',name:'이미지·메모 복합형',description:'왼쪽의 넓은 이미지와 오른쪽 월력·메모 열을 조합합니다.'},
@@ -31,6 +32,7 @@
  ]);
  function splitGrid(count,x,y,width,height,columns=2){if(!count)return[];columns=Math.min(columns,count);const rows=Math.ceil(count/columns),gap=3,w=(width-gap*(columns-1))/columns,h=(height-gap*(rows-1))/rows;return Array.from({length:count},(_,index)=>({x:x+(index%columns)*(w+gap),y:y+Math.floor(index/columns)*(h+gap),width:w,height:h}))}
  function layoutBoxes(components,layoutId,{overlap}={}){
+  if(layoutId==='self-directed-plan'){const regions={'image':[6,10,25,27],'current-calendar':[6,39,25,27],'academic-schedule':[6,68,25,25],'planner-daily':[35,7,60,86]};return components.filter(id=>regions[id]).map(component=>{const [x,y,width,height]=regions[component];return {component,label:component==='planner-daily'?'자기주도계획표':MONTH_BACK_COMPONENT_LABELS[component],x,y,width,height,zIndex:3}})}
   const photos=components.filter(id=>id.startsWith('image')),hasStrip=components.includes('month-date-strip'),items=components.filter(id=>!id.startsWith('image')&&id!=='month-date-strip'),boxes=[];
   const add=(component,region)=>boxes.push({component,label:MONTH_BACK_COMPONENT_LABELS[component],zIndex:component.startsWith('image')?1:3,...region});
   const photoZone=layoutId==='monthly-plan'?{x:6,y:6,width:88,height:hasStrip?43:47}:layoutId==='photo-calendar-split'?{x:32,y:7,width:63,height:hasStrip?69:86}:{x:5,y:9,width:64,height:hasStrip?68:82};
@@ -41,7 +43,7 @@
   if(hasStrip)add('month-date-strip',{x:6,y:81,width:88,height:13,zIndex:4});
   return boxes;
  }
- function monthBackLayouts(components=[],options={}){return MONTH_BACK_LAYOUTS.map(layout=>({...layout,selected:false,boxes:layoutBoxes(components,layout.id,options)}))}
+ function monthBackLayouts(components=[],options={}){return MONTH_BACK_LAYOUTS.filter(layout=>options.mode==='self-directed'?layout.id==='self-directed-plan':layout.id!=='self-directed-plan').map(layout=>({...layout,selected:false,boxes:layoutBoxes(components,layout.id,options)}))}
  function mergeMonthBackPlacement(existing,fresh,{reapplyEdited=false}={}){
   const keys=['x','y','width','height','rotation'],baseline=Object.fromEntries(keys.map(key=>[key,Number(fresh[key])||0]));
   const previous=existing?.generatedPlacement;
@@ -69,3 +71,4 @@
  function createDraft(session,createdAt=new Date().toISOString()){if(!canEnterEditor(session))throw new Error('AI design proposal selection is required');const selected=session.variants.find(item=>item.id===session.selectedVariantId);return {schemaVersion:'ai-design-draft.v1',status:'selected-not-applied',createdAt,assetStorage:'template.resources.aiDesignAssets',session:omitAssetPayloads(session),selectedVariant:omitAssetPayloads(selected)}}
  root.ACDLAIDesignSettings=Object.freeze({VERSION,ROLE_LABELS,MONTH_BACK_COMPONENT_LABELS,MONTH_BACK_LAYOUTS,VARIANT_BLUEPRINTS,PAGE_PLAN_BLUEPRINTS,pageRoles,surfaceSummary,summary,monthlyVariations,monthBackLayouts,mergeMonthBackPlacement,createSession,selectVariant,selectMonthBackLayout,regeneratePage,canEnterEditor,createDraft});
 })(typeof window==='undefined'?globalThis:window);
+

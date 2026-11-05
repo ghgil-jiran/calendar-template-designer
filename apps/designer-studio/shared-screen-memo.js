@@ -45,5 +45,33 @@
       : months.map(renderMonth).join('');
     return '<div class="widget-memo yearly-plan-grid yearly-layout-' + layout + '" data-container-style="' + escapeText(model?.yearlyContainerStyle || "none") + '" style="--yearly-cols:' + columns + '"><strong class="yearly-plan-title">' + escapeText(model?.title || "메모") + '</strong><div class="yearly-plan-months">' + content + '</div></div>';
   }
-  root.ACDLSharedMemo = Object.freeze({ version, renderChecklist, resolveYearlyPlan, renderYearlyPlan });
+  // A date-based presentation of the existing daily planner, shared by all surfaces.
+  function resolveDailyPlan(element, page = {}, defaults = {}) {
+    const value = {...(element?.value || {}), ...(element?.runtimeWidget || {}), ...element};
+    const year = Number(page.calendarYear ?? value.calendarYear ?? value.year ?? defaults.year);
+    const month = Number(page.calendarMonth ?? value.calendarMonth ?? value.month ?? defaults.startMonth);
+    if (!Number.isInteger(year) || year < 1900 || year > 9999 || !Number.isInteger(month) || month < 1 || month > 12) return null;
+    const count = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const holidays = new Set(value.holidayDates ?? defaults.holidayDates ?? []);
+    const date = day => {
+      if (day > count || day < 1) return null;
+      const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+      const key = year + '-' + String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+      return {day, weekday, label:['일','월','화','수','목','금','토'][weekday], holiday:holidays.has(key), date:key};
+    };
+    return {year, month, title:value.title || '일일 자기주도 계획', rows:Array.from({length:16}, (_,i) => [i < 15 ? date(i+1) : null, date(i+16)])};
+  }
+  function renderDailyPlan(model, style = {}) {
+    if (!model) return '';
+    const color = (key, fallback) => /^#[0-9a-f]{3,8}$/i.test(style[key] || '') ? style[key] : fallback;
+    const ink=color('color','#20282b'), sunday=color('sundayColor','#b53443'), saturday=color('saturdayColor','#35659b');
+    const accent=color('titleColor','#719da4'), line=color('lineColor','#d5dbd7'), stripe=color('stripeColor','#edf0e9');
+    const rows=model.rows.map((pair,i) => {
+      const y=136+i*47;
+      return '<rect x="0" y="'+y+'" width="1000" height="47" fill="'+(i%2?stripe:'#ffffff')+'"/><path d="M0 '+(y+47)+'H1000" stroke="'+line+'" stroke-width=".7"/>'+pair.map((entry,col)=>entry?'<text data-plan-date="'+entry.date+'" data-weekday="'+entry.weekday+'" x="'+(col*500+22)+'" y="'+(y+30)+'" fill="'+(entry.holiday||entry.weekday===0?sunday:entry.weekday===6?saturday:ink)+'" font-size="23" font-weight="700">'+entry.day+'<tspan font-size="16"> '+entry.label+'</tspan></text>':'').join('');
+    }).join('');
+    return '<svg class="shared-daily-plan" data-memo-layout="daily-plan" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1000 900" preserveAspectRatio="none" role="img" aria-label="'+model.year+'년 '+model.month+'월 '+escapeText(model.title)+'"><text x="500" y="48" text-anchor="middle" fill="'+accent+'" font-size="35" font-weight="700">'+model.month+'월의</text><text x="500" y="100" text-anchor="middle" fill="'+accent+'" font-size="40" font-weight="700">'+escapeText(model.title)+'</text>'+rows+'<path d="M88 136V888 M500 136V888 M588 136V888" stroke="'+line+'" stroke-width=".7"/></svg>';
+  }
+  root.ACDLSharedMemo = Object.freeze({ version, resolveDailyPlan, renderDailyPlan, renderChecklist, resolveYearlyPlan, renderYearlyPlan });
 })(globalThis);
+

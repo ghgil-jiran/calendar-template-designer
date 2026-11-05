@@ -34,11 +34,11 @@
     if (!model || !Array.isArray(model.cells) || !Array.isArray(model.headers)) return "";
     const s = options.style || {};
     const css = `--mini-title-align:${align(s.titleAlign || (options.sampleFamily === "desk-3" ? "left" : "center"))};--mini-title-size:${Math.max(5,Math.min(40,Number(s.titleSize)||11))}px;--mini-primary:${hex(s.primary,"#293878")};--mini-weekday:${hex(s.weekdayColor,"#7a8291")};--mini-date:${hex(s.dateColor,"#293878")};--mini-sunday:${hex(s.sunday,"#ef3340")};--mini-saturday:${hex(s.saturday,"#4777bd")};--mini-line:${hex(s.lineColor,"#d8dbe2")};`;
-    const label = options.monthLabelStyle === "number-en"
+    const label = s.titleStyle === "editorial-photo" ? `<span style="font-size:32px;line-height:1">${model.month}</span><small style="font-size:11px;margin-left:8px">${["January","February","March","April","May","June","July","August","September","October","November","December"][model.month-1]} · ${model.year}</small>` : options.monthLabelStyle === "number-en"
       ? `${model.month} <small>${["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][model.month-1]}</small>`
       : escapeText(model.label);
     const holidays = new Set(Array.isArray(options.holidayDates) ? options.holidayDates : []);
-    let inner = `<div class="widget-mini-calendar shared-screen-mini-calendar${s.gridLine ? " mini-grid-lines" : ""}" style="${css}"><strong>${label}</strong><div class="mini-grid" style="--mini-calendar-rows:${model.rows};grid-template-rows:${model.showWeekdayHeader ? "auto " : ""}repeat(${model.rows},1fr)">`;
+    let inner = `<div class="widget-mini-calendar shared-screen-mini-calendar${s.gridLine ? " mini-grid-lines" : ""}" style="${css}"><strong${s.titleStyle === "editorial-photo"?' style="display:flex;align-items:baseline;justify-content:flex-start;border-bottom:1px dotted #9da7a5;padding-bottom:6px"':''}>${label}</strong><div class="mini-grid" style="--mini-calendar-rows:${model.rows};grid-template-rows:${model.showWeekdayHeader ? "auto " : ""}repeat(${model.rows},1fr)">`;
     if (model.showWeekdayHeader) model.headers.forEach(name => { inner += `<span class="mh">${escapeText(name)}</span>`; });
     model.cells.forEach(cell => { const classes = [cell.month !== model.month ? "adj" : "", cell.weekday === 0 ? "sun" : "", cell.weekday === 6 ? "sat" : "", holidays.has(cell.date) ? "holiday" : ""].filter(Boolean).join(" "); inner += `<span class="${classes}">${cell.day}${cell.extra ? ` · ${cell.extra.day}` : ""}</span>`; });
     return inner + "</div></div>";
@@ -106,4 +106,5 @@
   }
   root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup});
 })(globalThis);
+
 
