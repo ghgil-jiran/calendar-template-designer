@@ -13,3 +13,7 @@ const m=api.resolveDailyPlan({holidayDates:['2027-03-01'],title:'<script>'},{cal
 const layouts=ACDLAIDesignSettings.monthBackLayouts(['image','current-calendar','academic-schedule','planner-daily'],{mode:'self-directed'});assert.equal(layouts.length,1);assert.equal(layouts[0].boxes.length,4);assert.equal(ACDLAIDesignSettings.monthBackLayouts(['image']).length,4);
 const value=ACDLPageCompositionRuntime.widgetValue({type:'memo',memoLayout:'daily-plan',title:'일일 자기주도 계획'},{calendarYear:2028,calendarMonth:2});assert.equal(value.year,2028);assert.equal(value.month,2);assert.equal(value.memoLayout,'daily-plan');
 console.log('PASS: date-based planner calendar, vector and Runtime checks');
+
+assert.deepEqual(api.projectHolidayDates({book:{events:[{category:'holiday',startDate:'2027-03-01'}],calendarReference:{years:{2027:{public_holiday:{items:[{date:'2027-05-05'},{date:'2027-05-08',isHoliday:false}]}}}}}}),['2027-03-01','2027-05-05']);
+assert.deepEqual(api.projectHolidayDates({settings:{calendarData:{includeHolidays:false}},book:{events:[{category:'holiday',startDate:'2027-03-01'}]}}),[]);
+assert.ok(api.renderDailyPlan(m,{dateScale:110}).includes('font-size="25.3"'));

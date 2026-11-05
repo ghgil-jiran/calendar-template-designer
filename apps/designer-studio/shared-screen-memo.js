@@ -46,6 +46,13 @@
     return '<div class="widget-memo yearly-plan-grid yearly-layout-' + layout + '" data-container-style="' + escapeText(model?.yearlyContainerStyle || "none") + '" style="--yearly-cols:' + columns + '"><strong class="yearly-plan-title">' + escapeText(model?.title || "메모") + '</strong><div class="yearly-plan-months">' + content + '</div></div>';
   }
   // A date-based presentation of the existing daily planner, shared by all surfaces.
+  function projectHolidayDates(project) {
+    if (project?.settings?.calendarData?.includeHolidays === false) return [];
+    return [...new Set([
+      ...(project?.book?.events || []).filter(e=>e.category === 'holiday').map(e=>e.startDate),
+      ...Object.values(project?.book?.calendarReference?.years || {}).flatMap(year=>(year.public_holiday?.items || []).filter(item=>item.isHoliday !== false).map(item=>item.date))
+    ])].filter(date=>/^\d{4}-\d{2}-\d{2}$/.test(String(date)));
+  }
   function resolveDailyPlan(element, page = {}, defaults = {}) {
     const value = {...(element?.value || {}), ...(element?.runtimeWidget || {}), ...element};
     const year = Number(page.calendarYear ?? value.calendarYear ?? value.year ?? defaults.year);
@@ -74,6 +81,6 @@
     }).join('');
     return '<svg class="shared-daily-plan" style="font-family:'+escapeText(String(style.fontFamily||'inherit').replace(/[;{}]/g,''))+'" data-memo-layout="daily-plan" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1000 900" preserveAspectRatio="none" role="img" aria-label="'+model.year+'년 '+model.month+'월 '+escapeText(model.title)+'"><text x="500" y="48" text-anchor="middle" fill="'+accent+'" font-size="'+(35*titleScale)+'" font-weight="700">'+model.month+'월의</text><text x="500" y="100" text-anchor="middle" fill="'+accent+'" font-size="'+(40*titleScale)+'" font-weight="700">'+escapeText(model.title)+'</text>'+rows+'<path d="M88 136V888 M500 136V888 M588 136V888" stroke="'+line+'" stroke-width=".7"/></svg>';
   }
-  root.ACDLSharedMemo = Object.freeze({ version, resolveDailyPlan, renderDailyPlan, renderChecklist, resolveYearlyPlan, renderYearlyPlan });
+  root.ACDLSharedMemo = Object.freeze({ version, projectHolidayDates, resolveDailyPlan, renderDailyPlan, renderChecklist, resolveYearlyPlan, renderYearlyPlan });
 })(globalThis);
 

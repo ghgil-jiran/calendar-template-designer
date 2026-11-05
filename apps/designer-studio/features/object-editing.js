@@ -169,7 +169,7 @@ function renderWidgetContent(view,p){
   return window.ACDLPageCompositionRuntime.renderMonthDateStripMarkup(strip,view.style?.background===false)
  }
  if(view.type==="memo"){
-  if(view.memoLayout==="daily-plan")return window.ACDLSharedMemo.renderDailyPlan(window.ACDLSharedMemo.resolveDailyPlan(view,p,{year:project.settings.year,startMonth:project.settings.startMonth}),view.style);
+  if(view.memoLayout==="daily-plan")return window.ACDLSharedMemo.renderDailyPlan(window.ACDLSharedMemo.resolveDailyPlan(view,p,{year:project.settings.year,startMonth:project.settings.startMonth,holidayDates:window.ACDLSharedMemo.projectHolidayDates(project)}),view.style);
   if(view.hideTitle)return window.ACDLPageObjectModel.renderPlanLines(view);
   const memoModel=window.ACDLPageCompositionRuntime.resolveMemoLayout({...view,baseYear:view.baseYear||project.settings.year}),layout=memoModel.layout,title=view.hideTitle?"":v21Escape(memoModel.title);
   if(layout==="yearly-grid")return window.ACDLSharedMemo.renderYearlyPlan(memoModel);
