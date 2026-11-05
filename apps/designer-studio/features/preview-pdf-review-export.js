@@ -51,7 +51,7 @@
    const pages=window.ACDLPreviewState.pages(project),pageInfo=pages[pageNumber-1];if(!pageInfo)throw new Error('editor_print_page_not_found');
    selectedPageId=pageInfo.id;selectedElementId=null;selectedElementScope=null;calendarEditing=false;preview=false;previewType=null;renderPage();applyThemeTokens();
    const live=$('page');if(!live)throw new Error('editor_print_page_render_missing');
-   const clone=window.ACDLPreviewState.clonePage(live,pageInfo);clone.classList.remove('editor-bleed-visible','export-crop-marks','export-guides-visible');clone.classList.add('review-pdf-page');clone.style.width=`${size.width}mm`;clone.style.height=`${size.height}mm`;clone.style.position='absolute';clone.style.left=`${size.left}mm`;clone.style.top=`${size.top}mm`;
+   const clone=window.ACDLPreviewState.clonePage(live,pageInfo);clone.classList.remove('editor-bleed-visible','export-crop-marks','export-guides-visible');clone.classList.add('review-pdf-page');clone.style.setProperty('border','0','important');clone.style.width=`${size.width}mm`;clone.style.height=`${size.height}mm`;clone.style.position='absolute';clone.style.left=`${size.left}mm`;clone.style.top=`${size.top}mm`;
    clone.querySelectorAll('.empty-frame').forEach(node=>{const element=node.closest('.free-element');if(element)element.remove();else node.remove()});
    const pdfPlan=source.pdfBackgroundPlans?.[pageNumber-1];
    if(!pdfPlan||pdfPlan.schemaVersion!=='pdf-background-embedding.v1'||pdfPlan.pageId!==pageInfo.id)throw new Error('pdf_background_plan_required');
@@ -97,7 +97,7 @@
     selectedPageId=pageInfo.id;renderPage();applyThemeTokens();
     const live=$('page');if(!live)throw new Error(`${roleLabel(pageInfo)} 렌더링 결과가 없습니다.`);
     const clone=window.ACDLPreviewState.clonePage(live,pageInfo);
-    clone.classList.remove('editor-bleed-visible','export-crop-marks','export-guides-visible');clone.classList.add('review-pdf-page');clone.style.width='100%';clone.style.height='100%';
+    clone.classList.remove('editor-bleed-visible','export-crop-marks','export-guides-visible');clone.classList.add('review-pdf-page');clone.style.setProperty('border','0','important');clone.style.width='100%';clone.style.height='100%';
     clone.querySelectorAll('.empty-frame').forEach(node=>{const element=node.closest('.free-element');if(element)element.remove();else node.remove()});
     const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.dataset.pageId=pageInfo.id;sheet.setAttribute('aria-label',roleLabel(pageInfo));sheet.style.width=`${width}mm`;sheet.style.height=`${height}mm`;sheet.appendChild(clone);root.appendChild(sheet);
    }
