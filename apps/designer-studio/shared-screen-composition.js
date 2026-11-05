@@ -70,6 +70,14 @@
     ].sort((left, right) => (Number(left.zIndex) || 0) - (Number(right.zIndex) || 0));
   }
 
+  // A legacy cover placeholder must never compete with an authored background,
+  // including when its screen preview is replaced with a native PDF at print time.
+  function hasAuthoredBackground(elements) {
+    return (elements || []).some(element => element.visible !== false && element.hidden !== true
+      && element.printable !== false && Number(element.opacity ?? 1) !== 0
+      && ["graphic-package-background", "graphic-library-background", "ai-design-background", "background-decoration"].includes(element.role));
+  }
+
   function frameFromPercent(frame, size) {
     if (!(size?.width > 0 && size?.height > 0)) throw new Error("Invalid page size");
     return {
@@ -91,7 +99,8 @@
     };
   }
 
-  const api = Object.freeze({ version, contentFrame, pageFrame, contentRelativeFrame, visibleElements, isMonthBackCompositionElement, frameFromPercent, frameToPercent });
+  const api = Object.freeze({ version, contentFrame, pageFrame, contentRelativeFrame, visibleElements, hasAuthoredBackground, isMonthBackCompositionElement, frameFromPercent, frameToPercent });
   root.ACDLSharedScreenComposition = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(globalThis);
+

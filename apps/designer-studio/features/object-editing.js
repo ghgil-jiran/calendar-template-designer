@@ -872,7 +872,7 @@ function renderPage(){
  }else if(p.role==="monthly-back"){
   if(!pageElements(p).some(item=>item.visible!==false&&!["graphic-package-background","background-decoration"].includes(item.role)))html+=`<div class="editor-guide non-output editor-only">${p.calendarYear}년 ${p.calendarMonth}월의 뒷면</div>`;
  }else if(p.role.includes("cover-front")){
-  html+=`<div class="cover-art cover-base"></div>`;
+  if(!window.ACDLSharedScreenComposition.hasAuthoredBackground(pageElements(p)))html+=`<div class="cover-art cover-base"></div>`;
  }else if(p.role.includes("intro-front")){
   html+=`<div class="cover-art"><h3>${p.overrides.title||"우리 학교의 한 해"}</h3><p>${project.book.school.name}</p></div>`;
  }else if(isInsertPage(p)){
@@ -1277,6 +1277,7 @@ function setupCalendarInspectorSections(container){
   const panel=document.createElement('details');panel.className='calendar-style-panel calendar-style-section';panel.open=calendarInspectorSectionState[id]??(monthTitleEditing&&id==='applyMonthComposition');panel.innerHTML='<summary><span>'+title+'</span></summary>';section.parentNode.insertBefore(panel,section);panel.append(section);panel.addEventListener('toggle',()=>calendarInspectorSectionState[id]=panel.open);
  }
 }
+
 
 
 

@@ -1,7 +1,7 @@
 (function(root){
  const list=v=>Array.isArray(v)?v:[],text=v=>String(v??'');
  const VERSION='template-image-print-quality.v2@0.1.0';
- const COMMON=[['identity','사용 이미지·페이지·개체 연결'],['frameSuitability','원본 접근·파일 정상 여부'],['effectiveResolution','실배치·크롭 기준 300 DPI'],['placementIntegrity','확대 선명도·잘림·CMYK 색상·계조'],['visualArtifacts','흐림·노이즈·깨짐']];
+ const COMMON=[['identity','사용 이미지·페이지·개체 연결'],['frameSuitability','원본 접근·파일 정상 여부'],['effectiveResolution','사진·이미지 실배치 300 DPI (PDF 배경 제외)'],['placementIntegrity','확대 선명도·잘림·CMYK 색상·계조'],['visualArtifacts','흐림·노이즈·깨짐']];
  const AI=[['generationStandard','AI 생성 기준·최대 품질'],['contentLegibility','AI 비정상 형상·원치 않는 문자·숫자']];
  const probes=new Map();
  function signature(items){const raw=JSON.stringify(items.map(item=>({...item,src:root.ACDLTemplateRemotePersistence?.canonicalAssetSource?.(item.src)||item.src})));let a=2166136261,b=5381;for(let i=0;i<raw.length;i++){a=Math.imul(a^raw.charCodeAt(i),16777619);b=Math.imul(b,33)^raw.charCodeAt(i)}return `${items.length}:${a>>>0}:${b>>>0}`}
@@ -17,8 +17,9 @@
     if(/(?:calendar\.)?monthlyImages\./.test(binding)){const m=binding.endsWith('.current')?page.calendarMonth:Number(binding.split('.').pop());bound=project?.book?.monthlyImages?.[`${page.calendarYear||project.settings?.year}-${String(m).padStart(2,'0')}`]}
     const src=text((typeof bound==='string'?bound:bound?.src)||e.image?.src||e.src||asset.src||root.ACDLProjectAssetResolver?.elementSource?.(project,e)||'');
     const ai=Boolean(e.aiDesign)||/^ai-(design-)?background$/.test(e.role||'')||asset.origin==='ai-generated'||asset.source?.type==='live-ai-generation'||text(id).startsWith('ai-design.');
+    const pdfSource=e.graphicSource?.pdfSource||null;
     const widthMm=e.frame?.width??Number(size.width)*Number(e.width)/100,heightMm=e.frame?.height??Number(size.height)*Number(e.height)/100;
-    items.push({id:`${page.id}:${e.id}`,pageId:page.id,objectId:e.id,assetId:id||null,src,ai,role:e.role||null,binding,placeholder:!src&&e.type==='image-frame'&&e.replaceable===true&&e.emptyBehavior==='placeholder',widthMm,heightMm,x:e.x,y:e.y,rotation:e.rotation||0,fit:e.image?.fit||e.fit||'cover',scale:Math.max(.01,Number(e.image?.scale)||1),offsetX:e.image?.offsetX||0,offsetY:e.image?.offsetY||0,origin:ai?'ai':e.graphicSource?'graphic-library':binding?'bound':'editor',originalAssetId:e.graphicSource?.originalAssetId||e.printSource?.assetId||e.image?.assetId||null,originalVersion:e.graphicSource?.version||null,generationEvidence:asset.generationEvidence||asset.generation?.generationEvidence||null,style:e.style||{},imageStyle:{flipX:e.image?.flipX,flipY:e.image?.flipY,brightness:e.image?.brightness,contrast:e.image?.contrast,saturation:e.image?.saturation}});
+    items.push({id:`${page.id}:${e.id}`,pageId:page.id,objectId:e.id,assetId:id||null,src,ai,pdfSource,sourceKind:pdfSource?'pdf-background':'image',role:e.role||null,binding,placeholder:!src&&e.type==='image-frame'&&e.replaceable===true&&e.emptyBehavior==='placeholder',widthMm,heightMm,x:e.x,y:e.y,rotation:e.rotation||0,fit:e.image?.fit||e.fit||'cover',scale:Math.max(.01,Number(e.image?.scale)||1),offsetX:e.image?.offsetX||0,offsetY:e.image?.offsetY||0,origin:ai?'ai':e.graphicSource?'graphic-library':binding?'bound':'editor',originalAssetId:e.graphicSource?.originalAssetId||e.printSource?.assetId||e.image?.assetId||null,originalVersion:e.graphicSource?.version||null,generationEvidence:asset.generationEvidence||asset.generation?.generationEvidence||null,style:e.style||{},imageStyle:{flipX:e.image?.flipX,flipY:e.image?.flipY,brightness:e.image?.brightness,contrast:e.image?.contrast,saturation:e.image?.saturation}});
    }
   }
   return {items,count:items.length,signature:signature(items),aiCount:items.filter(i=>i.ai).length};
@@ -51,7 +52,9 @@
     if(!src)throw new Error('사용 이미지 원본이 없습니다.');
     if(!cache.has(src))cache.set(src,load(src));
     const dim=await cache.get(src),dpi=resolution(item,dim.width,dim.height);
-    results.push({...item,originalSrc:src,width:dim.width,height:dim.height,dpi,status:dpi===null?'review':dpi<300?'failed':'passed',message:dpi===null?'배치 크기를 확인해야 합니다.':`배치 기준 ${Math.floor(dpi)} DPI`});
+    if(item.pdfSource){
+     results.push({...item,previewSrc:src,width:dim.width,height:dim.height,dpi:null,previewDpi:dpi,status:'review',message:'인쇄: 원본 PDF · 내부 이미지 해상도 별도 확인',previewMessage:dpi===null?'화면 미리보기 해상도 미확인':`화면 미리보기 ${Math.floor(dpi)} DPI (인쇄 판정 제외)`});
+    }else results.push({...item,originalSrc:src,width:dim.width,height:dim.height,dpi,status:dpi===null?'review':dpi<300?'failed':'passed',message:dpi===null?'배치 크기를 확인해야 합니다.':`배치 기준 ${Math.floor(dpi)} DPI`});
    }catch(error){results.push({...item,status:'failed',message:error.message})}
   }
   const result={signature:inv.signature,items:results};probes.set(inv.signature,result);return result;
@@ -63,7 +66,8 @@
    let status='not_run',message='검사 전',evidence=null;
    if(key==='identity'){status=inv.items.every(i=>i.pageId&&i.objectId)?'passed':'failed';message=`사용 이미지·프레임 ${inv.count}개 위치 확인`}
    if(probeResult&&key==='frameSuitability'){status=probeResult.items.some(i=>!i.src&&!i.placeholder||i.status==='failed'&&!i.width)?'failed':probeResult.items.some(i=>i.placeholder)?'review':'passed';message='사용 원본 파일 접근·이미지 디코딩 검사'}
-   if(probeResult&&key==='effectiveResolution'){status=probeResult.items.some(i=>i.status==='failed')?'failed':probeResult.items.every(i=>i.status==='passed')?'passed':'review';message='각 사용 위치의 크기·맞춤·확대 배율을 반영한 해상도 검사';evidence={placements:probeResult.items.map(({id,width,height,dpi,status,message})=>({id,width,height,dpi,status,message}))}}
+   if(probeResult&&key==='effectiveResolution'){const raster=probeResult.items.filter(i=>!i.pdfSource);status=raster.some(i=>i.status==='failed')?'failed':raster.every(i=>i.status==='passed')?'passed':'review';message='이미지는 실배치 DPI를 검사합니다. PDF 배경은 미리보기 DPI를 판정에서 제외하며 원본 내부 이미지 해상도 확인이 필요합니다.';evidence={placements:probeResult.items.map(({id,width,height,dpi,previewDpi,sourceKind,pdfSource,status,message})=>({id,width,height,dpi,previewDpi,sourceKind,pdfSource,status,message}))}}
+   if(key==='placementIntegrity'&&inv.items.some(i=>i.pdfSource))message='원본 PDF 배경의 내부 이미지 선명도·해상도와 최종 CMYK PDF의 잘림·색상·계조를 확인하고 기록해주세요. 원본 합성 성공은 품질 통과를 뜻하지 않습니다.';
    if(key==='generationStandard'){const ai=inv.items.filter(i=>i.ai);status=ai.every(i=>i.generationEvidence?.quality==='high'&&i.generationEvidence?.status==='passed')?'passed':'review';message='생성 근거가 부족한 AI 이미지는 생성 기준을 직접 확인해야 합니다.'}
    if(fresh&&['placementIntegrity','visualArtifacts','contentLegibility','generationStandard'].includes(key)){const saved=check.criteria?.[key];if(saved){status=saved.status;message=saved.message;evidence=saved.evidence}}
    return {key,label,status,message,evidence,source:'template-image-print-quality'};
@@ -73,3 +77,4 @@
  }
  root.ACDLTemplateImageInspection=Object.freeze({inventory,resolution,probe,inspect,VERSION});
 })(typeof window!=='undefined'?window:globalThis);
+

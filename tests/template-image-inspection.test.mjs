@@ -7,6 +7,18 @@ await import('../apps/designer-studio/desk-academic-print-parity.js');
 const api=globalThis.ACDLTemplateImageInspection;
 const fixture=()=>({productType:{pageSize:{width:260,height:180}},template:{resources:{assets:[{id:'unused',src:'unused.png'}]}},book:{pageInstances:[{id:'cover',role:'cover'}],elementsByPage:{cover:[{id:'photo',type:'image',src:'original.png',width:50,height:50,fit:'cover'}]}}});
 const load=async()=>({width:2400,height:1800});
+test('PDF background preview DPI is separate from raster print resolution and cannot finish visual approval',async()=>{
+ const p=fixture();p.book.elementsByPage.cover=[{id:'pdf',type:'image',src:'preview.png',width:100,height:100,graphicSource:{pdfSource:{documentId:'original',sha256:'a'.repeat(64),pageNumber:1}}}];
+ await api.probe(p,async()=>({width:1600,height:1120}));const result=api.inspect(p),placement=result.placements[0];
+ assert.equal(placement.dpi,null);assert.ok(placement.previewDpi>150&&placement.previewDpi<160);assert.equal(placement.sourceKind,'pdf-background');
+ assert.match(placement.previewMessage,/인쇄 판정 제외/);assert.equal(result.criteria.find(c=>c.key==='effectiveResolution').status,'passed');
+ assert.notEqual(result.status,'passed');assert.match(result.criteria.find(c=>c.key==='placementIntegrity').message,/원본 PDF/);
+ const before=api.inventory(p).signature;p.book.elementsByPage.cover[0].graphicSource.pdfSource.sha256='b'.repeat(64);assert.notEqual(api.inventory(p).signature,before);
+});
+test('low DPI photographs still fail alongside native PDF backgrounds',async()=>{
+ const p=fixture();p.book.elementsByPage.cover.push({id:'pdf',type:'image',src:'preview.png',width:100,height:100,graphicSource:{pdfSource:{documentId:'original'}}});
+ await api.probe(p,async()=>({width:500,height:300}));assert.equal(api.inspect(p).criteria.find(c=>c.key==='effectiveResolution').status,'failed');
+});
 function saved(p){const i=api.inspect(p);return {criteriaVersion:api.VERSION,evidence:{inventorySignature:i.inventorySignature},criteria:Object.fromEntries(i.criteria.map(c=>[c.key,{status:'passed',message:'reviewed'}]))}}
 test('editor images and library backgrounds are collected; unused assets are excluded',()=>{
  const p=fixture();p.book.elementsByPage.cover.push({id:'bg',type:'image',src:'bg.png',graphicSource:{originalAssetId:'g'},width:100,height:100});
@@ -55,3 +67,4 @@ test('reloaded object URLs retain approval identity for the same remote asset',(
  const prior=globalThis.ACDLTemplateRemotePersistence;
  try{globalThis.ACDLTemplateRemotePersistence={canonicalAssetSource:src=>src.startsWith('blob:')?'acdl-asset://immutable':src};const p=fixture();p.book.elementsByPage.cover[0].src='blob:first';const signature=api.inventory(p).signature;p.book.elementsByPage.cover[0].src='blob:reloaded';assert.equal(api.inventory(p).signature,signature)}finally{globalThis.ACDLTemplateRemotePersistence=prior}
 });
+

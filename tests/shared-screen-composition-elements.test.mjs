@@ -2,6 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../apps/designer-studio/shared-screen-composition.js';
 const composition = globalThis.ACDLSharedScreenComposition;
+test('authored backgrounds suppress the legacy cover panel before preview removal for PDF printing', () => {
+ for(const role of ['graphic-package-background','graphic-library-background','ai-design-background','background-decoration']){
+  assert.equal(composition.hasAuthoredBackground([{role}]),true);
+  for(const disabled of [{hidden:true},{visible:false},{printable:false},{opacity:0}])assert.equal(composition.hasAuthoredBackground([{role,...disabled}]),false);
+ }
+ assert.equal(composition.hasAuthoredBackground([{role:'school-logo'}]),false);
+ assert.equal(composition.hasAuthoredBackground([]),false);
+});
 
 test('master shadow, neutral background, and generated back composition use the same visibility and layer order', () => {
   const page = { aiDesignBase: { mode: 'neutral' }, aiMonthBackComposition: { mode: 'generated-layout' } };
@@ -23,3 +31,4 @@ test('authored frames survive conversions across page sizes and preserve deliber
     assert.deepEqual(composition.frameToPercent(composition.frameFromPercent(authored, size), size), authored);
   }
 });
+
