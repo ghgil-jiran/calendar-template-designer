@@ -53,7 +53,7 @@ test('worker print mode reuses the review DOM renderer with an explicit identity
  assert.match(html,/ACDLPreviewState\.clonePage\(live,pageInfo\)/);
  assert.match(html,/year-month-grid \.adj\{opacity:1!important;color:#c7cbd2!important\}/);
  assert.match(html,/normalizePrintBindingPattern\(root\)/);
- assert.match(html,/Array\.from\(\{length:58\}/);
+ assert.match(html,/Array\.from\(\{length:26\}/);
  assert.match(html,/data-print-normalized-binding/);
 });
 
@@ -86,3 +86,4 @@ test('worker print CSS preserves trim container and bleed over the general revie
   assert.match(css,new RegExp(`@page\\{size:${sheetWidth}mm ${sheetHeight}mm;margin:0\\}`));
  }
 });
+

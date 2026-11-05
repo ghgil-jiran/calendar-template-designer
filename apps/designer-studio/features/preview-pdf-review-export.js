@@ -44,7 +44,7 @@
   const fail=error=>{document.body.dataset.printError='1';document.body.dataset.printErrorMessage=String(error?.message||error);console.error('[template-editor-print]',error)};
   try{
    if(!jobId||!sha256||!Number.isInteger(pageNumber)||pageNumber<1)throw new Error('editor_print_request_invalid');
-   const response=await fetch(`/api/templates?printRenderJob=${encodeURIComponent(jobId)}&sha256=${encodeURIComponent(sha256)}`),source=await response.json();
+   const response=await fetch(`/api/templates?printRenderJob=${encodeURIComponent(jobId)}&sha256=${encodeURIComponent(sha256)}&page=${pageNumber}`),source=await response.json();
    if(!response.ok)throw new Error(source?.message||source?.error||'editor_print_source_failed');
    project=await window.ACDLTemplateProjectLoader.prepare(source.projectData,{migrate:source.projectData.productionCorrection?undefined:window.ACDLProjectDocument?.migrateProject});
    const size=workerPageSize(project);
@@ -53,9 +53,27 @@
    const live=$('page');if(!live)throw new Error('editor_print_page_render_missing');
    const clone=window.ACDLPreviewState.clonePage(live,pageInfo);clone.classList.remove('editor-bleed-visible','export-crop-marks','export-guides-visible');clone.classList.add('review-pdf-page');clone.style.width=`${size.width}mm`;clone.style.height=`${size.height}mm`;clone.style.position='absolute';clone.style.left=`${size.left}mm`;clone.style.top=`${size.top}mm`;
    clone.querySelectorAll('.empty-frame').forEach(node=>{const element=node.closest('.free-element');if(element)element.remove();else node.remove()});
+   const pdfPlan=source.pdfBackgroundPlans?.[pageNumber-1];
+   if(!pdfPlan||pdfPlan.schemaVersion!=='pdf-background-embedding.v1'||pdfPlan.pageId!==pageInfo.id)throw new Error('pdf_background_plan_required');
    const root=document.createElement('main');root.className='review-pdf-root editor-worker-print-root';root.dataset.rendererId=source.rendererId;const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.style.width=`${size.sheetWidth}mm`;sheet.style.height=`${size.sheetHeight}mm`;sheet.style.position='relative';sheet.appendChild(clone);root.appendChild(sheet);document.body.appendChild(root);normalizePrintBindingPattern(root);if(!project.productionCorrection)normalizePrintCompositing(root);
    const style=document.createElement('style');style.textContent=`@page{size:${size.sheetWidth}mm ${size.sheetHeight}mm;margin:0}`+`body.review-pdf-printing .editor-worker-print-root .review-pdf-sheet>.page{position:absolute!important;inset:auto!important;left:${size.left}mm!important;top:${size.top}mm!important;width:${size.width}mm!important;height:${size.height}mm!important}`+'.editor-worker-print-root{display:block!important}.editor-worker-print-root .review-pdf-sheet{margin:0!important;break-after:auto!important}.editor-worker-print-root .year-month-grid .adj{opacity:1!important;color:#c7cbd2!important}.editor-worker-print-root .binding[data-print-normalized-binding="true"]{display:grid!important;grid-template-columns:repeat(26,6mm)!important;justify-content:space-between!important;background:none!important;opacity:1!important}.editor-worker-print-root .binding[data-print-normalized-binding="true"]>i{display:block!important;height:100%!important;border-radius:1mm!important;background:rgba(170,168,164,.25)!important}';document.head.appendChild(style);
    if(document.fonts?.ready)await document.fonts.ready;if(!project.productionCorrection)await optimizeReviewBackgrounds(root);await waitForImages(root);const failedImages=[...root.querySelectorAll('img')].filter(image=>!image.naturalWidth);if(failedImages.length)throw new Error(`editor_print_image_load_failed:${failedImages.length}`);await nextFrame();document.body.classList.add('review-pdf-printing');await nextFrame();
+   const localPlan=window.ACDLPdfBackgroundPrint.pagePlan(project,pageInfo);
+   if(JSON.stringify(localPlan)!==JSON.stringify({...pdfPlan,layers:pdfPlan.layers.map(layer=>({...layer,source:Object.fromEntries(Object.entries(layer.source).filter(([key])=>key!=='chunks'))}))}))throw new Error('pdf_background_plan_identity_mismatch');
+   if(pdfPlan.layers.length){
+    document.documentElement.style.setProperty('background','transparent','important');document.body.style.setProperty('background','transparent','important');
+    root.style.setProperty('background','transparent','important');sheet.style.setProperty('background','transparent','important');clone.style.setProperty('background','transparent','important');
+    const sheetRect=sheet.getBoundingClientRect(),factor=size.sheetWidth/sheetRect.width;
+    for(const layer of pdfPlan.layers){
+     const boxes=[...clone.querySelectorAll('[data-element-id]')].filter(node=>node.dataset.elementId===layer.elementId);
+     if(boxes.length!==1)throw new Error('pdf_background_element_missing:'+layer.elementId);
+     const rect=boxes[0].getBoundingClientRect(),actual={x:(rect.x-sheetRect.x)*factor,y:(rect.y-sheetRect.y)*factor,width:rect.width*factor,height:rect.height*factor};
+     if(Object.keys(actual).some(key=>Math.abs(actual[key]-layer.frameMm[key])>.25))throw new Error('pdf_background_geometry_mismatch:'+layer.elementId);
+     boxes[0].remove();
+    }
+    await nextFrame();
+   }
+   const planNode=document.createElement('script');planNode.type='application/json';planNode.id='pdf-background-print-plan';planNode.textContent=JSON.stringify(pdfPlan);document.body.appendChild(planNode);
    document.body.dataset.printReady='1';document.body.dataset.totalPages=String(pages.length);document.body.dataset.pageWidthMm=String(size.sheetWidth);document.body.dataset.pageHeightMm=String(size.sheetHeight);document.body.dataset.rendererId=source.rendererId;document.body.dataset.packageSha256=source.sha256;
   }catch(error){fail(error)}
   return true;
@@ -101,4 +119,5 @@
  window.ACDLReviewPdf=Object.freeze({export:exportReviewPdf});
  prepareWorkerPrintPage();
 })();
+
 

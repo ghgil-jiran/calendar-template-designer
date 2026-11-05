@@ -5,7 +5,7 @@ import {loadProductionEditorSource} from './production-editor-source.js';
 import {productionImagePlan,readProductionImage} from './production-print-images.js';
 
 export const PRINT_CONTRACT='production-existing-pdf-worker.v1';
-export const EXPECTED_PIPELINE_VERSION='2026-10-05-rgb-outline-lossless-mask-v2';
+export const EXPECTED_PIPELINE_VERSION='2026-11-05-original-pdf-background-v1';
 const digest=value=>createHash('sha256').update(value).digest('hex');
 const path=value=>value.split('/').map(encodeURIComponent).join('/');
 const conflict=message=>Object.assign(Error(message),{statusCode:409,code:message});
@@ -95,3 +95,4 @@ export async function requestProductionJob(receipt,revision,adminId,origin,{forc
  const job={id,template_id:pkg.template_id,template_version:pkg.version,package_sha256:pkg.package_sha256,package_storage_path:pkg.package_storage_path,requested_by:adminId,payload:{kind:'template-print-preflight',editorPrintOrigin:origin,rendererId:'template-editor-review-dom.v1',packageSha256:pkg.package_sha256,production:identity,quickInspection,renderAccessToken:randomBytes(32).toString('hex')}};
  try{const rows=await supabaseRequest('template_print_preflight_jobs',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(job)});return rows[0];}catch(error){const rows=await productionJobs(identity),existing=rows.find(item=>item.id===id);if(existing)return existing;throw error;}
 }
+
