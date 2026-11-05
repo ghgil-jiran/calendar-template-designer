@@ -16,7 +16,7 @@
     const offset = monday ? (target.getUTCDay() + 6) % 7 : target.getUTCDay();
     const days = new Date(Date.UTC(year, month, 0)).getUTCDate();
     const configured = Number(element?.calendarRows ?? defaults.calendarRows ?? 6);
-    const adaptive = (element?.sampleFamily ?? defaults.sampleFamily) === "desk-6" && (element?.calendarRowsMode ?? defaults.calendarRowsMode) === "adaptive";
+    const adaptive = (element?.calendarRowsMode ?? defaults.calendarRowsMode) === "adaptive";
     const rows = adaptive ? Math.max(5, Math.min(6, Math.ceil((offset + days) / 7))) : configured === 5 ? 5 : 6;
     const start = new Date(Date.UTC(year, month - 1, 1 - offset));
     const dateCell = date => ({ year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate(), weekday: date.getUTCDay(), date: date.toISOString().slice(0, 10) });

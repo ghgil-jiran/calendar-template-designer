@@ -33,7 +33,7 @@ function calendarGridFor(y,m,rows=Number(project.settings.calendarRows||6)){
  return window.ACDLCalendarDomain.buildCalendarGrid(y,m,project.settings.weekStart,rows)
 }
 function calendarRowCountFor(y,m){
- if(project.template?.metadata?.sampleFamily!=="desk-6"||project.settings.calendarRowsMode!=="adaptive")return Number(project.settings.calendarRows||6);
+ if(project.settings.calendarRowsMode!=="adaptive")return Number(project.settings.calendarRows||6);
  const start=new Date(y,m-1,1).getDay(),offset=project.settings.weekStart==="monday"?(start+6)%7:start,days=new Date(y,m,0).getDate();
  return Math.max(5,Math.min(6,Math.ceil((offset+days)/7)))
 }
@@ -118,3 +118,4 @@ function renderRangeEventLayer(grid,rows){
  }
  return html+"</div>"
 }
+

@@ -6,3 +6,5 @@ test('open annual calendar keeps transparent panels and hides adjacent dates whi
 
 import '../apps/designer-studio/shared-screen-grid-presentation.js';
 test('square weekday and date padding are optional, bounded and preserve explicit zero',()=>{const m=globalThis.ACDLSharedGridPresentation;assert.equal(m.appearanceVariables({schemaVersion:'calendar-grid-appearance.v1'})['--calendar-authored-weekday-radius'],undefined);const v=m.appearanceVariables({schemaVersion:'calendar-grid-appearance.v1',weekdayRadius:0,datePadding:6});assert.equal(v['--calendar-authored-weekday-radius'],'0px');assert.equal(v['--calendar-authored-date-padding'],'6px');});
+
+test('explicit adaptive calendar uses six weeks for October without a sample-family flag',()=>{const m=globalThis.ACDLSharedMiniCalendar.resolveMiniCalendar({}, {calendarYear:2027,calendarMonth:10},{calendarRows:5,calendarRowsMode:'adaptive'});assert.equal(m.rows,6);assert.ok(m.cells.some(c=>c.date==='2027-10-31'));assert.ok(!m.cells.some(c=>c.extra));});
