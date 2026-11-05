@@ -30,6 +30,8 @@
  const clips=Object.fromEntries(catalog.map(f=>[f.id,'polygon('+points(f.path).map(([x,y])=>`${x.toFixed(3)}% ${y.toFixed(3)}%`).join(',')+')']));
  const clip=id=>clips[get(id).id];
  function outline(id,color='#ffffff',width=3){color=/^#[0-9a-f]{3,8}$/i.test(color)?color:'transparent';width=Math.max(0,Math.min(20,Number(width)||0));return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" aria-hidden="true"><path d="${get(id).path}" fill="none" stroke="${color}" stroke-width="${width*2}" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;}
- root.ACDLPhotoFrameModel=Object.freeze({catalog,get,clip,outline});
+ function background(style={}){const value=style.background;return value===false||value==='transparent'?'transparent':value===true?(style.backgroundColor||'#eef2f7'):typeof value==='string'&&/^#[0-9a-f]{3,8}$/i.test(value)?value:'#eef2f7';}
+ root.ACDLPhotoFrameModel=Object.freeze({catalog,get,clip,outline,background});
 })(globalThis);
+
 

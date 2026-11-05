@@ -87,21 +87,23 @@
     const style=element.style||{},dateSize=Math.max(3,Math.min(36,Number(style.dateSize)||7)),titleSize=Math.max(5,Math.min(40,Number(style.titleSize)||10)),gridStyle=style.dayGridStyle||"none",line=hex(style.lineColor,"#d8dbe2"),holidayDates=new Set(element.holidayDates||[]),font=escapeText(String(style.fontFamily||"inherit").replace(/[;{}]/g,""));
     const dateColor=hex(style.dateColor,"#293878"),sunday=hex(style.sunday,"#ef3340"),saturday=hex(style.saturday,"#4777bd");
     const day=(cell,mm)=>{
+      if(element.showAdjacentMonths===false&&cell.month!==mm.month)return '<span></span>';
       const adjacent=cell.month!==mm.month,holiday=holidayDates.has(cell.date),color=adjacent?"#aeb5c2":holiday||cell.weekday===0?sunday:cell.weekday===6?saturday:dateColor;
       return '<span data-date="'+cell.date+'" style="color:'+color+'">'+cell.day+'</span>';
     };
-    const renderMonth=mm=>{
+    const open=annual.layout==='open-grid',renderMonth=mm=>{
       const border=gridStyle==='boxes'?'1px solid '+line:'none',underline=gridStyle==='underline'?'1px solid '+line:'none';
-      let html='<section class="year-month" data-month-key="'+mm.year+'-'+String(mm.month).padStart(2,'0')+'" style="min-height:0;display:flex;flex-direction:column"><strong style="font-size:'+titleSize+'px;color:'+hex(style.primary,dateColor)+';text-align:'+align(style.titleAlign||'center')+'">'+escapeText(mm.label)+'</strong><div class="year-month-grid" style="min-height:0;flex:1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:'+(gridStyle==='none'?'0':'2px')+';font-size:'+dateSize+'px;grid-template-rows:'+(annual.showWeekdayHeader?'auto ':'')+'repeat('+mm.rows+',1fr)">';
+      let html='<section class="year-month" data-month-key="'+mm.year+'-'+String(mm.month).padStart(2,'0')+'" style="min-height:0;display:flex;flex-direction:column;'+(open?'border:0;border-radius:0;background:transparent;overflow:visible;':'')+'"><strong style="'+(open?'background:transparent;padding:0 0 6px;':'')+'font-size:'+titleSize+'px;color:'+hex(style.primary,dateColor)+';text-align:'+align(style.titleAlign||'center')+'">'+escapeText(mm.label)+'</strong><div class="year-month-grid" style="min-height:0;flex:1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:'+(gridStyle==='none'?'0':'2px')+';font-size:'+dateSize+'px;grid-template-rows:'+(annual.showWeekdayHeader?'auto ':'')+'repeat('+mm.rows+',1fr)">';
       if(annual.showWeekdayHeader)mm.headers.forEach((name,index)=>{const weekday=element.weekStart==='monday'?(index+1)%7:index;html+='<span class="mh" style="font-size:'+dateSize+'px;color:'+(weekday===0?sunday:weekday===6?saturday:hex(style.weekdayColor,dateColor))+'">'+escapeText(name)+'</span>';});
       mm.cells.forEach(cell=>html+='<span class="annual-day" style="display:flex;align-items:center;justify-content:center;min-width:0;border:'+border+';border-bottom:'+underline+'">'+day(cell,mm)+(cell.extra?' · '+day(cell.extra,mm):'')+'</span>');
       return html+'</div></section>';
     };
     const grouped=annual.groupSize,columns=grouped?annual.layout==='vertical-three-month-groups'?Math.ceil(annual.months.length/grouped):1:annual.columns;
-    let inner='<div class="year-calendar-object annual-layout-'+annual.layout+'" style="height:100%;display:grid;min-height:0;gap:8px;font-family:'+font+';grid-template-columns:repeat('+columns+',minmax(0,1fr));grid-template-rows:repeat('+(grouped?annual.layout==='vertical-three-month-groups'?1:Math.ceil(annual.months.length/grouped):Math.ceil(annual.months.length/columns))+',minmax(0,1fr))">';
+    let inner='<div class="year-calendar-object annual-layout-'+annual.layout+'" style="height:100%;display:grid;min-height:0;'+(open?'padding:0;border:0;border-radius:0;background:transparent;':'')+'gap:8px;font-family:'+font+';grid-template-columns:repeat('+columns+',minmax(0,1fr));grid-template-rows:repeat('+(grouped?annual.layout==='vertical-three-month-groups'?1:Math.ceil(annual.months.length/grouped):Math.ceil(annual.months.length/columns))+',minmax(0,1fr))">';
     if(grouped)for(let index=0;index<annual.months.length;index+=grouped)inner+='<div class="year-calendar-group" style="display:grid;min-height:0;gap:6px;'+(annual.layout==='vertical-three-month-groups'?'grid-template-rows':'grid-template-columns')+':repeat('+grouped+',minmax(0,1fr))">'+annual.months.slice(index,index+grouped).map(renderMonth).join('')+'</div>';
     else inner+=annual.months.map(renderMonth).join('');
     return inner+'</div>';
   }
   root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup});
 })(globalThis);
+

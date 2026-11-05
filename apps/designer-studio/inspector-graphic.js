@@ -43,7 +43,7 @@
           ...(item.style || {}),
           stroke: values.stroke || item.style?.stroke,
           strokeWidth: Number(values.strokeWidth ?? item.style?.strokeWidth),
-          background: values.background || item.style?.background || '#eef2f7',
+          background: values.background ?? item.style?.background ?? '#eef2f7',
           shadow: values.shadow === true || values.shadow === 'true',
           shadowColor: values.shadowColor || item.style?.shadowColor || '#000000',
           shadowBlur: Number(values.shadowBlur ?? item.style?.shadowBlur ?? 0)
@@ -81,3 +81,4 @@
 
   root.ACDLInspectorGraphic = Object.freeze({ apply });
 })(typeof window !== 'undefined' ? window : globalThis);
+

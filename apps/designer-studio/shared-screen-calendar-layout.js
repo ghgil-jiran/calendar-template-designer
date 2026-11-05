@@ -39,6 +39,8 @@
     preserveGeometry(source,catalog,region,pageHeightMm);
     const layout=source.calendarLayout;
     if(layout.monthTitle?.schemaVersion==="monthly-title-object.v1")return layout.monthTitle;
+    // Already authored detached geometry must survive import, even before its version tag is set.
+    if(layout.monthTitle?.frame&&Number(layout.monthTitle.frame.height)>0){layout.monthTitle={...layout.monthTitle,schemaVersion:"monthly-title-object.v1",id:layout.monthTitle.id||"master.monthly.title"};return layout.monthTitle;}
     const share=layout.fixedGeometry.titlePercent,titleHeight=region.height*share/100;
     layout.monthTitle={schemaVersion:"monthly-title-object.v1",id:"master.monthly.title",frame:{x:region.x,y:region.y,width:region.width,height:titleHeight}};
     region.y+=titleHeight;region.height-=titleHeight;layout.fixedGeometry.titlePercent=0;
@@ -60,3 +62,4 @@
   }
   root.ACDLSharedCalendarLayout = Object.freeze({version,resolveVerticalLayout,resolveChromeLayout,preserveGeometry,separateMonthTitle,relativeTitleFrame});
 })(globalThis);
+
