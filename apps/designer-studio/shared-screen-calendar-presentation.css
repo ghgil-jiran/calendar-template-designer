@@ -160,7 +160,9 @@
 .calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-date-grid{border-left-width:var(--calendar-outer-line-width)!important;border-right-width:var(--calendar-outer-line-width)!important}
 
 .calendar-grid-appearance.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-child(n+8):nth-child(-n+14){border-top-width:var(--calendar-outer-line-width)!important}
-.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-last-child(-n+7):not(.head),.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-day-cell:nth-last-child(-n+7){border-bottom-width:var(--calendar-outer-line-width)!important}
+/* Close the final week even when the surrounding box is hidden. A visible
+   outer border can still be thicker than the internal grid lines. */
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-last-child(-n+7):not(.head),.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-day-cell:nth-last-child(-n+7){border-bottom-width:max(var(--calendar-outer-line-width,0px),var(--calendar-line-width,1px))!important}
 .calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-date-grid{border-top-width:var(--calendar-outer-line-width)!important}
 .calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-day-cell:nth-child(7n){border-right-width:var(--calendar-outer-line-width)!important}
 
