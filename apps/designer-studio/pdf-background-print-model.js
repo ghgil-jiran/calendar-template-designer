@@ -36,5 +36,6 @@
    return plans.every(plan=>{const page=proof.pages.find(p=>p.pageId===plan.pageId);return page&&page.required===plan.layers.length&&page.embedded===plan.layers.length&&page.layers.length===plan.layers.length&&plan.layers.every((layer,i)=>{const actual=page.layers[i];return actual.elementId===layer.elementId&&actual.documentId===layer.source.documentId&&actual.sha256===layer.source.sha256&&actual.pageNumber===layer.source.pageNumber&&actual.fit===layer.fit&&actual.vectorEmbedding===true&&['x','y','width','height'].every(k=>Math.abs(actual.frameMm[k]-layer.frameMm[k])<.01)});});
   }catch{return false;}
  }
- root.ACDLPdfBackgroundPrint=Object.freeze({version,pagePlan,projectPlans,verifyEvidence});
+ function assertWorkerContract(plan,contract){if(plan?.schemaVersion!==version||plan.layers.length&&contract!==version)fail('pdf_background_worker_upgrade_required');return true}
+ root.ACDLPdfBackgroundPrint=Object.freeze({version,pagePlan,projectPlans,verifyEvidence,assertWorkerContract});
 })(globalThis);

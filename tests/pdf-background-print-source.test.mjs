@@ -38,3 +38,6 @@ test('preflight recognizes current monthly aliases/styles and validates intended
  assert.ok(!report.issues.some(i=>['PAGE_ROLE_UNSUPPORTED','STYLE_NOT_CATALOGED','RUNTIME_OBJECT_OUT_OF_BOUNDS'].includes(i.code)));
  f.bg.x=-5;const outside=globalThis.ACDLTemplatePrintPreflight.analyze(f.project,{runtimeDocument:runtime});assert.ok(outside.issues.some(i=>i.code==='RUNTIME_OBJECT_OUT_OF_BOUNDS'));
 });
+test('older workers cannot accidentally print foreground without its original background',()=>{
+ const plan=model.projectPlans(fixture().project)[0];assert.throws(()=>model.assertWorkerContract(plan,null),/worker_upgrade_required/);assert.equal(model.assertWorkerContract(plan,model.version),true);assert.equal(model.assertWorkerContract({...plan,layers:[]},null),true);
+});

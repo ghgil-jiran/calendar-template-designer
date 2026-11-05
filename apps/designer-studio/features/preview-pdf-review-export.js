@@ -60,6 +60,7 @@
    if(document.fonts?.ready)await document.fonts.ready;if(!project.productionCorrection)await optimizeReviewBackgrounds(root);await waitForImages(root);const failedImages=[...root.querySelectorAll('img')].filter(image=>!image.naturalWidth);if(failedImages.length)throw new Error(`editor_print_image_load_failed:${failedImages.length}`);await nextFrame();document.body.classList.add('review-pdf-printing');await nextFrame();
    const localPlan=window.ACDLPdfBackgroundPrint.pagePlan(project,pageInfo);
    if(JSON.stringify(localPlan)!==JSON.stringify({...pdfPlan,layers:pdfPlan.layers.map(layer=>({...layer,source:Object.fromEntries(Object.entries(layer.source).filter(([key])=>key!=='chunks'))}))}))throw new Error('pdf_background_plan_identity_mismatch');
+   window.ACDLPdfBackgroundPrint.assertWorkerContract(pdfPlan,query.get('pdfBackgroundEmbedding'));
    if(pdfPlan.layers.length){
     document.documentElement.style.setProperty('background','transparent','important');document.body.style.setProperty('background','transparent','important');
     root.style.setProperty('background','transparent','important');sheet.style.setProperty('background','transparent','important');clone.style.setProperty('background','transparent','important');
