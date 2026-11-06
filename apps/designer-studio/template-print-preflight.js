@@ -14,7 +14,7 @@
   memo:new Set(['dateScale','titleScale','stripeColor'])
  };
  const CALENDAR_TYPES=new Set(['calendar','calendar-grid']);
- const CALENDAR_STYLE_KEYS=new Set(['design','presetId','gridStyle','eventStyle','sampleFamily','weekdayStyle','calendarLayout','calendarPreset','gridBackground','monthTitleSize','monthTitleAlign','monthTitleStyle','rangeEventStyle','calendarOverrides','showAdjacentMonths','monthTitleFontFamily','eventMaxVisiblePerDay','authoredRegionFramePct','authoredRegionHeightPct']);
+ const CALENDAR_STYLE_KEYS=new Set(['design','presetId','gridStyle','eventStyle','sampleFamily','weekdayStyle','calendarLayout','calendarPreset','gridBackground','monthTitleSize','monthTitleAlign','monthTitleStyle','rangeEventStyle','calendarOverrides','showAdjacentMonths','calendarFontFamily','monthTitleFontFamily','eventMaxVisiblePerDay','authoredRegionFramePct','authoredRegionHeightPct']);
  const issue=(severity,code,message,path='')=>({severity,code,message,path});
  const objectOf=value=>value&&typeof value==='object'&&!Array.isArray(value)?value:{};
  const listOf=value=>Array.isArray(value)?value:[];

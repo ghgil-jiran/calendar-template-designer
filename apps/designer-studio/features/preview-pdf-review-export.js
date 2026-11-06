@@ -51,7 +51,7 @@
    if(!pdfPlan||pdfPlan.schemaVersion!=='pdf-background-embedding.v1'||pdfPlan.pageId!==pageInfo.id)throw new Error('pdf_background_plan_required');
    const root=document.createElement('main');root.className='review-pdf-root editor-worker-print-root';root.dataset.rendererId=source.rendererId;const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.style.width=`${size.sheetWidth}mm`;sheet.style.height=`${size.sheetHeight}mm`;sheet.style.position='relative';sheet.appendChild(clone);root.appendChild(sheet);document.body.appendChild(root);if(!project.productionCorrection)normalizePrintCompositing(root);
    const style=document.createElement('style');style.textContent=`@page{size:${size.sheetWidth}mm ${size.sheetHeight}mm;margin:0}`+`body.review-pdf-printing .editor-worker-print-root .review-pdf-sheet>.page{position:absolute!important;inset:auto!important;left:${size.left}mm!important;top:${size.top}mm!important;width:${size.width}mm!important;height:${size.height}mm!important}`+'.editor-worker-print-root{display:block!important}.editor-worker-print-root .review-pdf-sheet{margin:0!important;break-after:auto!important}.editor-worker-print-root .year-month-grid .adj{opacity:1!important;color:#c7cbd2!important}';document.head.appendChild(style);
-   if(document.fonts?.ready)await document.fonts.ready;if(!project.productionCorrection)await optimizeReviewBackgrounds(root);await waitForImages(root);const failedImages=[...root.querySelectorAll('img')].filter(image=>!image.naturalWidth);if(failedImages.length)throw new Error(`editor_print_image_load_failed:${failedImages.length}`);await nextFrame();document.body.classList.add('review-pdf-printing');await nextFrame();
+   if(document.fonts?.ready)await document.fonts.ready;if(!project.productionCorrection)await optimizeReviewBackgrounds(root);await waitForImages(root);const failedImages=[...root.querySelectorAll('img')].filter(image=>!image.naturalWidth);if(failedImages.length)throw new Error(`editor_print_image_load_failed:${failedImages.length}`);await nextFrame();document.body.classList.add('review-pdf-printing');await nextFrame();window.ACDLSharedCalendarAnnotations?.fit(root);await nextFrame();
    const localPlan=window.ACDLPdfBackgroundPrint.pagePlan(project,pageInfo);
    if(JSON.stringify(localPlan)!==JSON.stringify({...pdfPlan,layers:pdfPlan.layers.map(layer=>({...layer,source:Object.fromEntries(Object.entries(layer.source).filter(([key])=>key!=='chunks'))}))}))throw new Error('pdf_background_plan_identity_mismatch');
    window.ACDLPdfBackgroundPrint.assertWorkerContract(pdfPlan,query.get('pdfBackgroundEmbedding'));
@@ -106,7 +106,7 @@
   const cleanup=()=>{document.body.classList.remove('review-pdf-printing');root.remove();pageStyle.remove();document.title=originalTitle;if(button)button.disabled=false};
   try{
    if(document.fonts?.ready)await document.fonts.ready;await optimizeReviewBackgrounds(root);await waitForImages(root);await nextFrame();
-   document.body.classList.add('review-pdf-printing');await nextFrame();
+   document.body.classList.add('review-pdf-printing');await nextFrame();window.ACDLSharedCalendarAnnotations?.fit(root);await nextFrame();
    showEditorToast('인쇄 화면에서 대상을 “PDF로 저장”으로 선택하세요. 이 파일은 검토용이며 인쇄 원고가 아닙니다.');
    window.print();
   }finally{setTimeout(cleanup,0)}

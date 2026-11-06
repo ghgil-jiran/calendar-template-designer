@@ -852,6 +852,12 @@ function renderPage(){
    const renderDay=(day,extra=false)=>{
     const hideAdjacent=day.month!==p.calendarMonth&&project.template.masters.calendar.showAdjacentMonths===false;
     const refs=calendarReferenceForDate(day.date),holiday=refs.holidays.find(item=>item.isHoliday!==false);
+    const annotations=window.ACDLSharedCalendarAnnotations,annotationStyle=project.template.masters.calendar.calendarLayout?.annotations;
+    if(annotations?.normalize(annotationStyle)){
+     if(hideAdjacent)return `<div class="day-block" data-date="${day.date}"></div>`;
+     const appearance=project.template.masters.calendar.calendarLayout?.gridAppearance||{};
+     return `<div class="day-block ${holiday?"public-holiday":""}" data-date="${day.date}" style="font-family:${escapeAttr(project.template.resources?.fontTheme?.calendar||project.template.resources?.fontTheme?.body||'Arial')}">${annotations.render({day:day.day,weekday:day.dow,isHoliday:Boolean(holiday),refs,style:annotationStyle,colors:{color:appearance.dateColor,saturdayColor:appearance.saturdayColor,holidayColor:appearance.holidayColor||appearance.sundayColor}})}</div>`;
+    }
     const auxiliary=[...refs.lunars,...refs.solarTerms].map(item=>item.name).filter(Boolean).join(" / ");
     const special=[...refs.holidays,...refs.anniversaries].map(item=>item.name).filter(Boolean).join(" · ");
     let part=`<div class="day-block ${extra?"compact-extra":""} ${holiday?"public-holiday":""}" data-date="${day.date}"><div class="day-head-row"><div class="day">${hideAdjacent?"":day.day}</div>`;
@@ -895,6 +901,7 @@ function renderPage(){
   }
  }
  renderFreeElements(page);
+ requestAnimationFrame(()=>window.ACDLSharedCalendarAnnotations?.fit(page));
  const selectMonthlyCalendar=e=>{e?.stopPropagation();return selectMonthlyPart("grid")};
  const titleRegionNode=el("monthlyTitleRegion");titleRegionNode?.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();titleRegionNode.click()}});titleRegionNode?.addEventListener("click",e=>{e.stopPropagation();selectMonthlyPart("title")});
  const calendarRegionNode=page.querySelector(".calendar-region");
@@ -905,6 +912,7 @@ function dateEvents(){return selectedDate?project.book.events.filter(ev=>selecte
 
 let pendingCanvasGeometrySaveId=null;
 const INSPECTOR_SAVE_MESSAGES={
+ applyCalendarAnnotations:"12개월 부가정보 스타일을 저장했습니다.",
  applySemanticSample:"샘플 콘텐츠를 저장했습니다.",
  applySemanticBinding:"데이터 연결 설정을 저장했습니다.",
  applyEventListWidget:"학사일정 콘텐츠를 저장했습니다.",
@@ -1050,6 +1058,8 @@ function renderInspector(){
   design=design.replace("12개월 공통 월력 디자인",monthTitleEditing?"12개월 공통 월 표시":"12개월 공통 월력 격자").replace("월력 기본 스타일 저장",monthTitleEditing?"월 표시 형식 저장":"격자 스타일 저장");
  }
  if(!monthTitleEditing){
+ const ann=window.ACDLSharedCalendarAnnotations.normalize(project.template.masters.calendar.calendarLayout?.annotations),cfg=ann||{fontSize:6,colorMode:'inherit',color:'#344054',saturdayColor:'#2463a6',holidayColor:'#d92d20'};
+ design+=`<div class="section"><span class="layer-chip">달력 부가정보</span><div class="hint">표시할 항목은 템플릿 설정을 따릅니다. 12개월 월력 앞면 공통 설정입니다.</div><label>표시 스타일<select id="annotationLayout"><option value="" ${!ann?'selected':''}>기존 템플릿 표시 유지</option>${window.ACDLSharedCalendarAnnotations.labels.map(([v,l])=>`<option value="${v}" ${ann?.layout===v?'selected':''}>${l}</option>`).join('')}</select></label><label>글자 크기 (pt)<input id="annotationFontSize" type="number" min="4" max="18" step=".5" value="${cfg.fontSize}"></label><label>색상<select id="annotationColorMode"><option value="inherit" ${cfg.colorMode!=='custom'?'selected':''}>월력 기본·토요일·휴일 색상 따름</option><option value="custom" ${cfg.colorMode==='custom'?'selected':''}>부가정보 색상 직접 지정</option></select></label><details><summary>직접 지정 색상</summary><label>기본색<input id="annotationColor" type="color" value="${cfg.color}"></label><label>토요일<input id="annotationSaturdayColor" type="color" value="${cfg.saturdayColor}"></label><label>휴일<input id="annotationHolidayColor" type="color" value="${cfg.holidayColor}"></label></details><div class="hint">월력 글꼴 사용 · 오른쪽 여백 1.2mm · 중복 제거 · 긴 이름 줄바꿈 · 공간 부족 시 80%까지 자동 축소</div><button id="applyCalendarAnnotations" class="action">부가정보 스타일 저장</button></div>`;
  const rs=project.template.masters.calendar.rangeEventStyle;
  design+=`<div class="section"><span class="layer-chip">일정 표시</span><div class="range-event-legend">시작일과 종료일이 다른 일정은 주 단위 막대로 자동 분할합니다. 겹치는 일정은 Lane에 자동 배치하고 다음 주나 다른 달로 이어지는 구간도 표시합니다.</div><div class="range-style-preview"><div class="demo-bar">교육과정 집중 운영기간</div></div><label class="inline-check"><input id="rangeEnabled" type="checkbox" ${rs.enabled?"checked":""}><span>학사일정을 막대 형태로 표시</span></label><div class="range-style-grid"><label>일정명 표시<select id="rangeLabelMode"><option value="first" ${rs.labelMode==="first"?"selected":""}>첫 구간만</option><option value="every" ${rs.labelMode==="every"?"selected":""}>매주 반복</option><option value="continued" ${rs.labelMode==="continued"?"selected":""}>후속 구간에 계속 표시</option><option value="none" ${rs.labelMode==="none"?"selected":""}>표시 안 함</option></select></label><label>일정명 위치<select id="rangeLabelPosition"><option value="inside" ${rs.labelPosition==="inside"?"selected":""}>막대 안</option><option value="above" ${rs.labelPosition==="above"?"selected":""}>막대 위</option></select></label><label>막대 높이(px)<input id="rangeBarHeight" type="number" min="6" max="24" value="${rs.barHeight}"></label><label>Lane 간격(px)<input id="rangeLaneGap" type="number" min="0" max="10" value="${rs.laneGap}"></label><label>최대 Lane<input id="rangeMaxLanes" type="number" value="4" readonly><small>사용자 서비스 표준 · 단일/기간 일정 공통</small></label><label>초과 일정<select id="rangeOverflowStyle"><option value="count" ${rs.overflowStyle==="count"?"selected":""}>+N개 표시</option><option value="hide" ${rs.overflowStyle==="hide"?"selected":""}>숨김</option></select></label></div><button id="applyRangeEventStyle" class="action">일정 표시 설정 저장</button></div>`;
  if(p.role.includes('cover-front'))design+=`<div class="section"><label>표지 제목 크기<input id="coverTitleSize" type="number" min="20" max="50" value="${project.template.masters.cover.titleSize}"></label><button id="applyCoverMaster" class="action">표지 Master 설정 저장</button></div>`;
@@ -1161,6 +1171,7 @@ function bindInspector(){
   
  }));
  bind("replaceSemanticImage",()=>{pendingSemanticRole=sourceElement()?.role;el("semanticImageInput").click()});
+ bind("applyCalendarAnnotations",()=>change(()=>{const master=project.template.masters.calendar;master.calendarLayout||={};const layout=el('annotationLayout').value;if(!layout){delete master.calendarLayout.annotations;return;}master.calendarLayout.annotations=window.ACDLSharedCalendarAnnotations.normalize({layout,fontSize:el('annotationFontSize').value,colorMode:el('annotationColorMode').value,color:el('annotationColor').value,saturdayColor:el('annotationSaturdayColor').value,holidayColor:el('annotationHolidayColor').value});}));
  bind("applyCalendarRegion",()=>change(()=>{const r=calendarEditRegion();r.x=Number(el("calX").value);r.y=Number(el("calY").value);r.width=Number(el("calW").value);r.height=Number(el("calH").value);r.width=Math.max(monthTitleEditing?5:25,Math.min(100,r.width));r.height=Math.max(monthTitleEditing?2:25,Math.min(100,r.height));r.x=Math.max(0,Math.min(r.x,100-r.width));r.y=Math.max(0,Math.min(r.y,100-r.height))}));
  bind("resetCalendarRegion",()=>change(()=>project.template.masters.calendar.calendarRegion={x:5,y:16,width:90,height:79}));
  bind("calendarPresetFull",()=>applyCalendarRegionPreset("full"));
