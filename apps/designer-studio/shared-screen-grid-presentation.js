@@ -33,7 +33,8 @@
     return result;
   }
   function appearanceVariables(input,weekStart='sunday'){
-    if(!input||input.schemaVersion!=='calendar-grid-appearance.v1')return {};
+    if(!input||typeof input!=='object'||input.schemaVersion&&input.schemaVersion!=='calendar-grid-appearance.v1')return {};
+    if(!Object.keys(input).some(key=>['schemaVersion','weekday','date','mini','weekdaySize','dateSize','lineWidth','weekdayRadius','datePadding','weekdayColor','dateColor','lineColor','weekdayFont','dateFont','sundayBackground','saturdayBackground','weekdayRuleColor','weekdayRuleWidth','frameMode'].includes(key)))return {};
     const s=normalizeAppearance(input),paint=v=>v.mode==='transparent'?'transparent':`rgba(${parseInt(v.color.slice(1,3),16)},${parseInt(v.color.slice(3,5),16)},${parseInt(v.color.slice(5,7),16)},${v.opacity/100})`,date=paint(s.date);
     const vars={'--calendar-weekday-background':paint(s.weekday),'--calendar-date-background':date,'--calendar-mini-background':s.mini.mode==='inherit'?date:paint(s.mini)};
     for(const key of ['weekdaySize','dateSize','lineWidth'])if(s[key]!=null)vars['--calendar-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())]=s[key]+'px';
