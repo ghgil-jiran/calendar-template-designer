@@ -42,8 +42,44 @@
   for(const items of [...Object.values(project.template.masterElements||{}),...Object.values(project.book.elementsByPage||{})])for(const item of items||[])normalizeElement(item);
   return project;
  }
- function effectiveAdditions(project,page){return Object.fromEntries(ADDITIONS.map(key=>[key,typeof page?.userEditing?.additions?.[key]==='boolean'?page.userEditing.additions[key]:project?.template?.userEditing?.additions?.[key]===true]))}
- root.ACDLUserEditingPolicy=Object.freeze({schemaVersion:POLICY_SCHEMA,actions:Object.freeze(ACTIONS),isImage,managedImage,normalizeElement,normalizeProject:normalizeUserEditing,effectiveAdditions});
+ // Presets are evaluated on export, leaving authored individual rights intact.
+ const PRESETS=['individual','basic','minimal'];
+ function preset(project){const value=project?.template?.userEditing?.preset;return PRESETS.includes(value)?value:'individual'}
+ function bindings(item){return [item?.binding,item?.image?.binding,item?.bindingPattern,item?.targetBindingPattern,item?.sourceBinding].filter(value=>typeof value==='string')}
+ const SCHOOL_BINDING=/^school\.(?:name|englishName|slogan|address|contacts|phone|fax|website|profile\.(?:logo|building|motto|song|tree|flower))(?:\.|$)/;
+ function userPhoto(item){return isImage(item)&&!managedImage(item)&&((item.mediaPurpose||item.image?.mediaPurpose)==='user-replaceable-photo'||(item.replacementPolicy||item.image?.replacementPolicy)==='replace-source-preserve-frame'||bindings(item).some(value=>/^(?:monthlyImages\.|calendar\.monthlyImages\.)/.test(value)||['assets.coverPhoto','assets.endPhoto','school.profile.building'].includes(value)))}
+ function userLinked(item){
+  if(!item||['calendar','calendar-grid','year-calendar','mini-calendar','month-date-strip','monthly-schedule','planner-daily','monthly-quote'].includes(item.type))return false;
+  if(bindings(item).some(value=>/^(?:calendar\.(?!monthlyImages\.)|monthlyQuotes\.)/.test(value))||item.metadata?.coverYearPart)return false;
+  if(item.role==='graphic-package-background'||item.graphicSource?.pdfSource)return false;
+  return bindings(item).some(value=>SCHOOL_BINDING.test(value))||userPhoto(item)||['school-name','school-english-name','school-slogan','school-address','school-contact','school-contacts','school-website','school-logo','school-building','school-motto','school-song','school-tree','school-flower'].includes(item.role);
+ }
+ function pageElements(project,page){const key=Object.hasOwn(project?.book?.elementsByPage||{},page?.id)?page.id:page?.sourcePageId;return [...(project?.template?.masterElements?.[page?.masterId]||[]),...(project?.book?.elementsByPage?.[key]||[])]}
+ function pageContext(project,page){
+  const role=page?.surfaceRole||page?.role||'',spec=project?.template?.settings?.aiDesignSpec||{},settings=spec.pageSettings||{};
+  const key=role==='cover-front'?'cover':role==='cover-back'?'cover-inside':role;
+  const composition=settings.roleCompositions?.[key]||{},divider=spec.dividerPages?.[page?.sourcePageId||page?.id]||{};
+  const purpose=page?.contentPurpose||page?.semanticPageRole||divider.purpose||composition.typeId||'';
+  return {role,purpose,mode:settings.monthBackMediaMode||settings.monthBackComposition?.mediaMode||'',elements:pageElements(project,page)};
+ }
+ function eligiblePage(project,page){
+  const mode=preset(project);if(mode==='individual')return false;
+  const context=pageContext(project,page),{role,purpose,elements}=context;
+  if(['cover-front','back-cover-front','back-cover-back'].includes(role))return true;
+  if(role==='monthly-back')return !['template-design','school-asset'].includes(context.mode)&&elements.some(userPhoto);
+  return mode==='basic'&&(role==='cover-back'||/^(front|rear)-insert-(front|back)$/.test(role))&&purpose==='school-symbols';
+ }
+ function effectivePermissions(project,page,item){
+  if(preset(project)==='individual')return {...item?.permissions};
+  const rights=Object.fromEntries(ACTIONS.map(key=>[key,false]));
+  if(!eligiblePage(project,page)||!userLinked(item))return rights;
+  if(pageContext(project,page).role!=='monthly-back'){rights.move=true;rights.resize=true;}
+  // Crop/fit is inside the fixed photo frame; no frame geometry is changed.
+  if(userPhoto(item)){rights.replaceImage=true;rights.imageFit=true;}
+  return rights;
+ }
+ function effectiveAdditions(project,page){if(preset(project)!=='individual'){const allowed=eligiblePage(project,page);return {image:allowed,text:allowed}}return Object.fromEntries(ADDITIONS.map(key=>[key,typeof page?.userEditing?.additions?.[key]==='boolean'?page.userEditing.additions[key]:project?.template?.userEditing?.additions?.[key]===true]))}
+ root.ACDLUserEditingPolicy=Object.freeze({schemaVersion:POLICY_SCHEMA,actions:Object.freeze(ACTIONS),isImage,managedImage,normalizeElement,normalizeProject:normalizeUserEditing,preset,userLinked,userPhoto,eligiblePage,effectivePermissions,effectiveAdditions});
  function normalizedCopy(project){const copy=JSON.parse(JSON.stringify(project));root.ACDLPageObjectModel?.normalizeProject(copy);return normalizeUserEditing(copy)}
  function serialize(project){return JSON.stringify(normalizedCopy(project))}
  function deserialize(text){const project=JSON.parse(text);root.ACDLPageObjectModel?.normalizeProject(project);return normalizeUserEditing(project)}
