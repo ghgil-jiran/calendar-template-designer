@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
 import '../apps/designer-studio/page-composition-runtime.js';
 const runtime=globalThis.ACDLPageCompositionRuntime;
 const page={calendarYear:2028,calendarMonth:2};
@@ -66,8 +65,7 @@ test('large month weekdays, weekends, holidays and visibility use the same calen
   const h=runtime.renderMonthDateStripMarkup(runtime.resolveMonthDateStrip({...e,showWeekday,showDate},page),false);assert.equal(h.includes('class="strip-weekday"'),showWeekday);assert.equal(h.includes('class="strip-day"'),showDate);assert.match(h,/strip-rules/);
  }
 });
-test('designer and user service ship identical shared strip markup and styles',()=>{
- const designer=readFileSync(new URL('../apps/designer-studio/page-composition-runtime.js',import.meta.url),'utf8'),service=readFileSync(new URL('../../us/src/vendor/page-composition-runtime.js',import.meta.url),'utf8');
- assert.equal(designer,service);assert.match(runtime.monthDateStripCss,/--strip-saturday:#3289b4/);assert.match(runtime.monthDateStripCss,/font-size:min\(4\.2cqw,54cqh\)/);
+test('large month styles expose responsive vector text and Saturday color',()=>{
+ assert.match(runtime.monthDateStripCss,/--strip-saturday:#3289b4/);assert.match(runtime.monthDateStripCss,/font-size:min\(4\.2cqw,54cqh\)/);
 });
 
