@@ -170,7 +170,7 @@ test('a legacy done artifact cannot pass while core checks are missing',()=>{
  const artifact={status:'done',verified:true,checks:{pdfx4:true,outputIntent:true,cmyk:true,trimBox:true,bleedBox:true,fontOutlined:true}};
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
  assert.equal(output.artifactVerified,false);
- assert.deepEqual([...output.missingArtifactChecks],['k100','vectorContentPreserved']);
+ assert.deepEqual([...output.missingArtifactChecks],['printMarks','k100','vectorContentPreserved']);
  assert.deepEqual([...output.followUpArtifactChecks],['trimContentParity']);
  assert.equal(output.aiImageInspection.status,'pending');
  assert.deepEqual([...output.runtimeArtifactChecks],['imageDpi','finalPrintImageApproval']);
@@ -180,7 +180,7 @@ test('a legacy done artifact cannot pass while core checks are missing',()=>{
 
 test('a completed artifact with a failed core structural check is blocked',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
- const passed={status:'passed'},artifact={status:'done',verified:false,filePath:'private/path.pdf',downloadUrl:'https://signed.example/pdf',checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:{status:'failed',message:'페이지 전체가 래스터화되었습니다.'},vectorContentPreserved:{status:'failed'},trimContentParity:{status:'failed'}}};
+ const passed={status:'passed'},artifact={status:'done',verified:false,filePath:'private/path.pdf',downloadUrl:'https://signed.example/pdf',checks:{printMarks:passed,pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:{status:'failed',message:'페이지 전체가 래스터화되었습니다.'},vectorContentPreserved:{status:'failed'},trimContentParity:{status:'failed'}}};
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
  assert.equal(output.artifactVerified,false);
  assert.deepEqual([...output.failedArtifactChecks],['fontOutlined','vectorContentPreserved']);
@@ -196,7 +196,7 @@ test('a completed artifact with a failed core structural check is blocked',()=>{
 
 test('four internal gates automatically complete the final gate without external approval storage',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
- const passed={status:'passed'},criteria=Object.fromEntries(['identity','generationStandard','frameSuitability','placementIntegrity','visualArtifacts','contentLegibility'].map(key=>[key,passed])),artifact={status:'done',verified:true,checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed,aiImagePrintQuality:{status:'passed',criteriaVersion:'ai-print-v1',criteria}}};
+ const passed={status:'passed'},criteria=Object.fromEntries(['identity','generationStandard','frameSuitability','placementIntegrity','visualArtifacts','contentLegibility'].map(key=>[key,passed])),artifact={status:'done',verified:true,checks:{printMarks:passed,pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed,aiImagePrintQuality:{status:'passed',criteriaVersion:'ai-print-v1',criteria}}};
  const runtimeDocument={runtimeVersion:'1.0.0-beta.1',pages:[{id:'cover',sourcePageId:'cover',role:'cover',surfaceRole:'cover',objects:[{id:'background',sourceObjectId:'background'}]},{id:'month-1',sourcePageId:'month-1',role:'monthly-front',surfaceRole:'monthly-front',objects:[{id:'title',sourceObjectId:'title'},{id:'calendar',sourceObjectId:'calendar'}]}],diagnostics:[]};
  const renderParity={generated:true,pages:2,screenObjects:3,rgbObjects:3,issues:[]};
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{runtimeDocument,renderParity,printOutput:output});
@@ -223,7 +223,7 @@ test('image checks are reported outside the Template Editor automated gate',()=>
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
  const passed={status:'passed'};
  const artifact={status:'done',verified:false,checks:{
-  pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,
+  printMarks:passed,pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,
   fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed,
   imageDpi:{status:'failed',message:'3개 이미지가 300DPI 미만입니다.'},
   templateImageApproval:{status:'failed',message:'교체 필요 이미지가 남아 있습니다.'},
@@ -248,7 +248,7 @@ test('image checks are reported outside the Template Editor automated gate',()=>
 
 test('AI image inspection unlocks only after core output and then unlocks final approval',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
- const passed={status:'passed'},core={pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed};
+ const passed={status:'passed'},core={printMarks:passed,pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed};
  let output=printOutput.inspect(value,{artifact:{status:'done',verified:true,checks:core}}),report=analyze(value,{printOutput:output});
  assert.equal(report.gates[2].status,'passed');
  assert.equal(report.gates[3].status,'pending');
@@ -272,7 +272,7 @@ test('AI image inspection criteria focus on source quality instead of template p
 
 test('a top-level AI pass without six criterion results cannot unlock final approval',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};
- const passed={status:'passed'},artifact={status:'done',verified:true,checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed,aiImagePrintQuality:{status:'passed',criteriaVersion:'ai-print-v1'}}};
+ const passed={status:'passed'},artifact={status:'done',verified:true,checks:{printMarks:passed,pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed,aiImagePrintQuality:{status:'passed',criteriaVersion:'ai-print-v1'}}};
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
  assert.equal(output.aiImageInspection.criteriaComplete,false);
  assert.equal(output.aiImageInspection.status,'pending');
@@ -305,7 +305,7 @@ test('a saved dedicated print inspection feeds the six AI image cards',()=>{
 
 test('templates without AI generated images block the required AI gate',()=>{
  const value=project();value.productType.pageSize={width:260,height:180,unit:'mm'};value.template.resources={exportSettings:{format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'}};value.book.elementsByPage.cover=[{id:'editor-background',type:'image',role:'background',src:'package-asset://cover'}];
- const passed={status:'passed'},artifact={status:'done',verified:true,checks:{pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed}};
+ const passed={status:'passed'},artifact={status:'done',verified:true,checks:{printMarks:passed,pdfx4:passed,outputIntent:passed,cmyk:passed,k100:passed,trimBox:passed,bleedBox:passed,fontOutlined:passed,vectorContentPreserved:passed,trimContentParity:passed}};
  const output=printOutput.inspect(value,{artifact}),report=analyze(value,{printOutput:output});
  assert.equal(output.aiImageInspection.required,true);
  assert.equal(output.aiImageInspection.status,'blocked');
@@ -341,3 +341,4 @@ test('intentional empty month-back placeholder is preserved without a missing-im
  delete blank.required;blank.image.binding='school.photo';
  assert.equal(analyze(value).issues.some(issue=>issue.code==='REQUIRED_IMAGE_MISSING'),true);
 });
+

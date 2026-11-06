@@ -56,7 +56,7 @@ test('no images is not applicable; core PDF prerequisites still lock final appro
 });
 test('common image approval unlocks final completion, and an image edit locks it again',async()=>{
  const p=fixture();p.template.id='fixture.desk';p.template.print={bleed:3};p.template.resources.exportSettings={format:'pdf',dpi:300,bleed:3,cropMarks:true,colorMode:'cmyk'};
- await api.probe(p,load);const review=saved(p),pass={status:'passed'},artifact={status:'done',checks:Object.fromEntries(['pdfx4','outputIntent','cmyk','k100','trimBox','bleedBox','fontOutlined','vectorContentPreserved','trimContentParity'].map(k=>[k,pass]))};artifact.checks.templateImagePrintQuality=review;
+ await api.probe(p,load);const review=saved(p),pass={status:'passed'},artifact={status:'done',checks:Object.fromEntries(['printMarks','pdfx4','outputIntent','cmyk','k100','trimBox','bleedBox','fontOutlined','vectorContentPreserved','trimContentParity'].map(k=>[k,pass]))};artifact.checks.templateImagePrintQuality=review;
  const runtimeDocument={pages:[{id:'cover',sourcePageId:'cover',role:'cover',objects:[{id:'photo',sourceObjectId:'photo'}]}],diagnostics:[]},renderParity={generated:true,pages:1,screenObjects:1,rgbObjects:1,issues:[]};
  const report=()=>globalThis.ACDLTemplatePrintPreflight.analyze(p,{runtimeDocument,renderParity,printOutput:globalThis.ACDLPrintOutputPreflight.inspect(p,{artifact})});
  assert.equal(report().gates[3].status,'passed');assert.equal(report().finalApproved,true);
@@ -67,4 +67,5 @@ test('reloaded object URLs retain approval identity for the same remote asset',(
  const prior=globalThis.ACDLTemplateRemotePersistence;
  try{globalThis.ACDLTemplateRemotePersistence={canonicalAssetSource:src=>src.startsWith('blob:')?'acdl-asset://immutable':src};const p=fixture();p.book.elementsByPage.cover[0].src='blob:first';const signature=api.inventory(p).signature;p.book.elementsByPage.cover[0].src='blob:reloaded';assert.equal(api.inventory(p).signature,signature)}finally{globalThis.ACDLTemplateRemotePersistence=prior}
 });
+
 

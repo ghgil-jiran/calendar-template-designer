@@ -61,6 +61,7 @@
    const localPlan=window.ACDLPdfBackgroundPrint.pagePlan(project,pageInfo);
    if(JSON.stringify(localPlan)!==JSON.stringify({...pdfPlan,layers:pdfPlan.layers.map(layer=>({...layer,source:Object.fromEntries(Object.entries(layer.source).filter(([key])=>key!=='chunks'))}))}))throw new Error('pdf_background_plan_identity_mismatch');
    window.ACDLPdfBackgroundPrint.assertWorkerContract(pdfPlan,query.get('pdfBackgroundEmbedding'));
+   if(pdfPlan.layers.length&&query.get('pdfBackgroundStage')!=='post-color-preserve-v1')throw new Error('pdf_background_worker_upgrade_required: 원본 배경 보존 Worker로 업데이트하고 새 검사를 요청해주세요.');
    if(pdfPlan.layers.length){
     document.documentElement.style.setProperty('background','transparent','important');document.body.style.setProperty('background','transparent','important');
     root.style.setProperty('background','transparent','important');sheet.style.setProperty('background','transparent','important');clone.style.setProperty('background','transparent','important');
