@@ -35,3 +35,9 @@ test('annotation styles retain wrapping and inherited font without ellipsis',()=
  const module=fs.readFileSync(new URL('../apps/designer-studio/shared-screen-calendar-annotations.js',import.meta.url),'utf8');
  assert.match(module,/font-family:inherit/);assert.doesNotMatch(module,/text-overflow:ellipsis|line-clamp:2/);
 });
+
+test('side labels center against a single date line and keep the date at the top of multiline labels',()=>{
+ assert.match(shared.css,/ann-heading\{[^}]*align-items:center/);
+ assert.match(shared.css,/ann-date\{[^}]*align-self:flex-start/);
+ assert.doesNotMatch(shared.css,/align-items:baseline/);
+});

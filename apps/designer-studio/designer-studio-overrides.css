@@ -502,3 +502,18 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .workspace>.right .calendar-style-check input[type=checkbox]{width:15px!important;height:15px!important;padding:0!important;margin:0!important;flex:0 0 15px}
 .workspace>.right .calendar-font-sample{display:block;box-sizing:border-box;max-width:100%;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:16px;line-height:1.5;padding:5px 8px;background:var(--acds-surface-subtle,#f8fafc);border:1px solid var(--acds-border,#d9e2ee);border-radius:6px;color:var(--acds-text,#334155);font-weight:400}
 .workspace>.right .calendar-style-section>.section{padding:4px 0 8px;border:0}
+
+/* Calendar inspector: distinct cards for every style category, including annotations. */
+.workspace>.right .calendar-style-panel{border:1px solid var(--acds-border,#d9e2ee);border-left:3px solid #94acc9;border-radius:9px;background:var(--acds-surface,#fff);margin:10px 0;padding:0;overflow:hidden}
+.workspace>.right .calendar-style-panel>summary{grid-template-columns:minmax(0,1fr) 22px;padding:11px 12px;background:#f1f5fa;color:var(--acds-text,#24364b);font-size:12px;column-gap:8px;row-gap:4px}
+.workspace>.right .calendar-style-panel>summary>span{grid-column:1;grid-row:1}
+.workspace>.right .calendar-style-panel>summary>small{grid-column:1;grid-row:2;font-size:10px;line-height:1.5}
+.workspace>.right .calendar-style-panel>summary:before{content:'+';grid-column:2;grid-row:1;align-self:center;display:grid;place-items:center;width:20px;height:20px;border:1px solid #ccd7e5;border-radius:5px;background:#fff;color:#526c8f;font-size:15px;font-weight:600;line-height:1}
+.workspace>.right .calendar-style-panel[open]{border-left-color:#4777bd}
+.workspace>.right .calendar-style-panel[open]>summary{background:#eaf1fb;border-bottom:1px solid var(--acds-border,#d9e2ee)}
+.workspace>.right .calendar-style-panel[open]>summary:before{content:'−'}
+.workspace>.right .calendar-style-panel>summary:hover{background:#e6eef9}
+.workspace>.right .calendar-style-panel>summary:focus-visible{outline:2px solid #2563eb;outline-offset:-3px}
+.workspace>.right .calendar-style-panel>.calendar-style-fields,.workspace>.right .calendar-style-section>.section{padding:12px;min-width:0}
+.workspace>.right .calendar-style-section>.section>.layer-chip{display:none}
+.workspace>.right .calendar-style-section>.section>button.action{margin-top:10px}

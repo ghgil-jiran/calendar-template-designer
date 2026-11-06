@@ -1284,9 +1284,14 @@ function setupCalendarGridAppearance(container){
 
 const calendarInspectorSectionState={};
 function setupCalendarInspectorSections(container){
- for(const [id,title] of [['applyMonthComposition','월 표시 구성'],['applyMonthTypography','월 표시 글자'],['applyRangeEventStyle','일정 표시'],['applyCoverMaster','표지 제목']]){
+ for(const [id,title] of [['applyMonthComposition','월 표시 구성'],['applyMonthTypography','월 표시 글자'],['applyCalendarAnnotations','달력 부가정보'],['applyRangeEventStyle','일정 표시'],['applyCoverMaster','표지 제목']]){
   const button=el(id),section=button?.closest('.section');if(!section||section.parentElement?.tagName==='DETAILS')continue;
   const panel=document.createElement('details');panel.className='calendar-style-panel calendar-style-section';panel.open=calendarInspectorSectionState[id]??(monthTitleEditing&&id==='applyMonthComposition');panel.innerHTML='<summary><span>'+title+'</span></summary>';section.parentNode.insertBefore(panel,section);panel.append(section);panel.addEventListener('toggle',()=>calendarInspectorSectionState[id]=panel.open);
+  if(id==='applyCalendarAnnotations'){
+   const brief=document.createElement('small');brief.dataset.gridSummary='';panel.querySelector('summary').appendChild(brief);
+   const update=()=>{const select=el('annotationLayout');brief.textContent=(select?.selectedOptions[0]?.textContent||'기존 템플릿 표시 유지')+' · '+(el('annotationFontSize')?.value||6)+'pt';};
+   section.addEventListener('change',update);section.addEventListener('input',update);update();
+  }
  }
 }
 
