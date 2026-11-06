@@ -37,10 +37,10 @@ test('review PDF compresses AI backgrounds and hides empty image instructions',(
  assert.match(html,/node\.closest\('\.free-element'\)/);
 });
 
-test('review PDF removes empty frame outlines and protects mini-calendar readability',()=>{
+test('review PDF removes empty outlines without overriding authored mini-calendar fills',()=>{
   const css=fs.readFileSync(new URL('../apps/designer-studio/designer-studio-core.css',import.meta.url),'utf8');
   assert.match(css,/review-pdf-printing \.frame-shell\.empty-frame \.frame-outline\{display:none!important\}/);
-  assert.match(css,/data-element-role="ai-month-back-component"\] \.widget-mini-calendar\{background:rgba\(255,255,255,\.97\)/);
+  assert.doesNotMatch(css,/review-pdf-printing[^{}]*\.widget-mini-calendar\{[^}]*background/);
   assert.match(css,/\.semantic-song \.semantic-media img\{object-fit:contain/);
 });
 
@@ -52,9 +52,7 @@ test('worker print mode reuses the review DOM renderer with an explicit identity
  assert.match(html,/clone\.style\.left=`\$\{size\.left\}mm`/);
  assert.match(html,/ACDLPreviewState\.clonePage\(live,pageInfo\)/);
  assert.match(html,/year-month-grid \.adj\{opacity:1!important;color:#c7cbd2!important\}/);
- assert.match(html,/normalizePrintBindingPattern\(root\)/);
- assert.match(html,/Array\.from\(\{length:26\}/);
- assert.match(html,/data-print-normalized-binding/);
+ assert.doesNotMatch(html,/normalizePrintBindingPattern|data-print-normalized-binding/);
 });
 
 test('worker page dimensions follow standard, wide and portrait trim with three millimetre bleed',()=>{
@@ -87,3 +85,17 @@ test('worker print CSS preserves trim container and bleed over the general revie
  }
 });
 
+
+test('native background extraction clears only page chrome before removing preview backgrounds',async()=>{
+ await import('../apps/designer-studio/pdf-background-print-model.js');
+ const make=fill=>({style:{values:{background:fill,color:'#123456'},setProperty(key,value,priority){this.values[key]=value;this.values[key+'Priority']=priority;}}});
+ const page=make('#eef5f2'),content=make('#eef5f2'),photo=make('#fff'),calendar=make('#f7f7f3');
+ page.querySelectorAll=selector=>{assert.equal(selector,'.surface-content');return [content]};
+ globalThis.ACDLPdfBackgroundPrint.prepareForeground(page);
+ for(const node of [page,content]){assert.equal(node.style.values.background,'transparent');assert.equal(node.style.values.backgroundPriority,'important');assert.equal(node.style.values.color,'#123456');}
+ assert.equal(photo.style.values.background,'#fff');assert.equal(calendar.style.values.background,'#f7f7f3');
+ const source=fs.readFileSync(new URL('../apps/designer-studio/features/preview-pdf-review-export.js',import.meta.url),'utf8');
+ const guarded=source.slice(source.indexOf('if(pdfPlan.layers.length){'),source.indexOf('const planNode='));
+ assert.ok(guarded.indexOf('prepareForeground(clone)')>=0);
+ assert.ok(guarded.indexOf('prepareForeground(clone)')<guarded.indexOf('boxes[0].remove()'));
+});

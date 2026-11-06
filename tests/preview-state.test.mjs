@@ -26,7 +26,7 @@ const source = {
   classList: { add: name => calls.push(['root-add-class', name]) },
   querySelectorAll: selector => {
     if (selector === '[id]') return [{ removeAttribute: name => calls.push(['child-remove-attribute', name]) }];
-    if (selector.startsWith('.editor-only')) return [{ remove: () => calls.push(['remove-editor-node']) }];
+    if (selector.startsWith('.binding,.editor-only')) return [{ remove: () => calls.push(['remove-editor-node']) }];
     if (selector === '.calendar-region.editing,.monthly-title-region.editing') return [{classList:{remove:(name)=>calls.push(['remove-month-selection',name])}}];
     if (selector.startsWith('.selected')) return [{ classList: { remove: (...names) => calls.push(['remove-state-classes', ...names]) } }];
     return [];
@@ -46,3 +46,15 @@ state.clonePage(posterLive, { role: 'poster-annual' });
 assert.deepEqual(posterSource.dataset, { previewWidth: '720', previewHeight: '1018' });
 
 assert.ok(calls.some(call=>call[0]==='remove-month-selection'&&call[1]==='editing'));
+
+// Clean previews and print clones omit binding guides, preserving authored objects.
+let bindingRemoved=false;
+const clone={removeAttribute(){},classList:{add(){}},dataset:{},style:{},querySelectorAll(selector){
+ if(selector.includes('.binding,'))return [{remove(){bindingRemoved=true}}];
+ return [];
+}};
+const bindingLive={offsetWidth:780,offsetHeight:540,cloneNode(deep){assert.equal(deep,true);return clone}};
+assert.equal(state.clonePage(bindingLive,{role:'monthly-back'}),clone);
+assert.equal(bindingRemoved,true);
+assert.equal(clone.dataset.previewWidth,'780');
+assert.equal(clone.dataset.previewHeight,'540');

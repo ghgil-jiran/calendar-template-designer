@@ -36,6 +36,13 @@
    return plans.every(plan=>{const page=proof.pages.find(p=>p.pageId===plan.pageId);return page&&page.required===plan.layers.length&&page.embedded===plan.layers.length&&page.layers.length===plan.layers.length&&plan.layers.every((layer,i)=>{const actual=page.layers[i];return actual.elementId===layer.elementId&&actual.documentId===layer.source.documentId&&actual.sha256===layer.source.sha256&&actual.pageNumber===layer.source.pageNumber&&actual.fit===layer.fit&&actual.vectorEmbedding===true&&['x','y','width','height'].every(k=>Math.abs(actual.frameMm[k]-layer.frameMm[k])<.01)});});
   }catch{return false;}
  }
+ // Native backgrounds are placed below the browser-produced foreground PDF.
+ // Page chrome is behind authored backgrounds on screen; it must not become
+ // an opaque foreground when those backgrounds are extracted for native output.
+ // Explicit object fills, photo frames and calendar styling remain untouched.
+ function prepareForeground(root){
+  for(const node of [root,...root.querySelectorAll('.surface-content')])node.style.setProperty('background','transparent','important');
+ }
  function assertWorkerContract(plan,contract){if(plan?.schemaVersion!==version||plan.layers.length&&contract!==version)fail('pdf_background_worker_upgrade_required');return true}
- root.ACDLPdfBackgroundPrint=Object.freeze({version,pagePlan,projectPlans,verifyEvidence,assertWorkerContract});
+ root.ACDLPdfBackgroundPrint=Object.freeze({version,pagePlan,projectPlans,verifyEvidence,assertWorkerContract,prepareForeground});
 })(globalThis);

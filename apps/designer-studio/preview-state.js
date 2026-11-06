@@ -36,7 +36,7 @@
     source.removeAttribute('id');
     source.classList.add('preview-only-page');
     source.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
-    source.querySelectorAll('.editor-only,.non-output,.resize-handle,.elem-handle,.elem-label,.semantic-role-badge,.binding-status-badge,.workspace-binding-badge,.calendar-handle').forEach(node => node.remove());
+    source.querySelectorAll('.binding,.editor-only,.non-output,.resize-handle,.elem-handle,.elem-label,.semantic-role-badge,.binding-status-badge,.workspace-binding-badge,.calendar-handle').forEach(node => node.remove());
     source.querySelectorAll('.selected,.element-selected,.workspace-locked,.binding-missing').forEach(node => node.classList.remove('selected', 'element-selected', 'workspace-locked', 'binding-missing'));
     source.querySelectorAll('.calendar-region.editing,.monthly-title-region.editing').forEach(node => node.classList.remove('editing'));
     const poster = pageInfo?.role === 'poster-annual';

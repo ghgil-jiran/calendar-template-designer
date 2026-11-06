@@ -105,7 +105,6 @@
  body.review-pdf-printing .frame-placeholder{display:none!important}
 body.review-pdf-printing .frame-shell.empty-frame{background:transparent!important}
 body.review-pdf-printing .frame-shell.empty-frame .frame-outline{display:none!important}
-body.review-pdf-printing .free-element[data-element-role="ai-month-back-component"] .widget-mini-calendar{background:rgba(255,255,255,.97);box-shadow:0 0 0 5px rgba(255,255,255,.78)}
 }
 .review-pdf-root{display:none}
 

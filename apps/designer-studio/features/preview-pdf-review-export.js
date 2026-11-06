@@ -13,12 +13,6 @@
  function waitForImages(root){
   return Promise.all([...root.querySelectorAll('img')].map(image=>image.complete?Promise.resolve():new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true})})));
  }
- function normalizePrintBindingPattern(root){
-  root.querySelectorAll('.binding').forEach(binding=>{
-   binding.replaceChildren(...Array.from({length:26},()=>document.createElement('i')));
-   binding.dataset.printNormalizedBinding='true';
-  });
- }
  function normalizePrintCompositing(root){
   [...root.querySelectorAll('*')].forEach(node=>{
    const computed=getComputedStyle(node),style=node.style;
@@ -55,8 +49,8 @@
    clone.querySelectorAll('.empty-frame').forEach(node=>{const element=node.closest('.free-element');if(element)element.remove();else node.remove()});
    const pdfPlan=source.pdfBackgroundPlans?.[pageNumber-1];
    if(!pdfPlan||pdfPlan.schemaVersion!=='pdf-background-embedding.v1'||pdfPlan.pageId!==pageInfo.id)throw new Error('pdf_background_plan_required');
-   const root=document.createElement('main');root.className='review-pdf-root editor-worker-print-root';root.dataset.rendererId=source.rendererId;const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.style.width=`${size.sheetWidth}mm`;sheet.style.height=`${size.sheetHeight}mm`;sheet.style.position='relative';sheet.appendChild(clone);root.appendChild(sheet);document.body.appendChild(root);normalizePrintBindingPattern(root);if(!project.productionCorrection)normalizePrintCompositing(root);
-   const style=document.createElement('style');style.textContent=`@page{size:${size.sheetWidth}mm ${size.sheetHeight}mm;margin:0}`+`body.review-pdf-printing .editor-worker-print-root .review-pdf-sheet>.page{position:absolute!important;inset:auto!important;left:${size.left}mm!important;top:${size.top}mm!important;width:${size.width}mm!important;height:${size.height}mm!important}`+'.editor-worker-print-root{display:block!important}.editor-worker-print-root .review-pdf-sheet{margin:0!important;break-after:auto!important}.editor-worker-print-root .year-month-grid .adj{opacity:1!important;color:#c7cbd2!important}.editor-worker-print-root .binding[data-print-normalized-binding="true"]{display:grid!important;grid-template-columns:repeat(26,6mm)!important;justify-content:space-between!important;background:none!important;opacity:1!important}.editor-worker-print-root .binding[data-print-normalized-binding="true"]>i{display:block!important;height:100%!important;border-radius:1mm!important;background:rgba(170,168,164,.25)!important}';document.head.appendChild(style);
+   const root=document.createElement('main');root.className='review-pdf-root editor-worker-print-root';root.dataset.rendererId=source.rendererId;const sheet=document.createElement('section');sheet.className='review-pdf-sheet';sheet.style.width=`${size.sheetWidth}mm`;sheet.style.height=`${size.sheetHeight}mm`;sheet.style.position='relative';sheet.appendChild(clone);root.appendChild(sheet);document.body.appendChild(root);if(!project.productionCorrection)normalizePrintCompositing(root);
+   const style=document.createElement('style');style.textContent=`@page{size:${size.sheetWidth}mm ${size.sheetHeight}mm;margin:0}`+`body.review-pdf-printing .editor-worker-print-root .review-pdf-sheet>.page{position:absolute!important;inset:auto!important;left:${size.left}mm!important;top:${size.top}mm!important;width:${size.width}mm!important;height:${size.height}mm!important}`+'.editor-worker-print-root{display:block!important}.editor-worker-print-root .review-pdf-sheet{margin:0!important;break-after:auto!important}.editor-worker-print-root .year-month-grid .adj{opacity:1!important;color:#c7cbd2!important}';document.head.appendChild(style);
    if(document.fonts?.ready)await document.fonts.ready;if(!project.productionCorrection)await optimizeReviewBackgrounds(root);await waitForImages(root);const failedImages=[...root.querySelectorAll('img')].filter(image=>!image.naturalWidth);if(failedImages.length)throw new Error(`editor_print_image_load_failed:${failedImages.length}`);await nextFrame();document.body.classList.add('review-pdf-printing');await nextFrame();
    const localPlan=window.ACDLPdfBackgroundPrint.pagePlan(project,pageInfo);
    if(JSON.stringify(localPlan)!==JSON.stringify({...pdfPlan,layers:pdfPlan.layers.map(layer=>({...layer,source:Object.fromEntries(Object.entries(layer.source).filter(([key])=>key!=='chunks'))}))}))throw new Error('pdf_background_plan_identity_mismatch');
@@ -64,7 +58,7 @@
    if(pdfPlan.layers.length&&query.get('pdfBackgroundStage')!=='post-color-preserve-v1')throw new Error('pdf_background_worker_upgrade_required: 원본 배경 보존 Worker로 업데이트하고 새 검사를 요청해주세요.');
    if(pdfPlan.layers.length){
     document.documentElement.style.setProperty('background','transparent','important');document.body.style.setProperty('background','transparent','important');
-    root.style.setProperty('background','transparent','important');sheet.style.setProperty('background','transparent','important');clone.style.setProperty('background','transparent','important');
+    root.style.setProperty('background','transparent','important');sheet.style.setProperty('background','transparent','important');window.ACDLPdfBackgroundPrint.prepareForeground(clone);
     const sheetRect=sheet.getBoundingClientRect(),factor=size.sheetWidth/sheetRect.width;
     for(const layer of pdfPlan.layers){
      const boxes=[...clone.querySelectorAll('[data-element-id]')].filter(node=>node.dataset.elementId===layer.elementId);
