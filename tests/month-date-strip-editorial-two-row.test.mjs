@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import '../apps/designer-studio/page-composition-runtime.js';
 const runtime=globalThis.ACDLPageCompositionRuntime;
 const page={calendarYear:2028,calendarMonth:2};
@@ -44,3 +45,29 @@ test('legacy default grid and one-row editorial layouts retain their distinct st
  const inlineHtml=runtime.renderMonthDateStripMarkup(inline);
  assert.match(inlineHtml,/strip-month-label/);assert.doesNotMatch(inlineHtml,/strip-weekday|editorial-two-row/);
 });
+test('large month style preserves the year/month hierarchy and all month lengths after save/reload',()=>{
+ for(const [year,month,count] of [[2027,2,28],[2028,2,29],[2027,4,30],[2027,12,31]]){
+  const page={calendarYear:year,calendarMonth:month},e={...element,style:{stripStyle:'editorial-large-month',background:false}};
+  const stored=JSON.parse(JSON.stringify(runtime.widgetValue(e,page))),model=runtime.resolveMonthDateStrip({type:e.type,value:stored},page),html=runtime.renderMonthDateStripMarkup(model,true);
+  assert.equal(stored.stripStyle,'editorial-large-month');assert.equal(model.cells.length,count);
+  assert.match(html,new RegExp('class="strip-year">'+year+'<'));assert.match(html,new RegExp('class="strip-month-number">'+month+'<'));assert.match(html,/class="strip-month-unit">월</);
+  assert.equal((html.match(/class="strip-weekday"/g)||[]).length,count);assert.equal((html.match(/class="strip-day"/g)||[]).length,count);
+  assert.doesNotMatch(html,/APRIL|DECEMBER|strip-rules|<img|<canvas/);assert.match(html,/background:transparent/);
+ }
+});
+test('large month weekdays, weekends, holidays and visibility use the same calendar contract',()=>{
+ const e={...element,style:{stripStyle:'editorial-large-month'},monthSource:'fixed',year:2027,month:4,holidayDates:['2027-04-05']};
+ const html=runtime.renderMonthDateStripMarkup(runtime.resolveMonthDateStrip(e,page),true);
+ assert.match(html,/strip-weekday">T<\/span><span class="strip-day">1</);
+ assert.match(html,/strip-inline-date sat[^>]*><span class="strip-weekday">S<\/span><span class="strip-day">3</);
+ assert.match(html,/strip-inline-date sun[^>]*><span class="strip-weekday">S<\/span><span class="strip-day">4</);
+ assert.match(html,/strip-inline-date sun[^>]*><span class="strip-weekday">M<\/span><span class="strip-day">5</);
+ for(const [showWeekday,showDate] of [[true,false],[false,true],[false,false]]){
+  const h=runtime.renderMonthDateStripMarkup(runtime.resolveMonthDateStrip({...e,showWeekday,showDate},page),false);assert.equal(h.includes('class="strip-weekday"'),showWeekday);assert.equal(h.includes('class="strip-day"'),showDate);assert.match(h,/strip-rules/);
+ }
+});
+test('designer and user service ship identical shared strip markup and styles',()=>{
+ const designer=readFileSync(new URL('../apps/designer-studio/page-composition-runtime.js',import.meta.url),'utf8'),service=readFileSync(new URL('../../us/src/vendor/page-composition-runtime.js',import.meta.url),'utf8');
+ assert.equal(designer,service);assert.match(runtime.monthDateStripCss,/--strip-saturday:#3289b4/);assert.match(runtime.monthDateStripCss,/font-size:min\(4\.2cqw,54cqh\)/);
+});
+

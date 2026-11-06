@@ -22,7 +22,7 @@
     return {
       year, month,
       ...(holidayDates.length?{holidayDates}:{}),
-      stripStyle:["editorial-inline","editorial-two-row"].includes(element.style?.stripStyle??widget.stripStyle??value.stripStyle)?(element.style?.stripStyle??widget.stripStyle??value.stripStyle):"weekday-grid",
+      stripStyle:["editorial-inline","editorial-two-row","editorial-large-month"].includes(element.style?.stripStyle??widget.stripStyle??value.stripStyle)?(element.style?.stripStyle??widget.stripStyle??value.stripStyle):"weekday-grid",
       showWeekday: (element.showWeekday ?? widget.showWeekday ?? value.showWeekday) !== false,
       showDate: (element.showDate ?? widget.showDate ?? value.showDate) !== false,
       cells: Array.from({ length: count }, (_, index) => {
@@ -60,21 +60,23 @@
   const monthDateStripCss = ".month-date-strip{width:100%;height:100%;display:grid;grid-template-columns:repeat(var(--date-count,31),minmax(0,1fr));align-items:stretch;background:rgba(255,255,255,.96);border:1px solid var(--line,#d8dbe2);border-radius:6px;overflow:hidden}.month-date-cell{min-width:0;display:grid;grid-template-rows:1fr 1.15fr;align-items:center;text-align:center;border-right:1px solid rgba(23,32,46,.09);font-variant-numeric:tabular-nums}.month-date-cell:last-child{border-right:0}.month-date-cell .dow{font-size:clamp(5px,1.05vw,10px);font-weight:800;color:#6b7280;line-height:1}.month-date-cell .date{font-size:clamp(6px,1.35vw,13px);font-weight:750;line-height:1}.month-date-cell.sun .dow,.month-date-cell.sun .date{color:#d04444}.month-date-cell.sat .dow,.month-date-cell.sat .date{color:#3569b8}";
   const editorialStripCss=".month-date-strip.editorial-inline{display:flex;align-items:center;gap:1.5%;border:0;border-radius:0;padding:0 1%;box-sizing:border-box;background:rgba(255,255,255,.92);container-type:size}.editorial-inline .strip-month-label{flex:0 0 13%;font-size:clamp(4px,1.45cqw,16px);line-height:1.2;text-align:left;font-weight:400}.editorial-inline .strip-inline-dates{display:grid;grid-template-columns:repeat(var(--date-count),minmax(0,1fr));flex:1;min-width:0}.editorial-inline .strip-inline-date{font-size:clamp(4px,1.6cqw,17px);text-align:center;font-weight:400;color:var(--strip-date-color,#202020)}.editorial-inline .strip-inline-date.sun{color:var(--strip-sunday,#df5666)}.editorial-inline .strip-inline-date.sat{color:var(--strip-saturday,#202020)}";
   const editorialTwoRowCss = ".editorial-two-row .strip-inline-dates{height:100%;align-items:stretch}.editorial-two-row .strip-inline-date{display:grid;align-items:center;min-height:0;line-height:1}.editorial-two-row .strip-weekday{font-size:clamp(4px,1.15cqw,12px);font-weight:500;color:#6b7280}.editorial-two-row .strip-day{font-size:clamp(4px,1.6cqw,17px)}.editorial-two-row .strip-inline-date.sun .strip-weekday,.editorial-two-row .strip-inline-date.sat .strip-weekday{color:inherit}.editorial-two-row.strip-rules .strip-inline-date{border-right:1px solid rgba(23,32,46,.09)}.editorial-two-row.strip-rules .strip-inline-date:last-child{border-right:0}";
+  const editorialLargeMonthCss=".month-date-strip.editorial-large-month{padding:0 2.5%!important;background:transparent;--strip-date-color:#5c5e63;--strip-sunday:#f04e3e;--strip-saturday:#3289b4}.editorial-large-month.strip-rules{background:rgba(255,255,255,.92)}.editorial-large-month .strip-large-month-label{flex-basis:9.5%;height:80%;display:flex;flex-direction:column;justify-content:center;color:var(--strip-sunday,#f04e3e);line-height:1;min-width:0}.editorial-large-month .strip-year{font-size:min(1cqw,13cqh);line-height:1.2;font-weight:400;margin-bottom:5cqh}.editorial-large-month .strip-month-line{display:flex;align-items:baseline;gap:.3cqw;white-space:nowrap}.editorial-large-month .strip-month-number{font-size:min(4.2cqw,54cqh);font-weight:400;line-height:1}.editorial-large-month .strip-month-unit{font-size:min(1.4cqw,18cqh);font-weight:400;line-height:1}.editorial-large-month .strip-inline-dates{height:80%;align-self:center}.editorial-large-month .strip-inline-date{font-weight:700}.editorial-large-month .strip-weekday{font-size:min(1.2cqw,16cqh);font-weight:400;color:#686b70}.editorial-large-month .strip-day{font-size:min(1.4cqw,19cqh);font-weight:700}";
   function escapeMonthStripText(value) {
     return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
   }
   function renderMonthDateStripMarkup(strip, transparent = false) {
     if (!strip || !Array.isArray(strip.cells)) return "";
-    if(["editorial-inline","editorial-two-row"].includes(strip.stripStyle)){
+    if(["editorial-inline","editorial-two-row","editorial-large-month"].includes(strip.stripStyle)){
       const names=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
-      const title='<span class="strip-month-label">'+strip.year+' '+strip.month+'<br>'+names[strip.month-1]+'</span>';
-      const twoRow=strip.stripStyle==="editorial-two-row";
+      const largeMonth=strip.stripStyle==="editorial-large-month";
+      const title=largeMonth?'<span class="strip-month-label strip-large-month-label"><span class="strip-year">'+escapeMonthStripText(strip.year)+'</span><span class="strip-month-line"><span class="strip-month-number">'+escapeMonthStripText(strip.month)+'</span><span class="strip-month-unit">월</span></span></span>':'<span class="strip-month-label">'+strip.year+' '+strip.month+'<br>'+names[strip.month-1]+'</span>';
+      const twoRow=strip.stripStyle==="editorial-two-row"||largeMonth;
       const dates=strip.cells.map(cell=>{
         const kind=cell.weekday===0||cell.isHoliday?' sun':cell.weekday===6?' sat':'';
         if(!twoRow)return '<span class="strip-inline-date'+kind+'">'+(strip.showDate?escapeMonthStripText(cell.day):'')+'</span>';
         return '<span class="strip-inline-date'+kind+'" style="grid-template-rows:repeat('+(Number(strip.showWeekday)+Number(strip.showDate)||1)+',minmax(0,1fr))">'+(strip.showWeekday?'<span class="strip-weekday">'+escapeMonthStripText(cell.weekdayLabel)+'</span>':'')+(strip.showDate?'<span class="strip-day">'+escapeMonthStripText(cell.day)+'</span>':'')+'</span>';
       }).join('');
-      return '<div class="month-date-strip editorial-inline'+(twoRow?' editorial-two-row'+(!transparent?' strip-rules':''):'')+'" style="--date-count:'+strip.cells.length+(transparent?';background:transparent':'')+'">'+title+'<div class="strip-inline-dates">'+dates+'</div></div>';
+      return '<div class="month-date-strip editorial-inline'+(twoRow?' editorial-two-row'+(!transparent?' strip-rules':''):'')+(largeMonth?' editorial-large-month':'')+'" style="--date-count:'+strip.cells.length+(transparent?';background:transparent':'')+'">'+title+'<div class="strip-inline-dates">'+dates+'</div></div>';
     }
     const cells = strip.cells.map(cell => {
       const kind = cell.weekday === 0 || cell.isHoliday ? " sun" : cell.weekday === 6 ? " sat" : "";
@@ -89,7 +91,7 @@
     if (typeof document === "undefined" || document.getElementById("acdl-month-date-strip-style")) return;
     const style = document.createElement("style");
     style.id = "acdl-month-date-strip-style";
-    style.textContent = monthDateStripCss+editorialStripCss+editorialTwoRowCss;
+    style.textContent = monthDateStripCss+editorialStripCss+editorialTwoRowCss+editorialLargeMonthCss;
     document.head.appendChild(style);
   }
   const VECTOR_LIBRARY=[
@@ -257,8 +259,9 @@
     const content = groupSize ? Array.from({length: Math.ceil(months.length / groupSize)}, (_, index) => '<div class="academic-schedule-group">' + months.slice(index * groupSize, (index + 1) * groupSize).join("") + '</div>').join("") : months.join("");
     return '<div class="widget-event-list academic-year-schedule ' + layout + '" data-event-fit="manual"><div class="academic-year-grid">' + content + '</div></div>';
   }
-  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss:monthDateStripCss+editorialStripCss+editorialTwoRowCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar, resolveAnnualCalendar, resolveMemoLayout, resolveScheduleEvents, renderYearScheduleMarkup, yearScheduleCss });
+  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss:monthDateStripCss+editorialStripCss+editorialTwoRowCss+editorialLargeMonthCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar, resolveAnnualCalendar, resolveMemoLayout, resolveScheduleEvents, renderYearScheduleMarkup, yearScheduleCss });
 })(typeof window !== "undefined" ? window : globalThis);
+
 
 
 
