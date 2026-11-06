@@ -242,7 +242,7 @@ body.review-pdf-printing .frame-shell.empty-frame .frame-outline{display:none!im
 .template-surface-guide .guide-meta{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;margin-top:10px}
 .template-surface-guide .guide-meta span{font-size:8px;border:1px solid #cbd7e6;background:#fff;border-radius:999px;padding:3px 6px}
 .page.template-insert-page{background:#fbfcfe}
-.page.template-insert-page .surface-content{outline:1px solid rgba(116,139,166,.18);outline-offset:5px}
+.page.template-insert-page:not(.preview-only-page) .surface-content{outline:1px solid rgba(116,139,166,.18);outline-offset:5px}
 .page-nav-type{display:inline-flex;font-size:7px;font-weight:800;border-radius:999px;padding:2px 5px;margin-left:5px;vertical-align:middle}
 .page-nav-type.template{background:#e7f0fb;color:#245c98}
 .page-nav-type.fixed{background:#eef0f3;color:#596273}
