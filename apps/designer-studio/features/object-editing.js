@@ -855,8 +855,8 @@ function renderPage(){
     const annotations=window.ACDLSharedCalendarAnnotations,annotationStyle=project.template.masters.calendar.calendarLayout?.annotations;
     if(annotations?.normalize(annotationStyle)){
      if(hideAdjacent)return `<div class="day-block" data-date="${day.date}"></div>`;
-     const appearance=project.template.masters.calendar.calendarLayout?.gridAppearance||{};
-     return `<div class="day-block ${holiday?"public-holiday":""}" data-date="${day.date}" style="font-family:${escapeAttr(project.template.resources?.fontTheme?.calendar||project.template.resources?.fontTheme?.body||'Arial')}">${annotations.render({day:day.day,weekday:day.dow,isHoliday:Boolean(holiday),refs,style:annotationStyle,colors:{color:appearance.dateColor,saturdayColor:appearance.saturdayColor,holidayColor:appearance.holidayColor||appearance.sundayColor}})}</div>`;
+     const appearance=project.template.masters.calendar.calendarLayout?.gridAppearance||{},annotationHiddenCount=Number(hiddenScheduleByDate[day.date]||0);
+     return `<div class="day-block ${holiday?"public-holiday":""}" data-date="${day.date}" style="font-family:${escapeAttr(project.template.resources?.fontTheme?.calendar||project.template.resources?.fontTheme?.body||'Arial')}">${annotations.render({day:day.day,weekday:day.dow,isHoliday:Boolean(holiday),refs,style:annotationStyle,colors:{color:appearance.dateColor,saturdayColor:appearance.saturdayColor,holidayColor:appearance.holidayColor||appearance.sundayColor}})}${annotationHiddenCount>0?`<span class="calendar-overflow-count" title="표시 공간을 넘은 일정">+${annotationHiddenCount}</span>`:""}</div>`;
     }
     const auxiliary=[...refs.lunars,...refs.solarTerms].map(item=>item.name).filter(Boolean).join(" / ");
     const special=[...refs.holidays,...refs.anniversaries].map(item=>item.name).filter(Boolean).join(" · ");
