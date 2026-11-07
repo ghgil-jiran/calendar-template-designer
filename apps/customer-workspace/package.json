@@ -6,12 +6,13 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "dev": "npm run style:check && next dev -p 3000",
-    "build": "npm run style:check && next build",
+    "dev": "npm run prepare:runtime && npm run style:check && next dev -p 3000",
+    "build": "npm run prepare:runtime && npm run style:check && next build",
     "start": "next start -p 3000",
     "typecheck": "tsc --noEmit",
     "style:check": "node scripts/check-style.mjs",
-    "test": "node --experimental-strip-types --test test/*.test.mjs"
+    "test": "node --experimental-strip-types --test test/*.test.mjs",
+    "prepare:runtime": "node scripts/build-shared-runtime.mjs"
   },
   "dependencies": {
     "@fontsource/noto-sans-kr": "5.3.1",

@@ -420,20 +420,20 @@ function createSemanticObject(role,{asset=null}={}){
 function semanticRoleLabel(role){return SEMANTIC_DEFS[role]?.label||role}
 function semanticTitleVisible(item){return item.showTitle===true||(!Object.prototype.hasOwnProperty.call(item,"showTitle")&&["school-motto","school-song","school-tree","school-flower"].includes(item.role))}
 function renderSemanticObject(item){
- const d=semanticData(item),layout=item.layoutPreset||"image-top",role=item.role;
+ const raw=semanticData(item),d={...raw,name:escapeAttr(raw.name||""),description:escapeAttr(raw.description||""),image:escapeAttr(raw.image||"")},titleOverride=escapeAttr(item.titleOverride||""),layout=item.layoutPreset||"image-top",role=item.role;
  if(layout==="image-only"&&item.showTitle===false&&item.showCaption===false)return `<div class="semantic-object semantic-logo"><div class="semantic-media">${d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)}">`:""}</div></div>`;
  const image=d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)} 이미지">`:`<span class="semantic-empty-visual non-output editor-only" aria-label="${semanticRoleLabel(role)} 이미지 슬롯"></span>`;
  const align=["left","center","right"].includes(item.style?.textAlign)?item.style.textAlign:"center";
- const showTitle=semanticTitleVisible(item),title=showTitle?`<strong style="display:block;width:100%;text-align:${align};font-size:${item.style?.titleSize||18}px">${item.titleOverride||(role==="school-song"?d.name:"")||semanticRoleLabel(role)}</strong>`:"";
+ const showTitle=semanticTitleVisible(item),title=showTitle?`<strong style="display:block;width:100%;text-align:${align};font-size:${item.style?.titleSize||18}px">${titleOverride||(role==="school-song"?d.name:"")||semanticRoleLabel(role)}</strong>`:"";
  if(role==="school-logo"){
   const style=item.style||{},background=style.background===true?(style.backgroundColor||"#ffffff"):typeof style.background==="string"?style.background:"transparent";
   return `<div class="semantic-object semantic-logo" style="background:${escapeAttr(background)}"><div class="semantic-media">${image}</div></div>`;
  }
  if(layout==="desk-six-symbol-card"){
-  if(role==="school-motto")return `<div class="semantic-object desk-six-symbol-card semantic-motto"><strong style="font-size:${item.style?.titleSize||15}px">${item.titleOverride||d.name||"교훈"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
+  if(role==="school-motto")return `<div class="semantic-object desk-six-symbol-card semantic-motto"><strong style="font-size:${item.style?.titleSize||15}px">${titleOverride||d.name||"교훈"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
   return `<div class="semantic-object desk-six-symbol-card ${role==="school-song"?"semantic-song":""}">${title}<div class="semantic-media">${image}</div>${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||8}px">${d.description||""}</p>`}</div>`
  }
- if(role==="school-motto")return `<div class="semantic-object semantic-motto"><strong style="font-size:${item.style?.titleSize||18}px">${item.titleOverride||d.name||"교훈"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
+ if(role==="school-motto")return `<div class="semantic-object semantic-motto"><strong style="font-size:${item.style?.titleSize||18}px">${titleOverride||d.name||"교훈"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
  if(role==="school-song")return `<div class="semantic-object semantic-song"><div class="semantic-media">${image}</div><div class="semantic-copy" style="width:100%;text-align:${align}">${title}${item.showCaption===false?"":`<p style="text-align:${align};font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p>`}</div></div>`;
  return `<div class="semantic-object ${layout==="image-left"?"semantic-layout-row":""}"><div class="semantic-media">${image}</div>${item.showCaption===true||showTitle?`<div class="semantic-copy" style="text-align:${item.style?.textAlign||"center"}">${title}${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p>`}</div>`:""}</div>`
 }
@@ -880,12 +880,12 @@ function renderPage(){
  }else if(p.role.includes("cover-front")){
   if(!window.ACDLSharedScreenComposition.hasAuthoredBackground(pageElements(p)))html+=`<div class="cover-art cover-base"></div>`;
  }else if(p.role.includes("intro-front")){
-  html+=`<div class="cover-art"><h3>${p.overrides.title||"우리 학교의 한 해"}</h3><p>${project.book.school.name}</p></div>`;
+  html+=`<div class="cover-art"><h3>${escapeAttr(p.overrides.title||"우리 학교의 한 해")}</h3><p>${escapeAttr(project.book.school.name)}</p></div>`;
  }else if(isInsertPage(p)){
   const insertKind=p.role.includes("front-insert")?"앞 간지":"뒤 간지",side=p.role.endsWith("-back")?"뒷면":"앞면";
   if(!pageElements(p).some(item=>item.visible!==false&&!["graphic-package-background","background-decoration"].includes(item.role)))html+=`<div class="template-surface-guide non-output editor-only"><div class="template-surface-guide-inner"><span class="guide-kicker">FREE TEMPLATE SURFACE</span><strong>${insertKind} ${p.insertIndex||1} · ${side}</strong><p>이 문구는 실제 출력 콘텐츠가 아닌 템플릿 제작용 작업면 안내입니다.<br>학교 개체, 텍스트, 이미지 등을 배치해 이 면의 구성을 설계하세요.</p><div class="guide-meta"><span>자유 배치</span><span>페이지 전용 개체</span><span>Master 개체 지원</span></div></div></div>`;
  }else if(p.role.includes("back-cover-front")){
-  if((project.book.elementsByPage?.[p.id]||[]).length===0)html+=`<div class="cover-art"><h3>${p.overrides.title||"함께 만든 학교의 기록"}</h3><p>${project.book.school.name}</p></div>`;
+  if((project.book.elementsByPage?.[p.id]||[]).length===0)html+=`<div class="cover-art"><h3>${escapeAttr(p.overrides.title||"함께 만든 학교의 기록")}</h3><p>${escapeAttr(project.book.school.name)}</p></div>`;
  }else if((project.book.elementsByPage?.[p.id]||[]).length===0)html+=`<div class="backface"><div><strong>${roleLabel(p)}</strong><br>실제 인쇄되는 뒷면 Surface</div></div>`;
  html+="</div>";page.innerHTML=html;
  if(p.role==="monthly-front"){const align=project.template.masters.calendar.calendarOverrides?.monthTitleAlign||project.template.masters.calendar.design?.monthTitleAlign||"left",regionNode=page.querySelector(".calendar-region");regionNode?.classList.remove("month-title-left","month-title-center","month-title-right");regionNode?.classList.add(`month-title-${["left","center","right"].includes(align)?align:"left"}`)}

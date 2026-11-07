@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {parseScheduleText,extractSchedule,zipXml} from '../src/server/schedule-extraction.ts';
+import {applyMaterials,fieldsForProject,photoSlotsForProject} from '../src/lib/materials/native-project.ts';
+const source=()=>({format:'acdl-project',productType:{pageSize:{width:260,height:180}},settings:{year:2027,startMonth:3},template:{userEditing:{preset:'individual'},masters:{calendar:{}},masterElements:{},resources:{},publishing:{dataRequirements:[{path:'school.name',stage:'project-create-required',input:'text'},{path:'school.profile.motto',stage:'optional',input:'text'}]}},book:{id:'test',school:{name:'샘플',profile:{motto:{description:'샘플 교훈'}},contacts:[{label:'교무실',phone:'111'},{label:'행정실',phone:'222',fax:'333'}]},events:[{id:'holiday',title:'공휴일',source:'template'},{id:'sample',title:'샘플 일정',source:'user'}],pageInstances:[{id:'p',role:'cover-front',number:1}],elementsByPage:{p:[{id:'name',type:'text',binding:'school.name',content:'샘플'},{id:'contacts',type:'text',binding:'school.contacts'},{id:'motto',type:'semantic-object',role:'school-motto',binding:'school.profile.motto'},{id:'photo',type:'image-frame',width:40,height:50,x:10,y:20,permissions:{replaceImage:true},image:{src:'sample',scale:2}},{id:'fixed',type:'image-frame',permissions:{replaceImage:false},image:{src:'fixed'}}]}}});
+test('schedule parses period and academic rollover without inventing unreadable dates',()=>{
+ const r=parseScheduleText('3월\n2일 : 입학식\n5월 3일-5월 7일 : 상담주간\n2월\n5일 : 졸업식\n2027-02-30 : 잘못된 날짜\n날짜 누락',2027,3);
+ assert.equal(r.events.length,3);assert.equal(r.events[1].endDate,'2027-05-07');assert.equal(r.events[2].startDate,'2028-02-05');assert.equal(r.warnings.length,2);
+});
+test('same day/title duplicate rows do not duplicate calendar events',()=>{assert.equal(parseScheduleText('2027-03-02 : 입학식\n2027-03-02 : 입학식',2027).events.length,1);});
+test('unsupported/broken files fail explicitly',async()=>{await assert.rejects(()=>extractSchedule(new File(['x'],'old.doc'),2027),/DOCX/);assert.throws(()=>zipXml(Buffer.from('not a zip')),/압축/);});
+test('source-derived fields keep contact row identity and optional exclusions hide bound semantic objects',()=>{
+ const p=source(),fields=fieldsForProject(p);assert.ok(fields.some(f=>f.binding==='school.contacts.1.fax'));const school={values:{name:'우리 학교','contact-0-phone':'444'},hidden:['motto']},before=JSON.stringify(p),q=applyMaterials(p,fields,school,[{id:'new',title:'입학식',startDate:'2027-03-02',endDate:'2027-03-02'}],{});
+ assert.equal(JSON.stringify(p),before);assert.equal(q.book.school.name,'우리 학교');assert.equal(q.book.school.contacts[0].phone,'444');assert.equal(q.book.elementsByPage.p.find(e=>e.id==='motto').visible,false);assert.deepEqual(q.book.events.map(e=>e.id),['holiday','new']);assert.throws(()=>applyMaterials(p,fields,{values:{},hidden:['name']},[],{}),/제외/);
+});
+test('photo replacement honors shared permission policy and preserves frame geometry and fixed images',()=>{
+ const p=source(),slots=photoSlotsForProject(p);assert.equal(slots.length,1);const q=applyMaterials(p,fieldsForProject(p),{values:{},hidden:[]},[],{[slots[0].id]:{photoId:'upload',url:'blob:photo'}}),photo=q.book.elementsByPage.p.find(e=>e.id==='photo');assert.deepEqual([photo.x,photo.y,photo.width,photo.height],[10,20,40,50]);assert.equal(photo.image.src,'blob:photo');assert.equal(photo.image.scale,1);assert.equal(q.book.elementsByPage.p.find(e=>e.id==='fixed').image.src,'fixed');assert.throws(()=>applyMaterials(p,[],{values:{},hidden:[]},[],{bad:{photoId:'upload',url:'blob:bad'}}),/교체/);
+});
+test('shared master current-month frames keep distinct monthly image bindings',()=>{
+ const p=source();p.book.pageInstances=[{id:'march',role:'monthly-back',masterId:'photos',calendarYear:2027,calendarMonth:3},{id:'april',role:'monthly-back',masterId:'photos',calendarYear:2027,calendarMonth:4}];p.book.elementsByPage={march:[],april:[]};p.template.masterElements={photos:[{id:'photo',type:'image-frame',permissions:{replaceImage:true},image:{binding:'calendar.monthlyImages.current',src:'sample'}}]};
+ const slots=photoSlotsForProject(p);assert.equal(slots.length,2);const q=applyMaterials(p,[],{values:{},hidden:[]},[],Object.fromEntries(slots.map((s,i)=>[s.id,{photoId:`upload-${i}`,url:`blob:${i}`}])));assert.deepEqual(q.book.monthlyImages,{'2027-03':'blob:0','2027-04':'blob:1'});
+});
+test('CSV with separate start and end columns preserves multi-day events and quoted titles',async()=>{
+ const file=new File(['시작일,종료일,일정명\n2027-03-02,2027-03-05,"입학, 적응 주간"'],'calendar.csv');const r=await extractSchedule(file,2027);assert.equal(r.events.length,1);assert.equal(r.events[0].endDate,'2027-03-05');assert.equal(r.events[0].title,'입학, 적응 주간');
+});
+function storedZip(name,xml){const nameBytes=Buffer.from(name),content=Buffer.from(xml),local=Buffer.alloc(30),central=Buffer.alloc(46),end=Buffer.alloc(22);local.writeUInt32LE(0x04034b50);local.writeUInt32LE(content.length,18);local.writeUInt32LE(content.length,22);local.writeUInt16LE(nameBytes.length,26);central.writeUInt32LE(0x02014b50);central.writeUInt32LE(content.length,20);central.writeUInt32LE(content.length,24);central.writeUInt16LE(nameBytes.length,28);end.writeUInt32LE(0x06054b50);end.writeUInt16LE(1,8);end.writeUInt16LE(1,10);end.writeUInt32LE(46+nameBytes.length,12);end.writeUInt32LE(30+nameBytes.length+content.length,16);return Buffer.concat([local,nameBytes,content,central,nameBytes,end]);}
+test('DOCX table dates and titles stay on the same input row',async()=>{
+ const xml='<w:document><w:body><w:tbl><w:tr><w:tc><w:p><w:r><w:t>2027-03-02</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>입학식</w:t></w:r></w:p></w:tc></w:tr></w:tbl></w:body></w:document>',r=await extractSchedule(new File([storedZip('word/document.xml',xml)],'calendar.docx'),2027);assert.equal(r.events[0]?.title,'입학식');assert.equal(r.events[0]?.startDate,'2027-03-02');
+});
+test('XLSX reuses designer cell decoding and recognizes table date columns',async()=>{
+ const xml='<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>시작일</t></is></c><c r="B1" t="inlineStr"><is><t>일정명</t></is></c></row><row r="2"><c r="A2" t="inlineStr"><is><t>2027-03-02</t></is></c><c r="B2" t="inlineStr"><is><t>입학식</t></is></c></row></sheetData></worksheet>',r=await extractSchedule(new File([storedZip('xl/worksheets/sheet1.xml',xml)],'calendar.xlsx'),2027);assert.equal(r.events[0]?.title,'입학식');assert.equal(r.events[0]?.startDate,'2027-03-02');
+});

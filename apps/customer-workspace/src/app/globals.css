@@ -189,3 +189,36 @@ img {max-width: 100%;}
 @keyframes hero-rise {from {opacity: .4; transform: translateY(28px);} to {opacity: 1; transform: translateY(0);}}
 @media (prefers-reduced-motion: reduce) {.mini-track, .hero-showcase .hero-art {animation: none;}}
 @media (max-width: 720px) {.hero-showcase {width: 100%; max-width: 390px; padding: 18px; justify-self: center;} .hero-showcase .hero-art > .hero-interior {margin-top: -45px;}}
+/* School material inputs follow the existing page and surface tokens. */
+.upload-button {position:relative; overflow:hidden; display:inline-flex; cursor:pointer;}
+.upload-button input {position:absolute; inset:0; opacity:0; width:100%; cursor:pointer;}
+.upload-button:focus-within {outline:2px solid hsl(var(--primary)); outline-offset:3px;}
+.paste-schedule {margin-top:20px;}
+.paste-schedule summary {cursor:pointer; font-size:14px;}
+.paste-schedule label {display:block; margin:16px 0 10px; font-size:13px;}
+.paste-schedule textarea {display:block; width:100%; margin-top:8px; padding:12px; border:1px solid hsl(var(--border)); border-radius:10px; background:hsl(var(--canvas)); color:hsl(var(--foreground));}
+.extraction-result {margin-top:20px; padding:18px; border:1px solid hsl(var(--border)); border-radius:12px; background:hsl(var(--surface)); font-size:13px;}
+.extraction-result details {margin:12px 0;}
+.section-tools {display:flex; justify-content:space-between; align-items:center; gap:12px;}
+.schedule-table-wrap {overflow:auto; margin:18px 0;}
+.schedule-table {width:100%; border-collapse:collapse; font-size:13px;}
+.schedule-table th {text-align:left; color:hsl(var(--muted-foreground)); font-weight:500;}
+.schedule-table td,.schedule-table th {padding:8px 6px; border-bottom:1px solid hsl(var(--border));}
+.schedule-table input {min-width:130px; width:100%; padding:10px; border:1px solid hsl(var(--border)); border-radius:8px; color:hsl(var(--foreground)); background:hsl(var(--canvas));}
+.schedule-table td:nth-child(3) input {min-width:180px;}
+.photo-grid {display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:24px;}
+.photo-card {min-width:0; padding:12px; border:1px solid hsl(var(--border)); border-radius:12px;}
+.photo-card > img {width:100%; aspect-ratio:1.4; object-fit:contain; border-radius:7px; background:hsl(var(--surface));}
+.photo-card strong {display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:13px; margin:9px 0 4px;}
+.photo-card small,.photo-slot small {display:block; color:hsl(var(--muted-foreground)); font-size:11px;}
+.photo-card .button {margin-top:7px;}
+.photo-warning {font-size:12px; line-height:1.6; color:hsl(var(--muted-foreground));}
+.photo-slot {display:grid; grid-template-columns:1fr 1fr 76px; align-items:center; gap:16px; border-bottom:1px solid hsl(var(--border)); padding:18px 0;}
+.photo-slot strong {display:block; font-size:13px; margin-bottom:6px;}
+.photo-slot select {width:100%; padding:10px; border:1px solid hsl(var(--border)); border-radius:8px; background:hsl(var(--canvas)); color:hsl(var(--foreground));}
+.photo-slot img {width:76px; height:62px; object-fit:contain;}
+.empty-material {padding:32px 16px; text-align:center; color:hsl(var(--muted-foreground)); font-size:13px; border:1px dashed hsl(var(--border)); border-radius:12px; margin-top:22px;}
+.native-preview {position:relative; width:100%; background:hsl(var(--canvas));}
+.calendar-page-controls {display:flex; align-items:center; justify-content:space-between; gap:12px; margin:18px 0;}
+.material-review {display:grid; gap:20px;}
+@media(max-width:720px){.photo-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}.photo-slot {grid-template-columns:1fr 70px;}.photo-slot > label {grid-column:1;grid-row:2;}.photo-slot > img {grid-column:2;grid-row:1/3;}.section-tools {align-items:flex-start;}}

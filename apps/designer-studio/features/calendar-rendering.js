@@ -105,7 +105,7 @@ function renderRangeEventLayer(grid,rows){
  layout.segments.forEach(segment=>{
   const left=segment.startColumn/7*100,width=(segment.endColumn-segment.startColumn+1)/7*100;
   const top=segment.week*rowHeight+6+segment.lane*(barHeight+laneGap);
-  const label=rangeLabel(segment,style);
+  const label=escapeAttr(rangeLabel(segment,style));
   const classes=["range-event-bar",segment.continuesBefore?"continues-before":"",segment.continuesAfter?"continues-after":"",style.labelPosition==="above"?"label-above":""].filter(Boolean).join(" ");
   const categoryColor=eventColor(segment.event);html+=`<div class="${classes}" title="${escapeAttr(segment.event.title)} · ${segment.event.startDate} ~ ${segment.event.endDate}" style="left:calc(${left}% + 2px);width:calc(${width}% - 4px);top:${top}%;height:${barHeight}px;background:${categoryColor}">${label}</div>`
  });

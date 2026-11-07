@@ -1,13 +1,18 @@
 'use client';
 
-import {useEffect, useRef, useState} from 'react';
-import type {CatalogResponse, SchoolInput, TemplateCard} from '@/lib/api/contracts';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import type {CatalogResponse, SchoolInput, TemplateCard, ScheduleEvent, PhotoAssignment} from '@/lib/api/contracts';
 import {emptySchoolInput, validateSchoolInput, visibleSchoolValues} from '@/lib/api/school-input';
 import {Button} from '@/components/ui/button';
 import {Panel} from '@/components/ui/panel';
 import {TextField} from '@/components/ui/text-field';
 
-type Step = 'catalog' | 'detail' | 'guide' | 'school' | 'input-review' | 'projects';
+import {ScheduleInput} from '@/features/materials/schedule-input';
+import {PhotoInput,type PhotoFile} from '@/features/materials/photo-input';
+import {NativePreview} from '@/features/materials/native-preview';
+import {applyMaterials,assertNativeProject,photoSlotsForProject,type NativeProject} from '@/lib/materials/native-project';
+
+type Step = 'schedule' | 'photos' | 'catalog' | 'detail' | 'guide' | 'school' | 'input-review' | 'projects';
 
 export function Onboarding() {
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
@@ -20,6 +25,16 @@ export function Onboarding() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [previewIndex, setPreviewIndex] = useState(0);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [events,setEvents]=useState<ScheduleEvent[]>([]);
+  const [photos,setPhotos]=useState<PhotoFile[]>([]);
+  const [assignments,setAssignments]=useState<Record<string,PhotoAssignment>>({});
+  const [nativeSource,setNativeSource]=useState<NativeProject|null>(null);
+  const [nativeLoading,setNativeLoading]=useState(false);
+  const [nativeFailure,setNativeFailure]=useState('');
+  const [materialPage,setMaterialPage]=useState(0);
+  const photosRef=useRef(photos);photosRef.current=photos;
+  const selectionRequest=useRef(0);
+  useEffect(()=>()=>photosRef.current.forEach(p=>URL.revokeObjectURL(p.url)),[]);
   const [playing, setPlaying] = useState(true);
   const [heroIndex, setHeroIndex] = useState(0);
   const [heroHover, setHeroHover] = useState(false);
@@ -28,6 +43,8 @@ export function Onboarding() {
   const started = useRef(false);
   const selected = catalog?.templates.find(template => template.id === selectedId) || null;
 
+  const materialProject=useMemo(()=>{if(!nativeSource||!selected)return null;return applyMaterials(nativeSource,selected.fields,school,events,assignments);},[nativeSource,selected,school,events,assignments]);
+
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true); setFailure('');
@@ -35,7 +52,7 @@ export function Onboarding() {
       .then(async response => {
         if (!response.ok) throw new Error('catalog unavailable');
         const result = await response.json() as CatalogResponse;
-        if (result.mode !== 'review' || !Array.isArray(result.templates)) throw new Error('invalid catalog');
+        if (!['review','published'].includes(result.mode) || !Array.isArray(result.templates)) throw new Error('invalid catalog');
         setCatalog(result);
       })
       .catch(error => {if (error.name !== 'AbortError') setFailure('디자인 목록을 불러오지 못했어요. 다시 시도해 주세요.');})
@@ -68,12 +85,21 @@ export function Onboarding() {
     return () => window.clearInterval(timer);
   }, [playing, heroHover, step, catalog]);
 
-  function choose(template: TemplateCard) {
-    if (selectedId !== template.id) {setSchool(emptySchoolInput(template.fields)); setErrors({});}
-    setSelectedId(template.id); setStep('detail');
+  async function choose(template: TemplateCard) {
+    const requestId=++selectionRequest.current;
+    if(selectedId!==template.id){
+      if((photos.length||events.length||Object.values(school.values).some(v=>v.trim()))&&!window.confirm('입력한 자료는 아직 저장되지 않았어요. 다른 디자인으로 바꿀까요?'))return;
+      photos.forEach(p=>URL.revokeObjectURL(p.url));setSchool(emptySchoolInput(template.fields));setErrors({});setEvents([]);setPhotos([]);setAssignments({});setMaterialPage(0);setNativeSource(null);
+    }
+    setSelectedId(template.id);setStep('detail');setNativeFailure('');
+    if(!template.sourceUrl){setNativeLoading(false);return;}
+    setNativeLoading(true);
+    try{const r=await fetch(template.sourceUrl),result=await r.json();if(!r.ok)throw Error(result.error||'템플릿을 불러오지 못했습니다.');if(requestId!==selectionRequest.current)return;if(result.templateId!==template.id||result.version!==template.version)throw Error('템플릿 버전이 다릅니다. 목록을 다시 불러와 주세요.');assertNativeProject(result.project);setNativeSource(result.project);}
+    catch(error){if(requestId===selectionRequest.current)setNativeFailure(error instanceof Error?error.message:'템플릿을 불러오지 못했습니다.');}
+    finally{if(requestId===selectionRequest.current)setNativeLoading(false);}
   }
   function catalogHome() {
-    if (Object.values(school.values).some(value => value.trim()) && !window.confirm('입력한 자료는 아직 저장되지 않았어요. 디자인 목록으로 이동할까요?')) return;
+    if ((photos.length||events.length||Object.values(school.values).some(value => value.trim())) && !window.confirm('입력한 자료는 아직 저장되지 않았어요. 디자인 목록으로 이동할까요?')) return;
     setStep('catalog');
   }
   function openPreview(index: number) {setPreviewIndex(index); setPreviewOpen(true);}
@@ -81,10 +107,11 @@ export function Onboarding() {
     event.preventDefault();
     if (!selected) return;
     const issues = validateSchoolInput(selected.fields, school);
+    if(nativeSource?.template.publishing?.dataRequirements?.some((r:NativeProject)=>r.path==='school.contacts'&&r.stage==='project-create-required')){const contacts=selected.fields.filter(f=>f.binding?.startsWith('school.contacts.')||f.binding==='school.phone');if(contacts.length&&!contacts.some(f=>!school.hidden.includes(f.key)&&school.values[f.key]?.trim()))issues[contacts[0].key]='학교 연락처를 한 곳 이상 입력해 주세요.';}
     setErrors(issues);
     if (Object.keys(issues).length) {
       window.requestAnimationFrame(() => document.querySelector<HTMLInputElement>('input[aria-invalid="true"]')?.focus());
-    } else setStep('input-review');
+    } else setStep('schedule');
   }
   const heading = (eyebrow: string, title: string, description: string) => <div className="section-heading"><p className="eyebrow">{eyebrow}</p><h1 ref={headingRef} tabIndex={-1}>{title}</h1><p className="muted">{description}</p></div>;
 
@@ -100,9 +127,9 @@ export function Onboarding() {
             <div className="hero-art" key={heroIndex}><PreviewImage url={catalog.templates[heroIndex].coverUrl} label={catalog.templates[heroIndex].name} /><PreviewImage className="hero-interior" url={catalog.templates[heroIndex].pages[catalog.templates[heroIndex].representativePages[heroIndex % 4] - 1]?.imageUrl} label="대표 페이지" /></div>
           </div>}
         </section>
-        <section aria-labelledby="catalog-title"><div className="catalog-heading"><div><h2 id="catalog-title">마음에 드는 디자인을 골라보세요</h2><p className="muted">학사달력 · 탁상형 · 전체 구성을 먼저 살펴볼 수 있어요.</p></div><span className="badge">{catalog.templates.length}종 선택 구성 검토</span></div>
+        <section aria-labelledby="catalog-title"><div className="catalog-heading"><div><h2 id="catalog-title">마음에 드는 디자인을 골라보세요</h2><p className="muted">학사달력 · 탁상형 · 전체 구성을 먼저 살펴볼 수 있어요.</p></div><span className="badge">{catalog.templates.length}종 {catalog.mode==='review'?'선택 구성 검토':'템플릿'}</span></div>
           {!catalog.templates.length ? <Panel><h3>공개된 디자인을 준비 중이에요</h3><p className="muted">준비가 끝나면 이곳에서 고를 수 있어요.</p></Panel> : <div className="catalog-grid">{catalog.templates.map(template => <article className="template-card" key={template.id}>
-            <div className="template-art"><PreviewImage url={template.coverUrl} label={template.name} /><span className="image-label">{template.previewKind === 'reference' ? '샘플 A 참고' : '시안용 공통 이미지'}</span><div className="mini-previews" tabIndex={0} aria-label={`${template.name} 대표 4면 · 마우스를 올리거나 초점을 두면 멈춥니다`}><div className="mini-track">{[...template.representativePages, ...template.representativePages].map((number, index) => <PreviewImage key={index} className="mini-placeholder" url={template.pages[number - 1].imageUrl} label={template.pages[number - 1].label} decorative={index >= template.representativePages.length} />)}</div></div></div>
+            <div className="template-art"><PreviewImage url={template.coverUrl} label={template.name} /><span className="image-label">{template.previewKind === 'reference' ? '샘플 A 참고' : template.previewKind==='published'?'게시 템플릿':'시안용 공통 이미지'}</span><div className="mini-previews" tabIndex={0} aria-label={`${template.name} 대표 4면 · 마우스를 올리거나 초점을 두면 멈춥니다`}><div className="mini-track">{[...template.representativePages, ...template.representativePages].map((number, index) => <PreviewImage key={index} className="mini-placeholder" url={template.pages[number - 1].imageUrl} label={template.pages[number - 1].label} decorative={index >= template.representativePages.length} />)}</div></div></div>
             <div className="template-copy"><h3>{template.name}</h3><p>{template.description}</p><small>{template.note}</small><div className="card-actions"><span>{template.widthMm} × {template.heightMm} mm · {template.pageCount}면</span><Button onClick={() => choose(template)} aria-label={`${template.name} 전체면 살펴보기`}>전체면 살펴보기 →</Button></div></div>
           </article>)}</div>}
         </section>
@@ -112,35 +139,44 @@ export function Onboarding() {
       {!loading && !failure && selected && step === 'detail' && <>
         <Button variant="quiet" onClick={catalogHome}>← 디자인 목록</Button>
         {heading(selected.name, '표지부터 마지막 장까지 살펴보세요', '크게 보고 싶은 페이지를 누르세요. 아직 프로젝트는 생성하지 않습니다.')}
-        <div className="detail-grid"><Panel><button className="large-preview" onClick={() => openPreview(0)} aria-label="표지 크게 보기"><PreviewImage url={selected.pages[0].imageUrl} label="표지" /><span>크게 보기 ↗</span></button></Panel><Panel><span className="badge">학사달력 · 탁상형</span><h2>{selected.name}</h2><p className="muted">{selected.description}</p><dl className="facts"><div><dt>규격</dt><dd>{selected.widthMm} × {selected.heightMm} mm</dd></div><div><dt>전체 면수</dt><dd>{selected.pageCount}면</dd></div><div><dt>사용 기간</dt><dd>{selected.period}</dd></div></dl><p>{selected.note}</p><Button variant="primary" className="wide-button" onClick={() => setStep('guide')}>이 디자인으로 만들기</Button></Panel></div>
-        <div className="reference-note">전체면은 샘플 A의 기존 확인용 PDF 참고 이미지입니다. 다른 카드의 실제 디자인 또는 최종 인쇄 품질을 의미하지 않습니다.</div>
+        <div className="detail-grid"><Panel>{nativeSource?<div className="large-preview"><NativePreview project={nativeSource} pageId={nativeSource.book.pageInstances[0].id}/><Button onClick={()=>openPreview(0)}>표지 크게 보기 ↗</Button></div>:<button className="large-preview" onClick={()=>openPreview(0)} aria-label="표지 크게 보기"><PreviewImage url={selected.pages[0].imageUrl} label="표지"/><span>크게 보기 ↗</span></button>}</Panel><Panel><span className="badge">학사달력 · 탁상형</span><h2>{selected.name}</h2><p className="muted">{selected.description}</p><dl className="facts"><div><dt>규격</dt><dd>{selected.widthMm} × {selected.heightMm} mm</dd></div><div><dt>전체 면수</dt><dd>{selected.pageCount}면</dd></div><div><dt>사용 기간</dt><dd>{selected.period}</dd></div></dl><p>{selected.note}</p><Button variant="primary" className="wide-button" disabled={nativeLoading||Boolean(nativeFailure)} onClick={() => setStep('guide')}>이 디자인으로 만들기</Button></Panel></div>
+        {nativeLoading&&<p role="status">실제 템플릿을 불러오고 있어요.</p>}{nativeFailure&&<div role="alert"><p>{nativeFailure}</p><Button onClick={()=>void choose(selected)}>다시 불러오기</Button></div>}{catalog?.mode==='review'&&<div className="reference-note">전체면은 샘플 A의 기존 확인용 PDF 참고 이미지입니다. 다른 카드의 실제 디자인 또는 최종 인쇄 품질을 의미하지 않습니다.</div>}
         <section className="all-pages" aria-labelledby="all-pages-title"><h2 id="all-pages-title">전체 {selected.pageCount}면 구성</h2><p className="muted">{selected.composition.map(item => `${item.label} ${item.count}면`).join(' · ')}</p><div className="page-grid">{selected.pages.map((page, index) => <button className="page-thumbnail" key={page.number} onClick={() => openPreview(index)} aria-label={`${page.number}면 ${page.label} 크게 보기`}><PreviewImage url={page.imageUrl} label={`${page.number}면`} /><span>{page.number}면 · {page.label}</span></button>)}</div></section>
       </>}
 
       {!loading && !failure && selected && step === 'guide' && <>
         <Progress />{heading(`선택한 디자인 · ${selected.name}`, '학교 자료를 넣어볼까요?', '필요한 자료를 먼저 안내해 드릴게요.')}
         <div className="guide-list"><GuideRow number="1" title="학교 정보" text={`${selected.fields.filter(field => field.required).map(field => field.label).join(', ')}은 필수예요. 나머지 항목은 표시 여부를 고를 수 있어요.`} /><GuideRow number="2" title="학사일정" text="가지고 계신 일정 파일을 올리고 날짜와 내용을 확인해요." /><GuideRow number="3" title="학교 사진" text={selected.photoGuide} /></div>
-        <div className="reference-note">이번 구현에서는 학교 기본 정보 입력까지 확인할 수 있어요. 학사일정 파일 분석·사진 업로드·에디터 연결은 다음 구현 범위입니다.</div>
+        <div className="reference-note">학교 정보 → 학사일정 → 사진 순서로 입력하고 확인해요. 입력 자료의 서버 저장은 아직 연결 전이에요.</div>
         <div className="actions"><Button onClick={() => setStep('detail')}>← 디자인 다시 보기</Button><Button variant="primary" onClick={() => setStep('school')}>학교 정보부터 넣기</Button></div>
       </>}
 
       {!loading && !failure && selected && step === 'school' && <>
-        <Progress /><div className="input-stage"><span className="input-stage-count">1 / 3</span><span className="input-stage-current">학교 정보</span><span>학사일정</span><span>사진</span></div>{heading('우리 학교 기본 정보', '학교 정보를 한 번만 입력해 주세요', '달력에 사용할 정보와 표시 여부를 입력해 보세요. 선택 정보를 달력에 표시하지 않을 경우 체크해 주세요.')}
+        <Progress /><MaterialStage active={1}/>{heading('우리 학교 기본 정보', '학교 정보를 한 번만 입력해 주세요', '달력에 사용할 정보와 표시 여부를 입력해 보세요. 선택 정보를 달력에 표시하지 않을 경우 체크해 주세요.')}
         <form onSubmit={continueSchool} noValidate>
           {(['basic', 'contact'] as const).map(group => <Panel className="form-section" key={group}><h2>{group === 'basic' ? '학교 기본 정보' : '학교 연락처'}</h2><div className="form-grid">{selected.fields.filter(field => field.group === group).map(field => <TextField key={field.key} label={field.label} value={school.values[field.key] || ''} required={field.required} hidden={school.hidden.includes(field.key)} allowHide={field.allowHide} maxLength={field.maxLength} hint={field.hint} error={errors[field.key]}
             onChange={value => {setSchool(current => ({...current, values: {...current.values, [field.key]: value}})); setErrors(current => ({...current, [field.key]: ''}));}}
             onHide={hidden => {setSchool(current => ({...current, hidden: hidden ? [...current.hidden.filter(key => key !== field.key), field.key] : current.hidden.filter(key => key !== field.key)})); setErrors(current => ({...current, [field.key]: ''}));}} />)}</div></Panel>)}
-          <div className="reference-note">입력 내용은 현재 화면 안에서만 유지됩니다. 새로고침하거나 창을 닫으면 사라지며 서버에는 저장되지 않습니다. 실제 템플릿의 항목 설정·교표 등 학교 상징 업로드는 연결 전입니다.</div>
+          <div className="reference-note">입력 내용은 현재 화면 안에서만 유지됩니다. 새로고침하거나 창을 닫으면 사라지며 서버에는 저장되지 않습니다. 학교 상징 이미지는 다음 사진 단계에서 선택할 수 있어요.</div>
           {Object.values(errors).some(Boolean) && <p className="field-error" role="alert">입력이 필요한 항목을 확인해 주세요.</p>}
-          <div className="actions"><Button onClick={() => setStep('guide')}>← 준비 자료 안내</Button><Button type="submit" variant="primary">입력 내용 확인하기</Button></div>
+          <div className="actions"><Button onClick={() => setStep('guide')}>← 준비 자료 안내</Button><Button type="submit" variant="primary">학사일정 입력하기 →</Button></div>
         </form>
       </>}
 
+      {!loading && !failure && selected && step==='schedule'&&<>
+        <Progress/><MaterialStage active={2}/>{heading('학교 학사일정','학사일정을 확인해 주세요','파일에서 읽어온 내용을 직접 고치고 빠진 일정을 추가할 수 있어요.')}
+        <ScheduleInput year={Number(nativeSource?.settings.year||2027)} startMonth={Number(nativeSource?.settings.startMonth||3)} events={events} onChange={setEvents} required={Boolean(nativeSource?.template.publishing?.dataRequirements?.some((r:NativeProject)=>r.path==='calendar.events'&&['project-create-required','final-submit-required'].includes(r.stage)))} onBack={()=>setStep('school')} onNext={()=>setStep('photos')}/>
+      </>}
+      {!loading && !failure && selected && step==='photos'&&<>
+        <Progress/><MaterialStage active={3}/>{heading('우리 학교 사진','달력에 넣을 사진을 준비해 주세요','여러 장을 선택하고 사용할 곳을 골라 주세요.')}
+        <PhotoInput photos={photos} onPhotos={setPhotos} slots={nativeSource?photoSlotsForProject(nativeSource):selected.photoSlots||[]} assignments={assignments} onAssignments={setAssignments} minimumDpi={nativeSource?.template.resources?.exportSettings?.imageQualityPolicy?.orderMinimumDpi||200} recommendedDpi={nativeSource?.template.resources?.exportSettings?.imageQualityPolicy?.recommendedDpi||300} onBack={()=>setStep('schedule')} onNext={()=>{setMaterialPage(0);setStep('input-review');}}/>
+      </>}
       {!loading && !failure && selected && step === 'input-review' && <>
-        <Progress />{heading('학교 정보 입력 확인', '입력한 내용이 맞나요?', '현재는 입력 흐름 검토 단계이며 저장·달력 반영은 아직 실행하지 않습니다.')}
-        <Panel><h2>{school.values.name}</h2><dl className="facts">{selected.fields.map(field => <div key={field.key}><dt>{field.label}</dt><dd>{school.hidden.includes(field.key) ? '달력에 표시하지 않음' : visibleSchoolValues(selected.fields, school)[field.key] || '미입력'}</dd></div>)}</dl></Panel>
-        <div className="reference-note">다음은 학사일정·사진 입력과 동일 에디터 엔진 연결입니다. 실제 저장이 완료되기 전에는 ‘저장 완료’로 표시하지 않습니다.</div>
-        <div className="actions"><Button onClick={() => setStep('school')}>← 학교 정보 수정</Button><Button disabled>학사일정 입력 · 연결 예정</Button></div>
+        <Progress />{heading('학교 자료 입력 확인','입력한 자료를 확인해 주세요',nativeSource?'아래 달력에서 학교 정보와 학사일정, 배정한 사진을 확인해 주세요.':'학교 정보·학사일정·사진 입력을 확인할 수 있어요. 실제 템플릿 반영은 연결 전이에요.')}
+        <div className="material-review"><Panel><h2>{school.values.name||'우리 학교'}</h2><dl className="facts">{selected.fields.map(field=><div key={field.key}><dt>{field.label}</dt><dd>{school.hidden.includes(field.key)?'달력에 표시하지 않음':visibleSchoolValues(selected.fields,school)[field.key]||'템플릿 기본값 유지'}</dd></div>)}<div><dt>학사일정</dt><dd>{events.length}건</dd></div><div><dt>선택한 사진</dt><dd>{photos.length}장 · {Object.keys(assignments).length}곳 배정</dd></div></dl></Panel>
+        {materialProject&&<Panel><h2>우리 학교 달력</h2><div className="calendar-page-controls"><Button disabled={materialPage===0} onClick={()=>setMaterialPage(v=>v-1)}>← 이전 면</Button><span>{materialPage+1} / {materialProject.book.pageInstances.length}면</span><Button disabled={materialPage>=materialProject.book.pageInstances.length-1} onClick={()=>setMaterialPage(v=>v+1)}>다음 면 →</Button></div><NativePreview project={materialProject} pageId={materialProject.book.pageInstances[materialPage].id}/></Panel>}
+        </div><div className="reference-note">자료와 사진은 아직 서버에 저장되지 않았어요. 새로고침하거나 창을 닫으면 사라집니다. 프로젝트 저장·재열기와 주문 연결은 다음 단계입니다.</div>
+        <div className="actions"><Button onClick={()=>setStep('school')}>학교 정보 수정</Button><Button onClick={()=>setStep('schedule')}>일정 수정</Button><Button onClick={()=>setStep('photos')}>사진 수정</Button><Button disabled>프로젝트 저장 · 연결 예정</Button></div>
       </>}
 
       {!loading && !failure && step === 'projects' && <>
@@ -154,7 +190,7 @@ export function Onboarding() {
       if (event.key === 'ArrowRight' && selected) setPreviewIndex(index => Math.min(selected.pages.length - 1, index + 1));
       if (event.key === 'ArrowLeft') setPreviewIndex(index => Math.max(0, index - 1));
     }}>
-      {selected && <><div className="preview-header"><div><h2 id="preview-title">{selected.pages[previewIndex]?.label}</h2><p className="muted">공통 참고 이미지 · {previewIndex + 1} / {selected.pageCount}면</p></div><Button onClick={() => setPreviewOpen(false)}>닫기 ×</Button></div><PreviewImage className="preview-image" url={selected.pages[previewIndex]?.imageUrl ? `${selected.pages[previewIndex].imageUrl}?size=large` : null} label={selected.pages[previewIndex]?.label || '페이지'} /><div className="preview-controls"><Button disabled={previewIndex === 0} onClick={() => setPreviewIndex(index => index - 1)}>← 이전 면</Button><span aria-live="polite">{previewIndex + 1} / {selected.pageCount}</span><Button disabled={previewIndex === selected.pages.length - 1} onClick={() => setPreviewIndex(index => index + 1)}>다음 면 →</Button></div></>}
+      {selected && previewOpen && <><div className="preview-header"><div><h2 id="preview-title">{selected.pages[previewIndex]?.label}</h2><p className="muted">{nativeSource?'템플릿 원본':'공통 참고 이미지'} · {previewIndex + 1} / {selected.pageCount}면</p></div><Button onClick={() => setPreviewOpen(false)}>닫기 ×</Button></div>{nativeSource?<NativePreview project={nativeSource} pageId={nativeSource.book.pageInstances[previewIndex].id}/>:<PreviewImage className="preview-image" url={selected.pages[previewIndex]?.imageUrl ? `${selected.pages[previewIndex].imageUrl}?size=large` : null} label={selected.pages[previewIndex]?.label || '페이지'} />}<div className="preview-controls"><Button disabled={previewIndex === 0} onClick={() => setPreviewIndex(index => index - 1)}>← 이전 면</Button><span aria-live="polite">{previewIndex + 1} / {selected.pageCount}</span><Button disabled={previewIndex === selected.pages.length - 1} onClick={() => setPreviewIndex(index => index + 1)}>다음 면 →</Button></div></>}
     </dialog>
   </div>;
 }
@@ -165,3 +201,5 @@ function GuideRow({number, title, text}: {number: string; title: string; text: s
 function PreviewImage({url, label, className = '', decorative = false}: {url?: string | null; label: string; className?: string; decorative?: boolean}) {
   return url ? <img className={className} src={url} alt={decorative ? '' : `${label} 미리보기`} loading="lazy" /> : <div className={`preview-placeholder ${className}`} role="img" aria-label={`${label}: 이미지 연결 대기`}><strong>{label}</strong><span>미리보기 연결 대기</span></div>;
 }
+
+function MaterialStage({active}:{active:1|2|3}){return <div className="input-stage"><span className="input-stage-count">{active} / 3</span>{["학교 정보","학사일정","사진"].map((label,index)=><span className={index+1===active?"input-stage-current":""} key={label} aria-current={index+1===active?"step":undefined}>{label}</span>)}</div>;}
