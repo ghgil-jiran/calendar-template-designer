@@ -29,3 +29,12 @@
 - 에디터 원본(.acdl.json) 로컬 불러오기를 추가했다. 별도의 에디터를 만들거나 관리자 데이터를 공개 저장소에 넣지 않는다. 접근 가능한 이미지/포함 이미지를 사용하며 미해결 acdl-asset:// 또는 blob: 참조는 명시적으로 거절한다. 가져온 원본은 게시 상태를 변경하지 않는다.
 - 중요한 제한: Preview의 게시 카탈로그 서버 설정은 여전히 없다. 5개 참고 카드는 실제 템플릿 원본으로 자동 연결하지 않았다. 기존 샘플 A 저장 원본에는 acdl-asset:// 서버 자산 참조가 있어 그대로 로컬 불러오기할 수 없다. 실제 게시 목록과 자산을 사용하려면 후속 서버 조회 설정이 필요하다.
 - 기존 로그인 연동, 서버 프로젝트 저장, 개체 편집 화면 구성은 범위 밖이다.
+
+## 2026-11-07 · 게시 조회 연결 준비/설정 대기
+
+- 기존 에디터의 환경변수 메타데이터에서 SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY가 Secret으로 존재함을 확인했다. 값을 해독/출력/복사하지 않았다. 신규 calendar-customer-workspace 프로젝트 환경변수는 비어 있다.
+- 실제 DB 스키마와 게시 상태/latest_version_id 계약을 대조했다. 서버 조회를 테스트 가능한 reader로 분리하고 다른 템플릿 소유 버전 혼입을 막았다.
+- Supabase 서명 응답의 /object/sign/...와 /storage/v1/object/sign/...를 모두 정확하게 처리한다. 지정된 Supabase 원본과 template-assets 경로만 허용한다. 목록의 acdl-asset 표지도 해석한다.
+- 자동 검사27개 통과: published 조회 필터/템플릿·버전 일치/이미지 주소/누락·오래된 버전 거절/실제 API 모양의 모의 응답에서 반영·저장·백업·오프라인 복원. 운영 DB의 실제 게시 목록 검증과 구분한다.
+- 사용자 작업 필요: Vercel > gil-gighyun-s-projects > calendar-customer-workspace > Settings > Environment Variables에서 Preview에 SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY(Secret), CUSTOMER_CATALOG_MODE=published(Config)를 설정. 기존 에디터와 같은 Supabase 프로젝트를 사용한다. 실제 키는 채팅에 요청하지 않는다. 등록 후 새 Preview 배포로 활성화해야 한다.
+- 설정 전에는 기존 review 모드를 유지한다. 게시 조회가 활성화되면 실패를 참고 데이터로 숨기지 않는다. 실제 DB의 게시 템플릿 하나를 이용한 화면/사진/재열기 검증은 아직 남아 있다.
