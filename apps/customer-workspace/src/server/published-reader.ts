@@ -2,7 +2,7 @@ import {assertNativeProject,fieldsForProject,photoSlotsForProject,type NativePro
 import type {CatalogResponse,TemplateCard} from '../lib/api/contracts';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function createPublishedReader(settings:{url:string;key:string;fetcher?:typeof fetch}){
- const url=settings.url.replace(/\/$/,''),key=settings.key,fetch=settings.fetcher||globalThis.fetch;
+ const url=settings.url.trim().replace(/\/$/,''),key=settings.key.trim(),fetch=settings.fetcher||globalThis.fetch;
  if(!/^https:\/\//.test(url)||!key)throw Error('템플릿 연결 설정이 준비되지 않았습니다.');
  function config(){return {url,key};}
 async function rows(path:string):Promise<NativeProject[]>{const {url,key}=config();const response=await fetch(`${url}/rest/v1/${path}`,{headers:{apikey:key,Authorization:`Bearer ${key}`},cache:'no-store',signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error('게시 템플릿을 불러오지 못했습니다.');return response.json();}

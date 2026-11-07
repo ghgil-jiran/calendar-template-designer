@@ -1,8 +1,9 @@
 import {createPublishedReader} from '../src/server/published-reader.ts';
 import {prepareSnapshot,backupFile,restoreBackup,hydrateSnapshot} from '../src/lib/projects/store.ts';
 // Run inside the deployment: credentials stay in server environment, never in logs/artifacts.
-if(process.env.CUSTOMER_CATALOG_MODE&&!['review','published'].includes(process.env.CUSTOMER_CATALOG_MODE)){console.error('[published-check] invalid catalog mode');process.exit(1);}
-if(process.env.CUSTOMER_CATALOG_MODE!=='published'){console.log('[published-check] skipped: review mode');process.exit(0);}
+const mode=process.env.CUSTOMER_CATALOG_MODE?.trim();
+if(mode&&!['review','published'].includes(mode)){console.error('[published-check] invalid catalog mode');process.exit(1);}
+if(mode!=='published'){console.log('[published-check] skipped: review mode');process.exit(0);}
 try{
  const reader=createPublishedReader({url:process.env.SUPABASE_URL||'',key:process.env.SUPABASE_SERVICE_ROLE_KEY||''});
  const catalog=await reader.publishedCatalog();
