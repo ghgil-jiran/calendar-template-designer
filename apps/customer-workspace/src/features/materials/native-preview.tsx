@@ -11,7 +11,7 @@ async function loadEngine(){
   return manifest as {styles:string[]};})();
  try{return await ready;}catch(error){ready=undefined;throw error;}
 }
-export function NativePreview({project,pageId}:{project:NativeProject;pageId:string}){
+export function NativePreview({project,pageId,compact=false}:{project:NativeProject;pageId:string;compact?:boolean}){
  const host=useRef<HTMLDivElement>(null),engine=useRef<Engine|null>(null),[failure,setFailure]=useState(''),[assetWarning,setAssetWarning]=useState(''),[loading,setLoading]=useState(true),[retry,setRetry]=useState(0);
  useEffect(()=>{let alive=true;let cleanup=()=>{};setLoading(true);setFailure('');setAssetWarning('');
   (async()=>{const manifest=await loadEngine();if(!alive||!host.current)return;const shadow=host.current.shadowRoot||host.current.attachShadow({mode:'open'});shadow.replaceChildren();
@@ -24,5 +24,5 @@ export function NativePreview({project,pageId}:{project:NativeProject;pageId:str
   })().catch(error=>{if(alive){setFailure(error.message);setLoading(false);}});
   return()=>{alive=false;cleanup();engine.current?.dispose();engine.current=null;};
  },[project,pageId,retry]);
- return <div className="native-preview"><div ref={host} aria-label="학교 자료가 반영된 달력" role="img" />{assetWarning&&<p className="field-error" role="alert">{assetWarning}</p>}{loading&&<p role="status">달력을 표시하고 있어요.</p>}{failure&&<div role="alert"><p>{failure}</p><button type="button" className="button" onClick={()=>setRetry(v=>v+1)}>다시 불러오기</button></div>}</div>;
+ return <div className="native-preview"><div ref={host} aria-label="학교 자료가 반영된 달력" role="img" />{!compact&&assetWarning&&<p className="field-error" role="alert">{assetWarning}</p>}{!compact&&loading&&<p role="status">달력을 표시하고 있어요.</p>}{failure&&<div role="alert"><p>{failure}</p>{!compact&&<button type="button" className="button" onClick={()=>setRetry(v=>v+1)}>다시 불러오기</button>}</div>}</div>;
 }

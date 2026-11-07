@@ -6,6 +6,8 @@ if(mode&&!['review','published'].includes(mode)){console.error('[published-check
 if(mode!=='published'){console.log('[published-check] skipped: review mode');process.exit(0);}
 try{
  const reader=createPublishedReader({url:process.env.SUPABASE_URL||'',key:process.env.SUPABASE_SERVICE_ROLE_KEY||''});
+ const diagnosticUrl=new URL((process.env.SUPABASE_URL||'').trim().replace(/\/$/,'')+'/rest/v1/template_projects');diagnosticUrl.search=new URLSearchParams({select:'id,name,state,latest_version_number',name:'ilike.*샘플*A*',limit:'10'}).toString();
+ const diagnostic=await fetch(diagnosticUrl,{headers:{apikey:(process.env.SUPABASE_SERVICE_ROLE_KEY||'').trim(),Authorization:'Bearer '+(process.env.SUPABASE_SERVICE_ROLE_KEY||'').trim()},signal:AbortSignal.timeout(15000)});if(diagnostic.ok)console.log('[published-check] sample-a-status '+JSON.stringify(await diagnostic.json()));
  const catalog=await reader.publishedCatalog();
  console.log('[published-check] '+JSON.stringify({stage:'catalog',mode:catalog.mode,publishedCount:catalog.templates.length}));
  if(!catalog.templates.length){console.log('[published-check] connected; no published templates available');process.exit(0);}
