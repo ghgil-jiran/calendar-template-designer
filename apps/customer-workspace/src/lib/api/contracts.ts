@@ -23,7 +23,7 @@ export type TemplateCard = {
   widthMm: number;
   heightMm: number;
   period: string;
-  pages: {number: number; label: string; imageUrl: string | null}[];
+  pages: {number: number; label: string; imageUrl: string | null; largeImageUrl?: string | null}[];
   composition: {label: string; count: number}[];
   fields: SchoolField[];
   photoGuide: string;
