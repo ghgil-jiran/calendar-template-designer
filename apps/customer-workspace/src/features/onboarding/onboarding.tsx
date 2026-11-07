@@ -20,6 +20,9 @@ export function Onboarding() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [previewIndex, setPreviewIndex] = useState(0);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [playing, setPlaying] = useState(true);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [heroHover, setHeroHover] = useState(false);
   const previewRef = useRef<HTMLDialogElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const started = useRef(false);
@@ -51,6 +54,20 @@ export function Onboarding() {
     if (!previewOpen && dialog?.open) dialog.close();
   }, [previewOpen]);
 
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => {if (media.matches) setPlaying(false);};
+    sync(); media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
+  useEffect(() => {
+    if (!playing || heroHover || step !== 'catalog' || !catalog?.templates.length) return;
+    const timer = window.setInterval(() => {
+      if (!document.hidden) setHeroIndex(index => (index + 1) % catalog.templates.length);
+    }, 5500);
+    return () => window.clearInterval(timer);
+  }, [playing, heroHover, step, catalog]);
+
   function choose(template: TemplateCard) {
     if (selectedId !== template.id) {setSchool(emptySchoolInput(template.fields)); setErrors({});}
     setSelectedId(template.id); setStep('detail');
@@ -74,16 +91,19 @@ export function Onboarding() {
   return <div className="workspace">
     <header className="site-header"><div className="header-inner"><Button variant="quiet" className="brand" onClick={catalogHome}>우리학교<span>달력</span></Button><p className="header-caption">우리 학교의 일 년을 담아요</p><Button onClick={() => setStep('projects')}>내 프로젝트</Button></div></header>
     <div className="review-notice"><div>{catalog?.notice || '신규 서비스 개발 검토용 · 실제 로그인·서버 저장·주문은 연결 전입니다.'}</div></div>
-    <main className="main">
+    <main className="main" data-motion={playing ? 'playing' : 'paused'}>
       {loading && <Panel className="state-panel"><h1>디자인을 준비하고 있어요</h1><p className="muted" role="status">잠시만 기다려 주세요.</p></Panel>}
       {!loading && failure && <Panel className="state-panel"><h1>목록을 다시 불러올게요</h1><p role="alert">{failure}</p><Button variant="primary" onClick={() => setRequest(value => value + 1)}>다시 시도하기</Button></Panel>}
       {!loading && !failure && catalog && step === 'catalog' && <>
         <section className="hero"><div><span className="badge">2027학년도 · 우리 학교 맞춤 달력</span><h1 ref={headingRef} tabIndex={-1}>디자인은 골라주세요.<br /><em>우리 학교 달력</em>으로<br />완성해 드려요.</h1><p className="muted hero-copy">학교 정보와 학사일정, 사진을 넣으면 돼요.<br />완성된 페이지를 확인하고 주문하세요.</p><ol className="journey"><li><span>1</span>디자인 선택</li><li><span>2</span>학교 자료 입력</li><li><span>3</span>확인 후 주문</li></ol></div>
-          {catalog.templates[0] && <div className="hero-art"><PreviewImage url={catalog.templates[0].coverUrl} label="표지" /><PreviewImage className="hero-interior" url={catalog.templates[0].pages[4]?.imageUrl} label="월력 앞면" /><small>샘플 A 구성 참고 이미지</small></div>}
+          {catalog.templates[heroIndex] && <div className="hero-showcase" onMouseEnter={() => setHeroHover(true)} onMouseLeave={() => setHeroHover(false)} onFocusCapture={() => setHeroHover(true)} onBlurCapture={event => {if (!event.currentTarget.contains(event.relatedTarget)) setHeroHover(false);}}>
+            <div className="hero-art" key={heroIndex}><PreviewImage url={catalog.templates[heroIndex].coverUrl} label={catalog.templates[heroIndex].name} /><PreviewImage className="hero-interior" url={catalog.templates[heroIndex].pages[catalog.templates[heroIndex].representativePages[heroIndex % 4] - 1]?.imageUrl} label="대표 페이지" /></div>
+            <div className="showcase-controls"><small>{catalog.templates[heroIndex].name} · 공통 참고 이미지</small><div><Button variant="quiet" onClick={() => setHeroIndex(index => (index - 1 + catalog.templates.length) % catalog.templates.length)} aria-label="이전 디자인">←</Button><span>{heroIndex + 1} / {catalog.templates.length}</span><Button variant="quiet" onClick={() => setHeroIndex(index => (index + 1) % catalog.templates.length)} aria-label="다음 디자인">→</Button><Button variant="quiet" onClick={() => setPlaying(value => !value)} aria-label={playing ? '자동 넘김 멈추기' : '자동 넘김 재생'}>{playing ? 'Ⅱ' : '▶'}</Button></div></div>
+          </div>}
         </section>
         <section aria-labelledby="catalog-title"><div className="catalog-heading"><div><h2 id="catalog-title">마음에 드는 디자인을 골라보세요</h2><p className="muted">학사달력 · 탁상형 · 전체 구성을 먼저 살펴볼 수 있어요.</p></div><span className="badge">{catalog.templates.length}종 선택 구성 검토</span></div>
           {!catalog.templates.length ? <Panel><h3>공개된 디자인을 준비 중이에요</h3><p className="muted">준비가 끝나면 이곳에서 고를 수 있어요.</p></Panel> : <div className="catalog-grid">{catalog.templates.map(template => <article className="template-card" key={template.id}>
-            <div className="template-art"><PreviewImage url={template.coverUrl} label={template.name} /><span className="image-label">{template.previewKind === 'reference' ? '샘플 A 참고' : '시안용 공통 이미지'}</span><div className="mini-previews">{template.representativePages.map(number => <PreviewImage key={number} className="mini-placeholder" url={template.pages[number - 1].imageUrl} label={template.pages[number - 1].label} />)}<span>표지 · 월력 앞뒤<br />구성 참고</span></div></div>
+            <div className="template-art"><PreviewImage url={template.coverUrl} label={template.name} /><span className="image-label">{template.previewKind === 'reference' ? '샘플 A 참고' : '시안용 공통 이미지'}</span><div className="mini-previews" tabIndex={0} aria-label={`${template.name} 대표 4면 · 마우스를 올리거나 초점을 두면 멈춥니다`}><div className="mini-track">{[...template.representativePages, ...template.representativePages].map((number, index) => <PreviewImage key={index} className="mini-placeholder" url={template.pages[number - 1].imageUrl} label={template.pages[number - 1].label} decorative={index >= template.representativePages.length} />)}</div></div></div>
             <div className="template-copy"><h3>{template.name}</h3><p>{template.description}</p><small>{template.note}</small><div className="card-actions"><span>{template.widthMm} × {template.heightMm} mm · {template.pageCount}면</span><Button onClick={() => choose(template)} aria-label={`${template.name} 전체면 살펴보기`}>전체면 살펴보기 →</Button></div></div>
           </article>)}</div>}
         </section>
@@ -135,7 +155,7 @@ export function Onboarding() {
       if (event.key === 'ArrowRight' && selected) setPreviewIndex(index => Math.min(selected.pages.length - 1, index + 1));
       if (event.key === 'ArrowLeft') setPreviewIndex(index => Math.max(0, index - 1));
     }}>
-      {selected && <><div className="preview-header"><div><h2 id="preview-title">{selected.pages[previewIndex]?.label}</h2><p className="muted">공통 참고 이미지 · {previewIndex + 1} / {selected.pageCount}면</p></div><Button onClick={() => setPreviewOpen(false)}>닫기 ×</Button></div><PreviewImage className="preview-image" url={selected.pages[previewIndex]?.imageUrl} label={selected.pages[previewIndex]?.label || '페이지'} /><div className="preview-controls"><Button disabled={previewIndex === 0} onClick={() => setPreviewIndex(index => index - 1)}>← 이전 면</Button><span aria-live="polite">{previewIndex + 1} / {selected.pageCount}</span><Button disabled={previewIndex === selected.pages.length - 1} onClick={() => setPreviewIndex(index => index + 1)}>다음 면 →</Button></div></>}
+      {selected && <><div className="preview-header"><div><h2 id="preview-title">{selected.pages[previewIndex]?.label}</h2><p className="muted">공통 참고 이미지 · {previewIndex + 1} / {selected.pageCount}면</p></div><Button onClick={() => setPreviewOpen(false)}>닫기 ×</Button></div><PreviewImage className="preview-image" url={selected.pages[previewIndex]?.imageUrl ? `${selected.pages[previewIndex].imageUrl}?size=large` : null} label={selected.pages[previewIndex]?.label || '페이지'} /><div className="preview-controls"><Button disabled={previewIndex === 0} onClick={() => setPreviewIndex(index => index - 1)}>← 이전 면</Button><span aria-live="polite">{previewIndex + 1} / {selected.pageCount}</span><Button disabled={previewIndex === selected.pages.length - 1} onClick={() => setPreviewIndex(index => index + 1)}>다음 면 →</Button></div></>}
     </dialog>
   </div>;
 }
@@ -143,6 +163,6 @@ export function Onboarding() {
 function Progress() {return <ol className="journey progress" aria-label="달력 제작 과정"><li className="progress-complete"><span aria-label="완료">✓</span>디자인 선택</li><li aria-current="step"><span>2</span>학교 자료 입력</li><li><span>3</span>달력 확인</li></ol>;}
 function GuideRow({number, title, text}: {number: string; title: string; text: string}) {return <Panel className="guide-row"><span className="guide-number">{number}</span><div><h2>{title}</h2><p className="muted">{text}</p></div></Panel>;}
 
-function PreviewImage({url, label, className = ''}: {url?: string | null; label: string; className?: string}) {
-  return url ? <img className={className} src={url} alt={`${label} 미리보기`} loading="lazy" /> : <div className={`preview-placeholder ${className}`} role="img" aria-label={`${label}: 이미지 연결 대기`}><strong>{label}</strong><span>미리보기 연결 대기</span></div>;
+function PreviewImage({url, label, className = '', decorative = false}: {url?: string | null; label: string; className?: string; decorative?: boolean}) {
+  return url ? <img className={className} src={url} alt={decorative ? '' : `${label} 미리보기`} loading="lazy" /> : <div className={`preview-placeholder ${className}`} role="img" aria-label={`${label}: 이미지 연결 대기`}><strong>{label}</strong><span>미리보기 연결 대기</span></div>;
 }

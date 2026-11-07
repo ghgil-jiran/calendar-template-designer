@@ -173,3 +173,20 @@ img {max-width: 100%;}
 .page-thumbnail .preview-placeholder {min-height: 85px; padding: 8px; margin-bottom: 9px;}
 .page-thumbnail .preview-placeholder strong {font-size: 13px;}
 .preview-dialog .preview-placeholder {display: flex; min-height: 280px;}
+
+/* Gallery movement stays optional and pauses while a reader inspects it. */
+.hero-showcase {min-width: 0; overflow: hidden;}
+.hero-showcase .hero-art {animation: hero-rise .7s ease-out;}
+.hero-showcase .hero-art > img {aspect-ratio: 1.43; object-fit: contain;}
+.showcase-controls {display: flex; align-items: center; justify-content: space-between; gap: 8px; color: hsl(var(--muted-foreground)); margin-top: 14px; font-size: 11px;}
+.showcase-controls small {max-width: 55%;}
+.showcase-controls > div {display: flex; align-items: center; gap: 4px; flex-shrink: 0;}
+.showcase-controls button {padding: 4px 8px; min-height: 32px;}
+.mini-previews {display: block; overflow: hidden; border-radius: 4px;}
+.mini-track {display: flex; width: 400%; animation: page-flow 28s linear infinite;}
+.mini-track .mini-placeholder {flex: 0 0 12.5%; width: 12.5%; padding: 0 7px; aspect-ratio: 1.43; object-fit: contain; min-height: 0;}
+.mini-previews:hover .mini-track, .mini-previews:focus-within .mini-track, [data-motion=paused] .mini-track {animation-play-state: paused;}
+@keyframes page-flow {to {transform: translateX(-50%);}}
+@keyframes hero-rise {from {opacity: .4; transform: translateY(28px);} to {opacity: 1; transform: translateY(0);}}
+@media (prefers-reduced-motion: reduce) {.mini-track, .hero-showcase .hero-art {animation: none;}}
+@media (max-width: 720px) {.hero-showcase {width: 100%; max-width: 390px; justify-self: center;} .showcase-controls {font-size: 10px;}}

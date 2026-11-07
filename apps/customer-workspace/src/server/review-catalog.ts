@@ -31,7 +31,7 @@ const definitions = [
 export function reviewCatalog(): CatalogResponse {
   const templates: TemplateCard[] = definitions.map(item => ({
     id: item.id, version: 1, name: item.name, description: item.description, note: item.note,
-    previewKind: item.kind, coverUrl: imageUrl(item.cover), representativePages: [5, 4],
+    previewKind: item.kind, coverUrl: imageUrl(item.cover), representativePages: [5, 4, 2, 3],
     pageCount: 28, widthMm: 260, heightMm: 180, period: '2027년 3월 ~ 2028년 2월',
     pages: Array.from({length: 28}, (_, index) => ({number: index + 1, label: pageLabel(index + 1), imageUrl: imageUrl(index + 1)})),
     composition: [{label: '표지', count: 1}, {label: '연력', count: 1}, {label: '학교 상징', count: 1}, {label: '월력 앞뒤', count: 24}, {label: '뒷표지', count: 1}],
