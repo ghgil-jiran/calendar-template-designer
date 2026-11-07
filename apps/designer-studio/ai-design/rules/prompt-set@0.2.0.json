@@ -1,0 +1,13 @@
+{
+  "id": "school-calendar-prompt",
+  "version": "0.2.0",
+  "experiment": "cover-variants-v1",
+  "purpose": "표지 역할의 배경·장식·빈 사진 프레임 시안을 생성하고 실제 학교 정보는 편집 개체로 보호한다.",
+  "cover": {
+    "generate": ["background", "edge-pattern", "independent-decoration", "empty-photo-frame"],
+    "reserve": ["school-photo", "year", "school-name", "school-logo", "school-contact"],
+    "forbid": ["letters", "numbers", "dates", "school-name", "address", "contact", "logo", "emblem", "watermark", "fake-text"],
+    "directions": ["centered-photo", "asymmetric-photo", "editorial-frame", "wide-photo"]
+  },
+  "print": {"sourceColorSpace": "RGB", "size": "1536x1024", "safeAreaRequired": true, "bleedAware": true}
+}

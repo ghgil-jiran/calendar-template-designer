@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CalendarType",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "sizes",
+    "pageStructure",
+    "allowedObjects"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "duplex": {
+      "type": "boolean"
+    },
+    "sizes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "width",
+          "height",
+          "unit"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "width": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "height": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "unit": {
+            "enum": [
+              "mm",
+              "px"
+            ]
+          },
+          "recommended": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "pageStructure": {
+      "type": "object"
+    },
+    "allowedObjects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "starterTemplates": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "requiredInputs": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

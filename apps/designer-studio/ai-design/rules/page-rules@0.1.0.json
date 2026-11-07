@@ -1,0 +1,11 @@
+{
+  "id": "calendar-page-rules",
+  "version": "0.1.0",
+  "roles": {
+    "cover": {"protect": ["year", "school-name", "school-symbol", "school-photo"], "generate": ["background", "illustration", "photo-frame", "decoration"]},
+    "annual": {"protect": ["year", "annual-calendar", "holiday"], "generate": ["calendar-frame", "corner-decoration", "pattern"]},
+    "month": {"protect": ["month", "weekday", "date", "school-event"], "generate": ["month-decoration", "seasonal-illustration", "grid-edge-pattern"]},
+    "month-back": {"protect": ["mini-calendar", "band-calendar", "planner", "checklist"], "generate": ["photo-frame", "memo-decoration", "planner-frame"]},
+    "back-cover": {"protect": ["school-name", "address", "contact", "school-symbol"], "generate": ["information-frame", "brand-pattern", "closing-decoration"]}
+  }
+}

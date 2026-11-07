@@ -1,0 +1,190 @@
+(function(root){
+ const CHUNK_BYTES=1800*1024;
+ const encoder=new TextEncoder();
+ function stable(value){if(Array.isArray(value))return value.map(stable);if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(key=>[key,stable(value[key])]));return value}
+ function deterministic(value){return JSON.stringify(stable(value),null,2)+'\n'}
+ function hex(bytes){return [...new Uint8Array(bytes)].map(value=>value.toString(16).padStart(2,'0')).join('')}
+ async function sha256(bytes){return hex(await root.crypto.subtle.digest('SHA-256',bytes))}
+ function packageId(input){const clean=String(input||'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');return clean&&/^[a-z0-9]/.test(clean)?clean.slice(0,80):`template-${Date.now()}`}
+ function publicationIdentity(project,currentName='',record={}){const existing=project?.template?.publishing?.packageId||project?.template?.package?.id||record.packageId,temporary=/^(?:\d{8}_\d+|새 템플릿|이름 없는 템플릿)$/.test(String(currentName).trim()),type=project?.productType?.category||record.type||'desk',size=project?.productType?.pageSize||{},spec=project?.template?.settings?.aiDesignSpec||{},style=spec.styleSnapshots?.find(item=>item.id===spec.styleId),serial=String(currentName).match(/(?:_|·\s*)(\d+)$/)?.[1]||'1',sequence=String(Number(serial)||1).padStart(2,'0'),typeName=type==='desk'?'탁상형':type==='wall'?'벽걸이형':type==='poster'?'연간 포스터형':type,width=Number(size.width)||0,height=Number(size.height)||0,front=Number(project?.settings?.frontInsertCount)||0,rear=Number(project?.settings?.rearInsertCount)||0,composition=front||rear?[front&&`앞간지 ${front*2}면`,rear&&`뒷간지 ${rear*2}면`].filter(Boolean).join(' · '):'기본 구성',name=temporary?`${typeName} ${width}×${height} · ${composition} · ${style?.name||'기본 디자인'} · ${sequence}`:currentName||record.name||'이름 없는 템플릿',id=existing||`${type}-${width}x${height}-${front||rear?'custom':'basic'}-${spec.styleId||'design'}-${sequence}`;return {name,id:packageId(id)}}
+ async function distinctPublicationIdentity(project,record,identity){
+  const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return identity;
+  const currentId=String(project.template?.remoteId||record.remoteId||project.template?.id||record.id||'');
+  const published=(await remote.list()).filter(item=>item.state==='published'&&String(item.id)!==currentId);
+  const otherOwners=[];
+  for(const item of published){
+   const loaded=await remote.load(item.id,{deferAssets:true});
+   if(publishedIdentity(loaded?.version?.projectData)?.templateId===identity.id)otherOwners.push(item);
+  }
+  if(!otherOwners.length)return identity;
+  const service=(await request({mode:'inspect-review-catalog'})).packages||[];
+  const active=service.find(item=>item.templateId===identity.id);
+  if(active?.name===identity.name&&!otherOwners.some(item=>item.name===identity.name))return identity;
+  if(!active&&[currentId,...otherOwners.map(item=>String(item.id))].sort()[0]===currentId)return identity;
+  const key=currentId.replace(/[^a-z0-9]/gi,'').slice(0,12).toLowerCase();
+  if(!key)throw new Error('서로 다른 템플릿의 Package ID 충돌을 해결하려면 먼저 템플릿을 라이브러리에 저장해 주세요.');
+  const id=packageId(`${identity.id.slice(0,Math.max(1,79-key.length))}-${key}`);
+  return {...identity,id};
+ }
+ function semver(input){return /^\d+\.\d+\.\d+$/.test(String(input||''))?String(input):'1.0.0'}
+ async function request(body){
+  const token=root.ACDLTemplateRemotePersistence?.accessToken?.()||root.ACDLAdminAuth?.accessToken?.();if(!token)throw new Error('게시하려면 Master Admin 로그인이 필요합니다.');
+  const response=await (root.ACDLAdminAuth?.authorizedFetch||root.fetch.bind(root))('/api/templates',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({operation:'publish-review',reviewBody:body})}),result=await response.json().catch(()=>({}));
+  if(!response.ok){const error=new Error(result.message||result.error||'사용자 서비스로 템플릿을 보내지 못했습니다.');error.code=result.error||'USER_SERVICE_REVIEW_FAILED';error.status=response.status;throw error}return result
+ }
+ function progress(stage,detail='',completed=0,total=1){root.ACDLTemplateSaveProgress?.({phase:'publishing',stage,detail,completed,total})}
+ function confirmPublish({name,id,currentVersion,nextVersion}){
+  return new Promise(resolve=>{
+   let dialog=document.getElementById('templatePublishConfirmDialog');
+   if(!dialog){dialog=document.createElement('div');dialog.id='templatePublishConfirmDialog';dialog.className='template-save-dialog hidden';dialog.innerHTML='<div class="template-save-card" role="alertdialog" aria-modal="true" aria-labelledby="templatePublishConfirmTitle"><h2 id="templatePublishConfirmTitle">사용자 서비스 게시</h2><p>새 검토 버전을 만든 뒤 같은 템플릿의 이전 버전을 사용자 서비스 목록에서 내리고 보관합니다.</p><div class="template-delete-target"><span>템플릿</span><strong data-publish-name></strong></div><div class="template-delete-target"><span>Package</span><strong data-publish-id></strong></div><div class="template-delete-target"><span>버전</span><strong data-publish-version></strong></div><p class="save-feedback info">새 버전이 완전히 검증되기 전에는 기존 버전이 유지됩니다. Production에는 게시하지 않습니다.</p><div class="template-save-actions"><button type="button" data-publish-cancel>취소</button><button type="button" class="primary" data-publish-confirm>게시 진행</button></div></div>';document.body.appendChild(dialog)}
+   dialog.querySelector('[data-publish-name]').textContent=name;dialog.querySelector('[data-publish-id]').textContent=id;dialog.querySelector('[data-publish-version]').textContent=`${currentVersion} → ${nextVersion}`;dialog.classList.remove('hidden');
+   const finish=value=>{dialog.classList.add('hidden');dialog.querySelector('[data-publish-cancel]').onclick=null;dialog.querySelector('[data-publish-confirm]').onclick=null;resolve(value)};dialog.querySelector('[data-publish-cancel]').onclick=()=>finish(false);dialog.querySelector('[data-publish-confirm]').onclick=()=>finish(true)
+  })
+ }
+ async function inlineBlobUrls(value,cache=new Map()){
+  if(typeof value==='string'&&value.startsWith('blob:')){
+   if(cache.has(value))return cache.get(value);const blob=await root.fetch(value).then(response=>{if(!response.ok)throw new Error('게시 이미지 원본을 읽지 못했습니다.');return response.blob()}),dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('게시 이미지를 변환하지 못했습니다.'));reader.readAsDataURL(blob)});cache.set(value,dataUrl);return dataUrl
+  }
+  if(Array.isArray(value))return Promise.all(value.map(item=>inlineBlobUrls(item,cache)));
+  if(value&&typeof value==='object'){const output={};for(const [key,item] of Object.entries(value))output[key]=await inlineBlobUrls(item,cache);return output}
+  return value
+ }
+ function dataUrlBytes(value){
+  const match=/^data:(image\/[^;,]+)(;base64)?,([\s\S]*)$/.exec(value);if(!match)return null;
+  if(!match[2])return {mimeType:match[1],bytes:encoder.encode(decodeURIComponent(match[3]))};
+  const binary=atob(match[3]),bytes=new Uint8Array(binary.length);for(let index=0;index<binary.length;index++)bytes[index]=binary.charCodeAt(index);return {mimeType:match[1],bytes}
+ }
+ function assetUuid(digest){const chars=digest.slice(0,32).split('');chars[12]='4';chars[16]=['8','9','a','b'][parseInt(chars[16],16)%4];return `${chars.slice(0,8).join('')}-${chars.slice(8,12).join('')}-${chars.slice(12,16).join('')}-${chars.slice(16,20).join('')}-${chars.slice(20,32).join('')}`}
+ async function hydratePrintImageOriginals(value){const project=value?.project;if(project?.template?.nativePrintAuthoring?.enabled!==true)return value;const store=root.ACDLAssetStore;if(!store?.originalDataUrl)return value;const visitElement=async element=>{if(element?.printSource?.approved===true&&element.printSource.assetId&&!element.printSource.dataUrl)element.printSource.dataUrl=await store.originalDataUrl(element.printSource.assetId);for(const child of element?.children||[])await visitElement(child)};for(const element of [...Object.values(project.template.masterElements||{}).flat(),...Object.values(project.book?.elementsByPage||{}).flat()])await visitElement(element);return value}
+ async function externalizeAssets(value,{templateId,version}){
+  const byDigest=new Map(),assets=[];
+  function registerAsset({bytes,mimeType,packagePath,kind}){return sha256(bytes).then(digest=>{let asset=byDigest.get(digest);if(!asset){const id=assetUuid(digest);asset={id,kind,mimeType,packagePath,byteLength:bytes.byteLength,sha256:digest,storagePath:`${templateId}/${version}/assets/${id}`,bytes};byDigest.set(digest,asset);assets.push(asset)}return asset})}
+  async function visit(item){
+   if(typeof item==='string'&&item.startsWith('data:image/')){const parsed=dataUrlBytes(item);if(!parsed)return item;const asset=await registerAsset({bytes:parsed.bytes,mimeType:parsed.mimeType,kind:'image'});return `package-asset://${asset.id}`}
+   if(Array.isArray(item))return Promise.all(item.map(visit));
+   if(item&&typeof item==='object'){const output={};for(const [key,child] of Object.entries(item))output[key]=await visit(child);return output}return item
+  }
+  const project=await visit(await hydratePrintImageOriginals(value)),packageProject=project?.project,nativePrint=packageProject?.template?.resources?.nativePrint;
+  if(packageProject?.template?.nativePrintAuthoring?.enabled===true&&nativePrint?.fonts){
+   const processed=new Map();
+   for(const [role,font] of Object.entries(nativePrint.fonts)){
+    const key=font.sha256;if(processed.has(key)){nativePrint.fonts[role]={...font,...processed.get(key)};continue}
+    if(!font.sourcePath||!font.licenseSourcePath)throw new Error(`인쇄 폰트 원본 경로가 없습니다: ${role}`);
+    const [fontResponse,licenseResponse]=await Promise.all([root.fetch(`/${font.sourcePath}`),root.fetch(`/${font.licenseSourcePath}`)]);
+    if(!fontResponse.ok||!licenseResponse.ok)throw new Error(`인쇄 폰트 또는 라이선스 파일을 읽지 못했습니다: ${role}`);
+    const fontBytes=new Uint8Array(await fontResponse.arrayBuffer()),licenseBytes=new Uint8Array(await licenseResponse.arrayBuffer()),fontDigest=await sha256(fontBytes);
+    if(fontDigest!==String(font.sha256).toLowerCase())throw new Error(`인쇄 폰트 SHA-256이 등록값과 다릅니다: ${role}`);
+    if(!new TextDecoder().decode(licenseBytes).includes('SIL OPEN FONT LICENSE'))throw new Error(`인쇄 폰트 라이선스 파일이 올바르지 않습니다: ${role}`);
+    const fontAsset=await registerAsset({bytes:fontBytes,mimeType:'font/otf',packagePath:font.assetId,kind:'font'}),licenseAsset=await registerAsset({bytes:licenseBytes,mimeType:'text/plain',packagePath:font.licenseFile,kind:'license'}),packaged={packaged:true,packageAssetId:fontAsset.id,licenseAssetId:licenseAsset.id};
+    processed.set(key,packaged);nativePrint.fonts[role]={...font,...packaged}
+   }
+  }
+  if(packageProject?.template?.nativePrintAuthoring?.enabled===true){
+   nativePrint.images={};
+   const byId=new Map(assets.map(asset=>[asset.id,asset]));
+   const pageSize=packageProject.productType?.pageSize||{},minimumDpi=Number(packageProject.template.nativePrintAuthoring.contract?.minimumImageDpi||300);
+   const approveElement=element=>{const source=element?.printSource,marker=/^package-asset:\/\/(.+)$/.exec(String(source?.dataUrl||'')),placement=root.ACDLNativePrintAuthoring?.inspectPrintImagePlacement?.(element,pageSize,minimumDpi);if(element?.printIntent?.structure==='raster-image')delete element.printAsset;if(source?.approved===true&&marker&&placement?.status==='passed'){const asset=byId.get(marker[1]),jpeg=asset&&root.ACDLNativePrintAuthoring?.inspectJpeg?.(asset.bytes);if(asset?.mimeType==='image/jpeg'&&jpeg?.valid&&jpeg.components===4&&source.outputConditionIdentifier==='Japan Color 2011 Coated'){asset.packagePath ||= `assets/images/${asset.id}.jpg`;const approved={ref:'package',id:asset.packagePath,packageAssetId:asset.id,sha256:asset.sha256,mimeType:'image/jpeg',pixelWidth:jpeg.width,pixelHeight:jpeg.height,colorSpace:'cmyk',outputConditionIdentifier:source.outputConditionIdentifier,effectiveDpi:placement.effectiveDpi,minimumDpi};element.printAsset=approved;nativePrint.images[source.assetId||element.image?.assetId||asset.id]=approved}}for(const child of element?.children||[])approveElement(child)};
+   [...Object.values(packageProject.template.masterElements||{}).flat(),...Object.values(packageProject.book?.elementsByPage||{}).flat()].forEach(approveElement)
+  }
+  return {project,assets}
+ }
+ function bindings(project,id,version){const requirements=project?.template?.publishing?.dataRequirements||[];return {contractVersion:'2.0',templateId:id,templateVersion:version,bindings:requirements.map(item=>({path:item.path,required:item.stage==='project-create-required',status:'current',missing:item.stage==='project-create-required'?'error':item.fallback||'empty'}))}}
+ function printProfile(project,id,version){const size=project?.productType?.pageSize||{},settings=project?.template?.resources?.exportSettings||{},nativeCompilation=root.ACDLNativePrintPackageCompiler?.compileProject(project)||null,runtimeAdapter=root.ACDLRuntimeProjectAdapter?.create?.(),nativeRuntimeTemplate=runtimeAdapter&&project?.template?.nativePrintAuthoring?.enabled===true?runtimeAdapter.adapt(project,project.book?.pageInstances||[],{schemaVersion:'1.0'}).template:null;return {schemaVersion:'print-profile.v1-draft',templateId:id,version,trimSize:{width:Number(size.width)||0,height:Number(size.height)||0,unit:size.unit||'mm'},bleed:{top:Number(settings.bleed)||0,right:Number(settings.bleed)||0,bottom:Number(settings.bleed)||0,left:Number(settings.bleed)||0,unit:'mm'},dpi:Number(settings.dpi)||300,imageQualityPolicy:root.ACDLImageQualityPolicy?root.ACDLImageQualityPolicy.normalizePolicy(settings.imageQualityPolicy):settings.imageQualityPolicy?(()=>{throw Error('이미지 품질 기준 모듈을 불러오지 못했습니다.')})():{schemaVersion:'image-quality-policy.v1',recommendedDpi:300,orderMinimumDpi:200,upscaleTargetDpi:300},colorMode:settings.colorMode||'cmyk',status:nativeCompilation?.status==='ready'?'native-ready':'review',...(nativeCompilation?{nativeCompilation}:{}),...(nativeRuntimeTemplate?{nativeRuntimeTemplate}:{})}}
+ function buildBundle(project,{id,version,name,productType,assets=[],sourceEditorRevision=null,representativeAsset=null,pagePreviewAssets=[]}){root.ACDLUserEditingPolicy?.normalizeProject(project);const requirements=project?.template?.publishing?.dataRequirements||[],pages=project?.book?.pageInstances||[],representativePage=pages.find(page=>page.role==='cover-front')||pages[0]||null,pagePreviews=pages.map((page,index)=>({index,pageId:page.id||null,role:page.role||null,assetId:pagePreviewAssets[index]?.id||null,sha256:pagePreviewAssets[index]?.sha256||null,mode:'stored-image'}));return {schemaVersion:'template-package-bundle.v1',manifest:{schemaVersion:'template-package.v1-draft',templateId:id,version,name,productType,status:'review',publishable:false,pageComposition:{surfaceCount:pages.length,sheetCount:new Set(pages.map(page=>page.sheetId||page.sheetNumber)).size,monthCount:pages.filter(page=>page.role==='monthly-front').length,defaultStartMonth:Number(project?.settings?.startMonth)||1},compatibility:{runtime:'1.x',datasetSchema:'1.x',templateSchema:'2.x'},files:{template:'template.json',bindings:'bindings.json',print:'print.json',parity:'parity.json',assets:'assets/',publishing:'publishing.json'},releaseContract:{status:'review',immutableAfterPublish:true},sourceEditorRevision:Number.isInteger(sourceEditorRevision)&&sourceEditorRevision>0?sourceEditorRevision:null,representativePreview:{mode:'cover-page',pageId:representativePage?.id||null,role:representativePage?.role||null,assetId:representativeAsset?.id||null,storagePath:representativeAsset?.storagePath||null,mimeType:representativeAsset?.mimeType||null,sha256:representativeAsset?.sha256||null},pagePreviews:{schemaVersion:'template-page-previews.v1',mode:'stored-image',source:'editor-page-capture',pages:pagePreviews}},template:{schemaVersion:'template.v2-draft',templateId:id,version,kind:'designer-project-snapshot',projectData:project},bindings:bindings(project,id,version),print:printProfile(project,id,version),parity:{schemaVersion:'snapshot-parity.v1',templateId:id,version,status:'review',sourceSurfaceCount:pages.length},publishing:{schemaVersion:'template-publishing.v1',templateId:id,version,contractStatus:'review',sourceOwner:'calendar-template-designer',consumerSnapshot:true,sourceEditorRevision:Number.isInteger(sourceEditorRevision)&&sourceEditorRevision>0?sourceEditorRevision:null,dataRequirements:requirements,lifecycle:{currentStatus:'review',immutableAfterPublish:true},releaseReadiness:{ready:false,blockers:['PREVIEW_VERIFICATION_REQUIRED']}},assets:assets.map(({bytes,...asset})=>asset)}}
+ function base64(bytes){let output='';for(let index=0;index<bytes.length;index+=0x8000)output+=String.fromCharCode(...bytes.subarray(index,index+0x8000));return btoa(output)}
+ function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+ let pendingPublish=null;
+ function publicationSource(project){const copy=structuredClone(project);if(copy.template){if(copy.template.metadata)delete copy.template.metadata.name;if(copy.template.publishing){delete copy.template.publishing.lastReviewPackage;delete copy.template.publishing.lastPrintInspectionPackage;delete copy.template.publishing.packageId;}if(copy.template.thumbnail?.source!=='custom-upload')delete copy.template.thumbnail;delete copy.template.remoteId;delete copy.template.remoteStableKey;delete copy.template.remoteVersionNumber;}return deterministic(copy)}
+ function publicationRevision(project,record={}){return Math.max(0,...[project?.template?.remoteVersionNumber,record.editorRevision,record.version].map(value=>{const number=Number(value);return Number.isInteger(number)&&number>0?number:0}))+1}
+ async function publish({record={},projectData,name,productType,activate=true,confirm=true,identityField='lastReviewPackage'}){
+  root.ACDLPageObjectModel?.normalizeProject(projectData);
+  root.ACDLUserEditingPolicy?.normalizeProject(projectData);
+  const sourceHash=await sha256(encoder.encode(publicationSource(projectData)));
+  const run=async(stage,action)=>{try{return await action()}catch(error){error.stage=stage;throw error}},publishing=projectData.template.publishing||{},publication=await distinctPublicationIdentity(projectData,record,publicationIdentity(projectData,name||record.name,record)),id=publication.id,baseVersion=semver(projectData.template?.metadata?.version||record.packageVersion||'1.0.0'),sourceEditorRevision=publicationRevision(projectData,record),key=`${id}:${sourceEditorRevision}:${publication.name}:${activate?'activate':'inactive'}:${identityField}:${sourceHash}`;
+  let context=pendingPublish?.key===key?pendingPublish:null;
+  if(!context){progress('version','새 버전 번호를 확인하고 있습니다.');const identity=await run('버전 확인',()=>request({mode:'next-version',packageId:id,baseVersion})),version=identity.version;if(confirm&&!await confirmPublish({name:publication.name,id,currentVersion:publishing.lastReviewPackage?.version||baseVersion,nextVersion:version})){const error=new Error('게시가 취소되었습니다.');error.code='PUBLISH_CANCELLED';throw error}projectData.template.metadata={...(projectData.template.metadata||{}),name:publication.name};progress('prepare',activate?'표지를 대표 이미지로 만들고 게시 자료를 준비하고 있습니다.':'표지를 대표 이미지로 만들고 인쇄검사 자료를 준비하고 있습니다.');const thumbnail=projectData.template?.thumbnail||{},legacyCustom=thumbnail.kind==='upload'&&!thumbnail.source&&thumbnail.fileName&&!/-\d+\.\d+\.\d+-cover\.png$/i.test(thumbnail.fileName),customThumbnail=thumbnail.kind==='upload'&&(thumbnail.source==='custom-upload'||legacyCustom),uploaded=customThumbnail?thumbnail.dataUrl:null,normalizedUploaded=uploaded?await run('기존 대표 이미지 준비',()=>inlineBlobUrls(uploaded)):null,representativeDataUrl=normalizedUploaded||await run('대표 이미지 생성',()=>root.ACDLRepresentativePreview?.capture?.(projectData));if(!representativeDataUrl)throw new Error('표지 대표 이미지를 생성하지 못했습니다.');projectData.template.thumbnail={...thumbnail,kind:'upload',source:customThumbnail?'custom-upload':'cover-page',dataUrl:representativeDataUrl,fileName:customThumbnail?thumbnail.fileName:`${id}-${version}-cover.png`,updatedAt:new Date().toISOString(),aspectRatio:'4:3',fit:'contain'};const pageInstances=projectData.book?.pageInstances||[];if(!pageInstances.length)throw new Error('페이지별 미리보기를 만들 페이지가 없습니다.');const pagePreviewDataUrls=[];for(let index=0;index<pageInstances.length;index++){progress('page-previews',`페이지별 미리보기 ${index+1}/${pageInstances.length}`,index,pageInstances.length);pagePreviewDataUrls.push(index===0?representativeDataUrl:await run(`페이지 ${index+1} 미리보기 생성`,()=>root.ACDLRepresentativePreview.capturePage(projectData,index)))}progress('page-previews','전체 페이지 미리보기를 만들었습니다.',pageInstances.length,pageInstances.length);const inlined=await run('게시 자료 준비',()=>inlineBlobUrls(structuredClone(projectData))),externalized=await run('이미지 자산 분리',()=>externalizeAssets({project:inlined,representativePreview:representativeDataUrl,pagePreviews:pagePreviewDataUrls},{templateId:id,version})),project=externalized.project.project,previewMarker=externalized.project.representativePreview,representativeAsset=externalized.assets.find(asset=>`package-asset://${asset.id}`===previewMarker)||null,pagePreviewAssets=(externalized.project.pagePreviews||[]).map((marker,index)=>{const asset=externalized.assets.find(candidate=>`package-asset://${candidate.id}`===marker);if(!asset)throw new Error(`페이지 ${index+1}의 미리보기 자산이 없습니다.`);return asset});if(!representativeAsset)throw Object.assign(new Error('대표 이미지를 게시 자산으로 준비하지 못했습니다.'),{code:'REPRESENTATIVE_ASSET_MISSING'});const nativeCompilation=root.ACDLNativePrintPackageCompiler?.compileProject(project);if(nativeCompilation?.status==='blocked'){const error=new Error(`Package 인쇄 승격 검사에서 ${nativeCompilation.counts.blocked}개 개체가 차단되었습니다.`);error.code='NATIVE_PRINT_PACKAGE_BLOCKED';error.report=nativeCompilation;throw error}projectData.template.thumbnail.packagePreview={templateId:id,version,assetId:representativeAsset.id,storagePath:representativeAsset.storagePath,sha256:representativeAsset.sha256};const bundle=buildBundle(project,{id,version,name:publication.name,productType:productType||record.type||project.productType?.category||'desk',assets:externalized.assets,sourceEditorRevision,representativeAsset,pagePreviewAssets}),bytes=encoder.encode(deterministic(bundle)),digest=await sha256(bytes),totalChunks=Math.ceil(bytes.length/CHUNK_BYTES);if(totalChunks>100)throw new Error('템플릿 패키지가 검토 전송 한도를 초과했습니다. 이미지 크기를 줄여 주세요.');context=pendingPublish={key,id,version,name:publication.name,sourceEditorRevision,thumbnail:structuredClone(projectData.template.thumbnail),representativePreview:structuredClone(projectData.template.thumbnail.packagePreview),externalized,bytes,digest,totalChunks,assetsUploaded:false,packageUploaded:false,validated:false,activated:false,result:null}}
+  const {version,externalized,bytes,digest,totalChunks}=context,assetChunkTotal=externalized.assets.reduce((sum,asset)=>sum+Math.ceil(asset.bytes.length/CHUNK_BYTES),0);projectData.template.metadata={...(projectData.template.metadata||{}),name:context.name};projectData.template.thumbnail=structuredClone(context.thumbnail);
+  async function uploadAssets(recovery=false){let assetChunkDone=0;progress(recovery?'recover-assets':'asset-upload',recovery?'누락된 이미지 전송을 복구하고 있습니다.':`${externalized.assets.length}개 이미지 자산을 전송하고 있습니다.`,0,Math.max(assetChunkTotal,1));for(const asset of externalized.assets){const chunks=Math.ceil(asset.bytes.length/CHUNK_BYTES);if(chunks>100)throw new Error(`이미지 자산 ${asset.id}가 전송 한도를 초과했습니다.`);for(let index=0;index<chunks;index++){await run(`${recovery?'이미지 재전송':'이미지 전송'} ${assetChunkDone+1}/${assetChunkTotal}`,()=>request({mode:'asset-chunk',packageSha256:digest,assetSha256:asset.sha256,assetId:asset.id,index,totalChunks:chunks,data:base64(asset.bytes.subarray(index*CHUNK_BYTES,(index+1)*CHUNK_BYTES))}));assetChunkDone+=1;progress(recovery?'recover-assets':'asset-upload',recovery?'누락된 이미지 전송을 복구하고 있습니다.':`${externalized.assets.length}개 이미지 자산을 전송하고 있습니다.`,assetChunkDone,assetChunkTotal)}}context.assetsUploaded=true}
+  async function uploadPackage(recovery=false){progress(recovery?'recover-package':'upload',recovery?'패키지 전송을 다시 확인하고 있습니다.':'패키지를 전송하고 있습니다.',0,totalChunks);for(let index=0;index<totalChunks;index++){await run(`${recovery?'패키지 재전송':'패키지 전송'} ${index+1}/${totalChunks}`,()=>request({mode:'chunk',sha256:digest,index,totalChunks,data:base64(bytes.subarray(index*CHUNK_BYTES,(index+1)*CHUNK_BYTES))}));progress(recovery?'recover-package':'upload',recovery?'패키지 전송을 다시 확인하고 있습니다.':'패키지를 전송하고 있습니다.',index+1,totalChunks)}context.packageUploaded=true}
+  if(!context.assetsUploaded)await uploadAssets();if(!context.packageUploaded)await uploadPackage();
+  if(!context.validated)for(let attempt=0;attempt<3;attempt++){try{progress('validate',attempt?'복구된 전송 결과를 다시 검증하고 있습니다.':'전송 결과와 패키지를 검증하고 있습니다.',attempt,3);context.result=await run('패키지 검증',()=>request({mode:'finalize',sha256:digest,totalChunks}));context.validated=true;break}catch(error){const missing=/Review (?:asset |package )?chunk missing/i.test(String(error?.message||''));if(!missing||attempt===2)throw error;progress('recover',`검증 서버에서 누락 청크를 발견했습니다. 자동 복구 ${attempt+1}/2`,attempt+1,2);await wait(400*(attempt+1));await uploadAssets(true);await uploadPackage(true)}}
+  if(activate&&!context.activated){progress('activate','새 버전을 노출하고 이전 버전을 보관하고 있습니다.');await run('새 버전 전환',()=>request({mode:'activate-review',templateId:id,version}));context.activated=true}
+  const packageIdentity={templateId:id,version,sha256:digest,status:activate?'review':'print-inspection',sourceEditorRevision:context.sourceEditorRevision,transferredAt:new Date().toISOString()};
+  projectData.template.publishing={...(projectData.template.publishing||{}),packageId:id,[identityField]:packageIdentity};
+  return {...context.result,templateId:id,version,sha256:digest,name:context.name,representativePreview:context.representativePreview,cleanupWarning:null,resumed:context.assetsUploaded||context.packageUploaded||context.validated||context.activated}
+ }
+ function preparePrintInspection(input){return publish({...input,activate:false,confirm:false,identityField:'lastPrintInspectionPackage'})}
+ function completePublication(templateId,version){if(pendingPublish?.id===templateId&&pendingPublish?.version===version)pendingPublish=null}
+ function publishedIdentity(project){const value=project?.template?.publishing?.lastReviewPackage;if(!value?.templateId||!value?.version)return null;return {templateId:value.templateId,version:value.version}}
+ async function withdraw(project){const identity=publishedIdentity(project);if(!identity)return {withdrawn:[]};return request({mode:'withdraw',...identity})}
+ async function ensurePrintPreflight(identity,{force=false}={}){return request({mode:'ensure-print-preflight',templateId:identity.templateId,version:identity.version,sha256:identity.sha256,force,editorPrintOrigin:location.origin,rendererId:'template-editor-review-dom.v1'})}
+ async function printPreflightStatus(id){return request({mode:'print-preflight-status',id})}
+ async function printPreflightDownload(id){return request({mode:'print-preflight-download',id})}
+ async function printPreflightHistory(identity){return request({mode:'print-preflight-history',templateId:identity.templateId,version:identity.version,sha256:identity.sha256})}
+ async function cancelPrintPreflight(id){return request({mode:'cancel-print-preflight',id})}
+ async function deletePrintPreflight(id){return request({mode:'delete-print-preflight',id})}
+ async function recordTrimContentParityReview(id,review){return request({mode:'record-trim-content-parity-review',id,...review})}
+ async function recordTemplateImageReview(id,review){return request({mode:'record-template-image-review',id,...review})}
+ async function recordTemplateImagePrintQualityReview(id,review){return request({mode:'record-template-image-print-quality-review',id,...review})}
+ async function recordAiImagePrintQualityReview(id,review){return request({mode:'record-ai-image-print-quality-review',id,...review})}
+ async function editorCatalog({strict=false}={}){
+  const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return [];
+  const records=(await remote.list()).filter(item=>item.state==='published'),items=[];
+  for(const record of records){
+   const loaded=await remote.load(record.id,{deferAssets:true}),identity=publishedIdentity(loaded?.version?.projectData);
+   if(!identity){if(strict)throw new Error(`게시 템플릿의 Package 정보를 찾지 못했습니다: ${record.name||record.id}`);items.push({name:record.name||record.id,editorRevision:Number(loaded?.version?.versionNumber||record.version||0),templateId:null,version:null,error:'Package 정보 누락'});continue}
+   items.push({name:record.name||loaded?.template?.name||identity.templateId,editorRevision:Number(loaded?.version?.versionNumber||record.version||0),packageEditorRevision:Number(loaded?.version?.projectData?.template?.publishing?.lastReviewPackage?.sourceEditorRevision)||null,...identity});
+  }
+  return items
+ }
+ function compareCatalogs(editor,service){
+  const counts=new Map();editor.filter(item=>item.templateId).forEach(item=>counts.set(item.templateId,(counts.get(item.templateId)||0)+1));
+  const editorById=new Map(editor.filter(item=>item.templateId).map(item=>[item.templateId,item])),serviceById=new Map(service.map(item=>[item.templateId,item])),ids=new Set([...editorById.keys(),...serviceById.keys()]),rows=[];
+  for(const id of ids){const right=serviceById.get(id);if(counts.get(id)>1){editor.filter(item=>item.templateId===id).forEach(left=>rows.push({templateId:id,name:left.name||id,editorRevision:left.editorRevision||null,editorVersion:left.version||null,serviceVersion:right?.version||null,serviceEditorRevision:right?.sourceEditorRevision||null,state:'duplicate-id'}));continue}const left=editorById.get(id),stale=left?.packageEditorRevision&&left.editorRevision>left.packageEditorRevision,state=!left?'service-only':stale?'unpackaged-edits':!right?'editor-only':left.version===right.version?'matched':'version-mismatch';rows.push({templateId:id,name:left?.name||right?.name||id,editorRevision:left?.editorRevision||null,packageEditorRevision:left?.packageEditorRevision||null,editorVersion:left?.version||null,serviceVersion:right?.version||null,serviceEditorRevision:right?.sourceEditorRevision||null,state})}
+  for(const item of editor.filter(entry=>!entry.templateId))rows.push({...item,state:'invalid-editor'});
+  return rows.sort((a,b)=>String(a.name).localeCompare(String(b.name),'ko'))
+ }
+ async function inspectCatalog(){
+  const editor=await editorCatalog(),serviceResult=await request({mode:'inspect-review-catalog'}),service=serviceResult.packages||[];
+  return {editor,service,rows:compareCatalogs(editor,service)}
+ }
+ async function synchronizeCatalog(){
+  const remote=root.ACDLTemplateRemotePersistence;if(!remote?.isRemote?.())return {requested:[],packages:[],deactivated:[]};
+  progress('cleanup','시스템 베이스와 사용자 서비스 목록을 동기화하고 있습니다.');
+  const editor=await editorCatalog({strict:true}),service=(await request({mode:'inspect-review-catalog'})).packages||[],active=activeReviewCatalog(editor,service);
+  return request({mode:'sync-review-catalog',activePackages:active});
+ }
+ function activeReviewCatalog(editor,service){
+  const byService=new Map(service.map(item=>[item.templateId,item])),counts=new Map(),seen=new Set();editor.forEach(item=>counts.set(item.templateId,(counts.get(item.templateId)||0)+1));
+  return editor.flatMap(item=>{
+   const existing=byService.get(item.templateId),stale=item.packageEditorRevision&&item.editorRevision>item.packageEditorRevision;
+   if(counts.get(item.templateId)>1){if(!existing||seen.has(item.templateId))return [];seen.add(item.templateId);return [{templateId:existing.templateId,version:existing.version,sourceEditorRevision:existing.sourceEditorRevision||null}]}
+   if(stale||existing&&existing.version!==item.version){
+    return existing?[{templateId:existing.templateId,version:existing.version,sourceEditorRevision:existing.sourceEditorRevision||null}]:[];
+   }
+   return [{templateId:item.templateId,version:item.version,sourceEditorRevision:item.packageEditorRevision||existing?.sourceEditorRevision||null}];
+  });
+ }
+ function syncStateLabel(state){return ({matched:'일치','editor-only':'등록 필요','service-only':'내림 대상','version-mismatch':'버전 불일치','duplicate-id':'Package ID 중복','unpackaged-edits':'새 Package 저장 필요','invalid-editor':'Package 정보 누락'})[state]||state}
+ function renderSyncResult(result){
+  const body=document.getElementById('templateSyncRows'),summary=document.getElementById('templateSyncSummary');if(!body||!summary)return;
+  const rows=result.rows||[],matched=rows.filter(row=>row.state==='matched').length,issues=rows.length-matched;
+  summary.className=`template-sync-summary ${issues?'warning':'success'}`;summary.textContent=issues?`${rows.length}개 중 ${matched}개 일치 · ${issues}개 확인 필요`:`${rows.length}개 템플릿이 모두 일치합니다.`;
+  body.innerHTML=rows.length?rows.map(row=>`<tr data-sync-state="${row.state}"><td><strong>${String(row.name||'').replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]))}</strong><small>${row.templateId||'Package ID 없음'}</small></td><td>${row.editorRevision?`편집 이력 v${row.editorRevision}`:'—'}<small>${row.editorVersion?`Package ${row.editorVersion}`:'—'}</small></td><td>${row.serviceVersion?`Package ${row.serviceVersion}`:'—'}<small>${row.serviceEditorRevision?`편집 원본 v${row.serviceEditorRevision}`:'편집 원본 미기록'}</small></td><td><span class="template-sync-state ${row.state}">${syncStateLabel(row.state)}</span></td></tr>`).join(''):'<tr><td colspan="4" class="template-sync-empty">비교할 템플릿이 없습니다.</td></tr>'
+ }
+ function syncStatus(stage,message,type='working'){const status=document.getElementById('templateSyncStatus');if(!status)return;status.className=`template-sync-status ${type}`;status.innerHTML=`<strong>${stage}</strong><span>${message}</span>`}
+ async function openSyncDialog(){
+  const dialog=document.getElementById('templateSyncDialog');if(!dialog)return;dialog.classList.remove('hidden');syncStatus('목록 조회','양쪽 서비스의 현재 목록을 불러오고 있습니다.');
+  try{const result=await inspectCatalog();renderSyncResult(result);const skipped=result.rows.filter(row=>['duplicate-id','unpackaged-edits','version-mismatch','invalid-editor'].includes(row.state));syncStatus(skipped.length?'일부 Package 확인 필요':'비교 완료',skipped.length?`${[...new Set(skipped.map(row=>row.name))].join(', ')}: 기존 Preview 버전을 유지합니다. ID가 중복되면 해당 템플릿을 새 Package ID로 저장해야 합니다.`:'아직 변경하지 않았습니다. 결과를 확인한 뒤 동기화를 실행하세요.','ready');document.getElementById('runTemplateSyncBtn').disabled=false}catch(error){syncStatus('조회 실패',error?.message||String(error),'error')}
+ }
+ async function runSyncDialog(){
+  const button=document.getElementById('runTemplateSyncBtn');if(button)button.disabled=true;syncStatus('1/4 · 동기화 준비','시스템 베이스의 Package와 편집 이력을 정리하고 있습니다.');
+  try{syncStatus('2/4 · 사용자 서비스 반영','활성 Package와 편집 원본 버전을 사용자 서비스 Preview에 적용하고 있습니다.');const changed=await synchronizeCatalog();syncStatus('3/4 · 결과 재조회',`활성 ${changed.packages?.length||0}개 · 내림 ${changed.deactivated?.length||0}개 · 누락 ${changed.missing?.length||0}개`);const result=await inspectCatalog();renderSyncResult(result);const issues=result.rows.filter(row=>row.state!=='matched').length;syncStatus(issues?'4/4 · 동기화 확인 필요':'4/4 · 동기화 완료',issues?`${issues}개 항목이 일치하지 않습니다. 아래 결과를 확인하세요.`:`변경 ${Number(changed.activated?.length||0)+Number(changed.deactivated?.length||0)}건 · ${result.rows.length}개 템플릿의 Package와 편집 이력이 일치합니다.`,issues?'error':'success')}catch(error){syncStatus('동기화 실패',error?.message||String(error),'error')}finally{if(button)button.disabled=false}
+ }
+ function installSyncDialog(){
+  document.getElementById('openTemplateSyncBtn')?.addEventListener('click',openSyncDialog);document.getElementById('closeTemplateSyncBtn')?.addEventListener('click',()=>document.getElementById('templateSyncDialog')?.classList.add('hidden'));document.getElementById('runTemplateSyncBtn')?.addEventListener('click',runSyncDialog);document.getElementById('refreshTemplateSyncBtn')?.addEventListener('click',openSyncDialog)
+ }
+ if(typeof document!=='undefined')installSyncDialog();
+ async function reconcile(){return synchronizeCatalog()}
+ root.ACDLTemplatePublishing=Object.freeze({publish,preparePrintInspection,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,activeReviewCatalog,publishedIdentity,distinctPublicationIdentity,publicationSource,publicationRevision,ensurePrintPreflight,printPreflightStatus,printPreflightDownload,printPreflightHistory,cancelPrintPreflight,deletePrintPreflight,recordTrimContentParityReview,recordTemplateImageReview,recordAiImagePrintQualityReview,recordTemplateImagePrintQualityReview,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
+})(window);

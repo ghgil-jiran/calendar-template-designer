@@ -1,0 +1,17 @@
+{
+  "id": "calendar-page-rules",
+  "version": "0.2.0",
+  "designSet": {
+    "shared": ["visual-language", "type-hierarchy", "line-language", "shape-family", "base-palette"],
+    "varyByMonth": ["month-accent-color", "background-tone", "seasonal-motif", "month-back-illustration"],
+    "rule": "같은 세트임을 알아볼 수 있어야 하지만 12개월을 동일한 배경으로 반복하지 않는다."
+  },
+  "roles": {
+    "cover": {"protect": ["year", "school-name", "school-symbol", "school-photo"], "generate": ["background", "illustration", "photo-frame", "decoration"]},
+    "annual": {"protect": ["year", "annual-calendar", "holiday"], "generate": ["calendar-frame", "corner-decoration", "pattern"], "variation": "base-palette-summary"},
+    "month": {"protect": ["month", "weekday", "date", "school-event", "mini-calendar"], "generate": ["month-accent", "seasonal-illustration", "grid-edge-pattern"], "variation": "one-result-per-month"},
+    "month-back": {"protect": ["mini-calendar", "band-calendar", "planner", "checklist", "memo"], "generate": ["independent-month-illustration", "photo-frame", "memo-decoration", "planner-frame"], "variation": "one-independent-illustration-per-month"},
+    "back-cover": {"protect": ["school-name", "address", "contact", "school-symbol"], "generate": ["information-frame", "brand-pattern", "closing-decoration"]}
+  },
+  "forbid": ["rasterized-calendar-text", "rasterized-calendar-grid", "same-month-art-repeated-12-times", "illustration-over-planner", "illustration-over-safe-area"]
+}

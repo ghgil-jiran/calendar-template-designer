@@ -1,0 +1,97 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "node scripts/build-vercel-static.mjs",
+  "outputDirectory": "public",
+  "headers": [
+    {
+      "source": "/apps/designer-studio/(.*)\\.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/apps/designer-studio/index.html"
+    },
+    {
+      "source": "/template-catalog.js",
+      "destination": "/apps/designer-studio/template-catalog.js"
+    },
+    {
+      "source": "/template-library-runtime.js",
+      "destination": "/apps/designer-studio/template-library-runtime.js"
+    },
+    {
+      "source": "/template-remote-persistence.js",
+      "destination": "/apps/designer-studio/template-remote-persistence.js"
+    },
+    {
+      "source": "/editor-core-demo",
+      "destination": "/apps/designer-studio/index.html"
+    },
+    {
+      "source": "/editor-core-demo/",
+      "destination": "/apps/designer-studio/index.html"
+    },
+    {
+      "source": "/apps/editor-core-demo",
+      "destination": "/apps/designer-studio/index.html"
+    },
+    {
+      "source": "/apps/editor-core-demo/",
+      "destination": "/apps/designer-studio/index.html"
+    },
+    {
+      "source": "/apps/editor-core-demo/index.html",
+      "destination": "/apps/designer-studio/index.html"
+    },
+    {
+      "source": "/preview-workspace",
+      "destination": "/apps/designer-studio/index.html"
+    },
+    {
+      "source": "/preview-workspace/",
+      "destination": "/apps/designer-studio/index.html"
+    },
+    {
+      "source": "/apps/preview-workspace",
+      "destination": "/apps/designer-studio/index.html"
+    },
+    {
+      "source": "/apps/preview-workspace/",
+      "destination": "/apps/designer-studio/index.html"
+    }
+  ],
+  "functions": {
+    "api/templates.js": {
+      "maxDuration": 300
+    },
+    "api/schedule-extract.js": {
+      "maxDuration": 60
+    },
+    "api/calendar-reference.js": {
+      "maxDuration": 60
+    },
+    "api/ai-design-generate.js": {
+      "maxDuration": 180
+    },
+    "api/template-assets.js": {
+      "maxDuration": 300,
+      "includeFiles": "assets/{student-image-prototypes,student-calendar-illustrations,learning-garden,learning-garden-illustrations}/*"
+    }
+  }
+}

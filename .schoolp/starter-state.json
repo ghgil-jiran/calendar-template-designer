@@ -1,0 +1,24 @@
+{
+  "appliedStandard": {
+    "label": "r015",
+    "code": "r015",
+    "revision": "r015",
+    "revisionNumber": 15,
+    "number": 15,
+    "title": "개발자 확인 사항(GitHub Issue) 수신·반영 경로",
+    "publishedAt": "2026-07-20",
+    "updatedAt": "2026-07-20",
+    "requiresProjectUpdate": true,
+    "appliedAt": "2026-07-20",
+    "source": "bundled-starter"
+  },
+  "source": "https://schoolp-ai-starter.vercel.app/starter-manifest.json",
+  "starterPageUrl": "https://schoolp-ai-starter.vercel.app",
+  "starterZipUrl": "https://schoolp-ai-starter.vercel.app/schoolp-nextjs-app.zip",
+  "updateMode": "manual-safe-apply",
+  "notes": [
+    "기존 Calendar Template Designer UI, 스타일, 기능을 보존한 상태로 schoolp r015 운영 기준을 적용했습니다.",
+    "이 저장소는 현재 정적 Designer Studio + TypeScript 패키지 구조이므로 Next.js 디자인 토큰 계약은 활성화하지 않았습니다.",
+    "향후 사용자 MVP 통합 또는 Next.js 이식은 별도 검토 단계에서 진행합니다."
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "contractVersion": "1.1",
+  "templateId": "desk-academic-standard",
+  "templateVersion": "1.1.0",
+  "bindings": [
+    { "path": "school.name", "required": true, "status": "current", "missing": "error" },
+    { "path": "school.englishName", "required": false, "status": "current", "missing": "empty" },
+    { "path": "school.slogan", "required": false, "status": "current", "missing": "empty" },
+    { "path": "school.address", "required": false, "status": "current", "missing": "empty" },
+    { "path": "school.website", "required": false, "status": "current", "missing": "empty" },
+    { "path": "school.contacts", "required": false, "status": "current", "missing": "empty-list" },
+    { "path": "school.contact.address", "required": false, "status": "adapter-current", "missing": "empty" },
+    { "path": "school.contact.telAcademic", "required": false, "status": "adapter-current", "missing": "empty" },
+    { "path": "school.contact.telAdmin", "required": false, "status": "adapter-current", "missing": "empty" },
+    { "path": "school.contact.fax", "required": false, "status": "adapter-current", "missing": "empty" },
+    { "path": "school.contact.site", "required": false, "status": "adapter-current", "missing": "empty" },
+    { "path": "school.profile.logo", "required": false, "status": "current", "missing": "sample-or-empty" },
+    { "path": "school.profile.building", "required": false, "status": "current", "missing": "sample-or-empty" },
+    { "path": "school.profile.flower", "required": false, "status": "current", "missing": "sample-or-empty" },
+    { "path": "school.profile.tree", "required": false, "status": "current", "missing": "sample-or-empty" },
+    { "path": "school.profile.motto", "required": false, "status": "current", "missing": "sample-or-empty" },
+    { "path": "school.profile.song", "required": false, "status": "current", "missing": "sample-or-empty" },
+    { "path": "calendar.year", "required": true, "status": "current", "missing": "error" },
+    { "path": "calendar.startMonth", "required": true, "status": "current", "missing": "default-3" },
+    { "path": "calendar.events", "required": false, "status": "current", "missing": "empty-list" },
+    { "path": "monthlyImages", "required": false, "status": "current", "missing": "empty" },
+    { "path": "assets.endPhoto", "required": false, "status": "planned-template-package", "missing": "school.profile.building" },
+    { "path": "monthlyQuotes", "required": false, "status": "current", "missing": "empty" },
+    { "path": "calendar.holidays", "required": false, "status": "planned-v1.1-adapter", "missing": "empty-list" },
+    { "path": "calendar.lunarDates", "required": false, "status": "planned-v1.1-adapter", "missing": "empty-list" },
+    { "path": "calendar.solarTerms", "required": false, "status": "planned-v1.1-adapter", "missing": "empty-list" }
+  ]
+}

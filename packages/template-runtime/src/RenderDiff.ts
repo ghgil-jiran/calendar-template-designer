@@ -1,0 +1,3 @@
+import type { RenderDiff, ResolvedDocument, RenderNode } from "./types.js";
+const flatten=(d:ResolvedDocument)=>{const m=new Map<string,RenderNode>();for(const p of d.pages)for(const n of p.objects)m.set(`${p.id}/${n.id}`,n);return m};
+export class RenderDiffEngine { compare(previous:ResolvedDocument|null|undefined,next:ResolvedDocument):RenderDiff {const a=previous?flatten(previous):new Map<string,RenderNode>(),b=flatten(next),added:string[]=[],removed:string[]=[],changed:string[]=[],unchanged:string[]=[];for(const [k,n] of b){const old=a.get(k);if(!old)added.push(k);else if(old.fingerprint!==n.fingerprint)changed.push(k);else unchanged.push(k)}for(const k of a.keys())if(!b.has(k))removed.push(k);return{added,removed,changed,unchanged}} }

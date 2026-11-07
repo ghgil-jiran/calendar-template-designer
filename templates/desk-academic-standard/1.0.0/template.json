@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "template.v2-draft",
+  "templateId": "desk-academic-standard",
+  "version": "1.0.0",
+  "kind": "integration-template-draft",
+  "extractionStatus": "print-review-ready",
+  "source": {
+    "application": "apps/designer-studio/index.html",
+    "canonicalPresetId": "desk-sample-2",
+    "referencePresetIds": ["desk-sample-6"],
+    "selectionRule": "사용자 서비스 v1.1의 월력 앞면 + 다음 달 사진·메모 뒷면 구조와 가장 가까운 월별 이미지형을 출발점으로 선택"
+  },
+  "calendar": {
+    "defaultRows": 5,
+    "supportedRows": [5, 6],
+    "defaultWeekStart": "sunday",
+    "monthCount": 12
+  },
+  "pageSequence": [
+    {
+      "sheet": 1,
+      "front": { "role": "cover-front" },
+      "back": { "role": "annual-calendar" }
+    },
+    {
+      "sheet": 2,
+      "front": { "role": "school-symbols" },
+      "back": { "role": "monthly-photo-memo", "monthOffset": 0 }
+    },
+    {
+      "sheets": "3..13",
+      "repeat": 11,
+      "front": { "role": "monthly-calendar", "monthOffset": "0..10" },
+      "back": { "role": "monthly-photo-memo", "monthOffset": "1..11" }
+    },
+    {
+      "sheet": 14,
+      "front": { "role": "monthly-calendar", "monthOffset": 11 },
+      "back": { "role": "back-contact" }
+    }
+  ],
+  "masterExtraction": [
+    { "role": "cover-front", "status": "source-extracted", "source": "desk-sample-2" },
+    { "role": "annual-calendar", "status": "source-extracted", "source": "desk-sample-2" },
+    { "role": "school-symbols", "status": "v1.3-contract-extracted", "source": "user-service-v1.3 SymbolFrontCanvas + SYMBOL_PARTS" },
+    { "role": "monthly-calendar", "status": "source-extracted", "source": "shared-desk-calendar" },
+    { "role": "monthly-photo-memo", "status": "v1.1-contract-extracted", "source": "user-service-v1.1 MonthPhotoBackCanvas" },
+    { "role": "back-contact", "status": "v1.1-contract-extracted", "source": "user-service-v1.1 COVER_BACK_PARTS + BackContactCanvas" }
+  ],
+  "masterDefinitions": {
+    "cover-front": [
+      { "id": "cover.school-image", "type": "image", "role": "school-image", "framePct": { "x": 5, "y": 7, "width": 90, "height": 60 }, "binding": "school.profile.building", "fit": "cover", "zIndex": 1 },
+      { "id": "cover.year", "type": "text", "role": "year", "framePct": { "x": 9, "y": 69, "width": 28, "height": 13 }, "binding": "calendar.year", "zIndex": 3, "style": { "fontSize": 38, "textAlign": "left", "background": false, "color": "#17202e" } },
+      { "id": "cover.school-name", "type": "text", "role": "school-name", "framePct": { "x": 39, "y": 70, "width": 52, "height": 11 }, "binding": "school.name", "zIndex": 3, "style": { "fontSize": 24, "textAlign": "right", "background": false, "color": "#17202e" } },
+      { "id": "cover.slogan", "type": "text", "role": "slogan", "framePct": { "x": 39, "y": 82, "width": 52, "height": 8 }, "binding": "school.slogan", "zIndex": 3, "style": { "fontSize": 15, "textAlign": "right", "background": false, "color": "#667085" } }
+    ],
+    "annual-calendar": [
+      { "id": "annual.calendar", "type": "year-calendar", "role": "year-calendar", "framePct": { "x": 6, "y": 8, "width": 88, "height": 84 }, "startMonthBinding": "calendar.startMonth", "columns": 4, "zIndex": 1 }
+    ],
+    "school-symbols": [
+      { "id": "symbols.flower", "type": "semantic-object", "role": "school-flower", "framePct": { "x": 5, "y": 20, "width": 35, "height": 22 }, "binding": "school.profile.flower", "showCaption": true, "zIndex": 1 },
+      { "id": "symbols.tree", "type": "semantic-object", "role": "school-tree", "framePct": { "x": 5, "y": 44, "width": 35, "height": 22 }, "binding": "school.profile.tree", "showCaption": true, "zIndex": 1 },
+      { "id": "symbols.motto", "type": "semantic-object", "role": "school-motto", "framePct": { "x": 5, "y": 68, "width": 35, "height": 22 }, "binding": "school.profile.motto", "zIndex": 1 },
+      { "id": "symbols.song", "type": "semantic-object", "role": "school-song", "framePct": { "x": 42, "y": 20, "width": 53, "height": 70 }, "binding": "school.profile.song", "zIndex": 1 }
+    ],
+    "monthly-calendar": [
+      { "id": "monthly.calendar", "type": "calendar", "role": "monthly-calendar", "framePct": { "x": 5, "y": 13, "width": 90, "height": 82 }, "monthBinding": "calendar.currentMonth", "zIndex": 1 }
+    ],
+    "monthly-image-collage-source": [
+      { "id": "collage.large", "type": "image-frame", "role": "monthly-image", "framePct": { "x": 5, "y": 6, "width": 57, "height": 58 }, "sourceBinding": "calendar.monthlyImages.current", "targetBindingPattern": "monthlyImages.{YYYY-MM}", "fit": "cover", "focalPoint": { "x": 0.5, "y": 0.5 }, "zIndex": 1 },
+      { "id": "collage.small-a", "type": "image-frame", "role": "monthly-image-secondary", "framePct": { "x": 65, "y": 6, "width": 30, "height": 27 }, "sourceBinding": "calendar.monthlyImages.current", "targetBindingPattern": "monthlyImages.{YYYY-MM}", "fit": "cover", "focalPoint": { "x": 0.25, "y": 0.5 }, "zIndex": 1 },
+      { "id": "collage.small-b", "type": "image-frame", "role": "monthly-image-tertiary", "framePct": { "x": 65, "y": 37, "width": 30, "height": 27 }, "sourceBinding": "calendar.monthlyImages.current", "targetBindingPattern": "monthlyImages.{YYYY-MM}", "fit": "cover", "focalPoint": { "x": 0.75, "y": 0.5 }, "zIndex": 1 },
+      { "id": "collage.strip", "type": "month-date-strip", "role": "month-date-strip", "framePct": { "x": 5, "y": 72, "width": 90, "height": 20 }, "monthSource": "page", "showWeekday": true, "showDate": true, "zIndex": 2 }
+    ],
+    "monthly-photo-memo": [
+      {
+        "id": "photo-memo.composite",
+        "type": "composite-master",
+        "role": "monthly-photo-memo",
+        "layout": {
+          "model": "safe-area-flex-column",
+          "gapToken": "space-2",
+          "children": [
+            { "id": "monthly-photo", "type": "image-frame", "flex": 1.7, "bindingPattern": "monthlyImages.{YYYY-MM}", "fit": "cover", "emptyState": "screen-only" },
+            { "id": "monthly-memo", "type": "memo-lines", "flex": 1, "lineCount": 7, "drawnLineCount": 6, "footer": { "leftBinding": "school.profile.motto.description", "rightBinding": "school.contact.site" } }
+          ]
+        },
+        "sourceRules": [
+          "월별 사진 자산 키는 해당 달력 면의 연월(YYYY-MM)을 사용한다.",
+          "사진 빈 슬롯 안내는 화면 전용이며 인쇄·뷰어에서는 출력하지 않는다.",
+          "메모 괘선은 PDF 래스터화 품질을 위해 gradient가 아닌 DOM 선 6개로 그린다."
+        ]
+      }
+    ],
+    "back-contact": [
+      { "id": "back.badge", "type": "semantic-object", "role": "school-badge", "framePct": { "x": 6, "y": 30, "width": 32, "height": 10 }, "binding": "school.name", "zIndex": 2 },
+      { "id": "back.photo", "type": "image-frame", "role": "end-photo", "framePct": { "x": 48, "y": 13.5, "width": 47.1, "height": 55.1 }, "binding": "assets.endPhoto", "fallbackBinding": "school.profile.building", "fit": "cover", "zIndex": 1 },
+      {
+        "id": "back.contact-card",
+        "type": "contact-card",
+        "role": "school-contact",
+        "framePct": { "x": 4.9, "y": 74.2, "width": 90.2, "height": 18.8 },
+        "bindings": {
+          "address": "school.contact.address",
+          "academicPhone": "school.contact.telAcademic",
+          "adminPhone": "school.contact.telAdmin",
+          "fax": "school.contact.fax",
+          "site": "school.contact.site"
+        },
+        "hideEmptyFields": true,
+        "hideWhenAllEmpty": true,
+        "zIndex": 2
+      }
+    ]
+  },
+  "migration": {
+    "automatic": false,
+    "note": "현재 프로젝트를 자동 변환하지 않는다. 각 Master의 frame·style·binding 비교가 끝난 뒤 배포 가능 상태로 전환한다."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "1.0",
+  "id": "native-cmyk-text-layout",
+  "revision": 1,
+  "metadata": { "name": "CMYK 네이티브 텍스트 레이아웃 1면", "purpose": "native-print-text-layout-proof", "version": "0.1.0" },
+  "printContract": {
+    "schemaVersion": "print-contract.v1",
+    "profile": "Japan Color 2011 Coated",
+    "pdfStandard": "PDF/X-4",
+    "coordinateUnit": "mm",
+    "productionSizeMm": { "width": 266, "height": 186 },
+    "trimSizeMm": { "width": 260, "height": 180 },
+    "bleedMm": 3,
+    "safeInsetMm": 8,
+    "minimumImageDpi": 300
+  },
+  "pages": [{
+    "id": "native-text-layout.page-1",
+    "role": "technical-text-layout-proof",
+    "surfaceRole": "technical-text-layout-proof",
+    "contentPurpose": "free",
+    "size": { "width": 260, "height": 180, "unit": "mm" },
+    "objects": [{
+      "id": "school-title",
+      "type": "text",
+      "role": "school-title",
+      "frame": { "x": 37, "y": 42, "width": 186, "height": 50 },
+      "binding": "school.name",
+      "style": {
+        "fontFamily": "Pretendard",
+        "fontSizePt": 24,
+        "fontWeight": 400,
+        "lineHeight": 1.35,
+        "letterSpacingPt": 0,
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "autoFit": false
+      },
+      "print": {
+        "structure": "native-vector",
+        "textMode": "outline",
+        "blackMode": "k100",
+        "fill": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 },
+        "font": {
+          "ref": "package",
+          "assetId": "assets/fonts/Pretendard-Regular.otf",
+          "sha256": "3ffbacde6ab8411f1d2db54bb9b1f0b3ee2a738932033722cf0388c06aed1c93",
+          "postscriptName": "Pretendard-Regular",
+          "license": "OFL-1.1",
+          "outlineAllowed": true
+        }
+      },
+      "rotation": 7,
+      "opacity": 0.65,
+      "zIndex": 10
+    }]
+  }]
+}

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "desk-academic-parity-approval.v1",
+  "templateId": "desk-academic-standard",
+  "version": "1.4.0",
+  "visual": {
+    "status": "review",
+    "scope": [
+      "annual-calendar",
+      "school-symbols",
+      "monthly-calendar",
+      "monthly-photo-memo",
+      "back-contact"
+    ],
+    "evidence": "user-service-2028-reference.pdf와 runtime-2028-comparison_004.pdf의 28면 일괄 비교",
+    "metrics": {
+      "surfaceCount": 28,
+      "productionSizeMm": {
+        "width": 266.02,
+        "height": 185.93
+      },
+      "averagePixelDifferencePct": 8.743,
+      "largestRemainingDifferences": [
+        {
+          "surface": 25,
+          "role": "monthly-calendar",
+          "differencePct": 16.1
+        },
+        {
+          "surface": 3,
+          "role": "school-symbols",
+          "differencePct": 15.5
+        }
+      ]
+    },
+    "note": "대표 구조와 개체 override 반영은 확인됐으나 새 Package 버전의 실제 Runtime 소비와 제품 책임자 승인은 별도 단계다."
+  },
+  "print": {
+    "status": "pending",
+    "requiredEvidence": [
+      "사용자 서비스 v1.1 PDF/X-4 샘플",
+      "동일 데이터의 Shadow Runtime PDF 샘플",
+      "Acrobat Preflight 또는 동등 검증 결과"
+    ],
+    "blockers": [
+      "REFERENCE_PDF_NOT_ATTACHED",
+      "RUNTIME_PDF_NOT_GENERATED",
+      "PREFLIGHT_NOT_VERIFIED"
+    ]
+  }
+}

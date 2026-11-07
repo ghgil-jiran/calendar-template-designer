@@ -1,0 +1,23 @@
+window.ACDL_TEMPLATE_CATALOG={
+  version:1,
+  types:[
+    {id:"desk",label:"탁상형 달력",description:"앞·뒷면과 월별 콘텐츠를 함께 구성하는 양면 달력입니다.",icon:"🗓️",enabled:true,sortOrder:1,baseType:"desk"},
+    {id:"wall",label:"벽걸이형 달력",description:"학교 이미지와 큰 월력을 중심으로 구성하는 단면 달력입니다.",icon:"📅",enabled:true,sortOrder:2,baseType:"wall"},
+    {id:"poster",label:"연간 포스터형",description:"한 장에서 연간 학사일정을 확인하는 벽보형 달력입니다.",icon:"▦",enabled:true,sortOrder:3,baseType:"poster"},
+    {id:"postcard",label:"엽서형 달력",description:"표지와 12개월 월력을 카드처럼 구성하는 단면 달력입니다.",icon:"✉️",enabled:true,sortOrder:4,baseType:"postcard"}
+  ],
+  templates:[
+    {id:"tpl-2028-desk-academic-standard-v1-4",name:"[학사달력] 탁상형 표준 02 - 월별 이미지",description:"총 28면 · 표지 1면 · 간지 2면 · 월력 24면 · 뒷표지 1면 — 연력 / 학교상징 / 월별 이미지·월력·미니월력",type:"desk",status:"published",isStandard:true,registryStatus:"published",canonicalPackage:true,edition:2028,template:"desk-academic-standard",packageVersion:"1.4.0",packageBase:"/templates/desk-academic-standard/1.4.0/",features:["28면 표준 순서","필수·선택 입력 계약","사용자 수동 사진 선택","정밀 layoutContract"],pageSummary:"총 28면 · 표지 1면 · 간지 2면 · 월력 24면 · 뒷표지 1면",updatedAt:"2026-08-30T14:33:09.629Z",version:4},
+    {id:"tpl-2028-wall-academic-standard-v0-3",name:"[학사달력] 벽걸이형 검토 01 - 이미지 월력",description:"총 15면 · 표지 1면 · 간지 1면 · 월력 12면 · 뒷표지 1면 — 연력 / 이미지 월력 / 학교정보",type:"wall",status:"ready",registryStatus:"review",canonicalPackage:true,edition:2028,template:"wall-academic-standard",packageVersion:"0.3.0",packageBase:"/templates/wall-academic-standard/0.3.0/",features:["A3 세로 15면","이미지 개체 기본 샘플","사용자 수동 사진 선택","학교 정보 Binding"],pageSummary:"총 15면 · 표지 1면 · 간지 1면 · 월력 12면 · 뒷표지 1면",updatedAt:"2026-08-30T00:00:00.000Z",version:3},
+    {id:"tpl-2028-desk-planner-standard-01",name:"[학사달력] 탁상형 검토 01 - 월별 플래너",description:"총 28면 · 표지 1면 · 간지 2면 · 월력 24면 · 뒷표지 1면 — 연력 / 학교상징 / 월별 플래너",type:"desk",status:"draft",edition:2028,template:"desk-sample-6",features:["6번 원본 재현","28면 구성","월별 파스텔 색상","월 목표·할 일","5주 계획·메모","사용자 편집 보호"],pageSummary:"총 28면 · 표지 1면 · 간지 2면 · 월력 24면 · 뒷표지 1면",updatedAt:"2026-09-02T00:00:00.000Z",version:1},
+    {id:"tpl-2028-desk-image-calendar-review-02",name:"[학사달력] 탁상형 검토 02 - 이미지 미니월력",description:"총 28면 · 표지 1면 · 연력 1면 · 학교상징 1면 · 월력 24면 · 뒷표지 1면 — 이미지 콜라주 / 월력 / 전후월 미니월력",type:"desk",status:"draft",edition:2028,template:"desk-sample-3",features:["3번 원본 재현","28면 구성","독립 요일 캡슐","세로선 없는 날짜 격자","월별 이미지 콜라주","전후월 미니월력"],pageSummary:"총 28면 · 표지 1면 · 연력 1면 · 학교상징 1면 · 월력 24면 · 뒷표지 1면",updatedAt:"2026-09-03T00:00:00.000Z",version:1},
+    {id:"tpl-2027-desk-sample-6",name:"탁상형 6번 · 월별 플래너형",description:"초기 유형 제작 검증에 사용한 보관 템플릿입니다.",type:"desk",status:"archived",edition:2027,template:"desk-sample-6",features:["기간 일정","월별 플래너","28면 앞뒤 구성"],pageSummary:"표지·연력·학교 상징·월별 앞뒤 12쌍·뒷표지",updatedAt:"2026-08-31T00:00:00.000Z",version:2},
+    {id:"tpl-2027-desk-sample-2",name:"탁상형 2번 · 이미지 콜라주형",description:"초기 유형 제작 검증에 사용한 보관 템플릿입니다.",type:"desk",status:"archived",edition:2027,template:"desk-sample-2",features:["이미지 콜라주","띠력","월별 사진 교체"],pageSummary:"표지·연력·학교 상징·월별 앞뒤 12쌍·뒷표지",updatedAt:"2026-08-31T00:00:00.000Z",version:2},
+    {id:"tpl-2027-basic-desk",name:"학교 기본형",description:"초기 탁상형 제작 검증에 사용한 보관 템플릿입니다.",type:"desk",status:"archived",edition:2027,template:"school-basic",features:["학교 정보 강조","5×7·6×7"],pageSummary:"표지·월력 12장·뒷면",updatedAt:"2026-08-31T00:00:00.000Z",version:1},
+    {id:"tpl-2027-minimal-desk",name:"사진 미니멀형",description:"초기 탁상형 제작 검증에 사용한 보관 템플릿입니다.",type:"desk",status:"archived",edition:2027,template:"minimal",features:["사진 중심","6×7"],pageSummary:"표지·월력 12장·뒷면",updatedAt:"2026-08-31T00:00:00.000Z",version:1},
+    {id:"tpl-2027-wall",name:"학교 이미지형",description:"초기 벽걸이형 제작 검증에 사용한 보관 템플릿입니다.",type:"wall",status:"archived",edition:2027,template:"school-basic",features:["큰 월력","전경 강조"],pageSummary:"표지·월력 12장",updatedAt:"2026-08-31T00:00:00.000Z",version:1},
+    {id:"tpl-2027-poster",name:"연간 일정 포스터",description:"초기 포스터형 제작 검증에 사용한 보관 템플릿입니다.",type:"poster",status:"archived",edition:2027,template:"school-basic",features:["연간 보기","행사 중심"],pageSummary:"연간 월력 1장",updatedAt:"2026-08-31T00:00:00.000Z",version:1},
+    {id:"tpl-2027-postcard",name:"월별 사진 엽서형",description:"초기 엽서형 제작 검증에 사용한 보관 템플릿입니다.",type:"postcard",status:"archived",edition:2027,template:"minimal",features:["12개월 카드","사진 중심"],pageSummary:"표지·월력 12장·뒷표지",updatedAt:"2026-08-31T00:00:00.000Z",version:1},
+    {id:"tpl-2026-basic",name:"학교 기본형",description:"이전 연도 운영 기록을 위해 보관된 2026 Edition입니다.",type:"desk",status:"archived",edition:2026,template:"school-basic",features:["보관본","학교 정보 강조"],pageSummary:"표지·월력 12장·뒷면",updatedAt:"2025-11-30T00:00:00.000Z",version:1}
+  ]
+};

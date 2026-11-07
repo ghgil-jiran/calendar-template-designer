@@ -1,0 +1,63 @@
+{
+  "template": {
+    "id": "template.fixture",
+    "revision": 1,
+    "masterElements": {
+      "master.monthly.front": [
+        {
+          "id": "master.title",
+          "type": "text",
+          "x": 5,
+          "y": 5,
+          "width": 50,
+          "height": 10,
+          "binding": "school.name",
+          "content": "샘플 학교",
+          "zIndex": 2
+        }
+      ]
+    }
+  },
+  "productType": {
+    "category": "desk",
+    "pageSize": {
+      "width": 260,
+      "height": 180,
+      "unit": "mm"
+    }
+  },
+  "settings": {
+    "year": 2027,
+    "startMonth": 3
+  },
+  "book": {
+    "school": {
+      "name": "테스트 학교"
+    },
+    "events": [],
+    "pageInstances": [
+      {
+        "id": "page.march",
+        "role": "monthly-front",
+        "masterId": "master.monthly.front",
+        "calendarYear": 2027,
+        "calendarMonth": 3,
+        "number": 1,
+        "side": "front"
+      }
+    ],
+    "elementsByPage": {
+      "page.march": [
+        {
+          "id": "local.memo",
+          "type": "memo",
+          "x": 60,
+          "y": 10,
+          "width": 35,
+          "height": 30,
+          "zIndex": 3
+        }
+      ]
+    }
+  }
+}

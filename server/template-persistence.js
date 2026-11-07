@@ -1,0 +1,370 @@
+import { createHash } from 'node:crypto';
+import { requireMasterAdmin } from './admin-auth.js';
+import '../apps/designer-studio/persistence-project.js';
+
+const STATES = new Set(['draft', 'ready', 'published', 'archived']);
+const SAVE_KINDS = new Set(['manual', 'restore', 'publish']);
+
+function env(name) {
+  const value = process.env[name]?.trim();
+  if (!value) throw Object.assign(new Error(`Missing ${name}`), { statusCode: 503, code: 'SERVER_NOT_CONFIGURED' });
+  return value;
+}
+
+export async function assertInternalAccess(request) { return requireMasterAdmin(request); }
+
+function supabaseConfig() {
+  return { url: env('SUPABASE_URL').replace(/\/$/, ''), key: env('SUPABASE_SERVICE_ROLE_KEY') };
+}
+
+const ASSET_BUCKET='template-assets';
+const ALLOWED_IMAGE_TYPES=new Set(['image/png','image/jpeg','image/webp','image/svg+xml']);
+const ASSET_MARKER=/^acdl-asset:\/\/([0-9a-f-]{36})$/i;
+
+async function storageRequest(path,options={}){
+  const {url,key}=supabaseConfig();
+  const response=await fetch(`${url}/storage/v1/${path}`,{...options,headers:{apikey:key,Authorization:`Bearer ${key}`,...options.headers}});
+  const text=await response.text(),body=text?JSON.parse(text):null;
+  if(!response.ok){const error=new Error(body?.message||'Supabase storage request failed');error.statusCode=502;error.code='SUPABASE_STORAGE_FAILED';error.storageStatus=response.status;throw error}
+  return body;
+}
+
+async function storageBinaryRequest(path){
+  const {url,key}=supabaseConfig();
+  const response=await fetch(`${url}/storage/v1/${path}`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
+  if(!response.ok){const error=new Error('Supabase asset download failed');error.statusCode=502;error.code='SUPABASE_STORAGE_FAILED';error.storageStatus=response.status;throw error}
+  return {bytes:Buffer.from(await response.arrayBuffer()),mimeType:response.headers.get('content-type')||'application/octet-stream'};
+}
+
+async function deleteStorageObjects(bucket,paths){
+  const prefixes=[...new Set(paths.filter(Boolean))];
+  if(!prefixes.length)return;
+  await storageRequest(`object/${encodeURIComponent(bucket)}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes})});
+}
+
+function decodeDataUrl(value){
+  if(typeof value!=='string'||!value.startsWith('data:image/'))throw Object.assign(new Error('Invalid image data'),{statusCode:400,code:'INVALID_IMAGE'});
+  const match=value.match(/^data:([^;,]+)(;base64)?,(.*)$/s);if(!match||!ALLOWED_IMAGE_TYPES.has(match[1]))throw Object.assign(new Error('Unsupported image type'),{statusCode:400,code:'INVALID_IMAGE'});
+  const bytes=match[2]?Buffer.from(match[3],'base64'):Buffer.from(decodeURIComponent(match[3]));
+  if(!bytes.length||bytes.length>25*1024*1024)throw Object.assign(new Error('Invalid image size'),{statusCode:413,code:'IMAGE_TOO_LARGE'});
+  return {mimeType:match[1],bytes};
+}
+
+function extensionFor(mimeType){return {'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/svg+xml':'svg'}[mimeType]}
+
+async function signedAsset(row){
+  const signed=await storageRequest(`object/sign/${encodeURIComponent(row.storage_bucket)}/${row.storage_path.split('/').map(encodeURIComponent).join('/')}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:86400})});
+  const signedPath=signed?.signedURL||signed?.signedUrl;if(!signedPath)throw Object.assign(new Error('Signed URL missing'),{statusCode:502,code:'SIGNED_URL_FAILED'});
+  const {url}=supabaseConfig();return {id:row.id,url:signedPath.startsWith('http')?signedPath:`${url}${signedPath}`,mimeType:row.mime_type,byteSize:Number(row.byte_size)};
+}
+
+export async function storeTemplateAsset(dataUrl){
+  const {mimeType,bytes}=decodeDataUrl(dataUrl),contentHash=createHash('sha256').update(bytes).digest('hex');
+  if(bytes.length>20*1024*1024){const bucket=await storageRequest(`bucket/${ASSET_BUCKET}`);if(bucket.file_size_limit!=null&&Number(bucket.file_size_limit)<25*1024*1024)await storageRequest(`bucket/${ASSET_BUCKET}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({public:bucket.public,allowed_mime_types:bucket.allowed_mime_types,file_size_limit:25*1024*1024})});}
+  let rows=await supabaseRequest(`template_assets?select=*&content_hash=eq.${contentHash}&limit=1`);let row=rows[0];
+  if(!row){
+    const storagePath=`sha256/${contentHash}.${extensionFor(mimeType)}`;
+    try{await storageRequest(`object/${ASSET_BUCKET}/${storagePath}`,{method:'POST',headers:{'Content-Type':mimeType,'x-upsert':'false'},body:bytes})}catch(error){if(error.storageStatus!==409)throw error}
+    rows=await supabaseRequest('template_assets?on_conflict=content_hash',{method:'POST',headers:{Prefer:'resolution=ignore-duplicates,return=representation'},body:JSON.stringify({content_hash:contentHash,storage_bucket:ASSET_BUCKET,storage_path:storagePath,mime_type:mimeType,byte_size:bytes.length})});
+    row=rows[0]||(await supabaseRequest(`template_assets?select=*&content_hash=eq.${contentHash}&limit=1`))[0];
+  }
+  return signedAsset(row);
+}
+
+export async function resolveTemplateAssets(ids){
+  const unique=[...new Set((Array.isArray(ids)?ids:[]).filter(id=>/^[0-9a-f-]{36}$/i.test(id)))];if(!unique.length)return [];
+  const rows=await supabaseRequest(`template_assets?select=*&id=in.(${unique.map(encodeURIComponent).join(',')})`);
+  return Promise.all(rows.map(signedAsset));
+}
+
+export async function resolveTemplateAssetsByPaths(paths){
+  const unique=[...new Set((Array.isArray(paths)?paths:[]).map(value=>String(value||'').trim()).filter(value=>value.startsWith('sha256/')&&value.length<180))];if(!unique.length)return [];
+  const rows=await supabaseRequest(`template_assets?select=*&storage_bucket=eq.${ASSET_BUCKET}&storage_path=in.(${unique.map(encodeURIComponent).join(',')})`);
+  return rows.map(row=>({id:row.id,storagePath:row.storage_path,mimeType:row.mime_type,byteSize:Number(row.byte_size)}));
+}
+
+export async function readTemplateAsset(id){
+  if(!/^[0-9a-f-]{36}$/i.test(String(id||'')))throw Object.assign(new Error('Invalid asset id'),{statusCode:400,code:'INVALID_ASSET_ID'});
+  const rows=await supabaseRequest(`template_assets?select=*&id=eq.${encodeURIComponent(id)}&limit=1`),row=rows[0];
+  if(!row)throw Object.assign(new Error('Asset not found'),{statusCode:404,code:'ASSET_NOT_FOUND'});
+  const result=await storageBinaryRequest(`object/${encodeURIComponent(row.storage_bucket)}/${row.storage_path.split('/').map(encodeURIComponent).join('/')}`);
+  return {...result,mimeType:row.mime_type||result.mimeType,byteSize:Number(row.byte_size)};
+}
+
+function collectAssetIds(value,result=new Set()){
+  if(typeof value==='string'){const match=value.match(ASSET_MARKER);if(match)result.add(match[1]);return result}
+  if(Array.isArray(value)){value.forEach(item=>collectAssetIds(item,result));return result}
+  if(value&&typeof value==='object')Object.values(value).forEach(item=>collectAssetIds(item,result));return result;
+}
+
+export async function supabaseRequest(path, options = {}) {
+  const { url, key } = supabaseConfig();
+  const read=!options.method||String(options.method).toUpperCase()==='GET',attempts=read?2:1;
+  let response;
+  for(let attempt=1;attempt<=attempts;attempt+=1){
+    try{response=await fetch(`${url}/rest/v1/${path}`,{...options,signal:options.signal||AbortSignal.timeout(read?20000:120000),headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json',...options.headers}});break}
+    catch(error){console.error('[template-persistence] Supabase request failed',{path:path.split('?')[0],attempt,read,error:String(error)});if(attempt===attempts){const timeout=error?.name==='TimeoutError'||error?.name==='AbortError';throw Object.assign(new Error(timeout?'Supabase read timed out':error?.message||'Supabase request failed'),{statusCode:timeout?504:502,code:timeout?'SUPABASE_TIMEOUT':'SUPABASE_REQUEST_FAILED'})}}
+  }
+  const text = await response.text();
+  const body = text ? JSON.parse(text) : null;
+  if (!response.ok) {
+    const error = new Error(body?.message || 'Supabase request failed');
+    error.statusCode = 502;
+    error.code = 'SUPABASE_REQUEST_FAILED';
+    error.supabaseCode = body?.code;
+    console.error('[template-persistence] database request rejected',{path:path.split('?')[0],status:response.status,code:body?.code,message:body?.message});
+    throw error;
+  }
+  return body;
+}
+
+function requiredText(value, field, max = 200) {
+  if (typeof value !== 'string' || !value.trim() || value.trim().length > max) {
+    throw Object.assign(new Error(`Invalid ${field}`), { statusCode: 400, code: 'INVALID_REQUEST' });
+  }
+  return value.trim();
+}
+
+function optionalText(value, field, max = 1000) {
+  if (value == null || value === '') return null;
+  if (typeof value !== 'string' || value.trim().length > max) {
+    throw Object.assign(new Error(`Invalid ${field}`), { statusCode: 400, code: 'INVALID_REQUEST' });
+  }
+  return value.trim();
+}
+
+function projectData(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw Object.assign(new Error('Invalid projectData'), { statusCode: 400, code: 'INVALID_REQUEST' });
+  }
+  return globalThis.ACDLUserEditingPolicy.normalizeProject(value);
+}
+
+export function validateVersionSave(value) {
+  const body = value && typeof value === 'object' ? value : {};
+  const edition = Number(body.edition);
+  if (!Number.isInteger(edition) || edition < 2000 || edition > 2200 || !STATES.has(body.state) || !SAVE_KINDS.has(body.saveKind)) {
+    throw Object.assign(new Error('Invalid template metadata'), { statusCode: 400, code: 'INVALID_REQUEST' });
+  }
+  return {
+    templateId: body.templateId ? requiredText(body.templateId, 'templateId', 80) : null,
+    stableKey: requiredText(body.stableKey, 'stableKey', 160),
+    name: requiredText(body.name, 'name', 160),
+    description: optionalText(body.description, 'description', 1000) || '',
+    edition,
+    state: body.state,
+    isStandard: body.isStandard === true,
+    productType: requiredText(body.productType, 'productType', 80),
+    templateKey: requiredText(body.templateKey, 'templateKey', 160),
+    saveKind: body.saveKind,
+    saveNote: optionalText(body.saveNote, 'saveNote', 500),
+    sourceVersionId: body.sourceVersionId ? requiredText(body.sourceVersionId, 'sourceVersionId', 80) : null,
+    schemaVersion: requiredText(body.schemaVersion, 'schemaVersion', 40),
+    projectData: projectData(body.projectData)
+  };
+}
+
+export function validateDraftSave(value) {
+  const body = value && typeof value === 'object' ? value : {};
+  return {
+    templateId: requiredText(body.templateId, 'templateId', 80),
+    schemaVersion: requiredText(body.schemaVersion, 'schemaVersion', 40),
+    projectData: projectData(body.projectData)
+  };
+}
+
+export function rowToLibraryItem(row, projectStandard = false, thumbnail = null, calendarTypeSize = null) {
+  return {
+    id: row.id,
+    stableKey: row.stable_key,
+    name: row.name,
+    description: row.description,
+    edition: row.edition,
+    state: row.state,
+    isStandard: row.is_standard === true || projectStandard === true,
+    productType: row.product_type,
+    templateKey: row.template_key,
+    latestVersionId: row.latest_version_id,
+    latestVersionNumber: row.latest_version_number,
+    updatedAt: row.updated_at,
+    thumbnail: thumbnail && typeof thumbnail === 'object' ? thumbnail : undefined,
+    calendarTypeSize: calendarTypeSize && typeof calendarTypeSize === 'object' ? calendarTypeSize : undefined
+  };
+}
+
+export function rowToVersion(row) {
+  return {
+    id: row.id,
+    templateId: row.template_id,
+    versionNumber: row.version_number,
+    saveKind: row.save_kind,
+    state: row.state,
+    saveNote: row.save_note || undefined,
+    sourceVersionId: row.source_version_id || undefined,
+    schemaVersion: row.schema_version,
+    projectData: row.project_data,
+    createdAt: row.created_at
+  };
+}
+
+function firstRow(value) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export async function listTemplates() {
+  const rows = await supabaseRequest('template_projects?select=*&order=updated_at.desc');
+  if (!rows.length) return [];
+  const ids = rows.map(row => row.latest_version_id).filter(Boolean);
+  const versions = ids.length ? await supabaseRequest(`template_versions?select=id,thumbnail:project_data->template->thumbnail,project_standard:project_data->template->metadata->isStandard,calendar_type_size:project_data->template->calendarTypeSnapshot->definition->finishedSize&id=in.(${ids.map(encodeURIComponent).join(',')})`) : [];
+  const versionMeta = new Map(versions.map(version => [version.id, version]));
+  return rows.map(row => {const meta=versionMeta.get(row.latest_version_id);return rowToLibraryItem(row,meta?.project_standard===true,meta?.thumbnail,meta?.calendar_type_size)});
+}
+
+export async function listDeletedCatalogKeys(){
+  try{
+    const rows=await supabaseRequest('template_catalog_deletions?select=stable_key&order=deleted_at.desc');
+    return rows.map(row=>row.stable_key);
+  }catch(error){
+    if(error?.code==='SUPABASE_REQUEST_FAILED')return [];
+    throw error;
+  }
+}
+
+export async function deleteTemplate(input){
+  const body=input&&typeof input==='object'?input:{};
+  const templateId=body.templateId?requiredText(body.templateId,'templateId',80):null;
+  const stableKey=requiredText(body.stableKey,'stableKey',160);
+  const hideCatalog=body.hideCatalog===true;
+  if(!templateId&&!hideCatalog)throw Object.assign(new Error('Template id is required'),{statusCode:400,code:'INVALID_REQUEST'});
+  let result;
+  try{result=firstRow(await supabaseRequest('rpc/delete_template_permanently',{method:'POST',body:JSON.stringify({p_template_id:templateId,p_stable_key:stableKey,p_hide_catalog:hideCatalog})}));}
+  catch(error){
+    if(error?.message!=='template_not_found')throw error;
+    // A previous deletion can have succeeded while the browser retained its card.
+    // Never delete a different project with the same stable key on this retry.
+    result=hideCatalog?firstRow(await supabaseRequest('rpc/delete_template_permanently',{method:'POST',body:JSON.stringify({p_template_id:null,p_stable_key:stableKey,p_hide_catalog:true})})):{templateDeleted:false,catalogHidden:false,orphanAssets:[]};
+  }
+  const orphanAssets=Array.isArray(result?.orphanAssets)?result.orphanAssets:[];
+  const byBucket=new Map();
+  orphanAssets.forEach(asset=>{const bucket=asset.storage_bucket||ASSET_BUCKET;if(!byBucket.has(bucket))byBucket.set(bucket,[]);byBucket.get(bucket).push(asset.storage_path)});
+  const removedAssetIds=[];
+  for(const [bucket,paths] of byBucket){
+    await deleteStorageObjects(bucket,paths);
+    const ids=orphanAssets.filter(asset=>(asset.storage_bucket||ASSET_BUCKET)===bucket).map(asset=>asset.id);
+    removedAssetIds.push(...ids);
+  }
+  return {deleted:true,templateDeleted:result?.templateDeleted===true,catalogHidden:result?.catalogHidden===true,removedAssetCount:removedAssetIds.length,stableKey};
+}
+
+export async function getTemplate(templateId) {
+  const id = encodeURIComponent(requiredText(templateId, 'templateId', 80));
+  const rows = await supabaseRequest(`template_projects?select=*&id=eq.${id}&limit=1`);
+  if (!rows.length) throw Object.assign(new Error('Template not found'), { statusCode: 404, code: 'NOT_FOUND' });
+  const latestVersionId = rows[0].latest_version_id;
+  const versions = await supabaseRequest(`template_versions?select=*&id=eq.${encodeURIComponent(latestVersionId)}&limit=1`);
+  if (!versions.length) throw Object.assign(new Error('Latest version not found'), { statusCode: 409, code: 'VERSION_MISSING' });
+  const template = rowToLibraryItem(rows[0], versions[0].project_data?.template?.metadata?.isStandard === true);
+  return { template, version: rowToVersion(versions[0]) };
+}
+
+export async function saveVersion(input) {
+  const data = validateVersionSave(input);
+  const versionRow = firstRow(await supabaseRequest('rpc/save_template_version', {
+    method: 'POST',
+    body: JSON.stringify({
+      p_template_id: data.templateId,
+      p_stable_key: data.stableKey,
+      p_name: data.name,
+      p_description: data.description,
+      p_edition: data.edition,
+      p_state: data.state,
+      p_product_type: data.productType,
+      p_template_key: data.templateKey,
+      p_save_kind: data.saveKind,
+      p_save_note: data.saveNote,
+      p_source_version_id: data.sourceVersionId,
+      p_schema_version: data.schemaVersion,
+      p_project_data: data.projectData
+    })
+  }));
+  const assetIds=[...collectAssetIds(data.projectData)];
+  if(assetIds.length)await supabaseRequest('template_version_assets?on_conflict=version_id,asset_id',{method:'POST',headers:{Prefer:'resolution=ignore-duplicates'},body:JSON.stringify(assetIds.map(assetId=>({version_id:versionRow.id,asset_id:assetId})))});
+  let projectRow;
+  try {
+    projectRow = firstRow(await supabaseRequest(`template_projects?id=eq.${encodeURIComponent(versionRow.template_id)}&select=*`, {
+      method: 'PATCH',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ is_standard: data.isStandard })
+    }));
+  } catch (error) {
+    if (error?.code !== 'SUPABASE_REQUEST_FAILED') throw error;
+    projectRow = firstRow(await supabaseRequest(`template_projects?select=*&id=eq.${encodeURIComponent(versionRow.template_id)}&limit=1`));
+    if (projectRow) projectRow = { ...projectRow, is_standard: data.isStandard };
+  }
+  return { template: rowToLibraryItem(projectRow), version: rowToVersion(versionRow) };
+}
+
+export async function saveDraft(input) {
+  const data = validateDraftSave(input);
+  const rows = await supabaseRequest('template_drafts?on_conflict=template_id', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify({
+      template_id: data.templateId,
+      schema_version: data.schemaVersion,
+      project_data: data.projectData,
+      updated_at: new Date().toISOString()
+    })
+  });
+  return rows[0];
+}
+
+export async function listVersions(templateId) {
+  const id = encodeURIComponent(requiredText(templateId, 'templateId', 80));
+  const rows = await supabaseRequest(`template_versions?select=*&template_id=eq.${id}&order=version_number.desc`);
+  return rows.map(rowToVersion);
+}
+
+export async function restoreVersion(input) {
+  const templateId = requiredText(input?.templateId, 'templateId', 80);
+  const versionId = requiredText(input?.versionId, 'versionId', 80);
+  const source = firstRow(await supabaseRequest(`template_versions?select=*&id=eq.${encodeURIComponent(versionId)}&template_id=eq.${encodeURIComponent(templateId)}&limit=1`));
+  if (!source) throw Object.assign(new Error('Version not found'), { statusCode: 404, code: 'NOT_FOUND' });
+  const current = await getTemplate(templateId);
+  return saveVersion({
+    templateId,
+    stableKey: current.template.stableKey,
+    name: current.template.name,
+    description: current.template.description,
+    edition: current.template.edition,
+    state: source.state,
+    isStandard: current.template.isStandard,
+    productType: current.template.productType,
+    templateKey: current.template.templateKey,
+    saveKind: 'restore',
+    saveNote: optionalText(input?.saveNote, 'saveNote', 500) || `v${source.version_number} 복원`,
+    sourceVersionId: source.id,
+    schemaVersion: source.schema_version,
+    projectData: source.project_data
+  });
+}
+
+export function sendJson(response, status, body) {
+  response.statusCode = status;
+  response.setHeader('Content-Type', 'application/json; charset=utf-8');
+  response.setHeader('Cache-Control', 'no-store');
+  response.end(JSON.stringify(body));
+}
+
+export function sendError(response, error) {
+  const status = Number(error?.statusCode) || 500;
+  sendJson(response, status, { error: error?.code || 'INTERNAL_ERROR', ...(error?.details ? { details: error.details } : {}) });
+}
+
+export async function readJson(request) {
+  if (request.body && typeof request.body === 'object') return request.body;
+  let raw = '';
+  for await (const chunk of request) raw += chunk;
+  try { return JSON.parse(raw || '{}'); }
+  catch { throw Object.assign(new Error('Invalid JSON'), { statusCode: 400, code: 'INVALID_JSON' }); }
+}

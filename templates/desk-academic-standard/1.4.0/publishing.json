@@ -1,0 +1,263 @@
+{
+  "schemaVersion": "template-publishing.v1",
+  "templateId": "desk-academic-standard",
+  "version": "1.4.0",
+  "contractStatus": "review",
+  "sourceOwner": "calendar-template-designer",
+  "consumerSnapshot": true,
+  "dataRequirements": [
+    {
+      "path": "school.name",
+      "stage": "project-create-required",
+      "label": "학교명",
+      "input": "text",
+      "fallback": "empty"
+    },
+    {
+      "path": "calendar.year",
+      "stage": "project-create-required",
+      "label": "학사연도",
+      "input": "year",
+      "fallback": "empty"
+    },
+    {
+      "path": "calendar.events",
+      "stage": "project-create-required",
+      "label": "학사일정",
+      "input": "schedule-import",
+      "note": "에디터 진입 전에 학사일정 등록이 필요합니다.",
+      "fallback": "empty"
+    },
+    {
+      "path": "school.profile.building",
+      "stage": "project-create-required",
+      "label": "표지 사진",
+      "input": "image",
+      "slot": "cover-photo",
+      "fallback": "empty"
+    },
+    {
+      "path": "monthlyImages",
+      "stage": "optional",
+      "label": "월별 사진",
+      "input": "image-collection",
+      "slot": "monthly-photo",
+      "fallback": "sample"
+    },
+    {
+      "path": "school.profile.logo",
+      "stage": "project-create-required",
+      "label": "교표",
+      "input": "image",
+      "slot": "school-symbol",
+      "fallback": "empty"
+    },
+    {
+      "path": "school.profile.flower",
+      "stage": "optional",
+      "label": "교화",
+      "input": "school-symbol",
+      "fallback": "sample"
+    },
+    {
+      "path": "school.profile.tree",
+      "stage": "optional",
+      "label": "교목",
+      "input": "school-symbol",
+      "fallback": "sample"
+    },
+    {
+      "path": "school.profile.motto",
+      "stage": "optional",
+      "label": "교훈",
+      "input": "text-or-image",
+      "fallback": "sample"
+    },
+    {
+      "path": "school.profile.song",
+      "stage": "optional",
+      "label": "교가",
+      "input": "image",
+      "fallback": "sample"
+    },
+    {
+      "path": "school.contacts",
+      "stage": "project-create-required",
+      "label": "학교 연락처",
+      "input": "contact",
+      "fallback": "empty"
+    }
+  ],
+  "editPermissions": {
+    "default": "locked",
+    "objects": [
+      {
+        "selector": "cover.school-image",
+        "level": "content-only",
+        "actions": [
+          "replace-image"
+        ]
+      },
+      {
+        "selector": "cover.year",
+        "level": "content-only",
+        "actions": [
+          "edit-bound-data"
+        ]
+      },
+      {
+        "selector": "cover.school-name",
+        "level": "content-only",
+        "actions": [
+          "edit-bound-data"
+        ]
+      },
+      {
+        "selector": "monthly.calendar",
+        "level": "content-only",
+        "actions": [
+          "edit-calendar-data"
+        ],
+        "note": "월력 구조와 템플릿 스타일은 잠그고 일정·표시 옵션 데이터만 수정한다."
+      },
+      {
+        "selector": "photo-memo.composite/monthly-photo",
+        "level": "resize",
+        "actions": [
+          "replace-image",
+          "move-focus",
+          "scale",
+          "rotate",
+          "brightness"
+        ]
+      },
+      {
+        "selector": "symbols.*",
+        "level": "content-only",
+        "actions": [
+          "edit-bound-data",
+          "replace-image"
+        ]
+      },
+      {
+        "selector": "back.photo",
+        "level": "resize",
+        "actions": [
+          "replace-image",
+          "move-focus",
+          "scale",
+          "rotate",
+          "brightness"
+        ]
+      },
+      {
+        "selector": "back.contact-card",
+        "level": "content-only",
+        "actions": [
+          "edit-bound-data"
+        ]
+      }
+    ],
+    "templateAuthoring": {
+      "application": "calendar-template-designer",
+      "level": "full"
+    }
+  },
+  "imagePreflight": {
+    "policyStatus": "review-against-v1.1",
+    "default": {
+      "allowedMimeTypes": [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+      ],
+      "recommendedEffectiveDpi": 300,
+      "warningBelowEffectiveDpi": 150,
+      "blockBelowEffectiveDpi": null,
+      "warningPolicy": "사용자에게 경고하되 현재 v1.1과 같이 편집은 계속 허용한다."
+    },
+    "slots": [
+      {
+        "id": "cover-photo",
+        "binding": "school.profile.building",
+        "frame": {
+          "width": 234,
+          "height": 108,
+          "unit": "mm"
+        },
+        "requiredAt": "print"
+      },
+      {
+        "id": "monthly-photo",
+        "bindingPattern": "monthlyImages.{YYYY-MM}",
+        "frame": {
+          "width": 234,
+          "height": 104,
+          "unit": "mm"
+        },
+        "requiredAt": "never"
+      },
+      {
+        "id": "school-symbol",
+        "bindingPattern": "school.profile.*.imageRef",
+        "requiredAt": "never"
+      },
+      {
+        "id": "end-photo",
+        "binding": "assets.endPhoto",
+        "fallbackBinding": "school.profile.building",
+        "requiredAt": "never"
+      }
+    ]
+  },
+  "lifecycle": {
+    "allowedStatuses": [
+      "draft",
+      "review",
+      "published",
+      "deprecated",
+      "archived"
+    ],
+    "currentStatus": "review",
+    "immutableAfterPublish": true,
+    "visibleInUserServiceWhen": {
+      "status": "published",
+      "compatibilityPasses": true
+    },
+    "registry": {
+      "target": "supabase",
+      "implementationStatus": "deployed-review-verified"
+    }
+  },
+  "compatibility": {
+    "datasetSchema": "1.x",
+    "templateSchema": "2.x",
+    "runtime": "1.x",
+    "designContract": {
+      "schemaVersion": "template-design.v1",
+      "revision": "1.1.0"
+    }
+  },
+  "releaseReadiness": {
+    "ready": false,
+    "completed": [
+      "data-requirements-defined",
+      "edit-permissions-defined",
+      "image-preflight-draft-defined",
+      "lifecycle-and-compatibility-defined",
+      "registry-deployed",
+      "runtime-parity-reviewed",
+      "editor-round-trip-verified",
+      "user-service-runtime-bridge-verified",
+      "template-input-contract-defined",
+      "optional-sample-fallback-defined"
+    ],
+    "blockers": [
+      "PACKAGE_NOT_UPLOADED",
+      "CATALOG_PREVIEW_NOT_UPLOADED",
+      "USER_SERVICE_SELECTION_E2E_PENDING",
+      "PDF_X4_PREFLIGHT_PENDING",
+      "PRODUCT_OWNER_PUBLISH_APPROVAL_PENDING"
+    ]
+  }
+}

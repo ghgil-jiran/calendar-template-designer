@@ -1,0 +1,268 @@
+(function (root) {
+  "use strict";
+  const alias = type => ({ frame: "image-frame", "monthly-calendar": "calendar", "school-object": "semantic-object" })[type] || type;
+  function composition() {
+    const shared = root.ACDLSharedScreenComposition;
+    if (shared?.version !== "1.0.0-preview.1") throw new Error("공통 화면 배치 모듈 버전이 일치하지 않습니다.");
+    return shared;
+  }
+  function isMonthBackCompositionElement(element) { return composition().isMonthBackCompositionElement(element); }
+  function visibleElements(page, masterElements = [], localElements = []) {
+    return composition().visibleElements(page, masterElements, localElements);
+  }
+  function resolveMonthDateStrip(element, page, defaults = {}) {
+    const value = element?.value && typeof element.value === "object" && !Array.isArray(element.value) ? element.value : {};
+    const widget = element?.runtimeWidget || {};
+    const fixed = (element.monthSource ?? widget.monthSource) === "fixed";
+    const year = Number(fixed ? (element.year ?? widget.year ?? value.year ?? defaults.year) : (page?.calendarYear ?? value.year ?? defaults.year));
+    const month = Number(fixed ? (element.month ?? widget.month ?? value.month ?? defaults.startMonth) : (page?.calendarMonth ?? value.month ?? defaults.startMonth));
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return null;
+    const holidayDates=[...new Set(element.holidayDates??widget.holidayDates??value.holidayDates??defaults.holidayDates??[])].filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v))),holidays=new Set(holidayDates);
+    const count = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    return {
+      year, month,
+      ...(holidayDates.length?{holidayDates}:{}),
+      stripStyle:["editorial-inline","editorial-two-row","editorial-large-month"].includes(element.style?.stripStyle??widget.stripStyle??value.stripStyle)?(element.style?.stripStyle??widget.stripStyle??value.stripStyle):"weekday-grid",
+      showWeekday: (element.showWeekday ?? widget.showWeekday ?? value.showWeekday) !== false,
+      showDate: (element.showDate ?? widget.showDate ?? value.showDate) !== false,
+      cells: Array.from({ length: count }, (_, index) => {
+        const day = index + 1;
+        const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+        const date=year+"-"+String(month).padStart(2,"0")+"-"+String(day).padStart(2,"0");return { day, weekday, weekdayLabel: "SMTWTFS"[weekday],...(holidays.has(date)?{isHoliday:true}:{}) };
+      })
+    };
+  }
+  function shiftedMonth(year, month, offset) {
+    const date = new Date(Date.UTC(Number(year), Number(month) - 1 + offset, 1));
+    return { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1 };
+  }
+  function widgetValue(element, page, defaults = {}) {
+    const storedValue = element?.value && typeof element.value === "object" && !Array.isArray(element.value) ? element.value : {};
+    const runtimeConfig = Object.fromEntries(Object.entries({ rows: element.rows, weekStart: element.weekStart, showWeekday: element.showWeekday, showDate: element.showDate, baseYear: element.baseYear, startMonth: element.startMonth, monthCount: element.monthCount, columns: element.columns, memoLayout: element.memoLayout, title: element.title, lineCount: element.lineCount, itemCount: element.itemCount, weekCount: element.weekCount, showMemo: element.showMemo, showAdjacentMonths: element.showAdjacentMonths, ...element.runtimeWidget }).filter(([, value]) => value !== undefined));
+    const config = { ...storedValue, ...runtimeConfig };
+    const type = alias(element.type), year = Number(page?.calendarYear), month = Number(page?.calendarMonth);
+    if (type === "year-calendar") return { year: Number(config.baseYear), startMonth: Number(config.startMonth || 3), monthCount: Number(config.monthCount || 12), columns: Number(config.columns || 4), weekStart: config.weekStart || "sunday" };
+    if (type === "month-date-strip") {
+      const strip = resolveMonthDateStrip(element, page, { ...defaults,year, startMonth: month });
+      return strip ? { year: strip.year, month: strip.month, showWeekday: strip.showWeekday, showDate: strip.showDate, ...(strip.holidayDates?.length?{holidayDates:strip.holidayDates}:{}), ...(strip.stripStyle!=="weekday-grid"?{stripStyle:strip.stripStyle}:{}) } : element.value;
+    }
+    if (!Number.isInteger(year) || month < 1 || month > 12) return element.value;
+    if (type === "calendar" || type === "calendar-grid") return { ...storedValue, year, month, rows: config.rows, weekStart: config.weekStart, showAdjacentMonths: config.showAdjacentMonths };
+    if (type === "mini-calendar-prev") return { ...storedValue, ...shiftedMonth(year, month, -1), rows: config.rows, weekStart: config.weekStart };
+    if (type === "mini-calendar-next") return { ...storedValue, ...shiftedMonth(year, month, 1), rows: config.rows, weekStart: config.weekStart };
+    if (type === "mini-calendar") return { year, month, rows: config.rows, weekStart: config.weekStart, showWeekday: config.showWeekday !== false, showDate: config.showDate !== false };
+    if (type === "memo" && config.memoLayout === "daily-plan") return {memoLayout:"daily-plan", layout:"daily-plan", year, month, calendarYear:year, calendarMonth:month, title:config.title || "일일 자기주도 계획", dateBased:true};
+    if (type === "memo") return { layout: config.memoLayout || "lines", title: config.title || "MEMO", lineCount: Number(config.lineCount || 8), itemCount: Number(config.itemCount || 9), weekCount: Number(config.weekCount || 5), showMemo: config.showMemo !== false };
+    return element.value;
+  }
+  // The same page object must produce the same widget DOM in authoring and user editing.
+  // Values inserted into HTML are generated calendar numbers or escaped labels.
+  const monthDateStripCss = ".month-date-strip{width:100%;height:100%;display:grid;grid-template-columns:repeat(var(--date-count,31),minmax(0,1fr));align-items:stretch;background:rgba(255,255,255,.96);border:1px solid var(--line,#d8dbe2);border-radius:6px;overflow:hidden}.month-date-cell{min-width:0;display:grid;grid-template-rows:1fr 1.15fr;align-items:center;text-align:center;border-right:1px solid rgba(23,32,46,.09);font-variant-numeric:tabular-nums}.month-date-cell:last-child{border-right:0}.month-date-cell .dow{font-size:clamp(5px,1.05vw,10px);font-weight:800;color:#6b7280;line-height:1}.month-date-cell .date{font-size:clamp(6px,1.35vw,13px);font-weight:750;line-height:1}.month-date-cell.sun .dow,.month-date-cell.sun .date{color:#d04444}.month-date-cell.sat .dow,.month-date-cell.sat .date{color:#3569b8}";
+  const editorialStripCss=".month-date-strip.editorial-inline{display:flex;align-items:center;gap:1.5%;border:0;border-radius:0;padding:0 1%;box-sizing:border-box;background:rgba(255,255,255,.92);container-type:size}.editorial-inline .strip-month-label{flex:0 0 13%;font-size:clamp(4px,1.45cqw,16px);line-height:1.2;text-align:left;font-weight:400}.editorial-inline .strip-inline-dates{display:grid;grid-template-columns:repeat(var(--date-count),minmax(0,1fr));flex:1;min-width:0}.editorial-inline .strip-inline-date{font-size:clamp(4px,1.6cqw,17px);text-align:center;font-weight:400;color:var(--strip-date-color,#202020)}.editorial-inline .strip-inline-date.sun{color:var(--strip-sunday,#df5666)}.editorial-inline .strip-inline-date.sat{color:var(--strip-saturday,#202020)}";
+  const editorialTwoRowCss = ".editorial-two-row .strip-inline-dates{height:100%;align-items:stretch}.editorial-two-row .strip-inline-date{display:grid;align-items:center;min-height:0;line-height:1}.editorial-two-row .strip-weekday{font-size:clamp(4px,1.15cqw,12px);font-weight:500;color:#6b7280}.editorial-two-row .strip-day{font-size:clamp(4px,1.6cqw,17px)}.editorial-two-row .strip-inline-date.sun .strip-weekday,.editorial-two-row .strip-inline-date.sat .strip-weekday{color:inherit}.editorial-two-row.strip-rules .strip-inline-date{border-right:1px solid rgba(23,32,46,.09)}.editorial-two-row.strip-rules .strip-inline-date:last-child{border-right:0}";
+  const editorialLargeMonthCss=".month-date-strip.editorial-large-month{padding:0 2.5%!important;background:transparent;--strip-date-color:#5c5e63;--strip-sunday:#f04e3e;--strip-saturday:#3289b4}.editorial-large-month.strip-rules{background:rgba(255,255,255,.92)}.editorial-large-month .strip-large-month-label{flex-basis:9.5%;height:80%;display:flex;flex-direction:column;justify-content:center;color:var(--strip-sunday,#f04e3e);line-height:1;min-width:0}.editorial-large-month .strip-year{font-size:min(1cqw,13cqh);line-height:1.2;font-weight:400;margin-bottom:5cqh}.editorial-large-month .strip-month-line{display:flex;align-items:baseline;gap:.3cqw;white-space:nowrap}.editorial-large-month .strip-month-number{font-size:min(4.2cqw,54cqh);font-weight:400;line-height:1}.editorial-large-month .strip-month-unit{font-size:min(1.4cqw,18cqh);font-weight:400;line-height:1}.editorial-large-month .strip-inline-dates{height:80%;align-self:center}.editorial-large-month .strip-inline-date{font-weight:700}.editorial-large-month .strip-weekday{font-size:min(1.2cqw,16cqh);font-weight:400;color:#686b70}.editorial-large-month .strip-day{font-size:min(1.4cqw,19cqh);font-weight:700}";
+  function escapeMonthStripText(value) {
+    return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+  }
+  function renderMonthDateStripMarkup(strip, transparent = false) {
+    if (!strip || !Array.isArray(strip.cells)) return "";
+    if(["editorial-inline","editorial-two-row","editorial-large-month"].includes(strip.stripStyle)){
+      const names=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+      const largeMonth=strip.stripStyle==="editorial-large-month";
+      const title=largeMonth?'<span class="strip-month-label strip-large-month-label"><span class="strip-year">'+escapeMonthStripText(strip.year)+'</span><span class="strip-month-line"><span class="strip-month-number">'+escapeMonthStripText(strip.month)+'</span><span class="strip-month-unit">월</span></span></span>':'<span class="strip-month-label">'+strip.year+' '+strip.month+'<br>'+names[strip.month-1]+'</span>';
+      const twoRow=strip.stripStyle==="editorial-two-row"||largeMonth;
+      const dates=strip.cells.map(cell=>{
+        const kind=cell.weekday===0||cell.isHoliday?' sun':cell.weekday===6?' sat':'';
+        if(!twoRow)return '<span class="strip-inline-date'+kind+'">'+(strip.showDate?escapeMonthStripText(cell.day):'')+'</span>';
+        return '<span class="strip-inline-date'+kind+'" style="grid-template-rows:repeat('+(Number(strip.showWeekday)+Number(strip.showDate)||1)+',minmax(0,1fr))">'+(strip.showWeekday?'<span class="strip-weekday">'+escapeMonthStripText(cell.weekdayLabel)+'</span>':'')+(strip.showDate?'<span class="strip-day">'+escapeMonthStripText(cell.day)+'</span>':'')+'</span>';
+      }).join('');
+      return '<div class="month-date-strip editorial-inline'+(twoRow?' editorial-two-row'+(!transparent?' strip-rules':''):'')+(largeMonth?' editorial-large-month':'')+'" style="--date-count:'+strip.cells.length+(transparent?';background:transparent':'')+'">'+title+'<div class="strip-inline-dates">'+dates+'</div></div>';
+    }
+    const cells = strip.cells.map(cell => {
+      const kind = cell.weekday === 0 || cell.isHoliday ? " sun" : cell.weekday === 6 ? " sat" : "";
+      return '<div class="month-date-cell' + kind + '">' +
+        (strip.showWeekday ? '<span class="dow">' + escapeMonthStripText(cell.weekdayLabel) + '</span>' : "") +
+        (strip.showDate ? '<span class="date">' + escapeMonthStripText(cell.day) + '</span>' : "") + '</div>';
+    }).join("");
+    return '<div class="month-date-strip" style="--date-count:' + strip.cells.length +
+      (transparent ? ';background:transparent;border-color:transparent' : "") + '">' + cells + '</div>';
+  }
+  function installMonthDateStripStyle() {
+    if (typeof document === "undefined" || document.getElementById("acdl-month-date-strip-style")) return;
+    const style = document.createElement("style");
+    style.id = "acdl-month-date-strip-style";
+    style.textContent = monthDateStripCss+editorialStripCss+editorialTwoRowCss+editorialLargeMonthCss;
+    document.head.appendChild(style);
+  }
+  const VECTOR_LIBRARY=[
+ {id:"school-building",name:"학교 건물",category:"school",icon:"🏫"},{id:"book-open",name:"펼친 책",category:"school",icon:"📖"},{id:"pencil",name:"연필",category:"school",icon:"✎"},{id:"ruler",name:"자",category:"school",icon:"📏"},{id:"globe",name:"지구본",category:"school",icon:"🌐"},{id:"board",name:"칠판",category:"school",icon:"▰"},{id:"graduation-cap",name:"졸업모",category:"school",icon:"🎓"},{id:"school-bell",name:"학교 종",category:"school",icon:"🔔"},{id:"backpack",name:"책가방",category:"school",icon:"🎒"},{id:"school-bus",name:"스쿨버스",category:"school",icon:"🚌"},{id:"microscope",name:"현미경",category:"school",icon:"🔬"},{id:"flask",name:"플라스크",category:"school",icon:"⚗"},
+ {id:"cherry-blossom",name:"벚꽃",category:"season",icon:"✿"},{id:"sprout",name:"새싹",category:"season",icon:"🌱"},{id:"leaf",name:"나뭇잎",category:"season",icon:"🍃"},{id:"sun",name:"여름 해",category:"season",icon:"☀"},{id:"cloud",name:"구름",category:"season",icon:"☁"},{id:"rain",name:"빗방울",category:"season",icon:"💧"},{id:"maple",name:"단풍",category:"season",icon:"🍁"},{id:"snow",name:"눈송이",category:"season",icon:"❄"},
+ {id:"entrance",name:"입학식",category:"event",icon:"🎒"},{id:"graduation",name:"졸업식",category:"event",icon:"🎓"},{id:"sports",name:"운동회",category:"event",icon:"🏃"},{id:"festival",name:"학교 축제",category:"event",icon:"🎉"},{id:"field-trip",name:"체험학습",category:"event",icon:"🚌"},{id:"exam",name:"시험",category:"event",icon:"📝"},{id:"vacation",name:"방학",category:"event",icon:"🏖"},{id:"counsel",name:"상담",category:"event",icon:"💬"},
+ {id:"laurel",name:"월계수",category:"decoration",icon:"❧"},{id:"badge",name:"배지",category:"decoration",icon:"⬟"},{id:"corner",name:"코너 장식",category:"decoration",icon:"⌜"},{id:"wave",name:"물결 장식",category:"decoration",icon:"〰"}
+];
+  function vectorColor(value, fallback) {
+    return typeof value === "string" && /^#[0-9a-fA-F]{3,8}$/.test(value) ? value : fallback;
+  }
+  function renderVectorSvg(assetId, colors = {}) {
+    if(assetId==='graphic-library-vector')return root.ACDLGraphicVectorObject.svg(colors.graphicVectorObject);
+    if(assetId==='graphic-package-background')return root.ACDLGraphicTemplateMapping?root.ACDLGraphicTemplateMapping.svg(colors):"";
+    const asset = VECTOR_LIBRARY.find(item => item.id === assetId);
+    if (!asset) return "";
+    const primary = vectorColor(colors?.primary, "#4777bd");
+    const secondary = vectorColor(colors?.secondary, "#f4b740");
+    return '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="' + escapeMonthStripText(asset.name) + '">' +
+      '<circle cx="50" cy="50" r="44" fill="' + secondary + '" opacity=".22"/>' +
+      '<path d="M50 5 L58 35 L90 35 L64 54 L74 86 L50 67 L26 86 L36 54 L10 35 L42 35 Z" fill="' + primary + '" opacity=".12"/>' +
+      '<text x="50" y="61" text-anchor="middle" font-size="44" font-family="Arial, sans-serif" fill="' + primary + '">' + escapeMonthStripText(asset.icon) + '</text></svg>';
+  }
+  function supportsVectorAsset(assetId) { return assetId==='graphic-library-vector'?Boolean(root.ACDLGraphicVectorObject):assetId==='graphic-package-background'?Boolean(root.ACDLGraphicTemplateMapping):VECTOR_LIBRARY.some(item => item.id === assetId); }
+  function resolveMiniCalendar(element, page, defaults = {}) {
+    const sourceYear = Number(page?.calendarYear || defaults.year);
+    const sourceMonth = Number(page?.calendarMonth || defaults.startMonth || 1);
+    if (!Number.isInteger(sourceYear) || sourceYear < 2000 || sourceYear > 2200 || !Number.isInteger(sourceMonth) || sourceMonth < 1 || sourceMonth > 12) return null;
+    const shift = element?.type === "mini-calendar-prev" ? -1 : element?.type === "mini-calendar-next" ? 1 : 0;
+    const target = new Date(Date.UTC(sourceYear, sourceMonth - 1 + shift, 1));
+    const year = target.getUTCFullYear(), month = target.getUTCMonth() + 1;
+    const monday = (element?.weekStart || defaults.weekStart) === "monday";
+    const offset = monday ? (target.getUTCDay() + 6) % 7 : target.getUTCDay();
+    const days = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const configured = Number(element?.calendarRows ?? defaults.calendarRows ?? 6);
+    const adaptive = (element?.sampleFamily ?? defaults.sampleFamily) === "desk-6" && (element?.calendarRowsMode ?? defaults.calendarRowsMode) === "adaptive";
+    const rows = adaptive ? Math.max(5, Math.min(6, Math.ceil((offset + days) / 7))) : configured === 5 ? 5 : 6;
+    const start = new Date(Date.UTC(year, month - 1, 1 - offset));
+    const dateCell = date => ({ year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate(), weekday: date.getUTCDay(), date: date.toISOString().slice(0, 10) });
+    const all = Array.from({ length: 42 }, (_, index) => { const date = new Date(start); date.setUTCDate(start.getUTCDate() + index); return dateCell(date); });
+    const cells = rows === 6 ? all : all.slice(0, 35).map(cell => ({ ...cell }));
+    if (rows === 5) all.slice(35).forEach((cell, index) => { if (cell.month === month) cells[28 + index].extra = cell; });
+    const desk6 = (element?.sampleFamily ?? defaults.sampleFamily) === "desk-6";
+    const headers = desk6 ? (monday ? ["MON","TUE","WED","THU","FRI","SAT","SUN"] : ["SUN","MON","TUE","WED","THU","FRI","SAT"])
+      : (monday ? ["월","화","수","목","금","토","일"] : ["일","월","화","수","목","금","토"]);
+    const monthNames = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    const label = element?.monthLabelStyle === "number-en" ? month + " " + monthNames[month - 1] : year + "년 " + month + "월";
+    return { year, month, rows, headers, label, showWeekdayHeader: element?.showWeekdayHeader !== false, cells };
+  }
+  function resolveAnnualCalendar(element, page, defaults = {}) {
+    const baseYear = Number(page?.calendarYear || defaults.year);
+    const startMonth = Number(element?.startMonth || defaults.startMonth || 1);
+    if (!Number.isInteger(baseYear) || !Number.isInteger(startMonth) || startMonth < 1 || startMonth > 12) return null;
+    const count = Math.max(1, Math.min(12, Number(element?.monthCount || 12)));
+    const layout = ["open-grid","individual-month-boxes","vertical-three-month-groups","horizontal-four-month-groups"].includes(element?.layoutType) ? element.layoutType : "individual-month-boxes";
+    const columns = Math.max(1, Math.min(6, Number(element?.columns || 4)));
+    const groupSize = layout === "vertical-three-month-groups" ? 3 : layout === "horizontal-four-month-groups" ? 4 : 0;
+    const months = Array.from({ length: count }, (_, index) => {
+      const absolute = startMonth - 1 + index;
+      const year = baseYear + Math.floor(absolute / 12), month = absolute % 12 + 1;
+      const rowMode = String(element?.rowsMode || "inherit");
+      const mini = resolveMiniCalendar({
+        type: "mini-calendar", weekStart: element?.weekStart ?? defaults.weekStart,
+        calendarRows: rowMode === "5" || rowMode === "6" ? Number(rowMode) : defaults.calendarRows,
+        calendarRowsMode: rowMode === "adaptive" ? "adaptive" : defaults.calendarRowsMode,
+        sampleFamily: rowMode === "adaptive" ? "desk-6" : defaults.sampleFamily,
+      }, { calendarYear: year, calendarMonth: month }, { year, startMonth: month, ...defaults });
+      const transition = element?.showTransitionYear !== false && year !== baseYear;
+      const names = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+      const label = element?.monthLabelStyle === "number-en" ? month + " " + names[month - 1] + (transition ? " · " + year : "") : (transition ? year + " " : "") + month + "월";
+      return { year, month, transition, label, rows: mini?.rows ?? 6, cells: mini?.cells ?? [], headers: (element?.sampleFamily ?? defaults.sampleFamily) === "desk-6" ? (mini?.headers ?? []).map(label => label[0]) : (mini?.headers ?? []) };
+    });
+    return { baseYear, startMonth, columns, layout, groupSize, showWeekdayHeader: element?.showWeekdayHeader !== false, months };
+  }
+  function resolveMemoLayout(element) {
+    const layout = typeof element?.memoLayout === "string" && element.memoLayout ? element.memoLayout : "lines";
+    const title = typeof element?.title === "string" && element.title ? element.title : "메모";
+    const bounded = (value, fallback, min, max) => Math.max(min, Math.min(max, Number(value ?? fallback)));
+    const startMonth = bounded(element?.startMonth, 1, 1, 12);
+    const baseYear = Number(element?.baseYear) || new Date().getFullYear();
+    const monthNames = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    const yearlyMonths = Array.from({ length: 12 }, (_, index) => {
+      const zero = startMonth - 1 + index, month = zero % 12 + 1, year = baseYear + Math.floor(zero / 12);
+      const transition = year !== baseYear;
+      const label = element?.monthLabelStyle === "number-ko"
+        ? (transition ? year + " " : "") + month + "월"
+        : month + " " + monthNames[month - 1] + (transition ? " · " + year : "");
+      return { year, month, transition, label };
+    });
+    return {
+      layout, title,
+      lineCount: bounded(element?.lineCount, 8, 3, 20),
+      weekCount: bounded(element?.weekCount, 5, 1, 5),
+      itemCount: bounded(element?.itemCount, 6, 1, 20),
+      showMemo: element?.showMemo !== false,
+      yearlyColumns: bounded(element?.yearlyColumns, 4, 2, 6),
+      linesPerMonth: bounded(element?.linesPerMonth, 4, 0, 12),
+      yearlyGroupSize: [3, 4].includes(Number(element?.yearlyGroupSize)) ? Number(element.yearlyGroupSize) : 0,
+      yearlyLayoutType: element?.yearlyLayoutType || "yearly-open-grid",
+      yearlyContainerStyle: element?.yearlyContainerStyle || "none",
+      yearlyMonths,
+    };
+  }
+  function resolveScheduleEvents(inputEvents, element, page, defaults = {}) {
+    const events = Array.isArray(inputEvents) ? inputEvents.filter(item => item && /^\d{4}-\d{2}-\d{2}$/.test(item.startDate || "")) : [];
+    const type = element?.type === "monthly-schedule" ? "monthly-schedule" : "event-list";
+    const mode = type === "monthly-schedule" ? "month" : element?.displayMode || "limit";
+    const year = Number(mode === "month" ? page?.calendarYear || defaults.year : defaults.year || page?.calendarYear);
+    const startMonth = Number(mode === "month" ? page?.calendarMonth || defaults.startMonth || 1 : element?.startMonth || defaults.startMonth || 1);
+    if (!Number.isInteger(year) || !Number.isInteger(startMonth) || startMonth < 1 || startMonth > 12) return { mode, groups: [], items: [] };
+    const count = mode === "month" ? 1 : mode === "year-by-month" ? 12 : Math.max(1, Math.min(12, Number(element?.monthCount || 12)));
+    const group = offset => {
+      const from = new Date(Date.UTC(year, startMonth - 1 + offset, 1));
+      const end = new Date(Date.UTC(year, startMonth + offset, 0));
+      const first = from.toISOString().slice(0, 10), last = end.toISOString().slice(0, 10);
+      const monthYear = from.getUTCFullYear(), month = from.getUTCMonth() + 1;
+      const matches = events.filter(item => item.startDate <= last && (item.endDate || item.startDate) >= first)
+        .sort((left, right) => left.startDate.localeCompare(right.startDate));
+      return { year: monthYear, month, key: monthYear + "-" + String(month).padStart(2, "0"), items: matches };
+    };
+    const groups = Array.from({ length: count }, (_, index) => group(index));
+    if (type === "monthly-schedule") {
+      const items = groups[0].items.slice(0, Number(element?.maxItems || 10));
+      return { mode, groups: [{ ...groups[0], items }], items };
+    }
+    const first = groups[0].key + "-01", lastGroup = groups[groups.length - 1];
+    const last = new Date(Date.UTC(lastGroup.year, lastGroup.month, 0)).toISOString().slice(0, 10);
+    const all = events.filter(item => item.startDate <= last && (item.endDate || item.startDate) >= first)
+      .sort((left, right) => left.startDate.localeCompare(right.startDate));
+    const items = mode === "all" || mode === "year-by-month" ? all : all.slice(0, Number(element?.maxItems || 24));
+    return { mode, groups, items };
+  }
+  const yearScheduleCss = `
+.widget-event-list.academic-year-schedule{width:100%;height:100%;padding:0;background:rgba(255,255,255,.72);border:0;border-radius:0;overflow:hidden}
+.academic-year-schedule .academic-year-grid{display:grid;width:100%;height:100%;gap:2.2%;overflow:hidden}
+.academic-year-schedule.schedule-open-grid .academic-year-grid,.academic-year-schedule.schedule-month-cards .academic-year-grid{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))}
+.academic-year-schedule .academic-month-card{min-width:0;min-height:0;padding:4px 5px;overflow:hidden}
+.academic-year-schedule .academic-month-card h5{display:flex;align-items:baseline;gap:3px;margin:0 0 4px;padding-bottom:3px;border-bottom:1px solid rgba(100,116,139,.45);font-size:10px;line-height:1;color:#173b63}
+.academic-year-schedule .academic-month-card h5 small{font-size:6px;color:#667085}
+.academic-year-schedule .academic-month-events{display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.academic-year-schedule .academic-month-event{display:grid;grid-template-columns:28px minmax(0,1fr);gap:3px;font-size:6.5px;line-height:1.2}
+.academic-year-schedule .academic-month-event time{font-weight:800;color:#53657d}
+.academic-year-schedule .academic-month-event span{min-width:0;overflow-wrap:anywhere}
+.academic-year-schedule.schedule-month-cards .academic-month-card{border:1px solid rgba(148,163,184,.55);border-radius:5px;background:rgba(255,255,255,.76)}
+.academic-year-schedule.schedule-vertical-groups .academic-year-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.academic-year-schedule.schedule-horizontal-groups .academic-year-grid{grid-template-rows:repeat(3,minmax(0,1fr))}
+.academic-year-schedule .academic-schedule-group{display:grid;min-width:0;min-height:0;gap:4px;padding:4px;border:1px solid rgba(148,163,184,.55);border-radius:5px;background:rgba(255,255,255,.58);overflow:hidden}
+.academic-year-schedule.schedule-vertical-groups .academic-schedule-group{grid-template-rows:repeat(3,minmax(0,1fr))}
+.academic-year-schedule.schedule-horizontal-groups .academic-schedule-group{grid-template-columns:repeat(4,minmax(0,1fr))}
+.academic-year-schedule .academic-schedule-group .academic-month-card{padding:2px}
+`;
+  function renderYearScheduleMarkup(schedule, element, baseYear) {
+    const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+    const layout = ["schedule-open-grid","schedule-month-cards","schedule-vertical-groups","schedule-horizontal-groups"].includes(element?.scheduleLayoutType) ? element.scheduleLayoutType : "schedule-open-grid";
+    const months = schedule.groups.map(group => {
+      const transition = group.year !== Number(baseYear) ? " <small>" + escape(group.year) + "</small>" : "";
+      const entries = group.items.map(event => {
+        const start = String(event.startDate || "").slice(5).replace("-", ".");
+        const end = element?.showEndDate && event.endDate && event.endDate !== event.startDate ? "–" + String(event.endDate).slice(5).replace("-", ".") : "";
+        return '<div class="academic-month-event"><time>' + escape(start + end) + '</time><span>' + escape(event.title ?? event.name) + '</span></div>';
+      }).join("");
+      return '<section class="academic-month-card"><h5>' + escape(group.month) + '월' + transition + '</h5><div class="academic-month-events">' + entries + '</div></section>';
+    });
+    const groupSize = layout === "schedule-vertical-groups" ? 3 : layout === "schedule-horizontal-groups" ? 4 : 0;
+    const content = groupSize ? Array.from({length: Math.ceil(months.length / groupSize)}, (_, index) => '<div class="academic-schedule-group">' + months.slice(index * groupSize, (index + 1) * groupSize).join("") + '</div>').join("") : months.join("");
+    return '<div class="widget-event-list academic-year-schedule ' + layout + '" data-event-fit="manual"><div class="academic-year-grid">' + content + '</div></div>';
+  }
+  root.ACDLPageCompositionRuntime = Object.freeze({ visibleElements, isMonthBackCompositionElement, widgetValue, resolveMonthDateStrip, renderMonthDateStripMarkup, monthDateStripCss:monthDateStripCss+editorialStripCss+editorialTwoRowCss+editorialLargeMonthCss, installMonthDateStripStyle, renderVectorSvg, supportsVectorAsset, resolveMiniCalendar, resolveAnnualCalendar, resolveMemoLayout, resolveScheduleEvents, renderYearScheduleMarkup, yearScheduleCss });
+})(typeof window !== "undefined" ? window : globalThis);
+
+
+
+
+

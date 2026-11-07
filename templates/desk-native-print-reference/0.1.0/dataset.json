@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "1.0",
+  "locale": "ko-KR",
+  "school": { "name": "새원칙중학교", "exterior": { "ref": "package", "id": "school-exterior-reference" } },
+  "calendar": { "year": 2028, "startMonth": 3, "weekStart": 0, "gridRows": 5 },
+  "monthlyImages": { "2028-03": { "ref": "package", "id": "monthly-photo-2028-03-reference" } }
+}

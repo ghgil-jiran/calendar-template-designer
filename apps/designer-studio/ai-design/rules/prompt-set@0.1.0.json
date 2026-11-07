@@ -1,0 +1,8 @@
+{
+  "id": "school-calendar-prompt",
+  "version": "0.1.0",
+  "inputs": ["schoolLevel", "schoolMood", "decorationDensity", "whitespace", "photoMode", "seasonalVariation", "pageRole", "printSpec"],
+  "requirements": ["protect-calendar-readability", "reserve-required-object-space", "consistent-design-language", "seasonal-month-variation", "preserve-school-photo-and-symbol"],
+  "forbiddenRasterContent": ["year", "school-name", "month", "weekday", "date", "holiday", "school-event", "address", "contact", "logo"],
+  "output": ["independent-image-assets", "editable-object-styles", "layout-plan", "custom-object-candidates"]
+}

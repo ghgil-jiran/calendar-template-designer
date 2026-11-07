@@ -179,7 +179,7 @@ img {max-width: 100%;}
 .hero-showcase:focus-visible {outline: 2px solid hsl(var(--primary)); outline-offset: 4px;}
 .hero-showcase .hero-art {width: 100%; padding: 0; animation: hero-rise .7s ease-out;}
 .hero-showcase .hero-art > img:first-child {width: 85%;}
-.hero-showcase .hero-art > .hero-interior {width: 55%; margin: -60px 12px 0 0;}
+.hero-showcase .hero-art > .hero-interior {min-height: 0; width: 55%; margin: -60px 12px 0 0;}
 .hero-showcase .hero-art > img {aspect-ratio: 1.43; object-fit: contain;}
 .mini-previews {display: block; overflow: hidden; border-radius: 4px;}
 .mini-track {display: flex; width: 400%; animation: page-flow 28s linear infinite;}

@@ -1,0 +1,172 @@
+/* Calendar weekday chrome shared by the authoring canvas and Runtime preview. */
+.calendar-region:is(.weekday-outlined-pills,.weekday-outlined-rects) .calendar > .head,
+.shared-month-weekdays:is(.weekday-outlined-pills,.weekday-outlined-rects) > .head {
+  box-sizing: border-box;
+  align-self: start;
+  height: calc(100% - var(--calendar-weekday-grid-gap, 0%));
+  min-height: 0;
+  margin: 0 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  border: 1.5px solid #98a2b3 !important;
+  border-radius: 7px;
+  background: #fff !important;
+  color: #262626;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1;
+  text-align: center;
+}
+.calendar-region:is(.weekday-outlined-pills,.weekday-outlined-rects) .calendar > .head:first-child,
+.shared-month-weekdays:is(.weekday-outlined-pills,.weekday-outlined-rects) > .head:first-child {
+  border-color: #f04455 !important;
+  color: #d92d20;
+}
+.calendar-region:is(.weekday-outlined-pills,.weekday-outlined-rects) .calendar > .head:nth-child(7),
+.shared-month-weekdays:is(.weekday-outlined-pills,.weekday-outlined-rects) > .head:nth-child(7) {
+  border-color: #7aa7d9 !important;
+  color: #2864b5;
+}
+
+/* Shared authored month title structure. */
+.calendar-region.month-title-left .month-title{text-align:left}.calendar-region.month-title-center .month-title{text-align:center}.calendar-region.month-title-right .month-title{text-align:right}.calendar-region .month-title.number-stack,.calendar-region .month-title.number-inline,.calendar-region .month-title.number-only,.calendar-region .month-title.english-month{display:flex;align-items:center;gap:10px;line-height:1}.calendar-region.month-title-center .month-title.number-stack,.calendar-region.month-title-center .month-title.number-inline,.calendar-region.month-title-center .month-title.number-only,.calendar-region.month-title-center .month-title.english-month{justify-content:center}.calendar-region.month-title-right .month-title.number-stack,.calendar-region.month-title-right .month-title.number-inline,.calendar-region.month-title-right .month-title.number-only,.calendar-region.month-title-right .month-title.english-month{justify-content:flex-end}.month-title .month-number{font-size:2.15em;font-weight:900;line-height:.8}.month-title .month-meta{display:flex;flex-direction:column;align-items:flex-start;gap:2px;color:#344054;font-size:.62em;font-weight:700}.month-title .month-en{font-size:1.05em;color:#17202e}.calendar-region .month-title.number-inline{gap:18px}.calendar-region .month-title.number-inline .month-number{font-size:2.65em;line-height:.78}.calendar-region .month-title.number-inline .month-year{font-size:1.05em;font-weight:850;color:#17202e}.calendar-region .month-title.number-inline .month-en{font-size:1.12em;font-weight:800;color:#8a8a8a}.calendar-region .month-title.number-only .month-number{font-size:2.65em}.calendar-region .month-title.year-month-korean,.calendar-region .month-title.month-korean{display:flex;align-items:center;font-weight:850;letter-spacing:-.04em}.calendar-region.month-title-center .month-title.year-month-korean,.calendar-region.month-title-center .month-title.month-korean{justify-content:center}.calendar-region.month-title-right .month-title.year-month-korean,.calendar-region.month-title-right .month-title.month-korean{justify-content:flex-end}.calendar-region .month-title.english-month{gap:12px;font-weight:850}.calendar-region .month-title.english-month .month-en{font-size:1.45em;font-weight:900}.calendar-region .month-title.english-month .month-year{font-size:.8em;color:#667085}
+.shared-month-title.month-title-left{text-align:left}.shared-month-title.month-title-center{text-align:center}.shared-month-title.month-title-right{text-align:right}.shared-month-title.number-stack,.shared-month-title.number-inline,.shared-month-title.number-only,.shared-month-title.english-month{display:flex;align-items:center;gap:10px;line-height:1}.shared-month-title.month-title-center.number-stack,.shared-month-title.month-title-center.number-inline,.shared-month-title.month-title-center.number-only,.shared-month-title.month-title-center.english-month{justify-content:center}.shared-month-title.month-title-right.number-stack,.shared-month-title.month-title-right.number-inline,.shared-month-title.month-title-right.number-only,.shared-month-title.month-title-right.english-month{justify-content:flex-end}.shared-month-title .month-number{font-size:2.15em;font-weight:900;line-height:.8}.shared-month-title .month-meta{display:flex;flex-direction:column;align-items:flex-start;gap:2px;color:#344054;font-size:.62em;font-weight:700}.shared-month-title .month-en{font-size:1.05em;color:#17202e}.shared-month-title.number-inline{gap:18px}.shared-month-title.number-inline .month-number{font-size:2.65em;line-height:.78}.shared-month-title.number-inline .month-year{font-size:1.05em;font-weight:850;color:#17202e}.shared-month-title.number-inline .month-en{font-size:1.12em;font-weight:800;color:#8a8a8a}.shared-month-title.number-only .month-number{font-size:2.65em}.shared-month-title.year-month-korean,.shared-month-title.month-korean{display:flex;align-items:center;font-weight:850;letter-spacing:-.04em}.shared-month-title.month-title-center.year-month-korean,.shared-month-title.month-title-center.month-korean{justify-content:center}.shared-month-title.month-title-right.year-month-korean,.shared-month-title.month-title-right.month-korean{justify-content:flex-end}.shared-month-title.english-month{gap:12px;font-weight:850}.shared-month-title.english-month .month-en{font-size:1.45em;font-weight:900}.shared-month-title.english-month .month-year{font-size:.8em;color:#667085}
+.shared-month-title{width:100%;min-width:0}
+
+/* The editor paints the outer top/left lines and each date cell paints right/bottom. */
+.shared-month-date-grid.grid-boxed {
+  box-sizing: border-box;
+  border-left: var(--calendar-grid-stroke, 1px solid #d8dee8);
+  border-top: var(--calendar-grid-stroke, 1px solid #d8dee8);
+}
+.shared-month-date-grid.grid-boxed > .shared-month-day-cell {
+  min-width: 0;
+  overflow: hidden;
+  border-right: var(--calendar-grid-stroke, 1px solid #d8dee8);
+  border-bottom: var(--calendar-grid-stroke, 1px solid #d8dee8);
+  background: rgba(255,255,255,.97);
+}
+.shared-month-date-grid.grid-boxed > .shared-month-day-cell > div:first-child {
+  box-sizing: border-box;
+  border: 0 !important;
+  padding: 3px 3px 42px !important;
+}
+
+/* Date-cell mini calendars use the same six/five-row markup on both screens. */
+.cell-mini-calendar{position:absolute;inset:0;display:flex;flex-direction:column;padding:4px;background:rgba(248,250,252,.96);overflow:hidden}.cell-mini-calendar strong{text-align:left;font-size:9px;line-height:1;margin-bottom:3px}.cell-mini-grid{display:flex;min-height:0;flex:1;flex-direction:column;justify-content:space-between;padding-bottom:1px;font-size:6px;line-height:1}.cell-mini-week{display:grid;grid-template-columns:repeat(7,1fr)}.cell-mini-week span{text-align:center;min-width:0}.cell-mini-week .merged{font-size:4.5px;white-space:nowrap}.cell-mini-week .adj{color:transparent}.cell-mini-week .sun-mini{color:#d92d20}.cell-mini-week .sat-mini{color:#175cd3}.cell.mini-host{position:relative;padding:0}.cell.mini-host .day-stack{display:none}
+.cell-mini-grid{display:grid;grid-template-rows:repeat(var(--mini-calendar-rows,6),minmax(0,1fr));justify-content:normal}.cell-mini-week{align-items:center}
+
+/* Backgrounds are painted once per cell; text and schedules stay opaque. */
+.cell-mini-calendar{background:transparent}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head,.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>div{background:var(--calendar-weekday-background)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-weekday-color"] .calendar>.head:not(:first-child):not(:nth-child(7)),.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-weekday-color"] .shared-month-weekdays>div:not(:first-child):not(:nth-child(7)){color:var(--calendar-weekday-color)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.cell:not(.head),.calendar-grid-appearance.calendar-grid-appearance .shared-month-date-grid>.shared-month-day-cell{background:var(--calendar-date-background)!important}
+.calendar-grid-appearance.calendar-grid-appearance .shared-month-date-grid>.shared-month-day-cell>div:first-child{background:transparent!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.cell.mini-host,.calendar-grid-appearance.calendar-grid-appearance .shared-month-date-grid>.shared-month-day-cell:has(.cell-mini-calendar){background:var(--calendar-mini-background)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-date-size"] :is(.day,.calendar-date-number){font-size:var(--calendar-date-size)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-date-font"] :is(.day,.calendar-date-number){font-family:var(--calendar-date-font)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-weekday-size"] :is(.calendar>.head,.shared-month-weekdays>div){font-size:var(--calendar-weekday-size)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-weekday-font"] :is(.calendar>.head,.shared-month-weekdays>div){font-family:var(--calendar-weekday-font)!important}
+.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-date-color"] .cell:not(.sun):not(.sat) .day-block:not(.public-holiday) .day,.calendar-grid-appearance.calendar-grid-appearance[style*="--calendar-date-color"] .calendar-date-number[data-day-tone=weekday]{color:var(--calendar-date-color)!important}
+
+/* A single geometry contract for authoring and authored Runtime calendars.
+   The outer cell owns fill, clipping and stroke, including mini calendars. */
+.calendar-grid-geometry.calendar-grid-geometry {
+  --calendar-grid-gap: 6px;
+  --calendar-grid-line: var(--calendar-line-width, 1px) solid var(--calendar-line-color, #b8bec7);
+}
+.calendar-grid-geometry.calendar-grid-geometry :is(.calendar,.shared-month-weekdays,.shared-month-date-grid,.shared-month-range-grid) {
+  box-sizing:border-box;column-gap:var(--calendar-grid-column-gap,var(--calendar-grid-gap))!important;row-gap:var(--calendar-grid-gap)!important;
+}
+.calendar-grid-geometry.calendar-grid-geometry :is(.calendar>.head,.shared-month-weekdays>div) {
+  margin-left:0!important;margin-right:0!important;min-width:0;box-sizing:border-box;
+}
+.calendar-grid-geometry.calendar-grid-geometry :is(.calendar>.cell:not(.head),.shared-month-day-cell) {
+  box-sizing:border-box;min-width:0;min-height:0;position:relative;overflow:hidden;
+  border:0!important;border-radius:0;
+}
+.calendar-grid-geometry.calendar-grid-geometry .shared-month-day-cell>div:first-child {
+  box-sizing:border-box;border:0!important;border-radius:0!important;background:transparent!important;
+}
+/* Adjacent dates fade their content, never the cell's background or stroke. */
+.calendar-grid-geometry.calendar-grid-geometry .calendar>.cell.adj {opacity:1}
+.calendar-grid-geometry.calendar-grid-geometry .calendar>.cell.adj>.day-stack {opacity:.35}
+.calendar-grid-geometry.calendar-grid-geometry.grid-open-rows :is(.calendar>.cell:not(.head),.shared-month-day-cell) {
+  border-bottom:var(--calendar-grid-line)!important;
+}
+.calendar-grid-geometry.calendar-grid-geometry.grid-detached-cards :is(.calendar>.cell:not(.head),.shared-month-day-cell) {
+  border:var(--calendar-grid-line)!important;border-radius:5px;
+}
+.calendar-grid-geometry.calendar-grid-geometry:not(.grid-boxed) :is(.calendar,.shared-month-date-grid) {border:0!important}
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed :is(.calendar,.shared-month-weekdays,.shared-month-date-grid,.shared-month-range-grid) {gap:0!important}
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed :is(.calendar,.shared-month-date-grid) {
+  border:0!important;border-left:var(--calendar-grid-line)!important;
+}
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed .calendar {border-top:0!important}
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed :is(.calendar>.cell:not(.head),.shared-month-day-cell) {
+  border-right:var(--calendar-grid-line)!important;border-bottom:var(--calendar-grid-line)!important;
+}
+/* Weekday chrome is independent of date-grid style. */
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed .shared-month-date-grid {
+  border-top:var(--calendar-grid-line)!important;
+}
+
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed {--calendar-grid-gap:0px}
+
+/* Date labels use their own line box rather than the page's body leading.
+   Independent underline grids keep labels close to the top of each day. */
+.calendar-grid-appearance.calendar-grid-appearance :is(.day,.calendar-date-number) {
+  line-height: 1.1;
+}
+.calendar-grid-geometry.calendar-grid-geometry.grid-open-rows .calendar>.cell:not(.head):not(.mini-host),
+.calendar-grid-geometry.calendar-grid-geometry.grid-open-rows .shared-month-day-cell>div:first-child {
+  padding-top: 3px !important;
+}
+
+
+/* Independent weekday rectangles keep their own frame; date-grid strokes never
+   close the weekday track. Both editor and Runtime use these same selectors. */
+.calendar-region.weekday-outlined-rects .calendar>.head,
+.shared-month-weekdays.weekday-outlined-rects>.head {border-radius:4px}
+.calendar-grid-geometry.calendar-grid-geometry .calendar>.head {border:0}
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed .calendar {border-left:0!important}
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-child(7n+8) {border-left:var(--calendar-grid-line)!important}
+.calendar-grid-geometry.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-child(n+8):nth-child(-n+14) {border-top:var(--calendar-grid-line)!important}
+/* A continuous underline spans all seven days, including empty/mini cells.
+   The schedule overlay uses the exact same column tracks. */
+.calendar-grid-geometry.calendar-grid-geometry.grid-row-underlines {--calendar-grid-column-gap:0px}
+.calendar-grid-geometry.calendar-grid-geometry.grid-row-underlines :is(.calendar>.cell:not(.head),.shared-month-day-cell) {
+ border-bottom:var(--calendar-grid-line)!important;
+}
+.calendar-grid-geometry.calendar-grid-geometry.grid-row-underlines .calendar>.cell:not(.head):not(.mini-host),
+.calendar-grid-geometry.calendar-grid-geometry.grid-row-underlines .shared-month-day-cell>div:first-child {padding:3px 8px 42px!important}
+.calendar-grid-geometry.calendar-grid-geometry:is(.grid-boxed,.grid-row-underlines):is(.weekday-outlined-pills,.weekday-outlined-rects) .calendar>.head,
+.calendar-grid-geometry.calendar-grid-geometry:is(.grid-boxed,.grid-row-underlines) .shared-month-weekdays:is(.weekday-outlined-pills,.weekday-outlined-rects)>.head {
+ margin-left:3px!important;margin-right:3px!important;
+}
+
+/* Explicit background and border controls shared by authoring and Runtime. */
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(1),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(1){background:var(--calendar-weekday-bg-1)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(2),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(2){background:var(--calendar-weekday-bg-2)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(3),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(3){background:var(--calendar-weekday-bg-3)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(4),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(4){background:var(--calendar-weekday-bg-4)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(5),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(5){background:var(--calendar-weekday-bg-5)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(6),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(6){background:var(--calendar-weekday-bg-6)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-appearance .calendar>.head:nth-child(7),.calendar-grid-appearance.calendar-grid-appearance .shared-month-weekdays>.head:nth-child(7){background:var(--calendar-weekday-bg-7)!important;border-bottom:var(--calendar-weekday-rule-width) solid var(--calendar-weekday-rule-color,#202020)!important}
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-child(7n+8){border-left-width:var(--calendar-outer-line-width)!important}
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-child(7n+7):not(.head){border-right-width:var(--calendar-outer-line-width)!important}
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-date-grid{border-left-width:var(--calendar-outer-line-width)!important;border-right-width:var(--calendar-outer-line-width)!important}
+
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-child(n+8):nth-child(-n+14){border-top-width:var(--calendar-outer-line-width)!important}
+/* Close the final week even when the surrounding box is hidden. A visible
+   outer border can still be thicker than the internal grid lines. */
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .calendar>.cell:nth-last-child(-n+7):not(.head),.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-day-cell:nth-last-child(-n+7){border-bottom-width:max(var(--calendar-outer-line-width,0px),var(--calendar-line-width,1px))!important}
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-date-grid{border-top-width:var(--calendar-outer-line-width)!important}
+.calendar-grid-appearance.calendar-grid-geometry.grid-boxed .shared-month-day-cell:nth-child(7n){border-right-width:var(--calendar-outer-line-width)!important}
+
+
+/* Optional authored corner radius and date padding; omission retains legacy styles. */
+.calendar-grid-appearance[style*="--calendar-authored-weekday-radius:"] .cell.head,.calendar-grid-appearance[style*="--calendar-authored-weekday-radius:"] .shared-month-weekdays>.head{border-radius:var(--calendar-authored-weekday-radius)!important}
+.calendar-grid-appearance[style*="--calendar-authored-date-padding:"] .cell:not(.head),.calendar-grid-appearance[style*="--calendar-authored-date-padding:"] .shared-month-day-cell{padding:var(--calendar-authored-date-padding)!important;box-sizing:border-box}

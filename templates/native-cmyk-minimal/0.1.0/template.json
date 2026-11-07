@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "id": "native-cmyk-minimal",
+  "revision": 1,
+  "metadata": { "name": "CMYK 네이티브 최소 1면", "purpose": "native-print-contract-proof", "version": "0.1.0" },
+  "printContract": {
+    "schemaVersion": "print-contract.v1",
+    "profile": "Japan Color 2011 Coated",
+    "pdfStandard": "PDF/X-4",
+    "coordinateUnit": "mm",
+    "productionSizeMm": { "width": 266, "height": 186 },
+    "trimSizeMm": { "width": 260, "height": 180 },
+    "bleedMm": 3,
+    "safeInsetMm": 8,
+    "minimumImageDpi": 300
+  },
+  "pages": [
+    {
+      "id": "native-minimal.page-1",
+      "role": "technical-proof",
+      "surfaceRole": "technical-proof",
+      "contentPurpose": "free",
+      "size": { "width": 260, "height": 180, "unit": "mm" },
+      "objects": [
+        { "id": "black", "type": "shape", "role": "k100-shape", "shapeType": "rect", "frame": { "x": 15, "y": 25, "width": 54, "height": 36 }, "print": { "structure": "native-vector", "blackMode": "k100", "fill": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } },
+        { "id": "rule", "type": "shape", "role": "k100-line", "shapeType": "line", "frame": { "x": 15, "y": 75, "width": 230, "height": 0 }, "style": { "strokeWidthPt": 0.54 }, "print": { "structure": "native-vector", "blackMode": "k100", "stroke": { "space": "cmyk", "c": 0, "m": 0, "y": 0, "k": 1 } } },
+        { "id": "red", "type": "shape", "role": "process-red", "shapeType": "rect", "frame": { "x": 81, "y": 25, "width": 72, "height": 36 }, "print": { "structure": "native-vector", "blackMode": "process", "fill": { "space": "cmyk", "c": 0, "m": 0.95, "y": 0.85, "k": 0.05 } } },
+        { "id": "blue", "type": "shape", "role": "process-blue", "shapeType": "rect", "frame": { "x": 165, "y": 25, "width": 72, "height": 36 }, "print": { "structure": "native-vector", "blackMode": "process", "fill": { "space": "cmyk", "c": 0.85, "m": 0.55, "y": 0, "k": 0 } } }
+      ]
+    }
+  ]
+}

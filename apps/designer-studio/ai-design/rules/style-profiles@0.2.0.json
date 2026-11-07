@@ -1,0 +1,12 @@
+{
+  "id": "school-calendar-styles",
+  "version": "0.2.0",
+  "profiles": [
+    {"id": "warm-neutral-mocha", "name": "웜 뉴트럴 & 모카", "signature": "모카·샌드·토프의 비대칭 색면과 부드러운 스튜디오 빛", "exclude": ["vintage-book", "complete-border", "sepia"]},
+    {"id": "modern-sage-eco", "name": "모던 세이지 & 에코", "signature": "크림 아이보리·세이지 색면·추상 자연선의 산뜻한 북유럽 편집감", "exclude": ["leaf-corners", "rustic-craft", "primary-colors"]},
+    {"id": "soft-pastel-watercolor", "name": "소프트 파스텔 수채화", "signature": "투명 파스텔 안료의 넓은 흐름·현대적 크롭·맑은 화지", "exclude": ["childish-character", "floral-frame", "muddy-pigment"]},
+    {"id": "clear-ui-line", "name": "클리어 UI & 캐주얼 라인", "signature": "무광 오프화이트·네이비 축·정밀하지만 가벼운 추상 선 리듬", "exclude": ["faux-ui", "year-watermark", "functional-grid"]},
+    {"id": "traditional-hanji-tone", "name": "단정 한지 & 닥종이", "signature": "닥종이 섬유·절제된 먹 안개·현대적으로 크롭한 창살과 조각보", "exclude": ["red-seal", "readable-calligraphy", "ornate-dancheong"]},
+    {"id": "trendy-mesh-aura", "name": "트렌디 매시 & 오라", "signature": "저채도 버터 옐로우·라벤더·세룰리안의 부드러운 오라 깊이", "exclude": ["neon-rainbow", "glass-card", "glossy-stock-gradient"]}
+  ]
+}

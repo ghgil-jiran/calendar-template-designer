@@ -1,0 +1,142 @@
+[
+  {
+    "slug": "reading-pair",
+    "name": "함께 책 읽기",
+    "subjectId": "students",
+    "prompt": "Two Korean teenage students, a boy and girl seated side by side reading one open book, full body visible, natural clearly drawn hands gripping book, shoes visible.",
+    "fileName": "reading-pair.svg",
+    "width": 1112,
+    "height": 1288,
+    "byteSize": 1020215
+  },
+  {
+    "slug": "book-sprout",
+    "name": "책과 새싹",
+    "subjectId": "books",
+    "prompt": "An open cream paper book with one young plant sprouting from its central seam, leaves firmly connected to stem, elegant compact composition. No people.",
+    "fileName": "book-sprout.svg",
+    "width": 1367,
+    "height": 1141,
+    "byteSize": 729579
+  },
+  {
+    "slug": "meadow-border",
+    "name": "새싹과 꽃 가로 장식",
+    "subjectId": "plants",
+    "prompt": "A long low horizontal border of gently spaced sprouts, grasses and small peach flowers with connected stems. Low height, wide aspect, no people.",
+    "fileName": "meadow-border.svg",
+    "width": 2175,
+    "height": 484,
+    "byteSize": 738702
+  },
+  {
+    "slug": "writing-student",
+    "name": "노트에 기록하기",
+    "subjectId": "students",
+    "prompt": "One Korean teenage student sitting at a small wooden desk writing in an unlettered notebook, full body, anatomically correct hand holding pencil.",
+    "fileName": "writing-student.svg",
+    "width": 1017,
+    "height": 1427,
+    "byteSize": 1046636
+  },
+  {
+    "slug": "plant-care",
+    "name": "함께 화분 돌보기",
+    "subjectId": "students",
+    "prompt": "Two Korean teenage students kneeling beside one small potted plant, one carefully watering it, the other holding pot, full body, clear hands and feet.",
+    "fileName": "plant-care.svg",
+    "width": 1290,
+    "height": 1094,
+    "byteSize": 1082022
+  },
+  {
+    "slug": "leaf-observation",
+    "name": "잎 관찰과 기록",
+    "subjectId": "students",
+    "prompt": "One Korean teenage girl observing a small leafy twig with a simple magnifier and making notes, full body, clear natural hands.",
+    "fileName": "leaf-observation.svg",
+    "width": 614,
+    "height": 1525,
+    "byteSize": 726523
+  },
+  {
+    "slug": "walking-pair",
+    "name": "책과 함께 등교하기",
+    "subjectId": "students",
+    "prompt": "Two Korean teenage students walking side by side, each carrying a closed book, full body, natural walking posture and clear shoes.",
+    "fileName": "walking-pair.svg",
+    "width": 945,
+    "height": 1518,
+    "byteSize": 879926
+  },
+  {
+    "slug": "study-circle",
+    "name": "함께 이야기하기",
+    "subjectId": "students",
+    "prompt": "Three Korean teenage students sitting around a modest round wooden table sharing ideas over one open notebook, clear hands, legs and shoes, compact coherent group.",
+    "fileName": "study-circle.svg",
+    "width": 1237,
+    "height": 1090,
+    "byteSize": 1493172
+  },
+  {
+    "slug": "book-stack",
+    "name": "책과 잎 가지",
+    "subjectId": "books",
+    "prompt": "Three stacked hardcover books in cream and dark sage with one connected leafy twig resting beside them. No letters, no people.",
+    "fileName": "book-stack.svg",
+    "width": 1252,
+    "height": 1140,
+    "byteSize": 841266
+  },
+  {
+    "slug": "stationery-leaves",
+    "name": "노트와 연필",
+    "subjectId": "stationery",
+    "prompt": "One cream notebook, a wooden pencil, and one small connected leafy twig in a compact balanced still life. No letters, no people.",
+    "fileName": "stationery-leaves.svg",
+    "width": 1240,
+    "height": 1100,
+    "byteSize": 621248
+  },
+  {
+    "slug": "young-tree",
+    "name": "배움의 작은 나무",
+    "subjectId": "trees",
+    "prompt": "One graceful young tree with visible trunk, connected branches, olive and dark sage leaves and a small mound at its base. No floating leaves, no people.",
+    "fileName": "young-tree.svg",
+    "width": 952,
+    "height": 1264,
+    "byteSize": 783851
+  },
+  {
+    "slug": "flower-twig",
+    "name": "꽃이 피는 가지",
+    "subjectId": "flowers",
+    "prompt": "One graceful short flowering twig, peach blooms and sage leaves all clearly attached to the main stem, diagonal composition. No people.",
+    "fileName": "flower-twig.svg",
+    "width": 1051,
+    "height": 1204,
+    "byteSize": 751553
+  },
+  {
+    "slug": "acorn-twig",
+    "name": "도토리와 잎",
+    "subjectId": "trees",
+    "prompt": "One short oak twig with two acorns and three olive leaves, all physically connected and finely outlined. No people.",
+    "fileName": "acorn-twig.svg",
+    "width": 1291,
+    "height": 1176,
+    "byteSize": 613535
+  },
+  {
+    "slug": "learning-border",
+    "name": "책과 연필 가로 장식",
+    "subjectId": "stationery",
+    "prompt": "A wide low horizontal decorative arrangement of two small books, a wooden pencil and connected leafy twigs, airy spacing, no text, no people.",
+    "fileName": "learning-border.svg",
+    "width": 1704,
+    "height": 718,
+    "byteSize": 799369
+  }
+]

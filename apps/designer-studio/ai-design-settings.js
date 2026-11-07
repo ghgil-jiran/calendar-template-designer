@@ -1,0 +1,74 @@
+(function(root){
+ const VERSION=Object.freeze({module:'2.1.0',promptSet:'school-calendar-design@0.18.0',styleProfile:'school-calendar-styles@0.3.0',pageRules:'calendar-page-rules@0.9.0',qualityProfile:'print-safe-quality@0.2.0',generationContext:'ai-generation-context.v3@0.3.0',printProfile:'desk-calendar-print.v1'});
+ const ROLE_LABELS=Object.freeze({cover:'표지',annual:'연력 구성',divider:'안쪽면·간지','school-symbols':'안쪽면·간지',month:'월력 앞면','month-back':'월력 뒷면','back-cover':'뒷표지'});
+ const MONTH_BACK_COMPONENT_LABELS=Object.freeze({'image':'이미지 1','image-2':'이미지 2','image-3':'이미지 3','image-4':'이미지 4','image-5':'이미지 5','image-6':'이미지 6','current-calendar':'뒷면 월력','previous-mini-calendar':'전달 미니 월력','next-mini-calendar':'다음 달 미니 월력','academic-schedule':'해당 월 학사일정','planner-daily':'날짜별 계획표','planner-monthly-goal':'월 목표','planner-checklist':'할 일 리스트','planner-weekly':'주별 계획','memo':'메모','month-date-strip':'월력 띠력'});
+ function projectPages(project){return project?.book?.pageInstances||project?.book?.pages||[]}
+ function pageRoles(project){const roles=[];projectPages(project).forEach(page=>{const physical=page.role||page.pageRole,semantic=page.semanticPageRole||'',role=physical==='cover-front'||physical==='cover'||physical==='cover-back'&&semantic==='cover-continuation'?'cover':['poster-annual','annual'].includes(physical)?'annual':physical==='cover-back'||String(physical||'').includes('insert')||['school-symbols','divider','yearly-calendar'].includes(semantic)?'divider':physical==='monthly-front'?'month':physical==='monthly-back'?'month-back':['back-cover-front','back-cover-back'].includes(physical)?'back-cover':physical;if(role&&!roles.includes(role))roles.push(role)});return roles}
+ function surfaceSummary(project){const labels={cover:'표지',month:'월력 앞면',annual:'연간 벽보',divider:'간지','month-back':'월력 뒷면','back-cover':'뒷표지','cover-front':'표지','cover-back':'표지 안쪽면','front-insert-front':'앞 간지 앞면','front-insert-back':'앞 간지 뒷면','rear-insert-front':'뒤 간지 앞면','rear-insert-back':'뒤 간지 뒷면','monthly-front':'월력 앞면','monthly-back':'월력 뒷면','back-cover-front':'뒷표지 안쪽면','back-cover-back':'뒷표지','poster-annual':'연간 벽보'},counts=new Map();projectPages(project).forEach(page=>{const label=labels[page.role]||page.role||'미지정 면';counts.set(label,(counts.get(label)||0)+1)});return [...counts].map(([label,count])=>`${label} ${count}면`)}
+ function summary(project){const size=project?.productType?.pageSize||{},settings=project?.settings||{},dividerCount=projectPages(project).filter(page=>['school-symbols','front-insert-front','front-insert-back','rear-insert-front','rear-insert-back'].includes(page.role)||['school-symbols','divider'].includes(page.semanticPageRole)).length;return {productType:project?.productType?.category||'미설정',pageSize:size.width&&size.height?`${size.width} × ${size.height} ${size.unit||'mm'}`:'미설정',academicYear:settings.year||'미설정',startMonth:settings.startMonth||'미설정',pageCount:projectPages(project).length,roles:surfaceSummary(project),dividerCount,versions:{...VERSION}}}
+ const VARIANT_BLUEPRINTS=Object.freeze([
+  {key:'balanced',name:'단정한 균형형',description:'학교 정보와 달력 가독성을 우선하고 장식을 여백 안에 절제해 배치합니다.',palette:['#173b63','#a9cce8','#faf7f0'],motif:'corner',sampleAsset:'./ai-design/sample-assets/brand-editorial-v0.1.png',sampleAssetId:'brand-editorial@0.1.0',assets:['AI 생성 부분 배경','모서리 일러스트','독립 사진 프레임'],styles:['차분한 제목 위계','선명한 달력 대비'],layout:'정보 영역을 고정하고 남은 공간에 장식을 배치'},
+  {key:'seasonal',name:'사계절 연결형',description:'같은 조형 언어를 유지하면서 월별 색과 독립 일러스트에 계절 변화를 줍니다.',palette:['#477b62','#e7f1eb','#f7efe2'],motif:'season',sampleAsset:'./ai-design/sample-assets/seasonal-watercolor-v0.1.png',sampleAssetId:'seasonal-watercolor@0.1.0',assets:['AI 생성 계절 배경','계절 일러스트','월 표시 장식'],styles:['월별 계절 색상','공통 서체 위계'],layout:'표지에서 시작한 장식 흐름을 월별 페이지로 연결'},
+  {key:'photo',name:'사진 중심 브랜드형',description:'학교 사진을 별도 개체로 유지하고 사진 영역과 정보 개체를 보호하는 프레임을 사용합니다.',palette:['#8a725d','#d9e1e5','#faf7f0'],motif:'photo',sampleAsset:'./ai-design/sample-assets/photo-frame-v0.1.png',sampleAssetId:'photo-frame@0.1.0',assets:['AI 생성 부분 배경','빈 사진 프레임','얇은 배경 질감'],styles:['학교 사진 독립 유지','간결한 선과 여백'],layout:'사진 비중을 높이고 필수 정보는 독립 영역에 정렬'},
+  {key:'playful',name:'학생 친화 포인트형',description:'읽기 쉬운 구조는 유지하면서 학용품과 잎 장식을 포인트로 제한해 사용합니다.',palette:['#d66b55','#f2b528','#6fae96'],motif:'badge',sampleAsset:'./ai-design/sample-assets/student-collage-v0.1.png',sampleAssetId:'student-collage@0.1.0',assets:['AI 생성 포인트 배경','학용품 일러스트','날짜 주변 장식'],styles:['밝은 보조색','둥근 프레임'],layout:'달력 격자를 침범하지 않는 바깥 여백에 포인트 배치'}
+ ]);
+ const PAGE_PLAN_BLUEPRINTS=Object.freeze([
+  {role:'cover',label:'표지',assetSlots:['전체·부분 배경','독립 일러스트','사진 프레임'],editableObjects:['연도','학교명','교표'],layout:'사진·제목·학교 정보의 표지 위계'},
+  {role:'annual',label:'연력이 선택된 면',assetSlots:['정보 바깥 배경','코너 장식','옅은 패턴'],editableObjects:['연도','12개월 월력','선택 교표'],layout:'선택된 실제 면 안에서 연간 정보가 먼저 읽히는 넓은 격자'},
+  {role:'divider',label:'간지',assetSlots:['간지 배경','가장자리 장식','구분 포인트'],editableObjects:['교표','교훈','교가','교목','교화','연혁','안내'],layout:'실제 간지 용도에 맞춘 독립 정보 영역'},
+  {role:'month',label:'월력',assetSlots:['12개월 개별 배경 톤','월 표시 강조색','계절 일러스트','격자 주변 패턴'],editableObjects:['월·요일·날짜','학사일정','미니월력','교훈·교표'],layout:'달력 격자를 보호하면서 월별 색상과 계절 포인트를 변주',variationPolicy:'one-result-per-month'},
+  {role:'month-back',label:'월력 뒷면',assetSlots:['12개월 개별 일러스트','사진 프레임','미니월력 프레임','메모 장식'],editableObjects:['미니월력','띠 월력','플래너·체크리스트·메모'],layout:'플래너 구조를 보호하고 월마다 독립 일러스트 하나를 배치',variationPolicy:'one-independent-illustration-per-month'},
+  {role:'back-cover',label:'뒷표지',assetSlots:['정보 프레임','브랜드 패턴','마감 장식'],editableObjects:['학교명','주소','연락처','교표'],layout:'표지와 연결되는 마감 및 학교 정보'}
+ ]);
+ function monthSeason(month){return [3,4,5].includes(month)?'spring':[6,7,8].includes(month)?'summer':[9,10,11].includes(month)?'autumn':'winter'}
+ function monthlyVariations(months=[]){return months.map((value,index)=>{const key=typeof value==='string'?value:value.key,month=Number(String(key).slice(-2));return {key,month,season:monthSeason(month),paletteStep:index,monthFrontAsset:`month.${key}.accent`,monthBackIllustration:`month-back.${key}.illustration`,sharedVisualLanguage:true}})}
+ function pagePlans(monthBackComponents=[]){return PAGE_PLAN_BLUEPRINTS.map(item=>item.role!=='month-back'?{...item,revision:0,status:'sample-ready'}:{...item,selectedComponents:[...monthBackComponents],editableObjects:monthBackComponents.map(value=>MONTH_BACK_COMPONENT_LABELS[value]||value),revision:0,status:'sample-ready'})}
+ const MONTH_BACK_LAYOUTS=Object.freeze([
+  {id:'self-directed-plan',name:'자기주도계획표',description:'왼쪽 사진·월력·학사일정과 오른쪽 두 단 일일 계획표를 구성합니다.'},
+  {id:'photo-calendar-split',name:'대형 이미지·미니월력형',description:'오른쪽 대형 이미지와 왼쪽 월력 정보열을 분리합니다.'},
+  {id:'monthly-plan',name:'월간 계획표 중심형',description:'상단 절반에 사진을 배치하고 아래에 월력·계획표·메모를 나눕니다.'},
+  {id:'image-memo-column',name:'이미지·메모 복합형',description:'왼쪽의 넓은 이미지와 오른쪽 월력·메모 열을 조합합니다.'},
+  {id:'collage-date-strip',name:'사진 콜라주·띠력형',description:'겹친 복수 사진과 하단 가로형 날짜 띠를 구성합니다.'}
+ ]);
+ function splitGrid(count,x,y,width,height,columns=2){if(!count)return[];columns=Math.min(columns,count);const rows=Math.ceil(count/columns),gap=3,w=(width-gap*(columns-1))/columns,h=(height-gap*(rows-1))/rows;return Array.from({length:count},(_,index)=>({x:x+(index%columns)*(w+gap),y:y+Math.floor(index/columns)*(h+gap),width:w,height:h}))}
+ function layoutBoxes(components,layoutId,{overlap}={}){
+  if(layoutId==='self-directed-plan'){const regions={'image':[6,10,25,27],'current-calendar':[6,39,25,27],'academic-schedule':[6,68,25,25],'planner-daily':[35,7,60,86]};return components.filter(id=>regions[id]).map(component=>{const [x,y,width,height]=regions[component];return {component,label:component==='planner-daily'?'자기주도계획표':MONTH_BACK_COMPONENT_LABELS[component],x,y,width,height,zIndex:3}})}
+  const photos=components.filter(id=>id.startsWith('image')),hasStrip=components.includes('month-date-strip'),items=components.filter(id=>!id.startsWith('image')&&id!=='month-date-strip'),boxes=[];
+  const add=(component,region)=>boxes.push({component,label:MONTH_BACK_COMPONENT_LABELS[component],zIndex:component.startsWith('image')?1:3,...region});
+  const photoZone=layoutId==='monthly-plan'?{x:6,y:6,width:88,height:hasStrip?43:47}:layoutId==='photo-calendar-split'?{x:32,y:7,width:63,height:hasStrip?69:86}:{x:5,y:9,width:64,height:hasStrip?68:82};
+  const photoRegions=(overlap===true||layoutId==='collage-date-strip')&&photos.length>1?photos.map((id,index)=>{const shift=photos.length===2?14:10,w=photoZone.width-shift*(photos.length-1),h=photoZone.height-8*(photos.length-1);return {x:photoZone.x+index*shift,y:photoZone.y+index*8,width:w,height:h,rotation:index%2?3:-3,zIndex:1+index}}):splitGrid(photos.length,photoZone.x,photoZone.y,photoZone.width,photoZone.height,Math.min(3,photos.length));
+  photos.forEach((id,index)=>add(id,photoRegions[index]));
+  const region=layoutId==='monthly-plan'?[6,hasStrip?54:58,88,hasStrip?23:35,3]:layoutId==='photo-calendar-split'?[5,11,22,hasStrip?64:80,1]:[73,9,22,hasStrip?68:82,1];
+  const regions=splitGrid(items.length,...region);items.forEach((id,index)=>add(id,regions[index]));
+  if(hasStrip)add('month-date-strip',{x:6,y:81,width:88,height:13,zIndex:4});
+  return boxes;
+ }
+ function monthBackLayouts(components=[],options={}){return MONTH_BACK_LAYOUTS.filter(layout=>options.mode==='self-directed'?layout.id==='self-directed-plan':layout.id!=='self-directed-plan').map(layout=>({...layout,selected:false,boxes:layoutBoxes(components,layout.id,options)}))}
+ function mergeMonthBackPlacement(existing,fresh,{reapplyEdited=false}={}){
+  const keys=['x','y','width','height','rotation'],baseline=Object.fromEntries(keys.map(key=>[key,Number(fresh[key])||0]));
+  const previous=existing?.generatedPlacement;
+  const edited=Boolean(existing)&&(!previous||keys.some(key=>Math.abs((Number(existing[key])||0)-(Number(previous[key])||0))>.01));
+  const result={...fresh,generatedPlacement:baseline};
+  if(edited&&!reapplyEdited)keys.forEach(key=>{result[key]=existing[key]});
+  if(existing?.image?.src&&!String(existing.image.src).startsWith('assets/sample-three/')&&existing.replacementPolicy===fresh.replacementPolicy)result.image={...fresh.image,src:existing.image.src};
+  return result;
+ }
+ function createSession(input={}){const count=Math.max(1,Math.min(4,Number(input.variantCount)||1)),variations=monthlyVariations(input.months||[]),selected=(input.monthBackComponents||[]).filter(value=>MONTH_BACK_COMPONENT_LABELS[value]),collage=input.monthBackType==='photo-collage'||input.monthBackLayoutId==='collage-date-strip',imageCount=collage?Math.max(1,Math.min(6,Number(input.monthBackImageCount)||3)):Math.max(1,Math.min(6,Number(input.monthBackImageCount)||1)),extraImages=selected.includes('image')?Array.from({length:imageCount-1},(_,index)=>`image-${index+2}`):[],expanded=[...selected,...extraImages],monthBackComponents=[...new Set(expanded)],monthBackLayoutId=MONTH_BACK_LAYOUTS.some(layout=>layout.id===input.monthBackLayoutId)?input.monthBackLayoutId:'photo-calendar-split';return {schemaVersion:'ai-design-session.v0',status:'sample-review',scope:input.scope||'template',conditions:{style:input.style||'balanced',schoolLevel:input.schoolLevel||'all',decorationDensity:input.decorationDensity||'medium',photoMode:input.photoMode||'mixed',seasonalVariation:input.seasonalVariation||'medium',monthBackComposition:{mode:'selected-components',components:monthBackComponents,layoutId:monthBackLayoutId,imageCount,overlap:input.monthBackOverlap===true,ignoreReferenceComposition:true},instruction:input.instruction||''},designSet:{sharedVisualLanguage:true,monthlyVariations:variations,monthFrontAssetCount:variations.length,monthBackIllustrationCount:variations.length,monthBackComponents,monthBackLayoutId},versions:{...VERSION},variants:VARIANT_BLUEPRINTS.slice(0,count).map((item,index)=>({...item,id:`sample-${index+1}-${item.key}`,selected:false,pagePlans:pagePlans(monthBackComponents),monthBackLayouts:monthBackLayouts(monthBackComponents,{overlap:input.monthBackOverlap===true,mode:input.monthBackMediaMode||(input.monthBackLayoutId==='self-directed-plan'?'self-directed':undefined)}).map(layout=>({...layout,selected:layout.id===monthBackLayoutId})),selectedMonthBackLayoutId:monthBackLayoutId,monthlyVariations:variations.map(value=>({...value})),qualityChecks:{readability:'pass',safeArea:'pass',forbiddenText:'pass',effectiveResolution:'review',cmykSoftProof:'pending'}})),selectedVariantId:null};}
+ function selectVariant(session,variantId){return {...session,selectedVariantId:variantId,variants:session.variants.map(item=>{if(item.id!==variantId)return {...item,selected:false};const defaultLayoutId=item.selectedMonthBackLayoutId||item.monthBackLayouts?.[0]?.id||null;return {...item,selected:true,selectedMonthBackLayoutId:defaultLayoutId,monthBackLayouts:item.monthBackLayouts?.map(layout=>({...layout,selected:layout.id===defaultLayoutId}))||[]}})}}
+ function selectMonthBackLayout(session,variantId,layoutId){return {...session,variants:session.variants.map(variant=>variant.id!==variantId?variant:{...variant,selectedMonthBackLayoutId:layoutId,monthBackLayouts:variant.monthBackLayouts.map(layout=>({...layout,selected:layout.id===layoutId}))})}}
+ function regeneratePage(session,variantId,role){return {...session,variants:session.variants.map(variant=>variant.id!==variantId?variant:{...variant,pagePlans:variant.pagePlans.map(plan=>plan.role!==role?plan:{...plan,revision:plan.revision+1,status:'mock-regenerated'})})}}
+ function canEnterEditor(session){const selected=session?.variants?.find(item=>item.id===session.selectedVariantId);if(!selected)return false;return !session.conditions?.monthBackComposition?.components?.length||!!selected.selectedMonthBackLayoutId}
+ function omitAssetPayloads(value){
+  if(Array.isArray(value))return value.map(omitAssetPayloads);
+  if(!value||typeof value!=='object')return value;
+  const output={};
+  for(const [key,entry] of Object.entries(value)){
+   if(['sampleAsset','assetsByRole','assetsByPage','monthlyAssets'].includes(key))continue;
+   output[key]=omitAssetPayloads(entry);
+  }
+  return output;
+ }
+ function createDraft(session,createdAt=new Date().toISOString()){if(!canEnterEditor(session))throw new Error('AI design proposal selection is required');const selected=session.variants.find(item=>item.id===session.selectedVariantId);return {schemaVersion:'ai-design-draft.v1',status:'selected-not-applied',createdAt,assetStorage:'template.resources.aiDesignAssets',session:omitAssetPayloads(session),selectedVariant:omitAssetPayloads(selected)}}
+ root.ACDLAIDesignSettings=Object.freeze({VERSION,ROLE_LABELS,MONTH_BACK_COMPONENT_LABELS,MONTH_BACK_LAYOUTS,VARIANT_BLUEPRINTS,PAGE_PLAN_BLUEPRINTS,pageRoles,surfaceSummary,summary,monthlyVariations,monthBackLayouts,mergeMonthBackPlacement,createSession,selectVariant,selectMonthBackLayout,regeneratePage,canEnterEditor,createDraft});
+})(typeof window==='undefined'?globalThis:window);
+

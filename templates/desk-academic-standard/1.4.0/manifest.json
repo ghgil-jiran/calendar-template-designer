@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "template-package.v1-draft",
+  "templateId": "desk-academic-standard",
+  "version": "1.4.0",
+  "name": "학사달력 표준 탁상형",
+  "productType": "desk",
+  "status": "review",
+  "publishable": false,
+  "pageComposition": {
+    "sheetCount": 14,
+    "surfaceCount": 28,
+    "monthCount": 12,
+    "defaultStartMonth": 3
+  },
+  "compatibility": {
+    "datasetSchema": "1.x",
+    "templateSchema": "2.x",
+    "runtime": "1.x"
+  },
+  "files": {
+    "template": "template.json",
+    "bindings": "bindings.json",
+    "print": "print.json",
+    "parity": "parity.json",
+    "assets": "assets/",
+    "publishing": "publishing.json"
+  },
+  "designContract": {
+    "schemaVersion": "template-design.v1",
+    "id": "desk-academic-v1.1-reference",
+    "revision": "1.1.0",
+    "registryModule": "src/lib/runtime-integration/template-design-contract.ts",
+    "sourceBaseline": "user-service-2028-reference.pdf"
+  },
+  "releaseContract": {
+    "schemaVersion": "template-publishing.v1",
+    "status": "review",
+    "immutableAfterPublish": true
+  }
+}

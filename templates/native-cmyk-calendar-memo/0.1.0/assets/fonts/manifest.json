@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "print-font-assets.v1",
+  "fonts": [{
+    "id": "assets/fonts/Pretendard-Regular.otf",
+    "family": "Pretendard",
+    "style": "Regular",
+    "weight": 400,
+    "postscriptName": "Pretendard-Regular",
+    "sha256": "3ffbacde6ab8411f1d2db54bb9b1f0b3ee2a738932033722cf0388c06aed1c93",
+    "license": "OFL-1.1",
+    "licenseFile": "assets/fonts/OFL-1.1.txt",
+    "source": "https://github.com/orioncactus/pretendard/releases/tag/v1.3.9"
+  }]
+}

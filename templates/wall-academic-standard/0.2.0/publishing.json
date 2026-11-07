@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "template-publishing.v1",
+  "templateId": "wall-academic-standard",
+  "version": "0.2.0",
+  "contractStatus": "review",
+  "sourceOwner": "calendar-template-designer",
+  "consumerSnapshot": true,
+  "dataRequirements": [
+    {
+      "path": "school.name",
+      "stage": "project-create-required",
+      "label": "학교명",
+      "input": "text"
+    },
+    {
+      "path": "calendar.year",
+      "stage": "project-create-required",
+      "label": "학사연도",
+      "input": "year"
+    },
+    {
+      "path": "calendar.events",
+      "stage": "recommended-during-edit",
+      "label": "학사일정",
+      "input": "schedule-import"
+    },
+    {
+      "path": "school.profile",
+      "stage": "recommended-during-edit",
+      "label": "학교 상징",
+      "input": "school-profile"
+    },
+    {
+      "path": "school.contact",
+      "stage": "recommended-during-edit",
+      "label": "학교 연락처",
+      "input": "contact"
+    },
+    {
+      "path": "school.profile.building",
+      "stage": "print-required",
+      "label": "학교 사진",
+      "input": "image",
+      "slot": "cover-photo"
+    },
+    {
+      "path": "monthlyImages",
+      "stage": "optional",
+      "label": "월별 사진",
+      "input": "image-collection",
+      "slot": "monthly-photo"
+    }
+  ],
+  "editPermissions": {
+    "default": "locked",
+    "objects": [
+      {
+        "selector": "wall.cover.school-image",
+        "level": "content-only",
+        "actions": [
+          "replace-image"
+        ]
+      },
+      {
+        "selector": "wall.insert.*",
+        "level": "content-only",
+        "actions": [
+          "replace-image",
+          "edit-text"
+        ]
+      },
+      {
+        "selector": "wall.back.*",
+        "level": "content-only",
+        "actions": [
+          "replace-image",
+          "edit-text"
+        ]
+      },
+      {
+        "selector": "wall.monthly.image",
+        "level": "content-only",
+        "actions": [
+          "replace-image",
+          "move-focus"
+        ]
+      },
+      {
+        "selector": "wall.monthly.calendar",
+        "level": "content-only",
+        "actions": [
+          "edit-calendar-data"
+        ]
+      }
+    ],
+    "templateAuthoring": {
+      "application": "calendar-template-designer",
+      "level": "full"
+    }
+  },
+  "lifecycle": {
+    "allowedStatuses": [
+      "draft",
+      "review",
+      "published",
+      "deprecated",
+      "archived"
+    ],
+    "currentStatus": "review",
+    "immutableAfterPublish": true,
+    "visibleInUserServiceWhen": {
+      "status": "published",
+      "compatibilityPasses": true
+    }
+  },
+  "compatibility": {
+    "datasetSchema": "1.x",
+    "templateSchema": "2.x",
+    "runtime": "1.x"
+  },
+  "releaseReadiness": {
+    "ready": false,
+    "completed": [
+      "page-composition-defined",
+      "data-requirements-defined",
+      "edit-permissions-defined"
+    ],
+    "blockers": [
+      "RUNTIME_CONSUMPTION_PENDING",
+      "USER_SERVICE_SELECTION_E2E_PENDING",
+      "PDF_X4_PREFLIGHT_PENDING",
+      "PRODUCT_OWNER_PUBLISH_APPROVAL_PENDING"
+    ]
+  }
+}

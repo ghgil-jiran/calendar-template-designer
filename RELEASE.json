@@ -1,0 +1,11 @@
+{
+  "product": "Calendar Template Designer",
+  "platform": "Calendar Publishing Platform",
+  "version": "1.0.0-beta.1",
+  "releaseDate": "2026-07-30",
+  "status": "public-beta",
+  "runtimeContract": "resolved-document.v1.1",
+  "rendererMode": "legacy-editing-runtime-preview",
+  "entrypoint": "apps/designer-studio/index.html",
+  "verification": "npm run verify"
+}

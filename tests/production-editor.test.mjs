@@ -1,0 +1,90 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import '../apps/designer-studio/shared-screen-composition.js';
+import '../apps/designer-studio/production-editor-adapter.js';
+import { validateEditorCorrection } from '../server/production-editor-corrections.js';
+import {sealProductionDocument,documentHash} from '../server/production-corrections.js';
+const adapter=globalThis.ACDLProductionEditorAdapter,id='11111111-1111-4111-a111-111111111111',assetId='22222222-2222-4222-a222-222222222222';
+test('hash sealing retains the editor Runtime baseline round trip',async()=>{const {source,document}=fixture(),p=adapter.createProject(source,document,id),saved=await validateEditorCorrection(p,document,{},id,[{id:assetId}],{loadSource:async()=>({projectData:source})});const hash=sealProductionDocument(saved);assert.equal(hash,documentHash(saved));assert.deepEqual(adapter.toDocument(saved.editorProject),adapter.withoutEditor(saved));assert.equal(document.productionIntegrity,undefined);});
+function fixture(){
+ const source={format:'acdl-project',settings:{year:2027,startMonth:3},productType:{category:'desk',pageSize:{width:260,height:180,unit:'mm'}},template:{id:'original',remoteId:'original',publishing:{lastReviewPackage:{templateId:'original',version:'1.0.0'}},metadata:{state:'published'},resources:{},masters:{calendar:{}},masterElements:{}},book:{pageInstances:[{id:'p1',role:'cover-front'},{id:'p2',role:'monthly-front',calendarYear:2027,calendarMonth:3}],sheets:[],school:{name:'샘플'},elementsByPage:{p1:[{id:'text',type:'text',binding:'school.name'}],p2:[]}}};
+ const document={template:{id:'package',revision:'1.0.4',pages:[{id:'p1',role:'cover-front',size:{width:260,height:180},objects:[{id:'text',type:'text',payload:'사용자 학교',frame:{x:10,y:10,width:80,height:15},style:{fontSize:20},runtimeWidget:{}},{id:'photo',type:'image',payload:{src:`production-asset://${assetId}`,placement:{x:35,y:65,scale:1.2}},frame:{x:20,y:30,width:100,height:70},style:{},runtimeWidget:{}}]},{id:'p2',role:'monthly-front',size:{width:260,height:180},objects:[{id:'cal',type:'calendar',payload:{year:2027,month:3},frame:{x:25,y:40,width:200,height:120},style:{calendarLayout:{rowsMode:'5'}},runtimeWidget:{rows:5}}]}]},dataset:{school:{name:'사용자 학교'},calendar:{year:2027,startMonth:3,events:[]},monthlyImages:{},monthlyQuotes:{}}};
+ return {source,document};
+}
+test('editor projection round trip preserves every frozen runtime field without mutating source',()=>{const {source,document}=fixture(),before=structuredClone(source),p=adapter.createProject(source,document,id);assert.deepEqual(adapter.toDocument(p),document);assert.deepEqual(source,before);assert.equal(p.template.remoteId,undefined);assert.deepEqual(p.template.publishing,{});assert.equal(p.book.school.name,'사용자 학교');assert.equal(p.book.elementsByPage.p1[1].image.focalPoint.x,.35);});
+test('editing one page changes its object and keeps other pages and image placement',()=>{const {source,document}=fixture(),p=adapter.createProject(source,document,id);p.book.elementsByPage.p1[0].content='학교명 교정';p.book.elementsByPage.p1[0].x+=1;const result=adapter.toDocument(p);assert.equal(result.template.pages[0].objects[0].payload,'학교명 교정');assert.ok(Math.abs(result.template.pages[0].objects[0].frame.x-12.6)<.0001);assert.deepEqual(result.template.pages[1],document.template.pages[1]);assert.deepEqual(result.template.pages[0].objects[1],document.template.pages[0].objects[1]);});
+test('calendar uses common content coordinates and changes only the selected page',()=>{const {source,document}=fixture(),p=adapter.createProject(source,document,id);p.book.pageInstances[1].productionCalendarMaster.calendarRegion.x+=1;const result=adapter.toDocument(p);assert.ok(Math.abs(result.template.pages[1].objects[0].frame.x-27.34)<.0001);assert.deepEqual(result.template.pages[0],document.template.pages[0]);});
+test('server saves a new isolated project and reopens the saved revision losslessly',async()=>{const {source,document}=fixture(),p=adapter.createProject(source,document,id);p.book.elementsByPage.p1[0].content='첫 교정';const result=await validateEditorCorrection(p,document,{},id,[{id:assetId}],{loadSource:async()=>({projectData:source})});assert.deepEqual(adapter.toDocument(result.editorProject),adapter.withoutEditor(result));assert.equal(document.template.pages[0].objects[0].payload,'사용자 학교');const reopened=structuredClone(result.editorProject);reopened.book.elementsByPage.p1[0].content='두 번째 교정';const second=await validateEditorCorrection(reopened,result,{},id,[{id:assetId}]);assert.equal(second.template.pages[0].objects[0].payload,'두 번째 교정');assert.equal(result.template.pages[0].objects[0].payload,'첫 교정');assert.equal(second.editorProject.productionCorrection.printInspection,null);});
+test('server rejects foreign assets, injected baselines, changed page size and unsupported new objects',async()=>{const {source,document}=fixture(),p=adapter.createProject(source,document,id),options={loadSource:async()=>({projectData:source})};p.productionCorrection.baseDocument.template.pages[0].objects[0].payload='injected';const saved=await validateEditorCorrection(p,document,{},id,[{id:assetId}],options);assert.equal(saved.template.pages[0].objects[0].payload,'사용자 학교');p.book.elementsByPage.p1[1].image.src='production-asset://33333333-3333-4333-a333-333333333333';await assert.rejects(validateEditorCorrection(p,document,{},id,[{id:assetId}],options),/보관된 원본/);p.book.elementsByPage.p1[1].image.src=`production-asset://${assetId}`;p.productType.pageSize.width=261;await assert.rejects(validateEditorCorrection(p,document,{},id,[{id:assetId}],options),/규격/);p.productType.pageSize.width=260;p.book.elementsByPage.p1.push({...p.book.elementsByPage.p1[0],id:'new'});await assert.rejects(validateEditorCorrection(p,document,{},id,[{id:assetId}],options),/새 개체/);});
+test('receipt assetRef images restore and replacement updates the actual runtime reference',()=>{const {source,document}=fixture();document.template.pages[0].objects[1].payload={assetRef:{ref:'url',src:`production-asset://${assetId}`},placement:{scale:1.4,x:25,y:75},fit:'cover'};const p=adapter.createProject(source,document,id);assert.equal(p.book.elementsByPage.p1[1].image.src,`production-asset://${assetId}`);assert.deepEqual(adapter.toDocument(p),document);p.book.elementsByPage.p1[1].image.src='production-asset://replacement';assert.equal(adapter.toDocument(p).template.pages[0].objects[1].payload.assetRef.src,'production-asset://replacement');});
+test('school semantic images display frozen user assets and retain runtime references on save',()=>{const {source,document}=fixture();document.template.pages[0].objects.push({id:'logo',type:'semantic-object',role:'school-logo',payload:{assetRef:{ref:'url',src:`production-asset://${assetId}`},fit:'contain'},frame:{x:1,y:2,width:20,height:15},style:{},runtimeWidget:{}});const p=adapter.createProject(source,document,id);assert.equal(p.book.elementsByPage.p1[2].sampleContent.image,`production-asset://${assetId}`);assert.deepEqual(adapter.toDocument(p),document);p.book.elementsByPage.p1[2].sampleContent.image='production-asset://new-logo';assert.equal(adapter.toDocument(p).template.pages[0].objects[2].payload.assetRef.src,'production-asset://new-logo');});
+
+test('contact arrays import as readable text without changing frozen receipt data',()=>{
+ const {source,document}=fixture(),contacts=[{type:'academic',value:'031-1111'},{type:'admin',value:'031-2222'},{type:'fax',value:'031-3333'}];
+ document.template.pages[0].objects[0].payload=contacts;const before=structuredClone(document),p=adapter.createProject(source,document,id);
+ assert.equal(p.book.elementsByPage.p1[0].content,'교무실 031-1111 · 행정실 031-2222 · 팩스 031-3333');assert.deepEqual(document,before);assert.deepEqual(adapter.toDocument(p),document);
+ const legacy=structuredClone(p);legacy.book.elementsByPage.p1[0].content=String(contacts);legacy.productionCorrection.baselineElements.p1[0].content=String(contacts);
+ const repaired=adapter.restoreImportedText(legacy);assert.equal(repaired.book.elementsByPage.p1[0].content,p.book.elementsByPage.p1[0].content);assert.deepEqual(adapter.toDocument(repaired).template.pages[0].objects[0].payload,p.book.elementsByPage.p1[0].content);assert.equal(legacy.book.elementsByPage.p1[0].content,String(contacts));
+ legacy.book.elementsByPage.p1[0].content='관리자가 교정한 연락처';assert.equal(adapter.restoreImportedText(legacy).book.elementsByPage.p1[0].content,legacy.book.elementsByPage.p1[0].content);
+});
+
+test('explicit empty template placeholder opens and round trips without deleting the object',()=>{
+ const {source,document}=fixture();source.book.elementsByPage.p1.push({id:'photo',type:'image-frame',emptyBehavior:'placeholder',image:{src:'',binding:'',fit:'cover'}});document.template.pages[0].objects[1].payload=null;
+ const before=structuredClone(document),p=adapter.createProject(source,document,id);
+ assert.equal(p.book.elementsByPage.p1[1].image.src,'');assert.equal(p.book.elementsByPage.p1[1].type,'image-frame');assert.deepEqual(adapter.toDocument(p),before);assert.deepEqual(document,before);
+});
+test('empty payload with an expected original or unresolved asset still blocks correction',()=>{
+ for(const variant of ['source','reference','binding','not-placeholder']){
+ const {source,document}=fixture();const original={id:'photo',type:'image-frame',emptyBehavior:'placeholder',image:{src:'',binding:''}};
+ if(variant==='source')original.image.src='package-asset://expected';if(variant==='binding')original.image.binding='school.photo';if(variant==='not-placeholder')delete original.emptyBehavior;
+ source.book.elementsByPage.p1.push(original);document.template.pages[0].objects[1].payload=variant==='reference'?{assetRef:{ref:'idb',id:'missing'}}:null;
+ assert.throws(()=>adapter.createProject(source,document,id),/이미지 원본/);
+ }
+});
+
+test('server preserves trusted embedded template images but rejects new inline replacements with object context',async()=>{
+ const {source,document}=fixture();source.template.resources.sampleAssets=[{src:'data:image/png;base64,TRUSTED'}];
+ const p=adapter.createProject(source,document,id),options={loadSource:async()=>({projectData:source})};
+ const saved=await validateEditorCorrection(p,document,{},id,[{id:assetId}],options);
+ assert.equal(saved.editorProject.template.resources.sampleAssets[0].src,'data:image/png;base64,TRUSTED');
+ p.book.elementsByPage.p1[1].image.src='data:image/png;base64,NEW';
+ await assert.rejects(validateEditorCorrection(p,document,{},id,[{id:assetId}],options),/개체 photo/);
+});
+test('print document fingerprint ignores renderer resources but detects actual placement changes',()=>{
+ const {source,document}=fixture(),p=adapter.createProject(source,document,id),baseline=JSON.stringify(adapter.toDocument(p));
+ p.template.resources.preview={src:'data:image/png;base64,PREVIEW'};p.template.metadata.updatedAt='later';
+ assert.equal(JSON.stringify(adapter.toDocument(p)),baseline);
+ p.book.elementsByPage.p1[1].x+=1;assert.notEqual(JSON.stringify(adapter.toDocument(p)),baseline);
+});
+
+test('unused editor catalog URLs do not block a no-change receipt save and catalogs remain server-owned',async()=>{
+ const {source,document}=fixture();source.template.resources.sampleAssets=[];
+ const p=adapter.createProject(source,document,id);p.template.resources.preview={src:'data:image/png;base64,GENERATED'};p.template.resources.catalog={src:'https://example.invalid/storage/v1/object/sign/catalog?token=temporary'};
+ const result=await validateEditorCorrection(p,document,{},id,[{id:assetId}],{loadSource:async()=>({projectData:source})});
+ assert.deepEqual(adapter.withoutEditor(result),document);assert.deepEqual(result.editorProject.template.resources,source.template.resources);
+ for(const src of ['blob:temporary','https://example.invalid/storage/v1/object/sign/photo?token=temporary']){
+ p.book.elementsByPage.p1[1].image.src=src;await assert.rejects(validateEditorCorrection(p,document,{},id,[{id:assetId}],{loadSource:async()=>({projectData:source})}),/개체 photo/);
+ }
+});
+
+test('unchanged server-held signed image survives first save and movement but a new signed replacement is rejected',async()=>{
+ const {source,document}=fixture();const src='https://example.invalid/storage/v1/object/sign/template/graphic.png?token=original';document.template.pages[0].objects[1].payload.src=src;
+ const p=adapter.createProject(source,document,id),options={loadSource:async()=>({projectData:source})};
+ const saved=await validateEditorCorrection(p,document,{},id,[{id:assetId}],options);assert.equal(saved.template.pages[0].objects[1].payload.src,src);
+ p.book.elementsByPage.p1[1].x+=1;const moved=await validateEditorCorrection(p,document,{},id,[{id:assetId}],options);assert.equal(moved.template.pages[0].objects[1].payload.src,src);
+ p.book.elementsByPage.p1[1].image.src=src+'-replacement';await assert.rejects(validateEditorCorrection(p,document,{},id,[{id:assetId}],options),/개체 photo/);
+});
+
+test('opening correction images does not create authoring asset references or dirty the frozen document',async()=>{
+ await import('../apps/designer-studio/project-asset-resolver.js');
+ const {source,document}=fixture();document.template.pages[0].objects[1].runtimeWidget={assetId:'authoring.photo',assetRef:{ref:'template',id:'authoring.photo'}};
+ const p=adapter.createProject(source,document,id),before=structuredClone(p.book.elementsByPage.p1),fingerprint=JSON.stringify(adapter.toDocument(p));
+ globalThis.ACDLProjectAssetResolver.normalize(p);
+ assert.deepEqual(p.book.elementsByPage.p1,before);assert.equal(JSON.stringify(adapter.toDocument(p)),fingerprint);
+ p.book.elementsByPage.p1[1].x+=1;const saved=await validateEditorCorrection(p,document,{},id,[{id:assetId}],{loadSource:async()=>({projectData:source})});assert.equal(saved.template.pages[0].objects[1].payload.src,document.template.pages[0].objects[1].payload.src);
+});
+
+test('cover initialization never inserts default objects into a correction or a populated master',async()=>{
+ const {readFileSync}=await import('node:fs'),vm=await import('node:vm');const code=readFileSync(new URL('../apps/designer-studio/features/object-editing.js',import.meta.url),'utf8').split('function ensureEditableCover(){')[1].split('\nfunction createPosterElements')[0];
+ for(const mode of ['correction','master','new']){const project={productionCorrection:mode==='correction'?{}:null,book:{pageInstances:[{id:'cover',role:'cover-front',masterId:'master.cover'}],elementsByPage:{cover:[]}},template:{masterElements:{'master.cover':mode==='master'?[{id:'school',role:'school-building'}]:[]}}};vm.runInNewContext('function ensureEditableCover(){'+code+';ensureEditableCover();',{project,createCoverElements:()=>[{id:'generated'}]});assert.equal(project.book.elementsByPage.cover.length,mode==='new'?1:0);}
+});

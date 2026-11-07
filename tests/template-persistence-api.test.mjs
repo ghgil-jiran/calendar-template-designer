@@ -1,0 +1,157 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {
+  assertInternalAccess,
+  deleteTemplate,
+  listTemplates,
+  readTemplateAsset,
+  resolveTemplateAssetsByPaths,
+  saveDraft,
+  saveVersion,
+  storeTemplateAsset,
+  validateVersionSave
+} from '../server/template-persistence.js';
+
+const originalEnv = {
+  url: process.env.SUPABASE_URL,
+  key: process.env.SUPABASE_SERVICE_ROLE_KEY
+};
+const originalFetch = globalThis.fetch;
+
+function response(body, status = 200) {
+  return { ok: status >= 200 && status < 300, status, text: async () => JSON.stringify(body) };
+}
+
+test.beforeEach(() => {
+  process.env.SUPABASE_URL = 'https://project.supabase.co';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'server-secret';
+});
+
+test.after(() => {
+  if (originalEnv.url === undefined) delete process.env.SUPABASE_URL; else process.env.SUPABASE_URL = originalEnv.url;
+  if (originalEnv.key === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY; else process.env.SUPABASE_SERVICE_ROLE_KEY = originalEnv.key;
+  globalThis.fetch = originalFetch;
+});
+
+test('internal API accepts only an active Master Admin session', async () => {
+  await assert.rejects(() => assertInternalAccess({ headers: {} }), error => error.code === 'AUTH_REQUIRED');
+  globalThis.fetch = async url => {
+    if (url.endsWith('/auth/v1/user')) return response({ id: 'user-1', email: 'admin@example.com' });
+    if (url.includes('/template_admins?')) return response([{ user_id: 'user-1', email: 'admin@example.com', role: 'master_admin', active: true }]);
+    throw new Error(`unexpected ${url}`);
+  };
+  const user = await assertInternalAccess({ headers: { authorization: 'Bearer signed-jwt' } });
+  assert.equal(user.role, 'master_admin');
+});
+
+test('library endpoint maps every current row including archived templates', async () => {
+  globalThis.fetch = async (url, options) => {
+    assert.equal(options.headers.Authorization, 'Bearer server-secret');
+    if(url.includes('/template_versions?')){assert.match(url,/calendar_type_size:project_data->template->calendarTypeSnapshot->definition->finishedSize/);return response([{id:'v3',thumbnail:{kind:'upload',dataUrl:'acdl-asset://11111111-1111-4111-8111-111111111111'},project_standard:true,calendar_type_size:{width:297,height:148,unit:'mm'}}])}
+    assert.match(url, /template_projects\?select=\*&order=updated_at\.desc/);
+    assert.doesNotMatch(url, /archived_at=is\.null/);
+    return response([{ id: 't1', stable_key: 'wall-01', name: '벽걸이형 표준 01', description: '', edition: 2028, state: 'draft', is_standard: true, product_type: 'wall', template_key: 'wall-standard', latest_version_id: 'v3', latest_version_number: 3, updated_at: '2026-08-24T00:00:00Z' }]);
+  };
+  const templates = await listTemplates();
+  assert.equal(templates.length, 1);
+  assert.equal(templates[0].latestVersionNumber, 3);
+  assert.equal(templates[0].name, '벽걸이형 표준 01');
+  assert.equal(templates[0].isStandard, true);
+  assert.equal(templates[0].thumbnail.dataUrl,'acdl-asset://11111111-1111-4111-8111-111111111111');
+  assert.deepEqual(templates[0].calendarTypeSize,{width:297,height:148,unit:'mm'});
+});
+
+test('manual save calls the atomic version function then returns the latest library row', async () => {
+  const calls = [];
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    if (url.endsWith('/rpc/save_template_version')) return response({ id: 'v4', template_id: 't1', version_number: 4, save_kind: 'manual', state: 'ready', save_note: '표지 정리', source_version_id: null, schema_version: '2.0', project_data: { id: 'project' }, created_at: '2026-08-24T01:00:00Z' });
+    return response([{ id: 't1', stable_key: 'wall-01', name: '벽걸이형 표준 01', description: '', edition: 2028, state: 'ready', is_standard: true, product_type: 'wall', template_key: 'wall-standard', latest_version_id: 'v4', latest_version_number: 4, updated_at: '2026-08-24T01:00:00Z' }]);
+  };
+  const saved = await saveVersion({ stableKey: 'wall-01', name: '벽걸이형 표준 01', edition: 2028, state: 'ready', isStandard: true, productType: 'wall', templateKey: 'wall-standard', saveKind: 'manual', saveNote: '표지 정리', schemaVersion: '2.0', projectData: { id: 'project' } });
+  assert.equal(saved.version.versionNumber, 4);
+  assert.equal(saved.template.latestVersionId, 'v4');
+  assert.equal(calls.length, 2);
+  assert.equal(JSON.parse(calls[0].options.body).p_save_kind, 'manual');
+  assert.equal(JSON.parse(calls[1].options.body).is_standard, true);
+  assert.equal(saved.template.isStandard, true);
+});
+
+test('autosave upserts one draft without creating a version', async () => {
+  globalThis.fetch = async (url, options) => {
+    assert.match(url, /template_drafts\?on_conflict=template_id/);
+    assert.equal(options.headers.Prefer, 'resolution=merge-duplicates,return=representation');
+    return response([{ template_id: 't1', schema_version: '2.0', project_data: { id: 'draft' }, updated_at: '2026-08-24T02:00:00Z' }]);
+  };
+  const draft = await saveDraft({ templateId: 't1', schemaVersion: '2.0', projectData: { id: 'draft' } });
+  assert.equal(draft.template_id, 't1');
+});
+
+test('permanent deletion removes only assets no longer referenced by another template',async()=>{
+  const calls=[];
+  globalThis.fetch=async(url,options={})=>{
+    calls.push({url,options});
+    if(url.endsWith('/rest/v1/rpc/delete_template_permanently'))return response({templateDeleted:true,catalogHidden:false,orphanAssets:[{id:'11111111-1111-4111-8111-111111111111',storage_bucket:'template-assets',storage_path:'sha256/orphan.webp'}]});
+    if(url.endsWith('/storage/v1/object/template-assets'))return response([]);
+    throw new Error(`unexpected ${url}`);
+  };
+  const result=await deleteTemplate({templateId:'22222222-2222-4222-8222-222222222222',stableKey:'custom-template',hideCatalog:false});
+  assert.equal(result.deleted,true);assert.equal(result.removedAssetCount,1);
+  const storageDelete=calls.find(call=>call.url.includes('/storage/v1/object/template-assets'));
+  assert.equal(storageDelete.options.method,'DELETE');assert.deepEqual(JSON.parse(storageDelete.options.body).prefixes,['sha256/orphan.webp']);
+  assert.equal(calls.some(call=>call.url.includes('/rest/v1/template_assets?id=in.')),false);
+});
+
+test('catalog-only deletion records a tombstone without requiring a project id',async()=>{
+  globalThis.fetch=async(url,options)=>{assert.match(url,/rpc\/delete_template_permanently$/);assert.equal(JSON.parse(options.body).p_hide_catalog,true);return response({templateDeleted:false,catalogHidden:true,orphanAssets:[]})};
+  const result=await deleteTemplate({stableKey:'built-in-template',hideCatalog:true});
+  assert.equal(result.catalogHidden,true);assert.equal(result.templateDeleted,false);
+});
+
+test('invalid save metadata is rejected before a database request', () => {
+  assert.throws(() => validateVersionSave({ edition: 2028, state: 'unknown' }), error => error.code === 'INVALID_REQUEST');
+});
+
+test('image assets upload once by content hash and return a private signed URL', async () => {
+  const calls = [];
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    if (url.includes('/rest/v1/template_assets?select=')) return response([]);
+    if (url.includes('/storage/v1/object/template-assets/')) return response({ Key: 'stored' });
+    if (url.includes('/rest/v1/template_assets?on_conflict=')) return response([{ id: '11111111-1111-4111-8111-111111111111', content_hash: 'hash', storage_bucket: 'template-assets', storage_path: 'sha256/image.png', mime_type: 'image/png', byte_size: 3 }]);
+    if (url.includes('/storage/v1/object/sign/')) return response({ signedURL: '/storage/v1/object/sign/template-assets/sha256/image.png?token=signed' });
+    throw new Error(`unexpected ${url}`);
+  };
+  const asset = await storeTemplateAsset('data:image/png;base64,YWJj');
+  assert.equal(asset.id, '11111111-1111-4111-8111-111111111111');
+  assert.match(asset.url, /^https:\/\/project\.supabase\.co\/storage\/v1\/object\/sign\//);
+  assert.equal(calls.filter(call => call.url.includes('/object/template-assets/')).length, 1);
+});
+
+test('unsupported asset types are rejected before storage access', async () => {
+  await assert.rejects(() => storeTemplateAsset('data:text/plain;base64,YWJj'), error => error.code === 'INVALID_IMAGE');
+});
+
+test('private image bytes are read through the authenticated server boundary',async()=>{
+  globalThis.fetch=async url=>{
+    if(url.includes('/rest/v1/template_assets?select=*&id=eq.'))return response([{id:'11111111-1111-4111-8111-111111111111',storage_bucket:'template-assets',storage_path:'sha256/image.png',mime_type:'image/png',byte_size:3}]);
+    if(url.includes('/storage/v1/object/template-assets/'))return {ok:true,status:200,headers:new Headers({'content-type':'image/png'}),arrayBuffer:async()=>Buffer.from('abc')};
+    throw new Error(`unexpected ${url}`)
+  };
+  const asset=await readTemplateAsset('11111111-1111-4111-8111-111111111111');assert.equal(asset.mimeType,'image/png');assert.equal(asset.bytes.toString(),'abc')
+});
+
+test('legacy storage paths resolve to stable private asset ids',async()=>{
+ globalThis.fetch=async url=>{assert.match(url,/storage_path=in\.\(sha256%2Flegacy\.webp\)/);return response([{id:'11111111-1111-4111-8111-111111111111',storage_path:'sha256/legacy.webp',mime_type:'image/webp',byte_size:10}])};
+ const [asset]=await resolveTemplateAssetsByPaths(['sha256/legacy.webp']);assert.equal(asset.id,'11111111-1111-4111-8111-111111111111');assert.equal(asset.storagePath,'sha256/legacy.webp')
+});
+
+test('retrying a missing template completes without touching a replacement project',async()=>{
+ const calls=[];globalThis.fetch=async(url,options)=>{calls.push(JSON.parse(options.body));return {ok:false,status:400,text:async()=>JSON.stringify({code:'P0001',message:'template_not_found'})}};
+ const result=await deleteTemplate({templateId:'22222222-2222-4222-8222-222222222222',stableKey:'removed',hideCatalog:false});
+ assert.equal(result.deleted,true);assert.equal(calls.length,1);assert.equal(result.templateDeleted,false);
+});
+test('a stable-key mismatch remains an error and cannot delete another template',async()=>{
+ globalThis.fetch=async()=>({ok:false,status:400,text:async()=>JSON.stringify({code:'P0001',message:'template_stable_key_mismatch'})});
+ await assert.rejects(deleteTemplate({templateId:'22222222-2222-4222-8222-222222222222',stableKey:'different'}),/template_stable_key_mismatch/);
+});
