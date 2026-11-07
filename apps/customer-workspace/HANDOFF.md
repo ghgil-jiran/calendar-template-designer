@@ -55,3 +55,8 @@
 - 자동 검사27개 통과: published 조회 필터/템플릿·버전 일치/이미지 주소/누락·오래된 버전 거절/실제 API 모양의 모의 응답에서 반영·저장·백업·오프라인 복원. 운영 DB의 실제 게시 목록 검증과 구분한다.
 - 사용자 작업 필요: Vercel > gil-gighyun-s-projects > calendar-customer-workspace > Settings > Environment Variables에서 Preview에 SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY(Secret), CUSTOMER_CATALOG_MODE=published(Config)를 설정. 기존 에디터와 같은 Supabase 프로젝트를 사용한다. 실제 키는 채팅에 요청하지 않는다. 등록 후 새 Preview 배포로 활성화해야 한다.
 - 설정 전에는 기존 review 모드를 유지한다. 게시 조회가 활성화되면 실패를 참고 데이터로 숨기지 않는다. 실제 DB의 게시 템플릿 하나를 이용한 화면/사진/재열기 검증은 아직 남아 있다.
+
+## 2026-11-07 · 환경 설정 후 실제 연결 검사
+
+- 사용자 등록 후 Preview용 SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY/CUSTOMER_CATALOG_MODE의 존재와 환경 범위를 확인했다. 비밀값을 조회/표시하지 않았다. Production URL은 Preview에 적용되지 않는다.
+- 빌드 때 서버 안에서 게시 카탈로그/첫 원본/이미지 조회/입력 반영/백업 복원을 검사하는 verify:published를 추가했다. DB 변경 없이 이미지 접근용 서명 URL만 발급한다. 로그는 개수/버전/면수/이미지 용량만 남긴다. 이 결과와 브라우저 화면 검증은 구분한다.
