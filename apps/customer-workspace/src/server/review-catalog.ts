@@ -19,7 +19,7 @@ export function pageLabel(number: number): string {
   if (number === 28) return '뒷표지';
   return `${(Math.floor((number - 4) / 2) + 2) % 12 + 1}월 월력 ${number % 2 === 0 ? '뒷면' : '앞면'}`;
 }
-const imageUrl = (_number: number): null => null;
+const imageUrl = (number: number): string => `/api/workspace/previews/${number}`;
 const definitions = [
   {id: 'review-flower', name: '플라워 사진형', description: '계절의 꽃과 학교 사진을 따뜻하게 담아요.', cover: 1, note: '샘플 A의 기존 확인용 PDF 참고 이미지', kind: 'reference'},
   {id: 'review-landscape', name: '사계절 산수 사진형', description: '사계절의 분위기와 학교 사진을 함께 담는 구성이에요.', cover: 8, note: '선택 흐름용 예시 · 실제 디자인 이미지 연결 전', kind: 'shared-example'},
@@ -37,5 +37,5 @@ export function reviewCatalog(): CatalogResponse {
     composition: [{label: '표지', count: 1}, {label: '연력', count: 1}, {label: '학교 상징', count: 1}, {label: '월력 앞뒤', count: 24}, {label: '뒷표지', count: 1}],
     fields: structuredClone(fields), photoGuide: '사진은 여러 장을 모아 올린 뒤, 교체 가능한 프레임에서 선택해요.'
   }));
-  return {mode: 'review', notice: '개발 검토용 · 5종 선택 예시입니다. 실제 디자인 이미지·템플릿·로그인·서버 저장은 연결 전입니다.', templates};
+  return {mode: 'review', notice: '개발 검토용 · 5종 선택 예시입니다. 미리보기는 샘플 A의 공통 참고 이미지입니다. 실제 템플릿·로그인·서버 저장은 연결 전입니다.', templates};
 }
