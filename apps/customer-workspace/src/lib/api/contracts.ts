@@ -14,7 +14,7 @@ export type TemplateCard = {
   name: string;
   description: string;
   note: string;
-  previewKind: 'reference' | 'shared-example' | 'published';
+  previewKind: 'reference' | 'shared-example' | 'published' | 'imported';
   sourceUrl?: string;
   photoSlots?: PhotoSlot[];
   coverUrl: string | null;

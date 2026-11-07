@@ -9,6 +9,7 @@ import {TextField} from '@/components/ui/text-field';
 
 import {ScheduleInput} from '@/features/materials/schedule-input';
 import {PhotoInput,type PhotoFile} from '@/features/materials/photo-input';
+import {importTemplate} from '@/lib/materials/template-import';
 import {NativePreview} from '@/features/materials/native-preview';
 import {applyMaterials,assertNativeProject,photoSlotsForProject,type NativeProject} from '@/lib/materials/native-project';
 
@@ -124,6 +125,13 @@ export function Onboarding() {
     catch(error){if(requestId===selectionRequest.current)setNativeFailure(error instanceof Error?error.message:'템플릿을 불러오지 못했습니다.');}
     finally{if(requestId===selectionRequest.current)setNativeLoading(false);}
   }
+  async function loadTemplateFile(file:File){
+    if(saving||nativeLoading)return;
+    if(dirty&&hasInput&&!window.confirm('저장하지 않은 변경사항이 있어요. 원본을 불러오기 전에 저장본은 유지하고 새 달력을 만들까요?'))return;
+    setNativeLoading(true);setNativeFailure('');
+    try{const loaded=await importTemplate(file);photos.forEach(p=>URL.revokeObjectURL(p.url));templateUrls.current.forEach(url=>URL.revokeObjectURL(url));templateUrls.current=[];++selectionRequest.current;setWorkingTemplate(loaded.template);setSelectedId(loaded.template.id);setNativeSource(loaded.project);setSchool(emptySchoolInput(loaded.template.fields));setEvents([]);setPhotos([]);setAssignments({});setActiveProject(null);setSavedSignature('');setProjectName(loaded.template.name);setSaveError('');setSaveNotice('');setErrors({});setMaterialPage(0);resumeStep.current='school';setStep('detail');}
+    catch(error){setNativeFailure(error instanceof Error?error.message:'템플릿 원본을 불러오지 못했어요.');}finally{setNativeLoading(false);}
+  }
   function catalogHome() {
     if(saving)return;
     if(dirty&&hasInput&&!window.confirm('저장하지 않은 변경사항이 있어요. 저장본은 유지하고 디자인 목록으로 이동할까요?'))return;
@@ -161,6 +169,7 @@ export function Onboarding() {
     <header className="site-header"><div className="header-inner"><Button variant="quiet" className="brand" onClick={catalogHome}>우리학교<span>달력</span></Button><p className="header-caption">우리 학교의 일 년을 담아요</p><Button disabled={saving} onClick={() => setStep('projects')}>내 프로젝트</Button></div></header>
     <div className="review-notice"><div>{catalog?.notice || '신규 서비스 개발 검토용 · 실제 로그인·서버 저장·주문은 연결 전입니다.'}</div></div>
     <main className="main" data-motion={playing ? 'playing' : 'paused'}>
+      {step==='catalog'&&<Panel className="form-section"><h2>에디터 템플릿 원본으로 만들기</h2><p className="muted">에디터에서 저장한 원본에 학교 자료를 반영할 수 있어요. 원본 파일은 서버로 전송하지 않아요.</p><label className="upload-button button">템플릿 원본 불러오기<input type="file" accept=".json,.acdl" disabled={saving||nativeLoading} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void loadTemplateFile(file);}}/></label>{nativeLoading&&<p role="status">템플릿 원본을 확인하고 있어요.</p>}{nativeFailure&&<p role="alert" className="field-error">{nativeFailure}</p>}</Panel>}
       {selected&&['school','schedule','photos','input-review'].includes(step)&&<SavePanel name={projectName} onName={setProjectName} dirty={dirty} saved={Boolean(activeProject)} busy={saving||nativeLoading} notice={dirty&&activeProject?'저장하지 않은 변경사항이 있어요.':saveNotice} error={saveError} onSave={()=>void saveWorking()} onBackup={()=>void exportWorking()}/>}
       {appLoading && <Panel className="state-panel"><h1>디자인을 준비하고 있어요</h1><p className="muted" role="status">잠시만 기다려 주세요.</p></Panel>}
       {appFailure && <Panel className="state-panel"><h1>목록을 다시 불러올게요</h1><p role="alert">{failure}</p><Button variant="primary" onClick={() => setRequest(value => value + 1)}>다시 시도하기</Button></Panel>}
@@ -183,7 +192,7 @@ export function Onboarding() {
         <Button variant="quiet" onClick={catalogHome}>← 디자인 목록</Button>
         {heading(selected.name, '표지부터 마지막 장까지 살펴보세요', '크게 보고 싶은 페이지를 누르세요. 아직 프로젝트는 생성하지 않습니다.')}
         <div className="detail-grid"><Panel>{nativeSource?<div className="large-preview"><NativePreview project={nativeSource} pageId={nativeSource.book.pageInstances[0].id}/><Button onClick={()=>openPreview(0)}>표지 크게 보기 ↗</Button></div>:<button className="large-preview" onClick={()=>openPreview(0)} aria-label="표지 크게 보기"><PreviewImage url={selected.pages[0].imageUrl} label="표지"/><span>크게 보기 ↗</span></button>}</Panel><Panel><span className="badge">학사달력 · 탁상형</span><h2>{selected.name}</h2><p className="muted">{selected.description}</p><dl className="facts"><div><dt>규격</dt><dd>{selected.widthMm} × {selected.heightMm} mm</dd></div><div><dt>전체 면수</dt><dd>{selected.pageCount}면</dd></div><div><dt>사용 기간</dt><dd>{selected.period}</dd></div></dl><p>{selected.note}</p><Button variant="primary" className="wide-button" disabled={nativeLoading||Boolean(nativeFailure)} onClick={() => setStep('guide')}>이 디자인으로 만들기</Button></Panel></div>
-        {nativeLoading&&<p role="status">실제 템플릿을 불러오고 있어요.</p>}{nativeFailure&&<div role="alert"><p>{nativeFailure}</p><Button onClick={()=>void choose(selected)}>다시 불러오기</Button></div>}{catalog?.mode==='review'&&<div className="reference-note">전체면은 샘플 A의 기존 확인용 PDF 참고 이미지입니다. 다른 카드의 실제 디자인 또는 최종 인쇄 품질을 의미하지 않습니다.</div>}
+        {nativeLoading&&<p role="status">실제 템플릿을 불러오고 있어요.</p>}{nativeFailure&&<div role="alert"><p>{nativeFailure}</p><Button onClick={()=>void choose(selected)}>다시 불러오기</Button></div>}{!nativeSource&&catalog?.mode==='review'&&<div className="reference-note">전체면은 샘플 A의 기존 확인용 PDF 참고 이미지입니다. 다른 카드의 실제 디자인 또는 최종 인쇄 품질을 의미하지 않습니다.</div>}
         <section className="all-pages" aria-labelledby="all-pages-title"><h2 id="all-pages-title">전체 {selected.pageCount}면 구성</h2><p className="muted">{selected.composition.map(item => `${item.label} ${item.count}면`).join(' · ')}</p><div className="page-grid">{selected.pages.map((page, index) => <button className="page-thumbnail" key={page.number} onClick={() => openPreview(index)} aria-label={`${page.number}면 ${page.label} 크게 보기`}><PreviewImage url={page.imageUrl} label={`${page.number}면`} /><span>{page.number}면 · {page.label}</span></button>)}</div></section>
       </>}
 
@@ -217,7 +226,7 @@ export function Onboarding() {
       {!appLoading && !appFailure && selected && step === 'input-review' && <>
         <Progress />{heading('학교 자료 입력 확인','입력한 자료를 확인해 주세요',nativeSource?'아래 달력에서 학교 정보와 학사일정, 배정한 사진을 확인해 주세요.':'학교 정보·학사일정·사진 입력을 확인할 수 있어요. 실제 템플릿 반영은 연결 전이에요.')}
         <div className="material-review"><Panel><h2>{school.values.name||'우리 학교'}</h2><dl className="facts">{selected.fields.map(field=><div key={field.key}><dt>{field.label}</dt><dd>{school.hidden.includes(field.key)?'달력에 표시하지 않음':visibleSchoolValues(selected.fields,school)[field.key]||'템플릿 기본값 유지'}</dd></div>)}<div><dt>학사일정</dt><dd>{events.length}건</dd></div><div><dt>선택한 사진</dt><dd>{photos.length}장 · {Object.keys(assignments).length}곳 배정</dd></div></dl></Panel>
-        {materialProject&&<Panel><h2>우리 학교 달력</h2><div className="calendar-page-controls"><Button disabled={materialPage===0} onClick={()=>setMaterialPage(v=>v-1)}>← 이전 면</Button><span>{materialPage+1} / {materialProject.book.pageInstances.length}면</span><Button disabled={materialPage>=materialProject.book.pageInstances.length-1} onClick={()=>setMaterialPage(v=>v+1)}>다음 면 →</Button></div><NativePreview project={materialProject} pageId={materialProject.book.pageInstances[materialPage].id}/></Panel>}
+        {materialProject&&<Panel><h2>템플릿 반영 확인</h2><p className="muted">입력한 학교 정보·일정·배정 사진을 반영했어요. 저장하면 반영된 달력 문서도 함께 보관해요. 개체 편집 화면은 다음 단계입니다.</p><div className="calendar-page-controls"><Button disabled={materialPage===0} onClick={()=>setMaterialPage(v=>v-1)}>← 이전 면</Button><span>{materialPage+1} / {materialProject.book.pageInstances.length}면</span><Button disabled={materialPage>=materialProject.book.pageInstances.length-1} onClick={()=>setMaterialPage(v=>v+1)}>다음 면 →</Button></div><NativePreview project={materialProject} pageId={materialProject.book.pageInstances[materialPage].id}/></Panel>}
         </div><div className="reference-note">‘내 프로젝트에 저장’을 누르면 입력 자료와 사진 원본을 이 브라우저에서 다시 열 수 있어요. 다른 PC에서 사용하거나 브라우저 데이터를 지울 때는 백업 파일을 따로 보관해 주세요.</div>
         <div className="actions"><Button onClick={()=>setStep('school')}>학교 정보 수정</Button><Button onClick={()=>setStep('schedule')}>일정 수정</Button><Button onClick={()=>setStep('photos')}>사진 수정</Button><Button variant="primary" disabled={saving||!dirty} onClick={()=>void saveWorking()}>{saving?'저장 중…':!dirty&&activeProject?'저장됨':'내 프로젝트에 저장'}</Button></div>
       </>}
