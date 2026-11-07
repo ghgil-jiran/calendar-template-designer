@@ -5,9 +5,9 @@ export function TextField({label, value, required, hidden, allowHide, maxLength,
 }) {
   const id = useId();
   return <div className="field">
-    <label htmlFor={id}>{label}<span className="field-state">{required ? '필수' : '선택'}</span></label>
-    <input id={id} value={value} required={required} disabled={hidden} maxLength={maxLength} onChange={event => onChange(event.target.value)} aria-invalid={Boolean(error)} aria-describedby={`${id}-hint`} />
-    <p id={`${id}-hint`} className={error ? 'field-error' : 'field-hint'}>{error || hint || '\u00a0'}</p>
+    <label htmlFor={id}>{label}<span className={`field-state ${required ? 'field-state-required' : 'field-state-optional'}`}>{required ? '필수' : '선택'}</span></label>
+    <input id={id} value={value} required={required} disabled={hidden} maxLength={maxLength} onChange={event => onChange(event.target.value)} aria-invalid={Boolean(error)} aria-describedby={error || hint ? `${id}-hint` : undefined} />
+    {(error || hint) && <p id={`${id}-hint`} className={error ? 'field-error' : 'field-hint'}>{error || hint}</p>}
     {allowHide && !required && <label className="checkbox"><input type="checkbox" checked={hidden} onChange={event => onHide(event.target.checked)} />달력에 표시하지 않음</label>}
   </div>;
 }

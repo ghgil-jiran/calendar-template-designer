@@ -13,6 +13,8 @@
   --primary-foreground: 0 0% 100%;
   --soft: 220 100% 96%;
   --destructive: 0 59% 44%;
+  --optional: 162 48% 28%;
+  --optional-soft: 157 35% 94%;
   --shadow: 215 50% 20%;
 }
 * {box-sizing: border-box;}
@@ -57,7 +59,16 @@ img {max-width: 100%;}
 .journey li {display: flex; align-items: center; gap: 6px;}
 .journey li + li::before {content: '›'; color: hsl(var(--muted-foreground)); padding-right: 6px;}
 .journey span {display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; color: hsl(var(--primary)); background: hsl(var(--soft));}
-.progress {margin: 0 0 25px;}
+.progress {display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0 0 28px; padding: 6px; border: 1px solid hsl(var(--border)); border-radius: 15px; background: hsl(var(--canvas));}
+.progress li {justify-content: center; padding: 10px 6px; border-radius: 10px;}
+.progress li + li::before {content: none;}
+.progress [aria-current=step] {background: hsl(var(--soft));}
+.progress .progress-complete span {background: hsl(var(--surface)); color: hsl(var(--muted-foreground));}
+.input-stage {display: flex; align-items: center; gap: 16px; margin: 0 0 18px; color: hsl(var(--muted-foreground)); font-size: 12px;}
+.input-stage-count {padding: 3px 10px; border-radius: 20px; background: hsl(var(--soft)); color: hsl(var(--primary)); font-weight: 700;}
+.input-stage-current {color: hsl(var(--primary)); font-weight: 600;}
+.input-stage + .section-heading {margin-top: 0;}
+.input-stage + .section-heading .eyebrow {display: none;}
 .progress [aria-current=step] {color: hsl(var(--primary)); font-weight: 600;}
 .progress [aria-current=step] span {color: hsl(var(--primary-foreground)); background: hsl(var(--primary));}
 .catalog-heading {display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 22px;}
@@ -107,14 +118,16 @@ img {max-width: 100%;}
 .form-section + .form-section {margin-top: 20px;}
 .form-grid {display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 24px;}
 .field label {font-size: 14px; font-weight: 600;}
-.field-state {color: hsl(var(--muted-foreground)); font-size: 11px; font-weight: 400; margin-left: 8px;}
+.field-state {display: inline-block; font-size: 10px; line-height: 1.6; font-weight: 600; margin-left: 8px; padding: 1px 6px; border-radius: 5px; vertical-align: middle;}
+.field-state-required {color: hsl(var(--primary)); background: hsl(var(--soft));}
+.field-state-optional {color: hsl(var(--optional)); background: hsl(var(--optional-soft));}
 .field > input {width: 100%; min-width: 0; display: block; padding: 12px 13px; background: hsl(var(--canvas)); border: 1px solid hsl(var(--border)); color: hsl(var(--foreground)); border-radius: 10px; margin-top: 8px;}
 .field > input:disabled {background: hsl(var(--surface)); color: hsl(var(--muted-foreground));}
 .field > input[aria-invalid=true] {border-color: hsl(var(--destructive));}
 .field-hint, .field-error {font-size: 12px; margin: 7px 0 8px;}
 .field-hint {color: hsl(var(--muted-foreground));}
 .field-error {color: hsl(var(--destructive));}
-.checkbox {display: flex; align-items: center; gap: 8px; font-size: 12px !important; color: hsl(var(--muted-foreground)); font-weight: 400 !important; min-height: 30px;}
+.checkbox {display: flex; align-items: center; gap: 8px; font-size: 12px !important; color: hsl(var(--muted-foreground)); font-weight: 400 !important; min-height: 30px; margin-top: 7px;}
 .checkbox input {width: 16px; height: 16px; accent-color: hsl(var(--primary));}
 .state-panel {padding: 40px; margin-top: 30px;}
 .site-footer {display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; max-width: 1120px; margin: auto; padding: 22px 32px; border-top: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: 11px;}

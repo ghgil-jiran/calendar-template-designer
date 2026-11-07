@@ -106,7 +106,7 @@ export function Onboarding() {
       </>}
 
       {!loading && !failure && selected && step === 'school' && <>
-        <Progress />{heading('학교 자료 입력 · 1 / 3', '학교 정보를 한 번만 입력해 주세요', '달력에 사용할 정보와 표시 여부를 입력해 보세요.')}
+        <Progress /><div className="input-stage"><span className="input-stage-count">1 / 3</span><span className="input-stage-current">학교 정보</span><span>학사일정</span><span>사진</span></div>{heading('우리 학교 기본 정보', '학교 정보를 한 번만 입력해 주세요', '달력에 사용할 정보와 표시 여부를 입력해 보세요. 선택 정보를 달력에 표시하지 않을 경우 체크해 주세요.')}
         <form onSubmit={continueSchool} noValidate>
           {(['basic', 'contact'] as const).map(group => <Panel className="form-section" key={group}><h2>{group === 'basic' ? '학교 기본 정보' : '학교 연락처'}</h2><div className="form-grid">{selected.fields.filter(field => field.group === group).map(field => <TextField key={field.key} label={field.label} value={school.values[field.key] || ''} required={field.required} hidden={school.hidden.includes(field.key)} allowHide={field.allowHide} maxLength={field.maxLength} hint={field.hint} error={errors[field.key]}
             onChange={value => {setSchool(current => ({...current, values: {...current.values, [field.key]: value}})); setErrors(current => ({...current, [field.key]: ''}));}}
@@ -140,7 +140,7 @@ export function Onboarding() {
   </div>;
 }
 
-function Progress() {return <ol className="journey progress"><li><span>1</span>디자인 선택</li><li aria-current="step"><span>2</span>학교 자료 입력</li><li><span>3</span>달력 확인</li></ol>;}
+function Progress() {return <ol className="journey progress" aria-label="달력 제작 과정"><li className="progress-complete"><span aria-label="완료">✓</span>디자인 선택</li><li aria-current="step"><span>2</span>학교 자료 입력</li><li><span>3</span>달력 확인</li></ol>;}
 function GuideRow({number, title, text}: {number: string; title: string; text: string}) {return <Panel className="guide-row"><span className="guide-number">{number}</span><div><h2>{title}</h2><p className="muted">{text}</p></div></Panel>;}
 
 function PreviewImage({url, label, className = ''}: {url?: string | null; label: string; className?: string}) {
