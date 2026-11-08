@@ -1,3 +1,4 @@
+import '../apps/designer-studio/photo-frame-editing.js';
 import assert from 'node:assert/strict';
 
 await import('../apps/designer-studio/inspector-graphic.js');

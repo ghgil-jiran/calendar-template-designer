@@ -101,6 +101,7 @@
 
   const api = Object.freeze({ version, contentFrame, pageFrame, contentRelativeFrame, visibleElements, hasAuthoredBackground, isMonthBackCompositionElement, frameFromPercent, frameToPercent });
   root.ACDLSharedScreenComposition = api;
-  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  // This package is ESM; consumers share the explicit global API.
+  // A free module.exports here can overwrite the enclosing Next.js page bundle.
 })(globalThis);
 

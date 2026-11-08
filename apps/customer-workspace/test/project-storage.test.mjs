@@ -29,3 +29,10 @@ test('calendar display and blank contact policy survive backup and hydration',as
  const s=await prepareSnapshot(d),restored=hydrateSnapshot(await restoreBackup(new File([await backupFile(s)],'display.calendar-backup')));
  try{assert.deepEqual(restored.record.school,d.school);}finally{restored.urls.forEach(URL.revokeObjectURL);}
 });
+
+test('photo editor result survives durable backup and new URLs, rejects tampered unauthorized edits',async()=>{
+ const d=draft();d.assignments={};d.step='editor';d.source={format:'acdl-project',settings:{year:2027},productType:{pageSize:{width:260,height:180}},template:{masters:{cover:{}},masterElements:{},userEditing:{preset:'individual'}},book:{school:{name:'샘플'},pageInstances:[{id:'p',masterId:'cover',role:'cover-front'}],elementsByPage:{p:[{id:'photo',type:'image-frame',x:1,y:1,width:20,height:20,image:{},permissions:{replaceImage:true,imageFit:true}}]}}};
+ d.editorState={version:1,pageId:'p',edits:[{pageId:'p',scope:'page',elementId:'photo',photoId,fit:{fit:'cover',scale:2,offsetX:5,offsetY:-3}}]};
+ const snapshot=await prepareSnapshot(d);assert.equal(snapshot.record.appliedProject.book.elementsByPage.p[0].image.scale,2);assert.ok(!JSON.stringify(snapshot.record).includes('blob:ephemeral'));const h=hydrateSnapshot(await restoreBackup(new File([await backupFile(snapshot)],'edited.calendar-backup')));try{assert.equal(h.record.step,'editor');assert.deepEqual(h.record.editorState,d.editorState);assert.equal(h.appliedProject.book.elementsByPage.p[0].image.src,h.photos[0].url);}finally{h.urls.forEach(URL.revokeObjectURL);}
+ snapshot.record.source.book.elementsByPage.p[0].permissions.imageFit=false;await assert.rejects(()=>backupFile(snapshot),/허용/);
+});

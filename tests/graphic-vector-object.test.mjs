@@ -1,3 +1,4 @@
+import '../apps/designer-studio/photo-frame-editing.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../apps/designer-studio/graphic-illustration-model.js';

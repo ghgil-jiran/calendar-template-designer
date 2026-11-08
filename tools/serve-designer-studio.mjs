@@ -20,6 +20,7 @@ const studioAssetAliases = new Map([
   ['/canvas-gesture.js', 'apps/designer-studio/canvas-gesture.js'],
   ['/canvas-input.js', 'apps/designer-studio/canvas-input.js'],
   ['/inspector-form.js', 'apps/designer-studio/inspector-form.js'],
+  ['/photo-frame-editing.js', 'apps/designer-studio/photo-frame-editing.js'],
   ['/inspector-graphic.js', 'apps/designer-studio/inspector-graphic.js'],
   ['/inspector-element.js', 'apps/designer-studio/inspector-element.js'],
   ['/preview-state.js', 'apps/designer-studio/preview-state.js'],
