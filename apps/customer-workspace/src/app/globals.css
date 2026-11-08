@@ -413,3 +413,17 @@ img {max-width: 100%;}
 .schedule-method .schedule-method-button:hover {background:hsl(var(--primary) / .12);}
 .schedule-method .field-hint {margin:12px 0 0;line-height:1.7;}
 @media(max-width:600px){.schedule-input-actions{grid-template-columns:1fr;gap:12px;}.input-stage>span{padding:10px 13px;}}
+
+/* Keep navigation and page thumbnails aligned to the central calendar surface. */
+.editor-stage > .editor-commandbar {padding:10px 18px;gap:10px;min-height:56px;}
+.editor-stage > .editor-commandbar .editor-command-group {border-right:0;padding-right:0;}
+.editor-stage > .editor-page-strip {height:126px;padding:10px 14px;}
+.editor-panel-tabs {display:flex;gap:5px;padding:10px 8px;border-bottom:1px solid hsl(var(--border));background:hsl(var(--surface));min-height:56px;}
+.editor-panel-tabs .button {flex:1;min-width:0;font-size:11px;padding:7px 5px;min-height:34px;border-color:transparent;background:transparent;}
+.editor-panel-tabs .button[aria-pressed=true] {background:hsl(var(--canvas));color:hsl(var(--primary));border-color:hsl(var(--border));box-shadow:0 2px 5px hsl(var(--shadow)/.05);}
+.editor-inspector-heading {min-height:76px;}
+.editor-add-objects {padding:20px 16px;}
+.editor-add-objects p {font-size:12px;color:hsl(var(--muted-foreground));line-height:1.8;}
+.editor-add-objects .button {width:100%;margin-top:12px;}
+@media(max-width:1000px) and (min-width:721px){.editor-panel-tabs {flex-direction:column;}}
+@media(max-width:720px){.editor-stage>.editor-commandbar{min-height:48px;padding:8px 12px;}.editor-stage>.editor-page-strip{height:120px;}.editor-toolbar-zoom{margin-left:auto;}}
