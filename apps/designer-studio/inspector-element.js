@@ -11,8 +11,10 @@
     item.y = clamp(finite(item.y, 0), 1 - item.height, 99);
   };
 
+  function setFontSize(item,value){item.style ||= {};item.style.fontSize=clamp(finite(value,item.style.fontSize||18),1,240);}
   function apply(item, action, values) {
     if (!item) return null;
+    if (action === 'text-size') setFontSize(item,values.fontSize);
     if (action === 'text-content') {
       item.content = values.content;
       item.binding = values.binding || null;
@@ -22,7 +24,7 @@
     if (action === 'text-style') {
       item.style ||= {};
       item.style.fontFamily = values.fontFamily || '';
-      item.style.fontSize = clamp(finite(values.fontSize, item.style.fontSize || 18), 1, 240);
+      setFontSize(item,values.fontSize);
       item.style.fontWeight = clamp(finite(values.fontWeight, item.style.fontWeight || 400), 100, 900);
       item.style.fontStyle = values.fontStyle === 'italic' ? 'italic' : 'normal';
       item.style.textDecoration = [values.underline ? 'underline' : '', values.strike ? 'line-through' : ''].filter(Boolean).join(' ') || 'none';
