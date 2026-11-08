@@ -166,7 +166,7 @@ export function Onboarding() {
   }
   const heading = (eyebrow: string, title: string, description: string) => <div className="section-heading"><p className="eyebrow">{eyebrow}</p><h1 ref={headingRef} tabIndex={-1}>{title}</h1><p className="muted">{description}</p></div>;
 
-  if(step==='editor'&&materialProject)return <PhotoEditor project={materialProject} photos={photos} initialState={editorState} onChange={setEditorState} onBack={()=>setStep('input-review')} name={displayName} dirty={dirty} saving={saving} notice={saveError||(!dirty?saveNotice:'')} onSave={()=>void saveWorking()}/>;
+  if(step==='editor'&&materialProject)return <PhotoEditor project={materialProject} photos={photos} onPhotos={setPhotos} initialState={editorState} onChange={setEditorState} onBack={()=>setStep('input-review')} name={displayName} dirty={dirty} saving={saving} notice={saveError||(!dirty?saveNotice:'')} onSave={()=>void saveWorking()}/>;
   return <div className="workspace">
     <header className="site-header"><div className="header-inner"><Button variant="quiet" className="brand" onClick={catalogHome}>우리학교<span>달력</span></Button><p className="header-caption">우리 학교의 일 년을 담아요</p><Button disabled={saving} onClick={() => setStep('projects')}>내 프로젝트</Button></div></header>
     <div className="review-notice"><div>{catalog?.notice || '신규 서비스 개발 검토용 · 실제 로그인·서버 저장·주문은 연결 전입니다.'}</div></div>

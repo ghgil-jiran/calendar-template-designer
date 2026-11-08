@@ -1,4 +1,5 @@
 'use client';
+import {addPhotoFiles,type UploadPhoto} from '@/lib/materials/photo-files';
 import {useRef,useState,useEffect} from 'react';
 import {Button} from '@/components/ui/button';
 import {NativePreview} from './native-preview';
@@ -6,21 +7,11 @@ import type {NativeProject} from '@/lib/materials/native-project';
 import {slotsForPhotoPage,applyPhotoSelections} from '@/lib/materials/photo-flow';
 import {Panel} from '@/components/ui/panel';
 import type {PhotoSlot,PhotoAssignment,PhotoInputMode,PhotoSelections,PhotoCategory,TemplateCard} from '@/lib/api/contracts';
-export type PhotoFile={id:string;file:File;url:string;width:number;height:number;category?:PhotoCategory};
+export type PhotoFile=UploadPhoto;
 export function PhotoInput({usedPhotoIds=[],template,project,pages,pageId,onPageId,selections,onSelections,mode,onMode,photos,slots,assignments,onPhotos,onAssignments,onBack,onNext,minimumDpi=200,recommendedDpi=300}:{usedPhotoIds?:string[];template:TemplateCard;project:NativeProject|null;pages:{id:string;label:string}[];pageId:string;onPageId:(id:string)=>void;selections:PhotoSelections;onSelections:(s:PhotoSelections)=>void;mode:PhotoInputMode;onMode:(mode:PhotoInputMode)=>void;photos:PhotoFile[];slots:PhotoSlot[];assignments:Record<string,PhotoAssignment>;onPhotos:(files:PhotoFile[])=>void;onAssignments:(values:Record<string,PhotoAssignment>)=>void;onBack:()=>void;onNext:()=>void;minimumDpi?:number;recommendedDpi?:number}){
  const [busy,setBusy]=useState(false),[failures,setFailures]=useState<string[]>([]),[acknowledged,setAcknowledged]=useState(false),[skip,setSkip]=useState(false),alive=useRef(true);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
- async function add(files:File[],category:PhotoCategory,slotId?:string){setBusy(true);setFailures([]);setAcknowledged(false);const next=[...photos],errors:string[]=[];let total=photos.reduce((s,p)=>s+p.file.size,0);
-  for(const file of files){let url='';try{
-
-   if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('JPG·PNG·WebP 형식으로 선택해 주세요.');
-   if(!file.size||file.size>25*1024*1024)throw Error('사진 한 장은 25MB 이하로 선택해 주세요.');
-   const duplicate=next.findIndex(p=>p.file.name===file.name&&p.file.size===file.size&&p.file.lastModified===file.lastModified);if(duplicate>=0){if(next[duplicate].category&&next[duplicate].category!==category)next[duplicate]={...next[duplicate],category:'both'};continue;}
-   if(next.length>=50)throw Error('한 번에 50장까지 선택할 수 있어요.');
-   if(total+file.size>250*1024*1024)throw Error('사진 합계는 250MB 이하로 선택해 주세요.');
-   const image=await createImageBitmap(file,{imageOrientation:'from-image'}),width=image.width,height=image.height;image.close();if(!width||!height||width*height>100000000)throw Error('사진 크기는 1억 화소 이하로 선택해 주세요.');
-   url=URL.createObjectURL(file);next.push({id:crypto.randomUUID(),file,url,width,height,category});total+=file.size;
-  }catch(error){if(url)URL.revokeObjectURL(url);errors.push(`${file.name}: ${error instanceof Error?error.message:'사진을 읽지 못했습니다.'}`);}}
+ async function add(files:File[],category:PhotoCategory,slotId?:string){setBusy(true);setFailures([]);setAcknowledged(false);const result=await addPhotoFiles(photos,files,category),next=result.photos,errors=result.errors;
   if(!alive.current){next.filter(p=>!photos.some(old=>old.id===p.id)).forEach(p=>URL.revokeObjectURL(p.url));return;}onPhotos(next);if(slotId){const file=files[0],photo=next.find(p=>p.file.name===file?.name&&p.file.size===file?.size&&p.file.lastModified===file?.lastModified);if(photo)choose(slots.find(s=>s.id===slotId)!,photo);}setFailures(errors);setBusy(false);
  }
  function choose(slot:PhotoSlot,photo?:PhotoFile){if(!slot)return;const value=photo?{photoId:photo.id,url:photo.url}:null;if(mode==='assign'&&slot.scope!=='school')onSelections({...selections,[slot.id]:value});else{const next={...assignments},pending={...selections};if(value)next[slot.id]=value;else delete next[slot.id];delete pending[slot.id];onAssignments(next);onSelections(pending);}setAcknowledged(false);}
