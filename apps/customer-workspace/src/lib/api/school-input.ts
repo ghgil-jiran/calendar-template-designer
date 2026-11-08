@@ -1,7 +1,7 @@
 import type {SchoolField, SchoolInput} from './contracts';
 
 export function emptySchoolInput(fields: SchoolField[]): SchoolInput {
-  return {values: Object.fromEntries(fields.map(field => [field.key, ''])), hidden: []};
+  return {values: Object.fromEntries(fields.map(field => [field.key, ''])), hidden: [], omitEmptyContacts: true};
 }
 
 export function validateSchoolInput(fields: SchoolField[], input: SchoolInput): Record<string, string> {

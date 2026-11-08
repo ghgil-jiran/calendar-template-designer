@@ -271,3 +271,7 @@ img {max-width: 100%;}
 .photo-page-workspace h3 {margin:24px 0 12px;}
 .photo-bank {margin:16px 0 24px;}
 .photo-bank .photo-grid {margin-top:16px;}
+
+.schedule-input-actions {display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
+.schedule-review > summary {cursor:pointer;font-size:22px;font-weight:700;}
+.schedule-review[open] > summary {margin-bottom:20px;}

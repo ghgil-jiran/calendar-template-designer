@@ -62,7 +62,10 @@ export function applyMaterials(source:NativeProject,fields:SchoolField[],school:
  for(const field of fields){const path=field.binding||`school.${field.key}`,hidden=school.hidden.includes(field.key);if(hidden&&field.required)throw Error(`${field.label}은 제외할 수 없습니다.`);
   if(hidden){for(const e of all)if(e.bindingEnabled!==false&&(e.binding===path||path.startsWith(String(e.binding||'__')+'.')))e.visible=false;setAt(project,path,'');}
   else if(school.values[field.key]?.trim())setAt(project,path,school.values[field.key].trim());
+  else if(school.omitEmptyContacts&&field.group==='contact'){setAt(project,path,'');for(const e of all)if(e.bindingEnabled!==false&&e.binding===path)e.visible=false;}
  }
+ if(school.calendarDisplay)project.settings.calendarData={...project.settings.calendarData,...school.calendarDisplay};
+ if(school.omitEmptyContacts){for(const field of fields.filter(f=>f.binding?.match(/^school\.contacts\.\d+\.phone$/))){const row=project.book.school.contacts?.[Number(field.binding!.split('.')[2])];if(row&&!row.phone)row.value='';}const contacts=project.book.school?.contacts||[];if(!contacts.some((r:NativeProject)=>r.phone||r.value))project.book.school.phone='';if(!contacts.some((r:NativeProject)=>r.fax))project.book.school.fax='';if(!contacts.some((r:NativeProject)=>r.phone||r.value||r.fax)&&!project.book.school.phone&&!project.book.school.fax)for(const e of all)if(e.bindingEnabled!==false&&e.binding==='school.contacts')e.visible=false;}
  if(school.hidden.some(key=>fields.find(f=>f.key===key)?.binding?.startsWith('school.contacts.'))){const contacts=project.book.school.contacts||[];if(!contacts.some((r:NativeProject)=>r.phone||r.value))project.book.school.phone='';if(!contacts.some((r:NativeProject)=>r.fax))project.book.school.fax='';}
  project.book.events=[...(project.book.events||[]).filter((e:NativeProject)=>e.source!=='user'),...events.map(e=>({...e,category:'school',source:'user'}))];
  const slots=photoSlotsForProject(source);

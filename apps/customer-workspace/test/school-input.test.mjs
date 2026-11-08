@@ -15,7 +15,7 @@ test('hiding retains the entered value while excluding it from submitted values'
   assert.equal(input.values.website, 'school.example');
 });
 test('template fields determine input shape without stale fields from another template', () => {
-  assert.deepEqual(emptySchoolInput(fields), {values: {name: '', website: ''}, hidden: []});
+  assert.deepEqual(emptySchoolInput(fields), {values: {name: '', website: ''}, hidden: [], omitEmptyContacts: true});
   assert.deepEqual(visibleSchoolValues(fields, {values: {name: '학교', website: '', unknown: 'x'}, hidden: []}), {name: '학교', website: ''});
 });
 test('length errors remain visible instead of silently truncating', () => {
