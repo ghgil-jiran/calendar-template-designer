@@ -15,8 +15,36 @@ function card(row:NativeProject,version:NativeProject):TemplateCard{
 async function publishedCatalog():Promise<CatalogResponse>{
  const templates=await publishedRows(),ids=templates.map(r=>r.latest_version_id).filter(x=>uuid.test(x)),versions=ids.length?await rows(`template_versions?select=id,template_id,version_number,project_data&state=eq.published&id=in.(${ids.join(',')})`):[];
  const cards=templates.flatMap(row=>{const version=versions.find(v=>v.id===row.latest_version_id&&v.template_id===row.id);return version?[card(row,version)]:[]});
- await Promise.all(cards.map(async card=>{if(card.coverUrl?.startsWith('acdl-asset://')){const hydrated=await hydrate({image:card.coverUrl});card.coverUrl=hydrated.image;}}));
+ await Promise.all(cards.map(async item=>{
+  const record=versions.find(v=>v.template_id===item.id&&Number(v.version_number)===item.version);
+  await storedPreviews(item,record?.project_data);
+  if(item.coverUrl?.startsWith('acdl-asset://')){const hydrated=await hydrate({image:item.coverUrl});item.coverUrl=hydrated.image;}
+ }));
  return {mode:'published' as const,notice:'게시된 템플릿입니다. 입력 자료의 서버 저장·로그인 연결은 준비 중입니다.',templates:cards};
+}
+// Read only the package explicitly linked by this saved editor version.
+async function storedPreviews(item:TemplateCard,project:NativeProject){
+ const identity=project?.template?.publishing?.lastReviewPackage,preview=project?.template?.thumbnail?.packagePreview;
+ if(!identity?.templateId||!identity?.version)return;
+ if(!/^[a-z0-9][a-z0-9-]*$/i.test(identity.templateId)||!/^\d+\.\d+\.\d+(?:-[a-z0-9.-]+)?$/i.test(identity.version))return;
+ if(preview&&(preview.templateId!==identity.templateId||preview.version!==identity.version))return;
+ const [record]=await rows(`template_packages?select=template_id,version,package_sha256,manifest&template_id=eq.${encodeURIComponent(identity.templateId)}&version=eq.${encodeURIComponent(identity.version)}&limit=1`);
+ if(!record||record.template_id!==identity.templateId||record.version!==identity.version||record.package_sha256!==identity.sha256)return;
+ const manifest=record.manifest;if(manifest?.templateId!==identity.templateId||manifest?.version!==identity.version)return;
+ const prefix=`${identity.templateId}/${identity.version}/assets/`,assets=manifest.assets||[],pages=project.book.pageInstances;
+ const entries=(manifest.pagePreviews?.pages||[]).filter((entry:NativeProject)=>Number.isInteger(entry.index)&&entry.index>=0&&(entry.index===0||item.representativePages.includes(entry.index+1))&&entry.index<pages.length&&entry.pageId===pages[entry.index].id);
+ await Promise.all(entries.map(async(entry:NativeProject)=>{
+  const asset=assets.find((a:NativeProject)=>a.id===entry.assetId&&a.sha256===entry.sha256);
+  if(!asset?.storagePath?.startsWith(prefix)||asset.storagePath.split('/').includes('..'))return;
+  const response=await fetch(`${url}/storage/v1/object/sign/template-packages/${asset.storagePath.split('/').map(encodeURIComponent).join('/')}`,{method:'POST',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({expiresIn:3600}),signal:AbortSignal.timeout(15000)});
+  if(!response.ok)throw Error('저장된 미리보기를 불러오지 못했습니다.');
+  const data=await response.json(),path=data.signedURL||data.signedUrl;
+  if(typeof path!=='string')throw Error('미리보기 주소를 확인해 주세요.');
+  const signed=new URL(path.startsWith('http')?path:path.startsWith('/storage/v1/')?url+path:url+'/storage/v1'+(path.startsWith('/')?'':'/')+path);
+  if(signed.origin!==new URL(url).origin||!signed.pathname.startsWith('/storage/v1/object/sign/template-packages/'))throw Error('미리보기 주소를 확인해 주세요.');
+  item.pages[entry.index].imageUrl=signed.href;
+ }));
+ if(item.pages[0]?.imageUrl)item.coverUrl=item.pages[0].imageUrl;
 }
 function signedUrl(path:string,base:string){
  const result=new URL(path.startsWith('http')?path:path.startsWith('/storage/v1/')?base+path:base+'/storage/v1'+(path.startsWith('/')?'':'/')+path);

@@ -11,6 +11,7 @@ try{
  const catalog=await reader.publishedCatalog();
  console.log('[published-check] '+JSON.stringify({stage:'catalog',mode:catalog.mode,publishedCount:catalog.templates.length}));
  if(!catalog.templates.length){console.log('[published-check] connected; no published templates available');process.exit(0);}
+ console.log('[published-check] stored-previews '+JSON.stringify(catalog.templates.map(t=>({templateId:t.id,version:t.version,cover:Boolean(t.coverUrl),representativeImages:t.representativePages.filter(n=>t.pages[n-1]?.imageUrl).length}))));
  const template=catalog.templates[0],source=(await reader.publishedSource(template.id,template.version)).project,before=JSON.stringify(source);
  const values=Object.fromEntries(template.fields.map(f=>[f.key,f.key==='name'?'연결 검사 학교':'']));
  const snapshot=await prepareSnapshot({name:'서버 연결 검사',template,source,school:{values,hidden:[]},events:[{id:'connection-check',title:'연결 검사 일정',startDate:`${source.settings.year}-03-02`,endDate:`${source.settings.year}-03-02`}],photos:[],assignments:{},step:'school'});
