@@ -1,0 +1,5 @@
+import type {ScheduleEvent} from '../api/contracts';
+export function academicMonths(year:number,startMonth:number){return Array.from({length:12},(_,i)=>{const date=new Date(Date.UTC(year,startMonth-1+i,1)),next=new Date(Date.UTC(year,startMonth+i,1)),key=date.toISOString().slice(0,7);return {key,label:`${date.getUTCFullYear()}년 ${date.getUTCMonth()+1}월`,start:key+'-01',end:new Date(next.getTime()-86400000).toISOString().slice(0,10)};});}
+export function isScheduleDate(value:string){return /^\d{4}-\d{2}-\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;}
+export function validSchedule(events:ScheduleEvent[]){return events.every(e=>e.title.trim().length>0&&e.title.length<=200&&isScheduleDate(e.startDate)&&isScheduleDate(e.endDate)&&e.endDate>=e.startDate);}
+export function eventInMonth(event:ScheduleEvent,month:{start:string;end:string}){return isScheduleDate(event.startDate)&&isScheduleDate(event.endDate)&&event.endDate>=event.startDate&&event.startDate<=month.end&&event.endDate>=month.start;}

@@ -427,3 +427,10 @@ img {max-width: 100%;}
 .editor-add-objects .button {width:100%;margin-top:12px;}
 @media(max-width:1000px) and (min-width:721px){.editor-panel-tabs {flex-direction:column;}}
 @media(max-width:720px){.editor-stage>.editor-commandbar{min-height:48px;padding:8px 12px;}.editor-stage>.editor-page-strip{height:120px;}.editor-toolbar-zoom{margin-left:auto;}}
+
+.schedule-view-switch {display:flex;gap:8px;flex-wrap:wrap;margin:18px 0;}
+.schedule-view-switch .button[aria-pressed=true],.schedule-months .button[aria-pressed=true] {background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:hsl(var(--primary));}
+.schedule-months {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px;}
+.schedule-months .button {min-width:0;justify-content:space-between;font-size:13px;padding:10px 12px;}
+.schedule-months small {font-size:11px;font-weight:400;}
+@media(max-width:720px){.schedule-months{grid-template-columns:repeat(2,minmax(0,1fr));}.schedule-months .button{font-size:12px;padding:9px;}}
