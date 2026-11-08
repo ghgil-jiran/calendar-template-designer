@@ -38,5 +38,8 @@ export type SchoolInput = {values: Record<string, string>; hidden: string[]};
 export type ScheduleEvent = {id:string; title:string; startDate:string; endDate:string};
 export type ScheduleExtraction = {events:ScheduleEvent[]; warnings:string[]; sourceName:string; totalLines:number};
 export type PhotoInputMode='collect'|'assign';
-export type PhotoSlot = {id:string;pageId:string;pageLabel:string;elementId:string;scope:'page'|'master'|'school';masterId?:string;label:string;binding?:string;required:boolean;widthMm:number;heightMm:number};
+export type PhotoSlot = {id:string;pageId:string;pageIds?:string[];pageLabel:string;elementId:string;scope:'page'|'master'|'school';masterId?:string;label:string;binding?:string;required:boolean;widthMm:number;heightMm:number};
 export type PhotoAssignment = {photoId:string;url:string};
+
+export type PhotoCategory='school'|'monthly'|'both';
+export type PhotoSelections=Record<string,PhotoAssignment|null>;
