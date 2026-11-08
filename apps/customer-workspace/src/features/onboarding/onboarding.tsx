@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect, useMemo, useRef, useState} from 'react';
-import type {CatalogResponse, SchoolInput, TemplateCard, ScheduleEvent, PhotoAssignment} from '@/lib/api/contracts';
+import type {CatalogResponse, SchoolInput, TemplateCard, ScheduleEvent, PhotoAssignment,PhotoInputMode} from '@/lib/api/contracts';
 import {emptySchoolInput, validateSchoolInput, visibleSchoolValues} from '@/lib/api/school-input';
 import {Button} from '@/components/ui/button';
 import {Panel} from '@/components/ui/panel';
@@ -9,17 +9,16 @@ import {TextField} from '@/components/ui/text-field';
 
 import {ScheduleInput} from '@/features/materials/schedule-input';
 import {PhotoInput,type PhotoFile} from '@/features/materials/photo-input';
-import {importTemplate} from '@/lib/materials/template-import';
 import {TemplatePagePreview} from '@/features/materials/template-page-preview';
 import {fetchTemplateSource} from '@/lib/materials/template-source';
 import {NativePreview} from '@/features/materials/native-preview';
-import {applyMaterials,assertNativeProject,photoSlotsForProject,type NativeProject} from '@/lib/materials/native-project';
+import {applyMaterials,assertNativeProject,photoSlotsForProject,fieldsForProject,type NativeProject} from '@/lib/materials/native-project';
 
-import {ProjectLibrary,downloadBackup} from '@/features/projects/project-library';
+import {ProjectLibrary} from '@/features/projects/project-library';
 import {SavePanel} from '@/features/projects/save-panel';
-import {prepareSnapshot,writeSnapshot,readSnapshot,hydrateSnapshot,backupFile,type ProjectDraft,type ResumeStep} from '@/lib/projects/store';
+import {prepareSnapshot,writeSnapshot,readSnapshot,hydrateSnapshot,type ProjectDraft,type ResumeStep} from '@/lib/projects/store';
 
-function draftSignature(draft:ProjectDraft){return JSON.stringify({name:draft.name.trim(),templateId:draft.template.id,version:draft.template.version,school:draft.school,events:draft.events,step:draft.step,photos:draft.photos.map(p=>[p.id,p.file.name,p.file.type,p.file.size,p.file.lastModified,p.width,p.height]),assignments:Object.entries(draft.assignments).sort(([a],[b])=>a.localeCompare(b)).map(([slot,a])=>[slot,a.photoId])});}
+function draftSignature(draft:ProjectDraft){return JSON.stringify({name:draft.name.trim(),templateId:draft.template.id,version:draft.template.version,school:draft.school,events:draft.events,step:draft.step,photoMode:draft.photoMode||'assign',photos:draft.photos.map(p=>[p.id,p.file.name,p.file.type,p.file.size,p.file.lastModified,p.width,p.height]),assignments:Object.entries(draft.assignments).sort(([a],[b])=>a.localeCompare(b)).map(([slot,a])=>[slot,a.photoId])});}
 type Step = 'schedule' | 'photos' | 'catalog' | 'detail' | 'guide' | 'school' | 'input-review' | 'projects';
 
 export function Onboarding() {
@@ -46,6 +45,7 @@ export function Onboarding() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [events,setEvents]=useState<ScheduleEvent[]>([]);
   const [photos,setPhotos]=useState<PhotoFile[]>([]);
+  const [photoMode,setPhotoMode]=useState<PhotoInputMode>('assign');
   const [assignments,setAssignments]=useState<Record<string,PhotoAssignment>>({});
   const [nativeSource,setNativeSource]=useState<NativeProject|null>(null);
   const [nativeLoading,setNativeLoading]=useState(false);
@@ -63,7 +63,7 @@ export function Onboarding() {
   const selected = workingTemplate || catalog?.templates.find(template => template.id === selectedId) || null;
   if(['school','schedule','photos','input-review'].includes(step))resumeStep.current=step as ResumeStep;
   const displayName=projectName.trim()||(school.values.name?.trim()?school.values.name.trim()+' 달력':selected?.name||'우리 학교 달력');
-  const draft:ProjectDraft|null=selected?{id:activeProject?.id,revision:activeProject?.revision,name:displayName,template:selected,source:nativeSource,school,events,photos,assignments,step:resumeStep.current}:null;
+  const draft:ProjectDraft|null=selected?{id:activeProject?.id,revision:activeProject?.revision,name:displayName,template:selected,source:nativeSource,school,events,photos,assignments,photoMode,step:resumeStep.current}:null;
   const currentSignature=draft?draftSignature(draft):'';
   const dirty=Boolean(draft)&&currentSignature!==savedSignature;
   const hasInput=Boolean(activeProject)||photos.length>0||events.length>0||Object.values(school.values).some(v=>v.trim());
@@ -118,7 +118,7 @@ export function Onboarding() {
     if(selectedId!==template.id){
       if(dirty&&hasInput&&!window.confirm('저장하지 않은 변경사항이 있어요. 저장본은 유지하고 다른 디자인으로 이동할까요?'))return;
       templateUrls.current.forEach(url=>URL.revokeObjectURL(url));templateUrls.current=[];setActiveProject(null);setSavedSignature('');setProjectName(template.name);setSaveNotice('');setSaveError('');resumeStep.current='school';
-      photos.forEach(p=>URL.revokeObjectURL(p.url));setSchool(emptySchoolInput(template.fields));setErrors({});setEvents([]);setPhotos([]);setAssignments({});setMaterialPage(0);setNativeSource(null);
+      photos.forEach(p=>URL.revokeObjectURL(p.url));setSchool(emptySchoolInput(template.fields));setErrors({});setEvents([]);setPhotos([]);setAssignments({});setPhotoMode('assign');setMaterialPage(0);setNativeSource(null);
     }
     setWorkingTemplate(template);setSelectedId(template.id);setStep('detail');setNativeFailure('');
     if(!template.sourceUrl){setNativeLoading(false);return;}
@@ -127,31 +127,23 @@ export function Onboarding() {
     catch(error){if(requestId===selectionRequest.current)setNativeFailure(error instanceof Error?error.message:'템플릿을 불러오지 못했습니다.');}
     finally{if(requestId===selectionRequest.current)setNativeLoading(false);}
   }
-  async function loadTemplateFile(file:File){
-    if(saving||nativeLoading)return;
-    if(dirty&&hasInput&&!window.confirm('저장하지 않은 변경사항이 있어요. 원본을 불러오기 전에 저장본은 유지하고 새 달력을 만들까요?'))return;
-    setNativeLoading(true);setNativeFailure('');
-    try{const loaded=await importTemplate(file);photos.forEach(p=>URL.revokeObjectURL(p.url));templateUrls.current.forEach(url=>URL.revokeObjectURL(url));templateUrls.current=[];++selectionRequest.current;setWorkingTemplate(loaded.template);setSelectedId(loaded.template.id);setNativeSource(loaded.project);setSchool(emptySchoolInput(loaded.template.fields));setEvents([]);setPhotos([]);setAssignments({});setActiveProject(null);setSavedSignature('');setProjectName(loaded.template.name);setSaveError('');setSaveNotice('');setErrors({});setMaterialPage(0);resumeStep.current='school';setStep('detail');}
-    catch(error){setNativeFailure(error instanceof Error?error.message:'템플릿 원본을 불러오지 못했어요.');}finally{setNativeLoading(false);}
-  }
   function catalogHome() {
     if(saving)return;
     if(dirty&&hasInput&&!window.confirm('저장하지 않은 변경사항이 있어요. 저장본은 유지하고 디자인 목록으로 이동할까요?'))return;
     photos.forEach(p=>URL.revokeObjectURL(p.url));templateUrls.current.forEach(url=>URL.revokeObjectURL(url));templateUrls.current=[];
-    ++selectionRequest.current;setWorkingTemplate(null);setSelectedId(null);setActiveProject(null);setSavedSignature('');setProjectName('');setSchool({values:{},hidden:[]});setEvents([]);setPhotos([]);setAssignments({});setNativeSource(null);setSaveNotice('');setSaveError('');setStep('catalog');
+    ++selectionRequest.current;setWorkingTemplate(null);setSelectedId(null);setActiveProject(null);setSavedSignature('');setProjectName('');setSchool({values:{},hidden:[]});setEvents([]);setPhotos([]);setAssignments({});setPhotoMode('assign');setNativeSource(null);setSaveNotice('');setSaveError('');setStep('catalog');
   }
   async function saveWorking(){
     if(!draft||saving)return;const captured=structuredClone({...draft,photos:[]}) as ProjectDraft;captured.photos=[...draft.photos];const signature=currentSignature;setSaving(true);setSaveError('');setSaveNotice('');
     try{const snapshot=await prepareSnapshot(captured),record=await writeSnapshot(snapshot,activeProject?.revision??null);setActiveProject({id:record.id,revision:record.revision});setSavedSignature(signature);setProjectName(record.name);setSaveNotice('이 브라우저에 저장했어요. 재배포 후에도 같은 주소에서 다시 열 수 있어요.');setLibraryVersion(v=>v+1);void navigator.storage?.persist?.().catch(()=>false);}
     catch(error){setSaveError(error instanceof Error?error.message:'저장하지 못했어요. 입력 내용은 그대로 유지됩니다.');}finally{setSaving(false);}
   }
-  async function exportWorking(){if(!draft||saving)return;setSaving(true);setSaveError('');setSaveNotice('');try{downloadBackup(await backupFile(await prepareSnapshot(draft)),draft.name);setSaveNotice('백업 파일을 내려받았어요. 이 파일로 다른 브라우저에서도 복원할 수 있어요.');}catch(error){setSaveError(error instanceof Error?error.message:'백업 파일을 만들지 못했어요.');}finally{setSaving(false);}}
   async function openWorking(id:string){
     if(dirty&&hasInput&&!window.confirm('저장하지 않은 변경사항이 있어요. 저장본은 유지하고 선택한 프로젝트를 열까요?'))return;
-    const snapshot=await readSnapshot(id),restored=hydrateSnapshot(snapshot),r=restored.record;
+    const snapshot=await readSnapshot(id),restored=hydrateSnapshot(snapshot),r=restored.record;if(restored.source)restored.template={...restored.template,fields:fieldsForProject(restored.source),photoSlots:photoSlotsForProject(restored.source)};
     photos.forEach(p=>URL.revokeObjectURL(p.url));templateUrls.current.forEach(url=>URL.revokeObjectURL(url));templateUrls.current=restored.urls;
-    ++selectionRequest.current;setWorkingTemplate(restored.template);setSelectedId(restored.template.id);setActiveProject({id:r.id,revision:r.revision});setProjectName(r.name);setSchool(r.school);setEvents(r.events);setPhotos(restored.photos);setAssignments(restored.assignments);setNativeSource(restored.source);setNativeLoading(false);setNativeFailure('');setErrors({});setMaterialPage(0);setSaveError('');setSaveNotice('저장한 프로젝트를 다시 열었어요.');resumeStep.current=r.step;
-    const state:ProjectDraft={id:r.id,revision:r.revision,name:r.name,template:restored.template,source:restored.source,school:r.school,events:r.events,photos:restored.photos,assignments:restored.assignments,step:r.step};setSavedSignature(draftSignature(state));
+    ++selectionRequest.current;setWorkingTemplate(restored.template);setSelectedId(restored.template.id);setActiveProject({id:r.id,revision:r.revision});setProjectName(r.name);setSchool(r.school);setEvents(r.events);setPhotos(restored.photos);setAssignments(restored.assignments);setPhotoMode(r.photoMode||'assign');setNativeSource(restored.source);setNativeLoading(false);setNativeFailure('');setErrors({});setMaterialPage(0);setSaveError('');setSaveNotice('저장한 프로젝트를 다시 열었어요.');resumeStep.current=r.step;
+    const state:ProjectDraft={id:r.id,revision:r.revision,name:r.name,template:restored.template,source:restored.source,school:r.school,events:r.events,photos:restored.photos,assignments:restored.assignments,photoMode:r.photoMode||'assign',step:r.step};setSavedSignature(draftSignature(state));
     setStep(r.step==='input-review'&&Object.keys(validateSchoolInput(restored.template.fields,r.school)).length?'school':r.step);
   }
   function openPreview(index: number) {setPreviewIndex(index); setPreviewOpen(true);}
@@ -171,8 +163,7 @@ export function Onboarding() {
     <header className="site-header"><div className="header-inner"><Button variant="quiet" className="brand" onClick={catalogHome}>우리학교<span>달력</span></Button><p className="header-caption">우리 학교의 일 년을 담아요</p><Button disabled={saving} onClick={() => setStep('projects')}>내 프로젝트</Button></div></header>
     <div className="review-notice"><div>{catalog?.notice || '신규 서비스 개발 검토용 · 실제 로그인·서버 저장·주문은 연결 전입니다.'}</div></div>
     <main className="main" data-motion={playing ? 'playing' : 'paused'}>
-      {step==='catalog'&&<Panel className="form-section"><h2>에디터 템플릿 원본으로 만들기</h2><p className="muted">에디터에서 저장한 원본에 학교 자료를 반영할 수 있어요. 원본 파일은 서버로 전송하지 않아요.</p><label className="upload-button button">템플릿 원본 불러오기<input type="file" accept=".json,.acdl" disabled={saving||nativeLoading} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void loadTemplateFile(file);}}/></label>{nativeLoading&&<p role="status">템플릿 원본을 확인하고 있어요.</p>}{nativeFailure&&<p role="alert" className="field-error">{nativeFailure}</p>}</Panel>}
-      {selected&&['school','schedule','photos','input-review'].includes(step)&&<SavePanel name={projectName} onName={setProjectName} dirty={dirty} saved={Boolean(activeProject)} busy={saving||nativeLoading} notice={dirty&&activeProject?'저장하지 않은 변경사항이 있어요.':saveNotice} error={saveError} onSave={()=>void saveWorking()} onBackup={()=>void exportWorking()}/>}
+      {selected&&['school','schedule','photos','input-review'].includes(step)&&<SavePanel name={projectName} onName={setProjectName} dirty={dirty} saved={Boolean(activeProject)} busy={saving||nativeLoading} notice={dirty&&activeProject?'저장하지 않은 변경사항이 있어요.':saveNotice} error={saveError} onSave={()=>void saveWorking()}/>}
       {appLoading && <Panel className="state-panel"><h1>디자인을 준비하고 있어요</h1><p className="muted" role="status">잠시만 기다려 주세요.</p></Panel>}
       {appFailure && <Panel className="state-panel"><h1>목록을 다시 불러올게요</h1><p role="alert">{failure}</p><Button variant="primary" onClick={() => setRequest(value => value + 1)}>다시 시도하기</Button></Panel>}
       {!appLoading && !appFailure && catalog && step === 'catalog' && <>
@@ -208,9 +199,9 @@ export function Onboarding() {
       {!appLoading && !appFailure && selected && step === 'school' && <>
         <Progress /><MaterialStage active={1}/>{heading('우리 학교 기본 정보', '학교 정보를 한 번만 입력해 주세요', '달력에 사용할 정보와 표시 여부를 입력해 보세요. 선택 정보를 달력에 표시하지 않을 경우 체크해 주세요.')}
         <form onSubmit={continueSchool} noValidate>
-          {(['basic', 'contact'] as const).map(group => <Panel className="form-section" key={group}><h2>{group === 'basic' ? '학교 기본 정보' : '학교 연락처'}</h2><div className="form-grid">{selected.fields.filter(field => field.group === group).map(field => <TextField key={field.key} label={field.label} value={school.values[field.key] || ''} required={field.required} hidden={school.hidden.includes(field.key)} allowHide={field.allowHide} maxLength={field.maxLength} hint={field.hint} error={errors[field.key]}
+          {(['basic', 'contact'] as const).filter(group=>selected.fields.some(field=>field.group===group)).map(group => <Panel className="form-section" key={group}><h2>{group === 'basic' ? '학교 기본 정보' : '학교 연락처'}</h2><div className="form-grid">{(group==='basic'?['general','tree','flower']:['general']).filter(section=>section==='general'||selected.fields.some(f=>f.group===group&&f.key.startsWith(section))).map(section=><div className={section==='general'?'school-field-group':'school-field-group school-symbol-group'} key={section}>{section!=='general'&&<h3>{section==='tree'?'교목':'교화'}</h3>}<div className="form-grid">{selected.fields.filter(field=>field.group===group&&(section==='general'?!['treeName','treeDescription','flowerName','flowerDescription'].includes(field.key):section==='tree'?['treeName','treeDescription'].includes(field.key):['flowerName','flowerDescription'].includes(field.key))).map(field=><TextField key={field.key} label={field.label} value={school.values[field.key] || ''} required={field.required} hidden={school.hidden.includes(field.key)} allowHide={field.allowHide} maxLength={field.maxLength} hint={field.hint} error={errors[field.key]}
             onChange={value => {setSchool(current => ({...current, values: {...current.values, [field.key]: value}})); setErrors(current => ({...current, [field.key]: ''}));}}
-            onHide={hidden => {setSchool(current => ({...current, hidden: hidden ? [...current.hidden.filter(key => key !== field.key), field.key] : current.hidden.filter(key => key !== field.key)})); setErrors(current => ({...current, [field.key]: ''}));}} />)}</div></Panel>)}
+            onHide={hidden => {setSchool(current => ({...current, hidden: hidden ? [...current.hidden.filter(key => key !== field.key), field.key] : current.hidden.filter(key => key !== field.key)})); setErrors(current => ({...current, [field.key]: ''}));}} />)}</div></div>)}</div></Panel>)}
           <div className="reference-note">계속 작업하려면 위의 ‘내 프로젝트에 저장’을 눌러 주세요. 학교 상징 이미지는 다음 사진 단계에서 선택할 수 있어요.</div>
           {Object.values(errors).some(Boolean) && <p className="field-error" role="alert">입력이 필요한 항목을 확인해 주세요.</p>}
           <div className="actions"><Button onClick={() => setStep('guide')}>← 준비 자료 안내</Button><Button type="submit" variant="primary">학사일정 입력하기 →</Button></div>
@@ -223,12 +214,12 @@ export function Onboarding() {
       </>}
       {!appLoading && !appFailure && selected && step==='photos'&&<>
         <Progress/><MaterialStage active={3}/>{heading('우리 학교 사진','달력에 넣을 사진을 준비해 주세요','여러 장을 선택하고 사용할 곳을 골라 주세요.')}
-        <PhotoInput photos={photos} onPhotos={setPhotos} slots={nativeSource?photoSlotsForProject(nativeSource):selected.photoSlots||[]} assignments={assignments} onAssignments={setAssignments} minimumDpi={nativeSource?.template.resources?.exportSettings?.imageQualityPolicy?.orderMinimumDpi||200} recommendedDpi={nativeSource?.template.resources?.exportSettings?.imageQualityPolicy?.recommendedDpi||300} onBack={()=>setStep('schedule')} onNext={()=>{setMaterialPage(0);setStep('input-review');}}/>
+        <PhotoInput mode={photoMode} onMode={setPhotoMode} photos={photos} onPhotos={setPhotos} slots={nativeSource?photoSlotsForProject(nativeSource):selected.photoSlots||[]} assignments={assignments} onAssignments={setAssignments} minimumDpi={nativeSource?.template.resources?.exportSettings?.imageQualityPolicy?.orderMinimumDpi||200} recommendedDpi={nativeSource?.template.resources?.exportSettings?.imageQualityPolicy?.recommendedDpi||300} onBack={()=>setStep('schedule')} onNext={()=>{setMaterialPage(0);setStep('input-review');}}/>
       </>}
       {!appLoading && !appFailure && selected && step === 'input-review' && <>
         <Progress />{heading('학교 자료 입력 확인','입력한 자료를 확인해 주세요',nativeSource?'아래 달력에서 학교 정보와 학사일정, 배정한 사진을 확인해 주세요.':'학교 정보·학사일정·사진 입력을 확인할 수 있어요. 실제 템플릿 반영은 연결 전이에요.')}
         <div className="material-review"><Panel><h2>{school.values.name||'우리 학교'}</h2><dl className="facts">{selected.fields.map(field=><div key={field.key}><dt>{field.label}</dt><dd>{school.hidden.includes(field.key)?'달력에 표시하지 않음':visibleSchoolValues(selected.fields,school)[field.key]||'템플릿 기본값 유지'}</dd></div>)}<div><dt>학사일정</dt><dd>{events.length}건</dd></div><div><dt>선택한 사진</dt><dd>{photos.length}장 · {Object.keys(assignments).length}곳 배정</dd></div></dl></Panel>
-        {materialProject&&<Panel><h2>템플릿 반영 확인</h2><p className="muted">입력한 학교 정보·일정·배정 사진을 반영했어요. 저장하면 반영된 달력 문서도 함께 보관해요. 개체 편집 화면은 다음 단계입니다.</p><div className="calendar-page-controls"><Button disabled={materialPage===0} onClick={()=>setMaterialPage(v=>v-1)}>← 이전 면</Button><span>{materialPage+1} / {materialProject.book.pageInstances.length}면</span><Button disabled={materialPage>=materialProject.book.pageInstances.length-1} onClick={()=>setMaterialPage(v=>v+1)}>다음 면 →</Button></div><NativePreview project={materialProject} pageId={materialProject.book.pageInstances[materialPage].id}/></Panel>}
+        {nativeSource&&photoSlotsForProject(nativeSource).some(s=>s.required&&!assignments[s.id])&&<Panel><p className="photo-warning">아직 배정하지 않은 필수 사진이 있어요. 현재 화면에는 템플릿 기본 사진이 남을 수 있으며 최종 완료 전 확인이 필요해요.</p></Panel>}{photos.some(p=>!Object.values(assignments).some(a=>a.photoId===p.id))&&<Panel><p>올린 사진 중 {photos.filter(p=>!Object.values(assignments).some(a=>a.photoId===p.id)).length}장은 아직 달력에 배정하지 않았어요. 사진 수정에서 나중에 배정할 수 있어요.</p></Panel>}{materialProject&&<Panel><h2>템플릿 반영 확인</h2><p className="muted">입력한 학교 정보·일정·배정 사진을 반영했어요. 저장하면 반영된 달력 문서도 함께 보관해요. 개체 편집 화면은 다음 단계입니다.</p><div className="calendar-page-controls"><Button disabled={materialPage===0} onClick={()=>setMaterialPage(v=>v-1)}>← 이전 면</Button><span>{materialPage+1} / {materialProject.book.pageInstances.length}면</span><Button disabled={materialPage>=materialProject.book.pageInstances.length-1} onClick={()=>setMaterialPage(v=>v+1)}>다음 면 →</Button></div><NativePreview project={materialProject} pageId={materialProject.book.pageInstances[materialPage].id}/></Panel>}
         </div><div className="reference-note">‘내 프로젝트에 저장’을 누르면 입력 자료와 사진 원본을 이 브라우저에서 다시 열 수 있어요. 다른 PC에서 사용하거나 브라우저 데이터를 지울 때는 백업 파일을 따로 보관해 주세요.</div>
         <div className="actions"><Button onClick={()=>setStep('school')}>학교 정보 수정</Button><Button onClick={()=>setStep('schedule')}>일정 수정</Button><Button onClick={()=>setStep('photos')}>사진 수정</Button><Button variant="primary" disabled={saving||!dirty} onClick={()=>void saveWorking()}>{saving?'저장 중…':!dirty&&activeProject?'저장됨':'내 프로젝트에 저장'}</Button></div>
       </>}
