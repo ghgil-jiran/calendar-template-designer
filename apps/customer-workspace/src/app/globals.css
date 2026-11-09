@@ -482,3 +482,10 @@ img {max-width: 100%;}
 @media(max-width:720px){.workspace .section-heading h1{font-size:26px;}.photo-picker-dialog{padding:16px;}.photo-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.photo-picker-item img{height:110px;}.photo-picker-header{gap:10px;}.photo-picker-footer{flex-wrap:wrap;}.editor-shell .editor-title h1{font-size:var(--type-body);}}
 .workspace .project-save-panel label,.workspace .photo-page-label,.workspace .schedule-table input {font-size:var(--type-body);}
 .workspace .schedule-review summary,.workspace .form-section>details>summary {font-size:var(--type-subtitle);font-weight:600;color:hsl(var(--foreground));}
+
+.photo-preparation-banks {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:20px;}
+.photo-preparation-banks > section {min-width:0;padding:18px;border:1px solid hsl(var(--border));border-radius:12px;}
+.photo-preparation-banks h3 {margin:0;font-size:var(--type-body);}
+.photo-preparation-banks .photo-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+.photo-assignment-step {scroll-margin-top:24px;}
+@media(max-width:720px){.photo-preparation-banks {grid-template-columns:1fr;}}
