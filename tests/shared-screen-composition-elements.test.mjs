@@ -32,3 +32,9 @@ test('authored frames survive conversions across page sizes and preserve deliber
   }
 });
 
+
+test('explicitly hidden local and master objects never render; hidden overrides still shadow masters',()=>{
+ const masters=[{id:'logo',visible:true},{id:'hidden-master',visible:false},{id:'legacy-hidden',hidden:true},{id:'keep',zIndex:2}];
+ const locals=[{id:'override',shadowOfMasterElementId:'logo',visible:false},{id:'hidden-local',visible:false},{id:'shown',zIndex:1}];
+ assert.deepEqual(composition.visibleElements({},masters,locals).map(e=>e.id),['shown','keep']);
+});

@@ -45,3 +45,21 @@ test('user calendar display choices override defaults without mutating the templ
  const p=source();p.settings.calendarData={includeLunar:true,other:'preserved'};const calendarDisplay={includeHolidays:false,includeAnniversaries:true,includeSolarTerms:false,includeLunar:false};
  const q=applyMaterials(p,fieldsForProject(p),{values:{},hidden:[],calendarDisplay},[],{});assert.deepEqual(q.settings.calendarData,{...calendarDisplay,other:'preserved'});assert.equal(p.settings.calendarData.includeLunar,true);
 });
+
+test('symbol exclusions cover master/local text, nested image bindings, semantic objects and split titles, preserving backgrounds and samples',()=>{
+ const p=source();p.book.school.profile.tree={name:'소나무',description:'샘플 설명',image:'tree.jpg'};
+ p.template.masterElements.cover=[{id:'tree',type:'semantic-object',role:'school-tree',binding:'school.profile.tree'},{id:'tree.title',type:'text',content:'교목',metadata:{parentObjectId:'tree'}}];
+ p.book.pageInstances[0].masterId='cover';p.book.elementsByPage.p.push({id:'tree-name',type:'text',binding:'school.profile.tree.name',content:'소나무'},{id:'tree-desc',type:'text',binding:'school.profile.tree.description',content:'샘플 설명'},{id:'tree-image',type:'image-frame',image:{binding:'school.profile.tree',src:'tree.jpg'}},{id:'background',type:'image',role:'graphic-package-background',src:'background-with-tree.jpg'},{id:'fixed-tree',type:'text',binding:'school.profile.tree.name',bindingEnabled:false,content:'디자이너 고정'});
+ const fields=fieldsForProject(p),before=JSON.stringify(p),blank=applyMaterials(p,fields,{values:{},hidden:[]},[],{});
+ assert.equal(blank.book.school.profile.tree.name,'소나무');assert.notEqual(blank.template.masterElements.cover[0].visible,false);
+ const q=applyMaterials(p,fields,{values:{treeName:'보관된 이름'},hidden:['treeName','treeDescription']},[],{});
+ for(const e of [...q.template.masterElements.cover,...q.book.elementsByPage.p].filter(e=>['tree','tree.title','tree-name','tree-desc','tree-image'].includes(e.id)))assert.equal(e.visible,false,e.id);
+ assert.notEqual(q.book.elementsByPage.p.find(e=>e.id==='background').visible,false);assert.notEqual(q.book.elementsByPage.p.find(e=>e.id==='fixed-tree').visible,false);
+ assert.equal(JSON.stringify(p),before);assert.equal(applyMaterials(p,fields,{values:{treeName:'복원 이름'},hidden:[]},[],{}).book.school.profile.tree.name,'복원 이름');
+});
+
+test('cover, school-symbol and back pages distinguish blank samples from explicit hiding in the shared render list',async()=>{
+ await import('../../designer-studio/shared-screen-composition.js');const p=source();p.book.pageInstances=[{id:'cover',role:'cover-front'},{id:'symbols',role:'front-insert-front',semanticPageRole:'school-symbols'},{id:'back',role:'back-cover-back'}];p.book.elementsByPage={cover:[{id:'name',type:'text',binding:'school.name',content:'샘플'}],symbols:[{id:'motto',type:'text',binding:'school.profile.motto.description',content:'샘플 교훈'}],back:[{id:'english',type:'text',binding:'school.englishName',content:'SAMPLE'}]};p.template.publishing.dataRequirements=[];
+ const fields=fieldsForProject(p),blank=applyMaterials(p,fields,{values:{},hidden:[]},[],{}),hidden=applyMaterials(p,fields,{values:{},hidden:fields.map(f=>f.key)},[],{});
+ for(const page of p.book.pageInstances){assert.equal(globalThis.ACDLSharedScreenComposition.visibleElements(page,[],blank.book.elementsByPage[page.id]).length,1);assert.equal(globalThis.ACDLSharedScreenComposition.visibleElements(page,[],hidden.book.elementsByPage[page.id]).length,0);}
+});

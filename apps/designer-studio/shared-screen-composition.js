@@ -67,7 +67,7 @@
         && (page?.aiMonthBackComposition?.mode !== "generated-layout" || !isMonthBackCompositionElement(element))
       ).map(element => ({ ...element, _scope: "master" })),
       ...localElements.map(element => ({ ...element, _scope: "page" })),
-    ].sort((left, right) => (Number(left.zIndex) || 0) - (Number(right.zIndex) || 0));
+    ].filter(element => element.visible !== false && element.hidden !== true).sort((left, right) => (Number(left.zIndex) || 0) - (Number(right.zIndex) || 0));
   }
 
   // A legacy cover placeholder must never compete with an authored background,

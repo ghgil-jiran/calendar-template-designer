@@ -22,3 +22,11 @@ test('photo reset never changes a historical frame placement in the photo-only e
  const state={version:1,pageId:'march',edits:[{pageId:'march',scope:'master',elementId:'photo',photoId:'original',fit,layout:{x:20,y:20,width:45,height:35}}]};
  const s=createEditorSession({project:p,state,assets});s.select(s.targets('march')[0]);s.resetPhoto();const item=s.getDocument().book.elementsByPage.march[0];assert.equal(item.x,20);assert.equal(item.width,45);assert.equal(item.image.src,'sample');assert.equal(s.getState().edits[0].photoId,undefined);
 });
+
+test('previous photo edits stay dormant while the linked school object is hidden and resume when shown',()=>{
+ const p=project(),session=createEditorSession({project:p,assets});session.select(session.targets('march')[0]);session.editPhoto({photoId:'original',fit});const state=session.getState();
+ p.template.masterElements.photos[0].visible=false;const hidden=applyEditor(p,state,assets);assert.equal(hidden.book.elementsByPage.march.length,0);assert.equal(hidden.template.masterElements.photos[0].visible,false);assert.equal(createEditorSession({project:p,state,assets}).targets('march').length,0);
+ p.template.masterElements.photos[0].visible=true;assert.equal(applyEditor(p,state,assets).book.elementsByPage.march[0].image.scale,1.5);
+ p.template.masterElements.photos[0].permissions.imageFit=false;assert.throws(()=>applyEditor(p,state,assets),/허용/);
+ delete p.template.masterElements.photos[0];p.template.masterElements.photos=[];assert.throws(()=>applyEditor(p,state,assets),/변경/);
+});

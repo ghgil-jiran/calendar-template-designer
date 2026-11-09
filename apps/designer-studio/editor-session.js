@@ -23,7 +23,12 @@
  function apply(project,state,assets){
   validateState(state);if(!project.book.pageInstances.some(p=>p.id===state.pageId))throw Error('편집 페이지가 없어요.');const document=clone(project);
   for(const edit of state.edits){
-   const target=targets(project,edit.pageId).find(t=>t.elementId===edit.elementId&&t.scope===edit.scope);if(!target)throw Error('사진 편집 영역이 변경됐어요.');
+   const target=targets(project,edit.pageId).find(t=>t.elementId===edit.elementId&&t.scope===edit.scope);if(!target){
+    const page=project.book.pageInstances.find(p=>p.id===edit.pageId),items=edit.scope==='master'?project.template.masterElements?.[page?.masterId]||[]:project.book.elementsByPage?.[edit.pageId]||[],original=items.find(e=>e.id===edit.elementId);
+    // Retain prior photo edits while explicitly hidden; revalidate when shown again.
+    if(original&&(original.visible===false||original.hidden===true))continue;
+    throw Error('사진 편집 영역이 변경됐어요.');
+   }
    if(edit.photoId!==undefined&&!target.rights.replaceImage||edit.fit&&!target.rights.imageFit)throw Error('템플릿에서 허용하지 않은 사진 편집이에요.');
    const page=document.book.pageInstances.find(p=>p.id===edit.pageId);document.book.elementsByPage||={};const local=document.book.elementsByPage[page.id]||=[];
    let item=edit.scope==='master'?(document.template.masterElements[page.masterId]||[]).find(e=>e.id===edit.elementId):local.find(e=>e.id===edit.elementId);

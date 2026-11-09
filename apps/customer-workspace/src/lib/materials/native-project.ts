@@ -56,13 +56,19 @@ export function photoSlotsForProject(project:NativeProject):PhotoSlot[]{
  for(const [binding,label] of common){const requirement=requirements(project).find(r=>r.path===binding);if(requirement?.stage==='excluded'||result.some(s=>s.binding===binding))continue;if(!requirement&&binding!=='school.profile.building')continue;result.push({id:`school:${binding}`,pageId:project.book.pageInstances[0].id,pageIds:[],pageLabel:'학교 공통',elementId:'',scope:'school',label,binding,required:requiredFor(project,binding),widthMm:0,heightMm:0});}
  return result;
 }
-export function applyMaterials(source:NativeProject,fields:SchoolField[],school:SchoolInput,events:ScheduleEvent[],assignments:Record<string,PhotoAssignment>):NativeProject{
+export function applyMaterials(source:NativeProject,fields:SchoolField[],school:SchoolInput,events:ScheduleEvent[],assignments:Record<string,PhotoAssignment>,bindingVersion:2|3=3):NativeProject{
  assertNativeProject(source);const project=structuredClone(source);project.mode='calendar-workspace';
  const all=authoredElements(project);
  for(const field of fields){const path=field.binding||`school.${field.key}`,hidden=school.hidden.includes(field.key);if(hidden&&field.required)throw Error(`${field.label}은 제외할 수 없습니다.`);
-  if(hidden){for(const e of all)if(e.bindingEnabled!==false&&(e.binding===path||path.startsWith(String(e.binding||'__')+'.')))e.visible=false;setAt(project,path,'');}
+  if(hidden){for(const e of all){const binding=e.binding||(bindingVersion===3?e.image?.binding:undefined);if(e.bindingEnabled!==false&&(binding===path||path.startsWith(String(binding||'__')+'.')))e.visible=false;}setAt(project,path,'');}
   else if(school.values[field.key]?.trim())setAt(project,path,school.values[field.key].trim());
   else if(school.omitEmptyContacts&&field.group==='contact'){setAt(project,path,'');for(const e of all)if(e.bindingEnabled!==false&&e.binding===path)e.visible=false;}
+ }
+ for(const key of bindingVersion===3?['tree','flower']:[]){
+  const symbolFields=fields.filter(f=>f.binding?.startsWith(`school.profile.${key}.`));
+  if(!symbolFields.length||!symbolFields.every(f=>school.hidden.includes(f.key)))continue;
+  const path=`school.profile.${key}`,ids=new Set(all.filter(e=>e.bindingEnabled!==false&&(imageBinding(e)===path||e.binding?.startsWith(path+'.'))).map(e=>e.id));
+  for(const e of all)if(e.bindingEnabled!==false&&(imageBinding(e)===path||e.binding?.startsWith(path+'.')||ids.has(e.metadata?.parentObjectId)))e.visible=false;
  }
  if(school.calendarDisplay)project.settings.calendarData={...project.settings.calendarData,...school.calendarDisplay};
  if(school.omitEmptyContacts){for(const field of fields.filter(f=>f.binding?.match(/^school\.contacts\.\d+\.phone$/))){const row=project.book.school.contacts?.[Number(field.binding!.split('.')[2])];if(row&&!row.phone)row.value='';}const contacts=project.book.school?.contacts||[];if(!contacts.some((r:NativeProject)=>r.phone||r.value))project.book.school.phone='';if(!contacts.some((r:NativeProject)=>r.fax))project.book.school.fax='';if(!contacts.some((r:NativeProject)=>r.phone||r.value||r.fax)&&!project.book.school.phone&&!project.book.school.fax)for(const e of all)if(e.bindingEnabled!==false&&e.binding==='school.contacts')e.visible=false;}

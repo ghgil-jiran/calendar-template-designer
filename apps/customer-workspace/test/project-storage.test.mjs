@@ -36,3 +36,13 @@ test('photo editor result survives durable backup and new URLs, rejects tampered
  const snapshot=await prepareSnapshot(d);assert.equal(snapshot.record.appliedProject.book.elementsByPage.p[0].image.scale,2);assert.ok(!JSON.stringify(snapshot.record).includes('blob:ephemeral'));const h=hydrateSnapshot(await restoreBackup(new File([await backupFile(snapshot)],'edited.calendar-backup')));try{assert.equal(h.record.step,'editor');assert.deepEqual(h.record.editorState,d.editorState);assert.equal(h.appliedProject.book.elementsByPage.p[0].image.src,h.photos[0].url);}finally{h.urls.forEach(URL.revokeObjectURL);}
  snapshot.record.source.book.elementsByPage.p[0].permissions.imageFit=false;await assert.rejects(()=>backupFile(snapshot),/허용/);
 });
+
+test('previous exclusion snapshots validate under their original rules; new saves retain full symbol exclusions',async()=>{
+ const {applyMaterials,fieldsForProject}=await import('../src/lib/materials/native-project.ts');const d=draft();d.assignments={};d.source={format:'acdl-project',settings:{year:2027},productType:{pageSize:{width:260,height:180}},template:{masters:{cover:{}},masterElements:{},publishing:{dataRequirements:[]}},book:{school:{name:'샘플',profile:{tree:{name:'소나무',description:'설명',image:'data:image/png;base64,YQ=='}}},pageInstances:[{id:'p',role:'cover-front'}],elementsByPage:{p:[{id:'tree',type:'semantic-object',role:'school-tree',binding:'school.profile.tree'},{id:'title',type:'text',content:'교목',metadata:{parentObjectId:'tree'}}]}}};
+ d.template.fields=fieldsForProject(d.source);d.school={values:{},hidden:['treeName','treeDescription']};
+ const current=await prepareSnapshot(d);assert.equal(current.record.bindingVersion,3);assert.equal(current.record.appliedProject.book.elementsByPage.p[1].visible,false);
+ const old=structuredClone(current);old.record.bindingVersion=2;old.record.appliedProject=applyMaterials(old.record.source,old.record.template.fields,old.record.school,old.record.events,{},2);
+ assert.notEqual(old.record.appliedProject.book.elementsByPage.p[1].visible,false);
+ const restored=await restoreBackup(new File([await backupFile(old)],'previous.calendar-backup'));assert.equal(restored.record.bindingVersion,2);
+ const newRestore=await restoreBackup(new File([await backupFile(current)],'new.calendar-backup'));assert.equal(newRestore.record.appliedProject.book.elementsByPage.p[1].visible,false);
+});
