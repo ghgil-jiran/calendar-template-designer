@@ -92,6 +92,9 @@
     "api/template-assets.js": {
       "maxDuration": 300,
       "includeFiles": "assets/{student-image-prototypes,student-calendar-illustrations,learning-garden,learning-garden-illustrations}/*"
+    },
+    "api/ai-print-image-edit.js": {
+      "maxDuration": 300
     }
   }
 }
