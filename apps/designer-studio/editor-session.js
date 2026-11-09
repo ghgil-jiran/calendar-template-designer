@@ -9,7 +9,7 @@
    rights.move=movable&&rights.move===true;rights.resize=movable&&rights.resize===true;rights.textSize=movable&&item.type==='text'&&rights.color===true;
    if(item.type!=='image-frame')rights.imageFit=false;if(!['image-frame','image'].includes(item.type))rights.replaceImage=false;
    return {pageId:page.id,elementId:item.id,scope:item._scope,type:item.type,label:item.label||item.alt||({'text':'글자','semantic-object':'학교 상징'}[item.type])||'사진',x:item.x,y:item.y,width:item.width,height:item.height,rotation:item.rotation||0,fontSize:item.style?.fontSize||18,rights};
-  }).filter(target=>target.type==='image-frame'||target.rights.replaceImage||target.rights.move||target.rights.resize||target.rights.textSize);
+  });
  }
  function validateState(state){
   if(!state||state.version!==1||!Array.isArray(state.edits)||state.edits.length>1000||typeof state.pageId!=='string')throw Error('편집 저장 정보를 확인해 주세요.');
@@ -43,7 +43,7 @@
    setAssets(next){apply(source,current,next);assets=next;},
    setPage(pageId){targets(source,pageId);current={...current,pageId};selection=null;},
    editPhoto(patch){if(!selection)throw Error('사진 영역을 먼저 선택해 주세요.');const next=clone(current),index=next.edits.findIndex(e=>e.pageId===selection.pageId&&e.elementId===selection.elementId&&e.scope===selection.scope),previous=next.edits[index]||{pageId:selection.pageId,elementId:selection.elementId,scope:selection.scope};const edit={...previous};if(Object.hasOwn(patch,'photoId')){edit.photoId=patch.photoId;delete edit.fit;}if(patch.fit)edit.fit=clone(patch.fit);if(patch.layout)edit.layout=clone(patch.layout);if(patch.fontSize!==undefined)edit.fontSize=patch.fontSize;if(index<0)next.edits.push(edit);else next.edits[index]=edit;return commit(next);},
-   resetPhoto(){if(!selection)return false;return commit({...clone(current),edits:current.edits.filter(e=>!(e.pageId===selection.pageId&&e.elementId===selection.elementId&&e.scope===selection.scope))});},
+   resetPhoto(){if(!selection)return false;return commit({...clone(current),edits:current.edits.flatMap(e=>{if(!(e.pageId===selection.pageId&&e.elementId===selection.elementId&&e.scope===selection.scope))return [e];const {photoId,fit,...preserved}=e;return e.layout||e.fontSize!==undefined?[preserved]:[];})});},
    undo(){if(!past.length)return false;future.push(clone(current));current=past.pop();selection=null;return true;},redo(){if(!future.length)return false;past.push(clone(current));current=future.pop();selection=null;return true;}
   });
  }

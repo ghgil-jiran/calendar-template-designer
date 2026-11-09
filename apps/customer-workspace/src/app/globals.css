@@ -434,3 +434,51 @@ img {max-width: 100%;}
 .schedule-months .button {min-width:0;justify-content:space-between;font-size:13px;padding:10px 12px;}
 .schedule-months small {font-size:11px;font-weight:400;}
 @media(max-width:720px){.schedule-months{grid-template-columns:repeat(2,minmax(0,1fr));}.schedule-months .button{font-size:12px;padding:9px;}}
+
+/* Customer UI type scale. These styles never enter the calendar renderer's shadow DOM. */
+:root {
+ --type-page:30px; --type-section:20px; --type-subtitle:16px;
+ --type-body:14px; --type-help:13px; --type-meta:12px;
+ --help-foreground:215 21% 43%;
+}
+.workspace {font-size:var(--type-body);}
+.workspace .section-heading h1,.workspace .state-panel h1 {font-size:var(--type-page);line-height:1.45;letter-spacing:-.8px;}
+.workspace .form-section h2,.workspace .catalog-heading h2,.workspace .material-review h2,.workspace .photo-picker-dialog h2 {font-size:var(--type-section);line-height:1.5;}
+.workspace .form-section h3,.workspace .guide-row h2,.workspace .template-copy h3 {font-size:var(--type-subtitle);line-height:1.5;}
+.workspace .button,.workspace input,.workspace select,.workspace textarea,.workspace .field label,.workspace .photo-mode-options strong,.workspace .photo-slot strong {font-size:var(--type-body);}
+.workspace .muted,.workspace .field-hint,.workspace .reference-note,.workspace .photo-mode-options span,.workspace .photo-bank>p,.workspace .section-heading>p:last-child {font-size:var(--type-help);line-height:1.8;color:hsl(var(--help-foreground));font-weight:400;}
+.workspace .reference-note {border-left:3px solid hsl(var(--primary)/.35);}
+.workspace .badge,.workspace .field-state,.workspace .eyebrow,.workspace .photo-slot small,.workspace .photo-card small,.workspace .review-notice,.workspace .journey,.workspace .input-stage,.workspace .save-notice {font-size:var(--type-meta);line-height:1.6;}
+.workspace .checkbox {font-size:var(--type-help)!important;}
+.workspace .photo-card strong {font-size:var(--type-body);font-weight:600;}
+.workspace .photo-mode-options label {align-content:start;}
+.workspace .photo-mode-options strong {font-weight:600;color:hsl(var(--foreground));}
+.workspace .field-error,.workspace .photo-warning {font-size:var(--type-help);color:hsl(var(--destructive));}
+.editor-shell {font-size:var(--type-body);}
+.editor-shell .editor-title h1 {font-size:var(--type-subtitle);}
+.editor-shell .editor-library h2,.editor-shell .editor-inspector-heading h2,.editor-shell .editor-add-objects h2 {font-size:var(--type-subtitle);line-height:1.5;}
+.editor-shell .editor-properties h3,.editor-shell .editor-properties label,.editor-shell .editor-bank-heading,.editor-shell .editor-inspector-empty strong {font-size:var(--type-body);}
+.editor-shell .field-hint,.editor-shell .editor-inspector-empty,.editor-shell .editor-selection-tip,.editor-shell .editor-library-heading p,.editor-shell .editor-add-objects p,.editor-shell .editor-empty {font-size:var(--type-help);line-height:1.8;color:hsl(var(--help-foreground));}
+.editor-shell .editor-feedback {font-size:var(--type-help);line-height:1.7;color:hsl(var(--help-foreground));}
+.editor-shell .editor-feedback[role=alert] {color:hsl(var(--destructive));}
+.editor-shell .editor-photo-thumb span,.editor-shell .editor-photo-thumb small,.editor-shell .editor-sidebar-eyebrow,.editor-shell .editor-object-name,.editor-shell .editor-save-state,.editor-shell .editor-upload-note,.editor-shell .editor-stage-tools small,.editor-shell .editor-page-strip span {font-size:var(--type-meta);}
+.editor-shell .editor-selection-tip {border-left:3px solid hsl(var(--primary)/.35);}
+.editor-shell .editor-target {cursor:pointer;touch-action:auto;}
+.photo-selection-trigger {width:100%;justify-content:flex-start;min-width:0;text-align:left;}
+.photo-selection-trigger img {width:56px;height:42px;object-fit:contain;border-radius:5px;background:hsl(var(--surface));flex-shrink:0;}
+.photo-selection-trigger span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.photo-picker-dialog {width:min(960px,95vw);max-height:90dvh;overflow:auto;border:1px solid hsl(var(--border));border-radius:16px;background:hsl(var(--canvas));color:hsl(var(--foreground));padding:24px;}
+.photo-picker-dialog::backdrop {background:hsl(var(--foreground)/.45);}
+.photo-picker-header {display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px;}
+.photo-picker-header h2 {margin-bottom:6px;}
+.photo-picker-header .button {flex-shrink:0;}
+.photo-picker-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+.photo-picker-item {min-width:0;padding:8px;border:1px solid hsl(var(--border));border-radius:10px;background:hsl(var(--canvas));color:hsl(var(--foreground));text-align:left;}
+.photo-picker-item[aria-pressed=true] {border:2px solid hsl(var(--primary));background:hsl(var(--soft));}
+.photo-picker-item img {width:100%;height:130px;object-fit:contain;background:hsl(var(--surface));border-radius:6px;}
+.photo-picker-item strong {display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--type-body);margin:8px 0 4px;}
+.photo-picker-state {font-size:var(--type-meta);color:hsl(var(--primary));}
+.photo-picker-footer {display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;}
+@media(max-width:720px){.workspace .section-heading h1{font-size:26px;}.photo-picker-dialog{padding:16px;}.photo-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.photo-picker-item img{height:110px;}.photo-picker-header{gap:10px;}.photo-picker-footer{flex-wrap:wrap;}.editor-shell .editor-title h1{font-size:var(--type-body);}}
+.workspace .project-save-panel label,.workspace .photo-page-label,.workspace .schedule-table input {font-size:var(--type-body);}
+.workspace .schedule-review summary,.workspace .form-section>details>summary {font-size:var(--type-subtitle);font-weight:600;color:hsl(var(--foreground));}
