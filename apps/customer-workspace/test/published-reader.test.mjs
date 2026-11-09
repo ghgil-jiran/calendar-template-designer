@@ -21,3 +21,25 @@ test('catalog uses stored previews from the exact linked package and page identi
  const item=(await reader.publishedCatalog()).templates[0];assert.equal(item.coverUrl,item.pages[0].imageUrl);assert.match(item.coverUrl,/template-packages\/published-fixture\/1.0.2/);
  wrong=true;assert.equal((await reader.publishedCatalog()).templates[0].pages[0].imageUrl,null);
 });
+
+test('all published templates remain visible across catalog pages and unpublishing blocks list and source',async()=>{
+ const identity=n=>`${String(n).padStart(8,'0')}-1111-4111-8111-111111111111`;
+ const templates=Array.from({length:104},(_,i)=>({id:identity(i+1),name:`학교 달력 ${i+1}`,state:i<101?'published':['draft','ready','archived'][i-101],latest_version_id:identity(i+1001)}));
+ const versions=templates.map(t=>{const p=project();p.template.thumbnail=null;p.book.elementsByPage.cover=[];return {id:t.latest_version_id,template_id:t.id,state:t.state,version_number:1,project_data:p};});
+ const calls=[];
+ const reader=createPublishedReader({url:'https://fixture.supabase.invalid',key:'test',fetcher:async input=>{
+  const u=new URL(input),q=u.searchParams;calls.push(u);
+  if(u.pathname.endsWith('/template_projects')){
+   const found=templates.filter(t=>q.get('state')==='eq.'+t.state&&(!q.has('id')||q.get('id')==='eq.'+t.id));
+   const offset=Number(q.get('offset')||0),limit=Number(q.get('limit')||1000);return Response.json(found.slice(offset,offset+limit));
+  }
+  if(u.pathname.endsWith('/template_versions'))return Response.json(versions.filter(v=>q.get('state')==='eq.'+v.state&&(q.get('id')?.startsWith('in.(')?q.get('id').slice(4,-1).split(',').includes(v.id):q.get('id')==='eq.'+v.id)));
+  throw Error('Unexpected catalog request');
+ }});
+ const catalog=await reader.publishedCatalog();assert.equal(catalog.templates.length,101);assert.equal(catalog.templates.at(-1).id,templates[100].id);assert.ok(!catalog.templates.some(t=>templates.slice(101).some(hidden=>hidden.id===t.id)));
+ assert.equal((await reader.publishedSource(templates[100].id,1)).templateId,templates[100].id);
+ templates[100].state='draft';assert.equal((await reader.publishedCatalog()).templates.length,100);
+ await assert.rejects(()=>reader.publishedSource(templates[100].id,1),/게시된 템플릿이 없습니다/);
+ for(const hidden of templates.slice(101))await assert.rejects(()=>reader.publishedSource(hidden.id,1),/게시된 템플릿이 없습니다/);
+ assert.ok(calls.filter(u=>u.pathname.endsWith('/template_projects')).some(u=>u.searchParams.get('offset')==='100'));
+});
