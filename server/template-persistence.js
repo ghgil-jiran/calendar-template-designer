@@ -52,10 +52,12 @@ function decodeDataUrl(value){
 
 function extensionFor(mimeType){return {'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/svg+xml':'svg'}[mimeType]}
 
+export function resolveSignedAssetUrl(base,path){if(/^https?:\/\//.test(path))return path;const prefix=path.startsWith('/storage/v1/')?'':'/storage/v1';return base.replace(/\/$/,'')+prefix+(path.startsWith('/')?'':'/')+path;}
+
 async function signedAsset(row){
   const signed=await storageRequest(`object/sign/${encodeURIComponent(row.storage_bucket)}/${row.storage_path.split('/').map(encodeURIComponent).join('/')}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:86400})});
   const signedPath=signed?.signedURL||signed?.signedUrl;if(!signedPath)throw Object.assign(new Error('Signed URL missing'),{statusCode:502,code:'SIGNED_URL_FAILED'});
-  const {url}=supabaseConfig();return {id:row.id,url:signedPath.startsWith('http')?signedPath:`${url}${signedPath}`,mimeType:row.mime_type,byteSize:Number(row.byte_size)};
+  const {url}=supabaseConfig();return {id:row.id,url:resolveSignedAssetUrl(url,signedPath),mimeType:row.mime_type,byteSize:Number(row.byte_size)};
 }
 
 export async function storeTemplateAsset(dataUrl){
