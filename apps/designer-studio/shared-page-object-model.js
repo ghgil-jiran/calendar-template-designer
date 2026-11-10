@@ -25,6 +25,29 @@
   }
   return elements;
  }
+ function schoolText(element,school){
+  if(element?.bindingEnabled===false)return undefined;
+  if(element?.binding==='school.name'&&element?.format==='school-song-title')return String(school?.name||'').trim()?String(school.name).trim()+' 교가':'교가';
+  const path=element?.binding;
+  if(!/^school\.profile\.(tree|flower)\.(name|description)$/.test(path||''))return undefined;
+  return path.split('.').slice(1).reduce((value,key)=>value?.[key],school);
+ }
+ function connectSymbolText(elements){
+  for(const e of elements){
+   if(e.type!=='text'||e.metadata?.schoolSymbolBindingVersion||e.bindingEnabled===false)continue;
+   let key,part;
+   const generated=/^school-(tree|flower|song)-(title|description)$/.exec(e.role||'');
+   const standard=/^symbols\.(tree|flower|song)\.(name|title|desc)$/.exec(e.id||'');
+   if(generated){key=generated[1];part=generated[2];}
+   else if(standard){key=standard[1];part=standard[2]==='desc'?'description':'title';}
+   else continue;
+   const binding=key==='song'&&part==='title'?'school.name':`school.profile.${key}.${part==='title'?'name':'description'}`;
+   if(e.binding&&e.binding!==binding)continue;
+   e.binding=binding;e.bindingEnabled=true;
+   if(key==='song'&&part==='title')e.format='school-song-title';
+   e.metadata={...e.metadata,schoolSymbolBindingVersion:1};
+  }
+ }
  function normalizeProject(project){
   if(!project?.book||!project?.template||project.productionCorrection)return project;
   const pages=project.book.pageInstances||[],symbolPage=p=>[p?.role,p?.contentPurpose,p?.semanticPageRole,p?.packageRole].some(v=>v==='school-symbols');
@@ -57,6 +80,7 @@
      }
     }else next.push(source);
    }
+   if(symbols)connectSymbolText(next);
    arr.splice(0,arr.length,...next);
   }
   return project;
@@ -89,6 +113,6 @@
   const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   return '<div class="school-contact-list" style="display:flex;flex-wrap:wrap;justify-content:inherit;align-content:flex-start;column-gap:.8em;row-gap:0;width:100%;min-width:0;white-space:normal">'+items.map(item=>'<span class="school-contact-item" style="display:inline-block;white-space:nowrap">'+escape(item.label)+'&nbsp;'+escape(item.value)+'</span>').join('')+'</div>';
  }
- root.ACDLPageObjectModel=Object.freeze({version:'1.1.0',normalizeProject,splitCoverYear,coverYearText,monthText,renderPlanLines,schoolContactItems,schoolContactsText,renderSchoolContacts});
+ root.ACDLPageObjectModel=Object.freeze({version:'1.1.0',normalizeProject,schoolText,connectSymbolText,splitCoverYear,coverYearText,monthText,renderPlanLines,schoolContactItems,schoolContactsText,renderSchoolContacts});
 })(globalThis);
 

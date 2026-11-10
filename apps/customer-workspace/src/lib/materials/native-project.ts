@@ -1,3 +1,4 @@
+import '../../../../designer-studio/shared-page-object-model.js';
 import '../../../../designer-studio/persistence-project.js';
 import type {SchoolField, SchoolInput, ScheduleEvent, PhotoSlot, PhotoAssignment} from '@/lib/api/contracts';
 // The native authoring document stays opaque except for fields needed by input binding.
@@ -21,7 +22,9 @@ export function assertNativeProject(value: unknown): asserts value is NativeProj
 function requirements(project:NativeProject):NativeProject[]{return project.template.publishing?.dataRequirements||[];}
 function requiredFor(project:NativeProject,path:string){return requirements(project).some(r=>(r.path===path||path.startsWith(r.path+'.'))&&['project-create-required','final-submit-required'].includes(r.stage));}
 function authoredElements(project:NativeProject):NativeProject[]{return [...Object.values(project.template.masterElements||{}),...Object.values(project.book.elementsByPage||{})].flat() as NativeProject[];}
+function normalizeSymbols(project:NativeProject){return (globalThis as unknown as {ACDLPageObjectModel:{normalizeProject:(project:NativeProject)=>NativeProject}}).ACDLPageObjectModel.normalizeProject(project);}
 export function fieldsForProject(project:NativeProject):SchoolField[]{
+ project=normalizeSymbols(structuredClone(project));
  const bindings=authoredElements(project).filter(e=>e.bindingEnabled!==false).map(e=>String(e.binding||''));
  const fields:SchoolField[]=textFields.filter(([path])=>['school.name','school.englishName','school.address'].includes(path)||bindings.some(b=>b===path||b.startsWith('school.profile.')&&path.startsWith(b+'.')||b==='school.contacts'&&['school.phone','school.fax'].includes(path))||requirements(project).some(r=>r.path===path||path.startsWith(r.path+'.'))).map(([binding,key,label,group])=>({key,binding,label,group,required:key==='address'||group!=='contact'&&requiredFor(project,binding),allowHide:group==='contact'||!requiredFor(project,binding),maxLength:binding.endsWith('description')?3000:200}));
  if(Array.isArray(project.book.school?.contacts)&&bindings.includes('school.contacts')){
@@ -57,7 +60,7 @@ export function photoSlotsForProject(project:NativeProject):PhotoSlot[]{
  return result;
 }
 export function applyMaterials(source:NativeProject,fields:SchoolField[],school:SchoolInput,events:ScheduleEvent[],assignments:Record<string,PhotoAssignment>,bindingVersion:2|3=3):NativeProject{
- assertNativeProject(source);const project=structuredClone(source);project.mode='calendar-workspace';
+ assertNativeProject(source);const project=normalizeSymbols(structuredClone(source));project.mode='calendar-workspace';
  const all=authoredElements(project);
  for(const field of fields){const path=field.binding||`school.${field.key}`,hidden=school.hidden.includes(field.key);if(hidden&&!field.allowHide)throw Error(`${field.label}은 제외할 수 없습니다.`);
   if(hidden){for(const e of all){const binding=e.binding||(bindingVersion===3?e.image?.binding:undefined);if(e.bindingEnabled!==false&&(binding===path||path.startsWith(String(binding||'__')+'.')))e.visible=false;}setAt(project,path,'');}

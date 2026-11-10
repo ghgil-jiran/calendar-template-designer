@@ -71,3 +71,11 @@ test('customer address stays required and hideable while template contact requir
  const result=applyMaterials(p,fields,{values:{address:'보관 주소'},hidden:['address']},[],{});
  assert.equal(result.book.school.address,'');assert.equal(p.book.school.address,undefined);
 });
+
+test('legacy symbol parts acquire user name/description bindings and live song heading without changing source or styles',()=>{
+ const p=source();p.book.pageInstances[0].role='school-symbols';p.book.elementsByPage.p=['tree','flower','song'].map((key,i)=>({id:key,type:'semantic-object',role:'school-'+key,binding:'school.profile.'+key,x:5+i*25,y:10,width:20,height:60,style:{fontFamily:'Noto Serif KR',titleSize:17}}));const before=JSON.stringify(p);
+ const fields=fieldsForProject(p);for(const key of ['treeName','treeDescription','flowerName','flowerDescription'])assert.ok(fields.some(f=>f.key===key));
+ const applied=applyMaterials(p,fields,{values:{name:'새학교',treeName:'은행나무',treeDescription:'바르게 성장',flowerName:'개나리',flowerDescription:'희망'},hidden:[]},[],{});
+ const model=globalThis.ACDLPageObjectModel,all=applied.book.elementsByPage.p;
+ assert.equal(model.schoolText(all.find(e=>e.id==='tree.title'),applied.book.school),'은행나무');assert.equal(model.schoolText(all.find(e=>e.id==='tree.description'),applied.book.school),'바르게 성장');assert.equal(model.schoolText(all.find(e=>e.id==='flower.title'),applied.book.school),'개나리');assert.equal(model.schoolText(all.find(e=>e.id==='flower.description'),applied.book.school),'희망');assert.equal(model.schoolText(all.find(e=>e.id==='song.title'),applied.book.school),'새학교 교가');assert.equal(all.find(e=>e.id==='song.title').style.fontFamily,'Noto Serif KR');assert.equal(JSON.stringify(p),before);
+});

@@ -183,3 +183,11 @@ test('explicit calendar uses its actual page frame while detached title retains 
   assert.equal(JSON.stringify(project),before);
  }
 });
+
+test('song heading keeps school name suffix in the runtime and follows the supplied school dataset',()=>{
+ vm.runInContext(fs.readFileSync(new URL('../apps/designer-studio/shared-page-object-model.js',import.meta.url),'utf8'),context);
+ const dataset={school:{name:'입력학교'},calendar:{year:2027},monthlyQuotes:{}};
+ const adapter=context.ACDLRuntimeProjectAdapter.create({datasetDomain:{buildRuntimeDataset:()=>dataset,resolvePageBinding:path=>path},parity:{buildDeskAcademicSurfacePlan:()=>[]},pageAdapter:{compose:()=>({pages:[]})}});
+ const project={productType:{category:'desk',pageSize:{width:260,height:180}},settings:{year:2027},template:{masters:{},masterElements:{}},book:{school:{name:'샘플학교'},pageInstances:[{id:'symbols',role:'school-symbols'}],elementsByPage:{symbols:[{id:'song.title',type:'text',role:'school-song-title',content:'교가',style:{fontFamily:'Noto Serif KR',fontSize:17},x:10,y:10,width:60,height:10}]}}};
+ const object=adapter.adapt(project).template.pages[0].objects[0];assert.equal(object.value,'입력학교 교가');assert.equal(object.binding,undefined);assert.equal(object.style.fontFamily,'Noto Serif KR');assert.equal(object.style.fontSize,17);
+});
