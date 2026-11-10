@@ -70,7 +70,12 @@ export function Onboarding() {
   const [playing, setPlaying] = useState(true);
   const [heroIndex, setHeroIndex] = useState(0);
   const [heroHover, setHeroHover] = useState(false);
-  const heroTemplate = catalog?.templates[heroIndex % (catalog.templates.length || 1)];
+  const heroTemplates = useMemo(() => {
+    const templates = catalog?.templates || [];
+    const prepared = templates.filter(template => heroPhotos[template.id]);
+    return prepared.length ? prepared : templates;
+  }, [catalog]);
+  const heroTemplate = heroTemplates[heroIndex % (heroTemplates.length || 1)];
   const heroPhoto = heroTemplate && heroPhotos[heroTemplate.id];
   const previewRef = useRef<HTMLDialogElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -122,12 +127,12 @@ export function Onboarding() {
     return () => media.removeEventListener('change', sync);
   }, []);
   useEffect(() => {
-    if (!playing || heroHover || step !== 'catalog' || !catalog?.templates.length) return;
+    if (!playing || heroHover || step !== 'catalog' || heroTemplates.length < 2) return;
     const timer = window.setInterval(() => {
-      if (!document.hidden) setHeroIndex(index => (index + 1) % catalog.templates.length);
+      if (!document.hidden) setHeroIndex(index => (index + 1) % heroTemplates.length);
     }, 5500);
     return () => window.clearInterval(timer);
-  }, [playing, heroHover, step, catalog]);
+  }, [playing, heroHover, step, heroTemplates]);
 
   async function choose(template: TemplateCard) {
     if(saving)return;
