@@ -170,3 +170,8 @@
 /* Optional authored corner radius and date padding; omission retains legacy styles. */
 .calendar-grid-appearance[style*="--calendar-authored-weekday-radius:"] .cell.head,.calendar-grid-appearance[style*="--calendar-authored-weekday-radius:"] .shared-month-weekdays>.head{border-radius:var(--calendar-authored-weekday-radius)!important}
 .calendar-grid-appearance[style*="--calendar-authored-date-padding:"] .cell:not(.head),.calendar-grid-appearance[style*="--calendar-authored-date-padding:"] .shared-month-day-cell{padding:var(--calendar-authored-date-padding)!important;box-sizing:border-box}
+
+/* Separate rules above each date cell, with room for the date underneath. */
+.calendar-grid-geometry.calendar-grid-geometry.grid-top-rules :is(.calendar>.cell:not(.head),.shared-month-day-cell) {border-top:var(--calendar-grid-line)!important;border-bottom:0!important;border-left:0!important;border-right:0!important}
+.calendar-grid-geometry.calendar-grid-geometry.grid-top-rules .calendar>.cell:not(.head):not(.mini-host),
+.calendar-grid-geometry.calendar-grid-geometry.grid-top-rules .shared-month-day-cell>div:first-child {padding:4px 3px!important}

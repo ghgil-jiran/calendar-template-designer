@@ -81,6 +81,36 @@
     }).join('');
     return '<svg class="shared-daily-plan" style="font-family:'+escapeText(String(style.fontFamily||'inherit').replace(/[;{}]/g,''))+'" data-memo-layout="daily-plan" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1000 900" preserveAspectRatio="none" role="img" aria-label="'+model.year+'년 '+model.month+'월 '+escapeText(model.title)+'"><text x="500" y="48" text-anchor="middle" fill="'+accent+'" font-size="'+(35*titleScale)+'" font-weight="700">'+model.month+'월의</text><text x="500" y="100" text-anchor="middle" fill="'+accent+'" font-size="'+(40*titleScale)+'" font-weight="700">'+escapeText(model.title)+'</text>'+rows+'<path d="M88 136V888 M500 136V888 M588 136V888" stroke="'+line+'" stroke-width=".7"/></svg>';
   }
-  root.ACDLSharedMemo = Object.freeze({ version, projectHolidayDates, resolveDailyPlan, renderDailyPlan, renderChecklist, resolveYearlyPlan, renderYearlyPlan });
+  // Writing-only planner layouts: SVG rules remain vector in both Runtime and print.
+  function renderWritingPlanner(element) {
+    const layout=element?.memoLayout;
+    if(!['weekly-columns','striped-checklist','split-notes'].includes(layout)) return '';
+    const style=element.style||{};
+    const color=(key,fallback)=>/^#[0-9a-f]{6}$/i.test(style[key]||'')?style[key]:fallback;
+    const ink=color('color','#dc9700'),line=color('lineColor',ink),stripe=color('stripeColor','#fcf0d1');
+    const font=escapeText(String(style.fontFamily||'Arial').replace(/[;{}]/g,''));
+    const defaultWidth=layout==='weekly-columns'?86:layout==='split-notes'?32.8:24.5;
+    const width=Math.max(1,Number(element.width)||defaultWidth),heightPct=Math.max(1,Number(element.height)||(layout==='weekly-columns'?33:43));
+    const unit=1000/(width*13),height=1000*heightPct*180/(width*260),fontSize=Math.max(8,Math.min(36,Number(style.fontSize)||18))*unit;
+    const top=element.hideTitle?0:fontSize*1.9,lineWidth=.55*unit;
+    const heading=element.hideTitle?'':'<text x="0" y="'+(fontSize*1.1)+'" fill="'+ink+'" font-size="'+fontSize+'" font-weight="700">'+escapeText(element.title||'')+'</text>';
+    let body='';
+    if(layout==='weekly-columns') {
+      body=Array.from({length:7},(_,i)=>{
+        const x=i*1000/7,w=1000/7,box=14*unit;
+        return '<rect x="'+x+'" y="'+top+'" width="'+w+'" height="'+(height-top)+'" fill="none" stroke="'+line+'" stroke-width="'+lineWidth+'"/><rect x="'+(x+9*unit)+'" y="'+(top+8*unit)+'" width="'+box+'" height="'+box+'" fill="none" stroke="'+line+'" stroke-width="'+lineWidth+'"/><text x="'+(x+w/2+7*unit)+'" y="'+(top+23*unit)+'" text-anchor="middle" fill="'+ink+'" font-size="'+(17*unit)+'" font-weight="700">'+['MON','TUE','WED','THU','FRI','SAT','SUN'][i]+'</text>';
+      }).join('');
+    } else if(layout==='striped-checklist') {
+      const count=Math.max(1,Math.min(20,Math.trunc(Number(element.itemCount)||11))),step=(height-top)/count,box=10*unit;
+      body=Array.from({length:count},(_,i)=>{const y=top+i*step;return '<rect x="0" y="'+y+'" width="1000" height="'+step+'" fill="'+(i%2?'#ffffff':stripe)+'"/><path d="M0 '+(y+step)+'H1000" fill="none" stroke="'+line+'" stroke-width="'+lineWidth+'"/><rect x="'+(8*unit)+'" y="'+(y+(step-box)/2)+'" width="'+box+'" height="'+box+'" fill="none" stroke="'+line+'" stroke-width="'+lineWidth+'"/>';}).join('');
+    } else {
+      const step=(height-top)/11;
+      body=Array.from({length:4},(_,i)=>'<path d="M0 '+(top+(i+1)*step)+'H1000" stroke="'+line+'" stroke-width="'+lineWidth+'"/>').join('');
+      const y=top+5*step;
+      body+='<rect x="0" y="'+y+'" width="1000" height="'+(height-y)+'" fill="'+stripe+'"/>'+[7.25,9.25,10.25].map(i=>'<path d="M35 '+(top+i*step)+'H960" stroke="'+line+'" stroke-width="'+lineWidth+'"/>').join('');
+    }
+    return '<svg class="shared-writing-planner" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1000 '+height+'" preserveAspectRatio="none" role="img" aria-label="'+escapeText(element.title||layout)+'" data-memo-layout="'+layout+'" style="font-family:'+font+'">'+heading+body+'</svg>';
+  }
+  root.ACDLSharedMemo = Object.freeze({ version, renderWritingPlanner, projectHolidayDates, resolveDailyPlan, renderDailyPlan, renderChecklist, resolveYearlyPlan, renderYearlyPlan });
 })(globalThis);
 

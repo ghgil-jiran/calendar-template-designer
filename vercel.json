@@ -95,6 +95,10 @@
     },
     "api/ai-print-image-edit.js": {
       "maxDuration": 300
+    },
+    "api/sample-c-installation.js": {
+      "maxDuration": 300,
+      "includeFiles": "assets/sample-c/*"
     }
   }
 }

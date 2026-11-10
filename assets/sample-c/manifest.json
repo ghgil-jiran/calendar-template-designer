@@ -1,0 +1,360 @@
+{
+  "schemaVersion": "sample-c-installation.v1",
+  "documents": [
+    {
+      "file": "cover.pdf",
+      "kind": "background",
+      "sha256": "bfd8792b381d0c37b7212633ecf3badc416b36d6eb20b054f7eca59e149f362f",
+      "byteSize": 1608837,
+      "pages": [
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        }
+      ],
+      "slot": "cover",
+      "pageId": "surface.1.front",
+      "preview": "cover.webp",
+      "width": 1400,
+      "height": 979,
+      "thumbnail": "cover-thumb.webp"
+    },
+    {
+      "file": "annual.pdf",
+      "kind": "background",
+      "sha256": "90eacab4c16a31a169dbe35fdd16d8461d0aefd4b04270fd90706fee25507d4d",
+      "byteSize": 1161941,
+      "pages": [
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        }
+      ],
+      "slot": "cover-inside",
+      "pageId": "surface.1.back",
+      "preview": "annual.webp",
+      "width": 1400,
+      "height": 979,
+      "thumbnail": "annual-thumb.webp"
+    },
+    {
+      "file": "symbols.pdf",
+      "kind": "background",
+      "sha256": "010a9ea910d41e4781c5f3a8936c84d3778ae8bb01ca9cb7983596a0ad6f1f22",
+      "byteSize": 1650703,
+      "pages": [
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        }
+      ],
+      "slot": "interleaf-front",
+      "pageId": "surface.2.front",
+      "preview": "symbols.webp",
+      "width": 1400,
+      "height": 979,
+      "thumbnail": "symbols-thumb.webp"
+    },
+    {
+      "file": "back-cover.pdf",
+      "kind": "background",
+      "sha256": "a542aa5e75570d5f8e073aac3a00a9009f34ba2ffda0588884c9b683cff2bfd3",
+      "byteSize": 2944993,
+      "pages": [
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        }
+      ],
+      "slot": "back-cover",
+      "pageId": "surface.14.back",
+      "preview": "back-cover.webp",
+      "width": 1400,
+      "height": 979,
+      "thumbnail": "back-cover-thumb.webp"
+    },
+    {
+      "file": "reference-overview.pdf",
+      "kind": "reference",
+      "sha256": "728d9615b4dd3b82711022a31713a5a8359a422210609f52d53a0a6a95dd0ecd",
+      "byteSize": 6597094,
+      "pages": [
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        }
+      ]
+    },
+    {
+      "file": "reference-planner.pdf",
+      "kind": "reference",
+      "sha256": "afbd32d8a3c288458a3ca0d35329db924a762963372827b55eae6826ed5f4750",
+      "byteSize": 1017818,
+      "pages": [
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        }
+      ]
+    },
+    {
+      "file": "reference-calendar.pdf",
+      "kind": "reference",
+      "sha256": "5670f32c816c071caf36284a0f6610b0aa237051d378bb0e3bd1f6de698e7f26",
+      "byteSize": 14336248,
+      "pages": [
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        },
+        {
+          "widthPt": 754.0159912109375,
+          "heightPt": 527.2440185546875
+        }
+      ],
+      "parts": [
+        "reference-calendar.01.part",
+        "reference-calendar.02.part",
+        "reference-calendar.03.part"
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "key": "logo",
+      "file": "school-logo.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "song",
+      "file": "school-song.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "tree",
+      "file": "school-tree.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "flower",
+      "file": "school-flower.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "ornament-01",
+      "file": "ornament-01.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "planner-icon-01",
+      "file": "planner-icon-01.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "ornament-02",
+      "file": "ornament-02.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "planner-icon-02",
+      "file": "planner-icon-02.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "ornament-03",
+      "file": "ornament-03.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "planner-icon-03",
+      "file": "planner-icon-03.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "ornament-04",
+      "file": "ornament-04.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "planner-icon-04",
+      "file": "planner-icon-04.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "ornament-05",
+      "file": "ornament-05.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "planner-icon-05",
+      "file": "planner-icon-05.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "ornament-06",
+      "file": "ornament-06.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "planner-icon-06",
+      "file": "planner-icon-06.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "ornament-07",
+      "file": "ornament-07.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "planner-icon-07",
+      "file": "planner-icon-07.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "ornament-08",
+      "file": "ornament-08.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "planner-icon-08",
+      "file": "planner-icon-08.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "ornament-09",
+      "file": "ornament-09.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "planner-icon-09",
+      "file": "planner-icon-09.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "ornament-10",
+      "file": "ornament-10.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "planner-icon-10",
+      "file": "planner-icon-10.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "ornament-11",
+      "file": "ornament-11.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "planner-icon-11",
+      "file": "planner-icon-11.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "ornament-12",
+      "file": "ornament-12.png",
+      "mimeType": "image/png"
+    },
+    {
+      "key": "planner-icon-12",
+      "file": "planner-icon-12.png",
+      "mimeType": "image/png"
+    }
+  ]
+}

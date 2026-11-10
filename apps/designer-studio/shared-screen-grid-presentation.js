@@ -4,6 +4,7 @@
   const version = "1.0.0-preview.1";
   const classes = Object.freeze({
     "open-rows": "grid-open-rows",
+    "top-rules": "grid-top-rules",
     "row-underlines": "grid-row-underlines",
     minimal: "grid-minimal",
     "detached-cards": "grid-detached-cards",

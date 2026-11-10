@@ -6,8 +6,8 @@ import '../apps/designer-studio/shared-screen-grid-presentation.js';
 import '../apps/designer-studio/shared-screen-calendar-layout.js';
 const catalog=globalThis.ACDLCalendarPresetCatalog,grid=globalThis.ACDLSharedGridPresentation,layout=globalThis.ACDLSharedCalendarLayout;
 const weekdays=Object.keys(catalog.weekdayPresentations),grids=Object.keys(catalog.gridPresentations);
-test('all 30 weekday/grid/row choices survive save and reopen without changing fixed geometry',()=>{
- assert.equal(weekdays.length,3);assert.equal(grids.length,5);
+test('all 36 weekday/grid/row choices survive save and reopen without changing fixed geometry',()=>{
+ assert.equal(weekdays.length,3);assert.equal(grids.length,6);
  for(const rows of [5,6])for(const weekdayStyle of weekdays)for(const gridStyle of grids){
   const source={calendarPreset:{presetId:'academic-boxed'},design:{weekdayStyle:'filled-tabs',gridStyle:'boxed'},calendarLayout:{rowsMode:String(rows)}},region={x:4,y:20,width:92,height:75};
   layout.separateMonthTitle(source,catalog,region,180);
