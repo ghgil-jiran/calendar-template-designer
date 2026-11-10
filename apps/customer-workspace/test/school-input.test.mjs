@@ -21,3 +21,10 @@ test('template fields determine input shape without stale fields from another te
 test('length errors remain visible instead of silently truncating', () => {
   assert.ok(validateSchoolInput(fields, {values: {name: '가'.repeat(81)}, hidden: []}).name);
 });
+
+test('address is required when displayed and may be explicitly hidden', () => {
+  const address = [{key:'address',label:'학교 주소',group:'contact',required:true,allowHide:true,maxLength:200}];
+  assert.ok(validateSchoolInput(address,{values:{},hidden:[]}).address);
+  assert.deepEqual(validateSchoolInput(address,{values:{},hidden:['address']}),{});
+  assert.deepEqual(visibleSchoolValues(address,{values:{address:'보관한 주소'},hidden:['address']}),{});
+});

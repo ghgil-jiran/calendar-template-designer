@@ -535,3 +535,13 @@ img {max-width: 100%;}
 .project-save-panel .save-notice {font-size:var(--type-meta);color:hsl(var(--muted-foreground));}
 .project-save-panel > .field-error {flex-basis:100%;margin:0;}
 @media(max-width:720px){.project-save-panel{flex-wrap:nowrap;padding:10px;gap:8px;}.project-save-panel:has(> .field-error){flex-wrap:wrap;}.project-save-panel .project-name-field{gap:8px;}.workspace .project-save-panel label{font-size:12px;}.project-save-panel input{padding:8px;}.project-save-panel .project-save-actions .button{font-size:12px;padding:9px 10px;white-space:nowrap;}.project-save-panel .save-notice{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}}
+
+/* School field visibility and progressive schedule review. */
+.field-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.field-heading .checkbox {margin:0;}
+.school-symbol-group .field-heading h3 {margin:0;}
+.schedule-input-actions {align-items:stretch;}
+.schedule-method {height:100%;}
+.schedule-confirmation {padding:16px;border:1px solid hsl(var(--primary) / .3);border-radius:10px;background:hsl(var(--soft));color:hsl(var(--foreground));}
+.workspace .schedule-confirmation {font-size:var(--type-body)!important;font-weight:600!important;}
+.schedule-confirmation input {flex-shrink:0;width:20px;height:20px;}

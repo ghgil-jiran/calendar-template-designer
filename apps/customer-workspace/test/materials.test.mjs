@@ -63,3 +63,11 @@ test('cover, school-symbol and back pages distinguish blank samples from explici
  const fields=fieldsForProject(p),blank=applyMaterials(p,fields,{values:{},hidden:[]},[],{}),hidden=applyMaterials(p,fields,{values:{},hidden:fields.map(f=>f.key)},[],{});
  for(const page of p.book.pageInstances){assert.equal(globalThis.ACDLSharedScreenComposition.visibleElements(page,[],blank.book.elementsByPage[page.id]).length,1);assert.equal(globalThis.ACDLSharedScreenComposition.visibleElements(page,[],hidden.book.elementsByPage[page.id]).length,0);}
 });
+
+test('customer address stays required and hideable while template contact requirements do not force a phone',()=>{
+ const p=source();p.template.publishing.dataRequirements.push({path:'school.academicPhone',stage:'project-create-required',input:'text'});
+ const fields=fieldsForProject(p),address=fields.find(f=>f.key==='address'),phone=fields.find(f=>f.key==='academicPhone');
+ assert.equal(address.required,true);assert.equal(address.allowHide,true);assert.equal(phone.required,false);assert.equal(phone.allowHide,true);
+ const result=applyMaterials(p,fields,{values:{address:'보관 주소'},hidden:['address']},[],{});
+ assert.equal(result.book.school.address,'');assert.equal(p.book.school.address,undefined);
+});

@@ -5,11 +5,11 @@ const fields: SchoolField[] = [
   {key: 'name', label: '학교명', group: 'basic', required: true, allowHide: false, maxLength: 80, hint: '달력에 인쇄할 학교명을 입력해 주세요.'},
   {key: 'englishName', label: '학교 영문명', group: 'basic', required: false, allowHide: true, maxLength: 120},
   {key: 'slogan', label: '학교 슬로건', group: 'basic', required: false, allowHide: true, maxLength: 160},
-  {key: 'address', label: '학교 주소', group: 'contact', required: false, allowHide: true, maxLength: 200},
+  {key: 'address', label: '학교 주소', group: 'contact', required: true, allowHide: true, maxLength: 200},
   {key: 'academicPhone', label: '교무실 전화', group: 'contact', required: false, allowHide: true, maxLength: 40},
   {key: 'adminPhone', label: '행정실 전화', group: 'contact', required: false, allowHide: true, maxLength: 40},
   {key: 'fax', label: '팩스', group: 'contact', required: false, allowHide: true, maxLength: 40},
-  {key: 'website', label: '학교 홈페이지', group: 'contact', required: false, allowHide: true, maxLength: 160, hint: '표시를 원하지 않으면 아래에서 제외할 수 있어요.'}
+  {key: 'website', label: '학교 홈페이지', group: 'contact', required: false, allowHide: true, maxLength: 160, hint: '표시를 원하지 않으면 제목 오른쪽에서 제외할 수 있어요.'}
 ];
 
 export function pageLabel(number: number): string {

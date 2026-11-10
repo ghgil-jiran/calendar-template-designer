@@ -8,7 +8,7 @@ export function validateSchoolInput(fields: SchoolField[], input: SchoolInput): 
   const errors: Record<string, string> = {};
   for (const field of fields) {
     if (input.hidden.includes(field.key)) {
-      if (!field.allowHide || field.required) errors[field.key] = `${field.label}은 표시해야 해요.`;
+      if (!field.allowHide) errors[field.key] = `${field.label}은 표시해야 해요.`;
       continue;
     }
     const value = (input.values[field.key] || '').trim();
