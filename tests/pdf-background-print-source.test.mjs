@@ -41,3 +41,17 @@ test('preflight recognizes current monthly aliases/styles and validates intended
 test('older workers cannot accidentally print foreground without its original background',()=>{
  const plan=model.projectPlans(fixture().project)[0];assert.throws(()=>model.assertWorkerContract(plan,null),/worker_upgrade_required/);assert.equal(model.assertWorkerContract(plan,model.version),true);assert.equal(model.assertWorkerContract({...plan,layers:[]},null),true);
 });
+
+test('solid monthly backgrounds allow configured bleed but content and excessive overflow still warn',()=>{
+ const f=fixture();
+ const bg={id:'planner-bg',type:'shape',role:'background-decoration',shapeType:'rect',x:-3/260*100,y:-3/180*100,width:266/260*100,height:186/180*100,style:{fill:'#faeac5',stroke:'transparent',strokeWidth:0}};
+ f.project.template.resources={exportSettings:{bleed:3}};
+ f.project.book.elementsByPage.p=[bg];
+ const runtime={pages:[{id:'p',role:'page',objects:[{id:bg.id}]}],diagnostics:[{code:'OBJECT_OUT_OF_BOUNDS',severity:'warning',pageId:'p',objectId:bg.id,message:'outside trim'}]};
+ const warnings=()=>globalThis.ACDLTemplatePrintPreflight.analyze(f.project,{runtimeDocument:runtime}).issues.filter(i=>i.code==='RUNTIME_OBJECT_OUT_OF_BOUNDS');
+ assert.equal(warnings().length,0);
+ for(const patch of [{x:-5},{width:110},{role:'school-name'},{rotation:10},{style:{strokeWidth:1}},{width:40},{type:'text'},{visible:false}]){
+  const original=structuredClone(bg);Object.assign(bg,patch);assert.equal(warnings().length,1,JSON.stringify(patch));for(const k of Object.keys(bg))delete bg[k];Object.assign(bg,original);
+ }
+ f.project.template.resources.exportSettings.bleed=0;assert.equal(warnings().length,1);
+});

@@ -35,6 +35,22 @@
   items.forEach(item=>{const detail=item.message.includes(':')?item.message.slice(item.message.lastIndexOf(':')+1).trim():item.message,key=`${item.severity}|${item.code}|${detail}`,group=groups.get(key)||{severity:item.severity,code:item.code,message:item.message,count:0,paths:[]};group.count+=1;if(item.path&&group.paths.length<5)group.paths.push(item.path);groups.set(key,group)});
   return [...groups.values()].sort((a,b)=>a.severity===b.severity?b.count-a.count:a.severity==='error'?-1:1);
  }
+ // Non-PDF full-page backgrounds also print into the configured bleed.
+ // Only explicit solid rectangular backgrounds qualify; content outside trim still warns.
+ function isBackgroundWithinBleed(project,page,objectId){
+  const element=elementsFor(project,page).find(element=>element?.id===objectId);
+  if(!element||element.visible===false||element.role!=='background-decoration'||elementType(element)!=='shape'||element?.graphicSource?.pdfSource)return false;
+  if(elementType(element)==='shape'&&element.shapeType!=='rect')return false;
+  const style=objectOf(element.style);
+  if([element.rotation,style.rotation,style.rotate].some(value=>value!=null&&(!Number.isFinite(Number(value))||Number(value)%360!==0))||style.transform||style.shadow||style.boxShadow||style.shadowBlur)return false;
+  if(elementType(element)==='shape'&&(Number(style.strokeWidth||0)!==0||Number(style.borderWidth||0)!==0))return false;
+  const size=project?.productType?.pageSize,bleed=bleedValue(project,project?.template),w=Number(size?.width),h=Number(size?.height);
+  if(size?.unit&&size.unit!=='mm'||!(w>0&&h>0&&bleed>0&&Number.isFinite(bleed)))return false;
+  const [x,y,width,height]=[element.x,element.y,element.width,element.height].map(Number);
+  if(![x,y,width,height].every(Number.isFinite)||width<=0||height<=0)return false;
+  const left=x*w/100,top=y*h/100,right=(x+width)*w/100,bottom=(y+height)*h/100,tolerance=.02;
+  return left<=tolerance&&top<=tolerance&&right>=w-tolerance&&bottom>=h-tolerance&&left>=-bleed-tolerance&&top>=-bleed-tolerance&&right<=w+bleed+tolerance&&bottom<=h+bleed+tolerance;
+ }
  function runtimeIssues(project,runtimeDocument){
   const problems=[],sourcePages=listOf(project?.book?.pageInstances||project?.pages),runtimePages=listOf(runtimeDocument?.pages);
   if(!runtimeDocument)return [issue('error','RUNTIME_DOCUMENT_MISSING','공통 Runtime 문서를 생성하지 못했습니다.','runtime.document')];
@@ -49,8 +65,10 @@
    listOf(project?.book?.elementsByPage?.[sourceId]).filter(element=>element?.visible!==false).forEach(element=>{const id=text(element?.id);if(id&&!ids.has(id))problems.push(issue('error','RUNTIME_OBJECT_MISSING',`Runtime에서 개체가 누락됐습니다: ${id}`,`pages[${pageIndex}].elements`));});
   });
   listOf(runtimeDocument.diagnostics).forEach((item,index)=>{
-   // Percentage bounds are trim bounds. A verified PDF background may occupy the declared bleed.
+   // Percentage bounds are trim bounds. Eligible backgrounds may occupy declared bleed.
    if(item.code==='OBJECT_OUT_OF_BOUNDS'){
+    const page=sourcePages.find(page=>page.id===item.pageId);
+    if(page&&isBackgroundWithinBleed(project,page,item.objectId))return;
     try{const page=sourcePages.find(page=>page.id===item.pageId),plan=page&&globalThis.ACDLPdfBackgroundPrint?.pagePlan(project,page),layer=plan?.layers.find(layer=>layer.elementId===item.objectId),f=layer?.frameMm;
      if(f&&f.x>=-.02&&f.y>=-.02&&f.x+f.width<=plan.sheetWidth+.02&&f.y+f.height<=plan.sheetHeight+.02)return;
     }catch{ /* Invalid source or placement remains a blocking contract finding. */ }
