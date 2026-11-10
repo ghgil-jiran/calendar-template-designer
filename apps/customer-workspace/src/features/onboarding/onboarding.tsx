@@ -22,6 +22,12 @@ import {SavePanel} from '@/features/projects/save-panel';
 import {prepareSnapshot,writeSnapshot,readSnapshot,hydrateSnapshot,type ProjectDraft,type ResumeStep} from '@/lib/projects/store';
 
 function draftSignature(draft:ProjectDraft){return JSON.stringify({name:draft.name.trim(),templateId:draft.template.id,version:draft.template.version,school:draft.school,editorState:draft.editorState,events:draft.events,step:draft.step,photoMode:draft.photoMode||'assign',photoPageId:draft.photoPageId||'',photoSelections:Object.entries(draft.photoSelections||{}).sort(([a],[b])=>a.localeCompare(b)).map(([id,a])=>[id,a?.photoId||null]),photos:draft.photos.map(p=>[p.id,p.file.name,p.file.type,p.file.size,p.file.lastModified,p.width,p.height,p.category]),assignments:Object.entries(draft.assignments).sort(([a],[b])=>a.localeCompare(b)).map(([slot,a])=>[slot,a.photoId])});}
+const heroPhotos: Record<string, string> = {
+  '5c3eee14-3b66-4990-894d-d95d56d6d0f3': '/images/hero/flower-2027.webp',
+  '00ccd75a-3223-40dc-a942-480913e5394b': '/images/hero/landscape-2027.webp',
+  '5f8d091b-4072-432b-88a6-b528052c5dba': '/images/hero/fabric-2027.webp',
+};
+
 type Step = 'editor' | 'schedule' | 'photos' | 'catalog' | 'detail' | 'guide' | 'school' | 'input-review' | 'projects';
 
 export function Onboarding() {
@@ -64,6 +70,8 @@ export function Onboarding() {
   const [playing, setPlaying] = useState(true);
   const [heroIndex, setHeroIndex] = useState(0);
   const [heroHover, setHeroHover] = useState(false);
+  const heroTemplate = catalog?.templates[heroIndex % (catalog.templates.length || 1)];
+  const heroPhoto = heroTemplate && heroPhotos[heroTemplate.id];
   const previewRef = useRef<HTMLDialogElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const started = useRef(false);
@@ -182,8 +190,8 @@ export function Onboarding() {
       {appFailure && <Panel className="state-panel"><h1>목록을 다시 불러올게요</h1><p role="alert">{failure}</p><Button variant="primary" onClick={() => setRequest(value => value + 1)}>다시 시도하기</Button></Panel>}
       {!appLoading && !appFailure && catalog && step === 'catalog' && <>
         <section className="hero"><div><span className="badge">2027학년도 · 우리 학교 맞춤 달력</span><h1 ref={headingRef} tabIndex={-1}>디자인은 골라주세요.<br /><em>우리 학교 달력</em>으로<br />완성해 드려요.</h1><p className="muted hero-copy">학교 정보와 학사일정, 사진을 넣으면 돼요.<br />완성된 페이지를 확인하고 주문하세요.</p><ol className="journey"><li><span>1</span>디자인 선택</li><li><span>2</span>학교 자료 입력</li><li><span>3</span>확인 후 주문</li></ol></div>
-          {catalog.templates[heroIndex] && <div className="hero-showcase" tabIndex={0} aria-label="달력 디자인 미리보기" onMouseEnter={() => setHeroHover(true)} onMouseLeave={() => setHeroHover(false)} onFocusCapture={() => setHeroHover(true)} onBlurCapture={event => {if (!event.currentTarget.contains(event.relatedTarget)) setHeroHover(false);}}>
-            <div className="hero-art" key={heroIndex}><PreviewImage eager url={catalog.templates[heroIndex].coverUrl} label={catalog.templates[heroIndex].name} /><PreviewImage className="hero-interior" url={catalog.templates[heroIndex].pages[(catalog.templates[heroIndex].representativePages[1]||1)-1]?.imageUrl} label="대표 페이지" /></div>
+          {heroTemplate && <div className={`hero-showcase${heroPhoto ? ' hero-photo' : ''}`} tabIndex={0} aria-label="달력 디자인 미리보기" onMouseEnter={() => setHeroHover(true)} onMouseLeave={() => setHeroHover(false)} onFocusCapture={() => setHeroHover(true)} onBlurCapture={event => {if (!event.currentTarget.contains(event.relatedTarget)) setHeroHover(false);}}>
+            <div className="hero-art" key={heroTemplate.id}>{heroPhoto ? <img src={heroPhoto} alt={`${heroTemplate.name} · 책상 위 탁상달력 연출 이미지`} width={1536} height={1024} fetchPriority="high" /> : <><PreviewImage eager url={heroTemplate.coverUrl} label={heroTemplate.name} /><PreviewImage className="hero-interior" url={heroTemplate.pages[(heroTemplate.representativePages[1]||1)-1]?.imageUrl} label="대표 페이지" /></>}</div>
           </div>}
         </section>
         <section aria-labelledby="catalog-title"><div className="catalog-heading"><div><h2 id="catalog-title">마음에 드는 디자인을 골라보세요</h2><p className="muted">학사달력 · 탁상형 · 전체 구성을 먼저 살펴볼 수 있어요.</p></div><span className="badge">{catalog.templates.length}종 {catalog.mode==='review'?'선택 구성 검토':'템플릿'}</span></div>

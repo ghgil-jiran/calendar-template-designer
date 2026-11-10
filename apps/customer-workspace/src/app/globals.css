@@ -545,3 +545,8 @@ img {max-width: 100%;}
 .schedule-confirmation {padding:16px;border:1px solid hsl(var(--primary) / .3);border-radius:10px;background:hsl(var(--soft));color:hsl(var(--foreground));}
 .workspace .schedule-confirmation {font-size:var(--type-body)!important;font-weight:600!important;}
 .schedule-confirmation input {flex-shrink:0;width:20px;height:20px;}
+
+/* Prepared product photographs; reuse the catalog rotation and pause controls. */
+.hero-showcase.hero-photo {aspect-ratio:3 / 2; padding:0;}
+.hero-showcase.hero-photo .hero-art {display:block; width:100%;}
+.hero-showcase.hero-photo .hero-art > img:first-child {display:block; width:100%; height:auto; aspect-ratio:3 / 2; object-fit:contain; border-radius:0; box-shadow:none;}
