@@ -18,3 +18,7 @@ test('existing split parts reconnect once, preserve style/frames and allow later
 test('explicit fixed content, unrelated titles and frozen correction documents are preserved',()=>{
  const p=fixture();p.book.elementsByPage.symbols=[{id:'tree.title',type:'text',role:'school-tree-title',bindingEnabled:false,content:'고정 제목'},{id:'custom',type:'text',role:'section-title',content:'교화'}];const before=JSON.stringify(p);model.normalizeProject(p);assert.equal(JSON.stringify(p),before);p.productionCorrection={id:'frozen'};model.normalizeProject(p);assert.equal(JSON.stringify(p),JSON.stringify({...JSON.parse(before),productionCorrection:{id:'frozen'}}));
 });
+test('package-specific sibling frames identify song headings while separate category/name text stays distinct',()=>{
+ const elements=[{id:'surface.a.song',type:'image-frame',role:'school-song'},{id:'surface.a.song.title',type:'text',content:'교가',style:{fontFamily:'Serif'}},{id:'surface.a.tree',type:'image-frame',role:'school-tree'},{id:'surface.a.tree.title',type:'text',content:'교목'},{id:'surface.a.tree.name',type:'text',binding:'school.profile.tree.name',content:'샘플'}];
+ model.connectSymbolText(elements);assert.equal(model.schoolText(elements[1],{name:'입력학교'}),'입력학교 교가');assert.equal(elements[1].style.fontFamily,'Serif');assert.equal(elements[3].binding,undefined);assert.equal(elements[4].binding,'school.profile.tree.name');
+});

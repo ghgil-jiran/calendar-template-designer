@@ -40,7 +40,14 @@
    const standard=/^symbols\.(tree|flower|song)\.(name|title|desc)$/.exec(e.id||'');
    if(generated){key=generated[1];part=generated[2];}
    else if(standard){key=standard[1];part=standard[2]==='desc'?'description':'title';}
-   else continue;
+   else {
+    const suffix=/^(.*)\.(title|name|description)$/.exec(e.id||'');
+    const parent=suffix&&elements.find(item=>item.id===suffix[1]&&/^school-(tree|flower|song)$/.test(item.role||''));
+    if(!parent)continue;
+    key=parent.role.replace('school-','');part=suffix[2]==='description'?'description':'title';
+    // A category heading and a separately bound name are two distinct authored parts.
+    if(key!=='song'&&suffix[2]==='title'&&elements.some(item=>item.id===suffix[1]+'.name'&&item.binding===`school.profile.${key}.name`))continue;
+   }
    const binding=key==='song'&&part==='title'?'school.name':`school.profile.${key}.${part==='title'?'name':'description'}`;
    if(e.binding&&e.binding!==binding)continue;
    e.binding=binding;e.bindingEnabled=true;
