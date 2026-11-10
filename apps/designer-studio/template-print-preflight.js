@@ -5,6 +5,7 @@
  // Calendar metadata emitted by runtime-project-adapter and resolved by the shared calendar modules.
  // Scope these keys to calendar objects; unrelated objects must still report unknown styles.
  const WIDGET_STYLE_KEYS={
+  'month-date-strip':new Set(['stripStyle']),
   'mini-calendar':new Set(['titleStyle','dateSize','dayGridStyle']),
   'mini-calendar-prev':new Set(['titleStyle','dateSize','dayGridStyle']),
   'mini-calendar-next':new Set(['titleStyle','dateSize','dayGridStyle']),

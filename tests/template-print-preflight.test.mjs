@@ -342,3 +342,17 @@ test('intentional empty month-back placeholder is preserved without a missing-im
  assert.equal(analyze(value).issues.some(issue=>issue.code==='REQUIRED_IMAGE_MISSING'),true);
 });
 
+
+test('month date strip style is cataloged for all twelve months without suppressing unrelated warnings',()=>{
+ const value=project();
+ value.book.pageInstances=Array.from({length:12},(_,i)=>({id:'back-'+i,role:'monthly-back'}));
+ value.book.elementsByPage=Object.fromEntries(value.book.pageInstances.map((page,i)=>[page.id,[{id:'strip-'+i,type:'month-date-strip',style:{stripStyle:['weekday-grid','editorial-inline','editorial-two-row','editorial-large-month'][i%4]}}]]));
+ assert.equal(analyze(value).issues.filter(item=>item.code==='STYLE_NOT_CATALOGED').length,0);
+ value.book.elementsByPage['back-0'][0].style.unknownStripToken=true;
+ assert.equal(analyze(value).issues.filter(item=>item.code==='STYLE_NOT_CATALOGED').length,1);
+ delete value.book.elementsByPage['back-0'][0].style.unknownStripToken;
+ value.book.elementsByPage['back-0'][0].type='text';
+ const warnings=analyze(value).issues.filter(item=>item.code==='STYLE_NOT_CATALOGED');
+ assert.equal(warnings.length,1);
+ assert.match(warnings[0].path,/style\.stripStyle$/);
+});
