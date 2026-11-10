@@ -9,7 +9,7 @@
   'mini-calendar':new Set(['titleStyle','dateSize','dayGridStyle']),
   'mini-calendar-prev':new Set(['titleStyle','dateSize','dayGridStyle']),
   'mini-calendar-next':new Set(['titleStyle','dateSize','dayGridStyle']),
-  'year-calendar':new Set(['dateSize','dayGridStyle','monthBorderWidth','containerBorderWidth','containerBorderColor','showAdjacentMonths']),
+  'year-calendar':new Set(['columnGap','rowGap','dateSize','dayGridStyle','monthBorderWidth','containerBorderWidth','containerBorderColor','showAdjacentMonths']),
   'event-list':new Set(['titleBackground','contentBackground','containerBackground','containerBorderRadius','containerBorderWidth','containerBorderColor','titlePosition']),
   'monthly-schedule':new Set(['titleBackground','contentBackground','containerBackground','containerBorderRadius','containerBorderWidth','containerBorderColor','titlePosition']),
   memo:new Set(['dateScale','titleScale','stripeColor'])

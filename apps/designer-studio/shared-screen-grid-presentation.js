@@ -22,7 +22,7 @@
     const result={schemaVersion:'calendar-grid-appearance.v1'};
     for(const key of ['weekday','date','mini']){
       const value=input[key]||{};
-      result[key]={mode:(key==='mini'?['inherit','transparent','solid']:['transparent','solid']).includes(value.mode)?value.mode:key==='mini'?'inherit':'transparent',color:/^#[0-9a-f]{6}$/i.test(value.color)?value.color:'#ffffff',opacity:Number.isFinite(Number(value.opacity))?Math.max(0,Math.min(100,Number(value.opacity))):100};
+      result[key]={mode:(key==='mini'?['inherit','transparent','solid','monthly']:['transparent','solid']).includes(value.mode)?value.mode:key==='mini'?'inherit':'transparent',color:/^#[0-9a-f]{6}$/i.test(value.color)?value.color:'#ffffff',opacity:Number.isFinite(Number(value.opacity))?Math.max(0,Math.min(100,Number(value.opacity))):100};
     }
     for(const key of ['weekdaySize','dateSize','lineWidth'])if(input[key]!==''&&input[key]!=null&&Number.isFinite(Number(input[key])))result[key]=Math.max(key==='lineWidth'?0:3,Math.min(key==='lineWidth'?8:72,Number(input[key])));
     for(const key of ['weekdayRadius','datePadding'])if(input[key]!==''&&input[key]!=null&&Number.isFinite(Number(input[key])))result[key]=Math.max(0,Math.min(20,Number(input[key])));
@@ -37,7 +37,7 @@
     if(!input||typeof input!=='object'||input.schemaVersion&&input.schemaVersion!=='calendar-grid-appearance.v1')return {};
     if(!Object.keys(input).some(key=>['schemaVersion','weekday','date','mini','weekdaySize','dateSize','lineWidth','weekdayRadius','datePadding','weekdayColor','dateColor','lineColor','weekdayFont','dateFont','sundayBackground','saturdayBackground','weekdayRuleColor','weekdayRuleWidth','frameMode'].includes(key)))return {};
     const s=normalizeAppearance(input),paint=v=>v.mode==='transparent'?'transparent':`rgba(${parseInt(v.color.slice(1,3),16)},${parseInt(v.color.slice(3,5),16)},${parseInt(v.color.slice(5,7),16)},${v.opacity/100})`,date=paint(s.date);
-    const vars={'--calendar-weekday-background':paint(s.weekday),'--calendar-date-background':date,'--calendar-mini-background':s.mini.mode==='inherit'?date:paint(s.mini)};
+    const vars={'--calendar-weekday-background':paint(s.weekday),'--calendar-date-background':date,'--calendar-mini-background':s.mini.mode==='inherit'?date:s.mini.mode==='monthly'?'var(--month-mini-background, transparent)':paint(s.mini)};
     for(const key of ['weekdaySize','dateSize','lineWidth'])if(s[key]!=null)vars['--calendar-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())]=s[key]+'px';
     for(const key of ['weekdayRadius','datePadding'])if(s[key]!=null)vars['--calendar-authored-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())]=s[key]+'px';
     for(const key of ['weekdayColor','dateColor','lineColor','weekdayFont','dateFont'])if(s[key])vars['--calendar-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())]=s[key];

@@ -99,7 +99,7 @@
       return html+'</div></section>';
     };
     const grouped=annual.groupSize,columns=grouped?annual.layout==='vertical-three-month-groups'?Math.ceil(annual.months.length/grouped):1:annual.columns;
-    let inner='<div class="year-calendar-object annual-layout-'+annual.layout+'" style="height:100%;display:grid;min-height:0;'+(open?'padding:0;border:0;border-radius:0;background:transparent;':'')+'gap:8px;font-family:'+font+';grid-template-columns:repeat('+columns+',minmax(0,1fr));grid-template-rows:repeat('+(grouped?annual.layout==='vertical-three-month-groups'?1:Math.ceil(annual.months.length/grouped):Math.ceil(annual.months.length/columns))+',minmax(0,1fr))">';
+    let inner='<div class="year-calendar-object annual-layout-'+annual.layout+'" style="height:100%;display:grid;min-height:0;'+(open?'padding:0;border:0;border-radius:0;background:transparent;':'')+'column-gap:'+Math.max(0,Math.min(100,Number(style.columnGap??8)))+'px;row-gap:'+Math.max(0,Math.min(100,Number(style.rowGap??8)))+'px;font-family:'+font+';grid-template-columns:repeat('+columns+',minmax(0,1fr));grid-template-rows:repeat('+(grouped?annual.layout==='vertical-three-month-groups'?1:Math.ceil(annual.months.length/grouped):Math.ceil(annual.months.length/columns))+',minmax(0,1fr))">';
     if(grouped)for(let index=0;index<annual.months.length;index+=grouped)inner+='<div class="year-calendar-group" style="display:grid;min-height:0;gap:6px;'+(annual.layout==='vertical-three-month-groups'?'grid-template-rows':'grid-template-columns')+':repeat('+grouped+',minmax(0,1fr))">'+annual.months.slice(index,index+grouped).map(renderMonth).join('')+'</div>';
     else inner+=annual.months.map(renderMonth).join('');
     return inner+'</div>';

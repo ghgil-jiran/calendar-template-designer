@@ -115,10 +115,11 @@
   return [...phones.map(({label,value})=>({label,value,kind:'phone'})),...faxes.map(({label,value})=>({label:isFax(label)?label:faxes.length>1?label+' 팩스':'팩스',value,kind:'fax'}))];
  }
  function schoolContactsText(input){return schoolContactItems(input).map(item=>item.label+' '+item.value).join(' · ');}
- function renderSchoolContacts(input){
+ function renderSchoolContacts(input,options={}){
   const items=schoolContactItems(input);if(!items.length)return '';
+  if(options.contactLayout==='stacked-website'){const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const pair=i=>'<span style="white-space:nowrap"><strong style="font-weight:700">'+esc(i.kind==='fax'?'FAX':i.label)+'</strong>&nbsp;'+esc(i.value)+'</span>';return '<div class="school-contact-list" style="width:100%;text-align:center;line-height:1.6"><div style="display:flex;justify-content:center;gap:.8em">'+items.filter(i=>i.kind==='phone').map(pair).join('')+'</div><div style="display:flex;justify-content:center;gap:.8em">'+items.filter(i=>i.kind==='fax').map(pair).join('')+(input.website?'<strong style="font-weight:700">'+esc(input.website)+'</strong>':'')+'</div></div>';}
   const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  return '<div class="school-contact-list" style="display:flex;flex-wrap:wrap;justify-content:inherit;align-content:flex-start;column-gap:.8em;row-gap:0;width:100%;min-width:0;white-space:normal">'+items.map(item=>'<span class="school-contact-item" style="display:inline-block;white-space:nowrap">'+escape(item.label)+'&nbsp;'+escape(item.value)+'</span>').join('')+'</div>';
+  return '<div class="school-contact-list" style="display:flex;flex-wrap:wrap;justify-content:inherit;align-content:flex-start;column-gap:.8em;row-gap:0;width:100%;min-width:0;white-space:normal">'+items.map(item=>'<span class="school-contact-item" style="display:inline-block;white-space:nowrap">'+'<strong style="font-weight:700">'+escape(item.label)+'</strong>&nbsp;'+escape(item.value)+'</span>').join('')+'</div>';
  }
  root.ACDLPageObjectModel=Object.freeze({version:'1.1.0',normalizeProject,schoolText,connectSymbolText,splitCoverYear,coverYearText,monthText,renderPlanLines,schoolContactItems,schoolContactsText,renderSchoolContacts});
 })(globalThis);

@@ -1,9 +1,10 @@
 (() => {
  const auth=window.ACDLAdminAuth,$=id=>document.getElementById(id),status=$('status');
- const update=()=>{$('login').hidden=auth.isSignedIn();$('install').hidden=!auth.isSignedIn();};
+ const update=()=>{$('login').hidden=auth.isSignedIn();$('install').hidden=!auth.isSignedIn();$('refine').hidden=!auth.isSignedIn();};
  auth.onChange(update);update();
  $('login').addEventListener('submit',async e=>{e.preventDefault();try{await auth.signIn($('email').value,$('password').value);$('password').value='';status.textContent='로그인했습니다. 샘플 C를 등록할 수 있습니다.';}catch(error){status.textContent=error.message;}});
  async function step(body){const response=await auth.authorizedFetch('/api/sample-c-installation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),data=await response.json();if(!response.ok)throw Error(data.error||'등록 요청에 실패했습니다.');return data;}
+ $('refine').addEventListener('click',async()=>{$('refine').disabled=true;status.textContent='현재 저장된 샘플 C를 원본 기준으로 보완하고 새 버전으로 저장합니다.';try{const result=await step({step:'refine'});status.textContent=`샘플 C 보완본 v${result.versionNumber}을 저장했습니다. 에디터에서 다시 열어 확인해주세요.`;$('open').hidden=false;}catch(error){status.textContent=error.message;}finally{$('refine').disabled=false;}});
  $('install').addEventListener('click',async()=>{
   $('install').disabled=true;$('progress').hidden=false;
   try{

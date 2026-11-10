@@ -4,3 +4,10 @@
 
 /* Calendar display fonts: Google Fonts, SIL Open Font License 1.1. */
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&family=Bodoni+Moda:wght@400;500;600;700;800;900&family=Bebas+Neue&family=DM+Sans:wght@100;200;300;400;500;600;700;800;900&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap");
+
+/* Glyph subsets from the user-supplied Sample C PDFs; other text uses the
+   normal family fallback. These retain the reference's original outlines. */
+@font-face{font-family:'SampleC SchoolName';src:url('./assets/fonts/sample-c/SchoolName.otf') format('opentype');font-weight:100 900;font-display:swap}
+@font-face{font-family:'SampleC Dotum';src:url('./assets/fonts/sample-c/Dotum.otf') format('opentype');font-weight:400;font-display:swap}
+@font-face{font-family:'SampleC Dotum';src:url('./assets/fonts/sample-c/DotumBold.otf') format('opentype');font-weight:700;font-display:swap}
+@font-face{font-family:'SampleC Slogan';src:url('./assets/fonts/sample-c/Slogan.otf') format('opentype');font-weight:400;font-display:swap}

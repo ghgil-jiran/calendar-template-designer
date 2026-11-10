@@ -107,7 +107,7 @@
       const step=(height-top)/11;
       body=Array.from({length:4},(_,i)=>'<path d="M0 '+(top+(i+1)*step)+'H1000" stroke="'+line+'" stroke-width="'+lineWidth+'"/>').join('');
       const y=top+5*step;
-      body+='<rect x="0" y="'+y+'" width="1000" height="'+(height-y)+'" fill="'+stripe+'"/>'+[7.25,9.25,10.25].map(i=>'<path d="M35 '+(top+i*step)+'H960" stroke="'+line+'" stroke-width="'+lineWidth+'"/>').join('');
+      body+='<rect x="0" y="'+y+'" width="1000" height="'+(height-y)+'" fill="'+stripe+'"/>'+[7.25,8.25,9.25,10.25].map(i=>'<path d="M35 '+(top+i*step)+'H960" stroke="'+line+'" stroke-width="'+lineWidth+'"/>').join('');
     }
     return '<svg class="shared-writing-planner" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1000 '+height+'" preserveAspectRatio="none" role="img" aria-label="'+escapeText(element.title||layout)+'" data-memo-layout="'+layout+'" style="font-family:'+font+'">'+heading+body+'</svg>';
   }
