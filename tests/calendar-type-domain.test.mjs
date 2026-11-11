@@ -8,8 +8,8 @@ const context={window:{}};vm.runInNewContext(source,context);const domain=contex
 
 test('initial catalog contains only production calendar types',()=>{
  const types=domain.initialDefinitions(),ids=types.map(type=>type.id);
- assert.equal(types.length,8);
- assert.deepEqual([...ids],['desk-standard','desk-large','desk-portrait','desk-wide','poster-standard','wall-standard','wall-large','wall-large-plus']);
+ assert.equal(types.length,9);
+ assert.deepEqual([...ids],['desk-standard','desk-large','desk-portrait','desk-wide','poster-standard','poster-two-page','wall-standard','wall-large','wall-large-plus']);
  assert.equal(ids.some(id=>/a4|postcard/.test(id)),false);
  assert.deepEqual(JSON.parse(JSON.stringify(types.filter(type=>type.family.id==='wall').map(type=>[type.finishedSize.width,type.finishedSize.height]))),[[299,419],[388,544],[501,700]]);
 });
@@ -76,4 +76,21 @@ test('blank type cannot be saved without a required page role',()=>{
 
 test('template validation uses the captured type range and required monthly surfaces',()=>{
  const type=domain.definition('desk-standard'),pages=[...Array.from({length:12},(_,index)=>({id:`f${index}`,role:'monthly-front'})),...Array.from({length:12},(_,index)=>({id:`b${index}`,role:'monthly-back'}))],project={settings:{monthCount:12,startMonth:3,frontInsertCount:1,rearInsertCount:0},productType:{pageSize:{width:260,height:180}},book:{pageInstances:pages}};assert.equal(domain.validateProject(project,type).valid,true);project.settings.startMonth=2;project.book.pageInstances.pop();const result=domain.validateProject(project,type);assert.equal(result.valid,false);assert.equal(result.errors.length,2)
+});
+
+
+test('poster kinds are simplex sheets with twelve months divided over one or two pages',()=>{
+ for(const [id,count] of [['poster-standard',1],['poster-two-page',2]]){
+  const type=domain.definition(id),structure=domain.minimumStructure(type);
+  assert.equal(type.family.name,'벽보형');
+  assert.equal(domain.validate(type).valid,true);
+  assert.equal(structure.surfaceCount,count);assert.equal(structure.sheetCount,count);assert.equal(structure.monthsPerPage,12/count);
+  assert.equal(type.printSides,'simplex');assert.equal(type.binding.method,'none');
+  for(const key of ['cover','backCover','monthlyFront','monthlyBack'])assert.equal(type.policies[key],'unsupported');
+ }
+});
+test('poster normalization discards desk topology without changing paper size or status',()=>{
+ const input=domain.definition('poster-standard');input.printSides='duplex';input.policies.cover='required';input.ranges.frontInsert.max=3;input.finishedSize.width=300;input.status='preparing';
+ const value=domain.normalize(input);assert.equal(value.printSides,'simplex');assert.equal(value.ranges.frontInsert.max,0);assert.equal(value.policies.cover,'unsupported');assert.equal(value.finishedSize.width,300);assert.equal(value.status,'preparing');
+ const invalid={...value,pageRules:[{role:'annual',kind:'required',min:3,max:3}]};assert.equal(domain.validate(invalid).valid,false);
 });
