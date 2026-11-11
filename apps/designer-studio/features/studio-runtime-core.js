@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 48389)
-Total output lines: 1193
-
 const SAMPLE_EVENTS=[
 {id:"e1",title:"삼일절",startDate:"2027-03-01",endDate:"2027-03-01",category:"holiday",source:"template"},
 {id:"e2",title:"개학식",startDate:"2027-03-03",endDate:"2027-03-03",category:"school",source:"user"},
@@ -439,7 +436,347 @@ el("confirmTemplateSaveBtn")?.addEventListener("click",async ()=>{
   window.ACDLReturnToLibraryOnSaveCancel=false;stable();el("templateSaveDialog").classList.add("hidden");if(isStandard||state==="published"||state==="archived"){el("templateLibraryModal").classList.remove("hidden");renderTemplateLibrary("all")}else render();
   if(publicationResult)window.ACDLTemplatePublishing.completePublication?.(publicationResult.templateId,publicationResult.version);window.ACDLTemplateSaveJob?.complete(`${name} · ${remoteSaved?`편집 이력 v${remoteVersion}`:'브라우저 저장'} 저장이 완료되었습니다.`);showEditorToast(`${name} ${edition} Edition ${remoteSaved?`원격 저장 완료 · v${remoteVersion}`:"브라우저 저장 완료"}`);
  }catch(err){
-  if(projectBeforeSave)project=projectBeforeSave;else if(project?.template?.metadata&&previousSaveState!==undefined)project.template.metadata.state=previo…8389 tokens truncated…rserPreview(result):'파일 원본은 등록되었으며, 실제 서비스의 워드·엑셀 일정 변환 API와 연결됩니다.';
+  if(projectBeforeSave)project=projectBeforeSave;else if(project?.template?.metadata&&previousSaveState!==undefined)project.template.metadata.state=previousSaveState;
+  feedback.className="save-feedback error";feedback.textContent=err?.code==="PUBLISH_CANCELLED"?"게시를 취소했습니다.":String(err?.code||"").startsWith("THUMBNAIL_")&&err?.code!=="THUMBNAIL_SOURCE_IMAGE_FAILED"&&err?.code!=="THUMBNAIL_RENDER_EMPTY"?`버전 저장 후 대표 이미지 검증 실패: ${err.message} 라이브러리의 최신 버전을 확인해 주세요.`:`저장 실패${err?.stage?` (${err.stage})`:""}: ${err?.message||"브라우저 데이터베이스 저장 오류"}`;window.ACDLTemplateSaveJob?.fail(err,()=>el("confirmTemplateSaveBtn")?.click());
+ }
+});
+// Current edition/state metadata defaultsults
+const v22OldRender=render;render=function(){ensureV22Metadata();v22OldRender();updateRoleIndicator()};
+el("enterDesignerFlow")?.addEventListener("click",()=>setTimeout(updateRoleIndicator,0));
+el("enterUserFlow")?.addEventListener("click",()=>setTimeout(updateRoleIndicator,0));
+el("userCreateBtn")?.addEventListener("click",()=>setTimeout(updateRoleIndicator,0));
+
+window.userScheduleImport=null;
+function parseScheduleText(text,year){
+ const events=[];let idx=0;
+ const lines=String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ const fmt=(m,d)=>`${year}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+ for(const line of lines){
+  let m=line.match(/^(\d{1,2})[\/.](\d{1,2})\s*[-~～]\s*(\d{1,2})[\/.](\d{1,2})\s*[,\t ]+(.+)$/);
+  if(m){events.push({id:`import-${Date.now()}-${idx++}`,title:m[5].trim(),startDate:fmt(m[1],m[2]),endDate:fmt(m[3],m[4]),category:"school",source:"user-import",priority:70});continue}
+  m=line.match(/^(\d{1,2})[\/.](\d{1,2})\s*[,\t ]+(.+)$/);
+  if(m)events.push({id:`import-${Date.now()}-${idx++}`,title:m[3].trim(),startDate:fmt(m[1],m[2]),endDate:fmt(m[1],m[2]),category:"school",source:"user-import",priority:70})
+ }
+ return events;
+}
+async function registerScheduleFile(file,target){
+ const isText=/\.(csv|txt)$/i.test(file.name);let events=[];
+ if(isText){events=parseScheduleText(await file.text(),Number(el(target==="user"?"userYear":"resourceCalendarYear")?.value)||2027)}
+ const payload={fileName:file.name,fileType:file.type||file.name.split('.').pop(),size:file.size,registeredAt:new Date().toISOString(),events,status:isText?"parsed":"registered-for-conversion"};
+ if(target==="user"){window.userScheduleImport=payload;el("userScheduleFileName").textContent=file.name;el("userScheduleFileStatus").textContent=isText?`${events.length}개 일정을 인식했습니다. 단일·구간 일정으로 변환됩니다.`:"파일 등록 완료 · 워드/엑셀 변환 모듈 연동 대상";const pv=el("userSchedulePreview");pv.classList.remove("hidden");pv.innerHTML=events.length?`인식 예시: ${events.slice(0,5).map(e=>`${e.startDate}${e.endDate!==e.startDate?` ~ ${e.endDate}`:""} · ${v21Escape(e.title)}`).join("<br>")}${events.length>5?`<br>외 ${events.length-5}개`:""}`:"파일 원본은 등록되었으며, 실제 서비스의 워드·엑셀 일정 변환 API와 연결됩니다."}
+ else{project.book.scheduleImport=payload;if(events.length)project.book.events=[...(project.book.events||[]).filter(e=>e.source!=="user-import"),...events];el("resourceScheduleFileName").textContent=file.name;el("resourceScheduleFileStatus").textContent=isText?`${events.length}개 샘플 일정을 변환했습니다.`:"샘플 파일 등록 완료 · 변환 연동 대상";const pv=el("resourceSchedulePreview");pv.classList.remove("hidden");pv.innerHTML=events.length?`${events.slice(0,6).map(e=>`${e.startDate}${e.endDate!==e.startDate?` ~ ${e.endDate}`:""} · ${v21Escape(e.title)}`).join("<br>")}`:"템플릿에는 calendar.events 데이터 슬롯과 파일 메타데이터가 저장됩니다.";markDirty();render()}
+}
+el("userScheduleUploadBtn")?.addEventListener("click",()=>el("userScheduleInput").click());
+el("userScheduleInput")?.addEventListener("change",async e=>{const f=e.target.files[0];if(f)await registerScheduleFile(f,"user")});
+el("resourceScheduleUploadBtn")?.addEventListener("click",()=>el("resourceScheduleInput").click());
+el("resourceScheduleInput")?.addEventListener("change",async e=>{const f=e.target.files[0];if(f)await registerScheduleFile(f,"resource")});
+
+function openDesignerStudio(options){
+ const mode=options?.mode||'designer';
+ const source=options?.source||'entry';
+ beginProjectTransition({clearProject:true});
+ appMode=mode;
+ document.body.classList.toggle('user-mode', mode==='user');
+ el('entryScreen').classList.add('hidden');
+ el('setup').classList.add('hidden');
+ el('userSetup').classList.add('hidden');
+ el('designerHome').classList.add('hidden');
+ el('templateLibraryModal').classList.add('hidden');
+ const isUser=mode==='user';
+ el('appBrand').childNodes[0].nodeValue=isUser?'ACDL 사용자 달력 에디터 ':'우리학교인쇄 CALENDAR EDITOR ';
+ setEditorContext(isUser?'새 달력 만들기':'새 템플릿 만들기');
+ el('newBtn').textContent=isUser?'새 달력':'새 템플릿';
+ el('saveBtn').textContent=isUser?'달력 저장':'템플릿 저장';
+ el('templateMode').textContent=isUser?'달력 편집':'템플릿 설계';
+ el('modeHelp').textContent=isUser?'학교 정보와 월별 콘텐츠를 입력하고, 템플릿이 허용한 영역을 편집합니다.':'샘플 콘텐츠, 데이터 연결, 위치와 스타일을 한 화면에서 설계합니다.';
+ if(isUser){
+  selectedCalendarType='';
+  selectedUserTemplate={template:'',type:'',libraryId:null};
+  document.querySelectorAll('[data-calendar-type]').forEach(card=>{card.classList.remove('selected');card.setAttribute('aria-pressed','false')});
+  document.querySelectorAll('[data-user-template]').forEach(card=>card.classList.remove('selected'));
+  el('userSetup').classList.remove('hidden');
+  if(typeof setUserWizardStep==='function')setUserWizardStep(1);
+  renderUserSizeOptions();
+  window.scrollTo?.(0,0);
+  const label=el('selectedTypeLabel');if(label)label.textContent={desk:'탁상형',wall:'벽걸이형',poster:'연간 포스터형',postcard:'엽서형'}[selectedCalendarType]||selectedCalendarType;
+  showEditorToast('새 달력 생성 흐름을 다시 시작합니다.');
+  updateRoleIndicator();
+  return;
+ }
+ if(options?.templateId){
+  const record=window.TemplateLibraryRepository?.get?.(options.templateId) || null;
+  if(record)openDesignerProjectFromRecord(record).catch(()=>{});
+  return;
+ }
+ if(options?.projectId){
+  const stored=window.TemplateLibraryRepository?.loadProject?.(options.projectId);
+  if(stored)Promise.resolve(stored).then(data=>{if(data){project=structuredClone(data);selectedPageId=project.book?.pageInstances?.[0]?.id||null;selectedElementId=null;selectedElementScope=null;history=[];future=[];stable();render();updateRoleIndicator();}});
+  return;
+ }
+ if(options?.source==='setup'){el('setup').classList.remove('hidden');return;}
+ if(source==='designer-home' || source==='library'){el('setup').classList.remove('hidden');return;}
+ if(source==='entry'){el('designerHome').classList.remove('hidden');return;}
+ stable();render();updateRoleIndicator();
+}
+function startDesignerWorkspace(){openDesignerStudio({mode:'designer',source:'entry'});}
+function startUserWorkspace(){openDesignerStudio({mode:'user',source:'entry'});}
+enterDesigner=function(){openDesignerStudio({mode:'designer',source:'entry'});}
+if(el('enterDesignerFlow'))el('enterDesignerFlow').onclick=enterDesigner;
+el('designerHomeNew')?.addEventListener('click',()=>openDesignerStudio({mode:'designer',source:'designer-home'}));
+el('designerHomeLibrary')?.addEventListener('click',()=>{el('entryScreen').classList.add('hidden');el('designerHome').classList.add('hidden');el('templateLibraryModal').classList.remove('hidden');renderTemplateLibrary('all');refreshRemoteTemplateLibrary()});
+el('designerHomeOpen')?.addEventListener('click',()=>{setEditorContext('기존 템플릿 열기');el('fileInput').click()});
+el('designerHomeBackBtn')?.addEventListener('click',()=>showEntry());
+const oldShowEntry=showEntry;showEntry=function(){el('designerHome')?.classList.add('hidden');oldShowEntry()};
+
+// Header template dropdown
+el("templateMenuBtn")?.addEventListener("click",e=>{e.stopPropagation();el("templateMenuDropdown").classList.toggle("hidden")});
+document.addEventListener("click",()=>el("templateMenuDropdown")?.classList.add("hidden"));
+el("templateMenuDropdown")?.addEventListener("click",e=>e.stopPropagation());
+el("newBtn")?.addEventListener("click",()=>{if(appMode==="designer"){el("designerHome")?.classList.add("hidden");el("setup").classList.remove("hidden")}el("templateMenuDropdown")?.classList.add("hidden")},true);
+
+// Resource form compatibility for newly added fields and schedule metadata
+const oldPopulateSchoolResourceForm=populateSchoolResourceForm;populateSchoolResourceForm=function(){oldPopulateSchoolResourceForm();const school=project?.book?.school||{};if(el("resourceSchoolFax"))el("resourceSchoolFax").value=school.fax||"";if(el("resourceSchoolSong"))el("resourceSchoolSong").value=school.profile?.song?.description||"";const imp=project?.book?.scheduleImport,preview=el("resourceSchedulePreview"),input=el("resourceScheduleInput");if(imp){el("resourceScheduleFileName").textContent=imp.fileName||"샘플 일정 파일";el("resourceScheduleFileStatus").textContent=imp.events?.length?`${imp.events.length}개 샘플 일정 저장됨`:"변환 연동 대상 파일 등록됨"}else{el("resourceScheduleFileName").textContent="샘플 일정 파일 없음";el("resourceScheduleFileStatus").textContent="XLSX·CSV·TXT 등록 가능";if(preview){preview.classList.add("hidden");preview.innerHTML=""}if(input)input.value=""}}
+
+const v23OldRenderUserSummary=renderUserSummary;renderUserSummary=function(){
+ const tpl=document.querySelector("[data-user-template].selected strong")?.textContent||"템플릿", opts=[];
+ if(el("userIncludeHolidays")?.checked)opts.push("국경일·기념일·휴일");if(el("userIncludeSolarTerms")?.checked)opts.push("24절기");if(el("userIncludeLunar")?.checked)opts.push("음력");
+ el("userWizardSummary").innerHTML=`<div class="summary-card"><h3>달력 구성</h3><div class="summary-row"><span>템플릿</span><strong>${v21Escape(tpl)}</strong></div><div class="summary-row"><span>연도·시작월</span><strong>${el("userYear").value}년 · ${el("userStartMonth").value}월</strong></div><div class="summary-row"><span>월력</span><strong>${el("userCalendarRows").value}×7 · ${el("userWeekStart").value==="monday"?"월요일":"일요일"} 시작</strong></div><div class="summary-row"><span>공공 달력 정보</span><strong>${opts.join(" · ")||"미포함"}</strong></div><div class="summary-row"><span>학교 일정</span><strong>${window.userScheduleImport?.fileName?v21Escape(window.userScheduleImport.fileName):"미등록"}</strong></div></div><div class="summary-card"><h3>학교 정보</h3><div class="summary-row"><span>학교명</span><strong>${v21Escape(el("userSchoolName").value||"미입력")}</strong></div><div class="summary-row"><span>교훈·교가</span><strong>${el("userSchoolMotto").value?"교훈 등록":"교훈 미등록"} · ${el("userSchoolSong").value?"교가 등록":"교가 미등록"}</strong></div><div class="summary-row"><span>학교 이미지</span><strong>${[userImages.building,userImages.logo,userImages.flower,userImages.tree].filter(Boolean).length}/4 등록</strong></div><div class="summary-row"><span>연락처</span><strong>${el("userSchoolPhone").value||"전화 미입력"}${el("userSchoolFax").value?" · 팩스 등록":""}</strong></div></div>`
+};
+
+
+// v24 contacts and binding-slot model
+function contactRowHtml(c={}){return `<div class="contact-row" data-contact-row><label>제목<input class="contact-label" value="${v21Escape(c.label||"")}" placeholder="비우면 연락처"></label><label>전화번호<input class="contact-phone" value="${v21Escape(c.phone||"")}" placeholder="02-0000-0000"></label><label>팩스<input class="contact-fax" value="${v21Escape(c.fax||"")}" placeholder="02-0000-0000"></label><button type="button" class="remove-contact">삭제</button></div>`}
+function bindContactEditor(container){if(!container)return;container.querySelectorAll(".remove-contact").forEach(b=>b.onclick=()=>{if(container.querySelectorAll("[data-contact-row]").length>1)b.closest("[data-contact-row]").remove()})}
+function readContacts(container){return [...container.querySelectorAll("[data-contact-row]")].map(r=>({label:r.querySelector(".contact-label").value.trim()||"연락처",phone:r.querySelector(".contact-phone").value.trim(),fax:r.querySelector(".contact-fax").value.trim()})).filter(c=>c.phone||c.fax||c.label!=="연락처")}
+function fillContactEditor(container,contacts){container.innerHTML=(contacts?.length?contacts:[{label:"교무실"},{label:"행정실"}]).map(contactRowHtml).join("");bindContactEditor(container)}
+el("addUserContactBtn")?.addEventListener("click",()=>{el("userContactEditor").insertAdjacentHTML("beforeend",contactRowHtml({}));bindContactEditor(el("userContactEditor"))});bindContactEditor(el("userContactEditor"));
+el("addResourceContactBtn")?.addEventListener("click",()=>{el("resourceContactEditor").insertAdjacentHTML("beforeend",contactRowHtml({}));bindContactEditor(el("resourceContactEditor"))});
+const v24OldPopulate=populateSchoolResourceForm;populateSchoolResourceForm=function(){v24OldPopulate();ensureSchoolProfile();const school=project.book.school;school.contacts ||= [{label:"교무실",phone:school.phone||"",fax:""},{label:"행정실",phone:"",fax:school.fax||""}];fillContactEditor(el("resourceContactEditor"),school.contacts)};
+const v24OldApplyUser=applyUserSchoolData;applyUserSchoolData=function(){v24OldApplyUser();const contacts=readContacts(el("userContactEditor"));project.book.school.contacts=contacts;project.book.school.phone=contacts[0]?.phone||"";project.book.school.fax=contacts.find(c=>c.fax)?.fax||""};
+el("saveSchoolInfoBtn")?.addEventListener("click",()=>{if(!project)return;const contacts=readContacts(el("resourceContactEditor"));project.book.school.contacts=contacts;project.book.school.phone=contacts[0]?.phone||"";project.book.school.fax=contacts.find(c=>c.fax)?.fax||"";markDirty()},true);
+const v24OldUserSummary=renderUserSummary;renderUserSummary=function(){v24OldUserSummary();const contacts=readContacts(el("userContactEditor"));const row=[...el("userWizardSummary").querySelectorAll(".summary-row")].find(r=>r.querySelector("span")?.textContent==="연락처");if(row)row.querySelector("strong").textContent=contacts.length?contacts.map(c=>`${c.label} ${c.phone||c.fax||"미입력"}`).join(" · "):"미입력"};
+function ensureContactBindings(){if(!project)return;project.book.school.contacts ||= [];project.template.dataSlots ||= {};project.template.dataSlots.school={name:"school.name",englishName:"school.englishName",address:"school.address",website:"school.website",contacts:"school.contacts[]",motto:"school.profile.motto",song:"school.profile.song",building:"school.profile.building",logo:"school.profile.logo",flower:"school.profile.flower",tree:"school.profile.tree",events:"calendar.events"}}
+const v24Render=typeof window.render==='function'?window.render:render; if(typeof v24Render==='function')render=function(){ensureContactBindings();v24Render()};
+fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실"}]);
+
+
+
+// v26 designer-to-user template integration and complete school asset binding
+(function(){
+  // Extend user-side school image inputs with school song artwork and custom assets.
+  const imageSection=document.querySelector('#userSetup .school-profile-section:nth-of-type(2)');
+  if(imageSection && !document.getElementById('userSongImageInput')){
+    const extra=document.createElement('div');
+    extra.className='v26-extra-assets';
+    extra.innerHTML=`<div class="profile-upload-grid profile-upload-grid-4" style="margin-top:10px">
+      <div class="profile-upload"><strong>교가 악보·이미지</strong><div id="userSongImagePreview" class="profile-upload-preview">이미지 미등록</div><button type="button" id="userSongImageBtn">이미지 선택</button><input id="userSongImageInput" class="hidden" type="file" accept="image/*"></div>
+      <div class="profile-upload" style="grid-column:span 3"><strong>사용자 지정 이미지</strong><div id="userCustomAssetPreview" class="schedule-preview">등록된 이미지가 없습니다.</div><button type="button" id="userCustomAssetBtn">이미지 추가</button><input id="userCustomAssetInput" class="hidden" type="file" accept="image/*" multiple></div>
+    </div>`;
+    imageSection.appendChild(extra);
+    userImages.song ||= '';
+    userImages.customAssets ||= [];
+    const preview=(id,src,label)=>{const n=el(id);if(!n)return;n.innerHTML=src?`<img src="${src}" alt="${label}">`:'이미지 미등록'};
+    el('userSongImageBtn').onclick=()=>el('userSongImageInput').click();
+    el('userSongImageInput').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{userImages.song=await compressImageFile(f);preview('userSongImagePreview',userImages.song,'교가 이미지')}catch(err){alert(err.message||'이미지를 읽지 못했습니다.')}};
+    el('userCustomAssetBtn').onclick=()=>el('userCustomAssetInput').click();
+    el('userCustomAssetInput').onchange=async e=>{const files=[...e.target.files];e.target.value='';for(const f of files){try{userImages.customAssets.push({id:`user-custom-${Date.now()}-${Math.random().toString(36).slice(2)}`,name:f.name,image:await compressImageFile(f)})}catch(_){}}renderUserCustomAssets()};
+    window.renderUserCustomAssets=function(){const n=el('userCustomAssetPreview');if(!n)return;n.innerHTML=userImages.customAssets.length?userImages.customAssets.map((a,i)=>`<div style="display:flex;align-items:center;gap:8px;margin:5px 0"><img src="${a.image}" alt="${v21Escape(a.name)}" style="width:42px;height:32px;object-fit:cover;border-radius:5px"><span style="flex:1">${v21Escape(a.name)}</span><button type="button" data-remove-user-custom="${i}">삭제</button></div>`).join(''):'등록된 이미지가 없습니다.';n.querySelectorAll('[data-remove-user-custom]').forEach(b=>b.onclick=()=>{userImages.customAssets.splice(Number(b.dataset.removeUserCustom),1);renderUserCustomAssets()})};
+  }
+
+  function deepClone(v){return typeof structuredClone==='function'?structuredClone(v):JSON.parse(JSON.stringify(v))}
+  function syncTemplateCalendarDates(prj,year,startMonth){
+    if(window.ACDLTemplateYearSynchronizer){window.ACDLTemplateYearSynchronizer.synchronize(prj,{year,startMonth});return}
+    const pages=prj.book?.pageInstances||[], fronts=pages.filter(page=>page.role==='monthly-front'), backs=pages.filter(page=>page.role==='monthly-back');
+    fronts.forEach((page,index)=>{const d=new Date(year,startMonth-1+index,1);page.calendarYear=d.getFullYear();page.calendarMonth=d.getMonth()+1;page.monthKey=`${page.calendarYear}-${String(page.calendarMonth).padStart(2,'0')}`;page.pairId=`month-pair.${page.monthKey}`});
+    backs.forEach((page,index)=>{const front=fronts[index];if(front){page.calendarYear=front.calendarYear;page.calendarMonth=front.calendarMonth;page.monthKey=front.monthKey;page.pairId=front.pairId}});
+    pages.filter(page=>page.role==='poster-annual').forEach(page=>{page.calendarYear=year;page.calendarMonth=1});
+  }
+  function roleImage(role,school,item){
+    const map={'school-image':'building','school-building':'building','school-logo':'logo','school-flower':'flower','school-tree':'tree','school-song':'song'};
+    if(role==='school-custom-image'){
+      const arr=school.customAssets||[];const idx=Number(item?.customAssetIndex||0);return arr[idx]?.image||arr[0]?.image||'';
+    }
+    const key=map[role];return key?school.profile?.[key]?.image||'':'';
+  }
+  function applyAllBoundAssets(prj){
+    const school=prj.book?.school||{};
+    const all=[];
+    Object.values(prj.book?.elementsByPage||{}).forEach(a=>Array.isArray(a)&&all.push(...a));
+    Object.values(prj.template?.masterElements||{}).forEach(a=>Array.isArray(a)&&all.push(...a));
+    all.forEach(item=>{
+      const img=roleImage(item.role,school,item);if(img && (item.type==='image'||item.role==='school-image'))item.src=img;
+      if(item.binding==='school.name')item.content=school.name||item.content;
+      if(item.binding==='school.englishName')item.content=school.englishName||item.content;
+      if(item.binding==='school.slogan')item.content=school.slogan||item.content;
+      if(item.binding==='school.address')item.content=school.address||item.content;
+      if(item.binding==='school.website')item.content=school.website||item.content;
+      if(item.binding==='school.contacts')item.content=window.ACDLPageObjectModel.schoolContactsText(school)||item.content;
+      if(item.binding==='calendar.year'){
+        const year=String(prj.settings?.year||item.content||'');
+        item.content=item.yearFormat==='number-calendar'
+          ? `${year}${item.yearLines==='two'?'\n':' '}CALENDAR`
+          : year;
+      }
+      if(item.binding==='school.profile.motto.description')item.content=school.profile?.motto?.description||item.content;
+      if(item.binding==='school.profile.song.description')item.content=school.profile?.song?.description||item.content;
+    });
+  }
+  window.applyAllBoundAssets=applyAllBoundAssets;
+
+  // Bound semantic objects show the current project's registered school data in both workspaces.
+  const oldSemanticData=semanticData;
+  semanticData=function(item){
+    if(!project?.book?.school||item.bindingEnabled===false)return oldSemanticData(item);
+    const authoring=project?.mode!=='calendar-workspace'&&!project?.productionCorrection,sample=authoring?oldSemanticData(item):null;
+    const resolve=data=>authoring?{...sample,image:sample?.image||data?.image||''}:data;
+    ensureSchoolProfile();const school=project.book.school;
+    const map={'school-logo':'logo','school-building':'building','school-flower':'flower','school-tree':'tree','school-motto':'motto','school-song':'song'};
+    if(item.role==='school-custom-image'){
+      const a=(school.customAssets||[])[Number(item.customAssetIndex||0)]||(school.customAssets||[])[0];
+      return a?resolve({name:a.name||'사용자 지정 이미지',description:a.description||'',image:a.image||''}):oldSemanticData(item);
+    }
+    const key=map[item.role],d=key?school.profile?.[key]:null;
+    if(!d)return oldSemanticData(item);
+    return resolve({name:d.name||semanticRoleLabel(item.role),description:d.description||'',image:d.image||''});
+  };
+
+  const oldApply=applyUserSchoolData;
+  applyUserSchoolData=function(){
+    oldApply();ensureSchoolProfile();
+    project.book.school.profile.song.image=userImages.song||project.book.school.profile.song.image||'';
+    project.book.school.customAssets=deepClone(userImages.customAssets||[]);
+    applyAllBoundAssets(project);
+  };
+
+  async function createCalendarFromSelectedTemplate(){
+    resetEditorViewState();
+    const opts={type:selectedUserTemplate.type,year:Number(el('userYear').value),startMonth:Number(el('userStartMonth').value),template:selectedUserTemplate.template,frontInsertCount:Number(el('userFrontInserts').value),rearInsertCount:Number(el('userRearInserts').value),calendarRows:Number(el('userCalendarRows').value),weekStart:el('userWeekStart').value,showAdjacentMiniCalendars:el('userAdjacentMini').checked,posterColumns:4,sizePresetId:el('userSize').value};
+    let stored=null;
+    if(selectedUserTemplate.libraryId){try{stored=await loadTemplateProjectData(selectedUserTemplate.libraryId)}catch(err){console.warn('Template load failed',err)}}
+    project=stored?deepClone(stored):makeProject(opts);
+    project.mode='calendar-workspace';
+    project.settings ||= {};Object.assign(project.settings,{year:opts.year,startMonth:opts.startMonth,calendarRows:opts.calendarRows,weekStart:opts.weekStart,showAdjacentMiniCalendars:opts.showAdjacentMiniCalendars,sizePresetId:opts.sizePresetId,type:opts.type});
+    project.template ||= {};project.template.sourceTemplateId=selectedUserTemplate.libraryId||null;project.template.sourceTemplateName=document.querySelector('[data-user-template].selected strong')?.textContent||project.template.metadata?.name||'템플릿';
+    syncTemplateCalendarDates(project,opts.year,opts.startMonth);
+    applyUserSchoolData();
+    selectedPageId=project.book.pageInstances?.[0]?.id||null;selectedElementId=null;selectedElementScope=null;history=[];future=[];
+    el('userSetup').classList.add('hidden');el('appBrand').childNodes[0].nodeValue='ACDL 사용자 달력 에디터 ';el('currentTemplateTitle').textContent=`${project.book.school.name} ${project.settings.year} 달력`;el('newBtn').textContent='새 달력';el('saveBtn').textContent='달력 저장';el('templateMode').textContent='달력 편집';el('modeHelp').textContent='학교 정보와 월별 콘텐츠를 입력하고, 템플릿이 허용한 영역을 편집합니다.';
+    stable();render();updateRoleIndicator();showEditorToast(stored?'선택한 라이브러리 템플릿과 학교 정보를 적용했습니다.':'기본 템플릿으로 달력을 만들었습니다.');
+  }
+  const createButton=el('userCreateBtn');
+  createButton?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();createCalendarFromSelectedTemplate().catch(err=>{console.error(err);alert(`달력 생성 실패: ${err.message||err}`)})},true);
+
+  // Refresh the user template list immediately after a successful designer save.
+  const saveButton=el('confirmTemplateSaveBtn');
+  saveButton?.addEventListener('click',()=>setTimeout(()=>{try{renderUserTemplateChoices()}catch(_){}},350));
+
+  // Re-rendering never chooses a template on the user's behalf.
+  const oldRenderChoices=renderUserTemplateChoices;
+  renderUserTemplateChoices=function(){
+    oldRenderChoices();
+    const visible=[...document.querySelectorAll('#userTemplateChoiceGrid [data-user-template]')].filter(x=>!x.classList.contains('hidden-by-type'));
+    const current=visible.find(x=>x.classList.contains('selected'));
+    if(current){selectedUserTemplate={template:current.dataset.userTemplate,type:current.dataset.userType,libraryId:current.dataset.userLibraryId};renderUserSizeOptions()}
+    else selectedUserTemplate={template:'',type:selectedCalendarType,libraryId:null};
+    updateWizardActions();
+  };
+  renderUserTemplateChoices();
+})();
+
+
+// v27 Academic Schedule Parser: Korean month/day text, year rollover and 12-month calendar window.
+(function(){
+  function pad2(n){return String(Number(n)).padStart(2,'0')}
+  function iso(y,m,d){return `${Number(y)}-${pad2(m)}-${pad2(d)}`}
+  function validDate(y,m,d){const x=new Date(Number(y),Number(m)-1,Number(d));return x.getFullYear()===Number(y)&&x.getMonth()===Number(m)-1&&x.getDate()===Number(d)}
+  function calendarWindow(baseYear,startMonth){
+    const start=new Date(Number(baseYear),Number(startMonth)-1,1);
+    const end=new Date(Number(baseYear),Number(startMonth)-1+12,0);
+    return {start:iso(start.getFullYear(),start.getMonth()+1,start.getDate()),end:iso(end.getFullYear(),end.getMonth()+1,end.getDate())};
+  }
+  function gradeInfo(raw){
+    const map={'①':1,'②':2,'③':3};const grades=[];
+    String(raw).replace(/[①②③]/g,ch=>{if(!grades.includes(map[ch]))grades.push(map[ch]);return ''});
+    return {grades,title:String(raw).replace(/[①②③]/g,'').replace(/^[-•·]\s*/,'').trim()};
+  }
+  function cleanTitle(raw){
+    let title=String(raw||'').trim(),memo='';
+    const m=title.match(/\((\d{1,2})\s*[\/.]\s*(\d{1,2})\s*[~～-]\s*(?:(\d{1,2})\s*[\/.]\s*)?(\d{1,2})\)/);
+    if(m){memo=m[0].slice(1,-1);title=title.replace(m[0],'').trim()}
+    const g=gradeInfo(title);return {title:g.title,memo,grades:g.grades};
+  }
+  function splitTitles(raw){
+    const value=String(raw||'').trim();if(!value)return [];
+    // Commas and explicit numbered list markers are treated as separate same-day events.
+    const commaParts=value.split(/\s*,\s*/).map(x=>x.trim()).filter(Boolean);
+    return commaParts.flatMap(part=>/^[①②③]/.test(part)?part.split(/(?=[①②③])/).map(x=>x.trim()).filter(Boolean):[part]);
+  }
+  window.getAcademicCalendarWindow=calendarWindow;
+  window.parseAcademicScheduleText=function(text,baseYear,startMonth){
+    const source=String(text||'').replace(/\u00a0/g,' ').replace(/[：]/g,':');
+    const lines=source.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    const windowRange=calendarWindow(baseYear,startMonth);
+    const allEvents=[],warnings=[];let currentYear=Number(baseYear),currentMonth=null,previousMonth=null,lastDateSpec=null,idx=0;
+    const pushEvent=(rawTitle,spec,lineNo)=>{
+      for(const piece of splitTitles(rawTitle)){
+        const c=cleanTitle(piece);if(!c.title)continue;
+        const sy=spec.startYear,sm=spec.startMonth,sd=spec.startDay,ey=spec.endYear,em=spec.endMonth,ed=spec.endDay;
+        if(!validDate(sy,sm,sd)||!validDate(ey,em,ed)){warnings.push(`${lineNo}행 날짜를 확인하세요: ${piece}`);continue}
+        let startDate=iso(sy,sm,sd),endDate=iso(ey,em,ed);if(endDate<startDate){warnings.push(`${lineNo}행 종료일이 시작일보다 빠릅니다: ${piece}`);continue}
+        allEvents.push({id:`import-${Date.now()}-${idx++}`,title:c.title,startDate,endDate,category:'school',source:'user-import',priority:70,range:startDate!==endDate,grades:c.grades,memo:c.memo,originalText:piece});
+      }
+    };
+    lines.forEach((line,i)=>{
+      const lineNo=i+1;
+      // Explicit month header: "2028년 1월"
+      let m=line.match(/^(\d{4})\s*년\s*(\d{1,2})\s*월(?:\s*일정)?\s*$/);
+      if(m){currentYear=Number(m[1]);currentMonth=Number(m[2]);previousMonth=currentMonth;lastDateSpec=null;return}
+      // Explicit year header, excluding period descriptions such as "2027년 3월부터..."
+      m=line.match(/^#+?\s*(\d{4})\s*년(?:\s*일정)?\s*#*$/);
+      if(m){currentYear=Number(m[1]);currentMonth=null;previousMonth=null;lastDateSpec=null;return}
+      // Bare month header. When month order wraps (12 -> 1), advance year.
+      m=line.match(/^(\d{1,2})\s*월\s*$/);
+      if(m){const month=Number(m[1]);if(previousMonth!==null&&month<previousMonth)currentYear+=1;currentMonth=month;previousMonth=month;lastDateSpec=null;return}
+      // Ignore title/period comment lines beginning with #.
+      if(/^#/.test(line))return;
+      if(!currentMonth){warnings.push(`${lineNo}행은 월 제목 뒤에 배치해야 합니다: ${line}`);return}
+      // 9일-13일 / 18일- 21일 / 28(금) / 2월 27일-3월 3일 forms.
+      m=line.match(/^(?:(\d{1,2})\s*월\s*)?(\d{1,2})(?:\s*일)?(?:\s*\([^)]*\))?\s*(?:[-~～]\s*(?:(\d{1,2})\s*월\s*)?(\d{1,2})(?:\s*일)?)?\s*:\s*(.*)$/);
+      if(m){
+        const sm=Number(m[1]||currentMonth),sd=Number(m[2]),em=Number(m[3]||sm),ed=Number(m[4]||sd);
+        let sy=currentYear,ey=currentYear;if(sm<currentMonth-6)sy+=1;if(em<sm)ey=sy+1;else ey=sy;
+        lastDateSpec={startYear:sy,startMonth:sm,startDay:sd,endYear:ey,endMonth:em,endDay:ed};
+        if(m[5].trim())pushEvent(m[5],lastDateSpec,lineNo);return;
+      }
+      // Indented/continued lines become additional events on the previous date or range.
+      if(lastDateSpec){pushEvent(line,lastDateSpec,lineNo);return}
+      warnings.push(`${lineNo}행을 인식하지 못했습니다: ${line}`);
+    });
+    const included=allEvents.filter(e=>e.endDate>=windowRange.start&&e.startDate<=windowRange.end);
+    const excluded=allEvents.filter(e=>e.endDate<windowRange.start||e.startDate>windowRange.end);
+    return {events:included,allEvents,excluded,warnings,window:windowRange,stats:{recognized:allEvents.length,included:included.length,excluded:excluded.length}};
+  };
+  parseScheduleText=function(text,year,startMonth){return window.parseAcademicScheduleText(text,Number(year)||2027,Number(startMonth)||Number(el('userStartMonth')?.value)||1).events};
+
+  function parserPreview(result){
+    const s=result.stats,w=result.window;
+    return `<strong>달력 적용 기간: ${w.start} ~ ${w.end}</strong><br>인식 ${s.recognized}개 · 달력 반영 ${s.included}개 · 기간 밖 제외 ${s.excluded}개`+
+      (result.events.length?`<br><br>${result.events.slice(0,8).map(e=>`${e.startDate}${e.endDate!==e.startDate?` ~ ${e.endDate}`:''} · ${v21Escape(e.title)}`).join('<br>')}${result.events.length>8?`<br>외 ${result.events.length-8}개`:''}`:'')+
+      (result.warnings.length?`<br><br><span style="color:#b54708">확인 필요 ${result.warnings.length}건</span>`:'');
+  }
+  registerScheduleFile=async function(file,target){
+    const isSupported=/\.(xlsx|csv|txt)$/i.test(file.name);let events=[],result=null,rawText='',sourceInfo=null;
+    const year=Number(el(target==='user'?'userYear':'resourceCalendarYear')?.value)||2027;
+    const startMonth=Number(el(target==='user'?'userStartMonth':'resourceStartMonth')?.value)||1;
+    if(isSupported){
+      sourceInfo=await window.ACDLScheduleFileParser.extractText(file,year);
+      rawText=sourceInfo.text;
+      result=window.parseAcademicScheduleText(rawText,year,startMonth);
+      events=result.events;
+    }
+    const payload={fileName:file.name,fileType:file.type||file.name.split('.').pop(),size:file.size,registeredAt:new Date().toISOString(),events,rawText,sourceInfo,parseResult:result,status:isSupported?'parsed':'unsupported'};
+    if(target==='user'){
+      window.userScheduleImport=payload;el('userScheduleFileName').textContent=file.name;el('userScheduleFileStatus').textContent=isSupported?`${events.length}개 일정을 달력 기간에 반영합니다.`:'지원하지 않는 파일 형식입니다.';const pv=el('userSchedulePreview');pv.classList.remove('hidden');pv.innerHTML=result?parserPreview(result):'파일 원본은 등록되었으며, 실제 서비스의 워드·엑셀 일정 변환 API와 연결됩니다.';
     }else{
       project.book.scheduleImport=payload;
       if(events.length){
