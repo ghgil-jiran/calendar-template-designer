@@ -14,3 +14,6 @@
 .shared-screen-mini-calendar.mini-reference-photo .mini-grid{row-gap:var(--mini-row-gap);font-weight:var(--mini-date-weight,300)}
 .shared-screen-mini-calendar.mini-reference-photo .mini-grid .sun,.shared-screen-mini-calendar.mini-reference-photo .mini-grid .sat,.shared-screen-mini-calendar.mini-reference-photo .mini-grid .holiday{font-weight:inherit}
 .shared-screen-mini-calendar.mini-bottom-rule{border-bottom:var(--mini-rule-width,1px) solid var(--mini-line);padding-bottom:var(--mini-rule-gap,8px)}
+
+.shared-screen-mini-calendar.mini-reference-photo strong>span{font-weight:700}
+.shared-screen-mini-calendar.mini-reference-photo strong>small{font-weight:600}
