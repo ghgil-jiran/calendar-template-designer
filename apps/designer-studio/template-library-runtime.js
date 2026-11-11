@@ -519,8 +519,10 @@
   },5000)
  }
  function printInspectionPackage(project){
-  const publishing=project?.template?.publishing||{},published=project?.template?.metadata?.state==='published';
-  return published?publishing.lastReviewPackage:(publishing.lastPrintInspectionPackage||publishing.lastReviewPackage)
+  const publishing=project?.template?.publishing||{};
+  if(preflightRecord?.productionProject)return publishing.lastPrintInspectionPackage||publishing.lastReviewPackage;
+  const revision=Number(preflightRecord?.version||project?.template?.remoteVersionNumber||0);
+  return [publishing.lastPrintInspectionPackage,publishing.lastReviewPackage].find(identity=>revision>0&&Number(identity?.sourceEditorRevision)===revision)||null
  }
  async function prepareDraftPrintInspectionPackage(){
   const publishing=window.ACDLTemplatePublishing,remote=window.ACDLTemplateRemotePersistence;
@@ -536,7 +538,7 @@
   if(!publishing?.preparePrintInspection)throw new Error('인쇄검사용 Package 준비 기능을 불러오지 못했습니다.');
   if(!remote?.isRemote?.())throw new Error('초안 인쇄검사 식별 정보를 저장하려면 원격 저장 연결이 필요합니다.');
   const candidate=window.ACDLPersistenceProject.clone(preflightProject),record=preflightRecord,state=record.state||candidate?.template?.metadata?.state||'draft';
-  if(state==='published')return printInspectionPackage(candidate);
+  // Published records also need a fresh inspection package when the saved revision changed.
   const result=await publishing.preparePrintInspection({record:{id:record.id,stableKey:record.stableKey,packageVersion:record.packageVersion,editorRevision:record.version,type:record.type},projectData:candidate,name:record.name,productType:record.type});
   const identity=candidate?.template?.publishing?.lastPrintInspectionPackage;
   if(!identity?.templateId||!identity?.version||!identity?.sha256)throw new Error('인쇄검사용 Package 식별 정보를 만들지 못했습니다.');
@@ -569,7 +571,7 @@ function renderProductionPreflight(inspection){
  }
  async function runFinalPreflight(){
   if(preflightRecord?.productionProject)return runProductionFinalPreflight();
-  if(!preflightProject)await runQuickPreflight();if(!preflightProject)return;if(preflightRenderParity===undefined)await runRenderPreflight();preflightActiveGate=2;const status=el('templatePreflightStatus'),draft=(preflightRecord.state||preflightProject?.template?.metadata?.state||'draft')!=='published';if(draft||!preflightIdentity?.templateId||!preflightIdentity?.version||!preflightIdentity?.sha256){setPreflightBusy('runTemplateFinalPreflightBtn',true,'Package 준비 중…');status.className='template-preflight-status working';status.innerHTML='<strong>초안 인쇄검사용 Package 준비 중</strong><span>현재 저장본과 동일한 새 Package를 만들며 게시 상태는 변경하지 않습니다.</span>';try{const identity=await prepareDraftPrintInspectionPackage();preflightIdentity={...identity,name:preflightRecord.name||preflightProject?.template?.metadata?.name};preflightRuntimeDocument=window.ACDLRuntimeBridge?.resolve?.(preflightProject)||null;preflightRenderParity=await captureRenderParity(preflightProject);await loadPreflightHistory()}catch(error){status.className='template-preflight-status blocked';status.innerHTML=`<strong>검사용 Package 준비 실패</strong><span>${escape(error?.message||'인쇄검사용 Package를 준비하지 못했습니다.')}</span>`;setPreflightBusy('runTemplateFinalPreflightBtn',false);return}}
+  if(!preflightProject)await runQuickPreflight();if(!preflightProject)return;if(preflightRenderParity===undefined)await runRenderPreflight();preflightActiveGate=2;const status=el('templatePreflightStatus'),draft=(preflightRecord.state||preflightProject?.template?.metadata?.state||'draft')!=='published';if(draft||!preflightIdentity?.templateId||!preflightIdentity?.version||!preflightIdentity?.sha256){setPreflightBusy('runTemplateFinalPreflightBtn',true,'Package 준비 중…');status.className='template-preflight-status working';status.innerHTML='<strong>현재 저장본 인쇄검사용 Package 준비 중</strong><span>현재 저장본과 동일한 새 Package를 만들며 게시 상태는 변경하지 않습니다.</span>';try{const identity=await prepareDraftPrintInspectionPackage();preflightIdentity={...identity,name:preflightRecord.name||preflightProject?.template?.metadata?.name};preflightRuntimeDocument=window.ACDLRuntimeBridge?.resolve?.(preflightProject)||null;preflightRenderParity=await captureRenderParity(preflightProject);await loadPreflightHistory()}catch(error){status.className='template-preflight-status blocked';status.innerHTML=`<strong>검사용 Package 준비 실패</strong><span>${escape(error?.message||'인쇄검사용 Package를 준비하지 못했습니다.')}</span>`;setPreflightBusy('runTemplateFinalPreflightBtn',false);return}}
   setPreflightBusy('runTemplateFinalPreflightBtn',true,'요청 중…');status.className='template-preflight-status working';status.innerHTML='<strong>최종 PDF 검사 요청 중</strong><span>기존 검사 결과는 이력으로 보존하고 새 최종 PDF 작업을 요청합니다.</span>';
   try{const requestedArtifact=normalizedArtifact(await window.ACDLTemplatePublishing.ensurePrintPreflight(preflightIdentity,{force:true}));await loadPreflightHistory();preflightArtifact=latestPreflightArtifact(preflightHistory)||requestedArtifact;renderCurrentPreflight(preflightArtifact?.status==='done'?'완료된 최종 PDF 검사 결과를 불러왔습니다.':'최종 PDF 작업이 대기열에 등록됐습니다.');syncPreflightPolling()}catch(error){status.className='template-preflight-status blocked';status.innerHTML=`<strong>요청 실패</strong><span>${escape(error?.message||'최종 PDF 검사를 요청하지 못했습니다.')}</span>`}finally{setPreflightBusy('runTemplateFinalPreflightBtn',false);setPreflightButtonLabel('runTemplateFinalPreflightBtn',preflightArtifact?.status==='done'?'검사 완료 · 다시 검사':['queued','processing'].includes(preflightArtifact?.status)?'중단하고 다시 검사':'최종 PDF 생성·검사');el('runTemplateFinalPreflightBtn').disabled=false}
  }
