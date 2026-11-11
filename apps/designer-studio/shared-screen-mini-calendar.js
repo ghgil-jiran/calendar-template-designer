@@ -85,7 +85,32 @@
     });
     return { baseYear, startMonth, columns, layout, groupSize, showWeekdayHeader: element?.showWeekdayHeader !== false, months };
   }
-  function renderAnnualCalendarMarkup(annual, element = {}) {
+  function resolvePosterMonths(annual, element, project) {
+    const options=project?.settings?.calendarData||{},book=project?.book||{},events=(book.events||[]).filter(e=>e.startDate&&e.title),categories=new Map((project?.template?.resources?.eventCategories||[]).map(c=>[c.id,c.color]));
+    const references=[];
+    for(const year of Object.values(book.calendarReference?.years||{}))for(const [key,enabled] of [['public_holiday',options.includeHolidays],['anniversary',options.includeAnniversaries],['solar_term',options.includeSolarTerms],['lunar',options.includeLunar]])if(enabled!==false)for(const item of year[key]?.items||[])if(item.date&&item.name)references.push({id:'ref.'+key+'.'+item.date+'.'+item.name,startDate:item.date,endDate:item.date,title:item.name,category:key==='public_holiday'&&item.isHoliday!==false?'holiday':'reference',reference:true});
+    const all=[],seen=new Set();for(const e of [...events,...references]){if(e.category==='holiday'&&options.includeHolidays===false)continue;const key=e.startDate+'|'+(e.endDate||e.startDate)+'|'+String(e.title).replace(/\s/g,'');if(seen.has(key))continue;seen.add(key);all.push({...e,endDate:e.endDate||e.startDate,color:hex(e.color||categories.get(e.category),'#dce9f0')})}
+    return annual.months.map(month=>{
+      const first=`${month.year}-${String(month.month).padStart(2,'0')}-01`,last=`${month.year}-${String(month.month).padStart(2,'0')}-${new Date(Date.UTC(month.year,month.month,0)).getUTCDate()}`,items=all.filter(e=>e.startDate<=last&&e.endDate>=first).sort((a,b)=>a.startDate.localeCompare(b.startDate)||a.title.localeCompare(b.title)),ranges=[];
+      for(let row=0;row<month.rows;row++){const week=month.cells.slice(row*7,row*7+7),lanes=[];for(const event of items.filter(e=>e.endDate>e.startDate)){const columns=week.map((cell,index)=>cell.month===month.month&&cell.date>=event.startDate&&cell.date<=event.endDate?index:-1).filter(index=>index>=0);if(!columns.length)continue;const start=columns[0],end=columns.at(-1);let lane=lanes.findIndex(last=>last<start);if(lane<0)lane=lanes.length;lanes[lane]=end;ranges.push({...event,row,start,end,lane})}}
+      return {...month,items,ranges,days:month.cells.map(cell=>({...cell,events:cell.month===month.month?items.filter(e=>e.startDate===cell.date&&e.endDate===cell.date):[]}))};
+    });
+  }
+  function renderPosterCalendarMarkup(annual,element,project){
+    const months=resolvePosterMonths(annual,element,project),s=element.style||{},unit=n=>(Number(n)/10)+'cqw',dateSize=Number(s.dateSize)||18,titleSize=Number(s.titleSize)||27,eventSize=Number(element.posterEventSize)||7.5,listSize=Number(element.posterListSize)||10.5,columns=annual.columns,colors=element.posterColors||['#e9bccb','#b3d3e5','#b9d6c2','#cfc2df'];
+    const text=e=>escapeText(e.title),dateLabel=e=>{const a=e.startDate.slice(5).replace('-','/'),b=e.endDate.slice(5).replace('-','/');return a+(e.endDate>e.startDate?'–'+b:'')};
+    return '<div class="academic-poster-grid" data-poster-months="'+months.length+'" style="width:100%;height:100%;display:grid;grid-template-columns:repeat('+columns+',minmax(0,1fr));grid-template-rows:repeat('+Math.ceil(months.length/columns)+',minmax(0,1fr));column-gap:'+unit(s.columnGap??20)+';row-gap:'+unit(s.rowGap??20)+';font-family:inherit">'+months.map((month,index)=>{
+      const accent=hex(colors[Math.floor(index/columns)%colors.length],'#b3d3e5'),holidayDates=new Set(month.items.filter(e=>e.category==='holiday').map(e=>e.startDate)),tone=cell=>cell.weekday===0||holidayDates.has(cell.date)?hex(s.sunday,'#d92d20'):cell.weekday===6?hex(s.saturday,'#175cd3'):hex(s.dateColor,'#17202e');
+      const header='<header style="background:'+accent+';border-radius:'+unit(5)+';padding:'+unit(3)+';text-align:center;font-weight:800;font-size:'+unit(titleSize)+';line-height:1.1;color:#17202e">'+(month.transition?'<small style="font-size:.6em">'+month.year+' </small>':'')+month.month+' <small style="font-size:.48em">'+['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][month.month-1]+'</small></header>';
+      const weekdays='<div style="display:grid;grid-template-columns:repeat(7,1fr);font-size:'+unit(10)+';text-align:center;font-weight:700;line-height:1.4;margin-top:'+unit(3)+'">'+month.headers.map((name,col)=>{const weekday=project?.settings?.weekStart==='monday'?(col+1)%7:col;return '<span style="color:'+(weekday===0?'#d92d20':weekday===6?'#175cd3':'#17202e')+'">'+escapeText(name)+'</span>'}).join('')+'</div>';
+      const days=month.days.map((cell,i)=>'<div data-poster-date="'+cell.date+'" style="grid-column:'+(i%7+1)+';grid-row:'+(Math.floor(i/7)+1)+';min-width:0;min-height:0;border-top:1px solid '+accent+';text-align:center;padding:'+unit(2)+' '+unit(1)+';box-sizing:border-box;overflow:visible">'+(cell.month===month.month?'<b style="display:block;font-size:'+unit(dateSize)+';font-weight:700;line-height:1.15;color:'+tone(cell)+'">'+cell.day+'</b>'+cell.events.map(e=>'<div style="font-size:'+unit(eventSize)+';line-height:1.12;overflow-wrap:anywhere;color:'+(e.category==='holiday'?'#d92d20':'#344054')+'">'+text(e)+'</div>').join(''):'')+'</div>').join('');
+      const ranges=month.ranges.map(e=>'<div data-poster-range="'+escapeText(e.id||e.title)+'" style="grid-column:'+(e.start+1)+' / span '+(e.end-e.start+1)+';grid-row:'+(e.row+1)+';align-self:end;z-index:2;margin-bottom:'+unit(e.lane*10)+';background:'+e.color+'33;border-bottom:2px solid '+e.color+';color:#17202e;text-align:center;font-size:'+unit(eventSize)+';line-height:1.1;overflow-wrap:anywhere">'+text(e)+'</div>').join('');
+      const list=month.items.filter(e=>e.category!=='reference').map(e=>'<div data-poster-list-event="'+escapeText(e.id||e.title)+'" style="break-inside:avoid;margin-bottom:'+unit(2)+';overflow-wrap:anywhere"><b>'+dateLabel(e)+'</b> '+text(e)+'</div>').join('');
+      return '<section class="academic-poster-month" data-poster-month="'+month.year+'-'+String(month.month).padStart(2,'0')+'" style="min-width:0;min-height:0;display:flex;flex-direction:column;border:1px solid '+accent+';border-radius:'+unit(7)+';padding:'+unit(6)+';box-sizing:border-box;background:#ffffff">'+header+weekdays+'<div style="position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat('+month.rows+',minmax(0,1fr));height:62%;flex:none;min-height:0">'+days+ranges+'</div>'+(element.posterShowList===false?'':'<div class="academic-poster-month-list" style="flex:1;min-height:0;columns:2;column-gap:'+unit(8)+';column-rule:1px solid #d7dce5;border-top:1px solid '+accent+';padding-top:'+unit(4)+';margin-top:'+unit(3)+';font-size:'+unit(listSize)+';line-height:1.22;overflow:visible">'+list+'</div>')+'</section>';
+    }).join('')+'</div>';
+  }
+  function renderAnnualCalendarMarkup(annual, element = {}, context = {}) {
+    if(annual&&element.academicPoster===true)return renderPosterCalendarMarkup(annual,element,context.project);
     if (!annual) return "";
     const style=element.style||{},dateSize=Math.max(3,Math.min(36,Number(style.dateSize)||7)),titleSize=Math.max(5,Math.min(40,Number(style.titleSize)||10)),gridStyle=style.dayGridStyle||"none",line=hex(style.lineColor,"#d8dbe2"),holidayDates=new Set(element.holidayDates||[]),font=escapeText(String(style.fontFamily||"inherit").replace(/[;{}]/g,""));
     const unit=value=>Number(style.fontReferenceWidthPx)>0?(value/Number(style.fontReferenceWidthPx)*100)+"cqw":value+"px";
@@ -109,7 +134,7 @@
     else inner+=annual.months.map(renderMonth).join('');
     return inner+'</div>';
   }
-  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup});
+  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup, resolvePosterMonths, renderPosterCalendarMarkup});
 })(globalThis);
 
 
