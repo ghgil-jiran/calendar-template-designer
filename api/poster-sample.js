@@ -1,3 +1,3 @@
-import {assertInternalAccess,sendJson,sendError} from '../server/template-persistence.js';
+import {assertInternalAccess,readJson,sendJson,sendError} from '../server/template-persistence.js';
 import {installPosterSample} from '../server/poster-sample-installation.js';
-export default async function handler(req,res){try{await assertInternalAccess(req);if(req.method!=='POST'){res.setHeader('Allow','POST');return sendJson(res,405,{error:'METHOD_NOT_ALLOWED'})}return sendJson(res,200,await installPosterSample())}catch(error){return sendError(res,error)}}
+export default async function handler(req,res){try{await assertInternalAccess(req);if(req.method!=='POST'){res.setHeader('Allow','POST');return sendJson(res,405,{error:'METHOD_NOT_ALLOWED'})}const body=await readJson(req);if(body.pageCount!==undefined&&![1,2].includes(body.pageCount))return sendJson(res,400,{error:'INVALID_PAGE_COUNT'});return sendJson(res,200,await installPosterSample(undefined,body.pageCount||1))}catch(error){return sendError(res,error)}}

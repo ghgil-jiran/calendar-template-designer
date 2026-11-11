@@ -726,7 +726,8 @@
     project.template.userEditing={preset:'basic'};
     applyNewTemplateSampleDefaults(project);
     if (isPoster) {
-      project.book.pageInstances.push({ id: 'page.poster.annual', number: 1, side: 'front', role: 'poster-annual', masterId: 'master.poster.annual', calendarYear: options.year, calendarMonth: null, overrides: {} });
+      const count=Number(options.posterPageCount)===2?2:1;project.settings.posterPageCount=count;
+      for(let index=0;index<count;index++)project.book.pageInstances.push({id:index?'page.poster.annual.2':'page.poster.annual',number:index+1,side:'front',role:'poster-annual',masterId:'master.poster.annual',calendarYear:options.year,calendarMonth:null,posterMonthOffset:index*(12/count),overrides:{}});
     } else if (isDesk) {
       if (options.template === 'desk-sample-6' || options.template === 'desk-sample-3') {
         const specs = [
