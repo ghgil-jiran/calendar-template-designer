@@ -94,3 +94,9 @@ test('poster normalization discards desk topology without changing paper size or
  const value=domain.normalize(input);assert.equal(value.printSides,'simplex');assert.equal(value.ranges.frontInsert.max,0);assert.equal(value.policies.cover,'unsupported');assert.equal(value.finishedSize.width,300);assert.equal(value.status,'preparing');
  const invalid={...value,pageRules:[{role:'annual',kind:'required',min:3,max:3}]};assert.equal(domain.validate(invalid).valid,false);
 });
+
+
+test('poster page count survives database repeatBy null fields on readback',()=>{
+ const selected=domain.definition('poster-two-page'),loaded=JSON.parse(JSON.stringify(selected));loaded.pageRules[0].repeatBy=null;
+ assert.equal(domain.posterPageCount(loaded),domain.posterPageCount(selected));assert.equal(domain.validate(loaded).valid,true);
+});
