@@ -1,4 +1,5 @@
 import {assertNativeProject,fieldsForProject,photoSlotsForProject,type NativeProject} from '../lib/materials/native-project.ts';
+import {majorPageNumbers,calendarKind} from '../lib/materials/template-preview.ts';
 import type {CatalogResponse,TemplateCard} from '../lib/api/contracts';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function createPublishedReader(settings:{url:string;key:string;fetcher?:typeof fetch}){
@@ -15,7 +16,7 @@ async function publishedRows(id?:string){
 function card(row:NativeProject,version:NativeProject):TemplateCard{
  const p=version.project_data;assertNativeProject(p);const pages=p.book.pageInstances,thumbnail=p.template.thumbnail;
  const cover=typeof thumbnail==='string'?thumbnail:thumbnail?.dataUrl||thumbnail?.src||null;
- return {id:row.id,version:Number(version.version_number),name:row.name,description:/사계절.*산수/.test(row.name)?'사계절 산수 배경에 학교 사진과 학사일정을 담아, 우리 학교의 일 년을 따뜻하게 전해요.':/플라워|꽃/.test(row.name)?'꽃의 계절감과 학교 사진이 어우러져, 우리 학교의 일 년을 화사하게 담아요.':`학교 사진과 학사일정을 담아 우리 학교의 일 년을 완성하는 ${pages.length}면 탁상달력이에요.`,note:`${p.productType.pageSize.width} × ${p.productType.pageSize.height} mm · 표지부터 월별 페이지까지 살펴보세요.`,previewKind:'published',sourceUrl:`/api/workspace/templates/${row.id}?version=${version.version_number}`,coverUrl:cover,representativePages:pages.map((_:unknown,i:number)=>i+1).filter((_:unknown,i:number)=>[1,2,3,4].includes(i)),pageCount:pages.length,widthMm:p.productType.pageSize.width,heightMm:p.productType.pageSize.height,period:`${p.settings.year}년 ${p.settings.startMonth||1}월부터`,pages:pages.map((page:NativeProject,i:number)=>({number:i+1,label:page.label||(page.calendarMonth?`${page.calendarMonth}월 ${String(page.role).endsWith('front')?'월력 앞면':'월력 뒷면'}`:page.role==='cover-front'?'표지':page.semanticPageRole==='school-symbols'?'학교 상징':`달력 ${i+1}면`),imageUrl:null})),composition:[{label:'전체',count:pages.length}],fields:fieldsForProject(p),photoSlots:photoSlotsForProject(p),photoGuide:'교체할 수 있는 사진 영역에 준비한 사진을 배정해 주세요.'};
+ return {calendarKind:calendarKind(p),majorPages:majorPageNumbers(pages),id:row.id,version:Number(version.version_number),name:row.name,description:/사계절.*산수/.test(row.name)?'사계절 산수 배경에 학교 사진과 학사일정을 담아, 우리 학교의 일 년을 따뜻하게 전해요.':/플라워|꽃/.test(row.name)?'꽃의 계절감과 학교 사진이 어우러져, 우리 학교의 일 년을 화사하게 담아요.':`학교 사진과 학사일정을 담아 우리 학교의 일 년을 완성하는 ${pages.length}면 탁상달력이에요.`,note:`${p.productType.pageSize.width} × ${p.productType.pageSize.height} mm · 표지부터 월별 페이지까지 살펴보세요.`,previewKind:'published',sourceUrl:`/api/workspace/templates/${row.id}?version=${version.version_number}`,coverUrl:cover,representativePages:pages.map((_:unknown,i:number)=>i+1).filter((_:unknown,i:number)=>[1,2,3,4].includes(i)),pageCount:pages.length,widthMm:p.productType.pageSize.width,heightMm:p.productType.pageSize.height,period:`${p.settings.year}년 ${p.settings.startMonth||1}월부터`,pages:pages.map((page:NativeProject,i:number)=>({number:i+1,label:page.label||(page.calendarMonth?`${page.calendarMonth}월 ${String(page.role).endsWith('front')?'월력 앞면':'월력 뒷면'}`:page.role==='cover-front'?'표지':page.semanticPageRole==='school-symbols'?'학교 상징':`달력 ${i+1}면`),imageUrl:null})),composition:[{label:'전체',count:pages.length}],fields:fieldsForProject(p),photoSlots:photoSlotsForProject(p),photoGuide:'교체할 수 있는 사진 영역에 준비한 사진을 배정해 주세요.'};
 }
 async function publishedCatalog():Promise<CatalogResponse>{
  const templates=await publishedRows(),ids=[...new Set(templates.map(r=>r.latest_version_id).filter(x=>uuid.test(x)))],versions:NativeProject[]=[];
@@ -23,7 +24,15 @@ async function publishedCatalog():Promise<CatalogResponse>{
  const cards=templates.flatMap(row=>{const version=versions.find(v=>v.id===row.latest_version_id&&v.template_id===row.id);return version?[card(row,version)]:[]});
  await Promise.all(cards.map(async item=>{
   const record=versions.find(v=>v.template_id===item.id&&Number(v.version_number)===item.version);
-  await storedPreviews(item,record?.project_data);
+  const saved=record?.project_data?.template?.savedPagePreviews;
+  if(saved){
+   item.coverUrl=null;
+   if(saved.schemaVersion==='saved-page-previews.v1'&&saved.editorVersion===item.version){
+    const previewData=await hydrate({pages:saved.pages});
+    for(const entry of previewData.pages||[]){const index=record.project_data.book.pageInstances.findIndex((p:NativeProject)=>p.id===entry.pageId);if(index>=0&&typeof entry.dataUrl==='string')item.pages[index].imageUrl=entry.dataUrl;}
+    if(item.pages[0]?.imageUrl)item.coverUrl=item.pages[0].imageUrl;
+   }
+  }else await storedPreviews(item,record?.project_data);
   if(item.coverUrl?.startsWith('acdl-asset://')){const hydrated=await hydrate({image:item.coverUrl});item.coverUrl=hydrated.image;}
  }));
  return {mode:'published' as const,notice:'게시된 템플릿입니다. 입력 자료의 서버 저장·로그인 연결은 준비 중입니다.',templates:cards};
@@ -36,7 +45,7 @@ async function storedPreviews(item:TemplateCard,project:NativeProject){
  if(preview&&(preview.templateId!==identity.templateId||preview.version!==identity.version))return;
  const [record]=await rows(`template_packages?select=template_id,version,package_sha256,manifest&template_id=eq.${encodeURIComponent(identity.templateId)}&version=eq.${encodeURIComponent(identity.version)}&limit=1`);
  if(!record||record.template_id!==identity.templateId||record.version!==identity.version||record.package_sha256!==identity.sha256)return;
- const manifest=record.manifest;if(manifest?.templateId!==identity.templateId||manifest?.version!==identity.version)return;
+ const manifest=record.manifest;if(manifest?.sourceEditorRevision!==item.version){item.coverUrl=null;return;}if(manifest?.templateId!==identity.templateId||manifest?.version!==identity.version)return;
  const prefix=`${identity.templateId}/${identity.version}/assets/`,assets=manifest.assets||[],pages=project.book.pageInstances;
  const entries=(manifest.pagePreviews?.pages||[]).filter((entry:NativeProject)=>Number.isInteger(entry.index)&&entry.index>=0&&(entry.index===0||item.representativePages.includes(entry.index+1))&&entry.index<pages.length&&entry.pageId===pages[entry.index].id);
  await Promise.all(entries.map(async(entry:NativeProject)=>{

@@ -9,6 +9,8 @@ export type SchoolField = {
   hint?: string;
 };
 export type TemplateCard = {
+  calendarKind?: 'desk' | 'poster';
+  majorPages?: number[];
   id: string;
   version: number;
   name: string;

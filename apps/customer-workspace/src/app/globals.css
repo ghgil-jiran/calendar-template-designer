@@ -550,3 +550,5 @@ img {max-width: 100%;}
 .hero-showcase.hero-photo {aspect-ratio:3 / 2; padding:0;}
 .hero-showcase.hero-photo .hero-art {display:block; width:100%;}
 .hero-showcase.hero-photo .hero-art > img:first-child {display:block; width:100%; height:auto; aspect-ratio:3 / 2; object-fit:contain; border-radius:0; box-shadow:none;}
+
+.catalog-filters{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.catalog-filters button[aria-pressed="true"]{background:var(--color-primary,#2563eb);color:white}.all-pages-button{display:block;margin:16px auto 0}.schedule-warning-backdrop{position:fixed;inset:0;background:#17202e88;z-index:90;display:grid;place-items:center;padding:24px}.schedule-warning-dialog{background:var(--color-panel,#fff);border-radius:16px;padding:24px;max-width:760px;width:100%;max-height:85vh;overflow:auto}.schedule-warning-dialog header{display:flex;justify-content:space-between;align-items:center}.schedule-warning-dialog li{margin:12px 0}
