@@ -33,7 +33,7 @@
   function renderMiniCalendarMarkup(model, options = {}) {
     if (!model || !Array.isArray(model.cells) || !Array.isArray(model.headers)) return "";
     const s = options.style || {};
-    const css = `--mini-title-align:${align(s.titleAlign || (options.sampleFamily === "desk-3" ? "left" : "center"))};--mini-title-size:${Math.max(5,Math.min(40,Number(s.titleSize)||11))}px;--mini-primary:${hex(s.primary,"#293878")};--mini-weekday:${hex(s.weekdayColor,"#7a8291")};--mini-date:${hex(s.dateColor,"#293878")};--mini-sunday:${hex(s.sunday,"#ef3340")};--mini-saturday:${hex(s.saturday,"#4777bd")};--mini-line:${hex(s.lineColor,"#d8dbe2")};`;
+    const css = `--mini-date-size:${Math.max(3,Math.min(36,Number(s.dateSize)||7))}px;--mini-title-align:${align(s.titleAlign || (options.sampleFamily === "desk-3" ? "left" : "center"))};--mini-title-size:${Math.max(5,Math.min(40,Number(s.titleSize)||11))}px;--mini-primary:${hex(s.primary,"#293878")};--mini-weekday:${hex(s.weekdayColor,"#7a8291")};--mini-date:${hex(s.dateColor,"#293878")};--mini-sunday:${hex(s.sunday,"#ef3340")};--mini-saturday:${hex(s.saturday,"#4777bd")};--mini-line:${hex(s.lineColor,"#d8dbe2")};`;
     const label = s.titleStyle === "editorial-photo" ? `<span style="font-size:32px;line-height:1">${model.month}</span><small style="font-size:11px;margin-left:8px">${["January","February","March","April","May","June","July","August","September","October","November","December"][model.month-1]} · ${model.year}</small>` : options.monthLabelStyle === "number-en"
       ? `${model.month} <small>${["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][model.month-1]}</small>`
       : escapeText(model.label);

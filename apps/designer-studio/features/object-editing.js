@@ -156,7 +156,7 @@ function monthlyQuoteForPage(p=selectedPage()){ensureMonthlyQuotes();const key=m
 function renderWidgetContent(view,p){
  if(["mini-calendar","mini-calendar-prev","mini-calendar-next"].includes(view.type)){
   const model=window.ACDLSharedMiniCalendar.resolveMiniCalendar({...view,weekStart:project.settings.weekStart,calendarRows:project.settings.calendarRows,calendarRowsMode:project.settings.calendarRowsMode,sampleFamily:project.template?.metadata?.sampleFamily},p,{year:project.settings.year,startMonth:project.settings.startMonth||1});
-  return window.ACDLSharedMiniCalendar.renderMiniCalendarMarkup(model,{style:view.style,monthLabelStyle:view.monthLabelStyle,sampleFamily:project.template?.metadata?.sampleFamily,holidayDates:(project.book.events||[]).filter(event=>event.category==="holiday").map(event=>event.startDate)});
+  return window.ACDLSharedMiniCalendar.renderMiniCalendarMarkup(model,{style:view.style,monthLabelStyle:view.monthLabelStyle,sampleFamily:project.template?.metadata?.sampleFamily,holidayDates:window.ACDLSharedMemo.projectHolidayDates(project)});
  }
  if(view.type==="year-calendar"){
   const annual=window.ACDLSharedMiniCalendar.resolveAnnualCalendar({...view,weekStart:project.settings.weekStart},p,{year:project.settings.year,startMonth:1,calendarRows:project.settings.calendarRows,calendarRowsMode:project.settings.calendarRowsMode,sampleFamily:project.template?.metadata?.sampleFamily,weekStart:project.settings.weekStart});
