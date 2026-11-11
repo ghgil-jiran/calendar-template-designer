@@ -8,3 +8,9 @@
 .shared-screen-mini-calendar .mini-grid .sun,.shared-screen-mini-calendar .mini-grid .holiday{color:var(--mini-sunday,#ef3340)!important;font-weight:750}
 .shared-screen-mini-calendar .mini-grid .sat:not(.holiday){color:var(--mini-saturday,#4777bd)!important;font-weight:750}
 .shared-screen-mini-calendar.mini-grid-lines .mini-grid span{border-bottom:1px solid color-mix(in srgb,var(--mini-primary,#293878) 18%,transparent)}
+
+.shared-screen-mini-calendar.mini-reference-photo{background:transparent;border:0;border-radius:0;padding:0;overflow:visible}
+.shared-screen-mini-calendar.mini-reference-photo strong{display:flex;align-items:baseline;justify-content:flex-start;text-align:left;margin-bottom:var(--mini-title-gap);line-height:1.1}
+.shared-screen-mini-calendar.mini-reference-photo .mini-grid{row-gap:var(--mini-row-gap);font-weight:var(--mini-date-weight,300)}
+.shared-screen-mini-calendar.mini-reference-photo .mini-grid .sun,.shared-screen-mini-calendar.mini-reference-photo .mini-grid .sat,.shared-screen-mini-calendar.mini-reference-photo .mini-grid .holiday{font-weight:inherit}
+.shared-screen-mini-calendar.mini-bottom-rule{border-bottom:var(--mini-rule-width,1px) solid var(--mini-line);padding-bottom:var(--mini-rule-gap,8px)}
