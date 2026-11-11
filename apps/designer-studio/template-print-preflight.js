@@ -6,9 +6,9 @@
  // Scope these keys to calendar objects; unrelated objects must still report unknown styles.
  const WIDGET_STYLE_KEYS={
   'month-date-strip':new Set(['stripStyle']),
-  'mini-calendar':new Set(['titleStyle','dateSize','dayGridStyle']),
-  'mini-calendar-prev':new Set(['titleStyle','dateSize','dayGridStyle']),
-  'mini-calendar-next':new Set(['titleStyle','dateSize','dayGridStyle']),
+  'mini-calendar':new Set(['titleStyle','dateSize','dayGridStyle','preset','monthNumberSize','monthEnglishSize','monthNumberFontFamily','monthEnglishFontFamily','dateFontFamily','titleGap','rowGap','dateWeight','ruleWidth','ruleGap','bottomRule']),
+  'mini-calendar-prev':new Set(['titleStyle','dateSize','dayGridStyle','preset','monthNumberSize','monthEnglishSize','monthNumberFontFamily','monthEnglishFontFamily','dateFontFamily','titleGap','rowGap','dateWeight','ruleWidth','ruleGap','bottomRule']),
+  'mini-calendar-next':new Set(['titleStyle','dateSize','dayGridStyle','preset','monthNumberSize','monthEnglishSize','monthNumberFontFamily','monthEnglishFontFamily','dateFontFamily','titleGap','rowGap','dateWeight','ruleWidth','ruleGap','bottomRule']),
   'year-calendar':new Set(['monthNumberSize','monthEnglishSize','monthNumberFontFamily','columnGap','rowGap','dateSize','dayGridStyle','monthBorderWidth','containerBorderWidth','containerBorderColor','showAdjacentMonths']),
   'event-list':new Set(['titleBackground','contentBackground','containerBackground','containerBorderRadius','containerBorderWidth','containerBorderColor','titlePosition']),
   'monthly-schedule':new Set(['titleBackground','contentBackground','containerBackground','containerBorderRadius','containerBorderWidth','containerBorderColor','titlePosition']),
