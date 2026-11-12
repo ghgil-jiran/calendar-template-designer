@@ -99,6 +99,10 @@
     "api/sample-c-installation.js": {
       "maxDuration": 300,
       "includeFiles": "assets/sample-c/*"
+    },
+    "api/sample-d-installation.js": {
+      "maxDuration": 300,
+      "includeFiles": "assets/sample-d-v4/*"
     }
   }
 }
