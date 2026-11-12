@@ -24,7 +24,7 @@ for entry in manifest['documents']:
             visited.add(key)
             value = value.get_object()
         if isinstance(value, NameObject):
-            assert value not in ['/DeviceRGB', '/CalRGB', '/DefaultRGB'], (entry['file'], value)
+            assert value not in ['/DeviceRGB', '/CalRGB', '/DefaultRGB', '/Indexed', '/Separation', '/DeviceN', '/Lab', '/Pattern'], (entry['file'], value)
         elif isinstance(value, dict):
             for item in value.values():
                 check(item)
@@ -44,6 +44,8 @@ for entry in manifest['documents']:
         assert abs(float(page.mediabox.height) - size['heightPt']) < .002
         for operands, operator in page.get_contents().operations:
             assert operator not in [b'rg', b'RG'], (entry['file'], 'RGB page paint')
+    for number in reader.xref.get(0, {}):
+        check(IndirectObject(number, 0, reader))
     pages += len(reader.pages)
     print(entry['file'], len(reader.pages), 'pages: CMYK/Gray only; hashes and page boxes verified')
 assert pages == 28

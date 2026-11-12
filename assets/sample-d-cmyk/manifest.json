@@ -1,48 +1,51 @@
 {
-  "revision": "sample-d-cmyk-v1",
+  "revision": "sample-d-cmyk-v2",
   "templateId": "8fab8b4c-6164-42cc-8cb8-9cff61ca39d0",
   "documents": [
     {
       "file": "annual.pdf",
       "sourceSha256": "c1be1720a9753244f5d774f99449bfa84d668b43c010cc641aa29999c7ab4f3c",
-      "sha256": "a7edc2f4806224c3c2756c765432f3e83479fe2a37343a718b349d6b94d45fbc",
-      "byteSize": 9495,
+      "sha256": "61783a907ed285e902956135db59518574399fefc5513b993f3dbe7457caa67b",
+      "byteSize": 12028,
       "pages": [
         {
           "widthPt": 754.0159912109375,
           "heightPt": 527.2440185546875
         }
-      ]
+      ],
+      "previousSha256": "a7edc2f4806224c3c2756c765432f3e83479fe2a37343a718b349d6b94d45fbc"
     },
     {
       "file": "back-cover.pdf",
       "sourceSha256": "1c2540b576b813a8440319434833bd26fce015194d56d58384121c3e37e6a1c6",
-      "sha256": "b0c53ddb5dd4f91233f121480016d4e8f4f7656eba312bcb3638ed7ba3a1f50e",
-      "byteSize": 10275,
+      "sha256": "370f8a9b68ea181c4cbb9cf8b7de5ed8f21690408aa5cb20f5a990b3b49768df",
+      "byteSize": 12808,
       "pages": [
         {
           "widthPt": 754.0159912109375,
           "heightPt": 527.2440185546875
         }
-      ]
+      ],
+      "previousSha256": "b0c53ddb5dd4f91233f121480016d4e8f4f7656eba312bcb3638ed7ba3a1f50e"
     },
     {
       "file": "cover-original.pdf",
       "sourceSha256": "be17a2bc815d74afaf2c45c61ba2ed4bca4a33d4586e61caf85afa847f091e5b",
-      "sha256": "1c02230d9bd620d12f45729d6ccfc4a1309e78057b8ba2d45ff2363739843709",
-      "byteSize": 11220,
+      "sha256": "e317d8ae10c3dbab070033f4ed22824556ed8e7ca2cac1079cd51fcd202a3345",
+      "byteSize": 13752,
       "pages": [
         {
           "widthPt": 754.0159912109375,
           "heightPt": 527.2440185546875
         }
-      ]
+      ],
+      "previousSha256": "1c02230d9bd620d12f45729d6ccfc4a1309e78057b8ba2d45ff2363739843709"
     },
     {
       "file": "month-front-backgrounds.pdf",
       "sourceSha256": "261e4904c7cbf1c257925d8b2e2719399f73a80455baf3c7c58cc2cd0f1f2b4f",
-      "sha256": "9c97eb4ed4c0fd9d87b7e26d830f18482e311d61600e6f485265ca08daeaa4e0",
-      "byteSize": 36438,
+      "sha256": "4ac848c47865c93f2ed93157bf9102ede7957ca9630eb5209dc2244414ebb3af",
+      "byteSize": 35777,
       "pages": [
         {
           "widthPt": 754.0159912109375,
@@ -92,19 +95,21 @@
           "widthPt": 754.0159912109375,
           "heightPt": 527.2440185546875
         }
-      ]
+      ],
+      "previousSha256": "9c97eb4ed4c0fd9d87b7e26d830f18482e311d61600e6f485265ca08daeaa4e0"
     },
     {
       "file": "symbols.pdf",
       "sourceSha256": "44f8c9035402898e718f0c11339d8f6cbd6acc4195a337f9bd20572191392deb",
-      "sha256": "e7e513a577655f5424d933ce105b843a08ae8d849f4b2247e626353fad2bbba8",
-      "byteSize": 10089,
+      "sha256": "96ebfd941cae4b3f9dee05671378a6807bcd9642599bffc46b16847836bb01ec",
+      "byteSize": 12622,
       "pages": [
         {
           "widthPt": 754.0159912109375,
           "heightPt": 527.2440185546875
         }
-      ]
+      ],
+      "previousSha256": "e7e513a577655f5424d933ce105b843a08ae8d849f4b2247e626353fad2bbba8"
     },
     {
       "file": "planner.pdf",

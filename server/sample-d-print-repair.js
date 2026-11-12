@@ -5,12 +5,12 @@ import {pdfPackageOperation} from './graphic-pdf-package.js';
 import {getTemplate,saveVersion} from './template-persistence.js';
 const files=name=>readFile(new URL('../assets/sample-d-cmyk/'+name,import.meta.url));
 const hash=b=>createHash('sha256').update(b).digest('hex');
-const STATE='template-installations/sample-d-cmyk-v1.json';
+const STATE='template-installations/sample-d-cmyk-v2.json';
 let pending;
 export function repairSampleDPrint(body,deps={}){const run=()=>step(body,deps),result=(pending||Promise.resolve()).catch(()=>{}).then(run);pending=result;return result.finally(()=>{if(pending===result)pending=null;});}
 export function replacePrintSources(project,manifest,state){
  const updated=structuredClone(project);let changed=0,remaining=0;
- function walk(v){if(!v||typeof v!=='object')return;if(v.pdfSource){const ref=v.pdfSource,entry=manifest.documents.find(e=>e.sourceSha256===ref.sha256);if(entry){const saved=state?.documents?.[entry.file];if(!saved?.done){remaining++;}else{const page=entry.pages[ref.pageNumber-1];if(!page)throw Error('인쇄 배경 페이지 번호가 맞지 않습니다.');v.pdfSource={...ref,documentId:saved.id,sha256:entry.sha256,byteSize:entry.byteSize,widthPt:page.widthPt,heightPt:page.heightPt};v.packageId=state.packageId;delete v.graphicId;delete v.packageRevision;changed++;}}}for(const value of Object.values(v))walk(value);}
+ function walk(v){if(!v||typeof v!=='object')return;if(v.pdfSource){const ref=v.pdfSource,entry=manifest.documents.find(e=>e.sourceSha256===ref.sha256||(e.previousSha256&&e.previousSha256!==e.sha256&&e.previousSha256===ref.sha256));if(entry){const saved=state?.documents?.[entry.file];if(!saved?.done){remaining++;}else{const page=entry.pages[ref.pageNumber-1];if(!page)throw Error('인쇄 배경 페이지 번호가 맞지 않습니다.');v.pdfSource={...ref,documentId:saved.id,sha256:entry.sha256,byteSize:entry.byteSize,widthPt:page.widthPt,heightPt:page.heightPt};v.packageId=state.packageId;delete v.graphicId;delete v.packageRevision;changed++;}}}for(const value of Object.values(v))walk(value);}
  walk(updated);return {project:updated,changed,remaining};
 }
 async function step(body,{d=graphicPdfDependencies,createPackage=createGraphicPackage,pdf=pdfPackageOperation,get=getTemplate,save=saveVersion}={}){
