@@ -364,3 +364,16 @@ test('DPI-only failure unlocks output selection without claiming final print app
  assert.equal(report.gates[3].status,'review');assert.equal(report.gates[3].warnings,1);assert.equal(report.gates[4].access,'available');assert.equal(report.finalApproved,false);assert.equal(report.aiImageInspection.criteria[2].status,'failed');
  criteria[1].status='failed';const blocked=analyze(project(),{printOutput:output});assert.equal(blocked.gates[3].status,'blocked');assert.equal(blocked.gates[4].access,'locked');
 });
+
+test('built-in inline contact metadata is cataloged on bound school contact text and leaves unknown styles visible',()=>{
+ const p=project();p.book.elementsByPage.cover=[{id:'contact',type:'text',binding:'school.contacts',style:{inlineContacts:true,fontSize:7}}];
+ const before=JSON.stringify(p);assert.equal(analyze(p).issues.some(i=>i.code==='STYLE_NOT_CATALOGED'),false);assert.equal(JSON.stringify(p),before);assert.ok(globalThis.ACDLTemplatePrintPreflight.catalog.contactTextStyleKeys.includes('inlineContacts'));
+ p.book.elementsByPage.cover[0].style.unknownContactStyle=true;assert.equal(analyze(p).issues.filter(i=>i.code==='STYLE_NOT_CATALOGED').length,1);
+ delete p.book.elementsByPage.cover[0].style.unknownContactStyle;p.book.elementsByPage.cover[0].binding='school.name';assert.equal(analyze(p).issues.filter(i=>i.code==='STYLE_NOT_CATALOGED').length,1);
+ p.book.elementsByPage.cover[0].binding='school.contacts';p.book.elementsByPage.cover[0].style.inlineContacts='unknown';assert.equal(analyze(p).issues.filter(i=>i.code==='STYLE_NOT_CATALOGED').length,1);
+});
+test('Sample D authoring and serialized reopen no longer emit the two inlineContacts warnings',()=>{
+ const p=JSON.parse(fs.readFileSync(new URL('../assets/sample-d-v4/project.json',import.meta.url),'utf8'));
+ assert.equal(Object.values(p.book.elementsByPage).flat().filter(e=>e.style?.inlineContacts===true).length,2);
+ for(const source of [p,JSON.parse(JSON.stringify(p))])assert.equal(analyze(source).issues.filter(i=>i.code==='STYLE_NOT_CATALOGED'&&i.message.includes('inlineContacts')).length,0);
+});
