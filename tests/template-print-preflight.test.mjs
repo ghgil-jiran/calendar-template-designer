@@ -356,3 +356,11 @@ test('month date strip style is cataloged for all twelve months without suppress
  assert.equal(warnings.length,1);
  assert.match(warnings[0].path,/style\.stripStyle$/);
 });
+
+test('DPI-only failure unlocks output selection without claiming final print approval',()=>{
+ const criteria=['identity','frameSuitability','effectiveResolution','placementIntegrity','visualArtifacts'].map(key=>({key,status:key==='effectiveResolution'?'failed':'passed'}));
+ const output={artifact:{status:'done'},artifactVerified:true,contentParity:{status:'passed'},templateImageInspection:{status:'blocked',criteria}};
+ const report=analyze(project(),{printOutput:output});
+ assert.equal(report.gates[3].status,'review');assert.equal(report.gates[3].warnings,1);assert.equal(report.gates[4].access,'available');assert.equal(report.finalApproved,false);assert.equal(report.aiImageInspection.criteria[2].status,'failed');
+ criteria[1].status='failed';const blocked=analyze(project(),{printOutput:output});assert.equal(blocked.gates[3].status,'blocked');assert.equal(blocked.gates[4].access,'locked');
+});
