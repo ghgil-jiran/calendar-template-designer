@@ -43,6 +43,7 @@
  }
  function assertAIDesignIntegrity(projectData){const integrity=aiDesignIntegrity(projectData);if(integrity.expectsBackgrounds&&(!integrity.resourceCount||!integrity.backgroundCount||integrity.resolvedBackgroundCount!==integrity.backgroundCount))throw Object.assign(new Error('AI 디자인 배경이 완전하지 않아 템플릿을 저장하거나 열 수 없습니다.'),{code:'AI_DESIGN_INCOMPLETE',integrity});return projectData}
  async function prepareProjectData(projectData,{onProgress,concurrency=4}={}){
+  root.ACDLSharedMiniCalendar?.normalizePosterProject(projectData);
   const copy=assertAIDesignIntegrity(materializeAIDesignBackgrounds(structuredClone(projectData))),images=new Set();visit(copy,value=>{if(value.startsWith('data:image/'))images.add(value)});const replacements=new Map(signedToMarker);
   const pending=[...images],total=pending.length;let completed=0,next=0;onProgress?.({phase:'assets',completed,total});
   const worker=async()=>{while(next<total){const index=next++,dataUrl=pending[index],result=await request('/api/template-assets',{method:'POST',body:JSON.stringify({dataUrl})});replacements.set(dataUrl,`acdl-asset://${result.asset.id}`);completed+=1;onProgress?.({phase:'assets',completed,total})}};

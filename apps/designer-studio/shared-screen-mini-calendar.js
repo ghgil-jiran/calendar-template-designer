@@ -86,10 +86,42 @@
     });
     return { baseYear, startMonth, columns, layout, groupSize, showWeekdayHeader: element?.showWeekdayHeader !== false, months };
   }
+  function posterDefaults(element){
+    const two=Number(element.monthCount)===6;
+    return {dateSize:two?13:10,titleSize:two?28:22,eventSize:two?6:5,listSize:two?7:6,referenceSize:two?5.5:4.5};
+  }
+  function normalizePosterElement(element){
+    if(!element?.academicPoster||element.posterPolicyVersion===2)return element;
+    const d=posterDefaults(element);element.style||={};
+    // Migrate the old shipped sizes once. Explicitly authored sizes remain intact.
+    for(const [key,legacy,value] of [['dateSize',[15,18,21],d.dateSize],['titleSize',[22,24,27,30],d.titleSize]])if(element.style[key]==null||legacy.includes(Number(element.style[key])))element.style[key]=value;
+    for(const [key,legacy,value] of [['posterEventSize',[6,7.5,8],d.eventSize],['posterListSize',[7.5,10.5],d.listSize]])if(element[key]==null||legacy.includes(Number(element[key])))element[key]=value;
+    element.posterReferenceSize??=d.referenceSize;
+    element.posterColorMode??='monthly';
+    element.posterReferenceLayout??='inherit';
+    element.posterPolicyVersion=2;return element;
+  }
+  function normalizePosterProject(project){
+    if(project?.productType?.category!=='poster'||project.productionCorrection)return project;
+    for(const items of [...Object.values(project.template?.masterElements||{}),...Object.values(project.book?.elementsByPage||{})])for(const item of Array.isArray(items)?items:[])normalizePosterElement(item);
+    return project;
+  }
+  function posterPlacementKey(item){
+    if(!item||Number(item.y)>16)return '';
+    const binding=item.bindingEnabled===false?'':item.image?.binding||item.binding||'';
+    if(item.role==='school-logo'||binding==='school.profile.logo')return 'logo';
+    if(item.type==='text'&&(binding==='calendar.year'||binding.startsWith('school.')))return binding;
+    if(item.type==='text'&&!binding&&/학사|달력|일정/.test(item.content||''))return 'heading:'+item.content;
+    return '';
+  }
+  function applyPosterPlacement(project,pageId,item){
+    const key=posterPlacementKey(item);if(project?.productType?.category!=='poster'||!key)return 0;
+    let count=0;for(const page of project.book.pageInstances||[])if(page.id!==pageId)for(const other of [...(project.template?.masterElements?.[page.masterId]||[]),...(project.book.elementsByPage?.[page.id]||[])])if(posterPlacementKey(other)===key){for(const k of ['x','y','width','height'])other[k]=item[k];count++;}return count;
+  }
   function resolvePosterMonths(annual, element, project) {
     const options=project?.settings?.calendarData||{},book=project?.book||{},events=(book.events||[]).filter(e=>e.startDate&&e.title),categories=new Map((project?.template?.resources?.eventCategories||[]).map(c=>[c.id,c.color]));
     const references=[];
-    for(const year of Object.values(book.calendarReference?.years||{}))for(const [key,enabled] of [['public_holiday',options.includeHolidays],['anniversary',options.includeAnniversaries],['solar_term',options.includeSolarTerms],['lunar',options.includeLunar]])if(enabled!==false)for(const item of year[key]?.items||[])if(item.date&&item.name)references.push({id:'ref.'+key+'.'+item.date+'.'+item.name,startDate:item.date,endDate:item.date,title:item.name,category:key==='public_holiday'&&item.isHoliday!==false?'holiday':'reference',reference:true,referenceKind:key==='public_holiday'?(item.isHoliday===false?'anniversaries':'holidays'):{anniversary:'anniversaries',solar_term:'solarTerms',lunar:'lunars'}[key]});
+    for(const year of Object.values(book.calendarReference?.years||{}))for(const [key,enabled] of [['public_holiday',options.includeHolidays],['anniversary',options.includeAnniversaries],['solar_term',options.includeSolarTerms],['lunar',options.includeLunar]])if(enabled!==false||key==='public_holiday')for(const item of year[key]?.items||[])if(item.date&&item.name&&!(key==='public_holiday'&&(item.isHoliday===false?options.includeAnniversaries===false:options.includeHolidays===false)))references.push({id:'ref.'+key+'.'+item.date+'.'+item.name,startDate:item.date,endDate:item.date,title:item.name,category:key==='public_holiday'&&item.isHoliday!==false?'holiday':'reference',reference:true,referenceKind:key==='public_holiday'?(item.isHoliday===false?'anniversaries':'holidays'):{anniversary:'anniversaries',solar_term:'solarTerms',lunar:'lunars'}[key]});
     const all=[],seen=new Set();for(const e of [...events,...references]){if(e.category==='holiday'&&options.includeHolidays===false)continue;const key=e.startDate+'|'+(e.endDate||e.startDate)+'|'+String(e.title).replace(/\s/g,'');if(seen.has(key))continue;seen.add(key);all.push({...e,endDate:e.endDate||e.startDate,color:hex(e.color||categories.get(e.category),'#dce9f0')})}
     return annual.months.map(month=>{
       const first=`${month.year}-${String(month.month).padStart(2,'0')}-01`,last=`${month.year}-${String(month.month).padStart(2,'0')}-${new Date(Date.UTC(month.year,month.month,0)).getUTCDate()}`,items=all.filter(e=>e.startDate<=last&&e.endDate>=first).sort((a,b)=>a.startDate.localeCompare(b.startDate)||a.title.localeCompare(b.title)),ranges=[];
@@ -98,10 +130,11 @@
     });
   }
   function renderPosterCalendarMarkup(annual,element,project){
+    element=normalizePosterElement(structuredClone(element));
     const months=resolvePosterMonths(annual,element,project),s=element.style||{},unit=n=>(Number(n)/10)+'cqw',dateSize=Number(s.dateSize)||18,titleSize=Number(s.titleSize)||27,eventSize=Number(element.posterEventSize)||7.5,listSize=Number(element.posterListSize)||10.5,columns=annual.columns,colors=element.posterColors||['#e9bccb','#b3d3e5','#b9d6c2','#cfc2df'];
     const text=e=>escapeText(e.title),dateLabel=e=>{const a=e.startDate.slice(5).replace('-','/'),b=e.endDate.slice(5).replace('-','/');return a+(e.endDate>e.startDate?'–'+b:'')};
     return '<div class="academic-poster-grid" data-poster-months="'+months.length+'" style="width:100%;height:100%;display:grid;grid-template-columns:repeat('+columns+',minmax(0,1fr));grid-template-rows:repeat('+Math.ceil(months.length/columns)+',minmax(0,1fr));column-gap:'+unit(s.columnGap??20)+';row-gap:'+unit(s.rowGap??20)+';font-family:inherit">'+months.map((month,index)=>{
-      const accent=hex(colors[Math.floor(index/columns)%colors.length],'#b3d3e5'),holidayDates=new Set(month.items.filter(e=>e.category==='holiday').map(e=>e.startDate)),tone=cell=>cell.weekday===0||holidayDates.has(cell.date)?hex(s.sunday,'#d92d20'):cell.weekday===6?hex(s.saturday,'#175cd3'):hex(s.dateColor,'#17202e');
+      const accent=hex((element.posterColorMode==='rows'?colors[Math.floor(index/columns)%colors.length]:element.posterMonthColors?.[String(month.month)]||colors[index%colors.length]),'#b3d3e5'),holidayDates=new Set(month.items.filter(e=>e.category==='holiday').map(e=>e.startDate)),tone=cell=>cell.weekday===0||holidayDates.has(cell.date)?hex(s.sunday,'#d92d20'):cell.weekday===6?hex(s.saturday,'#175cd3'):hex(s.dateColor,'#17202e');
       const referenceTone=e=>{
         if(!e.reference&&e.category!=='holiday')return '#344054';
         const weekday=new Date(e.startDate+'T00:00:00Z').getUTCDay(),kind=e.referenceKind||(e.category==='holiday'?'holidays':'anniversaries');
@@ -109,8 +142,15 @@
       };
       const header='<header style="background:'+accent+';border-radius:'+unit(5)+';padding:'+unit(3)+';text-align:center;font-weight:800;font-size:'+unit(titleSize)+';line-height:1.1;color:#17202e">'+(month.transition?'<small style="font-size:.6em">'+month.year+' </small>':'')+month.month+' <small style="font-size:.48em">'+['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][month.month-1]+'</small></header>';
       const weekdays='<div style="display:grid;grid-template-columns:repeat(7,1fr);font-size:'+unit(10)+';text-align:center;font-weight:700;line-height:1.4;margin-top:'+unit(3)+'">'+month.headers.map((name,col)=>{const weekday=project?.settings?.weekStart==='monday'?(col+1)%7:col;return '<span style="color:'+(weekday===0?'#d92d20':weekday===6?'#175cd3':'#17202e')+'">'+escapeText(name)+'</span>'}).join('')+'</div>';
-      const days=month.days.map((cell,i)=>'<div data-poster-date="'+cell.date+'" style="grid-column:'+(i%7+1)+';grid-row:'+(Math.floor(i/7)+1)+';min-width:0;min-height:0;border-top:1px solid '+accent+';'+(element.posterGridStyle==='boxed'?'border-right:1px solid '+accent+';':'')+'text-align:'+(element.posterGridStyle==='boxed'?'left':'center')+';padding:'+unit(2)+' '+unit(1)+';box-sizing:border-box;overflow:visible">'+(cell.month===month.month?'<b style="display:block;font-size:'+unit(dateSize)+';font-weight:700;line-height:1.15;color:'+tone(cell)+'">'+cell.day+'</b>'+cell.events.map(e=>'<div style="font-size:'+unit(eventSize)+';line-height:1.12;overflow-wrap:anywhere;color:'+referenceTone(e)+'">'+text(e)+'</div>').join(''):'')+'</div>').join('');
-      const ranges=month.ranges.map(e=>'<div data-poster-range="'+escapeText(e.id||e.title)+'" style="grid-column:'+(e.start+1)+' / span '+(e.end-e.start+1)+';grid-row:'+(e.row+1)+';align-self:end;z-index:2;margin-bottom:'+unit(e.lane*10)+';background:'+e.color+'33;border-bottom:2px solid '+e.color+';color:#17202e;text-align:center;font-size:'+unit(eventSize)+';line-height:1.1;overflow-wrap:anywhere">'+text(e)+'</div>').join('');
+      const annotations=root.ACDLSharedCalendarAnnotations,annotationBase=project?.template?.masters?.calendar?.calendarLayout?.annotations,layout=element.posterReferenceLayout==='inherit'?(annotations?.normalize(annotationBase)?.layout||'basic-1'):element.posterReferenceLayout,referenceSize=Number(element.posterReferenceSize)||posterDefaults(element).referenceSize;
+      const dayMarkup=cell=>{
+        const refs=cell.events.filter(e=>e.reference||e.category==='holiday'),normal=cell.events.filter(e=>!e.reference&&e.category!=='holiday'),primary=refs.filter(e=>['holidays','anniversaries'].includes(e.referenceKind||'holidays')),secondary=refs.filter(e=>!primary.includes(e));
+        const side=layout==='basic-1'?secondary:layout==='basic-2'?primary:layout==='beside'?refs:[],bottom=layout==='basic-1'?primary:layout==='basic-2'?secondary:layout==='below'?refs:[];
+        const block=list=>list.length?'<span style="min-width:0;font-weight:400;font-size:'+unit(referenceSize)+';line-height:1.2;overflow-wrap:anywhere">'+list.map(e=>'<span data-reference-kind="'+(e.referenceKind||'holidays')+'" style="color:'+referenceTone(e)+'">'+text(e)+'</span>').join(' · ')+'</span>':'';
+        return '<div style="display:flex;align-items:flex-start;gap:'+unit(2)+';color:'+tone(cell)+'"><b style="flex:none;font-size:'+unit(dateSize)+';font-weight:700;line-height:1.15">'+cell.day+'</b>'+block(side)+'</div>'+block(bottom)+normal.map(e=>'<div style="font-size:'+unit(eventSize)+';line-height:1.2;overflow-wrap:anywhere;color:'+referenceTone(e)+'">'+text(e)+'</div>').join('');
+      };
+      const days=month.days.map((cell,i)=>{const lanes=month.ranges.filter(e=>e.row===Math.floor(i/7)).reduce((n,e)=>Math.max(n,e.lane+1),0);return '<div data-poster-date="'+cell.date+'" style="grid-column:'+(i%7+1)+';grid-row:'+(Math.floor(i/7)+1)+';min-width:0;min-height:0;border-top:1px solid '+accent+';'+(element.posterGridStyle==='boxed'?'border-right:1px solid '+accent+';':'')+'padding:'+unit(2)+' '+unit(1)+' '+unit(2+lanes*(eventSize*1.4+2))+';box-sizing:border-box;overflow:visible">'+(cell.month===month.month?dayMarkup(cell):'')+'</div>'}).join('');
+      const ranges=month.ranges.map(e=>'<div data-poster-range="'+escapeText(e.id||e.title)+'" style="grid-column:'+(e.start+1)+' / span '+(e.end-e.start+1)+';grid-row:'+(e.row+1)+';align-self:end;z-index:2;margin-bottom:'+unit(e.lane*(eventSize*1.4+2))+';background:'+e.color+'33;border-bottom:2px solid '+e.color+';color:#17202e;text-align:center;font-size:'+unit(eventSize)+';line-height:1.1;overflow-wrap:anywhere">'+text(e)+'</div>').join('');
       const list=month.items.filter(e=>e.category!=='reference').map(e=>'<div data-poster-list-event="'+escapeText(e.id||e.title)+'" style="break-inside:avoid;margin-bottom:'+unit(1)+';overflow-wrap:anywhere"><b>'+dateLabel(e)+'</b> '+text(e)+'</div>').join('');
       return '<section class="academic-poster-month" data-poster-month="'+month.year+'-'+String(month.month).padStart(2,'0')+'" style="min-width:0;min-height:0;display:flex;flex-direction:column;border:1px solid '+accent+';border-radius:'+unit(7)+';padding:'+unit(4)+';box-sizing:border-box;background:#ffffff">'+header+weekdays+'<div style="position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat('+month.rows+',minmax(0,1fr));height:'+(element.posterShowList===false?'auto':'56%')+';flex:'+(element.posterShowList===false?'1':'none')+';min-height:0">'+days+ranges+'</div>'+(element.posterShowList===false?'':'<div class="academic-poster-month-list" style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:max-content;align-content:start;column-gap:'+unit(8)+';border-top:1px solid '+accent+';padding-top:'+unit(4)+';margin-top:'+unit(3)+';font-size:'+unit(listSize)+';line-height:1.22;overflow:visible">'+list+'</div>')+'</section>';
     }).join('')+'</div>';
@@ -140,7 +180,7 @@
     else inner+=annual.months.map(renderMonth).join('');
     return inner+'</div>';
   }
-  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup, resolvePosterMonths, renderPosterCalendarMarkup});
+  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup, resolvePosterMonths, renderPosterCalendarMarkup, normalizePosterElement, normalizePosterProject, posterDefaults, posterPlacementKey, applyPosterPlacement});
 })(globalThis);
 
 

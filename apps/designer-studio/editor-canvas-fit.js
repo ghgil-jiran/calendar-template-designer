@@ -5,16 +5,16 @@
     return Math.min(maximumScale, Math.max(minimumScale, scale));
   }
 
-  function fixedCanvasViewport({ pageWidth, pageHeight, availableWidth, availableHeight, minimumScale = .55, maximumScale = 1.5 }) {
+  function fixedCanvasViewport({ pageWidth, pageHeight, availableWidth, availableHeight, minimumScale = .55, maximumScale = 1.5, physicalSize = false }) {
     const width = Number(pageWidth);
     const height = Number(pageHeight);
     if (!(width > 0 && height > 0)) throw new TypeError('A positive print page size is required.');
     const landscape = width >= height;
-    const designWidth = landscape ? 850 : 720;
+    const designWidth = physicalSize ? width * 96 / 25.4 : landscape ? 850 : 720;
     const designHeight = designWidth / (width / height);
     const widthScale = Number(availableWidth) * .94 / designWidth;
     const heightScale = Number(availableHeight) * .94 / designHeight;
-    const fitScale = landscape ? widthScale : Math.min(widthScale, heightScale);
+    const fitScale = physicalSize ? Math.min(widthScale,heightScale) : landscape ? widthScale : Math.min(widthScale, heightScale);
     const scale = clampCanvasScale(fitScale, minimumScale, maximumScale);
     return Object.freeze({
       designWidth,

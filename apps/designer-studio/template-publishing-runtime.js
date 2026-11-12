@@ -98,6 +98,7 @@
  function publicationRevision(project,record={}){return Math.max(0,...[project?.template?.remoteVersionNumber,record.editorRevision,record.version].map(value=>{const number=Number(value);return Number.isInteger(number)&&number>0?number:0}))+1}
  async function publish({record={},projectData,name,productType,activate=true,confirm=true,identityField='lastReviewPackage'}){
   root.ACDLPageObjectModel?.normalizeProject(projectData);
+  root.ACDLSharedMiniCalendar?.normalizePosterProject(projectData);
   root.ACDLUserEditingPolicy?.normalizeProject(projectData);
   const sourceHash=await sha256(encoder.encode(publicationSource(projectData)));
   const run=async(stage,action)=>{try{return await action()}catch(error){error.stage=stage;throw error}},publishing=projectData.template.publishing||{},publication=await distinctPublicationIdentity(projectData,record,publicationIdentity(projectData,name||record.name,record)),id=publication.id,baseVersion=semver(projectData.template?.metadata?.version||record.packageVersion||'1.0.0'),sourceEditorRevision=publicationRevision(projectData,record),key=`${id}:${sourceEditorRevision}:${publication.name}:${activate?'activate':'inactive'}:${identityField}:${sourceHash}`;

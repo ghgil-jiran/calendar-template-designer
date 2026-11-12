@@ -36,7 +36,7 @@ test('editor page zoom preserves a fixed print-layout canvas while only the view
   assert.match(html, /id="canvasZoomRange" type="range" min="50" max="150" step="5"/);
   assert.match(html, /id="canvasZoomPercentBtn"/);
   assert.match(html, /id="canvasFitBtn"/);
-  assert.match(html, /window\.ACDLEditorCanvasFit\.fixedCanvasViewport\(\{pageWidth:width,pageHeight:height,availableWidth,availableHeight\}\)/);
+  assert.match(html, /window\.ACDLEditorCanvasFit\.fixedCanvasViewport\(\{pageWidth:width,pageHeight:height,availableWidth,availableHeight,\.\.\.\(isPoster\(\)\?\{physicalSize:true,minimumScale:\.05,maximumScale:4\}:\{\}\)\}\)/);
   assert.match(html, /scale=mode==='fit'\?fit\.scale:clamp\(manualScale\)/);
   assert.match(html, /node\.style\.width=`\$\{fit\.designWidth\}px`;node\.style\.height=`\$\{fit\.designHeight\}px`;node\.style\.transform=`scale\(\$\{scale\}\)`/);
   assert.match(html, /frameNode\.style\.width=`\$\{fit\.designWidth\*scale\}px`;frameNode\.style\.height=`\$\{fit\.designHeight\*scale\}px`/);

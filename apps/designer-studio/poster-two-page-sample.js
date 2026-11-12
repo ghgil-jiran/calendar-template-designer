@@ -11,7 +11,7 @@
    const id=index?'page.poster.annual.2':'page.poster.annual',page={...structuredClone(base),id,number:index+1,posterMonthOffset:index*6};p.book.pageInstances.push(page);
    p.book.elementsByPage[id]=[
     {...structuredClone(logo),id:'poster.logo.'+index,x:4,y:3,width:10,height:6},text('poster.name.'+index,'school.name',16,3,40,4,31),text('poster.english.'+index,'school.englishName',16,7,40,2,12),text('poster.year.'+index,'calendar.year',59,3,15,5,35),text('poster.heading.'+index,'',75,3,21,5,29,'학사일정'),
-    {...structuredClone(grid),id:'poster.calendar.'+index,x:4,y:13,width:92,height:83,columns:2,monthCount:6,posterMonthOffset:index*6,posterShowList:false,posterGridStyle:'boxed',posterEventSize:8,posterColors:index?['#9bcfc7','#80bfc1','#7db4cb']:['#e9a9c0','#d9a8ce','#e9a4b7'],style:{...grid.style,dateSize:21,titleSize:30,columnGap:20,rowGap:22}}
+    {...structuredClone(grid),id:'poster.calendar.'+index,x:4,y:13,width:92,height:83,columns:2,monthCount:6,posterMonthOffset:index*6,posterShowList:false,posterGridStyle:'boxed',posterEventSize:6,posterListSize:7,posterReferenceSize:5.5,posterColors:index?['#9bcfc7','#80bfc1','#7db4cb']:['#e9a9c0','#d9a8ce','#e9a4b7'],style:{...grid.style,dateSize:13,titleSize:28,columnGap:20,rowGap:22}}
    ];p.book.posterElementsInitialized[id]=true;
   }
   p.book.sheets=p.book.pageInstances.map((page,index)=>({id:'poster.sheet.'+(index+1),sheetNumber:index+1,role:'poster-annual',surfaces:[page]}));root.ACDLNativePrintAuthoring?.syncProject(p);return p;
