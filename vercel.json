@@ -103,6 +103,9 @@
     "api/sample-d-installation.js": {
       "maxDuration": 300,
       "includeFiles": "assets/sample-d-v4/*"
+    },
+    "api/poster-sample.js": {
+      "maxDuration": 300
     }
   }
 }

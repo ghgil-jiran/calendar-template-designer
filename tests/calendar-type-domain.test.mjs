@@ -8,8 +8,8 @@ const context={window:{}};vm.runInNewContext(source,context);const domain=contex
 
 test('initial catalog contains only production calendar types',()=>{
  const types=domain.initialDefinitions(),ids=types.map(type=>type.id);
- assert.equal(types.length,9);
- assert.deepEqual([...ids],['desk-standard','desk-large','desk-portrait','desk-wide','poster-standard','poster-two-page','wall-standard','wall-large','wall-large-plus']);
+ assert.equal(types.length,10);
+ assert.deepEqual([...ids],['desk-standard','desk-large','desk-portrait','desk-wide','poster-standard','poster-two-page','poster-duplex','wall-standard','wall-large','wall-large-plus']);
  assert.equal(ids.some(id=>/a4|postcard/.test(id)),false);
  assert.deepEqual(JSON.parse(JSON.stringify(types.filter(type=>type.family.id==='wall').map(type=>[type.finishedSize.width,type.finishedSize.height]))),[[299,419],[388,544],[501,700]]);
 });
