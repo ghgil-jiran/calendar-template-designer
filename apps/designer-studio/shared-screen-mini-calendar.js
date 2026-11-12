@@ -107,10 +107,10 @@
     return project;
   }
   function posterPlacementKey(item){
-    if(!item||Number(item.y)>16)return '';
+    if(!item)return '';
     const binding=item.bindingEnabled===false?'':item.image?.binding||item.binding||'';
     if(item.role==='school-logo'||binding==='school.profile.logo')return 'logo';
-    if(item.type==='text'&&(binding==='calendar.year'||binding.startsWith('school.')))return binding;
+    if(item.type==='text'&&(binding==='calendar.year'||Number(item.y)<=16&&binding.startsWith('school.')))return binding;
     if(item.type==='text'&&!binding&&/학사|달력|일정/.test(item.content||''))return 'heading:'+item.content;
     return '';
   }
@@ -141,7 +141,7 @@
         return root.ACDLSharedCalendarAnnotations?.context({weekday,isHoliday:holidayDates.has(e.startDate),referenceColors:project?.template?.masters?.calendar?.calendarLayout?.referenceColors,colors:{color:hex(s.dateColor,'#17202e'),saturdayColor:hex(s.saturday,'#175cd3'),holidayColor:hex(s.sunday,'#d92d20')}}).colorFor(kind)||(kind==='holidays'?hex(s.sunday,'#d92d20'):tone({weekday,date:e.startDate}));
       };
       const header='<header style="background:'+accent+';border-radius:'+unit(5)+';padding:'+unit(3)+';text-align:center;font-weight:800;font-size:'+unit(titleSize)+';line-height:1.1;color:#17202e">'+(month.transition?'<small style="font-size:.6em">'+month.year+' </small>':'')+month.month+' <small style="font-size:.48em">'+['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][month.month-1]+'</small></header>';
-      const weekdays='<div style="display:grid;grid-template-columns:repeat(7,1fr);font-size:'+unit(10)+';text-align:center;font-weight:700;line-height:1.4;margin-top:'+unit(3)+'">'+month.headers.map((name,col)=>{const weekday=project?.settings?.weekStart==='monday'?(col+1)%7:col;return '<span style="color:'+(weekday===0?'#d92d20':weekday===6?'#175cd3':'#17202e')+'">'+escapeText(name)+'</span>'}).join('')+'</div>';
+      const weekdays='<div style="display:grid;grid-template-columns:repeat(7,1fr);font-size:'+unit(10)+';text-align:center;font-weight:700;line-height:1.4;margin-top:'+unit(3)+'">'+month.headers.map((name,col)=>{const weekday=project?.settings?.weekStart==='monday'?(col+1)%7:col;return '<span style="color:'+(weekday===0?hex(s.sunday,'#d92d20'):weekday===6?hex(s.saturday,'#175cd3'):hex(s.dateColor,'#17202e'))+'">'+escapeText(name)+'</span>'}).join('')+'</div>';
       const annotations=root.ACDLSharedCalendarAnnotations,annotationBase=project?.template?.masters?.calendar?.calendarLayout?.annotations,layout=element.posterReferenceLayout==='inherit'?(annotations?.normalize(annotationBase)?.layout||'basic-1'):element.posterReferenceLayout,referenceSize=Number(element.posterReferenceSize)||posterDefaults(element).referenceSize;
       const dayMarkup=cell=>{
         const refs=cell.events.filter(e=>e.reference||e.category==='holiday'),normal=cell.events.filter(e=>!e.reference&&e.category!=='holiday'),primary=refs.filter(e=>['holidays','anniversaries'].includes(e.referenceKind||'holidays')),secondary=refs.filter(e=>!primary.includes(e));
