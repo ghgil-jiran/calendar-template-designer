@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { requireMasterAdmin } from './admin-auth.js';
 import '../apps/designer-studio/persistence-project.js';
+import '../apps/designer-studio/shared-screen-calendar-annotations.js';
 
 const STATES = new Set(['draft', 'ready', 'published', 'archived']);
 const SAVE_KINDS = new Set(['manual', 'restore', 'publish']);
@@ -139,6 +140,7 @@ function projectData(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw Object.assign(new Error('Invalid projectData'), { statusCode: 400, code: 'INVALID_REQUEST' });
   }
+  globalThis.ACDLSharedCalendarAnnotations.normalizeProject(value);
   return globalThis.ACDLUserEditingPolicy.normalizeProject(value);
 }
 

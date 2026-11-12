@@ -21,8 +21,8 @@ test('공휴일·기념일·절기는 날짜 셀, 학사일정은 별도 막대 
   assert.match(studio, /calendarReferenceForDate/);
   assert.match(studio, /calendar-reference special/);
   assert.match(studio, /calendar-reference auxiliary/);
-  assert.match(studio, /const auxiliary=\[\.\.\.refs\.lunars,\.\.\.refs\.solarTerms\]/);
-  assert.match(studio, /const special=\[\.\.\.refs\.holidays,\.\.\.refs\.anniversaries\]/);
+  assert.match(studio, /renderLegacy\(refs,referenceContext,\['lunars','solarTerms'\]\)/);
+  assert.match(studio, /renderLegacy\(refs,referenceContext,\['holidays','anniversaries'\]\)/);
   assert.match(studio, /filter\(event=>!isPublicReferenceEvent\(event\)\)/);
   assert.match(studio, /reservedTop=32/);
 });

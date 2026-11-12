@@ -80,9 +80,9 @@
  }
  function effectiveAdditions(project,page){if(preset(project)!=='individual'){const allowed=eligiblePage(project,page);return {image:allowed,text:allowed}}return Object.fromEntries(ADDITIONS.map(key=>[key,typeof page?.userEditing?.additions?.[key]==='boolean'?page.userEditing.additions[key]:project?.template?.userEditing?.additions?.[key]===true]))}
  root.ACDLUserEditingPolicy=Object.freeze({schemaVersion:POLICY_SCHEMA,actions:Object.freeze(ACTIONS),isImage,managedImage,normalizeElement,normalizeProject:normalizeUserEditing,preset,userLinked,userPhoto,eligiblePage,effectivePermissions,effectiveAdditions});
- function normalizedCopy(project){const copy=JSON.parse(JSON.stringify(project));root.ACDLPageObjectModel?.normalizeProject(copy);return normalizeUserEditing(copy)}
+ function normalizedCopy(project){const copy=JSON.parse(JSON.stringify(project));root.ACDLPageObjectModel?.normalizeProject(copy);root.ACDLSharedCalendarAnnotations?.normalizeProject(copy);return normalizeUserEditing(copy)}
  function serialize(project){return JSON.stringify(normalizedCopy(project))}
- function deserialize(text){const project=JSON.parse(text);root.ACDLPageObjectModel?.normalizeProject(project);return normalizeUserEditing(project)}
+ function deserialize(text){const project=JSON.parse(text);root.ACDLPageObjectModel?.normalizeProject(project);root.ACDLSharedCalendarAnnotations?.normalizeProject(project);return normalizeUserEditing(project)}
  function clone(project){return deserialize(serialize(project))}
  function hash(project){return JSON.stringify(normalizedCopy(project),(_key,value)=>typeof value==='string'&&value.startsWith('data:image/')&&value.length>512?`data-image:${value.length}:${value.slice(0,96)}:${value.slice(-96)}`:value)}
  function createRecoveryRecord(project,selectedPageId,options={}){
