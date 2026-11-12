@@ -25,6 +25,19 @@
   }
   return elements;
  }
+ // Settings replace the registered sample; connected semantic objects keep their authored frame/text.
+ function updateBoundSchoolImage(project,role,image,assetId){
+  const key={'school-logo':'logo','school-building':'building','school-tree':'tree','school-flower':'flower','school-song':'song'}[role];
+  if(!key)return 0;
+  const binding='school.profile.'+key,arrays=[...Object.values(project?.book?.elementsByPage||{}),...Object.values(project?.template?.masterElements||{})];let count=0;
+  for(const elements of arrays)for(const item of Array.isArray(elements)?elements:[]){
+   if(item.type!=='semantic-object'||item.role!==role||item.bindingEnabled===false||item.binding!==binding)continue;
+   item.sampleContent={...(item.sampleContent||{}),image:image||''};
+   delete item.sampleContent.assetId;if(assetId)item.sampleContent.assetId=assetId;
+   count++;
+  }
+  return count;
+ }
  function schoolText(element,school){
   if(element?.bindingEnabled===false)return undefined;
   if(element?.binding==='school.name'&&element?.format==='school-song-title')return String(school?.name||'').trim()?String(school.name).trim()+' 교가':'교가';
@@ -121,6 +134,6 @@
   const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   return '<div class="school-contact-list" style="display:flex;flex-wrap:wrap;justify-content:inherit;align-content:flex-start;column-gap:.8em;row-gap:0;width:100%;min-width:0;white-space:normal">'+items.map(item=>'<span class="school-contact-item" style="display:inline-block;white-space:nowrap">'+'<strong style="font-weight:700">'+escape(item.label)+'</strong>&nbsp;'+escape(item.value)+'</span>').join('')+'</div>';
  }
- root.ACDLPageObjectModel=Object.freeze({version:'1.1.0',normalizeProject,schoolText,connectSymbolText,splitCoverYear,coverYearText,monthText,renderPlanLines,schoolContactItems,schoolContactsText,renderSchoolContacts});
+ root.ACDLPageObjectModel=Object.freeze({version:'1.1.0',normalizeProject,updateBoundSchoolImage,schoolText,connectSymbolText,splitCoverYear,coverYearText,monthText,renderPlanLines,schoolContactItems,schoolContactsText,renderSchoolContacts});
 })(globalThis);
 
