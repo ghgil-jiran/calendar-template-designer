@@ -69,3 +69,9 @@ test('PDF backgrounds keep source metadata, trim/bleed frames and existing conte
  }
  assert.throws(()=>m.capture({size:'desk-standard',mode:'pdf',pages:{cover:{graphicId:'bad'}}},[{id:'bad',name:'bad',previewAssetId:'x',pdfSource:source,physicalSizeMm:{width:100,height:100}}],project.productType.pageSize));
 });
+
+test('applying one page keeps every other authored background and PDF connection unchanged',()=>{
+ const {project}=setup();m.apply(project);const untouched=JSON.stringify(project.book.elementsByPage['month-0']),pages=JSON.stringify(project.book.pageInstances);
+ project.template.settings.graphicPackage.entries.cover.design.palette='terracotta';
+ const result=m.apply(project,{pageId:'cover'});assert.equal(result.length,1);assert.equal(JSON.stringify(project.book.elementsByPage['month-0']),untouched);assert.equal(JSON.stringify(project.book.pageInstances),pages);assert.ok(project.book.elementsByPage.cover.some(e=>e.id==='photo'));
+});
