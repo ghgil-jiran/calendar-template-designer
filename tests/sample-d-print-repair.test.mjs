@@ -30,3 +30,11 @@ test('upgrades already-applied v1 sources, preserves valid direct CMYK sources a
  for(let index=0;index<manifest.documents.length;index++)await repairSampleDPrint({step:'document',index},s.deps);
  const result=await repairSampleDPrint({step:'save',versionId:start.versionId},s.deps);assert.equal(result.changed,manifest.documents.filter(e=>e.previousSha256).length);assert.equal((await repairSampleDPrint({step:'verify'},s.deps)).completed,true);assert.equal(s.current.version.projectData.book.school.song,'교체한 악보');assert.equal(s.saves,1);
 });
+test('upgrades an applied v2 template by replacing only its unoutlined planner source',async()=>{
+ const s=setup();s.project.template.metadata.sampleDPrintRepair='sample-d-cmyk-v2';
+ for(const item of s.project.book.elementsByPage.front){const entry=manifest.documents.find(e=>e.file===item.id);if(entry)item.graphicSource.pdfSource.sha256=entry.file==='planner.pdf'?entry.previousSha256:entry.sha256;}
+ const before=structuredClone(s.project.book.elementsByPage.front.find(e=>e.id==='annual.pdf'));
+ const start=await repairSampleDPrint({step:'start'},s.deps);assert.equal(start.completed,false);
+ for(let index=0;index<manifest.documents.length;index++)await repairSampleDPrint({step:'document',index},s.deps);
+ const result=await repairSampleDPrint({step:'save',versionId:start.versionId},s.deps);assert.equal(result.changed,1);assert.equal((await repairSampleDPrint({step:'verify'},s.deps)).completed,true);assert.deepEqual(s.current.version.projectData.book.elementsByPage.front.find(e=>e.id==='annual.pdf'),before);assert.equal(s.current.version.projectData.book.school.song,'교체한 악보');
+});

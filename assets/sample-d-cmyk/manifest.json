@@ -1,5 +1,5 @@
 {
-  "revision": "sample-d-cmyk-v2",
+  "revision": "sample-d-cmyk-v3",
   "templateId": "8fab8b4c-6164-42cc-8cb8-9cff61ca39d0",
   "documents": [
     {
@@ -114,8 +114,8 @@
     {
       "file": "planner.pdf",
       "sourceSha256": "afbd32d8a3c288458a3ca0d35329db924a762963372827b55eae6826ed5f4750",
-      "sha256": "e243d1f99796f0c9dd002516b34be8ec54f77bfefe75625544cff7e973741371",
-      "byteSize": 67234,
+      "sha256": "cd83b4108abd32e525e2fd6f98b3140633c95a623fbbe86363206a633f553aab",
+      "byteSize": 152061,
       "pages": [
         {
           "widthPt": 754.0159912109375,
@@ -165,7 +165,8 @@
           "widthPt": 754.0159912109375,
           "heightPt": 527.2440185546875
         }
-      ]
+      ],
+      "previousSha256": "e243d1f99796f0c9dd002516b34be8ec54f77bfefe75625544cff7e973741371"
     }
   ]
 }

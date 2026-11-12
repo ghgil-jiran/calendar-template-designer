@@ -26,6 +26,8 @@ for entry in manifest['documents']:
         if isinstance(value, NameObject):
             assert value not in ['/DeviceRGB', '/CalRGB', '/DefaultRGB', '/Indexed', '/Separation', '/DeviceN', '/Lab', '/Pattern'], (entry['file'], value)
         elif isinstance(value, dict):
+            assert value.get('/Type') not in ['/Font', '/FontDescriptor'], (entry['file'], 'font object')
+            assert not value.get('/Font'), (entry['file'], 'font resource')
             for item in value.values():
                 check(item)
             if hasattr(value, 'get_data'):
@@ -35,6 +37,7 @@ for entry in manifest['documents']:
                 if value.get('/Subtype') == '/Form':
                     for operands, operator in ContentStream(value, reader).operations:
                         assert operator not in [b'rg', b'RG'], (entry['file'], 'RGB Form paint')
+                        assert operator not in [b'BT', b'Tf', b'Tj', b'TJ', b"'", b'"'], (entry['file'], 'unoutlined Form text')
         elif isinstance(value, (list, tuple)):
             for item in value:
                 check(item)
@@ -44,9 +47,10 @@ for entry in manifest['documents']:
         assert abs(float(page.mediabox.height) - size['heightPt']) < .002
         for operands, operator in page.get_contents().operations:
             assert operator not in [b'rg', b'RG'], (entry['file'], 'RGB page paint')
+            assert operator not in [b'BT', b'Tf', b'Tj', b'TJ', b"'", b'"'], (entry['file'], 'unoutlined page text')
     for number in reader.xref.get(0, {}):
         check(IndirectObject(number, 0, reader))
     pages += len(reader.pages)
-    print(entry['file'], len(reader.pages), 'pages: CMYK/Gray only; hashes and page boxes verified')
+    print(entry['file'], len(reader.pages), 'pages: fonts 0; CMYK/Gray only; hashes and page boxes verified')
 assert pages == 28
 print('PASS: all 28 background pages')

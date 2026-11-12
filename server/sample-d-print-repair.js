@@ -5,7 +5,7 @@ import {pdfPackageOperation} from './graphic-pdf-package.js';
 import {getTemplate,saveVersion} from './template-persistence.js';
 const files=name=>readFile(new URL('../assets/sample-d-cmyk/'+name,import.meta.url));
 const hash=b=>createHash('sha256').update(b).digest('hex');
-const STATE='template-installations/sample-d-cmyk-v2.json';
+const STATE='template-installations/sample-d-cmyk-v3.json';
 let pending;
 export function repairSampleDPrint(body,deps={}){const run=()=>step(body,deps),result=(pending||Promise.resolve()).catch(()=>{}).then(run);pending=result;return result.finally(()=>{if(pending===result)pending=null;});}
 export function replacePrintSources(project,manifest,state){
