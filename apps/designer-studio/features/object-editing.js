@@ -425,10 +425,15 @@ function createSemanticObject(role,{asset=null}={}){
 }
 function semanticRoleLabel(role){return SEMANTIC_DEFS[role]?.label||role}
 function semanticTitleVisible(item){return item.showTitle===true||(!Object.prototype.hasOwnProperty.call(item,"showTitle")&&["school-motto","school-song","school-tree","school-flower"].includes(item.role))}
+function userImageFitStyle(item){
+ const v=item.image;if(!v||!['cover','contain'].includes(v.fit))return '';
+ const scale=Math.max(.1,Math.min(10,Number(v.scale)||1)),x=Math.max(-100,Math.min(100,Number(v.offsetX)||0)),y=Math.max(-100,Math.min(100,Number(v.offsetY)||0));
+ return `width:100%;height:100%;max-width:none;max-height:none;object-fit:${v.fit};transform:translate(${x}%,${y}%) scale(${scale});transform-origin:center;`;
+}
 function renderSemanticObject(item){
  const raw=semanticData(item),d={...raw,name:escapeAttr(raw.name||""),description:escapeAttr(raw.description||""),image:escapeAttr(raw.image||"")},titleOverride=escapeAttr(item.titleOverride||""),layout=item.layoutPreset||"image-top",role=item.role;
- if(layout==="image-only"&&item.showTitle===false&&item.showCaption===false)return `<div class="semantic-object semantic-logo"><div class="semantic-media">${d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)}">`:""}</div></div>`;
- const image=d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)} 이미지">`:`<span class="semantic-empty-visual non-output editor-only" aria-label="${semanticRoleLabel(role)} 이미지 슬롯"></span>`;
+ if(layout==="image-only"&&item.showTitle===false&&item.showCaption===false)return `<div class="semantic-object semantic-logo"><div class="semantic-media">${d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)}" style="${userImageFitStyle(item)}">`:""}</div></div>`;
+ const image=d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)} 이미지" style="${userImageFitStyle(item)}">`:`<span class="semantic-empty-visual non-output editor-only" aria-label="${semanticRoleLabel(role)} 이미지 슬롯"></span>`;
  const align=["left","center","right"].includes(item.style?.textAlign)?item.style.textAlign:"center";
  const showTitle=semanticTitleVisible(item),title=showTitle?`<strong style="display:block;width:100%;text-align:${align};font-size:${item.style?.titleSize||18}px">${titleOverride||(role==="school-song"?d.name:"")||semanticRoleLabel(role)}</strong>`:"";
  if(role==="school-logo"){
@@ -625,7 +630,7 @@ function renderFreeElements(pageNode){
   }else if(view.type==="text"){
    const t=document.createElement("div");t.className="free-text";t.textContent=resolveTextContent(view,selectedPage());applyTextElementStyles(t,view);if(view.binding==="school.contacts"&&view.bindingEnabled!==false){const contacts=window.ACDLPageObjectModel.renderSchoolContacts(project.book.school,view);if(contacts){t.innerHTML=contacts;t.style.padding=Number(view.style?.padding||0)+"px";}}box.appendChild(t)
   }else if(resolveElementImageSource(view)){
-   const img=document.createElement("img");img.className="free-image";img.src=resolveElementImageSource(view);img.alt=view.alt||"사용자 이미지";img.style.objectFit=view.fit||"cover";box.appendChild(img)
+   const img=document.createElement("img");img.className="free-image";img.src=resolveElementImageSource(view);img.alt=view.alt||"사용자 이미지";img.style.objectFit=view.fit||"cover";if(view.image?.fit){img.style.cssText+=userImageFitStyle(view);box.style.overflow="hidden";}box.appendChild(img)
   }else{
    const empty=document.createElement("div");empty.className="free-image empty";empty.textContent="이미지를 선택하세요";box.appendChild(empty)
   }

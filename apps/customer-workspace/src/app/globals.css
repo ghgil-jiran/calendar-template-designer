@@ -586,3 +586,22 @@ img {max-width: 100%;}
 .editor-materials-body {padding:20px;}
 .editor-materials-body > section {margin-bottom:24px;}
 .editor-properties input[type="color"] {width:100%;min-height:36px;}
+
+/* Common object tools for desk and poster calendars. */
+.editor-inspector-heading {display:block;min-height:0;padding:16px;}
+.editor-inspector-heading .editor-object-name {display:block;margin-top:5px;padding:0;border:0;background:transparent;font-size:12px;color:hsl(var(--muted-foreground));}
+.editor-shell .editor-selection-tip {padding:6px 8px;margin:10px 16px;line-height:1.4;font-size:12px;}
+.editor-photo-guide,.editor-canvas-guide {margin:8px 16px;font-size:12px;line-height:1.5;color:hsl(var(--help-foreground));}
+.editor-photo-guide {padding-bottom:8px;border-bottom:1px solid hsl(var(--border)/.6);}
+.editor-properties .editor-inline-control {display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:8px;}
+.editor-properties .editor-inline-control input[type="color"] {width:48px;min-height:30px;height:30px;padding:3px;}
+.editor-field-heading {margin-bottom:6px;font-size:12px;font-weight:600;}
+.editor-properties .editor-visibility-toggle {display:flex;flex-direction:row;align-items:center;gap:7px;margin:0;}
+.editor-properties .editor-visibility-toggle input,.editor-properties .editor-share-option input {width:16px;height:16px;min-height:16px;padding:0;flex:none;margin:2px 0;}
+.editor-content-field + .editor-content-field {margin-top:12px;}
+.editor-properties .editor-share-option {display:flex;flex-direction:row;align-items:flex-start;gap:8px;font-size:12px;line-height:1.5;}
+.editor-text-toolbar {display:flex;align-items:center;gap:3px;padding-left:10px;border-left:1px solid hsl(var(--border));}
+.editor-text-toolbar .button {width:32px;min-height:32px;}
+.editor-text-toolbar .button[aria-pressed="true"] {background:hsl(var(--primary)/.12);color:hsl(var(--primary));}
+.editor-underline-icon {text-decoration:underline;}
+@media(max-width:720px){.editor-text-toolbar {padding-left:5px;}.editor-text-toolbar .button {width:28px;}}

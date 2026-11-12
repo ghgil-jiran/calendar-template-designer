@@ -1,0 +1,11 @@
+# Customer common object tools
+
+Desk and poster calendars share the same object tools and limited editing policy. The sidebar always uses `편집도구`, with the selected object's label underneath. Only permitted targets are selectable on the canvas. Pages with no permitted objects show a dedicated message; pages awaiting selection show a selection hint.
+
+Bound text has a positive visibility checkbox where the corresponding school field permits hiding. It reflects saved state and preserves the value while hidden. Font family, size and color use compact rows. Bold, italic and underline are contextual toolbar actions. Coordinates are adjusted on the canvas rather than through numeric sidebar fields. Hidden grouped contacts retain the other visible contact rows.
+
+Replaceable monthly-front photos can move and resize. Poster school text and images use the same supported controls; calendar/year/background objects, hard locks and excluded school data remain protected. Semantic and ordinary image fitting use the same authored renderer as customer previews.
+
+Sharing checkboxes initially are off and reset when selecting another object/page. Enabling a checkbox applies the current corresponding property immediately, and subsequent edits of that selected object use the selected scope. Layout sharing copies geometry only. Image sharing changes only image content and preserves recipient fitting and geometry. One action has one undo/redo step, including a shared image reset. School-common image bindings retain their common behavior; when a non-logo image has a valid sharing group it can use per-page image overrides. Logos retain common school-image replacement and expose only geometry sharing.
+
+Desk sharing targets monthly fronts; poster sharing targets corresponding poster pages. Counterpart matching uses stable identity, an explicit correspondence key, binding, or an unambiguous role. Missing, ambiguous and locked recipients are skipped; objects are not created. Copying a template image stores a source descriptor rather than a temporary URL. User photo copies refer to the durable photo ID. Both reconstruct through the saved project and existing snapshot pipeline, and imported references cannot read protected image objects.
