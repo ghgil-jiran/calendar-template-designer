@@ -488,7 +488,7 @@
   }
  }
  function renderOutputVariant(){
-  let host=el('templateOutputVariant');if(!host){host=document.createElement('section');host.id='templateOutputVariant';host.className='template-preflight-inventory';el('templatePreflightInventory')?.before(host);}
+  let host=el('templateOutputVariant');if(!host){host=document.createElement('section');host.id='templateOutputVariant';host.className='template-preflight-inventory';el('templatePreflightArtifact')?.before(host);}
   host.classList.toggle('hidden',preflightActiveGate!==4);if(preflightActiveGate!==4){const button=el('downloadTemplatePrintPdfBtn');if(button){button.textContent='CMYK PDF 다운로드';button.disabled=preflightArtifact?.status!=='done';}return;}
   const size=preflightProject?.productType?.pageSize||{},supported=preflightProject?.productType?.category==='desk'&&Math.abs(Number(size.width)-260)<.01&&Math.abs(Number(size.height)-180)<.01;
   const variant=outputVariant,ready=variant?.status==='done',active=['queued','processing'].includes(variant?.status),checks=variant?.checks||{};

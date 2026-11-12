@@ -9,3 +9,9 @@ test('queued and completed enlarged jobs never replace the standard inspection a
  const completed={...queued,status:'done',report:{outputProfile:'desk-297-uniform.v1',completedAt:'2026-11-12'}};assert.equal(context.latestPreflightArtifact([completed,base]).id,'base');
 });
 test('an enlarged-only history cannot count as a standard CMYK inspection',()=>{assert.equal(context.latestPreflightArtifact([{id:'enlarged',status:'done',report:{outputProfile:'desk-297-uniform.v1'}}]),null);});
+
+test('output-size controls remain in the visible current stage outside collapsed completed details',()=>{
+ const nodes=new Map(),current={},collapsed={};const artifact={parent:current,before(host){host.parent=this.parent;nodes.set(host.id,host)}};nodes.set('templatePreflightArtifact',artifact);nodes.set('templatePreflightInventory',{parent:collapsed});
+ const ctx=vm.createContext({el:id=>nodes.get(id),document:{createElement:()=>({classList:{toggle(key,value){this.hidden=value;}}})},preflightActiveGate:4,preflightProject:{productType:{category:'desk',pageSize:{width:260,height:180}}},outputVariant:null,outputSelection:'standard',outputRequestBusy:false,preflightArtifact:{id:'base',status:'done',verified:true},escape:String});
+ vm.runInContext(source.slice(source.indexOf(' function renderOutputVariant('),source.indexOf(' function syncOutputPolling(')),ctx);ctx.renderOutputVariant();const host=nodes.get('templateOutputVariant');assert.equal(host.parent,current);assert.equal(host.classList.hidden,false);assert.match(host.innerHTML,/297×205.615mm/);ctx.preflightActiveGate=3;ctx.renderOutputVariant();assert.equal(host.classList.hidden,true);
+});
