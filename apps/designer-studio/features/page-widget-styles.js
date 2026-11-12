@@ -17,16 +17,17 @@
   const daily=item.type==='memo';
   const s=item.style||{},annual=item.type==='year-calendar',yearly=item.type==='event-list'&&item.displayMode==='year-by-month';limits.titleSize=annual?[5,40,.5]:[3,72,.5];
   panel.querySelector('.inspector-tab-empty')?.remove();
-  const section=document.createElement('div');section.className='section element-inspector';section.id='pageWidgetStyles';
-  let html=`<strong>${daily?'자기주도계획표 · 글자와 표 스타일':annual?'연력 · 월 영역 스타일':'학사일정 · 글자와 월 영역 스타일'}</strong><p class="hint">${annual?'요일·날짜 색과 날짜 격자를 이 연력 개체에 저장합니다.':'저장한 글꼴·색·크기는 사용자 서비스와 출력에도 동일하게 전달됩니다.'}</p>`;
+  const poster=annual&&item.academicPoster;
+  const section=document.createElement(poster?'details':'div');section.className='section element-inspector';section.id='pageWidgetStyles';if(poster)section.classList.add('poster-inspector-section');
+  let html=`<strong>${daily?'자기주도계획표 · 글자와 표 스타일':annual?(poster?'벽보형 글꼴과 날짜색':'연력 · 월 영역 스타일'):'학사일정 · 글자와 월 영역 스타일'}</strong><p class="hint">${annual?'요일·날짜 색과 날짜 격자를 이 연력 개체에 저장합니다.':'저장한 글꼴·색·크기는 사용자 서비스와 출력에도 동일하게 전달됩니다.'}</p>`;
   if(!sourceElement())html+=`<p class="hint">선택 전 설정 대상: 이 페이지의 연력 개체 · ${escape(item.id)}</p>`;
   html+=select('fontFamily','글꼴',s.fontFamily||'',s.fontFamily&&!fonts.some(([value])=>value===s.fontFamily)?[...fonts,[s.fontFamily,s.fontFamily]]:fonts);
   if(daily){
    html+=input('dateScale','날짜·요일 크기 (%)','number',s.dateScale??100)+input('titleScale','제목 크기 (%)','number',s.titleScale??100)+input('titleColor','제목 색','color',s.titleColor||'#719da4')+input('color','평일 날짜색','color',s.color||'#20282b')+input('sundayColor','일요일·공휴일색','color',s.sundayColor||'#b53443')+input('saturdayColor','토요일색','color',s.saturdayColor||'#35659b')+input('stripeColor','교차 행 배경색','color',s.stripeColor||'#edf0e9')+input('lineColor','표 선색','color',s.lineColor||'#d5dbd7');
   }else if(annual){
-   html+=input('dateSize','날짜 글자 크기 (px)','number',s.dateSize??7)+input('titleSize','월 제목 크기 (px)','number',s.titleSize??10);
-   html+=select('dayGridStyle','날짜 격자',s.dayGridStyle||'none',[['boxes','독립 박스'],['underline','독립 밑줄'],['none','무선']]);
-   html+=input('dateColor','평일 날짜색','color',s.dateColor||'#293878')+input('sunday','일요일·공휴일색','color',s.sunday||'#ef3340')+input('saturday','토요일색','color',s.saturday||'#4777bd')+input('lineColor','격자 선색','color',s.lineColor||'#d8dbe2');
+   if(!poster)html+=input('dateSize','날짜 글자 크기 (px)','number',s.dateSize??7)+input('titleSize','월 제목 크기 (px)','number',s.titleSize??10);
+   if(!poster)html+=select('dayGridStyle','날짜 격자',s.dayGridStyle||'none',[['boxes','독립 박스'],['underline','독립 밑줄'],['none','무선']]);
+   html+=input('dateColor','평일 날짜색','color',s.dateColor||'#293878')+input('sunday','일요일·공휴일색','color',s.sunday||'#ef3340')+input('saturday','토요일색','color',s.saturday||'#4777bd')+(poster?'':input('lineColor','격자 선색','color',s.lineColor||'#d8dbe2'));
   }else{
    html+=input('fontSize','일정 글자 크기 (px)','number',s.fontSize??item.fontSize??8)+select('fontWeight','글자 굵기',s.fontWeight||400,[[400,'보통'],[500,'중간'],[700,'굵게']])+input('color','일정 글자색','color',s.color||'#17202e')+input('lineHeight','행간','number',s.lineHeight??1.3);
    html+=input('titleSize',yearly?'각 월 제목 크기 (px)':'제목 크기 (px)','number',s.titleSize??10)+input('titleColor',yearly?'각 월 제목 글자색':'제목 글자색','color',s.titleColor||'#173b63')+select('titleAlign',yearly?'각 월 제목 정렬':'제목 정렬',s.titleAlign||'left',[['left','왼쪽'],['center','가운데'],['right','오른쪽']])+select('titlePosition',yearly?'각 월 제목 위치':'제목 위치',s.titlePosition||'top',[['top','내용 위'],['bottom','내용 아래']]);
@@ -34,7 +35,7 @@
    if(yearly)html+=input('monthBorderWidth','각 월 사각 테두리 두께 (px)','number',s.monthBorderWidth??0)+input('lineColor','각 월 테두리색','color',s.lineColor||'#d8dbe2');
    html+=input('containerBorderWidth','전체 영역 사각 테두리 두께 (px)','number',s.containerBorderWidth??0)+input('containerBorderColor','전체 영역 테두리색','color',s.containerBorderColor||'#d8dbe2');
   }
-  section.innerHTML=html+'<button id="savePageWidgetStyles" type="button" class="action" disabled>스타일 저장</button>';panel.append(section);
+  section.innerHTML=(poster?'<summary>글꼴·요일·날짜색</summary>':'')+html+'<button id="savePageWidgetStyles" type="button" class="action" disabled>스타일 저장</button>';panel.append(section);
   const controls=[...section.querySelectorAll('[data-page-style]')],modes=[...section.querySelectorAll('[data-page-background]')],button=$('savePageWidgetStyles');
   controls.forEach(control=>control.id='pageStyle-'+control.dataset.pageStyle);modes.forEach(mode=>mode.id='pageBackground-'+mode.dataset.pageBackground);
   const refresh=()=>modes.forEach(mode=>{const color=controls.find(e=>e.dataset.pageStyle===mode.dataset.pageBackground);if(color)color.disabled=!mode.checked;});
