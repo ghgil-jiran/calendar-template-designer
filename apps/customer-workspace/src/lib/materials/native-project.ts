@@ -48,7 +48,7 @@ export function photoSlotsForProject(project:NativeProject):PhotoSlot[]{
   for(const [scope,items] of [['master',masters],['page',locals]] as const){for(const e of items){
    const image=['image-frame','image'].includes(e.type)||e.type==='semantic-object'&&['school-logo','school-building','school-song','school-tree','school-flower'].includes(e.role);
    const binding=imageBinding(e);
-   const schoolInput=binding?.startsWith('school.profile.')&&requirements(project).some(r=>r.path===binding&&['image','school-symbol'].includes(r.input)&&r.stage!=='excluded');
+   const schoolInput=binding?.startsWith('school.profile.')&&!requirements(project).some(r=>r.path===binding&&r.stage==='excluded');
    if(!image||e.visible===false||(!schoolInput&&policy.effectivePermissions(project,page,e).replaceImage!==true))continue;
    if(!binding?.startsWith('school.profile.'))photoNumber++;const id=schoolInput?`school:${binding}`:binding==='calendar.monthlyImages.current'?`${page.id}:${e.id}:monthly`:`${scope}:${scope==='master'?page.masterId:page.id}:${e.id}`;const existing=result.find(s=>s.id===id);if(existing){existing.pageIds||=[existing.pageId];if(!existing.pageIds.includes(page.id))existing.pageIds.push(page.id);continue;}
    result.push({id,pageId:page.id,pageIds:[page.id],pageLabel:schoolInput?'학교 공통':photoPageLabel(page,project.book.pageInstances.indexOf(page)),elementId:e.id,masterId:scope==='master'?page.masterId:undefined,scope,label:e.label||({'school-logo':'교표','school-image':'표지·학교 전경','school-building':'표지·학교 전경','school-song':'교가 악보','school-tree':'교목','school-flower':'교화'} as Record<string,string>)[e.role]||e.alt||`사진 ${photoNumber}`,binding,required:Boolean(binding&&requiredFor(project,binding)),widthMm:Number(e.width||0)/100*Number(project.productType.pageSize.width),heightMm:Number(e.height||0)/100*Number(project.productType.pageSize.height)});
@@ -64,6 +64,7 @@ export function applyMaterials(source:NativeProject,fields:SchoolField[],school:
  const all=authoredElements(project);
  for(const field of fields){const path=field.binding||`school.${field.key}`,hidden=school.hidden.includes(field.key);if(hidden&&!field.allowHide)throw Error(`${field.label}은 제외할 수 없습니다.`);
   if(hidden){for(const e of all){const binding=e.binding||(bindingVersion===3?e.image?.binding:undefined);if(e.bindingEnabled!==false&&(binding===path||path.startsWith(String(binding||'__')+'.')))e.visible=false;}setAt(project,path,'');}
+  else if(school.cleared?.includes(field.key))setAt(project,path,'');
   else if(school.values[field.key]?.trim())setAt(project,path,school.values[field.key].trim());
   else if(school.omitEmptyContacts&&field.group==='contact'){setAt(project,path,'');for(const e of all)if(e.bindingEnabled!==false&&e.binding===path)e.visible=false;}
  }

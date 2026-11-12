@@ -1,5 +1,6 @@
 'use client';
 import {largePreviewUrl,majorPageNumbers} from '@/lib/materials/template-preview';
+import {updateSchoolField,commitMaterials} from '@/lib/editor/materials';
 import {PhotoEditor} from '@/features/editor/photo-editor';
 import {applyEditor,type EditorState} from '@/lib/editor/session';
 
@@ -157,8 +158,8 @@ export function Onboarding() {
     photos.forEach(p=>URL.revokeObjectURL(p.url));templateUrls.current.forEach(url=>URL.revokeObjectURL(url));templateUrls.current=[];
     ++selectionRequest.current;setWorkingTemplate(null);setSelectedId(null);setActiveProject(null);setSavedSignature('');setProjectName('');setSchool({values:{},hidden:[]});setEditorState(undefined);setEvents([]);setPhotos([]);setAssignments({});setPhotoMode('collect');setPhotoSelections({});setPhotoPageId('');setNativeSource(null);setSaveNotice('');setSaveError('');setStep('catalog');
   }
-  async function saveWorking(nextStep?:ResumeStep){
-    if(!draft||saveLock.current)return false;saveLock.current=true;const captured=structuredClone({...draft,step:nextStep||draft.step,photos:[]}) as ProjectDraft;captured.photos=[...draft.photos];const signature=draftSignature(captured);setSaving(true);setSaveError('');setSaveNotice('');
+  async function saveWorking(nextStep?:ResumeStep,overrides:Partial<ProjectDraft>={}){
+    if(!draft||saveLock.current)return false;saveLock.current=true;const captured=structuredClone({...draft,...overrides,step:nextStep||draft.step,photos:[]}) as ProjectDraft;captured.photos=[...draft.photos];const signature=draftSignature(captured);setSaving(true);setSaveError('');setSaveNotice('');
     try{const snapshot=await prepareSnapshot(captured),record=await writeSnapshot(snapshot,activeProject?.revision??null);setActiveProject({id:record.id,revision:record.revision});autoFailedSignature.current='';setSavedSignature(signature);setProjectName(record.name);setSaveNotice('이 브라우저에 저장했어요. 재배포 후에도 같은 주소에서 다시 열 수 있어요.');setLibraryVersion(v=>v+1);void navigator.storage?.persist?.().catch(()=>false);return true;}
     catch(error){autoFailedSignature.current=signature;setSaveError(error instanceof Error?error.message:'저장하지 못했어요. 입력 내용은 그대로 유지됩니다.');return false;}finally{saveLock.current=false;setSaving(false);}
   }
@@ -188,7 +189,7 @@ export function Onboarding() {
   }
   const heading = (eyebrow: string, title: string, description: string) => <div className="section-heading"><p className="eyebrow">{eyebrow}</p><h1 ref={headingRef} tabIndex={-1}>{title}</h1><p className="muted">{description}</p></div>;
 
-  if(step==='editor'&&materialProject)return <PhotoEditor assignedPhotoIds={Object.values(assignments).map(a=>a.photoId)} project={materialProject} photos={photos} onPhotos={setPhotos} initialState={editorState} onChange={setEditorState} saveFailure={saveError} onComplete={async()=>{if(await saveWorking('editor')){setStep('projects');}}} name={displayName} dirty={dirty} saving={saving} notice={saveError||(!dirty?saveNotice:'')} onSave={()=>void saveWorking()} onMaterials={()=>setStep('school')}/>;
+  if(step==='editor'&&materialProject)return <PhotoEditor assignedPhotoIds={Object.values(assignments).map(a=>a.photoId)} project={materialProject} photos={photos} onPhotos={setPhotos} initialState={editorState} onChange={setEditorState} saveFailure={saveError} onComplete={async()=>{if(await saveWorking('editor')){setStep('projects');}}} name={displayName} dirty={dirty} saving={saving} notice={saveError||(!dirty?saveNotice:'')} onSave={()=>void saveWorking()} school={school} events={events} fields={selected!.fields} onFieldChange={(key,value)=>setSchool(p=>updateSchoolField(p,key,value))} onFieldHide={(key,hidden)=>setSchool(p=>({...p,hidden:hidden?[...new Set([...p.hidden,key])]:p.hidden.filter(k=>k!==key)}))} onSchoolPhoto={(binding,photo)=>{const slots=photoSlotsForProject(nativeSource!).filter(s=>s.binding===binding);setAssignments(p=>({...p,...Object.fromEntries(slots.map(s=>[s.id,{photoId:photo.id,url:photo.url}]))}));}} onMaterialsSave={(nextSchool,nextEvents)=>commitMaterials({school:nextSchool,events:nextEvents},value=>saveWorking('editor',value),value=>{setSchool(value.school);setEvents(value.events);})}/>;
   return <div className="workspace">
     <header className="site-header"><div className="header-inner"><Button variant="quiet" className="brand" onClick={catalogHome}>우리학교<span>달력</span></Button><p className="header-caption">우리 학교의 일 년을 담아요</p><Button disabled={saving} onClick={() => setStep('projects')}>내 프로젝트</Button></div></header>
     <main className="main" data-motion={playing ? 'playing' : 'paused'}>
