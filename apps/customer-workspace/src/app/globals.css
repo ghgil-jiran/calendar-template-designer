@@ -552,3 +552,16 @@ img {max-width: 100%;}
 .hero-showcase.hero-photo .hero-art > img:first-child {display:block; width:100%; height:auto; aspect-ratio:3 / 2; object-fit:contain; border-radius:0; box-shadow:none;}
 
 .catalog-filters{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.catalog-filters button[aria-pressed="true"]{background:var(--color-primary,#2563eb);color:white}.all-pages-button{display:block;margin:16px auto 0}.schedule-warning-backdrop{position:fixed;inset:0;background:#17202e88;z-index:90;display:grid;place-items:center;padding:24px}.schedule-warning-dialog{background:var(--color-panel,#fff);border-radius:16px;padding:24px;max-width:760px;width:100%;max-height:85vh;overflow:auto}.schedule-warning-dialog header{display:flex;justify-content:space-between;align-items:center}.schedule-warning-dialog li{margin:12px 0}
+
+/* All catalog cards reserve the same desk-calendar preview area. */
+.card-main-preview {display:grid;grid-template-columns:minmax(0,1fr);aspect-ratio:260/180;width:100%;gap:12px;}
+.card-main-pair {grid-template-columns:repeat(2,minmax(0,1fr));}
+.card-preview-page {position:relative;min-width:0;min-height:0;width:100%;height:100%;container-type:size;display:grid;place-items:center;overflow:hidden;}
+.card-preview-content {width:min(100cqw,calc(100cqh * var(--preview-ratio,1.444444)));aspect-ratio:var(--preview-ratio,1.444444);min-width:0;}
+.card-preview-content > img {display:block;width:100%;height:100%;object-fit:contain;}
+.card-preview-content > .preview-placeholder {width:100%;height:100%;min-height:0;}
+.template-art > .mini-previews,.poster-mini-previews {width:100%;aspect-ratio:260/90;margin-top:13px;}
+.template-art > .mini-previews {container-type:inline-size;}
+.template-art .mini-track {width:max-content;height:100%;}
+.card-mini-slot {flex:0 0 50cqw;width:50cqw;height:100%;padding:0 7px;}
+.poster-mini-previews {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}

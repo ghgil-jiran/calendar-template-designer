@@ -203,7 +203,7 @@ export function Onboarding() {
         </section>
         <section aria-labelledby="catalog-title"><div className="catalog-heading"><div><h2 id="catalog-title">마음에 드는 디자인을 골라보세요</h2><p className="muted">탁상형·벽보형 달력의 전체 구성을 먼저 살펴볼 수 있어요.</p></div><span className="badge">{catalog.templates.length}종 {catalog.mode==='review'?'선택 구성 검토':'템플릿'}</span></div>
           {!catalog.templates.length ? <Panel><h3>공개된 디자인을 준비 중이에요</h3><p className="muted">준비가 끝나면 이곳에서 고를 수 있어요.</p></Panel> : <><div className="catalog-filters" role="group" aria-label="달력 유형">{([["desk","탁상형 달력"],["poster","벽보형 달력"],["all","전체 달력"]] as const).map(([key,label])=><Button key={key} aria-pressed={kindFilter===key} onClick={()=>setKindFilter(key)}>{label}</Button>)}</div>{!catalog.templates.some(t=>kindFilter==='all'||(t.calendarKind||'desk')===kindFilter)&&<Panel>선택한 유형의 디자인을 준비 중이에요.</Panel>}<div className="catalog-grid">{catalog.templates.filter(t=>kindFilter==='all'||(t.calendarKind||'desk')===kindFilter).map(template => <article className="template-card" key={template.id}>
-            <div className="template-art">{template.coverUrl?<PreviewImage url={template.coverUrl} label={template.name}/>:<TemplatePagePreview template={template} number={1}/>} <div className="mini-previews" tabIndex={0} aria-label={`${template.name} 대표 4면 · 마우스를 올리거나 초점을 두면 멈춥니다`}><div className="mini-track">{[...template.representativePages, ...template.representativePages].map((number, index) => template.pages[number-1].imageUrl?<PreviewImage key={index} className="mini-placeholder" url={template.pages[number-1].imageUrl} label={template.pages[number-1].label} decorative={index>=template.representativePages.length}/>:<TemplatePagePreview key={index} template={template} number={number} decorative={index>=template.representativePages.length}/>)}</div></div></div>
+            <TemplateCardArtwork template={template}/>
             <div className="template-copy"><h3>{template.name}</h3><div className="card-actions"><span>{template.widthMm} × {template.heightMm} mm · {template.pageCount}면</span><Button onClick={() => choose(template)} aria-label={`${template.name} 전체면 살펴보기`}>전체면 살펴보기 →</Button></div></div>
           </article>)}</div></>}
         </section>
@@ -261,3 +261,27 @@ function PreviewImage({url, label, className = '', decorative = false, eager = f
 }
 
 function MaterialStage({active}:{active:1|2|3}){return <div className="input-stage">{["학교 정보","학사일정","사진"].map((label,index)=><span className={index+1===active?"input-stage-current":""} key={label} aria-current={index+1===active?"step":undefined}>{label}</span>)}</div>;}
+
+function CardPreviewPage({template,number,decorative=false}:{template:TemplateCard;number:number;decorative?:boolean}) {
+  const frame=useRef<HTMLDivElement>(null);
+  useEffect(()=>{frame.current?.style.setProperty('--preview-ratio',String(template.widthMm/template.heightMm));},[template.widthMm,template.heightMm]);
+  const page=template.pages.find(page=>page.number===number);
+  const url=page?.imageUrl||(number===1?template.coverUrl:null);
+  return <div ref={frame} className="card-preview-page" aria-hidden={decorative||undefined}><div className="card-preview-content">{url?<PreviewImage url={url} label={page?.label||`${number}면`} decorative={decorative}/>:<TemplatePagePreview template={template} number={number} decorative={decorative}/>}</div></div>;
+}
+
+function TemplateCardArtwork({template}:{template:TemplateCard}) {
+  const poster=template.calendarKind==='poster';
+  const topPages=poster&&template.pageCount===2?[1,2]:[1];
+  const smallPages=poster?template.pages.map(page=>page.number):template.representativePages;
+  return <div className="template-art">
+    <div className={`card-main-preview${topPages.length===2?' card-main-pair':''}`}>
+      {topPages.map(number=><CardPreviewPage key={number} template={template} number={number}/>)}
+    </div>
+    {poster?<div className="poster-mini-previews" aria-label={`${template.name} 전체 ${template.pageCount}면`}>
+      {smallPages.map(number=><CardPreviewPage key={number} template={template} number={number}/>)}
+    </div>:<div className="mini-previews" tabIndex={0} aria-label={`${template.name} 대표 ${smallPages.length}면 · 마우스를 올리거나 초점을 두면 멈춥니다`}><div className="mini-track">
+      {[...smallPages,...smallPages].map((number,index)=><div className="card-mini-slot" key={index}><CardPreviewPage template={template} number={number} decorative={index>=smallPages.length}/></div>)}
+    </div></div>}
+  </div>;
+}
