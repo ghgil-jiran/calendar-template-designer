@@ -118,6 +118,7 @@
  function publishedIdentity(project){const value=project?.template?.publishing?.lastReviewPackage;if(!value?.templateId||!value?.version)return null;return {templateId:value.templateId,version:value.version}}
  async function withdraw(project){const identity=publishedIdentity(project);if(!identity)return {withdrawn:[]};return request({mode:'withdraw',...identity})}
  async function ensurePrintPreflight(identity,{force=false}={}){return request({mode:'ensure-print-preflight',templateId:identity.templateId,version:identity.version,sha256:identity.sha256,force,editorPrintOrigin:location.origin,rendererId:'template-editor-review-dom.v1'})}
+ async function ensurePrintOutputVariant(id,minimumDpi=200){return request({mode:'ensure-print-output-variant',id,outputProfile:'desk-297-uniform.v1',minimumDpi})}
  async function printPreflightStatus(id){return request({mode:'print-preflight-status',id})}
  async function printPreflightDownload(id){return request({mode:'print-preflight-download',id})}
  async function printPreflightHistory(identity){return request({mode:'print-preflight-history',templateId:identity.templateId,version:identity.version,sha256:identity.sha256})}
@@ -186,5 +187,5 @@
  }
  if(typeof document!=='undefined')installSyncDialog();
  async function reconcile(){return synchronizeCatalog()}
- root.ACDLTemplatePublishing=Object.freeze({publish,preparePrintInspection,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,activeReviewCatalog,publishedIdentity,distinctPublicationIdentity,publicationSource,publicationRevision,ensurePrintPreflight,printPreflightStatus,printPreflightDownload,printPreflightHistory,cancelPrintPreflight,deletePrintPreflight,recordTrimContentParityReview,recordTemplateImageReview,recordAiImagePrintQualityReview,recordTemplateImagePrintQualityReview,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
+ root.ACDLTemplatePublishing=Object.freeze({publish,preparePrintInspection,completePublication,withdraw,reconcile,synchronizeCatalog,inspectCatalog,compareCatalogs,activeReviewCatalog,publishedIdentity,distinctPublicationIdentity,publicationSource,publicationRevision,ensurePrintPreflight,ensurePrintOutputVariant,printPreflightStatus,printPreflightDownload,printPreflightHistory,cancelPrintPreflight,deletePrintPreflight,recordTrimContentParityReview,recordTemplateImageReview,recordAiImagePrintQualityReview,recordTemplateImagePrintQualityReview,buildBundle,packageId,publicationIdentity,deterministic,confirmPublish,externalizeAssets});
 })(window);
