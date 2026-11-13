@@ -11,7 +11,7 @@ test('same day/title duplicate rows do not duplicate calendar events',()=>{asser
 test('unsupported/broken files fail explicitly',async()=>{await assert.rejects(()=>extractSchedule(new File(['x'],'old.doc'),2027),/DOCX/);assert.throws(()=>zipXml(Buffer.from('not a zip')),/압축/);});
 test('source-derived fields keep contact row identity and optional exclusions hide bound semantic objects',()=>{
  const p=source(),fields=fieldsForProject(p);assert.ok(fields.some(f=>f.binding==='school.contacts.1.fax'));const school={values:{name:'우리 학교','contact-0-phone':'444'},hidden:['motto']},before=JSON.stringify(p),q=applyMaterials(p,fields,school,[{id:'new',title:'입학식',startDate:'2027-03-02',endDate:'2027-03-02'}],{});
- assert.equal(JSON.stringify(p),before);assert.equal(q.book.school.name,'우리 학교');assert.equal(q.book.school.contacts[0].phone,'444');assert.equal(q.book.elementsByPage.p.find(e=>e.id==='motto').visible,false);assert.deepEqual(q.book.events.map(e=>e.id),['holiday','new']);assert.throws(()=>applyMaterials(p,fields,{values:{},hidden:['name']},[],{}),/제외/);
+ assert.equal(JSON.stringify(p),before);assert.equal(q.book.school.name,'우리 학교');assert.equal(q.book.school.contacts[0].phone,'444');assert.notEqual(q.book.elementsByPage.p.find(e=>e.id==='motto').visible,false);assert.deepEqual(q.book.events.map(e=>e.id),['holiday','new']);assert.equal(applyMaterials(p,fields,{values:{},hidden:['name']},[],{}).book.school.name,'샘플');
 });
 test('photo replacement honors shared permission policy and preserves frame geometry and fixed images',()=>{
  const p=source(),slots=photoSlotsForProject(p).filter(s=>s.scope!=='school');assert.equal(slots.length,1);const q=applyMaterials(p,fieldsForProject(p),{values:{},hidden:[]},[],{[slots[0].id]:{photoId:'upload',url:'blob:photo'}}),photo=q.book.elementsByPage.p.find(e=>e.id==='photo');assert.deepEqual([photo.x,photo.y,photo.width,photo.height],[10,20,40,50]);assert.equal(photo.image.src,'blob:photo');assert.equal(photo.image.scale,1);assert.equal(q.book.elementsByPage.p.find(e=>e.id==='fixed').image.src,'fixed');assert.throws(()=>applyMaterials(p,[],{values:{},hidden:[]},[],{bad:{photoId:'upload',url:'blob:bad'}}),/교체/);
@@ -37,7 +37,7 @@ test('missing cover frame retains school photo as data without inventing an edit
 
 test('new input clears blank contacts including fallback text while legacy projects retain samples',()=>{
  const p=source();p.book.school.address='샘플 주소';p.book.school.phone='111';p.book.school.fax='333';p.book.elementsByPage.p.push({id:'address',type:'text',binding:'school.address',content:'샘플 주소'});
- const fields=fieldsForProject(p),q=applyMaterials(p,fields,{values:{},hidden:[],omitEmptyContacts:true},[],{});
+ const fields=fieldsForProject(p),q=applyMaterials(p,fields,{values:{},hidden:[],omitEmptyContacts:true},[],{},3);
  assert.equal(q.book.school.address,'');assert.equal(q.book.school.phone,'');assert.equal(q.book.school.fax,'');assert.equal(q.book.elementsByPage.p.find(e=>e.id==='address').visible,false);assert.equal(q.book.elementsByPage.p.find(e=>e.id==='contacts').visible,false);
  assert.equal(applyMaterials(p,fields,{values:{},hidden:[]},[],{}).book.school.address,'샘플 주소');assert.equal(p.book.school.address,'샘플 주소');
 });
@@ -53,7 +53,7 @@ test('symbol exclusions cover master/local text, nested image bindings, semantic
  const fields=fieldsForProject(p),before=JSON.stringify(p),blank=applyMaterials(p,fields,{values:{},hidden:[]},[],{});
  assert.equal(blank.book.school.profile.tree.name,'소나무');assert.notEqual(blank.template.masterElements.cover[0].visible,false);
  const q=applyMaterials(p,fields,{values:{treeName:'보관된 이름'},hidden:['treeName','treeDescription']},[],{});
- for(const e of [...q.template.masterElements.cover,...q.book.elementsByPage.p].filter(e=>['tree','tree.title','tree-name','tree-desc','tree-image'].includes(e.id)))assert.equal(e.visible,false,e.id);
+ for(const e of [...q.template.masterElements.cover,...q.book.elementsByPage.p].filter(e=>['tree','tree.title','tree-name','tree-image'].includes(e.id)))assert.notEqual(e.visible,false,e.id);assert.equal(q.book.elementsByPage.p.find(e=>e.id==='tree-desc').visible,false);
  assert.notEqual(q.book.elementsByPage.p.find(e=>e.id==='background').visible,false);assert.notEqual(q.book.elementsByPage.p.find(e=>e.id==='fixed-tree').visible,false);
  assert.equal(JSON.stringify(p),before);assert.equal(applyMaterials(p,fields,{values:{treeName:'복원 이름'},hidden:[]},[],{}).book.school.profile.tree.name,'복원 이름');
 });
@@ -61,15 +61,15 @@ test('symbol exclusions cover master/local text, nested image bindings, semantic
 test('cover, school-symbol and back pages distinguish blank samples from explicit hiding in the shared render list',async()=>{
  await import('../../designer-studio/shared-screen-composition.js');const p=source();p.book.pageInstances=[{id:'cover',role:'cover-front'},{id:'symbols',role:'front-insert-front',semanticPageRole:'school-symbols'},{id:'back',role:'back-cover-back'}];p.book.elementsByPage={cover:[{id:'name',type:'text',binding:'school.name',content:'샘플'}],symbols:[{id:'motto',type:'text',binding:'school.profile.motto.description',content:'샘플 교훈'}],back:[{id:'english',type:'text',binding:'school.englishName',content:'SAMPLE'}]};p.template.publishing.dataRequirements=[];
  const fields=fieldsForProject(p),blank=applyMaterials(p,fields,{values:{},hidden:[]},[],{}),hidden=applyMaterials(p,fields,{values:{},hidden:fields.map(f=>f.key)},[],{});
- for(const page of p.book.pageInstances){assert.equal(globalThis.ACDLSharedScreenComposition.visibleElements(page,[],blank.book.elementsByPage[page.id]).length,1);assert.equal(globalThis.ACDLSharedScreenComposition.visibleElements(page,[],hidden.book.elementsByPage[page.id]).length,0);}
+ for(const page of p.book.pageInstances){assert.equal(globalThis.ACDLSharedScreenComposition.visibleElements(page,[],blank.book.elementsByPage[page.id]).length,1);assert.equal(globalThis.ACDLSharedScreenComposition.visibleElements(page,[],hidden.book.elementsByPage[page.id]).length,1);}
 });
 
-test('customer address stays required and hideable while template contact requirements do not force a phone',()=>{
+test('address and teaching phone stay visible without required input enforcement',()=>{
  const p=source();p.template.publishing.dataRequirements.push({path:'school.academicPhone',stage:'project-create-required',input:'text'});
  const fields=fieldsForProject(p),address=fields.find(f=>f.key==='address'),phone=fields.find(f=>f.key==='academicPhone');
- assert.equal(address.required,true);assert.equal(address.allowHide,true);assert.equal(phone.required,false);assert.equal(phone.allowHide,true);
+ assert.equal(address.required,false);assert.equal(address.allowHide,false);assert.equal(phone.required,false);assert.equal(phone.allowHide,false);
  const result=applyMaterials(p,fields,{values:{address:'보관 주소'},hidden:['address']},[],{});
- assert.equal(result.book.school.address,'');assert.equal(p.book.school.address,undefined);
+ assert.equal(result.book.school.address,'보관 주소');assert.equal(p.book.school.address,undefined);
 });
 
 test('legacy symbol parts acquire user name/description bindings and live song heading without changing source or styles',()=>{

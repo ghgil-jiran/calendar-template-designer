@@ -24,10 +24,10 @@ test('photo preparation choice survives backup restore without requiring page as
 
 test('photo categories and unapplied selections round trip separately from applied document',async()=>{const d=draft();d.photos[0].category='school';d.photoSelections={pending:{photoId,url:'blob:ephemeral'},cleared:null};d.assignments={};d.photoPageId='march';const s=await prepareSnapshot(d);assert.equal(s.record.photos[0].category,'school');assert.deepEqual(s.record.photoSelections,{pending:{photoId},cleared:null});assert.deepEqual(s.record.assignments,{});assert.ok(!JSON.stringify(s.record).includes('blob:ephemeral'));const restored=await restoreBackup(new File([await backupFile(s)],'pending.calendar-backup')),h=hydrateSnapshot(restored);try{assert.equal(h.photos[0].category,'school');assert.equal(h.photoSelections.pending.url,h.photos[0].url);assert.equal(h.photoSelections.cleared,null);assert.equal(h.record.photoPageId,'march');assert.deepEqual(h.assignments,{});}finally{h.urls.forEach(URL.revokeObjectURL)}});
 
-test('calendar display and blank contact policy survive backup and hydration',async()=>{
+test('calendar display survives backup while obsolete blanket contact omission is disabled',async()=>{
  const d=draft();d.school.omitEmptyContacts=true;d.school.calendarDisplay={includeHolidays:false,includeAnniversaries:true,includeSolarTerms:false,includeLunar:true};
  const s=await prepareSnapshot(d),restored=hydrateSnapshot(await restoreBackup(new File([await backupFile(s)],'display.calendar-backup')));
- try{assert.deepEqual(restored.record.school,d.school);}finally{restored.urls.forEach(URL.revokeObjectURL);}
+ try{assert.deepEqual(restored.record.school,{...d.school,omitEmptyContacts:false});}finally{restored.urls.forEach(URL.revokeObjectURL);}
 });
 
 test('photo editor result survives durable backup and new URLs, rejects tampered unauthorized edits',async()=>{
@@ -37,12 +37,12 @@ test('photo editor result survives durable backup and new URLs, rejects tampered
  snapshot.record.source.book.elementsByPage.p[0].permissions.imageFit=false;await assert.rejects(()=>backupFile(snapshot),/허용/);
 });
 
-test('previous exclusion snapshots validate under their original rules; new saves retain full symbol exclusions',async()=>{
+test('previous exclusion snapshots validate under their original rules; new saves only exclude allowed descriptions',async()=>{
  const {applyMaterials,fieldsForProject}=await import('../src/lib/materials/native-project.ts');const d=draft();d.assignments={};d.source={format:'acdl-project',settings:{year:2027},productType:{pageSize:{width:260,height:180}},template:{masters:{cover:{}},masterElements:{},publishing:{dataRequirements:[]}},book:{school:{name:'샘플',profile:{tree:{name:'소나무',description:'설명',image:'data:image/png;base64,YQ=='}}},pageInstances:[{id:'p',role:'cover-front'}],elementsByPage:{p:[{id:'tree',type:'semantic-object',role:'school-tree',binding:'school.profile.tree'},{id:'title',type:'text',content:'교목',metadata:{parentObjectId:'tree'}}]}}};
  d.template.fields=fieldsForProject(d.source);d.school={values:{},hidden:['treeName','treeDescription']};
- const current=await prepareSnapshot(d);assert.equal(current.record.bindingVersion,3);assert.equal(current.record.appliedProject.book.elementsByPage.p[1].visible,false);
- const old=structuredClone(current);old.record.bindingVersion=2;old.record.appliedProject=applyMaterials(old.record.source,old.record.template.fields,old.record.school,old.record.events,{},2);
+ const current=await prepareSnapshot(d);assert.equal(current.record.bindingVersion,4);assert.notEqual(current.record.appliedProject.book.elementsByPage.p[1].visible,false);
+ const old=structuredClone(current);old.record.bindingVersion=2;old.record.template.fields=old.record.template.fields.map(f=>({...f,allowHide:true}));old.record.appliedProject=applyMaterials(old.record.source,old.record.template.fields,old.record.school,old.record.events,{},2);
  assert.notEqual(old.record.appliedProject.book.elementsByPage.p[1].visible,false);
  const restored=await restoreBackup(new File([await backupFile(old)],'previous.calendar-backup'));assert.equal(restored.record.bindingVersion,2);
- const newRestore=await restoreBackup(new File([await backupFile(current)],'new.calendar-backup'));assert.equal(newRestore.record.appliedProject.book.elementsByPage.p[1].visible,false);
+ const newRestore=await restoreBackup(new File([await backupFile(current)],'new.calendar-backup'));assert.notEqual(newRestore.record.appliedProject.book.elementsByPage.p[1].visible,false);
 });
