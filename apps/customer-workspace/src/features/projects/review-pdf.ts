@@ -18,6 +18,6 @@ export async function downloadReviewPdf(id:string,onReady?:(count:number)=>void)
   try{for(const info of project.book.pageInstances){const rendered=engine.render(info.id),sheet=doc.createElement('section');sheet.className='review-sheet';sheet.append(rendered.cloneNode(true));doc.body.append(sheet);}shadow.querySelectorAll('style').forEach(s=>doc.head.append(s.cloneNode(true)));}finally{engine.dispose();host.remove();}
   await doc.fonts.ready;
   await Promise.all(Array.from(doc.images).map(async img=>{await img.decode();if(!img.naturalWidth)throw Error('이미지를 불러오지 못했어요. 다시 시도해 주세요.');}));
-  document.title=doc.title;titleChanged=true;onReady?.(project.book.pageInstances.length);win.addEventListener('afterprint',cleanup,{once:true});win.focus();win.print();
+  document.title=doc.title;titleChanged=true;if((window as unknown as {ACDLWallCalendar?:{inspect:(scope:Document)=>unknown[]}}).ACDLWallCalendar?.inspect(doc).length)throw Error('벽보형 날짜 칸 또는 일정 목록의 공간이 부족해요. 템플릿의 전체 월력 구성을 확인해 주세요.');onReady?.(project.book.pageInstances.length);win.addEventListener('afterprint',cleanup,{once:true});win.focus();win.print();
  }catch(error){cleanup();throw error;}
 }

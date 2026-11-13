@@ -244,7 +244,7 @@
 
 (()=>{
   const $=id=>document.getElementById(id);
-  const typeLabels={desk:'탁상형',wall:'벽걸이형',poster:'연간 포스터형',postcard:'엽서형'};
+  const typeLabels={desk:'탁상형',wall:'벽걸이형',poster:'연간 벽보형',postcard:'엽서형'};
   SIZE_PRESETS.postcard=[
     {id:'postcard-148x100',label:'가로형 — 148 × 100 mm',width:148,height:100,note:'표지와 월별 사진을 넓게 구성하는 기본 엽서형',recommended:true},
     {id:'postcard-100x148',label:'세로형 — 100 × 148 mm',width:100,height:148,note:'세로 사진과 월력을 조합하는 엽서형'},
@@ -400,7 +400,7 @@
  const defaults=[
   {id:'desk',name:'탁상형',baseType:'desk',builtin:true,width:260,height:190,monthlyCount:12,duplex:true,cover:true,backCover:true,frontInsert:true,rearInsert:true,annualSingle:false,startMonth:true,resizable:true,monthlyImages:true,allowedObjects:allObjects},
   {id:'wall',name:'벽걸이형',baseType:'wall',builtin:true,width:297,height:420,monthlyCount:12,duplex:false,cover:true,backCover:false,frontInsert:true,rearInsert:false,annualSingle:false,startMonth:true,resizable:true,monthlyImages:true,allowedObjects:allObjects},
-  {id:'poster',name:'연간 포스터형',baseType:'poster',builtin:true,width:420,height:594,monthlyCount:12,duplex:false,cover:false,backCover:false,frontInsert:false,rearInsert:false,annualSingle:true,startMonth:true,resizable:true,monthlyImages:false,allowedObjects:allObjects},
+  {id:'poster',name:'연간 벽보형',baseType:'poster',builtin:true,width:420,height:594,monthlyCount:12,duplex:false,cover:false,backCover:false,frontInsert:false,rearInsert:false,annualSingle:true,startMonth:true,resizable:true,monthlyImages:false,allowedObjects:allObjects},
   {id:'postcard',name:'엽서형',baseType:'postcard',builtin:true,width:148,height:100,monthlyCount:12,duplex:false,cover:true,backCover:true,frontInsert:true,rearInsert:true,annualSingle:false,startMonth:true,resizable:true,monthlyImages:true,allowedObjects:allObjects}
  ];
  function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');return Array.isArray(x)&&x.length?x:structuredClone(defaults)}catch{return structuredClone(defaults)}}

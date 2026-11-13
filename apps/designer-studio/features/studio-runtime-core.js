@@ -336,7 +336,7 @@ function applyCalendarType(type){
  document.querySelectorAll("[data-user-template]").forEach(x=>x.classList.toggle("hidden-by-type",x.dataset.userType!==type));
  document.querySelectorAll("[data-user-template]").forEach(x=>x.classList.remove("selected"));
  selectedUserTemplate={template:"",type,libraryId:null};
- el("selectedTypeLabel").textContent={desk:"탁상형",wall:"벽걸이형",poster:"연간 포스터형",postcard:"엽서형"}[type]||type;
+ el("selectedTypeLabel").textContent={desk:"탁상형",wall:"벽걸이형",poster:"연간 벽보형",postcard:"엽서형"}[type]||type;
  renderUserSizeOptions();
  updateWizardActions();
  if(wizardStateApi?.persistWizardState)wizardStateApi.persistWizardState({selectedType:type,template:selectedUserTemplate.template,step:userWizardStep});
@@ -504,7 +504,7 @@ function openDesignerStudio(options){
   if(typeof setUserWizardStep==='function')setUserWizardStep(1);
   renderUserSizeOptions();
   window.scrollTo?.(0,0);
-  const label=el('selectedTypeLabel');if(label)label.textContent={desk:'탁상형',wall:'벽걸이형',poster:'연간 포스터형',postcard:'엽서형'}[selectedCalendarType]||selectedCalendarType;
+  const label=el('selectedTypeLabel');if(label)label.textContent={desk:'탁상형',wall:'벽걸이형',poster:'연간 벽보형',postcard:'엽서형'}[selectedCalendarType]||selectedCalendarType;
   showEditorToast('새 달력 생성 흐름을 다시 시작합니다.');
   updateRoleIndicator();
   return;
@@ -834,7 +834,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     cards.forEach(x=>x.classList.toggle('hidden-by-type',x.dataset.userType!==type));
     cards.forEach(x=>x.classList.remove('selected'));
     selectedUserTemplate={template:'',type,libraryId:null};
-    el('selectedTypeLabel').textContent={desk:'탁상형',wall:'벽걸이형',poster:'연간 포스터형'}[type]||type;
+    el('selectedTypeLabel').textContent={desk:'탁상형',wall:'벽걸이형',poster:'연간 벽보형'}[type]||type;
     renderUserSizeOptions();
     updateWizardActions();
   };

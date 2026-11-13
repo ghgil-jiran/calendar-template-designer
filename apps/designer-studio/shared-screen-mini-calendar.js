@@ -72,11 +72,11 @@
     const months = Array.from({ length: count }, (_, index) => {
       const absolute = startMonth - 1 + index;
       const year = baseYear + Math.floor(absolute / 12), month = absolute % 12 + 1;
-      const rowMode = String(element?.rowsMode || "inherit");
+      const rowMode = element?.academicPoster&&root.ACDLWallCalendar?"6":String(element?.rowsMode || "inherit");
       const mini = resolveMiniCalendar({
         type: "mini-calendar", weekStart: element?.weekStart ?? defaults.weekStart,
         calendarRows: rowMode === "5" || rowMode === "6" ? Number(rowMode) : defaults.calendarRows,
-        calendarRowsMode: rowMode === "adaptive" ? "adaptive" : defaults.calendarRowsMode,
+        calendarRowsMode: rowMode === "6" ? "fixed" : rowMode === "adaptive" ? "adaptive" : defaults.calendarRowsMode,
         sampleFamily: rowMode === "adaptive" ? "desk-6" : defaults.sampleFamily,
       }, { calendarYear: year, calendarMonth: month }, { year, startMonth: month, ...defaults });
       const transition = element?.showTransitionYear !== false && year !== baseYear;
@@ -91,6 +91,7 @@
     return {dateSize:two?13:10,titleSize:two?28:22,eventSize:two?6:5,listSize:two?7:6,referenceSize:two?5.5:4.5};
   }
   function normalizePosterElement(element){
+    if(element?.academicPoster){element.label||='전체 월력';}
     if(!element?.academicPoster||element.posterPolicyVersion===2)return element;
     const d=posterDefaults(element);element.style||={};
     // Migrate the old shipped sizes once. Explicitly authored sizes remain intact.
@@ -130,6 +131,7 @@
     });
   }
   function renderPosterCalendarMarkup(annual,element,project){
+    if(root.ACDLWallCalendar)return root.ACDLWallCalendar.render(annual,element,project);
     element=normalizePosterElement(structuredClone(element));
     const months=resolvePosterMonths(annual,element,project),s=element.style||{},unit=n=>(Number(n)/10)+'cqw',dateSize=Number(s.dateSize)||18,titleSize=Number(s.titleSize)||27,eventSize=Number(element.posterEventSize)||7.5,listSize=Number(element.posterListSize)||10.5,columns=annual.columns,colors=element.posterColors||['#e9bccb','#b3d3e5','#b9d6c2','#cfc2df'];
     const text=e=>escapeText(e.title),dateLabel=e=>{const a=e.startDate.slice(5).replace('-','/'),b=e.endDate.slice(5).replace('-','/');return a+(e.endDate>e.startDate?'–'+b:'')};
