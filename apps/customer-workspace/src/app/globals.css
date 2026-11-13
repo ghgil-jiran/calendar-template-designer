@@ -666,7 +666,7 @@ img {max-width: 100%;}
 .editor-properties .editor-tool-card label{font-size:11px}
 .editor-properties .editor-tool-card .editor-field-heading label{margin:0}
 .editor-properties .editor-tool-card .button{width:100%;min-height:33px;padding:8px;font-size:11px;line-height:1.5;white-space:normal;border-radius:6px}
-.editor-properties .editor-card-apply{margin-top:12px}
+.editor-properties .editor-tool-card > .editor-card-apply{margin:12px 0 0}
 .editor-properties .editor-card-apply:disabled{background:hsl(var(--canvas));color:hsl(var(--muted-foreground));border-color:hsl(var(--border));opacity:.65}
 .editor-properties .editor-card-apply.button-primary:not(:disabled){background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:hsl(var(--primary));opacity:1}
 .editor-properties .editor-inline-control{grid-template-columns:49px minmax(0,1fr);gap:6px}
