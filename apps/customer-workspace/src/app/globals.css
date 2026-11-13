@@ -640,3 +640,40 @@ img {max-width: 100%;}
 
 .editor-properties .editor-logo-configuration label{display:flex;flex-direction:row;align-items:center;gap:7px;font-size:12px}
 .editor-properties .editor-logo-configuration input{width:15px;height:15px;min-height:15px;margin:0;padding:0}
+
+/* Consistent input and object inspector panels. */
+.editor-shell{--input-school:214 95% 96%;--input-schedule:150 42% 95%;--input-image:262 62% 96%;--input-school-ink:216 72% 36%;--input-schedule-ink:154 49% 28%;--input-image-ink:263 47% 39%}
+.editor-panel-heading,.editor-inspector-heading.editor-panel-heading{position:sticky;top:0;z-index:6;display:flex;align-items:center;min-height:49px;box-sizing:border-box;padding:13px 14px;margin:0;background:hsl(var(--primary)/.065);border-bottom:1px solid hsl(var(--primary)/.14)}
+.editor-panel-heading h2,.editor-inspector-heading.editor-panel-heading h2{margin:0;font-size:15px;line-height:1.4;font-weight:750;color:hsl(var(--foreground))}
+.editor-library-heading{gap:7px;padding:12px 10px}
+.editor-library-heading .button{min-height:37px;border:1px solid hsl(var(--border)/.65);padding:8px 11px;font-weight:650;box-shadow:none}
+.editor-library-heading .button:nth-child(1){background:hsl(var(--input-school));color:hsl(var(--input-school-ink));border-color:hsl(var(--input-school-ink)/.16)}
+.editor-library-heading .button:nth-child(2){background:hsl(var(--input-schedule));color:hsl(var(--input-schedule-ink));border-color:hsl(var(--input-schedule-ink)/.16)}
+.editor-library-heading .button:nth-child(3){background:hsl(var(--input-image));color:hsl(var(--input-image-ink));border-color:hsl(var(--input-image-ink)/.16)}
+.editor-library-heading .button svg{color:currentColor}
+.editor-library-heading .button:hover:not(:disabled){filter:brightness(.97);box-shadow:0 1px 3px hsl(var(--shadow)/.06)}
+.editor-library-tabs{margin:0 8px;padding:5px;gap:4px;background:hsl(var(--primary)/.07);border:1px solid hsl(var(--primary)/.1);border-radius:8px}
+.editor-library-tabs button{background:hsl(var(--canvas)/.7);border:1px solid transparent;color:hsl(var(--foreground));min-height:29px;font-weight:550}
+.editor-library-tabs button[aria-pressed=true]{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:hsl(var(--primary));box-shadow:0 2px 4px hsl(var(--primary)/.18);font-weight:700}
+.editor-properties{background:hsl(var(--primary)/.025)}
+.editor-inspector-body{padding:11px;display:flex;flex-direction:column;gap:11px}
+.editor-properties .editor-tool-card{padding:12px;margin:0;border:1px solid hsl(var(--border)/.85);border-radius:9px;background:hsl(var(--canvas));min-width:0}
+.editor-properties .editor-tool-card h3{margin:0 0 11px;font-size:12px;font-weight:750;line-height:1.5;color:hsl(var(--foreground))}
+.editor-properties .editor-object-summary{border-left:3px solid hsl(var(--primary)/.55);padding-left:11px}
+.editor-properties .editor-object-summary h3{font-size:13px;margin-bottom:7px}
+.editor-properties .editor-object-summary p{margin:6px 0 0;font-size:11px;line-height:1.65;color:hsl(var(--muted-foreground))}
+.editor-properties .editor-tool-card .field-hint{margin:9px 0 0;font-size:10px;line-height:1.65}
+.editor-properties .editor-tool-card label{font-size:11px}
+.editor-properties .editor-tool-card .editor-field-heading label{margin:0}
+.editor-properties .editor-tool-card .button{width:100%;min-height:33px;padding:8px;font-size:11px;line-height:1.5;white-space:normal;border-radius:6px}
+.editor-properties .editor-card-apply{margin-top:12px}
+.editor-properties .editor-card-apply:disabled{background:hsl(var(--canvas));color:hsl(var(--muted-foreground));border-color:hsl(var(--border));opacity:.65}
+.editor-properties .editor-card-apply.button-primary:not(:disabled){background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:hsl(var(--primary));opacity:1}
+.editor-properties .editor-inline-control{grid-template-columns:49px minmax(0,1fr);gap:6px}
+.editor-properties .editor-inline-control input,.editor-properties .editor-inline-control select{min-width:0;font-size:11px}
+.editor-properties .editor-image-replace{display:flex;align-items:center;justify-content:center;gap:7px}
+.editor-properties .editor-image-content>.button:last-child{margin-top:11px}
+.editor-properties .editor-image-fit{margin-top:12px;padding-top:11px;border-top:1px solid hsl(var(--border)/.65)}
+.editor-properties .editor-image-fit label{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.editor-properties .editor-image-fit input[type=range]{width:100%;margin:0}
+.editor-properties .editor-content-field input:not([type=checkbox]){min-height:35px;font-size:12px}

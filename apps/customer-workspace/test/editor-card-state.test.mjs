@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {applyFieldDrafts,fieldChanged} from '../src/lib/editor/card-state.ts';
+const school={values:{name:'기존 학교',address:'기존 주소'},hidden:[],cleared:[]};
+test('card changes compare values and visibility; undoing an input returns to unchanged',()=>{assert.equal(fieldChanged(school,'name',{value:'기존 학교',hidden:false}),false);assert.equal(fieldChanged(school,'name',{value:'새 학교',hidden:false}),true);assert.equal(fieldChanged(school,'name',{value:'기존 학교',hidden:true}),true);});
+test('applying one card preserves drafts and saved data belonging to other cards',()=>{const drafts={name:{value:'새 학교',hidden:false},address:{value:'새 주소',hidden:true}};const next=applyFieldDrafts(school,drafts,['name']);assert.equal(next.values.name,'새 학교');assert.equal(next.values.address,'기존 주소');assert.deepEqual(next.hidden,[]);assert.equal(school.values.name,'기존 학교');assert.equal(drafts.address.value,'새 주소');});
+test('empty input and visibility changes keep explicit clear semantics',()=>{const next=applyFieldDrafts(school,{name:{value:'',hidden:true}},['name']);assert.ok(next.cleared.includes('name'));assert.ok(next.hidden.includes('name'));const restored=applyFieldDrafts(next,{name:{value:'복원 학교',hidden:false}},['name']);assert.equal(restored.values.name,'복원 학교');assert.ok(!restored.cleared.includes('name'));assert.ok(!restored.hidden.includes('name'));});
