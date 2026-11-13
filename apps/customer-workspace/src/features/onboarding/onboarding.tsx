@@ -148,7 +148,7 @@ export function Onboarding() {
     setWorkingTemplate(template);setSelectedId(template.id);setStep('detail');setNativeFailure('');
     if(!template.sourceUrl){setNativeLoading(false);return;}
     setNativeLoading(true);
-    try{const project=await fetchTemplateSource(template);if(requestId!==selectionRequest.current)return;setNativeSource(project);setSchool(current=>({...current,values:{...schoolSamples(project,template.fields),...Object.fromEntries(Object.entries(current.values).filter(([,v])=>v.trim()))},omitEmptyContacts:false,calendarDisplay:current.calendarDisplay||{includeHolidays:true,includeAnniversaries:true,includeSolarTerms:true,includeLunar:true}}));}
+    try{const project=await fetchTemplateSource(template);if(requestId!==selectionRequest.current)return;setNativeSource(project);setWorkingTemplate(current=>current?.id===template.id?{...current,fields:fieldsForProject(project),photoSlots:photoSlotsForProject(project)}:current);setSchool(current=>({...current,values:{...schoolSamples(project,fieldsForProject(project)),...Object.fromEntries(Object.entries(current.values).filter(([,v])=>v.trim()))},omitEmptyContacts:false,calendarDisplay:current.calendarDisplay||{includeHolidays:true,includeAnniversaries:true,includeSolarTerms:true,includeLunar:true}}));}
     catch(error){if(requestId===selectionRequest.current)setNativeFailure(error instanceof Error?error.message:'템플릿을 불러오지 못했습니다.');}
     finally{if(requestId===selectionRequest.current)setNativeLoading(false);}
   }
@@ -268,7 +268,7 @@ function CardPreviewPage({template,number,decorative=false}:{template:TemplateCa
   useEffect(()=>{frame.current?.style.setProperty('--preview-ratio',String(template.widthMm/template.heightMm));},[template.widthMm,template.heightMm]);
   const page=template.pages.find(page=>page.number===number);
   const url=page?.imageUrl||(number===1?template.coverUrl:null);
-  return <div ref={frame} className="card-preview-page" aria-hidden={decorative||undefined}><div className="card-preview-content">{url?<PreviewImage url={url} label={page?.label||`${number}면`} decorative={decorative}/>:<TemplatePagePreview template={template} number={number} decorative={decorative}/>}</div></div>;
+  return <div ref={frame} className="card-preview-page" aria-hidden={decorative||undefined}><div className="card-preview-content">{url?<PreviewImage url={url} label={page?.label||`${number}면`} decorative={decorative}/>:<div className="preview-placeholder" role="img" aria-label="저장된 미리보기 준비 중"><strong>미리보기 준비 중</strong><span>디자인 상세에서 확인해 주세요.</span></div>}</div></div>;
 }
 
 function TemplateCardArtwork({template}:{template:TemplateCard}) {

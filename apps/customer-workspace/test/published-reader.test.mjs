@@ -45,3 +45,19 @@ test('all published templates remain visible across catalog pages and unpublishi
 });
 
 test('saved previews must match the exact editor version',async()=>{const fresh=(await fixture({savedVersion:3}).reader.publishedCatalog()).templates[0];assert.ok(fresh.pages[0].imageUrl);const stale=(await fixture({savedVersion:2}).reader.publishedCatalog()).templates[0];assert.equal(stale.pages[0].imageUrl,null);});
+
+
+test('catalog uses projected metadata while full source remains on the explicit source endpoint',async()=>{
+ const p=project(),calls=[];
+ const reader=createPublishedReader({url:'https://fixture.supabase.invalid',key:'fixture-key',fetcher:async input=>{
+  const u=new URL(input);calls.push(u);
+  if(u.pathname.endsWith('/template_projects'))return Response.json([{id,name:'목록 경량 조회',latest_version_id:versionId}]);
+  if(u.pathname.endsWith('/template_versions')){if(u.searchParams.get('select').includes('catalog_format:'))return Response.json([{id:versionId,template_id:id,version_number:3,catalog_format:p.format,catalog_settings:p.settings,catalog_product:p.productType,catalog_pages:p.book.pageInstances,catalog_thumbnail:null,catalog_previews:null,catalog_publishing:p.template.publishing}]);return Response.json([{id:versionId,template_id:id,version_number:3,project_data:p}]);}
+  if(u.pathname.endsWith('/template_assets'))return Response.json([{id:assetId,storage_bucket:'template-assets',storage_path:'source/image.png'}]);
+  if(u.pathname.includes('/object/sign/'))return Response.json({signedURL:'/object/sign/template-assets/source/image.png'});
+  throw Error('Unexpected URL');
+ }});
+ const c=await reader.publishedCatalog();assert.equal(c.templates[0].pageCount,1);assert.equal(c.templates[0].coverUrl,null);
+ assert.ok(!calls.find(u=>u.pathname.endsWith('/template_versions')).searchParams.get('select').split(',').includes('project_data'));
+ assert.equal((await reader.publishedSource(id,3)).project.book.school.name,'샘플');
+});
