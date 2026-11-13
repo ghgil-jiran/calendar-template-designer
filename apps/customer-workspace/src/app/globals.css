@@ -637,3 +637,6 @@ img {max-width: 100%;}
 .editor-stage > .editor-commandbar{min-height:44px;padding:7px 10px;gap:5px}
 .editor-shell .editor-photo-thumb small{font-size:9px}
 .editor-command-actions .editor-preview-menu summary{height:28px;padding:5px 7px;font-size:11px}
+
+.editor-properties .editor-logo-configuration label{display:flex;flex-direction:row;align-items:center;gap:7px;font-size:12px}
+.editor-properties .editor-logo-configuration input{width:15px;height:15px;min-height:15px;margin:0;padding:0}
