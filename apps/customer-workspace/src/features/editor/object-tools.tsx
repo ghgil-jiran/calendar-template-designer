@@ -4,13 +4,19 @@ import type {EditorTarget,PhotoFit,TextStyle} from '@/lib/editor/session';
 import type {SchoolField,SchoolInput} from '@/lib/api/contracts';
 import type {NativeProject} from '@/lib/materials/native-project';
 
+type ToolIconName='undo'|'redo'|'copy'|'paste'|'delete'|'left'|'center'|'right'|'justify'|'school'|'schedule'|'image';
+export function ToolIcon({name}:{name:ToolIconName}){
+ const paths:Record<ToolIconName,string>={undo:'M9 5 4 10l5 5M4 10h10a6 6 0 0 1 0 12',redo:'m15 5 5 5-5 5M20 10H10a6 6 0 0 0 0 12',copy:'M9 8h11v13H9zM15 8V3H4v13h5',paste:'M9 5H5v17h14V5h-4M9 3h6v5H9z',delete:'M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6',left:'M3 5h18M3 10h12M3 15h18M3 20h12',center:'M3 5h18M6 10h12M3 15h18M6 20h12',right:'M3 5h18M9 10h12M3 15h18M9 20h12',justify:'M3 5h18M3 10h18M3 15h18M3 20h18',school:'m3 10 9-6 9 6M5 9v12h14V9M9 21v-7h6v7M12 4V1',schedule:'M4 5h16v16H4zM8 2v6M16 2v6M4 10h16M8 14h2M14 14h2M8 18h2',image:'M3 4h18v16H3zM3 16l6-6 5 5 3-3 4 4M16 8h.01'};
+ return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d={paths[name]}/></svg>;
+}
+
 export function TextFormattingToolbar({style,onChange,disabled=false}:{style:TextStyle;onChange:(patch:TextStyle)=>void;disabled?:boolean}){
  const underline=style.textDecoration?.includes('underline'),strike=style.textDecoration?.includes('line-through');
  return <div className="editor-text-toolbar" role="group" aria-label="글자 꾸미기">
-  <select disabled={disabled} aria-label="툴바 글꼴" value={style.fontFamily||'Pretendard'} onChange={e=>onChange({fontFamily:e.target.value})}>{[...new Set([style.fontFamily||'Pretendard','Pretendard','Noto Sans KR','Noto Serif KR','Arial'])].map(font=><option key={font}>{font}</option>)}</select>
-  <input disabled={disabled} aria-label="툴바 글자 크기" type="number" min="1" max="240" step=".5" value={style.fontSize||18} onChange={e=>{if(e.target.value)onChange({fontSize:Number(e.target.value)});}}/>
-  <input disabled={disabled} aria-label="툴바 글자색" type="color" value={/^#[0-9a-f]{6}$/i.test(style.color||'')?style.color:'#17202e'} onChange={e=>onChange({color:e.target.value})}/>
-  {([['left','왼쪽 정렬'],['center','가운데 정렬'],['right','오른쪽 정렬'],['justify','양쪽 정렬']] as const).map(([value,label])=><Button key={value} disabled={disabled} title={label} aria-label={label} aria-pressed={(style.textAlign||'left')===value} onClick={()=>onChange({textAlign:value})}>{label.replace(' 정렬','')}</Button>)}
+  <select title="글꼴" disabled={disabled} aria-label="툴바 글꼴" value={style.fontFamily||'Pretendard'} onChange={e=>onChange({fontFamily:e.target.value})}>{[...new Set([style.fontFamily||'Pretendard','Pretendard','Noto Sans KR','Noto Serif KR','Arial'])].map(font=><option key={font}>{font}</option>)}</select>
+  <input title="글자 크기" disabled={disabled} aria-label="툴바 글자 크기" type="number" min="1" max="240" step=".5" value={style.fontSize||18} onChange={e=>{if(e.target.value)onChange({fontSize:Number(e.target.value)});}}/>
+  <input title="글자색" disabled={disabled} aria-label="툴바 글자색" type="color" value={/^#[0-9a-f]{6}$/i.test(style.color||'')?style.color:'#17202e'} onChange={e=>onChange({color:e.target.value})}/>
+  {([['left','왼쪽 정렬'],['center','가운데 정렬'],['right','오른쪽 정렬'],['justify','양쪽 정렬']] as const).map(([value,label])=><Button key={value} disabled={disabled} title={label} aria-label={label} aria-pressed={(style.textAlign||'left')===value} onClick={()=>onChange({textAlign:value})}><ToolIcon name={value}/></Button>)}
   <Button disabled={disabled} aria-label="굵게" title="굵게" aria-pressed={Number(style.fontWeight||400)>=700} onClick={()=>onChange({fontWeight:Number(style.fontWeight||400)>=700?400:700})}><strong>B</strong></Button>
   <Button disabled={disabled} aria-label="기울임" title="기울임" aria-pressed={style.fontStyle==='italic'} onClick={()=>onChange({fontStyle:style.fontStyle==='italic'?'normal':'italic'})}><em>I</em></Button>
   <Button disabled={disabled} aria-label="밑줄" title="밑줄" aria-pressed={!!underline} onClick={()=>onChange({textDecoration:underline?(strike?'line-through':'none'):(strike?'underline line-through':'underline')})}><span className="editor-underline-icon">U</span></Button>

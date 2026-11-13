@@ -606,12 +606,34 @@ img {max-width: 100%;}
 .editor-underline-icon {text-decoration:underline;}
 @media(max-width:720px){.editor-text-toolbar {padding-left:5px;}.editor-text-toolbar .button {width:28px;}}
 
-/* Shared editor commands remain usable on narrow workspaces. */
-.editor-library-heading{display:flex;flex-direction:column;gap:.5rem}
-.editor-commandbar{flex-wrap:wrap;gap:.4rem}
-.editor-text-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem}
-.editor-text-toolbar select{max-width:140px}
-.editor-text-toolbar input[type=number]{width:64px}
-.editor-text-toolbar input[type=color]{width:32px;height:28px;padding:2px}
+/* Compact editor tools: a stable command row above the canvas. */
+.editor-library-heading{display:flex;flex-direction:column;gap:2px;padding:10px 8px}
+.editor-library-heading .button{display:flex;align-items:center;justify-content:flex-start;gap:10px;min-height:34px;padding:6px 10px;border-color:transparent;border-radius:7px;background:transparent;box-shadow:none;font-size:12px;font-weight:500}
+.editor-library-heading .button svg{color:hsl(var(--muted-foreground));flex:none}
+.editor-library-heading .button:hover:not(:disabled){background:hsl(var(--primary)/.07);color:hsl(var(--primary))}
+.editor-library-tabs{display:flex;gap:2px;padding:7px 8px;background:hsl(var(--muted-foreground)/.04)}
+.editor-library-tabs button{min-width:0;min-height:28px;padding:4px 3px;font-size:11px;border:0;border-radius:5px;white-space:nowrap;background:transparent}
+.editor-library-tabs button[aria-pressed=true]{background:hsl(var(--canvas));color:hsl(var(--primary));box-shadow:0 1px 3px hsl(var(--shadow)/.1)}
+.editor-bank-heading{padding:10px 9px 8px}
+.editor-photo-bank{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:0 8px 12px}
+.editor-photo-thumb{position:relative;display:block;aspect-ratio:1;padding:3px;min-width:0;border-radius:6px;overflow:hidden;background:hsl(var(--muted-foreground)/.04)}
+.editor-photo-thumb img{display:block;width:100%;height:100%;aspect-ratio:1;object-fit:contain;border-radius:3px}
+.editor-photo-thumb small{position:absolute;right:3px;bottom:3px;padding:1px 4px;border-radius:3px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-size:9px;line-height:1.5}
+.editor-commandbar{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;min-height:48px;padding:7px 12px;background:hsl(var(--muted-foreground)/.045);border-bottom:1px solid hsl(var(--border));box-shadow:0 1px 2px hsl(var(--shadow)/.035);z-index:5}
+.editor-command-group{display:flex;flex:none;align-items:center;gap:2px}
+.editor-command-group + .editor-command-group{padding-left:6px;border-left:1px solid hsl(var(--border))}
+.editor-commandbar .button{display:inline-flex;align-items:center;justify-content:center;width:28px;min-width:28px;height:28px;min-height:28px;padding:5px;border-radius:5px;flex:none}
+.editor-text-toolbar{display:flex;flex:none;flex-wrap:nowrap;align-items:center;gap:2px;padding-left:6px;border-left:1px solid hsl(var(--border))}
+.editor-text-toolbar select{width:118px;max-width:118px;padding:4px 5px;font-size:11px}
+.editor-text-toolbar input[type=number]{width:51px;padding:4px;font-size:11px}
+.editor-text-toolbar input[type=color]{width:25px;height:28px;min-height:28px;padding:3px}
+.editor-text-toolbar select,.editor-text-toolbar input{height:28px;min-height:28px;border-radius:5px;margin:0}
+.editor-command-actions{display:flex;flex:none;flex-wrap:nowrap;align-items:center;gap:6px;margin-left:auto}
+.editor-toolbar-zoom select{height:28px;min-height:28px;padding:4px 5px;font-size:11px;max-width:100px}
+.editor-preview-menu summary{height:28px;box-sizing:border-box;padding:5px 8px;font-size:11px;border-radius:5px;white-space:nowrap;background:hsl(var(--canvas))}
+.editor-preview-menu .button{width:100%;justify-content:flex-start;padding:6px 9px}
+@media(max-width:1150px){.editor-commandbar{gap:3px;padding-inline:6px;overflow-x:auto}.editor-commandbar .button{width:26px;min-width:26px}.editor-text-toolbar select{width:100px;max-width:100px}.editor-command-actions{padding-left:5px}}
 
-.editor-text-toolbar .button{width:auto;min-width:32px;white-space:nowrap}
+.editor-stage > .editor-commandbar{min-height:44px;padding:7px 10px;gap:5px}
+.editor-shell .editor-photo-thumb small{font-size:9px}
+.editor-command-actions .editor-preview-menu summary{height:28px;padding:5px 7px;font-size:11px}
