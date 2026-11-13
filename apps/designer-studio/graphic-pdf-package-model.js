@@ -2,7 +2,7 @@
 (function(root){
  'use strict';
  const CHUNK_BYTES=1048576,MAX_BYTES=250*CHUNK_BYTES,MAX_PAGES=160;
- const slots={'cover':'표지','cover-inside':'표지 안쪽','interleaf-front':'앞간지 앞면','interleaf-back':'앞간지 뒷면','rear-interleaf-front':'뒷간지 앞면','rear-interleaf-back':'뒷간지 뒷면','back-cover':'뒷표지'};
+ const slots={'poster-1':'벽보형 · 1면 / 첫째 면','poster-2':'벽보형 · 둘째 면','cover':'표지','cover-inside':'표지 안쪽','interleaf-front':'앞간지 앞면','interleaf-back':'앞간지 뒷면','rear-interleaf-front':'뒷간지 앞면','rear-interleaf-back':'뒷간지 뒷면','back-cover':'뒷표지'};
  for(let i=1;i<=12;i++){const n=String(i).padStart(2,'0');slots['month-back-'+n]='월력 뒷면 · '+i+'번째 월';slots['month-front-'+n]='월력 앞면 · '+i+'번째 월';}
  function error(message){throw new Error(message)}
  function uploadMetadata(value={}){

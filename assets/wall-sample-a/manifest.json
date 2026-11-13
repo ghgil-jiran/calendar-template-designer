@@ -1,0 +1,15 @@
+{
+  "revision": "wall-sample-a.v1",
+  "fileName": "wall-sample-a-background.pdf",
+  "sha256": "b9fc60376fdaa70c47329b400eb7800818f9fffcc40400e079fc5fa8b8d1b945",
+  "byteSize": 1178785,
+  "pages": [
+    {
+      "widthPt": 1207.55908203125,
+      "heightPt": 1700.787353515625
+    }
+  ],
+  "pixelWidth": 1055,
+  "pixelHeight": 1491,
+  "effectiveDpi": 62.90375586854459
+}

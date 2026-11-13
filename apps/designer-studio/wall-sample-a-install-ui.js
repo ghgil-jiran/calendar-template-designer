@@ -1,0 +1,7 @@
+(()=>{
+ const $=id=>document.getElementById(id);
+ function mount(){const card=document.querySelector('[data-type-card="poster-standard"] .type-card-actions');if(!card||$('createWallSampleA'))return;const button=document.createElement('button');button.id='createWallSampleA';button.type='button';button.textContent='샘플 A · 플라워 1면형 만들기';button.title='선택한 수채화 배경 PDF와 연결 개체를 새 초안으로 등록합니다.';card.append(button);
+  button.onclick=async()=>{button.disabled=true;const call=async step=>{const r=await window.ACDLAdminAuth.authorizedFetch('/api/poster-sample',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({variant:'floral-a',step})}),data=await r.json();if(!r.ok)throw Error(data.message||data.error||'샘플 A 등록 실패');return data;};try{button.textContent='배경 원본 등록 중…';let result=await call('prepare');if(!result.completed){button.textContent='연결 개체와 템플릿 저장 중…';result=await call('save');}button.textContent='샘플 A 등록 완료';await window.refreshRemoteTemplateLibrary?.();$('closeTypeManagerBtn')?.click();$('designerHomeLibrary')?.click();showEditorToast(result.existing?'이미 등록된 벽보형 샘플 A를 라이브러리에서 확인해 주세요.':'벽보형 샘플 A를 새 초안으로 저장했습니다. 열어서 배치를 확인하고 저장해 주세요.');}catch(error){button.disabled=false;button.textContent='샘플 A 만들기 다시 시도';showEditorToast(error.message);}};
+ }
+ const overlay=$('typeManagerOverlay');if(overlay)new MutationObserver(mount).observe(overlay,{childList:true,subtree:true});mount();
+})();
