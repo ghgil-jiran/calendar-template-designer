@@ -695,3 +695,5 @@ img {max-width: 100%;}
 .project-card-actions .project-delete{margin-left:auto}
 .order-review{margin-top:18px}
 @media(max-width:720px){.catalog-main{padding-top:12px}.catalog-hero{gap:14px;padding-bottom:16px}.catalog-hero h1{font-size:28px}.project-card-actions .project-delete{margin-left:0}}
+
+.common-image-roles{display:flex;gap:5px;flex-wrap:wrap;margin:7px 0}.common-image-roles .button{font-size:11px;padding:5px 7px}.common-image-roles .button[aria-pressed=true]{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}.common-image-roles small{width:100%}.order-ready-dialog{border:1px solid hsl(var(--border));border-radius:12px;padding:24px;min-width:260px;text-align:center}.order-ready-dialog::backdrop{background:hsl(var(--foreground)/.3)}.order-ready-dialog p{margin:0 0 20px;font-weight:650}.schedule-table td:last-child{white-space:nowrap}.schedule-table td:last-child .button+.button{margin-left:5px}

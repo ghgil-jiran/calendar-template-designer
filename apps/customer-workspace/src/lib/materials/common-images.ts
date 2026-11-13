@@ -1,0 +1,4 @@
+import type {PhotoAssignment,PhotoSlot} from '../api/contracts';
+export const commonImageRoles=[{binding:'school.profile.logo',label:'교표'},{binding:'school.profile.building',label:'학교 전경'},{binding:'school.profile.song',label:'교가'}] as const;
+export function suggestedImageRole(name:string){if(/교가|악보|school.?song|anthem|score/i.test(name))return 'school.profile.song';if(/교표|로고|logo|symbol|emblem/i.test(name))return 'school.profile.logo';if(/전경|학교사진|building|campus|school.?view/i.test(name))return 'school.profile.building';return undefined;}
+export function assignCommonImage(assignments:Record<string,PhotoAssignment>,slots:PhotoSlot[],binding:string,photo:{id:string;url:string}){const matches=slots.filter(s=>s.binding===binding&&s.scope!=='school');if(!matches.length)throw Error('이 템플릿에는 해당 학교 공통 이미지가 연결되지 않았어요.');return {...assignments,...Object.fromEntries(matches.map(s=>[s.id,{photoId:photo.id,url:photo.url}]))};}

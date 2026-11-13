@@ -3,3 +3,5 @@ export function academicMonths(year:number,startMonth:number){return Array.from(
 export function isScheduleDate(value:string){return /^\d{4}-\d{2}-\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;}
 export function validSchedule(events:ScheduleEvent[]){return events.every(e=>e.title.trim().length>0&&e.title.length<=200&&isScheduleDate(e.startDate)&&isScheduleDate(e.endDate)&&e.endDate>=e.startDate);}
 export function eventInMonth(event:ScheduleEvent,month:{start:string;end:string}){return isScheduleDate(event.startDate)&&isScheduleDate(event.endDate)&&event.endDate>=event.startDate&&event.startDate<=month.end&&event.endDate>=month.start;}
+
+export function applyScheduleDraft(events:ScheduleEvent[],draft:ScheduleEvent){if(!validSchedule([draft]))throw Error('시작일·종료일·일정명을 확인해 주세요.');const next={...draft,title:draft.title.trim()};if(events.some(e=>e.id!==draft.id&&e.startDate===next.startDate&&e.endDate===next.endDate&&e.title.trim()===next.title))throw Error('같은 일정이 이미 있습니다.');return events.some(e=>e.id===draft.id)?events.map(e=>e.id===draft.id?next:e):[...events,next];}
