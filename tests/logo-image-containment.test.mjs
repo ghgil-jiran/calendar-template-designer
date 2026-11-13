@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+const file=readFileSync(new URL('../apps/designer-studio/features/studio-runtime-core.js',import.meta.url),'utf8'),ast=ts.createSourceFile('runtime.js',file,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS),fn=ast.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='graphicMarkup').getText(ast);
+const context={};context.window=context;vm.createContext(context);vm.runInContext(readFileSync(new URL('../apps/designer-studio/photo-frame-model.js',import.meta.url),'utf8')+'\n'+fn,context);
+const render=item=>context.graphicMarkup(item);
+const frame={type:'image-frame',role:'school-logo',frameType:'rect',style:{background:false},image:{src:'logo.png',binding:'school.profile.logo',fit:'contain',scale:1,offsetX:0,offsetY:0}};
+test('converted semantic logos with omitted stroke width do not acquire an opaque photo-frame outline',()=>{const html=render(frame);assert.match(html,/object-fit:contain/);assert.match(html,/--frame-border-width:0px/);assert.doesNotMatch(html,/<svg/);assert.match(html,/scale\(1\)/);assert.match(html,/translate\(0%,0%\)/);});
+test('logo binding and explicit zero retain the full image while intentional borders remain available',()=>{for(const item of [{...frame,role:undefined},{...frame,image:{...frame.image,binding:''}},{...frame,style:{strokeWidth:0}}])assert.doesNotMatch(render(item),/<svg/);const bordered=render({...frame,style:{strokeWidth:2,stroke:'#315e9e'}});assert.match(bordered,/--frame-border-width:2px/);assert.match(bordered,/stroke="#315e9e"/);});
+test('ordinary photo frames retain their authored crop and default border',()=>{const html=render({...frame,role:'monthly-image',image:{src:'photo.jpg',fit:'cover',scale:1.2,offsetX:8,offsetY:-3}});assert.match(html,/object-fit:cover/);assert.match(html,/--frame-border-width:3px/);assert.match(html,/scale\(1.2\)/);assert.match(html,/translate\(8%,-3%\)/);assert.match(html,/<svg/);});
