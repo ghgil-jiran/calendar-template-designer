@@ -677,3 +677,21 @@ img {max-width: 100%;}
 .editor-properties .editor-image-fit label{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
 .editor-properties .editor-image-fit input[type=range]{width:100%;margin:0}
 .editor-properties .editor-content-field input:not([type=checkbox]){min-height:35px;font-size:12px}
+
+/* Compact catalog rhythm; preserve complete cover images. */
+.catalog-main{padding-top:16px}
+.catalog-hero{padding-top:8px;padding-bottom:20px;margin-bottom:18px}
+.catalog-hero h1{margin-top:12px;margin-bottom:12px}
+.catalog-hero .journey{margin-top:18px}
+.catalog-main .catalog-heading{margin-bottom:14px}
+.catalog-main .catalog-filters{margin:12px 0 14px}
+.catalog-main .template-art{padding:18px 18px 14px}
+.catalog-main .template-art>.mini-previews,.catalog-main .poster-mini-previews{aspect-ratio:260/68;margin-top:10px}
+.catalog-main .template-copy{padding:14px 16px}
+.catalog-main .template-copy h3{margin-bottom:6px}
+.catalog-main .template-copy>small{margin-bottom:12px}
+.project-card-actions{gap:8px;flex-wrap:wrap}
+.project-card-actions .button{font-size:12px;padding:9px 11px}
+.project-card-actions .project-delete{margin-left:auto}
+.order-review{margin-top:18px}
+@media(max-width:720px){.catalog-main{padding-top:12px}.catalog-hero{gap:14px;padding-bottom:16px}.catalog-hero h1{font-size:28px}.project-card-actions .project-delete{margin-left:0}}

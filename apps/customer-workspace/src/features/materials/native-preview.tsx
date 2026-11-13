@@ -4,7 +4,7 @@ import type {NativeProject} from '@/lib/materials/native-project';
 type Engine={render:(id:string)=>HTMLElement;update:(p:NativeProject)=>void;dispose:()=>void};
 declare global {interface Window {ACDLCustomerPageRuntime?:{create:(host:ShadowRoot,source:NativeProject)=>Engine}}}
 let ready:Promise<{styles:string[]}>|undefined;
-async function loadEngine(){
+export async function loadEngine(){
  if(!ready)ready=(async()=>{const r=await fetch('/generated/page-runtime/manifest.json');if(!r.ok)throw Error('달력 표시 기능을 불러오지 못했습니다.');const manifest=await r.json();
   for(const file of manifest.scripts as string[])await new Promise<void>((resolve,reject)=>{const script=document.createElement('script');script.src='/generated/page-runtime/'+file;script.onload=()=>resolve();script.onerror=()=>reject(Error('달력 표시 파일을 불러오지 못했습니다.'));document.head.append(script);});
   if(!document.querySelector('[data-calendar-fonts]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/generated/page-runtime/shared-screen-fonts.css';link.dataset.calendarFonts='true';document.head.append(link);}
