@@ -110,6 +110,10 @@
     "api/sample-a-logo.js": {
       "maxDuration": 60,
       "includeFiles": "assets/sample-c/school-logo.png"
+    },
+    "api/sample-logo.js": {
+      "maxDuration": 120,
+      "includeFiles": "assets/sample-c/school-logo.png"
     }
   }
 }
