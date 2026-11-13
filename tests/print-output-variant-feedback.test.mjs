@@ -36,3 +36,9 @@ test('source status refresh enables enlargement only after server confirms verif
 test('completed enlarged PDF with review checks is not reported as passed',()=>{
  const app=setup({outputVariant:{id:'enlarged',status:'done',verified:false,checks:{dpi:{status:'review'}}}});assert.equal(app.ctx.outputVariantState().status,'review');app.ctx.outputVariant.verified=true;app.ctx.outputVariant.checks={cmyk:{status:'passed'}};assert.equal(app.ctx.outputVariantState().status,'passed');
 });
+test('completed output offers regeneration and requests a new worker job explicitly',async()=>{
+ let requested;const app=setup({outputVariant:{id:'old-enlarged',status:'done',verified:true},window:{ACDLTemplatePublishing:{ensurePrintOutputVariant:async(id,dpi,options)=>{requested={id,dpi,...options};return {id:'new-enlarged',sourceJobId:'base',outputProfile:'desk-297-uniform.v1',status:'queued'};}}}});app.ctx.renderOutputVariant();assert.match(app.html(),/확대 PDF 다시 생성·검사/);await app.ctx.requestOutputVariant();assert.equal(requested.force,true);assert.match(app.html(),/--job "new-enlarged" --once/);assert.equal(app.nodes.get('downloadTemplatePrintPdfBtn').disabled,true);
+});
+test('old API returning the completed output cannot pretend regeneration succeeded',async()=>{
+ const old={id:'old-enlarged',sourceJobId:'base',outputProfile:'desk-297-uniform.v1',status:'done',verified:true};const app=setup({outputVariant:old,window:{ACDLTemplatePublishing:{ensurePrintOutputVariant:async()=>old}}});await app.ctx.requestOutputVariant();assert.match(app.html(),/재생성을 지원하는 API 연결/);assert.equal(app.ctx.outputVariant.id,'old-enlarged');
+});
