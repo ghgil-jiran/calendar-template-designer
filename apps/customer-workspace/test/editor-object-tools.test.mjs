@@ -16,7 +16,7 @@ test('text visibility is positive and restored from saved hidden state; numeric 
  const selection={label:'학교 슬로건',type:'text',binding:'school.slogan',rights:{content:true,textStyle:true,move:true,resize:true}},fields=[{key:'slogan',binding:'school.slogan',label:'학교 슬로건',allowHide:true,maxLength:200}],base={selection,fields,item:{content:'기본 문구',style:{fontSize:17}},school:{values:{slogan:'저장한 문구'},hidden:[]}};
  const visible=render(base);assert.match(visible,/aria-label="학교 슬로건 표시" checked/);assert.match(visible,/value="저장한 문구"/);assert.doesNotMatch(visible,/내용 수정|표시하지 않음|가로 위치 \(%\)|세로 위치 \(%\)/);
  const hidden=render({...base,school:{...base.school,hidden:['slogan']}});assert.doesNotMatch(hidden,/aria-label="학교 슬로건 표시" checked/);assert.match(hidden,/disabled=""/);
- const toolbar=renderToStaticMarkup(React.createElement(TextFormattingToolbar,{style:{fontWeight:700,fontStyle:'italic',textDecoration:'underline'},onChange:noop}));assert.equal((toolbar.match(/aria-pressed="true"/g)||[]).length,3);assert.match(toolbar,/aria-label="밑줄"/);
+ const toolbar=renderToStaticMarkup(React.createElement(TextFormattingToolbar,{style:{fontWeight:700,fontStyle:'italic',textDecoration:'underline'},onChange:noop}));assert.equal((toolbar.match(/aria-pressed="true"/g)||[]).length,4);assert.match(toolbar,/aria-label="밑줄"/);
 });
 test('image controls share compact layout with independent poster copy scopes and retained fitting sliders',()=>{
  const html=render({selection:{label:'학교 전경',type:'image-frame',binding:'',rights:{replaceImage:true,imageFit:true,move:true,resize:true}},hasEditableTargets:true,sharing:{layout:false,image:false,layoutCount:1,imageCount:1,poster:true}});

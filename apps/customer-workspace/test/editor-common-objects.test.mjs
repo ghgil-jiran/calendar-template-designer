@@ -38,3 +38,18 @@ test('reset with image sharing is atomic and keeps geometry',()=>{
 test('copied photos cannot read locked source objects and failed edits leave history unchanged',()=>{
  const p=project(),s=createEditorSession({project:p,assets});selectPhoto(s);s.applyAcrossPages({image:true});const saved=s.getState();p.book.elementsByPage.a[0].locked=true;assert.throws(()=>applyEditor(p,saved,assets),/공통 적용할 이미지/);const clean=createEditorSession({project:project(),assets});selectPhoto(clean);assert.throws(()=>clean.editPhoto({photoId:'missing'},{imageAll:true}),/원본/);assert.equal(clean.canUndo(),false);
 });
+
+test('copied bound text retains binding, formatting and survives reopening, deletion and undo',()=>{
+ const p=project(true),s=createEditorSession({project:p,assets});s.select(s.targets('a').find(t=>t.elementId==='slogan'));
+ s.editPhoto({textStyle:{textAlign:'justify',fontSize:23}});s.setPage('b');s.select(s.targets('a').find(t=>t.elementId==='slogan'));const copy=s.duplicate();
+ assert.equal(copy.pageId,'b');s.editPhoto({layout:{x:20,y:10,width:30,height:5}});
+ const reopened=applyEditor(p,JSON.parse(JSON.stringify(s.getState())),assets),copied=reopened.book.elementsByPage.b.find(e=>e.id===copy.elementId);
+ assert.equal(copied.binding,'school.slogan');assert.equal(copied.style.textAlign,'justify');assert.equal(copied.style.fontSize,23);assert.equal(copied.x,20);
+ s.remove();assert.equal(item(s,'b',copy.elementId).visible,false);s.undo();assert.notEqual(item(s,'b',copy.elementId).visible,false);
+ s.select(s.targets('b').find(t=>t.elementId===copy.elementId));const again=s.duplicate();assert.ok(item(s,'b',again.elementId));
+});
+test('copying replaced photos preserves durable photo IDs and protected objects cannot be duplicated',()=>{
+ const p=project(),s=createEditorSession({project:p,assets});selectPhoto(s);s.editPhoto({photoId:'new'});const copy=s.duplicate();
+ assert.equal(applyEditor(p,s.getState(),[{id:'new',url:'restored:new'}]).book.elementsByPage.a.find(e=>e.id===copy.elementId).image.src,'restored:new');
+ s.select(s.targets('a').find(t=>t.elementId==='year'));assert.throws(()=>s.duplicate(),/복사할 수 없는/);
+});

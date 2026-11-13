@@ -8,7 +8,7 @@
   const text=item.type==='text'&&school&&!/calendar|year|month/.test(binding),allowed=cover||symbols||front||back||poster||school||original.content===true||original.replaceImage===true;
   if(item.locked||item.selectable===false||background||!allowed||(project.template.publishing?.dataRequirements||[]).some(r=>r.stage==='excluded'&&school&&(binding===r.path||binding.startsWith(r.path+'.'))))return {};
   const userPhoto=photo&&(school||original.replaceImage===true||/monthly-image|user-image|cover-photo/.test(item.role||'')||binding.startsWith('calendar.monthlyImages.'));
-  return {replaceImage:userPhoto&&(school||original.replaceImage===true),imageFit:userPhoto&&(item.type!=='image-frame'||school||original.imageFit===true),content:text&&allowed,move:(text||userPhoto)&&(cover||symbols||poster||front&&userPhoto||back&&userPhoto||original.move===true),resize:(text||userPhoto)&&(cover||symbols||poster||front&&userPhoto||original.resize===true&&!back),textStyle:text&&allowed,textSize:text&&allowed,visibility:text&&allowed};
+  return {replaceImage:userPhoto&&(school||original.replaceImage===true),imageFit:userPhoto&&(item.type!=='image-frame'||school||original.imageFit===true),content:text&&allowed,move:(text||userPhoto)&&(cover||symbols||poster||front&&userPhoto||back&&userPhoto||original.move===true),resize:(text||userPhoto)&&(cover||symbols||poster||front&&userPhoto||original.resize===true&&!back),textStyle:text&&allowed,textSize:text&&allowed,visibility:(text||userPhoto)&&allowed};
  }
  function targets(project,pageId,capabilities,includeHidden=false){
   const page=project.book.pageInstances.find(p=>p.id===pageId);if(!page)throw Error('페이지를 찾을 수 없어요.');
@@ -29,7 +29,7 @@
    if(edit.layout&&(Object.keys(edit.layout).some(k=>!['x','y','width','height'].includes(k))||['x','y','width','height'].some(k=>!Number.isFinite(edit.layout[k]))||edit.layout.width<.2||edit.layout.width>500||edit.layout.height<.2||edit.layout.height>500||Math.abs(edit.layout.x)>500||Math.abs(edit.layout.y)>500))throw Error('배치 값을 확인해 주세요.');
    if(edit.photoCopy){const c=edit.photoCopy;if(typeof c!=='object'||Object.keys(c).some(k=>!['photoId','source'].includes(k))||Boolean(c.photoId)===Boolean(c.source)||c.photoId!==undefined&&typeof c.photoId!=='string'||edit.photoId!==undefined)throw Error('공통 이미지 정보를 확인해 주세요.');if(c.source){const r=c.source;if(Object.keys(r).some(k=>!['pageId','scope','elementId'].includes(k))||!['master','page'].includes(r.scope)||typeof r.pageId!=='string'||typeof r.elementId!=='string')throw Error('공통 이미지 영역을 확인해 주세요.');}}
    if(edit.hidden!==undefined&&typeof edit.hidden!=='boolean')throw Error('표시 값을 확인해 주세요.');
-   if(edit.textStyle){const v=edit.textStyle;if(Object.keys(v).some(k=>!['fontFamily','fontSize','fontWeight','color','fontStyle','textDecoration'].includes(k))||v.fontFamily!==undefined&&(typeof v.fontFamily!=='string'||v.fontFamily.length>100||/[;{}<>\n]/.test(v.fontFamily))||v.fontSize!==undefined&&(!Number.isFinite(v.fontSize)||v.fontSize<1||v.fontSize>240)||v.fontStyle!==undefined&&!['normal','italic'].includes(v.fontStyle)||v.textDecoration!==undefined&&!['none','underline','line-through','underline line-through'].includes(v.textDecoration)||v.fontWeight!==undefined&&![400,700].includes(v.fontWeight)||v.color!==undefined&&!/^#[a-f0-9]{6}$/i.test(v.color))throw Error('글자 스타일을 확인해 주세요.');}
+   if(edit.textStyle){const v=edit.textStyle;if(v.textAlign!==undefined&&!['left','center','right','justify'].includes(v.textAlign))throw Error('글자 정렬을 확인해 주세요.');if(Object.keys(v).some(k=>!['fontFamily','fontSize','fontWeight','color','fontStyle','textDecoration','textAlign'].includes(k))||v.fontFamily!==undefined&&(typeof v.fontFamily!=='string'||v.fontFamily.length>100||/[;{}<>\n]/.test(v.fontFamily))||v.fontSize!==undefined&&(!Number.isFinite(v.fontSize)||v.fontSize<1||v.fontSize>240)||v.fontStyle!==undefined&&!['normal','italic'].includes(v.fontStyle)||v.textDecoration!==undefined&&!['none','underline','line-through','underline line-through'].includes(v.textDecoration)||v.fontWeight!==undefined&&![400,700].includes(v.fontWeight)||v.color!==undefined&&!/^#[a-f0-9]{6}$/i.test(v.color))throw Error('글자 스타일을 확인해 주세요.');}
    if(edit.fontSize!==undefined&&(!Number.isFinite(edit.fontSize)||edit.fontSize<1||edit.fontSize>240))throw Error('글자 크기를 확인해 주세요.');
    if(edit.fit){if(Object.keys(edit.fit).some(k=>!['fit','scale','offsetX','offsetY'].includes(k)))throw Error('알 수 없는 사진 맞춤 항목이에요.');if(!['cover','contain'].includes(edit.fit.fit)||!Number.isFinite(edit.fit.scale)||edit.fit.scale<.1||edit.fit.scale>10||!Number.isFinite(edit.fit.offsetX)||Math.abs(edit.fit.offsetX)>100||!Number.isFinite(edit.fit.offsetY)||Math.abs(edit.fit.offsetY)>100)throw Error('사진 맞춤 값을 확인해 주세요.');}
   }
@@ -63,8 +63,21 @@
    if(changed){if(index<0)state.edits.push(edit);else state.edits[index]=edit;}
   }return state;
  }
+
+ function withCopies(project,state,capabilities){
+  const document=clone(project),copies=state.copies||[];
+  if(!Array.isArray(copies)||copies.length>200)throw Error('복사 개체 수를 확인해 주세요.');
+  const ids=new Set();
+  for(const c of copies){
+   if(!c||typeof c.id!=='string'||!c.id.startsWith('user-copy:')||ids.has(c.id)||!document.book.pageInstances.some(p=>p.id===c.pageId))throw Error('복사 개체 정보를 확인해 주세요.');
+   ids.add(c.id);const t=targets(document,c.source?.pageId,capabilities,true).find(t=>t.elementId===c.source.elementId&&t.scope===c.source.scope);
+   if(!t||!Object.values(t.rights).some(Boolean))throw Error('복사할 수 없는 개체입니다.');
+   const item=clone(originalItem(document,t));item.id=c.id;delete item.shadowOfMasterElementId;item.originScope='page';
+   document.book.elementsByPage||={};const list=document.book.elementsByPage[c.pageId]||=[];if(list.some(e=>e.id===c.id))throw Error('복사 개체가 중복되었습니다.');list.push(item);
+  }return document;
+ }
  function apply(project,state,assets,{capabilities}={}){
-  validateState(state);if(!project.book.pageInstances.some(p=>p.id===state.pageId))throw Error('편집 페이지가 없어요.');const document=clone(project);
+  validateState(state);project=withCopies(project,state,capabilities);if(!project.book.pageInstances.some(p=>p.id===state.pageId))throw Error('편집 페이지가 없어요.');const document=clone(project);
   for(const edit of state.edits){
    const target=targets(project,edit.pageId,capabilities).find(t=>t.elementId===edit.elementId&&t.scope===edit.scope);if(!target){
     const page=project.book.pageInstances.find(p=>p.id===edit.pageId),items=edit.scope==='master'?project.template.masterElements?.[page?.masterId]||[]:project.book.elementsByPage?.[edit.pageId]||[],original=items.find(e=>e.id===edit.elementId);
@@ -92,7 +105,9 @@
   let source=clone(project);let current=clone(state||{version:1,pageId:project.book.pageInstances[0].id,edits:[]}),past=[],future=[],selection=null;
   apply(source,current,assets,{capabilities});
   function commit(next){if(capabilities==='school-basic-v2')next.capabilityVersion=2;apply(source,next,assets,{capabilities});if(equal(current,next))return false;past.push(clone(current));if(past.length>20)past.shift();current=next;future=[];return true;}
-  return Object.freeze({targets:pageId=>targets(source,pageId,capabilities),select(target){selection=target?targets(source,target.pageId,capabilities).find(t=>t.elementId===target.elementId&&t.scope===target.scope)||null:null;return selection;},selection:()=>selection,getState:()=>clone(current),getDocument:()=>apply(source,current,assets,{capabilities}),canUndo:()=>past.length>0,canRedo:()=>future.length>0,
+  return Object.freeze({targets:pageId=>targets(withCopies(source,current,capabilities),pageId,capabilities),select(target){selection=target?targets(withCopies(source,current,capabilities),target.pageId,capabilities).find(t=>t.elementId===target.elementId&&t.scope===target.scope)||null:null;return selection;},selection:()=>selection,getState:()=>clone(current),getDocument:()=>apply(source,current,assets,{capabilities}),canUndo:()=>past.length>0,canRedo:()=>future.length>0,
+   duplicate(){if(!selection)throw Error('복사할 개체를 선택해 주세요.');const next=clone(current),id='user-copy:'+crypto.randomUUID();next.copies||=[];next.copies.push({id,pageId:current.pageId,source:{pageId:selection.pageId,scope:selection.scope,elementId:selection.elementId}});const own=current.edits.find(e=>e.pageId===selection.pageId&&e.scope===selection.scope&&e.elementId===selection.elementId);if(own)next.edits.push({...clone(own),pageId:current.pageId,scope:'page',elementId:id});commit(next);selection=targets(withCopies(source,current,capabilities),current.pageId,capabilities).find(t=>t.elementId===id);return selection;},
+   remove(){if(!selection)return false;return this.editPhoto({hidden:true});},
    resetBoundPhotos(binding){const next=clone(current);next.edits=next.edits.flatMap(e=>{const t=targets(source,e.pageId,capabilities).find(t=>t.scope===e.scope&&t.elementId===e.elementId);if(t?.binding!==binding)return [e];const {photoId,photoCopy,fit,...rest}=e;return Object.keys(rest).length>3?[rest]:[];});return commit(next);},
    setProject(next){apply(next,current,assets,{capabilities});source=clone(next);},
    counterparts(target=selection){return target?correspondingTargets(source,target,capabilities):[];},

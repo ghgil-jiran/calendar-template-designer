@@ -605,3 +605,13 @@ img {max-width: 100%;}
 .editor-text-toolbar .button[aria-pressed="true"] {background:hsl(var(--primary)/.12);color:hsl(var(--primary));}
 .editor-underline-icon {text-decoration:underline;}
 @media(max-width:720px){.editor-text-toolbar {padding-left:5px;}.editor-text-toolbar .button {width:28px;}}
+
+/* Shared editor commands remain usable on narrow workspaces. */
+.editor-library-heading{display:flex;flex-direction:column;gap:.5rem}
+.editor-commandbar{flex-wrap:wrap;gap:.4rem}
+.editor-text-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem}
+.editor-text-toolbar select{max-width:140px}
+.editor-text-toolbar input[type=number]{width:64px}
+.editor-text-toolbar input[type=color]{width:32px;height:28px;padding:2px}
+
+.editor-text-toolbar .button{width:auto;min-width:32px;white-space:nowrap}
