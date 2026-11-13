@@ -7,10 +7,10 @@
  };
  const pageGuidance=(cover,annual,divider,month,monthBack,backCover)=>({cover,annual,divider,month,'month-back':monthBack,'back-cover':backCover});
  const styles=[
-  {id:'editorial-graphic',name:'에디토리얼 그래픽',description:'비대칭 컬럼·선·색면과 과감한 크롭으로 만드는 문화 포스터형 조형 시스템',colors:['#f7f5ef','#1f3557','#de5b4f','#e8b84a'],guidance:pageGuidance(
+  {id:'editorial-graphic',name:'에디토리얼 그래픽',description:'비대칭 컬럼·선·색면과 과감한 크롭으로 만드는 문화 벽보형 조형 시스템',colors:['#f7f5ef','#1f3557','#de5b4f','#e8b84a'],guidance:pageGuidance(
    ['타이포그래피와 학교 사진이 들어갈 자리를 전제로 한 비대칭 컬럼·선·색면','contemporary editorial graphic system, asymmetric columns, rules and cropped color fields, designed for later bold typography and school photography, no generated text'],
    ['12개월 정보 흐름을 보조하는 넓은 여백과 짧은 선·색면의 편집 리듬','large clean negative space with sparse editorial rules and color fields supporting the annual overview, no grid or header bar'],
-   ['간지 목적마다 컬럼 폭·색면 크롭·선의 방향을 새롭게 조합한 문화 포스터형 구성','unique culture-poster-like divider using varied column proportions, cropped color fields and directional rules, no typography'],
+   ['간지 목적마다 컬럼 폭·색면 크롭·선의 방향을 새롭게 조합한 문화 벽보형 구성','unique culture-poster-like divider using varied column proportions, cropped color fields and directional rules, no typography'],
    ['실제 월력 개체의 표현과 여백을 존중하는 밝은 바탕과 한 가지 작은 편집 포인트','bright continuous ground around the actual editable calendar treatment, with only one restrained editorial accent per month'],
    ['사진·플래너·일러스트 구성에 맞춰 컬럼·선·색면이 개체 사이를 연결하는 편집 구성','editorial columns, rules and color fields connecting the selected editable components without drawing frames or cards'],
    ['표지의 컬럼과 색면 비례를 변형해 학교 정보가 선명한 마감 구성','closing composition transforming the cover column and color-field proportions around calm school-information zones'])},

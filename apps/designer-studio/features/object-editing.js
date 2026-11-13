@@ -274,7 +274,7 @@ function ensureEditableCover(){
 function createPosterElements(p){
  if(project.settings.posterPageCount===2)return [
   {id:`poster.school-name.${p.id}`,type:'text',binding:'school.name',x:5,y:3,width:65,height:6,content:project.book.school.name,style:{fontSize:28,color:'#17202e',background:false}},
-  {id:`poster.calendar.${p.id}`,type:'year-calendar',academicPoster:true,posterMonthOffset:p.posterMonthOffset||0,posterShowList:false,posterGridStyle:'boxed',x:5,y:12,width:90,height:83,columns:2,monthCount:6,rowsMode:'adaptive',style:{fontReferenceWidthPx:1000,dateSize:21,titleSize:30,columnGap:20,rowGap:20}}
+  {id:`poster.calendar.${p.id}`,type:'year-calendar',label:'전체 월력',wallCalendarSettings:structuredClone(project.template.calendarTypeSnapshot?.definition?.wallCalendarDefaults||{}),academicPoster:true,posterMonthOffset:p.posterMonthOffset||0,posterShowList:false,posterGridStyle:'boxed',x:5,y:12,width:90,height:83,columns:2,monthCount:6,rowsMode:'adaptive',style:{fontReferenceWidthPx:1000,dateSize:21,titleSize:30,columnGap:20,rowGap:20}}
  ];
  const year=p.calendarYear||project.settings.year;
  return [

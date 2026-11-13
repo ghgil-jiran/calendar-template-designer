@@ -88,7 +88,7 @@
 
     const typeLabel = doc?.getElementById?.('selectedTypeLabel');
     if (typeLabel) {
-      typeLabel.textContent = { desk: '탁상형', wall: '벽걸이형', poster: '연간 포스터형', postcard: '엽서형' }[payload.selectedType] || payload.selectedType;
+      typeLabel.textContent = { desk: '탁상형', wall: '벽걸이형', poster: '연간 벽보형', postcard: '엽서형' }[payload.selectedType] || payload.selectedType;
     }
 
     return payload;
