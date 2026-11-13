@@ -1,0 +1,34 @@
+{
+  "revision": "wall-sample-b.v1",
+  "source": "sample-d-v4/annual.pdf",
+  "documents": [
+    {
+      "file": "background-1.pdf",
+      "sha256": "977c926c9b7070872bea3ab566d680c261da66923221315d75e5ef1e6d053b29",
+      "byteSize": 2203,
+      "pages": [
+        {
+          "widthPt": 1207.5589599609375,
+          "heightPt": 1700.7869873046875
+        }
+      ],
+      "pixelWidth": 1087,
+      "pixelHeight": 1531,
+      "sourceKind": "vector"
+    },
+    {
+      "file": "background-2.pdf",
+      "sha256": "b2287a6d4e2237b6cb83d0a287c8c41a9cb4cce7bd5dbda2bf8407f3337bdcb7",
+      "byteSize": 2210,
+      "pages": [
+        {
+          "widthPt": 1207.5589599609375,
+          "heightPt": 1700.7869873046875
+        }
+      ],
+      "pixelWidth": 1087,
+      "pixelHeight": 1531,
+      "sourceKind": "vector"
+    }
+  ]
+}
