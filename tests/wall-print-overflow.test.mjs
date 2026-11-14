@@ -17,11 +17,11 @@ test('Sample A reserves readable six-week dates while allowing the list to yield
 });
 function node(region,{width=30,height=20,contentWidth=width,contentHeight=height,date}={}){return {dataset:{wallRegion:region,posterDate:date},clientWidth:width,clientHeight:height,scrollWidth:contentWidth,scrollHeight:contentHeight,closest:()=>({dataset:{posterMonth:'2027-08'}})};}
 test('overflow stays blocking and reports the affected date and measured sizes',()=>{
- const n=node('day',{date:'2027-08-31',contentHeight:32}),scope={querySelectorAll:()=>[n]};
+ const n=node('day',{date:'2027-08-31',contentHeight:32}),scope={querySelectorAll:selector=>selector==='[data-wall-region]'?[n]:[]};
  assert.throws(()=>wall.assertFits(scope),/2027-08-31 날짜 칸 \[30×20px \/ 내용 30×32px\]/);
  assert.equal(n.dataset.wallOverflow,'true');
 });
 test('list overflow names the month; fitting regions pass without hiding content',()=>{
- assert.throws(()=>wall.assertFits({querySelectorAll:()=>[node('list',{contentWidth:40})]}),/2027-08 일정 목록/);
- const n=node('day');assert.deepEqual(wall.assertFits({querySelectorAll:()=>[n]}),[]);assert.equal(n.dataset.wallOverflow,'false');
+ assert.throws(()=>wall.assertFits({querySelectorAll:selector=>selector==='[data-wall-region]'?[node('list',{contentWidth:40})]:[]}),/2027-08 일정 목록/);
+ const n=node('day');assert.deepEqual(wall.assertFits({querySelectorAll:selector=>selector==='[data-wall-region]'?[n]:[]}),[]);assert.equal(n.dataset.wallOverflow,'false');
 });
