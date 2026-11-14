@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import ts from 'typescript';
+import {wallStylePatch,wallStyleName} from '../src/lib/editor/session.ts';
 import {applyFieldDrafts,fieldChanged} from '../src/lib/editor/card-state.ts';
 const require=createRequire(new URL('../src/features/editor/object-tools.tsx',import.meta.url));
 const React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
-function component(url){const js=ts.transpileModule(readFileSync(url,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,module={exports:{}};new Function('require','module','exports',js)(name=>name==='@/lib/editor/card-state'?{applyFieldDrafts,fieldChanged}:name==='@/components/ui/button'?component(new URL('../src/components/ui/button.tsx',import.meta.url)):require(name),module,module.exports);return module.exports;}
+function component(url){const js=ts.transpileModule(readFileSync(url,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,module={exports:{}};new Function('require','module','exports',js)(name=>name==='@/lib/editor/session'?{wallStylePatch,wallStyleName}:name==='@/lib/editor/card-state'?{applyFieldDrafts,fieldChanged}:name==='@/components/ui/button'?component(new URL('../src/components/ui/button.tsx',import.meta.url)):require(name),module,module.exports);return module.exports;}
 const {ObjectTools,TextFormattingToolbar}=component(new URL('../src/features/editor/object-tools.tsx',import.meta.url));
 const noop=()=>{},props={selection:null,item:undefined,fields:[],school:{values:{},hidden:[]},fit:{fit:'contain',scale:1,offsetX:0,offsetY:0},hasEditableTargets:false,schoolImageLinked:false,sharing:{layout:false,image:false,layoutCount:0,imageCount:0,poster:false},canReset:false,onFieldChange:noop,onFieldHide:noop,onStyle:noop,onFit:noop,onShare:noop,onReset:noop};
 const render=p=>renderToStaticMarkup(React.createElement(ObjectTools,{...props,...p}));
@@ -25,3 +26,5 @@ test('image controls share compact layout with independent poster copy scopes an
 });
 
 test('content inputs and unchanged save action share one card, with a separate style card',()=>{const html=render({selection:{label:'학교 이름',type:'text',binding:'school.name',rights:{content:true,textStyle:true}},fields:[{key:'name',binding:'school.name',label:'학교명',maxLength:200}],school:{values:{name:'학교'},hidden:[]}});assert.match(html,/editor-tool-card editor-text-content/);assert.match(html,/button-secondary editor-card-apply[\s\S]*?disabled/);assert.match(html,/editor-tool-card editor-compact-style/);assert.match(html,/<h3>글자 모양/);});
+
+test('wall tools expose presets and list columns without physical typography or month binding controls',()=>{const html=render({selection:{label:'전체 월력',type:'year-calendar',rights:{calendarStyle:true}},item:{wallCalendarSettings:{gridStyle:'boxed',schedulePlacement:'cells',referencePlacement:'cells',titleStyle:'band',dateAlign:'left'}}});assert.match(html,/일정형 · 날짜 칸에 표시/);assert.match(html,/value="schedule" selected/);assert.match(html,/자동 · 2단\/3단/);assert.match(html,/학교 일정 \/ 공휴일·기념일/);assert.doesNotMatch(html,/type="number"/);});

@@ -21,3 +21,7 @@ export function createEditorSession(args:Parameters<typeof engine.create>[0]):Ed
 export const moveFrame=(globalThis as unknown as {ACDLCanvasGeometry:{moveFrame:(frame:ElementLayout,dx:number,dy:number)=>{x:number;y:number}}}).ACDLCanvasGeometry.moveFrame;
 
 export const resizeFrame=(globalThis as unknown as {ACDLCanvasGeometry:{resizeFrame:(frame:ElementLayout,handle:string,dx:number,dy:number)=>ElementLayout}}).ACDLCanvasGeometry.resizeFrame;
+
+const wallStyleApi=(globalThis as unknown as {ACDLWallCalendar:{presets:Record<string,Record<string,string>>;normalize:(value:unknown)=>Record<string,unknown>;presetName:(value:unknown)=>string}}).ACDLWallCalendar;
+export const wallStylePatch=(name:string):Record<string,string>=>({...wallStyleApi.presets[name]});
+export const wallStyleName=(settings:unknown)=>wallStyleApi.presetName(wallStyleApi.normalize(settings||{}));
