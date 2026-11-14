@@ -108,17 +108,37 @@
     return project;
   }
   function posterPlacementKey(item){
-    if(!item)return '';
+    if(!item||item.academicPoster||item.role==='graphic-package-background'||item.type==='year-calendar'||/^(page-number|page-counter)$/.test(item.role||''))return '';
+    const legacy=String(item.id||'').match(/^wall-b\.\d+\.(.+)$/);
+    if(legacy?.[1]==='page'||legacy?.[1]==='background')return '';
+    if(item.metadata?.correspondenceKey)return String(item.metadata.correspondenceKey);
+    if(legacy&&item.type==='text')return 'wall-b.'+legacy[1];
     const binding=item.bindingEnabled===false?'':item.image?.binding||item.binding||'';
     if(item.role==='school-logo'||binding==='school.profile.logo')return 'logo';
     if(item.type==='text'&&(binding==='calendar.year'||Number(item.y)<=16&&binding.startsWith('school.')))return binding;
     if(item.type==='text'&&!binding&&/학사|달력|일정/.test(item.content||''))return 'heading:'+item.content;
     return '';
   }
-  function applyPosterPlacement(project,pageId,item){
-    const key=posterPlacementKey(item);if(project?.productType?.category!=='poster'||!key)return 0;
-    let count=0;for(const page of project.book.pageInstances||[])if(page.id!==pageId)for(const other of [...(project.template?.masterElements?.[page.masterId]||[]),...(project.book.elementsByPage?.[page.id]||[])])if(posterPlacementKey(other)===key){for(const k of ['x','y','width','height'])other[k]=item[k];count++;}return count;
+  function posterCounterparts(project,pageId,item){
+    const key=posterPlacementKey(item);if(project?.productType?.category!=='poster'||!key)return [];
+    const result=[];
+    for(const page of project.book.pageInstances||[]){if(page.id===pageId)continue;
+      const local=project.book.elementsByPage?.[page.id]||[],shadowed=new Set(local.map(e=>e.shadowOfMasterElementId).filter(Boolean)),elements=[...(project.template?.masterElements?.[page.masterId]||[]).filter(e=>!shadowed.has(e.id)),...local];
+      const matches=elements.filter(e=>e!==item&&posterPlacementKey(e)===key);
+      if(matches.length===1)result.push({pageId:page.id,item:matches[0]});
+    }return result;
   }
+  function posterSharedValue(item,kind){return kind==='style'?{style:item.style||{},imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity}:Object.fromEntries(['x','y','width','height','rotation'].map(key=>[key,item[key]??(key==='rotation'?0:undefined)]));}
+  function posterSharingState(project,pageId,item,kind){const value=JSON.stringify(posterSharedValue(item,kind)),matches=posterCounterparts(project,pageId,item);return {pages:matches.length,changed:matches.filter(other=>JSON.stringify(posterSharedValue(other.item,kind))!==value).length};}
+  function applyPosterAppearance(project,pageId,item,{style=false,layout=false}={}){
+    const matches=posterCounterparts(project,pageId,item),seen=new Set();let count=0;
+    for(const target of matches){const other=target.item;if(seen.has(other))continue;seen.add(other);let changed=false;
+      if(style&&JSON.stringify(posterSharedValue(other,'style'))!==JSON.stringify(posterSharedValue(item,'style'))){for(const [key,value] of Object.entries(posterSharedValue(item,'style'))){if(value===undefined)delete other[key];else other[key]=structuredClone(value);}changed=true;}
+      if(layout&&JSON.stringify(posterSharedValue(other,'layout'))!==JSON.stringify(posterSharedValue(item,'layout'))){for(const key of ['x','y','width','height'])other[key]=item[key];if(item.rotation!==undefined)other.rotation=item.rotation;else delete other.rotation;changed=true;}
+      if(changed)count++;
+    }return count;
+  }
+  function applyPosterPlacement(project,pageId,item){return applyPosterAppearance(project,pageId,item,{layout:true});}
   function resolvePosterMonths(annual, element, project) {
     const options=root.ACDLWallCalendar?root.ACDLWallCalendar.resolve(element,project):project?.settings?.calendarData||{},book=project?.book||{},events=(book.events||[]).filter(e=>e.startDate&&e.title),categories=new Map((project?.template?.resources?.eventCategories||[]).map(c=>[c.id,c.color]));
     const references=[];
@@ -184,7 +204,7 @@
     else inner+=annual.months.map(renderMonth).join('');
     return inner+'</div>';
   }
-  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup, resolvePosterMonths, renderPosterCalendarMarkup, normalizePosterElement, normalizePosterProject, posterDefaults, posterPlacementKey, applyPosterPlacement});
+  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup, resolvePosterMonths, renderPosterCalendarMarkup, normalizePosterElement, normalizePosterProject, posterDefaults, posterPlacementKey, posterCounterparts, posterSharingState, applyPosterAppearance, applyPosterPlacement});
 })(globalThis);
 
 
