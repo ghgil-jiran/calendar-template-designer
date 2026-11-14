@@ -15,15 +15,15 @@
     return JSON.stringify(left) === JSON.stringify(right);
   }
 
-  function compare(profile, approval) {
+  function compare(profile, approval, reference = REFERENCE) {
     const issues = [];
-    for (const key of Object.keys(REFERENCE)) {
-      if (!equal(profile?.[key], REFERENCE[key])) issues.push({ code: `PRINT_${key.replace(/[A-Z]/g, letter => `_${letter}`).toUpperCase()}_MISMATCH`, expected: REFERENCE[key], actual: profile?.[key] });
+    for (const key of Object.keys(reference)) {
+      if (!equal(profile?.[key], reference[key])) issues.push({ code: `PRINT_${key.replace(/[A-Z]/g, letter => `_${letter}`).toUpperCase()}_MISMATCH`, expected: reference[key], actual: profile?.[key] });
     }
     const outputApproved = issues.length === 0 && approval?.print?.status === 'approved';
     return {
       schemaVersion: 'desk-academic-print-parity.v1',
-      reference: REFERENCE,
+      reference,
       issues,
       contractReady: issues.length === 0,
       outputApproved,
