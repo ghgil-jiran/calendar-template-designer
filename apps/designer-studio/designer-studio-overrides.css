@@ -521,3 +521,11 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .poster-inspector-section{border:1px solid #dce3ee;border-radius:10px;padding:10px;margin:10px 0}.poster-inspector-section>summary{font-weight:700;cursor:pointer;margin-bottom:10px}.poster-inspector-section:not([open])>summary{margin-bottom:0}
 
 [data-wall-overflow="true"]{outline:1px dashed #c77700}@media print{[data-wall-overflow="true"]{outline:none}}
+
+/* Compact, accessible checkbox rows shared by the wall calendar inspectors. */
+#inspector .wall-check-row,.type-setting-card .wall-check-row{display:flex;flex-direction:row;align-items:flex-start;gap:9px;margin:8px 0;padding:10px;border:1px solid var(--line,#dce3ee);border-radius:8px;background:var(--acds-surface,#fff);cursor:pointer;line-height:1.45}
+#inspector .wall-check-row input[type="checkbox"],.type-setting-card .wall-check-row input[type="checkbox"]{appearance:auto;flex:0 0 16px;width:16px!important;height:16px!important;min-width:16px;min-height:16px;max-width:16px;max-height:16px;margin:2px 0 0;padding:0;accent-color:var(--acds-primary,#2563eb);cursor:pointer}
+.wall-check-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}.wall-check-title{font-size:11px;font-weight:600;color:var(--text,#344054)}.wall-check-description{font-size:10px;font-weight:400;color:var(--muted,#667085);overflow-wrap:anywhere}
+.wall-check-row:focus-within{outline:2px solid var(--accent,#2563eb);outline-offset:2px}.wall-check-row:has(input:checked){border-color:var(--accent,#2563eb);background:var(--acds-surface-subtle,#f7f9fc)}.wall-check-row:has(input:disabled){opacity:.55;cursor:default}
+.poster-inspector-section[hidden],.poster-inspector-section [hidden]{display:none!important}.wall-small-type-hint:not(:empty){font-size:10px;line-height:1.5;padding:8px;border:1px solid #f4cf88;border-radius:6px;color:#854d0e;background:#fffbeb}
+.wall-inspector-actions{position:sticky;bottom:0;background:var(--acds-surface,#fff);border-top:1px solid var(--line,#dce3ee);padding:8px 0;z-index:2}.wall-inspector-actions .poster-inspector-section{margin:0 0 8px}.wall-inspector-actions>button{height:auto;min-height:34px;padding:8px}
