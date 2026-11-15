@@ -109,7 +109,7 @@
   }
   function posterPlacementKey(item){
     if(!item||item.academicPoster||item.role==='graphic-package-background'||item.type==='year-calendar'||/^(page-number|page-counter)$/.test(item.role||''))return '';
-    const legacy=String(item.id||'').match(/^wall-b\.\d+\.(.+)$/);
+    const legacy=String(item.id||'').match(/^wall-b\.\d+\.(.+)$/)||String(item.shadowOfMasterElementId||'').match(/^wall-b\.\d+\.(.+)$/);
     if(legacy?.[1]==='page'||legacy?.[1]==='background')return '';
     if(item.metadata?.correspondenceKey)return String(item.metadata.correspondenceKey);
     if(legacy&&item.type==='text')return 'wall-b.'+legacy[1];
@@ -124,20 +124,30 @@
     const result=[];
     for(const page of project.book.pageInstances||[]){if(page.id===pageId)continue;
       const local=project.book.elementsByPage?.[page.id]||[],shadowed=new Set(local.map(e=>e.shadowOfMasterElementId).filter(Boolean)),elements=[...(project.template?.masterElements?.[page.masterId]||[]).filter(e=>!shadowed.has(e.id)),...local];
-      const matches=elements.filter(e=>e!==item&&posterPlacementKey(e)===key);
+      const matches=elements.filter(e=>posterPlacementKey(e)===key);
       if(matches.length===1)result.push({pageId:page.id,item:matches[0]});
     }return result;
   }
-  function posterSharedValue(item,kind){return kind==='style'?{style:item.style||{},imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity}:Object.fromEntries(['x','y','width','height','rotation'].map(key=>[key,item[key]??(key==='rotation'?0:undefined)]));}
+  function posterSharedValue(item,kind){return kind==='style'?{style:item.style||{},imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity}:Object.fromEntries(['x','y','width','height','rotation','autoSize'].map(key=>[key,item[key]??(key==='rotation'?0:undefined)]));}
   function posterSharingState(project,pageId,item,kind){const value=JSON.stringify(posterSharedValue(item,kind)),matches=posterCounterparts(project,pageId,item);return {pages:matches.length,changed:matches.filter(other=>JSON.stringify(posterSharedValue(other.item,kind))!==value).length};}
   function applyPosterAppearance(project,pageId,item,{style=false,layout=false}={}){
     const matches=posterCounterparts(project,pageId,item),seen=new Set();let count=0;
     for(const target of matches){const other=target.item;if(seen.has(other))continue;seen.add(other);let changed=false;
       if(style&&JSON.stringify(posterSharedValue(other,'style'))!==JSON.stringify(posterSharedValue(item,'style'))){for(const [key,value] of Object.entries(posterSharedValue(item,'style'))){if(value===undefined)delete other[key];else other[key]=structuredClone(value);}changed=true;}
-      if(layout&&JSON.stringify(posterSharedValue(other,'layout'))!==JSON.stringify(posterSharedValue(item,'layout'))){for(const key of ['x','y','width','height'])other[key]=item[key];if(item.rotation!==undefined)other.rotation=item.rotation;else delete other.rotation;changed=true;}
+      if(layout&&JSON.stringify(posterSharedValue(other,'layout'))!==JSON.stringify(posterSharedValue(item,'layout'))){for(const key of ['x','y','width','height'])other[key]=item[key];if(item.rotation!==undefined)other.rotation=item.rotation;else delete other.rotation;if(item.autoSize!==undefined)other.autoSize=item.autoSize;else delete other.autoSize;changed=true;}
       if(changed)count++;
     }return count;
   }
+  function posterObjectRegion(item){
+    const id=String(item?.shadowOfMasterElementId||item?.id||''),slot=id.match(/^wall-b\.\d+\.(.+)$/)?.[1];
+    if(['logo','footer-name','footer-english','address','contacts'].includes(slot))return 'footer';
+    if(['name','year','title','slogan'].includes(slot))return 'header';
+    if(['header','footer'].includes(item?.metadata?.wallRegion))return item.metadata.wallRegion;
+    return '';
+  }
+  function posterRegionItems(project,pageId,region){if(!['header','footer'].includes(region))return [];const page=project.book.pageInstances.find(p=>p.id===pageId);if(!page)return [];const local=project.book.elementsByPage?.[pageId]||[],shadowed=new Set(local.map(e=>e.shadowOfMasterElementId).filter(Boolean));return [...(project.template.masterElements?.[page.masterId]||[]).filter(e=>!shadowed.has(e.id)),...local].filter(e=>posterObjectRegion(e)===region&&posterPlacementKey(e));}
+  function posterRegionState(project,pageId,region){const items=posterRegionItems(project,pageId,region);let changed=0,missing=0;for(const item of items){const matches=posterCounterparts(project,pageId,item);missing+=Math.max(0,(project.book.pageInstances.length-1)-matches.length);changed+=matches.filter(other=>JSON.stringify(posterSharedValue(other.item,'style'))!==JSON.stringify(posterSharedValue(item,'style'))||JSON.stringify(posterSharedValue(other.item,'layout'))!==JSON.stringify(posterSharedValue(item,'layout'))).length;}return {items:items.length,changed,missing};}
+  function applyPosterRegion(project,pageId,region){const state=posterRegionState(project,pageId,region);if(state.missing)throw Error('다른 페이지의 대응 개체가 없거나 중복되어 있습니다. 개체 연결을 확인해 주세요.');let count=0;for(const item of posterRegionItems(project,pageId,region))count+=applyPosterAppearance(project,pageId,item,{style:true,layout:true});return count;}
   function applyPosterPlacement(project,pageId,item){return applyPosterAppearance(project,pageId,item,{layout:true});}
   function resolvePosterMonths(annual, element, project) {
     const options=root.ACDLWallCalendar?root.ACDLWallCalendar.resolve(element,project):project?.settings?.calendarData||{},book=project?.book||{},events=(book.events||[]).filter(e=>e.startDate&&e.title),categories=new Map((project?.template?.resources?.eventCategories||[]).map(c=>[c.id,c.color]));
@@ -204,7 +214,7 @@
     else inner+=annual.months.map(renderMonth).join('');
     return inner+'</div>';
   }
-  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup, resolvePosterMonths, renderPosterCalendarMarkup, normalizePosterElement, normalizePosterProject, posterDefaults, posterPlacementKey, posterCounterparts, posterSharingState, applyPosterAppearance, applyPosterPlacement});
+  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup, resolvePosterMonths, renderPosterCalendarMarkup, normalizePosterElement, normalizePosterProject, posterDefaults, posterPlacementKey, posterCounterparts, posterSharingState, applyPosterAppearance, posterObjectRegion, posterRegionState, applyPosterRegion, applyPosterPlacement});
 })(globalThis);
 
 
