@@ -13,13 +13,13 @@
       ...frame,
       width,
       height,
-      x: clamp(Number(frame.x) || 0, MIN_VISIBLE - width, 100 - MIN_VISIBLE),
-      y: clamp(Number(frame.y) || 0, MIN_VISIBLE - height, 100 - MIN_VISIBLE)
+      x: clamp(Number(frame.x) || 0, Math.min(MIN_VISIBLE,width) - width, 100 - MIN_VISIBLE),
+      y: clamp(Number(frame.y) || 0, Math.min(MIN_VISIBLE,height) - height, 100 - MIN_VISIBLE)
     };
   }
 
   function moveFrame(frame, deltaX, deltaY) {
-    return {x:clamp(Number(frame.x)+deltaX,MIN_VISIBLE-Number(frame.width),100-MIN_VISIBLE),y:clamp(Number(frame.y)+deltaY,MIN_VISIBLE-Number(frame.height),100-MIN_VISIBLE)};
+    return {x:clamp(Number(frame.x)+deltaX,Math.min(MIN_VISIBLE,Number(frame.width))-Number(frame.width),100-MIN_VISIBLE),y:clamp(Number(frame.y)+deltaY,Math.min(MIN_VISIBLE,Number(frame.height))-Number(frame.height),100-MIN_VISIBLE)};
   }
 
   function resizeFrame(frame, handle, deltaX, deltaY, pageSize) {
