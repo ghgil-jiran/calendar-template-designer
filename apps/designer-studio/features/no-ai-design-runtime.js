@@ -8,7 +8,7 @@
  label.innerHTML='<input id="noAIDesignCheckbox" type="checkbox"> AI 디자인 생성 없음';design.insertBefore(label,options);
  const note=document.createElement('div');note.className='settings-card hidden';note.innerHTML='<h4>기본 구성으로 편집 시작</h4><p>페이지 설정을 기준으로 월력·학교 정보·메모·사진 프레임을 배치합니다. 편집 화면에서 사진과 디자인을 추가할 수 있습니다.</p><p id="noAIDesignSummary"></p>';section('ai-design').append(note);
  const checkbox=label.querySelector('input');
- function refresh(){const off=disabled();checkbox.checked=off;options.classList.toggle('hidden',off);generation.classList.toggle('hidden',off);note.classList.toggle('hidden',!off);if(off){const data=window.ACDLAIDesignSettings.summary(project);note.querySelector('#noAIDesignSummary').textContent=`${data.productType} · ${data.pageSize} · ${data.pageCount}면`;const enter=el('newTemplateEnterEditorBtn');if(enter&&newTemplateSetupInProgress){enter.textContent='편집 시작';enter.disabled=false}}}
+ function refresh(){const off=disabled()||project?.productType?.category==='poster';checkbox.checked=off;options.classList.toggle('hidden',off);generation.classList.toggle('hidden',off);note.classList.toggle('hidden',!off);if(off){const data=window.ACDLAIDesignSettings.summary(project);note.querySelector('#noAIDesignSummary').textContent=`${data.productType} · ${data.pageSize} · ${data.pageCount}면`;const enter=el('newTemplateEnterEditorBtn');if(enter&&newTemplateSetupInProgress){enter.textContent='편집 시작';enter.disabled=false}}}
  checkbox.addEventListener('change',()=>{if(aiDesignGenerationState==='generating'||aiMonthlyExpansionState==='generating'){checkbox.checked=disabled();showEditorToast('생성이 완료되거나 중지된 뒤 변경해 주세요.');return}project.template.settings||={};project.template.settings.aiDesignDisabled=checkbox.checked;stable();updateNewTemplateSettingsActions();refresh()});
  const actions=updateNewTemplateSettingsActions;updateNewTemplateSettingsActions=function(){actions();refresh()};
  const switchPage=switchResourcePage;switchResourcePage=function(page){const result=switchPage(page);refresh();return result};
@@ -21,6 +21,7 @@ async function startTemplateEditorWithoutAI(){
  const before=structuredClone(project),button=el('newTemplateEnterEditorBtn');
  try{
   button.disabled=true;
+  if(project.productType?.category==='poster'){window.ACDLGraphicTemplateSettings?.apply();newTemplateSetupInProgress=false;document.body.classList.remove('resource-modal-open');el('resourceModal').classList.add('hidden');updateNewTemplateSettingsActions();markDirty();render();showEditorToast('선택한 벽보형 구성과 배경으로 편집을 시작했습니다.');return}
   const spec=window.ACDLDesignSpec.read(project,window.ACDLDesignTypeCatalog);
   prepareNeutralAIDesignBase({selectedVariantId:'none',variants:[{id:'none',assetsByRole:{cover:null,annual:null,divider:null,month:null,'month-back':null,'back-cover':null},monthlyAssets:{}}]});
   const layout=window.ACDLDesignLayoutApplication.apply(project,spec);

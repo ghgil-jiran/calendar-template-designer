@@ -1,6 +1,6 @@
 (()=>{
  const $=id=>document.getElementById(id),poster=()=>project?.productType?.category==='poster';
- const blocked=new Set(['masters','design-types','ai-design']);
+ const blocked=new Set(['masters','ai-design']);
  function refresh(){
   const active=poster();for(const key of blocked){const button=document.querySelector(`[data-resource-page="${key}"]`);if(button){button.disabled=active;button.classList.toggle('hidden',active)}}
   for(const id of ['resourceFrontInserts','resourceRearInserts','resourceAdjacentMini']){const input=$(id),field=input?.closest('label');field?.classList.toggle('hidden',active);if(input&&active)input.disabled=true}

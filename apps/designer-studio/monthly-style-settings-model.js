@@ -1,0 +1,6 @@
+(function(root){
+ const valid=v=>/^#[a-f0-9]{6}$/i.test(v||'');
+ function rows(project){const months=(project.book?.pageInstances||[]).filter(p=>p.role==='monthly-front'),stored=project.book?.monthlyStyleOverrides||[],fallback=project.template?.resources?.colorTheme?.primary||'#315e9e';return months.map((p,i)=>{const key=p.monthKey||`${p.calendarYear}-${String(p.calendarMonth).padStart(2,'0')}`,entry=stored.find(x=>x.monthKey===key)||stored[i];return {key,month:p.calendarMonth,year:p.calendarYear,color:entry?.tokens?.primary||'',fallback};});}
+ function apply(project,values){const expected=rows(project);if(values.length!==expected.length||values.some((v,i)=>v.key!==expected[i].key||v.color&&!valid(v.color)))throw Error('월별 색상은 #RRGGBB 형식으로 입력해 주세요.');const entries=structuredClone(project.book.monthlyStyleOverrides||[]);for(const [i,v] of values.entries()){let index=entries.findIndex(e=>e.monthKey===v.key);if(index<0)index=i;const entry={...(entries[index]||{}),monthKey:v.key,tokens:{...(entries[index]?.tokens||{})}};if(v.color)entry.tokens.primary=v.color;else delete entry.tokens.primary;entries[index]=entry;}project.book.monthlyStyleOverrides=entries;}
+ root.ACDLMonthlyStyleSettings=Object.freeze({rows,apply});
+})(typeof window==='undefined'?globalThis:window);

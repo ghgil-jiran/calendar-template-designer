@@ -6,9 +6,9 @@ const idOf=id=>{if(!UUID.test(String(id)))fail('INVALID_PDF_ID');return id};
 const key=(id,file)=>`${ROOT}/${idOf(id)}/${file}`;
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 async function manifest(d,id){const m=await d.readJson(key(id,'manifest.json'));if(m.schemaVersion!=='graphic-pdf-document.v1')fail('INVALID_PDF_DOCUMENT');return m;}
-async function packageOf(d,id,expected){const p=await d.getRecord(idOf(id));if(p.schemaVersion!=='graphic-package.v1'||p.mode!=='pdf'||p.status!=='active')fail('INVALID_PDF_PACKAGE');if(expected!==undefined&&p.revision!==expected)fail('GRAPHIC_PACKAGE_CONFLICT',409);return p;}
+async function packageOf(d,id,expected,readOnly=false){const p=await d.getRecord(idOf(id));if(p.schemaVersion!=='graphic-package.v1'||p.mode!=='pdf'||!(p.status==='active'||readOnly&&p.status==='archived'))fail('INVALID_PDF_PACKAGE');if(expected!==undefined&&p.revision!==expected)fail('GRAPHIC_PACKAGE_CONFLICT',409);return p;}
 function publicDocument(m){const {schemaVersion,id,packageId,fileName,byteSize,sha256,kind,chunkCount,pages,createdAt,verifiedAt,uploadedAt}=m;return {schemaVersion,id,packageId,fileName,byteSize,sha256,kind,chunkCount,pages,createdAt,verifiedAt,uploadedAt};}
-async function linked(d,body){const p=await packageOf(d,body.packageId),m=await manifest(d,body.documentId);if(m.packageId!==p.id||!p.pdfDocuments?.some(x=>x.id===m.id)||!m.verifiedAt)fail('PDF_NOT_REGISTERED');return {p,m};}
+async function linked(d,body){const p=await packageOf(d,body.packageId,undefined,body.operation==='pdf-source'),m=await manifest(d,body.documentId);if(m.packageId!==p.id||!p.pdfDocuments?.some(x=>x.id===m.id)||!m.verifiedAt)fail('PDF_NOT_REGISTERED');return {p,m};}
 export async function pdfPackageOperation(body,d){
  const op=body.operation;
  if(op==='pdf-start'){
@@ -55,7 +55,7 @@ export async function pdfPackageOperation(body,d){
   const asset=await d.storePreview(body.dataUrl),preview={pageNumber:page.pageNumber,previewAssetId:asset.id,width,height,thumbnailDataUrl:d.validateThumbnail(body.thumbnailDataUrl)};await d.writeJson(key(m.id,`preview-${page.pageNumber}.json`),preview);return {preview};
  }
  if(op==='pdf-document'){
-  const p=await packageOf(d,body.packageId),m=await manifest(d,body.documentId);if(m.packageId!==p.id||!p.pdfDocuments?.some(x=>x.id===m.id))fail('PDF_NOT_REGISTERED');const previews={};await Promise.all(m.pages.map(async p=>{try{previews[p.pageNumber]=await d.readJson(key(m.id,`preview-${p.pageNumber}.json`))}catch(e){if(e.storageStatus!==404&&e.storageStatus!==400)throw e;}}));return {document:{...publicDocument(m),pages:m.pages.map(p=>({...p,...previews[p.pageNumber]}))}};
+  const p=await packageOf(d,body.packageId,undefined,true),m=await manifest(d,body.documentId);if(m.packageId!==p.id||!p.pdfDocuments?.some(x=>x.id===m.id))fail('PDF_NOT_REGISTERED');const previews={};await Promise.all(m.pages.map(async p=>{try{previews[p.pageNumber]=await d.readJson(key(m.id,`preview-${p.pageNumber}.json`))}catch(e){if(e.storageStatus!==404&&e.storageStatus!==400)throw e;}}));return {document:{...publicDocument(m),pages:m.pages.map(p=>({...p,...previews[p.pageNumber]}))}};
  }
  if(op==='pdf-uploaded-source'){
   const p=await packageOf(d,body.packageId),m=await manifest(d,body.documentId);if(m.packageId!==p.id||!p.pdfDocuments?.some(x=>x.id===m.id)||!(m.uploadedAt||m.verifiedAt))fail('PDF_NOT_REGISTERED');const chunks=[];for(let offset=0;offset<m.chunkCount;offset+=8)chunks.push(...await Promise.all(Array.from({length:Math.min(8,m.chunkCount-offset)},async(_,n)=>{const i=offset+n;return {index:i,url:await d.sign(key(m.id,`chunk-${i}.bin`))};})));return {fileName:m.fileName,sha256:m.sha256,byteSize:m.byteSize,chunks};

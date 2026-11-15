@@ -1,3 +1,4 @@
+import {withPackageUsage,assertPackageUnused} from './graphic-package-usage.js';
 import {installGardenIllustrations} from './graphic-garden-illustrations.js';
 import {installLearningGarden,gardenAssetSvg,GARDEN_ASSET_ID} from './graphic-learning-garden.js';
 import {installPhotoFrames} from './graphic-photo-frames.js';
@@ -108,7 +109,7 @@ export async function saveGraphicPackagePage(body){
  const updated=await write({...latest,pages:{...latest.pages,[page]:slot},thumbnailDataUrl:page==='cover'?graphic.thumbnailDataUrl:latest.thumbnailDataUrl,revision:latest.revision+1,updatedAt:now});return {graphic,package:updated};
 }
 
-export async function deleteGraphicPackage(body){const pkg=await packageForUpdate(body);await storage(`object/${BUCKET}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:[path(pkg.id)]})});return {deletedPackageId:pkg.id}}
+export async function deleteGraphicPackage(body){const pkg=await packageForUpdate(body);assertPackageUnused((await withPackageUsage([pkg]))[0]);await storage(`object/${BUCKET}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:[path(pkg.id)]})});return {deletedPackageId:pkg.id}}
 
 const illustrationModel=globalThis.ACDLGraphicIllustrationModel;
 function themeMetadata(body){try{return illustrationModel.metadata(body)}catch{fail('INVALID_ILLUSTRATION_THEME')}}
