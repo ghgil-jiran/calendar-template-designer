@@ -8,8 +8,8 @@
     const minWidth=.2/(Number(pageSize?.width)||260)*100,minHeight=.2/(Number(pageSize?.height)||180)*100;
     item.width = clamp(finite(item.width, minWidth), minWidth, 500);
     item.height = clamp(finite(item.height, minHeight), minHeight, 500);
-    item.x = clamp(finite(item.x, 0), 1 - item.width, 99);
-    item.y = clamp(finite(item.y, 0), 1 - item.height, 99);
+    item.x = clamp(finite(item.x, 0), Math.min(1,item.width) - item.width, 99);
+    item.y = clamp(finite(item.y, 0), Math.min(1,item.height) - item.height, 99);
   };
 
   function setFontSize(item,value){item.style ||= {};item.style.fontSize=clamp(finite(value,item.style.fontSize||18),1,240);}
