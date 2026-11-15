@@ -43,7 +43,7 @@ export async function listGraphicRecords(){
  const entries={},items=[];let next=0;
  await Promise.all(Array.from({length:Math.min(8,rows.length)},async()=>{while(next<rows.length){const row=rows[next++],id=row.name.slice(0,-5),revision=row.updated_at?createHash('sha256').update(JSON.stringify([row.name,row.updated_at,row.created_at,row.metadata])).digest('hex'):null,cached=previous[row.name];let value;
  if(revision&&cached?.revision===revision&&cached.record?.id===id&&RECORD_SCHEMAS.has(cached.record.schemaVersion))value=cached.record;
- else value=await storage(`object/${BUCKET}/${PREFIX}/${row.name}`).then(r=>r.json());
+ else try{value=await storage(`object/${BUCKET}/${PREFIX}/${row.name}`).then(r=>r.json())}catch(error){if([400,404].includes(error.storageStatus))continue;throw error}
  if(RECORD_SCHEMAS.has(value.schemaVersion)){items.push(value);entries[row.name]={revision,record:value}}
  }}));
  if(Object.keys(entries).length!==Object.keys(previous).length||Object.keys(entries).some(key=>JSON.stringify(entries[key])!==JSON.stringify(previous[key])))try{await storage(`object/${BUCKET}/${CATALOG_INDEX_PATH}`,{method:'POST',headers:{'Content-Type':'application/json','x-upsert':'true'},body:JSON.stringify({schemaVersion:'graphic-catalog-index.v1',entries})})}catch{ /* An index write failure must not prevent browsing. */ }
@@ -109,7 +109,7 @@ export async function saveGraphicPackagePage(body){
  const updated=await write({...latest,pages:{...latest.pages,[page]:slot},thumbnailDataUrl:page==='cover'?graphic.thumbnailDataUrl:latest.thumbnailDataUrl,revision:latest.revision+1,updatedAt:now});return {graphic,package:updated};
 }
 
-export async function deleteGraphicPackage(body){const pkg=await packageForUpdate(body);assertPackageUnused((await withPackageUsage([pkg]))[0]);await storage(`object/${BUCKET}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:[path(pkg.id)]})});return {deletedPackageId:pkg.id}}
+export async function deleteGraphicPackage(body){const pkg=await packageForUpdate(body);assertPackageUnused((await withPackageUsage([pkg]))[0]);await storage(`object/${BUCKET}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:[path(pkg.id),CATALOG_INDEX_PATH]})});return {deletedPackageId:pkg.id}}
 
 const illustrationModel=globalThis.ACDLGraphicIllustrationModel;
 function themeMetadata(body){try{return illustrationModel.metadata(body)}catch{fail('INVALID_ILLUSTRATION_THEME')}}
