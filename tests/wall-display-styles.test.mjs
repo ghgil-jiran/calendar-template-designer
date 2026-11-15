@@ -1,3 +1,4 @@
+import {measuredMonth,withCss} from './helpers/wall-month-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../apps/designer-studio/wall-calendar-policy.js';
@@ -24,7 +25,9 @@ test('date-only month centers numbers; schedule style retains the date-side refe
 test('list groups preserve all events once in date order, with aligned dates and vertical column flow',()=>{
  const m=model();m.item.wallCalendarSettings={schedulePlacement:'list',referencePlacement:'list',listLayout:'three'};m.p.book.events=[{id:'s2',title:'후행 학교 일정',startDate:'2027-03-12',endDate:'2027-03-14'},{id:'s1',title:'선행 학교 일정',startDate:'2027-03-02',endDate:'2027-03-02'},{id:'h',title:'공휴일 테스트',category:'holiday',startDate:'2027-03-01',endDate:'2027-03-01'}];const out=html(m);for(const id of ['s1','s2','h'])assert.equal(out.split('data-poster-list-event="'+id+'"').length-1,1);assert.ok(out.indexOf('선행 학교 일정')<out.indexOf('후행 학교 일정'));assert.match(out,/학교 일정/);assert.match(out,/공휴일·기념일/);assert.match(out,/column-count:3/);assert.match(out,/column-fill:balance/);assert.match(out,/12–14/);
 });
-test('automatic list columns compare measured wrapped heights and retain every entry',()=>{
- const group={style:{columnCount:'2'}},list={dataset:{wallListLayout:'auto'},clientWidth:120,clientHeight:100,get scrollHeight(){return group.style.columnCount==='2'?150:98},scrollWidth:120,querySelectorAll:()=>[group]},scope={querySelectorAll:()=>[list]};wall.fit(scope);assert.equal(list.dataset.wallResolvedColumns,'3');Object.defineProperty(list,'scrollHeight',{get:()=>160});wall.fit(scope);assert.equal(list.dataset.wallResolvedColumns,'2');list.dataset.wallListLayout='three';wall.fit(scope);assert.equal(list.dataset.wallResolvedColumns,'3');
-});
+test('automatic list columns compare measured wrapped heights and retain every entry',()=>withCss(()=>{
+ const f=measuredMonth({two:230,three:204});wall.fit(f.scope);assert.equal(f.list.dataset.wallResolvedColumns,'3');
+ const tied=measuredMonth({two:230,three:230});wall.fit(tied.scope);assert.equal(tied.list.dataset.wallResolvedColumns,'2');
+ tied.list.dataset.wallListLayout='three';wall.fit(tied.scope);assert.equal(tied.list.dataset.wallResolvedColumns,'3');
+}));
 test('customer display changes cannot alter sizes or reference inclusion flags',()=>{for(const name of Object.keys(wall.presets))assert.deepEqual(wall.validateCustomer(wall.presets[name]),wall.presets[name]);assert.deepEqual(wall.validateCustomer({listLayout:'three',titleStyle:'underline',weekdayFormat:'english'}),{listLayout:'three',titleStyle:'underline',weekdayFormat:'english'});assert.throws(()=>wall.validateCustomer({listLayout:'four'}));assert.throws(()=>wall.validateCustomer({includeLunar:true}));assert.throws(()=>wall.validateCustomer({datePt:4}));});

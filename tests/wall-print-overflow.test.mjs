@@ -10,7 +10,7 @@ import '../apps/designer-studio/shared-screen-mini-calendar.js';
 const wall=globalThis.ACDLWallCalendar;
 test('Sample A reserves readable six-week dates while allowing the list to yield space',()=>{
  const p=ACDLWallSampleA.create(),page=p.book.pageInstances[0],e=p.book.elementsByPage[page.id].find(e=>e.academicPoster),annual=ACDLSharedMiniCalendar.resolveAnnualCalendar(e,page,p.settings),html=wall.render(annual,e,p),g=wall.geometry(p,e);
- const grids=[...html.matchAll(/data-wall-grid style="[^"]*grid-template-rows:repeat\((\d+),[^"]*min-height:([\d.]+)cqw/g)];
+ const grids=[...html.matchAll(/data-wall-grid data-wall-rows="\d+" style="[^"]*grid-template-rows:repeat\((\d+),[^"]*min-height:([\d.]+)cqw/g)];
  assert.equal(grids.length,12);assert.ok(grids.some(m=>Number(m[1])===6));
  for(const m of grids){const height=Number(m[2])*g.width/100,rows=Number(m[1]);assert.ok(height/rows>13*25.4/72*1.15+1.2);assert.ok(height<g.monthHeight);}
  assert.match(html,/height:50%;flex:0 1 auto;min-height:0/);
