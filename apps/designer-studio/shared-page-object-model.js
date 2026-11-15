@@ -68,8 +68,31 @@
    e.metadata={...e.metadata,schoolSymbolBindingVersion:1};
   }
  }
+ // Upgrade existing Sample A objects in place; authored frames and image originals survive.
+ function normalizeWallSampleA(project){
+  if(project?.productType?.category!=='poster'||project.template?.metadata?.posterSample!=='wall-sample-a.v1'||project.productionCorrection)return project;
+  const arrays=[...Object.values(project.template.masterElements||{}),...Object.values(project.book?.elementsByPage||{})];
+  for(const elements of arrays)for(const item of Array.isArray(elements)?elements:[]){
+   if(item.metadata?.wallSampleAEditingVersion===1)continue;
+   if(item.type==='text'){
+    // Fixed authored text boxes must not be replaced by the legacy percentage estimator.
+    item.autoSize='none';item.metadata={...item.metadata,wallSampleAEditingVersion:1};
+   }else if(['semantic-object','image-frame','image'].includes(item.type)&&(item.role==='school-logo'||item.id==='wall-a.logo'||item.binding==='school.profile.logo'||item.image?.binding==='school.profile.logo')){
+    const asset=(project.template.resources?.sampleAssets||[]).find(a=>a.id===(item.sampleAssetId||item.sampleContent?.assetId));
+    const src=item.image?.src||item.src||item.sampleContent?.image||asset?.image||project.book?.school?.profile?.logo?.image||'';
+    const fit=item.image?.fit||item.fit||'contain';
+    item.type='image-frame';item.role='school-logo';item.label='교표';item.frameType||='rect';item.fit=fit;
+    item.image={...item.image,src,binding:'school.profile.logo',fit,scale:item.image?.scale??1,offsetX:item.image?.offsetX??0,offsetY:item.image?.offsetY??0};
+    delete item.binding;delete item.bindingEnabled;
+    item.style={...item.style,background:item.style?.background??false,strokeWidth:item.style?.strokeWidth??0};
+    item.metadata={...item.metadata,wallSampleAEditingVersion:1};
+   }
+  }
+  return project;
+ }
  function normalizeProject(project){
   if(!project?.book||!project?.template||project.productionCorrection)return project;
+  normalizeWallSampleA(project);
   const pages=project.book.pageInstances||[],symbolPage=p=>[p?.role,p?.contentPurpose,p?.semanticPageRole,p?.packageRole].some(v=>v==='school-symbols');
   const arrays=[...Object.entries(project.template.masterElements||{}).map(([id,arr])=>({arr,symbols:pages.some(p=>p.masterId===id&&symbolPage(p)),cover:pages.some(p=>p.masterId===id&&p.role==='cover-front')})),...Object.entries(project.book.elementsByPage||{}).map(([id,arr])=>({arr,symbols:symbolPage(pages.find(p=>p.id===id)),cover:pages.some(p=>p.id===id&&p.role==='cover-front')}))];
   for(const {arr,symbols,cover} of arrays){
@@ -134,6 +157,6 @@
   const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   return '<div class="school-contact-list" style="display:flex;flex-wrap:wrap;justify-content:inherit;align-content:flex-start;column-gap:.8em;row-gap:0;width:100%;min-width:0;white-space:normal">'+items.map(item=>'<span class="school-contact-item" style="display:inline-block;white-space:nowrap">'+'<strong style="font-weight:700">'+escape(item.label)+'</strong>&nbsp;'+escape(item.value)+'</span>').join('')+'</div>';
  }
- root.ACDLPageObjectModel=Object.freeze({version:'1.1.0',normalizeProject,updateBoundSchoolImage,schoolText,connectSymbolText,splitCoverYear,coverYearText,monthText,renderPlanLines,schoolContactItems,schoolContactsText,renderSchoolContacts});
+ root.ACDLPageObjectModel=Object.freeze({version:'1.1.0',normalizeProject,normalizeWallSampleA,updateBoundSchoolImage,schoolText,connectSymbolText,splitCoverYear,coverYearText,monthText,renderPlanLines,schoolContactItems,schoolContactsText,renderSchoolContacts});
 })(globalThis);
 

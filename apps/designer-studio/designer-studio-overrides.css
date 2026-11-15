@@ -529,3 +529,8 @@ body.user-mode[data-calendar-product="postcard"] #openObjectDrawerBtn,body.user-
 .wall-check-row:focus-within{outline:2px solid var(--accent,#2563eb);outline-offset:2px}.wall-check-row:has(input:checked){border-color:var(--accent,#2563eb);background:var(--acds-surface-subtle,#f7f9fc)}.wall-check-row:has(input:disabled){opacity:.55;cursor:default}
 .poster-inspector-section[hidden],.poster-inspector-section [hidden]{display:none!important}.wall-small-type-hint:not(:empty){font-size:10px;line-height:1.5;padding:8px;border:1px solid #f4cf88;border-radius:6px;color:#854d0e;background:#fffbeb}
 .wall-inspector-actions{position:sticky;bottom:0;background:var(--acds-surface,#fff);border-top:1px solid var(--line,#dce3ee);padding:8px 0;z-index:2}.wall-inspector-actions .poster-inspector-section{margin:0 0 8px}.wall-inspector-actions>button{height:auto;min-height:34px;padding:8px}
+
+/* Sample A uses physical authoring limits, not a screen-pixel minimum box. */
+.page.poster[data-wall-sample="a"] .free-element{min-width:0;min-height:0}
+body:has(.page.poster[data-wall-sample="a"]) #inspector label:has(>input[type="checkbox"]){display:grid;grid-template-columns:16px minmax(0,1fr);align-items:start;gap:8px;line-height:1.45}
+body:has(.page.poster[data-wall-sample="a"]) #inspector label>input[type="checkbox"]{width:16px!important;height:16px!important;min-width:16px;max-width:16px;min-height:16px;max-height:16px;margin:1px 0 0;padding:0;accent-color:var(--accent,#2563eb)}
