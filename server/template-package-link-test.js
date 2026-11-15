@@ -3,6 +3,7 @@ import {listTemplates,getTemplate,saveVersion} from './template-persistence.js';
 import {graphicPdfDependencies} from './graphic-library.js';
 import {resolvePdfBackgroundPrintSources} from './pdf-background-print-source.js';
 export const TARGET_NAME='2027학년도 · 샘플 D · 패키지 연결 테스트';
+export const matchesTestName=name=>String(name||'').normalize('NFKC').toLowerCase().replace(/[^a-z0-9가-힣]/g,'').includes('샘플d패키지연결테스트');
 const fail=(message,statusCode=409)=>{throw Object.assign(Error(message),{statusCode,code:'PACKAGE_LINK_TEST_FAILED',details:message})};
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 export function linkAuthoredBackgrounds(project,packages,sourceVersionId){
@@ -17,9 +18,12 @@ export function linkAuthoredBackgrounds(project,packages,sourceVersionId){
 let pending;
 export function runPackageLinkTest(body,deps={}){const result=(pending||Promise.resolve()).catch(()=>{}).then(()=>run(body,deps));pending=result;return result.finally(()=>{if(pending===result)pending=null});}
 async function run(body,{list=listTemplates,load=getTemplate,save=saveVersion,d=graphicPdfDependencies,resolve=resolvePdfBackgroundPrintSources}={}){
- if(!['inspect','save'].includes(body.step))fail('검증 단계를 확인해 주세요.',400);
- const candidates=(await list()).filter(t=>t.name===TARGET_NAME&&Number(t.edition)===2027);if(candidates.length!==1)fail('이름이 정확히 일치하는 검증용 초안이 하나여야 합니다.');const item=candidates[0],current=await load(item.id),t=current.template,v=current.version;
- if(t.state!=='draft'||v.state!=='draft'||t.name!==TARGET_NAME)fail('검증용 초안만 처리할 수 있습니다. 게시본은 수정하지 않습니다.');
+ if(!['list','inspect','save'].includes(body.step))fail('검증 단계를 확인해 주세요.',400);
+ const records=await list(),candidates=records.filter(t=>t.state==='draft'&&Number(t.edition)===2027&&t.productType==='desk');
+ if(body.step==='list')return {candidates:candidates.map(t=>({templateId:t.id,name:t.name,edition:t.edition,state:t.state,version:t.latestVersionNumber,preferred:matchesTestName(t.name)}))};
+ if(!body.templateId)fail('검증할 초안을 목록에서 선택해 주세요.',400);const item=candidates.find(t=>t.id===body.templateId);if(!item)fail('선택한 항목이 2027 탁상형 초안인지 확인해 주세요. 게시본은 처리하지 않습니다.');const current=await load(item.id),t=current.template,v=current.version;
+ if(t.id!==item.id||t.state!=='draft'||v.state!=='draft')fail('검증용 초안만 처리할 수 있습니다. 게시본은 수정하지 않습니다.');
+ const metadata=v.projectData.template?.metadata||{};if(!matchesTestName(t.name)&&!matchesTestName(metadata.name)&&!metadata.sampleDPrintRepair&&!metadata.sampleDRemoteRevision)fail('선택한 초안이 샘플 D 복제본인지 확인할 수 없습니다. 원본을 확인해 주세요.');
  const project=v.projectData,settings=project.template?.settings||{},existing=settings.graphicPackage;
  if(v.versionNumber!==1&&existing?.bindingMode!=='preserve-authored')fail('v1 검증용 초안이 아닙니다. 현재 버전을 먼저 확인해 주세요.');
  // Validate immutable manifests/chunk receipts using the existing print-source resolver.
