@@ -105,7 +105,8 @@
       "includeFiles": "assets/sample-d-v4/*"
     },
     "api/poster-sample.js": {
-      "maxDuration": 300
+      "maxDuration": 300,
+      "includeFiles": "assets/{wall-sample-a,wall-sample-b,sample-c}/*"
     },
     "api/sample-a-logo.js": {
       "maxDuration": 60,

@@ -1,0 +1,15 @@
+{
+  "revision": "wall-sample-a-cmyk.v1",
+  "fileName": "wall-sample-a-background-cmyk.pdf",
+  "sha256": "37beb6ba923ab84f27240ffae7aea7c4d76bd187180db0722599fa50848d5e3b",
+  "byteSize": 80384,
+  "pages": [
+    {
+      "widthPt": 1207.5591,
+      "heightPt": 1700.7874
+    }
+  ],
+  "pixelWidth": 1055,
+  "pixelHeight": 1491,
+  "effectiveDpi": 62.90375586854459
+}
