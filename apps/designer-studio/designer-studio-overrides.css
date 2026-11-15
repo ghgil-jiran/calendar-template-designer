@@ -536,5 +536,5 @@ body:has(.page.poster[data-wall-sample="a"]) #inspector label:has(>input[type="c
 body:has(.page.poster[data-wall-sample="a"]) #inspector label>input[type="checkbox"]{width:16px!important;height:16px!important;min-width:16px;max-width:16px;min-height:16px;max-height:16px;margin:1px 0 0;padding:0;accent-color:var(--accent,#2563eb)}
 
 /* Editing shows the same overflow regions that block wall printing. */
-body:not(.review-pdf-printing) .page:not(.preview-only-page):not(.review-pdf-page) [data-wall-region][data-wall-overflow="true"]{outline:1px dashed #c66a16;outline-offset:-1px}
+body:not(.review-pdf-printing) .workspace .canvas-wrap #page [data-wall-region][data-wall-overflow="true"]{outline:1px dashed #c66a16;outline-offset:-1px}
 @media print{[data-wall-region][data-wall-overflow="true"]{outline:none!important}}
