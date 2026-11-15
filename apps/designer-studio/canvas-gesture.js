@@ -3,12 +3,13 @@
     ? structuredClone(value)
     : JSON.parse(JSON.stringify(value));
 
-  function begin({ pointerId, startX, startY, handle, rect, views, primary, node }) {
+  function begin({ pointerId, startX, startY, handle, rect, views, primary, node, pageSize }) {
     const center = {
       x: rect.left + (primary.item.x + primary.item.width / 2) / 100 * rect.width,
       y: rect.top + (primary.item.y + primary.item.height / 2) / 100 * rect.height
     };
     return {
+      pageSize,
       pointerId,
       startX,
       startY,
@@ -40,12 +41,12 @@
       );
     } else {
       const original = gesture.primary.original;
-      const resized = root.ACDLCanvasGeometry.resizeFrame(original, gesture.handle, deltaX, deltaY);
+      const resized = root.ACDLCanvasGeometry.resizeFrame(original, gesture.handle, deltaX, deltaY, gesture.pageSize);
       if (original.type === 'image' && original.lockAspect !== false) {
         const ratio = original.width / original.height;
         if (gesture.handle.includes('e') || gesture.handle.includes('w')) resized.height = resized.width / ratio;
         else resized.width = resized.height * ratio;
-        Object.assign(resized, root.ACDLCanvasGeometry.keepPartiallyVisible(resized));
+        Object.assign(resized, root.ACDLCanvasGeometry.keepPartiallyVisible(resized,gesture.pageSize));
       }
       Object.assign(gesture.primary.item, resized);
     }

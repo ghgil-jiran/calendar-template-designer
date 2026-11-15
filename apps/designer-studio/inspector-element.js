@@ -4,9 +4,10 @@
     return Number.isFinite(number) ? number : fallback;
   };
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-  const keepPartiallyVisible = item => {
-    item.width = clamp(finite(item.width, 3), 3, 500);
-    item.height = clamp(finite(item.height, 3), 3, 500);
+  const keepPartiallyVisible = (item,pageSize) => {
+    const minWidth=.2/(Number(pageSize?.width)||260)*100,minHeight=.2/(Number(pageSize?.height)||180)*100;
+    item.width = clamp(finite(item.width, minWidth), minWidth, 500);
+    item.height = clamp(finite(item.height, minHeight), minHeight, 500);
     item.x = clamp(finite(item.x, 0), 1 - item.width, 99);
     item.y = clamp(finite(item.y, 0), 1 - item.height, 99);
   };
@@ -63,7 +64,7 @@
       item.y = finite(values.y, item.y);
       item.width = finite(values.width, item.width);
       item.height = finite(values.height, item.height);
-      keepPartiallyVisible(item);
+      keepPartiallyVisible(item,values.pageSize);
     }
     return item;
   }

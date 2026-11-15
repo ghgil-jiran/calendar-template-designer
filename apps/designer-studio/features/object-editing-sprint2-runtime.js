@@ -48,7 +48,7 @@
   if(multi)toggleSelection(id,scope);else if(!wasSelected)selectOnly(id,scope);else setPrimary(id,scope);
   inspectorDirty=false;inspectorNotice={type:'ready',message:'선택한 개체를 Canvas에서 직접 편집할 수 있습니다.'};
   const rect=el('page').getBoundingClientRect(),handle=e.target.dataset.handle||'move';
-  gesture=window.ACDLCanvasGesture.begin({pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,handle,rect,views:selectedViews(),primary:{id,scope,item},node:box});
+  gesture=window.ACDLCanvasGesture.begin({pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,handle,rect,views:selectedViews(),primary:{id,scope,item},node:box,pageSize:project.productType?.pageSize});
   gesture.snapshotTaken=snapshotTaken;gesture.needsFullRender=multi||!wasSelected||selectedViews().length>1;
   releasePointer=window.ACDLCanvasInput.capturePointer(box,e.pointerId,{move:moveElementPointer,end:endElementPointer});box.classList.add('s2-selected');
  };

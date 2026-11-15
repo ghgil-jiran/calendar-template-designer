@@ -41,6 +41,6 @@ assert.deepEqual(image, { type: 'image', fit: 'contain', alt: '학교 전경', l
 
 const frame = { x: 90, y: -5, width: 20, height: 2 };
 apply(frame, 'geometry', { x: '95', y: '-10', width: '20', height: '2' });
-assert.deepEqual(frame, { x: 95, y: -2, width: 20, height: 3 });
+assert.deepEqual(frame, { x: 95, y: -1, width: 20, height: 2 });
 apply(frame, 'geometry', { x: 'not-a-number', y: '', width: '200', height: '50' });
-assert.deepEqual(frame, { x: 95, y: -2, width: 200, height: 50 });
+assert.deepEqual(frame, { x: 95, y: -1, width: 200, height: 50 });

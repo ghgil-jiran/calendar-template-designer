@@ -680,8 +680,8 @@ function moveElementPointer(e){
  if(elementDrag.handle==="move"){item.x=o.x+dx;item.y=o.y+dy}
  if(elementDrag.handle==="e"||elementDrag.handle==="se")item.width=o.width+dx;
  if(elementDrag.handle==="s"||elementDrag.handle==="se")item.height=o.height+dy;
- item.width=Math.max(3,Math.min(100,item.width));
- item.height=Math.max(3,Math.min(100,item.height));
+ const minimum=window.ACDLCanvasGeometry.minimumSize(project.productType?.pageSize);
+ if(elementDrag.handle!=='move'){if(elementDrag.handle.includes('e'))item.width=Math.max(minimum.width,Math.min(100,item.width));if(elementDrag.handle.includes('s'))item.height=Math.max(minimum.height,Math.min(100,item.height));}
  item.x=Math.max(0,Math.min(item.x,100-item.width));
  item.y=Math.max(0,Math.min(item.y,100-item.height));
  const node=elementDrag.node;
@@ -1218,7 +1218,7 @@ function bindInspector(){
  bind("applyElementStyle",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"text-style",{fontFamily:el("elemFontFamily").value,fontSize:el("elemFontSize").value,fontWeight:el("elemFontWeight").value,fontStyle:el("elemItalic").checked?"italic":"normal",underline:el("elemUnderline").checked,strike:el("elemStrike").checked,textAlign:el("elemAlign").value,verticalAlign:el("elemVerticalAlign").value,color:el("elemColor").value,letterSpacing:el("elemLetterSpacing").value,lineHeight:el("elemLineHeight").value,opacity:el("elemOpacity").value,background:el("elemBackground").checked,backgroundColor:el("elemBackgroundColor").value,strokeWidth:el("elemStrokeWidth").value,strokeColor:el("elemStrokeColor").value,shadow:el("elemShadow").checked,shadowX:el("elemShadowX").value,shadowY:el("elemShadowY").value,shadowBlur:el("elemShadowBlur").value,shadowColor:el("elemShadowColor").value});}));
  bind("applyImageStyle",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"image-style",{fit:el("elemFit").value,alt:el("elemAlt").value,lockAspect:el("elemLockAspect")?.value,brightness:el("elemBrightness")?.value,contrast:el("elemContrast")?.value,saturation:el("elemSaturation")?.value,opacity:el("elemImageOpacity")?.value,flipX:el("elemImageFlipX")?.value,flipY:el("elemImageFlipY")?.value});}));
  bind("replaceImageBtn",()=>{pendingImageElementId=selectedElementId;pendingImageElementScope=selectedElementScope;el("elementImageInput").click()});
- bind("applyElementGeometry",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"geometry",{x:el("elemX").value,y:el("elemY").value,width:el("elemW").value,height:el("elemH").value});if(el("posterApplyOtherPages")?.checked)window.ACDLSharedMiniCalendar.applyPosterPlacement(project,selectedPage().id,item);pendingCanvasGeometrySaveId=null}));
+ bind("applyElementGeometry",()=>changeElement(item=>{window.ACDLInspectorElement.apply(item,"geometry",{x:el("elemX").value,y:el("elemY").value,width:el("elemW").value,height:el("elemH").value,pageSize:project.productType?.pageSize});if(el("posterApplyOtherPages")?.checked)window.ACDLSharedMiniCalendar.applyPosterPlacement(project,selectedPage().id,item);pendingCanvasGeometrySaveId=null}));
  bind("bringForward",()=>changeElement(item=>item.zIndex=(item.zIndex||0)+1));
  bind("sendBackward",()=>changeElement(item=>item.zIndex=Math.max(0,(item.zIndex||0)-1)));
  bind("duplicateFromInspector",duplicateSelected);bind("deleteFromInspector",deleteSelected);
