@@ -115,6 +115,9 @@
     "api/sample-logo.js": {
       "maxDuration": 120,
       "includeFiles": "assets/sample-c/school-logo.png"
+    },
+    "api/package-link-test.js": {
+      "maxDuration": 300
     }
   }
 }
