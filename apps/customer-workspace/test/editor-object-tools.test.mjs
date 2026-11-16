@@ -10,7 +10,7 @@ const {ObjectTools,TextFormattingToolbar}=component(new URL('../src/features/edi
 const noop=()=>{},props={selection:null,item:undefined,fields:[],school:{values:{},hidden:[]},fit:{fit:'contain',scale:1,offsetX:0,offsetY:0},hasEditableTargets:false,schoolImageLinked:false,sharing:{layout:false,image:false,layoutCount:0,imageCount:0,poster:false},canReset:false,onFieldChange:noop,onFieldHide:noop,onStyle:noop,onFit:noop,onShare:noop,onReset:noop};
 const render=p=>renderToStaticMarkup(React.createElement(ObjectTools,{...props,...p}));
 test('tools distinguish a page with no editable objects from a page awaiting selection',()=>{
- const empty=render({});assert.match(empty,/<h2>편집도구<\/h2>/);assert.match(empty,/이 페이지에는 수정할 수 있는 개체가 없습니다/);assert.doesNotMatch(empty,/개체를 선택/);assert.match(render({hasEditableTargets:true}),/편집할 개체를 선택해 주세요/);
+ const empty=render({});assert.match(empty,/<h2>현재 페이지<\/h2>/);assert.match(empty,/이 페이지에는 수정할 수 있는 개체가 없습니다/);assert.doesNotMatch(empty,/개체를 선택/);assert.match(render({hasEditableTargets:true}),/편집할 개체를 선택해 주세요/);
 });
 test('text visibility is positive and restored from saved hidden state; numeric geometry controls are absent',()=>{
  const selection={label:'학교 슬로건',type:'text',binding:'school.slogan',rights:{content:true,textStyle:true,move:true,resize:true}},fields=[{key:'slogan',binding:'school.slogan',label:'학교 슬로건',allowHide:true,maxLength:200}],base={selection,fields,item:{content:'기본 문구',style:{fontSize:17}},school:{values:{slogan:'저장한 문구'},hidden:[]}};
@@ -22,3 +22,4 @@ test('image controls share compact layout with independent poster copy scopes an
  const html=render({selection:{label:'학교 전경',type:'image-frame',binding:'',rights:{replaceImage:true,imageFit:true,move:true,resize:true}},hasEditableTargets:true,sharing:{layout:false,image:false,layoutCount:1,imageCount:1,poster:true}});
  assert.match(html,/다른 페이지의 같은 개체에 위치·크기 적용/);assert.match(html,/다른 페이지의 같은 개체에 이미지 적용/);assert.equal((html.match(/type="checkbox"/g)||[]).length,2);assert.equal((html.match(/type="range"/g)||[]).length,3);assert.doesNotMatch(html,/보여줄 방법|위치와 크기|<h3>사진 교체/);assert.match(html,/aria-label="사진 맞춤"/);
 });
+test('inspector shows page identity, clickable editable objects, and no selected-object instructions',()=>{const selection={pageId:'cover',scope:'page',elementId:'school',label:'학교명',type:'text',binding:'school.name',rights:{content:true,move:true}};const empty=render({pageName:'표지',hasEditableTargets:true,editableTargets:[selection],onSelect:noop});assert.match(empty,/<h2>표지<\/h2>/);assert.match(empty,/편집할 수 있는 개체/);assert.match(empty,/학교명/);const selected=render({pageName:'표지',selection});assert.match(selected,/선택 개체/);assert.doesNotMatch(selected,/학교 정보와 연결된 글자|개체를 끌어|왼쪽 사진을/);});

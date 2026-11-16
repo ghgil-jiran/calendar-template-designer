@@ -40,9 +40,17 @@ test('photo editor result survives durable backup and new URLs, rejects tampered
 test('previous exclusion snapshots validate under their original rules; new saves retain full symbol exclusions',async()=>{
  const {applyMaterials,fieldsForProject}=await import('../src/lib/materials/native-project.ts');const d=draft();d.assignments={};d.source={format:'acdl-project',settings:{year:2027},productType:{pageSize:{width:260,height:180}},template:{masters:{cover:{}},masterElements:{},publishing:{dataRequirements:[]}},book:{school:{name:'샘플',profile:{tree:{name:'소나무',description:'설명',image:'data:image/png;base64,YQ=='}}},pageInstances:[{id:'p',role:'cover-front'}],elementsByPage:{p:[{id:'tree',type:'semantic-object',role:'school-tree',binding:'school.profile.tree'},{id:'title',type:'text',content:'교목',metadata:{parentObjectId:'tree'}}]}}};
  d.template.fields=fieldsForProject(d.source);d.school={values:{},hidden:['treeName','treeDescription']};
- const current=await prepareSnapshot(d);assert.equal(current.record.bindingVersion,3);assert.equal(current.record.appliedProject.book.elementsByPage.p[1].visible,false);
+ const current=await prepareSnapshot(d);assert.equal(current.record.bindingVersion,4);assert.equal(current.record.appliedProject.book.elementsByPage.p[1].visible,false);
  const old=structuredClone(current);old.record.bindingVersion=2;old.record.appliedProject=applyMaterials(old.record.source,old.record.template.fields,old.record.school,old.record.events,{},2);
  assert.notEqual(old.record.appliedProject.book.elementsByPage.p[1].visible,false);
  const restored=await restoreBackup(new File([await backupFile(old)],'previous.calendar-backup'));assert.equal(restored.record.bindingVersion,2);
  const newRestore=await restoreBackup(new File([await backupFile(current)],'new.calendar-backup'));assert.equal(newRestore.record.appliedProject.book.elementsByPage.p[1].visible,false);
 });
+
+ test('new saves replace legacy imported school schedules while v3 backups remain readable',async()=>{
+ const {applyMaterials}=await import('../src/lib/materials/native-project.ts');const d=draft();d.assignments={};d.source={format:'acdl-project',settings:{year:2027},productType:{pageSize:{width:260,height:180}},template:{masters:{cover:{}},masterElements:{}},book:{school:{},pageInstances:[{id:'p',role:'cover-front'}],elementsByPage:{p:[]},events:[{id:'old',title:'이전 학교 일정',source:'user-import'},{id:'holiday',title:'공휴일',source:'holiday'}]}};
+ d.events=[];const current=await prepareSnapshot(d);assert.deepEqual(current.record.appliedProject.book.events.map(e=>e.id),['holiday']);assert.equal(current.record.source.book.events.length,2);
+ const previous=structuredClone(current);previous.record.bindingVersion=3;previous.record.appliedProject=applyMaterials(previous.record.source,previous.record.template.fields,previous.record.school,previous.record.events,{},3);
+ const restored=hydrateSnapshot(await restoreBackup(new File([await backupFile(previous)],'v3.calendar-backup')));try{assert.equal(restored.appliedProject.book.events.length,2);}finally{restored.urls.forEach(URL.revokeObjectURL);}
+ const reopened=hydrateSnapshot(current);try{assert.deepEqual(reopened.record.events,[]);assert.deepEqual(reopened.appliedProject.book.events.map(e=>e.id),['holiday']);}finally{reopened.urls.forEach(URL.revokeObjectURL);}
+ });

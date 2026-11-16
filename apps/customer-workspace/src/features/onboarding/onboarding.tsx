@@ -1,4 +1,6 @@
 'use client';
+import {SchoolFieldSections} from '@/features/materials/school-field-sections';
+import {createSaveQueue} from '@/lib/editor/save-queue';
 import {largePreviewUrl,majorPageNumbers} from '@/lib/materials/template-preview';
 import {updateSchoolField,commitMaterials} from '@/lib/editor/materials';
 import {PhotoEditor} from '@/features/editor/photo-editor';
@@ -42,6 +44,8 @@ export function Onboarding() {
   const [projectName,setProjectName]=useState('');
   const [savedSignature,setSavedSignature]=useState('');
   const [saving,setSaving]=useState(false);
+  const [navigationPaused,setNavigationPaused]=useState(false);
+  const saveQueue=useRef(createSaveQueue());
   const saveLock=useRef(false),autoFailedSignature=useRef('');
   const [saveNotice,setSaveNotice]=useState('');
   const [saveError,setSaveError]=useState('');
@@ -87,6 +91,7 @@ export function Onboarding() {
   if(['school','schedule','photos','input-review','editor'].includes(step))resumeStep.current=step as ResumeStep;
   const displayName=projectName.trim()||(school.values.name?.trim()?school.values.name.trim()+' 달력':selected?.name||'우리 학교 달력');
   const draft:ProjectDraft|null=selected?{id:activeProject?.id,revision:activeProject?.revision,name:displayName,template:selected,source:nativeSource,editorState,school,events,photos,assignments,photoMode,photoPageId,photoSelections,step:resumeStep.current}:null;
+  const draftLatest=useRef(draft),activeLatest=useRef(activeProject);draftLatest.current=draft;activeLatest.current=activeProject;
   const currentSignature=draft?draftSignature(draft):'';
   const dirty=Boolean(draft)&&currentSignature!==savedSignature;
   const hasInput=Boolean(activeProject)||photos.length>0||events.length>0||Object.values(school.values).some(v=>v.trim());
@@ -155,20 +160,23 @@ export function Onboarding() {
   function catalogHome() {
     if(saving)return;
     if(dirty&&hasInput&&!window.confirm('저장하지 않은 변경사항이 있어요. 저장본은 유지하고 디자인 목록으로 이동할까요?'))return;
+    resetToCatalog();
+  }
+  function resetToCatalog(){
     photos.forEach(p=>URL.revokeObjectURL(p.url));templateUrls.current.forEach(url=>URL.revokeObjectURL(url));templateUrls.current=[];
     ++selectionRequest.current;setWorkingTemplate(null);setSelectedId(null);setActiveProject(null);setSavedSignature('');setProjectName('');setSchool({values:{},hidden:[]});setEditorState(undefined);setEvents([]);setPhotos([]);setAssignments({});setPhotoMode('collect');setPhotoSelections({});setPhotoPageId('');setNativeSource(null);setSaveNotice('');setSaveError('');setStep('catalog');
   }
   async function saveWorking(nextStep?:ResumeStep,overrides:Partial<ProjectDraft>={}){
-    if(!draft||saveLock.current)return false;saveLock.current=true;const captured=structuredClone({...draft,...overrides,step:nextStep||draft.step,photos:[]}) as ProjectDraft;captured.photos=[...draft.photos];const signature=draftSignature(captured);setSaving(true);setSaveError('');setSaveNotice('');
-    try{const snapshot=await prepareSnapshot(captured),record=await writeSnapshot(snapshot,activeProject?.revision??null);setActiveProject({id:record.id,revision:record.revision});autoFailedSignature.current='';setSavedSignature(signature);setProjectName(record.name);setSaveNotice('이 브라우저에 저장했어요. 재배포 후에도 같은 주소에서 다시 열 수 있어요.');setLibraryVersion(v=>v+1);void navigator.storage?.persist?.().catch(()=>false);return true;}
-    catch(error){autoFailedSignature.current=signature;setSaveError(error instanceof Error?error.message:'저장하지 못했어요. 입력 내용은 그대로 유지됩니다.');return false;}finally{saveLock.current=false;setSaving(false);}
+    return saveQueue.current(async()=>{const latest=draftLatest.current;if(!latest)return false;saveLock.current=true;const captured=structuredClone({...latest,...overrides,id:activeLatest.current?.id||latest.id,revision:activeLatest.current?.revision||latest.revision,step:nextStep||latest.step,photos:[]}) as ProjectDraft;captured.photos=[...latest.photos];const signature=draftSignature(captured);setSaving(true);setSaveError('');setSaveNotice('');
+    try{const snapshot=await prepareSnapshot(captured),record=await writeSnapshot(snapshot,activeLatest.current?.revision??null);activeLatest.current={id:record.id,revision:record.revision};setActiveProject(activeLatest.current);autoFailedSignature.current='';setSavedSignature(signature);setProjectName(record.name);setSaveNotice('이 브라우저에 저장했어요. 재배포 후에도 같은 주소에서 다시 열 수 있어요.');setLibraryVersion(v=>v+1);void navigator.storage?.persist?.().catch(()=>false);return true;}
+    catch(error){autoFailedSignature.current=signature;setSaveError(error instanceof Error?error.message:'저장하지 못했어요. 입력 내용은 그대로 유지됩니다.');return false;}finally{saveLock.current=false;setSaving(false);}});
   }
   const autoSaveLatest=useRef<()=>Promise<boolean>>(async()=>false);autoSaveLatest.current=()=>saveWorking();
   useEffect(()=>{
-    if(step!=='editor'||!dirty||saving||!nativeSource||autoFailedSignature.current===currentSignature)return;
+    if(navigationPaused||step!=='editor'||!dirty||saving||!nativeSource||autoFailedSignature.current===currentSignature)return;
     const timer=window.setTimeout(()=>{void autoSaveLatest.current();},800);
     return()=>window.clearTimeout(timer);
-  },[step,dirty,currentSignature,saving,nativeSource]);
+  },[step,dirty,currentSignature,saving,nativeSource,navigationPaused]);
   async function openWorking(id:string){
     if(dirty&&hasInput&&!window.confirm('저장하지 않은 변경사항이 있어요. 저장본은 유지하고 선택한 프로젝트를 열까요?'))return;
     const snapshot=await readSnapshot(id),restored=hydrateSnapshot(snapshot),r=restored.record;if(restored.source)restored.template={...restored.template,fields:fieldsForProject(restored.source),photoSlots:photoSlotsForProject(restored.source)};
@@ -189,7 +197,7 @@ export function Onboarding() {
   }
   const heading = (eyebrow: string, title: string, description: string) => <div className="section-heading"><p className="eyebrow">{eyebrow}</p><h1 ref={headingRef} tabIndex={-1}>{title}</h1><p className="muted">{description}</p></div>;
 
-  if(step==='editor'&&materialProject)return <PhotoEditor assignedPhotoIds={Object.values(assignments).map(a=>a.photoId)} project={materialProject} photos={photos} onPhotos={setPhotos} initialState={editorState} onChange={setEditorState} saveFailure={saveError} onComplete={async()=>{if(await saveWorking('editor')){setStep('projects');}}} name={displayName} dirty={dirty} saving={saving} notice={saveError||(!dirty?saveNotice:'')} onSave={()=>void saveWorking()} school={school} events={events} fields={selected!.fields} onFieldChange={(key,value)=>setSchool(p=>updateSchoolField(p,key,value))} onFieldHide={(key,hidden)=>setSchool(p=>({...p,hidden:hidden?[...new Set([...p.hidden,key])]:p.hidden.filter(k=>k!==key)}))} onSchoolPhoto={(binding,photo)=>{const slots=photoSlotsForProject(nativeSource!).filter(s=>s.binding===binding);setAssignments(p=>({...p,...Object.fromEntries(slots.map(s=>[s.id,{photoId:photo.id,url:photo.url}]))}));}} onMaterialsSave={(nextSchool,nextEvents)=>commitMaterials({school:nextSchool,events:nextEvents},value=>saveWorking('editor',value),value=>{setSchool(value.school);setEvents(value.events);})}/>;
+  if(step==='editor'&&materialProject)return <PhotoEditor onNavigationPause={setNavigationPaused} onHome={async(save)=>{if(!save||await saveWorking('editor')){resetToCatalog();return true;}return false;}} assignedPhotoIds={Object.values(assignments).map(a=>a.photoId)} project={materialProject} photos={photos} onPhotos={setPhotos} initialState={editorState} onChange={setEditorState} saveFailure={saveError} onComplete={async()=>{if(await saveWorking('editor')){setStep('projects');}}} name={displayName} dirty={dirty} saving={saving} notice={saveError||(!dirty?saveNotice:'')} onSave={()=>void saveWorking()} school={school} events={events} fields={selected!.fields} onFieldChange={(key,value)=>setSchool(p=>updateSchoolField(p,key,value))} onFieldHide={(key,hidden)=>setSchool(p=>({...p,hidden:hidden?[...new Set([...p.hidden,key])]:p.hidden.filter(k=>k!==key)}))} onSchoolPhoto={(binding,photo)=>{const slots=photoSlotsForProject(nativeSource!).filter(s=>s.binding===binding);setAssignments(p=>({...p,...Object.fromEntries(slots.map(s=>[s.id,{photoId:photo.id,url:photo.url}]))}));}} onMaterialsSave={(nextSchool,nextEvents)=>commitMaterials({school:nextSchool,events:nextEvents},value=>saveWorking('editor',value),value=>{setSchool(value.school);setEvents(value.events);})}/>;
   return <div className="workspace">
     <header className="site-header"><div className="header-inner"><Button variant="quiet" className="brand" onClick={catalogHome}>우리학교<span>달력</span></Button><p className="header-caption">우리 학교의 일 년을 담아요</p><Button disabled={saving} onClick={() => setStep('projects')}>내 프로젝트</Button></div></header>
     <main className="main" data-motion={playing ? 'playing' : 'paused'}>
@@ -222,9 +230,7 @@ export function Onboarding() {
       {!appLoading && !appFailure && selected && step === 'school' && <>
         <Progress /><MaterialStage active={1}/>{heading('우리 학교 기본 정보', '달력에 표시되는 학교 정보를 입력해 주세요.', '선택 정보를 달력에 표시하지 않을 경우 체크해 주세요.')}
         <form onSubmit={continueSchool} noValidate>
-          {(['basic', 'contact'] as const).filter(group=>selected.fields.some(field=>field.group===group)).map(group => <Panel className="form-section" key={group}><h2>{group === 'basic' ? '학교 기본 정보' : '학교 연락처'}</h2><div className="form-grid">{(group==='basic'?['general','tree','flower']:['general']).filter(section=>section==='general'||selected.fields.some(f=>f.group===group&&f.key.startsWith(section))).map(section=><div className={section==='general'?'school-field-group':'school-field-group school-symbol-group'} key={section}>{section!=='general'&&<><div className="field-heading"><h3>{section==='tree'?'교목':'교화'}</h3></div><p className="field-hint">빈칸은 샘플을 유지합니다. 전체를 숨기면 연결된 이름·설명·이미지를 함께 표시하지 않습니다.</p></>}<div className="form-grid">{selected.fields.filter(field=>field.group===group&&(section==='general'?!['treeName','treeDescription','flowerName','flowerDescription'].includes(field.key):section==='tree'?['treeName','treeDescription'].includes(field.key):['flowerName','flowerDescription'].includes(field.key))).map(field=><TextField key={field.key} label={field.label} value={school.values[field.key] || ''} required={field.required} hidden={school.hidden.includes(field.key)} allowHide={!field.required&&field.allowHide} maxLength={field.maxLength} hint={field.hint?.includes('연결된 글자 개체')?undefined:field.hint} error={errors[field.key]}
-            onChange={value => {setSchool(current => ({...current, values: {...current.values, [field.key]: value}})); setErrors(current => ({...current, [field.key]: ''}));}}
-            onHide={hidden => {setSchool(current => ({...current, hidden: hidden ? [...current.hidden.filter(key => key !== field.key), field.key] : current.hidden.filter(key => key !== field.key)})); setErrors(current => ({...current, [field.key]: ''}));}} />)}</div></div>)}</div></Panel>)}
+          <Panel className="form-section"><SchoolFieldSections fields={selected.fields} school={school} errors={errors} onChange={(key,value)=>{setSchool(current=>updateSchoolField(current,key,value));setErrors(current=>({...current,[key]:''}));}} onHide={(key,hidden)=>setSchool(current=>({...current,hidden:hidden?[...new Set([...current.hidden,key])]:current.hidden.filter(k=>k!==key)}))}/></Panel>
 
           {Object.values(errors).some(Boolean) && <p className="field-error" role="alert">입력이 필요한 항목을 확인해 주세요.</p>}
           <div className="actions"><Button onClick={() => setStep('detail')}>← 디자인 보기</Button><Button type="submit" variant="primary">학사일정 입력하기 →</Button></div>
