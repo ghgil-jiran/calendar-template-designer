@@ -121,12 +121,13 @@
   }
   function displaySegment(style,{label,color,height,fontPx,maxLines=2}) {
     if(!['text','line'].includes(style.displayMode))return null;
-    const line=style.displayMode==='line'?Math.min(4,Math.max(1,Number(style.lineThickness)||2)):0;
-    const available=Math.max(0,height-line-(line?1:0));
-    const lines=Math.max(1,Math.min(maxLines,Math.floor(available/Math.max(1,fontPx*1.1))));
-    const css='position:absolute;left:2px;right:2px;top:0;height:'+available+'px;overflow:hidden;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:'+lines+';line-height:1.1;text-align:left;color:'+color+';font-size:'+fontPx+'px';
-    return '<span style="'+css+'">'+escape(label)+'</span>'+(line?'<i aria-hidden="true" style="position:absolute;left:2px;right:2px;top:'+Math.min(height-line,fontPx*1.1+1)+'px;height:'+line+'px;background:'+color+'"></i>':'');
+    const line=style.displayMode==='line'?1:0,gap=line?1:0;
+    const safeFont=Math.min(fontPx,Math.max(1,(height-line-gap)/1.5));
+    const lineHeight=Math.min(height-line-gap,Math.ceil(safeFont*1.5));
+    const css='position:absolute;left:2px;right:2px;top:0;height:'+lineHeight+'px;overflow:hidden;white-space:nowrap;display:block;line-height:'+lineHeight+'px;text-overflow:ellipsis;text-align:left;color:'+color+';font-size:'+safeFont+'px';
+    return '<span style="'+css+'">'+escape(label)+'</span>'+(line?'<i aria-hidden="true" style="position:absolute;left:2px;right:2px;top:'+(lineHeight+gap)+'px;height:1px;background:'+color+'"></i>':'');
   }
+
   function monthSchedule(layout, style = {}, singleLimit = 4) {
     if (style.enabled === false) return {segments: [], hiddenByDate: {}};
     const firstRows = new Map(), singles = new Map();
