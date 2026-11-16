@@ -25,5 +25,22 @@
     "databaseBackupVerified": false,
     "assetBackupVerified": false,
     "workerSourceVerified": false
+  },
+  "v2Deployments": {
+    "editor": {
+      "projectId": "prj_Z7d4T8KeAf5RpOLoOqhij0VLTlLf",
+      "project": "calendar-template-editor-v2",
+      "deployment": "dpl_7WnGVe5HsdV4bGJcspwZVmYbWKHN",
+      "commit": "3cc109b62402f1fb6abe3d17cd948b7f4a8866a9",
+      "state": "READY"
+    },
+    "customer": {
+      "projectId": "prj_RKkVsQWle1SRPVn8zP9PWaLdB8CY",
+      "project": "calendar-customer-service-v2",
+      "deployment": "dpl_C2EmvbiUvAizLqoC3pomz3vW8iku",
+      "commit": "3cc109b62402f1fb6abe3d17cd948b7f4a8866a9",
+      "state": "READY"
+    },
+    "scope": "Environment separation only; native V2 editor and print not implemented"
   }
 }

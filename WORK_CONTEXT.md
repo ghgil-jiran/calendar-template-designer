@@ -12,3 +12,6 @@
 
 ## 2026-11-17 V2 전환 착수
 사용자 승인: 필요한 수정·저장·배포 준비 계속, 수동 Vercel/Supabase 설정 시 구체 안내. 기존 서비스 변경 최소화. feat/calendar-platform-v2에서 조사·독립 기반만 추가. 보존 브랜치 3개 생성(개발/에디터운영/고객운영). production 커밋은 docs/CALENDAR_PLATFORM_V2_BASELINE.json 참조. 신규 경계·조사 검사 6개 통과, style check 통과. 기존 앱 동작 변경·DB 쓰기·V2 배포 미실행. 샘플 A v3 자료는 28면·138 명시 개체, 현재 저장 초안은 미확인. 다음: 구버전 자산/DB 보존, 실제 Worker 저장소 식별, V2 데이터 쓰기 격리 및 검토 배포 구성.
+
+## 2026-11-17 V2 매핑 후보와 저장 경계
+두 V2 프로젝트의 3cc109b Production 배포 READY 확인(설정 분리이며 기능 전환 완료 아님). 원본 무변형 migration-candidate, 암묵 생성/미확정 역할 검토, 인쇄·게시 차단, 별도 자원 calendar_v2_migration_drafts의 revision 충돌 검사 추가. 기존 앱/API/DB 연결 미변경. 관련 11개 검사와 style 통과. 실제 Supabase 테스트 아님. 샘플 A v3 검토 자료 28면/138개/배경·장식17/역할검토40. 현재 초안과 원본 자산 미확인. V2 배포는 GitHub 자동 연동으로 확인. 다음은 실저장 DB 격리 위치 확정과 실제 최신 원본 확보.
