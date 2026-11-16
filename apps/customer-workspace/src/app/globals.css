@@ -728,3 +728,23 @@ img {max-width: 100%;}
 .editor-properties .editor-inspector-empty h3 {font-size:13px;margin:0 0 10px;}
 .editor-properties .editor-inspector-empty > .editor-editable-list {margin:0;padding:0;border:0;gap:6px;}
 .editor-properties .editor-editable-list .button {padding:8px 10px;min-height:34px;font-size:12px;}
+
+/* The three workspace columns share one compact heading row. */
+.editor-workspace {--editor-heading-height:44px;}
+.editor-stage > .editor-commandbar {height:var(--editor-heading-height);min-height:var(--editor-heading-height);box-sizing:border-box;}
+.editor-library > .editor-template-heading {height:var(--editor-heading-height);min-height:var(--editor-heading-height);padding:0 12px;}
+.editor-template-heading h2 {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;line-height:1.4;margin:0;}
+.editor-template-picker {position:sticky;top:0;z-index:7;}
+.editor-template-trigger {display:flex;align-items:center;justify-content:space-between;width:100%;height:var(--editor-heading-height);box-sizing:border-box;border:0;border-bottom:1px solid hsl(var(--border));padding:0 14px;background:hsl(var(--primary)/.065);font:inherit;font-size:13px;font-weight:700;color:hsl(var(--foreground));cursor:pointer;}
+.editor-template-options {max-height:340px;overflow:auto;padding:8px;display:grid;gap:6px;border-bottom:1px solid hsl(var(--border));background:hsl(var(--canvas));}
+.editor-template-options button {display:flex;align-items:center;gap:8px;padding:8px;border:1px solid hsl(var(--border));border-radius:6px;background:hsl(var(--canvas));color:hsl(var(--foreground));font:inherit;font-size:12px;text-align:left;cursor:pointer;}
+.editor-template-options button[aria-pressed="true"] {border-color:hsl(var(--primary));background:hsl(var(--primary)/.05);}
+.editor-template-options img {width:58px;height:40px;object-fit:contain;flex:none;}
+.editor-template-options small {display:block;font-size:10px;color:hsl(var(--muted-foreground));margin-top:3px;}
+.editor-page-heading {padding:12px 14px 8px;}
+.editor-properties .editor-page-heading h2 {font-size:13px;line-height:1.5;margin:0;font-weight:600;overflow-wrap:anywhere;}
+.editor-page-heading span {font-weight:500;}
+.editor-object-tools .editor-inspector-empty {padding:0 14px 14px;font-size:12px;}
+.editor-object-tools .editor-inspector-empty p {margin:0;}
+.editor-object-tools .editor-inspector-body {padding-top:4px;}
+.editor-properties > .editor-object-tools {padding:0;margin:0;border:0;}
