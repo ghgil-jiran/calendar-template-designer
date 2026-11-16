@@ -111,7 +111,7 @@
   const displayModes=Object.freeze(['bar','text','line']);
   function displayStyle(mode,current={}) {
     if(!displayModes.includes(mode))throw Error('일정 표시 스타일을 확인해 주세요.');
-    return {...current,displayMode:mode,enabled:true,labelPosition:mode==='line'?'above':'inside',barHeight:mode==='bar'?14:18,laneGap:2,lineThickness:2};
+    return {...current,displayMode:mode,enabled:true,labelPosition:mode==='line'?'above':'inside',barHeight:14,laneGap:2,lineThickness:2};
   }
   function fitDisplayLanes(layout,style,grid,cellHeight){
     if(!['text','line'].includes(style.displayMode))return layout;
