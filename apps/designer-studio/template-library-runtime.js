@@ -381,7 +381,7 @@
   const host=el('templatePreflightArtifact'),button=el('downloadTemplatePrintPdfBtn');preflightArtifact=artifact||null;if(button)button.disabled=!artifact||artifact.status!=='done';if(!host)return;
   if(!artifact){host.innerHTML='<h3>최종 PDF 자동검사</h3><p>아직 생성된 CMYK PDF가 없습니다. 선행 단계 통과 후 최종 PDF 생성·검사를 실행하세요.</p>';return}
   const groups=[
-   {scope:'core',label:'핵심 자동검사',checks:[['재단 표시·인쇄 용지','printMarks'],['PDF/X-4','pdfx4'],['ICC·OutputIntent','outputIntent'],['CMYK','cmyk'],['K100','k100'],['TrimBox','trimBox'],['BleedBox','bleedBox'],['서체 아웃라인','fontOutline'],['벡터·래스터 구조','vectorContentPreserved']]},
+   {scope:'core',label:'핵심 자동검사',checks:[['PDF 레이어 참조 구조','optionalContent'],['재단 표시·인쇄 용지','printMarks'],['PDF/X-4','pdfx4'],['ICC·OutputIntent','outputIntent'],['CMYK','cmyk'],['K100','k100'],['TrimBox','trimBox'],['BleedBox','bleedBox'],['서체 아웃라인','fontOutline'],['벡터·래스터 구조','vectorContentPreserved']]},
    {scope:'follow-up',label:'완료 근거',checks:[['재단영역 내용 동등성','trimContentParity']]}
   ];
   let hasPdfBackgrounds=false;try{hasPdfBackgrounds=Boolean(preflightProject&&window.ACDLPdfBackgroundPrint?.projectPlans(preflightProject).some(page=>page.layers.length));}catch{hasPdfBackgrounds=true;}

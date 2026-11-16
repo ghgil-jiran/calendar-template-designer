@@ -72,7 +72,7 @@
    else issues.push(issue('error','PRINT_ARTIFACT_FAILED',artifact.error||'운영 PDF 워커 처리에 실패했습니다.','print.artifact.error'));
   }
   const checks=artifact?.checks||artifact?.preflight?.checks||{};
-  const coreChecks={printMarks:checks.printMarks,pdfx4:checks.pdfx4,outputIntent:checks.outputIntent,cmyk:checks.cmyk,k100:checks.k100,trimBox:checks.trimBox,bleedBox:checks.bleedBox,fontOutlined:checks.fontOutlined??checks.fontOutline,vectorContentPreserved:checks.vectorContentPreserved};
+  const coreChecks={optionalContent:checks.optionalContent,printMarks:checks.printMarks,pdfx4:checks.pdfx4,outputIntent:checks.outputIntent,cmyk:checks.cmyk,k100:checks.k100,trimBox:checks.trimBox,bleedBox:checks.bleedBox,fontOutlined:checks.fontOutlined??checks.fontOutline,vectorContentPreserved:checks.vectorContentPreserved};
   const hasPdfBackgrounds=(project?.book?.pageInstances||[]).some(page=>[...(project?.template?.masterElements?.[page.masterId]||[]),...(project?.book?.elementsByPage?.[page.id]||[])].some(e=>e.visible!==false&&e.graphicSource?.pdfSource));
   if(hasPdfBackgrounds){coreChecks.pdfBackgroundPreservation=checks.pdfBackgroundPreservation;const evidence=checks.pdfBackgroundEmbedding;coreChecks.pdfBackgroundEmbedding=evidence?.status==='passed'&&!root.ACDLPdfBackgroundPrint?.verifyEvidence(project,evidence)?{status:'failed',message:'원본 PDF 합성 증거가 현재 템플릿의 배경·배치와 다릅니다.'}:evidence;}
   const followUpChecks={trimContentParity:checks.trimContentParity};
