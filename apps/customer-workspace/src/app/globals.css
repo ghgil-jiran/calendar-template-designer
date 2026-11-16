@@ -784,3 +784,10 @@ img {max-width: 100%;}
 .schedule-style-example.bar > span {padding:3px 2px;background:hsl(var(--muted-foreground));color:hsl(var(--canvas));border-radius:2px;}
 .schedule-style-example.text > span {color:hsl(var(--primary));}
 .schedule-style-example.line > span {border-bottom:2px solid hsl(var(--muted-foreground));padding-bottom:3px;color:hsl(var(--foreground));}
+
+.editor-template-toggle {display:grid;place-items:center;width:22px;height:22px;box-sizing:border-box;flex:none;border:1px solid hsl(var(--primary)/.2);border-radius:5px;background:hsl(var(--canvas));color:hsl(var(--primary)/.7);font-size:15px;line-height:1;font-weight:400;}
+.editor-stage > .editor-page-strip {height:110px;box-sizing:border-box;padding:6px 14px;gap:10px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;}
+.editor-page-strip::-webkit-scrollbar {display:none;}
+.editor-page-strip > button {flex-basis:115px;padding:4px;}
+.editor-page-strip .editor-mini-page {height:70px;}
+.editor-shell .editor-page-strip > button > span {font-size:10px;line-height:1.2;margin-top:2px;}
