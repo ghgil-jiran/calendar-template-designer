@@ -15,15 +15,21 @@
   const page=project.book.pageInstances.find(p=>p.id===pageId);if(!page)throw Error('페이지를 찾을 수 없어요.');
   const local=project.book.elementsByPage?.[page.id]||[];
   const movable=['cover-front','back-cover-front','back-cover-back'].includes(page.role)||page.semanticPageRole==='school-symbols';
-  return root.ACDLSharedScreenComposition.visibleElements(page,project.template.masterElements?.[page.masterId]||[],local).filter(item=>(includeHidden||item.visible!==false&&item.hidden!==true)&&['image-frame','image','text','semantic-object','year-calendar'].includes(item.type)).map(item=>{
+  const result=root.ACDLSharedScreenComposition.visibleElements(page,project.template.masterElements?.[page.masterId]||[],local).filter(item=>(includeHidden||item.visible!==false&&item.hidden!==true)&&['image-frame','image','text','semantic-object','year-calendar'].includes(item.type)).map(item=>{
    const rights=item.locked||item.selectable===false?{}:{...root.ACDLUserEditingPolicy.effectivePermissions(project,page,item)},authoredRights={...rights};
    rights.move=movable&&rights.move===true;rights.resize=movable&&rights.resize===true;rights.textSize=movable&&item.type==='text'&&rights.color===true;
    if(item.type!=='image-frame')rights.imageFit=false;if(!['image-frame','image'].includes(item.type))rights.replaceImage=false;
    if(capabilities==='school-basic-v2'){const allowed=customerRights(project,page,item,authoredRights);Object.keys(rights).forEach(key=>delete rights[key]);Object.assign(rights,allowed);}
    return {pageId:page.id,elementId:item.id,scope:item._scope,type:item.type,binding:bindingOf(item),role:item.role||'',identity:item.shadowOfMasterElementId||item.id,logoGroupId:item.metadata?.logoGroupId||'',logoPart:item.metadata?.logoPart||'',correspondenceKey:item.metadata?.correspondenceKey||'',label:item.label||labels[item.role]||labels[bindingOf(item)]||item.alt||({'text':'글자','semantic-object':'학교 상징','year-calendar':'전체 월력'}[item.type])||'사진',x:item.x,y:item.y,width:item.width,height:item.height,rotation:item.rotation||0,fontSize:item.style?.fontSize||18,rights};
   });
+  if(capabilities==='school-basic-v2'&&project.productType?.category==='desk'&&page.role==='monthly-front'&&project.template.masters?.calendar){
+   const r=project.template.masters.calendar.calendarRegion||{x:5,y:16,width:90,height:79};
+   result.push({pageId:page.id,elementId:'$calendar-grid',scope:'page',type:'calendar-grid',binding:'',role:'calendar-grid',identity:'$calendar-grid',correspondenceKey:'calendar-grid',label:'날짜 격자',...r,rotation:0,fontSize:0,rights:{scheduleStyle:true}});
+  }
+  return result;
  }
  function validateState(state){
+  if(state?.deskScheduleStyle!==undefined&&!['bar','text','line'].includes(state.deskScheduleStyle))throw Error('일정 표시 스타일을 확인해 주세요.');
   if(state?.logoMode!==undefined&&!['split','combined'].includes(state.logoMode))throw Error('로고 구성을 확인해 주세요.');
   if(state?.logoGeometry)for(const [mode,edits] of Object.entries(state.logoGeometry)){if(!['split','combined'].includes(mode))throw Error('로고 배치를 확인해 주세요.');validateState({version:1,pageId:state.pageId,edits});}
   if(!state||state.version!==1||!Array.isArray(state.edits)||state.edits.length>1000||typeof state.pageId!=='string')throw Error('편집 저장 정보를 확인해 주세요.');
@@ -87,7 +93,9 @@
  }
  function apply(project,state,assets,{capabilities}={}){
   validateState(state);project=withCopies(project,state,capabilities);if(!project.book.pageInstances.some(p=>p.id===state.pageId))throw Error('편집 페이지가 없어요.');const document=clone(project);
+  if(state.deskScheduleStyle){if(project.productType?.category!=='desk'||!document.template.masters?.calendar)throw Error('탁상형 월력 설정을 찾을 수 없습니다.');document.template.masters.calendar.rangeEventStyle=root.ACDLSharedSchedule.displayStyle(state.deskScheduleStyle,document.template.masters.calendar.rangeEventStyle);}
   for(const edit of state.edits){
+   if(edit.elementId==='$calendar-grid')throw Error('날짜 격자는 일정 표시 스타일만 변경할 수 있습니다.');
    const target=targets(project,edit.pageId,capabilities).find(t=>t.elementId===edit.elementId&&t.scope===edit.scope);if(!target){
     const page=project.book.pageInstances.find(p=>p.id===edit.pageId),items=edit.scope==='master'?project.template.masterElements?.[page?.masterId]||[]:project.book.elementsByPage?.[edit.pageId]||[],original=items.find(e=>e.id===edit.elementId);
     // Retain prior photo edits while explicitly hidden; revalidate when shown again.
@@ -117,6 +125,7 @@
   apply(source,current,assets,{capabilities});
   function commit(next){if(capabilities==='school-basic-v2')next.capabilityVersion=2;apply(source,next,assets,{capabilities});if(equal(current,next))return false;past.push(clone(current));if(past.length>20)past.shift();current=next;future=[];return true;}
   return Object.freeze({targets:pageId=>targets(withCopies(source,current,capabilities),pageId,capabilities),select(target){selection=target?targets(withCopies(source,current,capabilities),target.pageId,capabilities).find(t=>t.elementId===target.elementId&&t.scope===target.scope)||null:null;return selection;},selection:()=>selection,getState:()=>clone(current),getDocument:()=>apply(source,current,assets,{capabilities}),canUndo:()=>past.length>0,canRedo:()=>future.length>0,
+   setDeskScheduleStyle(mode){if(!selection?.rights.scheduleStyle)throw Error('날짜 격자를 먼저 선택해 주세요.');const next=clone(current);next.deskScheduleStyle=mode;return commit(next);},
    setLogoMode(mode){
     if(!['split','combined'].includes(mode))throw Error('로고 구성을 확인해 주세요.');
     if(!selection?.logoGroupId||selection.logoPart!=='image')throw Error('로고 이미지 개체를 선택해 주세요.');

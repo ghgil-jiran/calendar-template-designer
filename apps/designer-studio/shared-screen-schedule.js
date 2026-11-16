@@ -108,6 +108,25 @@
     const items = mode === "all" || mode === "year-by-month" ? all : all.slice(0, Number(element?.maxItems || 24));
     return { mode, groups, items };
   }
+  const displayModes=Object.freeze(['bar','text','line']);
+  function displayStyle(mode,current={}) {
+    if(!displayModes.includes(mode))throw Error('일정 표시 스타일을 확인해 주세요.');
+    return {...current,displayMode:mode,enabled:true,labelPosition:mode==='line'?'above':'inside',barHeight:mode==='bar'?14:24,laneGap:2,lineThickness:2};
+  }
+  function fitDisplayLanes(layout,style,grid,cellHeight){
+    if(!['text','line'].includes(style.displayMode))return layout;
+    const gap=Math.max(0,Number(style.laneGap)||0),cap=Math.max(1,Math.min(4,Math.floor((cellHeight-32+gap)/(14+gap)))),hiddenByDate={...layout.hiddenByDate};
+    const segments=(layout.segments||[]).filter(seg=>{if(seg.lane<cap)return true;for(let col=seg.startCol;col<seg.startCol+seg.span;col++){const date=grid[seg.row*7+col]?.date;if(date)hiddenByDate[date]=(hiddenByDate[date]||0)+1;}return false;});
+    return {...layout,segments,hiddenByDate:style.overflowStyle==='hide'?{}:hiddenByDate,maxLanes:Math.min(cap,Math.max(1,...segments.map(s=>s.lane+1)))};
+  }
+  function displaySegment(style,{label,color,height,fontPx,maxLines=2}) {
+    if(!['text','line'].includes(style.displayMode))return null;
+    const line=style.displayMode==='line'?Math.min(4,Math.max(1,Number(style.lineThickness)||2)):0;
+    const available=Math.max(0,height-line-(line?2:0));
+    const lines=Math.max(1,Math.min(maxLines,Math.floor(available/Math.max(1,fontPx*1.1))));
+    const css='position:absolute;left:2px;right:2px;top:0;height:'+available+'px;overflow:hidden;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:'+lines+';line-height:1.1;text-align:left;color:'+color+';font-size:'+fontPx+'px';
+    return '<span style="'+css+'">'+escape(label)+'</span>'+(line?'<i aria-hidden="true" style="position:absolute;left:2px;right:2px;bottom:0;height:'+line+'px;background:'+color+'"></i>':'');
+  }
   function monthSchedule(layout, style = {}, singleLimit = 4) {
     if (style.enabled === false) return {segments: [], hiddenByDate: {}};
     const firstRows = new Map(), singles = new Map();
@@ -129,6 +148,6 @@
     });
     return {segments, hiddenByDate: style.overflowStyle === 'hide' ? {} : hiddenByDate};
   }
-  root.ACDLSharedSchedule = Object.freeze({ version, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
+  root.ACDLSharedSchedule = Object.freeze({ version, displayModes, displayStyle, fitDisplayLanes, displaySegment, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
 })(globalThis);
 
