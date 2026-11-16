@@ -24,3 +24,9 @@ test('master PDF and multiple PDF layers use the same composition as print and r
  const f=fixture(),p=f.source.version.projectData,page=p.book.pageInstances[0],bg=p.book.elementsByPage[page.id].find(e=>e.graphicSource?.pdfSource);page.masterId='test-master';p.template.masterElements||={};p.template.masterElements['test-master']=[structuredClone(bg)];p.book.elementsByPage[page.id]=p.book.elementsByPage[page.id].filter(e=>e!==bg);p.template.masterElements['test-master'].push({...structuredClone(bg),id:'second-original-layer'});const before=structuredClone(p);
  const out=await runPackageLinkBatch({step:'batch-prepare',templateId:'original',versionId:'source-v1'},f.deps);assert.equal(out.pages[0].sources.length,2);const copy=f.rows[1].version.projectData;assert.deepEqual(copy.book,before.book);assert.deepEqual(copy.template.masterElements,before.template.masterElements);await import('../apps/designer-studio/graphic-template-mapping.js');globalThis.ACDLGraphicTemplateMapping.apply(copy);assert.deepEqual(copy.book,before.book);
 });
+test('database JSONB key reordering does not change verified content or prevent reopening and applying',async()=>{
+ const f=fixture(),save=f.deps.save;const reorder=v=>Array.isArray(v)?v.map(reorder):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().reverse().map(k=>[k,reorder(v[k])])):v;
+ f.deps.save=async input=>{const saved=await save(input);f.rows[1].version.projectData=reorder(f.rows[1].version.projectData);return saved};
+ const body={step:'batch-prepare',templateId:'original',versionId:'source-v1'},out=await runPackageLinkBatch(body,f.deps);assert.equal(out.reopenedVerified,true);assert.equal((await runPackageLinkBatch(body,f.deps)).reused,true);assert.equal(f.saves,1);
+ await import('../apps/designer-studio/graphic-template-mapping.js');const p=f.rows[1].version.projectData,before=structuredClone(p);globalThis.ACDLGraphicTemplateMapping.apply(p);assert.deepEqual(p,before);
+});

@@ -3,7 +3,8 @@ import {listTemplates,getTemplate,saveVersion} from './template-persistence.js';
 import {graphicPdfDependencies} from './graphic-library.js';
 import {resolvePdfBackgroundPrintSources} from './pdf-background-print-source.js';
 import {linkAuthoredBackgrounds} from './template-package-link-test.js';
-const hash=v=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
+const ordered=v=>Array.isArray(v)?v.map(ordered):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().filter(k=>v[k]!==undefined).map(k=>[k,ordered(v[k])])):v;
+const hash=v=>createHash('sha256').update(JSON.stringify(ordered(v))).digest('hex');
 const fail=m=>{throw Object.assign(Error(m),{statusCode:409,code:'PACKAGE_LINK_BATCH_FAILED',details:m})};
 export const sampleLetter=name=>String(name||'').normalize('NFKC').toUpperCase().match(/샘플\s*([ABC])(?:\b|\s|·|$)/)?.[1]||null;
 const eligible=t=>t.state==='published'&&Number(t.edition)===2027&&t.productType==='desk'&&sampleLetter(t.name);
@@ -25,7 +26,8 @@ async function run(body,{list=listTemplates,load=getTemplate,save=saveVersion,d=
  const existing=records.find(r=>r.stableKey===stableKey);
  const result={sourceTemplateId:t.id,sourceVersionId:v.id,sourceName:t.name,packages:linked.packages,pages:linked.report,pageCount:linked.report.length,bookSha256:linked.bookSha256,backgroundsSha256:linked.backgroundsSha256,printPlansUnchanged:true};
  async function verify(saved,reused){const reopened=await load(saved.template.id),p=reopened.version.projectData,marker=p.template?.metadata?.packageLinkBatch;
-  if(reopened.template.state!=='draft'||reopened.version.state!=='draft'||hash(p.book)!==linked.bookSha256||marker?.sourceVersionId!==v.id||marker?.sourceTemplateId!==t.id||hash(p.template.settings.graphicPackage)!==hash(linked.project.template.settings.graphicPackage)||hash(stablePlans(await resolve(p,d)))!==hash(stablePlans(before)))fail('복제 초안의 재확인이 필요합니다. 자동 덮어쓰기는 하지 않습니다.');
+  const checks={draft:reopened.template.state==='draft'&&reopened.version.state==='draft',book:hash(p.book)===hash(project.book),source:marker?.sourceVersionId===v.id&&marker?.sourceTemplateId===t.id,connection:hash(p.template?.settings?.graphicPackage)===hash(linked.project.template.settings.graphicPackage),printPlans:hash(stablePlans(await resolve(p,d)))===hash(stablePlans(before))};
+  const failed=Object.keys(checks).filter(k=>!checks[k]);if(failed.length)fail(`복제 초안 재확인 실패: ${failed.join(', ')} · 초안 ID ${reopened.template.id}. 자동 덮어쓰기는 하지 않습니다.`);
   return {...result,templateId:reopened.template.id,name:reopened.template.name,version:reopened.version.versionNumber,reopenedVerified:true,reused,completed:true};}
  if(existing)return verify({template:existing},true);
  const copy=linked.project;copy.template.id=null;for(const k of ['remoteId','remoteStableKey','remoteVersionNumber'])delete copy.template[k];
