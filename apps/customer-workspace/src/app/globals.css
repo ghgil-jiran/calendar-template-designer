@@ -791,3 +791,9 @@ img {max-width: 100%;}
 .editor-page-strip > button {flex-basis:115px;padding:4px;}
 .editor-page-strip .editor-mini-page {height:70px;}
 .editor-shell .editor-page-strip > button > span {font-size:10px;line-height:1.2;margin-top:2px;}
+
+/* Keep the supplied brand within the existing header footprint. */
+.school-calendar-logo {display:block;width:120px;height:36px;object-fit:contain;flex:none;}
+.editor-home-brand {display:flex;align-items:center;}
+.header-inner > .brand {padding:0;flex:none;}
+.editor-library > .editor-template-heading h2 {font-size:13px;line-height:1.4;font-weight:700;}
