@@ -1,0 +1,29 @@
+{
+  "recordedAt": "2026-11-17",
+  "repository": "ghgil-jiran/calendar-template-designer",
+  "developmentBaseline": {
+    "remoteCommit": "229d9083aa2e4b3162b9fe3a30b5fc7dfefe0a59",
+    "localCommit": "f3036d64a6108e306c0aace23946f7e11959ca37",
+    "tree": "8368884cbf5fec7da5e31e78481045aa1fcbbaf8",
+    "archiveBranch": "archive/pre-v2-20261117",
+    "v2Branch": "feat/calendar-platform-v2"
+  },
+  "production": {
+    "editor": {
+      "project": "calendar-template-designer",
+      "deployment": "dpl_54d4kpbVvZcmbw5vjUy3d1D19TtE",
+      "commit": "c21ea4a00de10040ba7b9aebf1008b9d2cc2b217"
+    },
+    "customer": {
+      "project": "calendar-customer-workspace",
+      "deployment": "dpl_76Vq35cqsq6GaUYYbAsBbDc5HMKV",
+      "commit": "ff2957a337a09e8e0487cb9c845735d58fb74e38"
+    }
+  },
+  "preservation": {
+    "sourceBranchCreated": true,
+    "databaseBackupVerified": false,
+    "assetBackupVerified": false,
+    "workerSourceVerified": false
+  }
+}

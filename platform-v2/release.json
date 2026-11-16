@@ -1,0 +1,15 @@
+{
+  "platformId": "acdl-platform-v2",
+  "releaseVersion": "2.0.0-alpha.1",
+  "status": "foundation-only",
+  "documentContractId": "acdl-document-v2",
+  "runtimeId": "acdl-runtime-v2",
+  "rendererId": "acdl-renderer-v2",
+  "components": {
+    "templateEditor": "2.0.0-alpha.1",
+    "customerService": "2.0.0-alpha.1",
+    "runtime": "2.0.0-alpha.1",
+    "printWorker": "2.0.0-alpha.1"
+  },
+  "operational": false
+}
