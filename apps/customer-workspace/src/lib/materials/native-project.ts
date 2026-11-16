@@ -1,3 +1,4 @@
+import {schoolInformationFields,normalizeSchoolVisibility} from '../api/school-visibility.ts';
 import '../../../../designer-studio/shared-page-object-model.js';
 import '../../../../designer-studio/persistence-project.js';
 import type {SchoolField, SchoolInput, ScheduleEvent, PhotoSlot, PhotoAssignment} from '@/lib/api/contracts';
@@ -9,7 +10,7 @@ const textFields = [
  ['school.name','name','학교명','basic'],['school.englishName','englishName','학교 영문명','basic'],
  ['school.slogan','slogan','학교 슬로건','basic'],['school.address','address','학교 주소','contact'],
  ['school.phone','phone','학교 전화','contact'],['school.academicPhone','academicPhone','교무실 전화','contact'],
- ['school.adminPhone','adminPhone','행정실 전화','contact'],['school.fax','fax','팩스','contact'],['school.website','website','학교 홈페이지','contact'],
+ ['school.adminPhone','adminPhone','행정실 전화','contact'],['school.fax','fax','행정실 팩스','contact'],['school.website','website','학교 홈페이지','contact'],
  ['school.profile.tree.name','treeName','교목 이름','basic'],['school.profile.flower.name','flowerName','교화 이름','basic'],
  ['school.profile.motto.description','motto','교훈','basic'],['school.profile.tree.description','treeDescription','교목 설명','basic'],
  ['school.profile.flower.description','flowerDescription','교화 설명','basic']
@@ -29,10 +30,10 @@ export function fieldsForProject(project:NativeProject):SchoolField[]{
  const fields:SchoolField[]=textFields.filter(([path])=>['school.name','school.englishName','school.address'].includes(path)||bindings.some(b=>b===path||b.startsWith('school.profile.')&&path.startsWith(b+'.')||b==='school.contacts'&&['school.phone','school.fax'].includes(path))||requirements(project).some(r=>r.path===path||path.startsWith(r.path+'.'))).map(([binding,key,label,group])=>({key,binding,label,group,required:key==='address'||group!=='contact'&&requiredFor(project,binding),allowHide:group==='contact'||!requiredFor(project,binding),maxLength:binding.endsWith('description')?3000:200}));
  if(Array.isArray(project.book.school?.contacts)&&bindings.includes('school.contacts')){
   const contacts:SchoolField[]=project.book.school.contacts.flatMap((row:NativeProject,index:number)=>['phone','fax'].filter(key=>row[key]).map(key=>({key:`contact-${index}-${key}`,binding:`school.contacts.${index}.${key}`,label:`${row.label||'학교'} ${key==='fax'?'팩스':'전화'}`,group:'contact' as const,required:false,allowHide:true,maxLength:40})));
-  const merged=[...fields.filter(f=>!['phone','fax'].includes(f.key)),...contacts];for(const f of merged)if(['name','englishName'].includes(f.key)&&!bindings.includes(f.binding!))f.hint='입력값은 보관돼요. 이 템플릿에 연결된 글자 개체가 없으면 달력의 글씨는 바뀌지 않아요.';return merged;
+  const merged=[...fields.filter(f=>!['phone','fax'].includes(f.key)),...contacts];for(const f of merged)if(['name','englishName'].includes(f.key)&&!bindings.includes(f.binding!))f.hint='입력값은 보관돼요. 이 템플릿에 연결된 글자 개체가 없으면 달력의 글씨는 바뀌지 않아요.';return schoolInformationFields(merged);
  }
  for(const f of fields)if(['name','englishName'].includes(f.key)&&!bindings.includes(f.binding!))f.hint='입력값은 보관돼요. 이 템플릿에 연결된 글자 개체가 없으면 달력의 글씨는 바뀌지 않아요.';
- return fields;
+ return schoolInformationFields(fields);
 }
 function getAt(project:NativeProject,path:string):unknown{return path.split('.').reduce((v,k)=>v?.[k],project.book);}
 function setAt(project:NativeProject,path:string,value:unknown){const keys=path.split('.');let target=project.book;for(const k of keys.slice(0,-1)){target[k]||={};target=target[k];}target[keys.at(-1)!]=value;}
@@ -59,11 +60,12 @@ export function photoSlotsForProject(project:NativeProject):PhotoSlot[]{
  for(const [binding,label] of common){const requirement=requirements(project).find(r=>r.path===binding);if(requirement?.stage==='excluded'||result.some(s=>s.binding===binding))continue;if(!requirement&&binding!=='school.profile.building')continue;result.push({id:`school:${binding}`,pageId:project.book.pageInstances[0].id,pageIds:[],pageLabel:'학교 공통',elementId:'',scope:'school',label,binding,required:requiredFor(project,binding),widthMm:0,heightMm:0});}
  return result;
 }
-export function applyMaterials(source:NativeProject,fields:SchoolField[],school:SchoolInput,events:ScheduleEvent[],assignments:Record<string,PhotoAssignment>,bindingVersion:2|3|4=4):NativeProject{
+export function applyMaterials(source:NativeProject,fields:SchoolField[],school:SchoolInput,events:ScheduleEvent[],assignments:Record<string,PhotoAssignment>,bindingVersion:2|3|4|5=5):NativeProject{
  assertNativeProject(source);const project=normalizeSymbols(structuredClone(source));project.mode='calendar-workspace';
+ if(bindingVersion>=4){fields=schoolInformationFields(fields);school=normalizeSchoolVisibility(fields,school);}
  const all=authoredElements(project);
  for(const field of fields){const path=field.binding||`school.${field.key}`,hidden=school.hidden.includes(field.key);if(hidden&&!field.allowHide)throw Error(`${field.label}은 제외할 수 없습니다.`);
-  if(hidden){for(const e of all){const binding=e.binding||(bindingVersion>=3?e.image?.binding:undefined);if(binding==='school.contacts'&&path.startsWith('school.contacts.'))continue;if(e.bindingEnabled!==false&&(binding===path||path.startsWith(String(binding||'__')+'.')))e.visible=false;}setAt(project,path,'');if(/^school\.contacts\.\d+\.phone$/.test(path)){const row=project.book.school.contacts?.[Number(path.split('.')[2])];if(row)row.value='';}}
+  if(hidden){for(const e of all){const binding=e.binding||(bindingVersion>=3?e.image?.binding:undefined);if(binding==='school.contacts'&&path.startsWith('school.contacts.'))continue;if(e.bindingEnabled!==false&&(binding===path||(bindingVersion<4||!path.endsWith('.description'))&&path.startsWith(String(binding||'__')+'.')))e.visible=false;}setAt(project,path,'');if(/^school\.contacts\.\d+\.phone$/.test(path)){const row=project.book.school.contacts?.[Number(path.split('.')[2])];if(row)row.value='';}}
   else if(school.cleared?.includes(field.key))setAt(project,path,'');
   else if(school.values[field.key]?.trim())setAt(project,path,school.values[field.key].trim());
   else if(school.omitEmptyContacts&&field.group==='contact'){setAt(project,path,'');for(const e of all)if(e.bindingEnabled!==false&&e.binding===path)e.visible=false;}
@@ -77,7 +79,7 @@ export function applyMaterials(source:NativeProject,fields:SchoolField[],school:
  if(school.calendarDisplay)project.settings.calendarData={...project.settings.calendarData,...school.calendarDisplay};
  if(school.omitEmptyContacts){for(const field of fields.filter(f=>f.binding?.match(/^school\.contacts\.\d+\.phone$/))){const row=project.book.school.contacts?.[Number(field.binding!.split('.')[2])];if(row&&!row.phone)row.value='';}const contacts=project.book.school?.contacts||[];if(!contacts.some((r:NativeProject)=>r.phone||r.value))project.book.school.phone='';if(!contacts.some((r:NativeProject)=>r.fax))project.book.school.fax='';if(!contacts.some((r:NativeProject)=>r.phone||r.value||r.fax)&&!project.book.school.phone&&!project.book.school.fax)for(const e of all)if(e.bindingEnabled!==false&&e.binding==='school.contacts')e.visible=false;}
  if(school.hidden.some(key=>fields.find(f=>f.key===key)?.binding?.startsWith('school.contacts.'))){const contacts=project.book.school.contacts||[];if(!contacts.some((r:NativeProject)=>r.phone||r.value||r.fax))for(const e of all)if(e.bindingEnabled!==false&&e.binding==='school.contacts')e.visible=false;if(!contacts.some((r:NativeProject)=>r.phone||r.value))project.book.school.phone='';if(!contacts.some((r:NativeProject)=>r.fax))project.book.school.fax='';}
- project.book.events=[...(project.book.events||[]).filter((e:NativeProject)=>e.source!=='user'&&(bindingVersion<4||e.source!=='user-import')),...events.map(e=>({...e,category:'school',source:'user'}))];
+ project.book.events=[...(project.book.events||[]).filter((e:NativeProject)=>e.source!=='user'&&(bindingVersion<5||e.source!=='user-import')),...events.map(e=>({...e,category:'school',source:'user'}))];
  const slots=photoSlotsForProject(source);
  for(const [slotId,a] of Object.entries(assignments)){const slot=slots.find(s=>s.id===slotId);if(!slot)throw Error('교체할 수 없는 사진 영역입니다.');if(slot.scope==='school'&&slot.binding){setAt(project,slot.binding,{...(getAt(project,slot.binding) as object||{}),image:a.url,src:a.url,assetId:a.photoId});continue;}const list=slot.scope==='master'?project.template.masterElements[slot.masterId!]:project.book.elementsByPage[slot.pageId],e=list.find((item:NativeProject)=>item.id===slot.elementId);if(!e)throw Error('사진 영역을 찾을 수 없습니다.');
   if(slot.binding?.startsWith('school.profile.')){setAt(project,slot.binding,{...(getAt(project,slot.binding) as object||{}),image:a.url,assetId:a.photoId});for(const linked of all){if(linked.bindingEnabled===false||imageBinding(linked)!==slot.binding)continue;if(linked.type==='image')linked.src=a.url;else if(linked.type==='image-frame')linked.image={...linked.image,src:a.url,scale:1,offsetX:0,offsetY:0};}}
@@ -86,3 +88,4 @@ export function applyMaterials(source:NativeProject,fields:SchoolField[],school:
  }
  return project;
 }
+
