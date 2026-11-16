@@ -797,3 +797,6 @@ img {max-width: 100%;}
 .editor-home-brand {display:flex;align-items:center;}
 .header-inner > .brand {padding:0;flex:none;}
 .editor-library > .editor-template-heading h2 {font-size:13px;line-height:1.4;font-weight:700;}
+
+.school-calendar-logo {width:146px;height:42px;}
+.editor-topbar {padding-top:7px;padding-bottom:7px;}

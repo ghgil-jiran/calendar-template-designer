@@ -2,9 +2,10 @@
 import {useEffect,useRef,useState} from 'react';
 import {Button} from '@/components/ui/button';
 import type {TemplateCard} from '@/lib/api/contracts';
-export function TemplatePicker({templates,currentId,onChange,onPendingChange,disabled=false}:{templates:TemplateCard[];currentId:string;onChange:(template:TemplateCard)=>Promise<void>;onPendingChange:(pending:boolean)=>void;disabled?:boolean}){
+export function TemplatePicker({templates,currentId,onChange,onPendingChange,disabled=false,pageId}:{templates:TemplateCard[];currentId:string;pageId:string;onChange:(template:TemplateCard)=>Promise<void>;onPendingChange:(pending:boolean)=>void;disabled?:boolean}){
  const [open,setOpen]=useState(false),[candidate,setCandidate]=useState<TemplateCard|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  useEffect(()=>{onPendingChange(candidate!==null);return()=>onPendingChange(false);},[candidate,onPendingChange]);
+ useEffect(()=>{setOpen(false);},[pageId]);
  async function change(){if(!candidate||busy)return;setBusy(true);setError('');try{await onChange(candidate);setCandidate(null);setOpen(false);}catch(e){setError(e instanceof Error?e.message:'변경하지 못했습니다. 기존 편집 내용은 유지됩니다.');}finally{setBusy(false);}}
  return <div className="editor-template-picker"><button type="button" className="editor-template-trigger" aria-label={open?'템플릿 목록 접기':'템플릿 목록 펼치기'} disabled={disabled} aria-expanded={open} aria-controls="editor-template-options" onClick={()=>setOpen(v=>!v)}>템플릿 변경 <span className="editor-template-toggle" aria-hidden="true">{open?'−':'+'}</span></button>{open&&<div id="editor-template-options" className="editor-template-options" role="group" aria-label="템플릿 선택">{templates.map(t=><button type="button" key={t.id} title={t.name} aria-pressed={currentId===t.id} onClick={()=>{if(t.id!==currentId){setError('');setCandidate(t);}}}>{t.coverUrl&&<img src={t.coverUrl} alt="" loading="lazy"/>}<span>{t.name}{t.id===currentId&&<small>사용 중</small>}</span></button>)}</div>}{candidate&&<ChangeDialog template={candidate} busy={busy} error={error} onChange={()=>void change()} onClose={()=>{if(!busy)setCandidate(null);}}/>}</div>;
 }

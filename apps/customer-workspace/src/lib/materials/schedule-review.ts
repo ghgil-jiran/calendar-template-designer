@@ -7,3 +7,5 @@ export function eventInMonth(event:ScheduleEvent,month:{start:string;end:string}
 
 export function applyScheduleDraft(events:ScheduleEvent[],draft:ScheduleEvent){if(!validSchedule([draft]))throw Error('시작일·종료일·일정명을 확인해 주세요.');const next={...draft,title:draft.title.trim()};if(events.some(e=>e.id!==draft.id&&e.startDate===next.startDate&&e.endDate===next.endDate&&e.title.trim()===next.title))throw Error('같은 일정이 이미 있습니다.');return events.some(e=>e.id===draft.id)?events.map(e=>e.id===draft.id?next:e):[...events,next];}
 
+
+export function sortSchedules(events:ScheduleEvent[]){return [...events].sort((a,b)=>a.startDate.localeCompare(b.startDate)||a.endDate.localeCompare(b.endDate));}
