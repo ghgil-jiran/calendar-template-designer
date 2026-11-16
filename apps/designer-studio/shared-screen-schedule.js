@@ -119,6 +119,13 @@
     const segments=(layout.segments||[]).filter(seg=>{if(seg.lane<cap)return true;for(let col=seg.startCol;col<seg.startCol+seg.span;col++){const date=grid[seg.row*7+col]?.date;if(date)hiddenByDate[date]=(hiddenByDate[date]||0)+1;}return false;});
     return {...layout,segments,hiddenByDate:style.overflowStyle==='hide'?{}:hiddenByDate,maxLanes:Math.min(cap,Math.max(1,...segments.map(s=>s.lane+1)))};
   }
+  function physicalFontPx(style,pageWidth,widthMm){const pt=Number(style?.fontSizePt);return pt>0&&pageWidth>0&&widthMm>0?pt*25.4/72*pageWidth/widthMm:0;}
+  function fitPhysicalLanes(layout,style,grid,cellHeight,pageWidth,widthMm){
+    const fontPx=physicalFontPx(style,pageWidth,widthMm);if(!fontPx)return layout;
+    const gap=Math.max(0,Number(style.laneGap)||0),height=Math.max(Number(style.barHeight)||14,Math.ceil(fontPx*1.5)+4),cap=Math.max(0,Math.min(4,Math.floor((cellHeight-32+gap)/(height+gap)))),hiddenByDate={...layout.hiddenByDate};
+    const segments=(layout.segments||[]).filter(seg=>{if(seg.lane<cap)return true;for(let col=seg.startCol;col<seg.startCol+seg.span;col++){const date=grid[seg.row*7+col]?.date;if(date)hiddenByDate[date]=(hiddenByDate[date]||0)+1;}return false;});
+    return {...layout,segments,hiddenByDate,maxLanes:Math.max(1,...segments.map(s=>s.lane+1))};
+  }
   function displaySegment(style,{label,color,height,fontPx,maxLines=2}) {
     if(!['text','line'].includes(style.displayMode))return null;
     const line=style.displayMode==='line'?1:0,gap=line?1:0;
@@ -149,6 +156,6 @@
     });
     return {segments, hiddenByDate: style.overflowStyle === 'hide' ? {} : hiddenByDate};
   }
-  root.ACDLSharedSchedule = Object.freeze({ version, displayModes, displayStyle, fitDisplayLanes, displaySegment, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
+  root.ACDLSharedSchedule = Object.freeze({ version, physicalFontPx, fitPhysicalLanes, displayModes, displayStyle, fitDisplayLanes, displaySegment, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
 })(globalThis);
 

@@ -12,6 +12,7 @@
   return undefined
  }
  function formatYearText(element,page,project){
+  if(element?.format==='year-calendar-single-space'&&element.binding==='calendar.year'&&element.bindingEnabled!==false)return String(project?.settings?.year||page?.calendarYear||'')+' CALENDAR';
   if(element?.metadata?.coverYearPart==='year'){
    if(element.binding!=='calendar.year'||element.bindingEnabled===false)return element.content||'';
    const year=String(project?.settings?.year||page?.calendarYear||element.content||'');

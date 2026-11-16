@@ -33,7 +33,7 @@ const dependencies=['wall-calendar-policy.js','calendar-domain-bridge.js','templ
 for(const file of dependencies){await mkdir(dirname(resolve(out,file)),{recursive:true});await cp(resolve(studio,file),resolve(out,file));}
 const styles=['designer-studio-core.css','designer-studio-overrides.css','shared-screen-calendar-presentation.css','shared-screen-memo.css','shared-screen-mini-calendar.css','shared-screen-schedule.css','shared-screen-fonts.css'];
 for(const file of styles)await cp(resolve(studio,file),resolve(out,file));
-await mkdir(resolve(out,'assets/fonts'),{recursive:true});await cp(resolve(studio,'assets/fonts/sample-c'),resolve(out,'assets/fonts/sample-c'),{recursive:true});
+await mkdir(resolve(out,'assets/fonts'),{recursive:true});await cp(resolve(studio,'assets/fonts/sample-c'),resolve(out,'assets/fonts/sample-c'),{recursive:true});await cp(resolve(studio,'assets/fonts/jua'),resolve(out,'assets/fonts/jua'),{recursive:true});
 await writeFile(resolve(out,'manifest.json'),JSON.stringify({id:'designer-page-runtime.v1',sources,functions:[...selected.keys()],scripts:dependencies.concat('runtime.js'),styles}));
 console.log(`Shared authoring renderer: ${selected.size} original declarations, ${sources.length} source files`);
 
