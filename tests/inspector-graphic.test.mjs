@@ -4,6 +4,12 @@ import assert from 'node:assert/strict';
 await import('../apps/designer-studio/inspector-graphic.js');
 
 const { apply } = globalThis.ACDLInspectorGraphic;
+const rounded = {type:'shape',shapeType:'rect',style:{}};
+apply(rounded,'style',{shapeType:'rounded'});
+assert.equal(rounded.style.cornerRadiusMm,3);
+rounded.style.cornerRadiusMm=4.95;
+apply(rounded,'style',{fill:'#abcdef'});
+assert.equal(rounded.style.cornerRadiusMm,4.95);
 const shape = { type: 'shape', shapeType: 'rect', style: { fill: '#000000', stroke: '#111111', strokeWidth: 1 } };
 apply(shape, 'style', { shapeType: 'circle', fill: '#ffffff', stroke: '#222222', strokeWidth: '3' });
 assert.deepEqual(shape, { type: 'shape', shapeType: 'circle', style: { fill: '#ffffff', stroke: '#222222', strokeWidth: 3, dash: 'solid', shadow: false, shadowColor: '#000000', shadowBlur: 0, shadowX: 0, shadowY: 0 } });

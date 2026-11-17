@@ -6,6 +6,7 @@
         item.shapeType = values.shapeType || item.shapeType;
         item.style = {
           ...(item.style || {}),
+          ...(item.shapeType === 'rounded' && item.style?.cornerRadiusMm == null ? {cornerRadiusMm: 3} : {}),
           fill: values.fill || item.style?.fill,
           stroke: values.stroke || item.style?.stroke,
           strokeWidth: Number(values.strokeWidth ?? item.style?.strokeWidth),

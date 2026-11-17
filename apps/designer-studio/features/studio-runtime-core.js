@@ -992,8 +992,7 @@ function shapeSVG(id,fill="#4777bd",stroke="#172033",strokeWidth=1.5,dash="solid
  const open=`<svg viewBox="0 0 100 100" preserveAspectRatio="none">`;
  const dashAttr=dash==="dashed"?' stroke-dasharray="6 4"':'';
  if(id==="rect")return `${open}<rect x="0" y="0" width="100" height="100" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"/></svg>`;
- if(id==="rounded"&&physical?.radiusMm>0){const rx=Math.min(50,physical.radiusMm/physical.widthMm*100),ry=Math.min(50,physical.radiusMm/physical.heightMm*100);return `${open}<rect x="0" y="0" width="100" height="100" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"/></svg>`;}
- if(id==="rounded")return `${open}<rect x="1" y="1" width="98" height="98" rx="16" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"/></svg>`;
+ if(id==="rounded"){const radius=Number(physical?.radiusMm)>0?Number(physical.radiusMm):3,width=Number(physical?.widthMm)>0?Number(physical.widthMm):60,height=Number(physical?.heightMm)>0?Number(physical.heightMm):40,rx=Math.min(50,radius/width*100),ry=Math.min(50,radius/height*100);return `${open}<rect x="0" y="0" width="100" height="100" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"/></svg>`;}
  if(id==="circle")return `${open}<circle cx="50" cy="50" r="49" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"/></svg>`;
  if(id==="ellipse")return `${open}<ellipse cx="50" cy="50" rx="49" ry="49" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"/></svg>`;
  return `${open}<path d="${shapePath(id)}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
@@ -1005,7 +1004,7 @@ function ensureGraphicsResources(){ensureTemplateResources();const r=project.tem
 function createGraphicElement(kind,id){
  const scope=el("elementScope").value,arr=scope==="master"?masterElements():pageElements(),placed=findSemanticPlacement({x:18,y:20,width:kind==="vector"?18:24,height:kind==="vector"?18:24},arr);
  let item={id:`element.${kind}.${Date.now()}`,type:kind,x:placed.x,y:placed.y,width:placed.width,height:placed.height,zIndex:maxZ(scope)+1,rotation:0,opacity:1,permissions:{move:true,resize:true,rotate:true,color:true,replaceImage:true,delete:true}};
- if(kind==="shape")Object.assign(item,{shapeType:id,style:{fill:"#4777bd",stroke:"#172033",strokeWidth:1.5}});
+ if(kind==="shape")Object.assign(item,{shapeType:id,style:{...(id==="rounded"?{cornerRadiusMm:3}:{}),fill:"#4777bd",stroke:"#172033",strokeWidth:1.5}});
  if(kind==="vector")Object.assign(item,{assetId:id,colors:{primary:"#4777bd",secondary:"#f4b740"},flipX:false,flipY:false});
  if(kind==="image-frame")Object.assign(item,{frameType:id,image:{src:"",fit:"cover",scale:1,offsetX:0,offsetY:0,flipX:false,flipY:false,binding:""},style:{stroke:"#ffffff",strokeWidth:3,background:"#eef2f7"}});
  snapshot();arr.push(item);selectedElementId=item.id;selectedElementScope=scope;el("objectDrawer").classList.add("hidden");render();showEditorToast(`${kind==="shape"?"도형":kind==="vector"?"벡터":"사진 프레임"}을 추가했습니다.`)
