@@ -14,3 +14,9 @@
 
 /* Jua by the Jua Project Authors; bundled under SIL OFL 1.1. */
 @font-face{font-family:Jua;src:url("./assets/fonts/jua/Jua-Regular.woff") format("woff");font-weight:400;font-style:normal;font-display:swap}
+
+/* KoPub Batang: Google Fonts original TTF distribution. SIL OFL 1.1; see assets/fonts/kopub/OFL.txt.
+   Original published webfonts, without subsetting or modification. */
+@font-face{font-family:'KoPub Batang';src:url('https://raw.githubusercontent.com/google/fonts/main/ofl/kopubbatang/KoPubBatang-Light.ttf') format('truetype');font-weight:300;font-style:normal;font-display:swap}
+@font-face{font-family:'KoPub Batang';src:url('https://raw.githubusercontent.com/google/fonts/main/ofl/kopubbatang/KoPubBatang-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'KoPub Batang';src:url('https://raw.githubusercontent.com/google/fonts/main/ofl/kopubbatang/KoPubBatang-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
