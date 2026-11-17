@@ -54,3 +54,17 @@ test('previous exclusion snapshots validate under their original rules; new save
  const restored=hydrateSnapshot(await restoreBackup(new File([await backupFile(previous)],'v3.calendar-backup')));try{assert.equal(restored.appliedProject.book.events.length,2);}finally{restored.urls.forEach(URL.revokeObjectURL);}
  const reopened=hydrateSnapshot(current);try{assert.deepEqual(reopened.record.events,[]);assert.deepEqual(reopened.appliedProject.book.events.map(e=>e.id),['holiday']);}finally{reopened.urls.forEach(URL.revokeObjectURL);}
  });
+
+test('school/contact/schedule edits re-save from pinned images after remote links expire and survive reopen',async()=>{
+ const {importTemplate}=await import('../src/lib/materials/template-import.ts');const input=draft();input.assignments={};input.photos=[];
+ const originalSource={format:'acdl-project',settings:{year:2027,startMonth:3},productType:{pageSize:{width:260,height:180}},template:{masters:{cover:{}},masterElements:{},resources:{}},book:{school:{name:'샘플',address:'샘플 주소',website:'sample.invalid'},events:[],pageInstances:[{id:'cover',role:'cover-front'}],elementsByPage:{cover:[{id:'name',type:'text',binding:'school.name',content:'샘플'},{id:'address',type:'text',binding:'school.address',content:'샘플 주소'},{id:'website',type:'text',binding:'school.website',content:'sample.invalid'},{id:'logo',type:'image',src:tiny}]}}};
+ const imported=await importTemplate(new File([JSON.stringify(originalSource)],'source.acdl.json'));input.template=imported.template;input.source=imported.project;
+ const initial=await prepareSnapshot(input),pinned=hydrateSnapshot(initial),realFetch=globalThis.fetch;
+ try{
+  globalThis.fetch=async(url,init)=>{if(String(url).startsWith('blob:'))return realFetch(url,init);throw Error('remote links expired');};
+  const school={values:{name:'수정 학교',address:'수정 주소',website:'school.invalid'},hidden:['website']};
+  const events=[{id:'new-event',title:'수정 일정',startDate:'2027-05-08',endDate:'2027-05-08'}];
+  const next=await prepareSnapshot({...input,id:initial.record.id,revision:initial.record.revision,template:pinned.template,source:pinned.source,school,events});
+  const loaded=hydrateSnapshot(next);try{assert.equal(next.record.revision,2);assert.equal(loaded.record.school.values.address,'수정 주소');assert.equal(loaded.appliedProject.book.school.name,'수정 학교');assert.equal(loaded.appliedProject.book.school.address,'수정 주소');assert.equal(loaded.appliedProject.book.elementsByPage.cover.find(e=>e.id==='website').visible,false);assert.equal(loaded.appliedProject.book.events[0].title,'수정 일정');assert.equal(next.files.length,initial.files.length);}finally{loaded.urls.forEach(URL.revokeObjectURL);}
+ }finally{globalThis.fetch=realFetch;pinned.urls.forEach(URL.revokeObjectURL);}
+});
