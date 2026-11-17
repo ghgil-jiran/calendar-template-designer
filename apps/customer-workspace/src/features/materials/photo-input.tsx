@@ -35,7 +35,7 @@ export function PhotoInput({stage,onStageChange,usedPhotoIds=[],template,project
   <h2>이미지를 라이브러리에 등록하기</h2>
   <div className="photo-preparation-banks"><section aria-label="학교 공통 이미지 등록"><h3>학교 공통 이미지</h3>{bank(true)}</section><section aria-label="월력 사진 등록"><h3>월력 사진</h3>{bank(false)}</section></div>
   <p className="field-hint">학교 공통 이미지는 용도를 지정하면 연결된 모든 페이지에 반영됩니다. 월력 사진은 편집기에서 선택해 넣어 주세요. JPG·PNG·WebP · 한 장 25MB · 최대 50장, 합계 250MB</p>
-  <div className="actions">{!embedded&&<Button disabled={busy} onClick={onBack}>← 학사일정</Button>}<Button disabled={busy} variant="primary" onClick={onNext}>{embedded?'완료':'편집기로 이동하기 →'}</Button></div>
+  <div className="actions">{!embedded&&<Button disabled={busy} onClick={onBack}>← 학사일정</Button>}<Button disabled={busy} variant="primary" onClick={onNext}>{embedded?'저장하기':'편집기로 이동하기 →'}</Button></div>
  </Panel>}
  {busy&&<p role="status">사진을 확인하고 있어요.</p>}{failures.length>0&&<ul role="alert" className="field-error">{failures.map((message,i)=><li key={i}>{message}</li>)}</ul>}
  {stage==='assign'&&<>

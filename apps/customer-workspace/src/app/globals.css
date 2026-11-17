@@ -901,3 +901,20 @@ img {max-width: 100%;}
 .editor-image-library-dialog .photo-card>.button{margin:6px auto 0;align-self:center;margin-top:auto;min-height:26px;padding:4px 10px;}
 .editor-image-library-dialog .photo-bank-scroll{max-height:370px;}
 .editor-image-library-dialog .actions{margin-top:10px;gap:8px;}
+
+/* Stable information dialog frame; only the content column scrolls. */
+.editor-information-dialog[open]{display:flex;flex-direction:column;height:min(760px,92dvh);overflow:hidden;box-sizing:border-box;}
+.editor-information-dialog>header,.editor-information-dialog>footer,.editor-information-dialog>.field-error{flex:none;}
+.editor-information-dialog .editor-information-layout{flex:1;min-height:0;max-height:none;grid-template-rows:minmax(0,1fr);align-items:stretch;}
+.editor-information-dialog .editor-materials-body{height:100%;min-height:0;max-height:none;box-sizing:border-box;overflow-y:auto;scrollbar-gutter:stable;overscroll-behavior:contain;}
+.editor-information-dialog .field-heading{height:22px;min-height:22px;align-items:center;flex-wrap:nowrap;}
+.editor-information-dialog .field>input{height:36px;min-height:36px;box-sizing:border-box;}
+.editor-information-dialog .school-symbol-field-group.text-only{grid-template-columns:minmax(0,1fr);}
+.editor-information-dialog .extraction-result,.editor-information-dialog .schedule-loading{padding:10px 12px;margin:10px 0 6px;}
+.editor-information-dialog .extraction-result h3{font-size:13px;line-height:1.4;margin:0 0 5px;}
+.editor-information-dialog .extraction-result p,.editor-information-dialog .schedule-loading p{font-size:11px;line-height:1.45;color:hsl(var(--muted-foreground));margin:5px 0;}
+.editor-information-dialog .schedule-loading strong{font-size:12px;line-height:1.4;}
+.editor-information-dialog .schedule-loading{gap:10px;}
+.editor-image-library-dialog .form-section>.actions{display:flex;justify-content:flex-end;}
+.editor-image-library-dialog>p{padding:0 16px;}
+@media(max-width:650px){.editor-information-dialog .editor-information-layout{grid-template-rows:auto minmax(0,1fr);}.editor-information-dialog .editor-information-nav{max-height:90px;}.editor-information-dialog .editor-materials-body{max-height:none;}}

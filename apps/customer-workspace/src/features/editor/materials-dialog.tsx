@@ -11,7 +11,7 @@ import {addPhotoFiles} from '@/lib/materials/photo-files';
 import type {PhotoFile} from '@/features/materials/photo-input';
 import type {PhotoSlot,SchoolField,SchoolInput,ScheduleEvent} from '@/lib/api/contracts';
 export type {SchoolImageDraft} from '@/lib/editor/materials';
-const imageFields=[{binding:'school.profile.motto',label:'교훈',key:'motto'},{binding:'school.profile.tree',label:'교목',key:'treeName'},{binding:'school.profile.flower',label:'교화',key:'flowerName'}];
+const imageFields=[{binding:'school.profile.tree',label:'교목',key:'treeName'},{binding:'school.profile.flower',label:'교화',key:'flowerName'}];
 export function MaterialsDialog({kind,school,events,fields,year,startMonth,onSave,onClose,photos,commonPhotoIds,slots}:{kind:'school'|'schedule';school:SchoolInput;events:ScheduleEvent[];fields:SchoolField[];year:number;startMonth:number;photos:PhotoFile[];commonPhotoIds:Record<string,string>;slots:PhotoSlot[];onSave:(school:SchoolInput,events:ScheduleEvent[],images?:SchoolImageDraft[])=>Promise<boolean>;onClose:()=>void}){
  const originalFields=fields;fields=schoolInformationFields(fields);
  const dialog=useRef<HTMLDialogElement>(null),alive=useRef(true),created=useRef<string[]>([]),committed=useRef(false);
