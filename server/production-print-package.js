@@ -5,7 +5,7 @@ import {loadProductionEditorSource} from './production-editor-source.js';
 import {productionImagePlan,readProductionImage} from './production-print-images.js';
 
 export const PRINT_CONTRACT='production-existing-pdf-worker.v1';
-export const EXPECTED_PIPELINE_VERSION='2026-11-16-native-background-ocg-v3';
+export const EXPECTED_PIPELINE_VERSION='2026-11-17-native-background-ocg-config-name-v4';
 const digest=value=>createHash('sha256').update(value).digest('hex');
 const path=value=>value.split('/').map(encodeURIComponent).join('/');
 const conflict=message=>Object.assign(Error(message),{statusCode:409,code:message});
