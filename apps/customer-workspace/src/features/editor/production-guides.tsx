@@ -7,3 +7,5 @@ export function ProductionGuides({project,pageId}:{project:NativeProject;pageId:
  {binding&&<><rect className="production-guide-binding" x={0} y={0} width={w} height={h*.05}/><line className="production-guide-binding-edge" x1={0} x2={w} y1={h*.05} y2={h*.05}/></>}
  </svg>;
 }
+
+export function ProductionGuideLegend(){return <div className="production-guide-legend" aria-label="제작 기준선 안내"><span className="guide-safe" title="중요한 글자와 교표를 안쪽에 배치하는 기준선">안전 영역</span><span className="guide-trim" title="실제 종이가 잘리는 위치">재단 영역</span><span className="guide-bleed" title="재단 오차에 대비해 배경을 채우는 바깥 영역">작업 영역(여백)</span></div>;}

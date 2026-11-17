@@ -800,3 +800,62 @@ img {max-width: 100%;}
 
 .school-calendar-logo {width:146px;height:42px;}
 .editor-topbar {padding-top:7px;padding-bottom:7px;}
+
+/* Existing editor: compact input and persistent production guidance. */
+:root {--guide-safe:142 71% 38%;--guide-trim:0 73% 52%;--guide-bleed:217 91% 60%;}
+.editor-template-heading {overflow:visible;position:relative;z-index:20;}
+.editor-template-picker {width:100%;position:relative;}
+.editor-template-title {display:flex;align-items:center;gap:8px;min-width:0;}
+.editor-template-title h2 {flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0;font-size:12px;}
+.editor-template-title .editor-template-trigger {width:auto;flex:none;padding:5px 8px;white-space:nowrap;font-size:11px;}
+.editor-template-options {position:fixed;width:min(640px,80vw);max-height:65dvh;overflow:auto;padding:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;border:1px solid hsl(var(--border));border-radius:10px;background:hsl(var(--canvas));box-shadow:0 12px 30px hsl(var(--foreground)/.15);z-index:30;}
+.editor-template-options .editor-template-close {grid-column:1/-1;justify-self:end;}
+.editor-page-navigation {display:flex;gap:4px;align-items:center;flex-shrink:0;min-width:0;background:hsl(var(--canvas));border-top:1px solid hsl(var(--border));}
+.editor-page-navigation>.button {flex:none;padding:8px;font-size:24px;min-width:30px;}
+.editor-page-navigation>.editor-page-strip {flex:1;min-width:0;height:122px;border:0;scrollbar-width:thin;overflow-x:auto;overflow-y:hidden;}
+.editor-page-navigation .editor-page-strip::-webkit-scrollbar {display:block;height:9px;}
+.editor-page-navigation .editor-page-strip::-webkit-scrollbar-thumb {background:hsl(var(--muted-foreground)/.5);border-radius:8px;}
+.production-guide-legend {display:flex;justify-content:center;flex-wrap:wrap;gap:18px;padding:5px 10px;background:hsl(var(--canvas));font-size:11px;flex-shrink:0;}
+.production-guide-legend span {display:inline-flex;gap:6px;align-items:center;cursor:help;}
+.production-guide-legend span::before {content:'';width:16px;border-top:2px dashed;}
+.production-guide-legend .guide-safe::before {color:hsl(var(--guide-safe));}
+.production-guide-legend .guide-trim::before {color:hsl(var(--guide-trim));}
+.production-guide-legend .guide-bleed::before {color:hsl(var(--guide-bleed));}
+.editor-selected-object-name {font-size:13px;margin:10px 0 0;}
+.editor-editable-list {list-style:none;padding:0;display:grid;gap:6px;}
+.editor-editable-list button {width:100%;text-align:left;border:1px solid hsl(var(--border));background:hsl(var(--canvas));color:hsl(var(--foreground));border-radius:6px;padding:7px;}
+.field.is-hidden>input {opacity:.45;background:hsl(var(--surface));cursor:not-allowed;}
+.editor-information-dialog {width:min(1000px,96vw);max-height:92dvh;padding:0;}
+.editor-information-dialog>header {padding:12px 16px;}
+.editor-information-dialog>header h2 {font-size:16px;}
+.editor-information-dialog>header p {font-size:11px;margin:4px 0 0;}
+.editor-information-layout {display:grid;grid-template-columns:180px minmax(0,1fr);min-height:300px;max-height:calc(92dvh - 145px);overflow:hidden;}
+.editor-information-nav {padding:12px 8px;border-right:1px solid hsl(var(--border));background:hsl(var(--surface));overflow:auto;}
+.editor-information-nav button {display:flex;width:100%;gap:8px;align-items:center;text-align:left;padding:10px 8px;border:1px solid transparent;border-radius:8px;background:transparent;color:hsl(var(--foreground));}
+.editor-information-nav button[aria-current=page] {background:hsl(var(--canvas));border-color:hsl(var(--border));}
+.editor-information-nav strong {font-size:12px;display:block;}
+.editor-information-nav small {font-size:10px;color:hsl(var(--muted-foreground));display:block;margin-top:3px;overflow-wrap:anywhere;}
+.information-status {background:hsl(var(--guide-safe)/.12);color:hsl(var(--guide-safe));border-radius:50%;width:18px;height:18px;flex:none;text-align:center;font-size:12px;}
+.information-status.missing {background:hsl(var(--guide-trim)/.1);color:hsl(var(--guide-trim));}
+.editor-information-dialog .editor-materials-body {overflow:auto;padding:14px 18px;min-height:0;}
+.editor-information-dialog .school-input-section {padding:0;border:0;}
+.editor-information-dialog .school-input-section h3 {font-size:14px;margin:0 0 12px;}
+.editor-information-dialog .form-grid {gap:12px;}
+.editor-information-dialog input:not([type=checkbox]),.editor-information-dialog select {font-size:12px;padding:7px 9px;min-height:32px;}
+.editor-information-dialog .field-heading label,.editor-information-dialog .field-hint {font-size:11px;}
+.editor-information-dialog .field-heading {gap:5px;flex-wrap:wrap;}
+.editor-information-dialog .school-symbol-images {margin-top:16px;}
+.school-symbol-image-row {display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid hsl(var(--border));font-size:12px;}
+.school-symbol-image-row img {width:48px;height:40px;object-fit:contain;}
+.school-symbol-image-row small {font-size:10px;color:hsl(var(--muted-foreground));}
+.editor-information-dialog footer {padding:10px 16px;}
+.editor-information-dialog .button {font-size:12px;padding:7px 11px;}
+@media(max-width:650px){.editor-information-layout{grid-template-columns:1fr;max-height:calc(92dvh - 150px);}.editor-information-nav{display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid hsl(var(--border));padding:6px;}.editor-information-nav button{min-width:130px;}.editor-information-dialog .editor-materials-body{max-height:55dvh;}.editor-template-options{grid-template-columns:repeat(2,minmax(0,1fr));}.production-guide-legend{gap:10px;font-size:10px;}}
+@media print {.production-guide-legend,.editor-page-navigation {display:none!important;}}
+.school-symbol-field-groups{display:grid;gap:12px;}
+.school-symbol-field-group{display:grid;grid-template-columns:minmax(0,1fr) 170px;align-items:center;gap:14px;padding:10px;border:1px solid hsl(var(--border));border-radius:8px;}
+.school-symbol-field-copy{display:grid;gap:8px;}
+.school-symbol-field-group .school-symbol-image-row{border:0;justify-content:center;}
+@media(max-width:650px){.school-symbol-field-group{grid-template-columns:1fr;}.school-symbol-field-group .school-symbol-image-row{justify-content:flex-start;}}
+
+.editor-template-title .editor-template-trigger{height:30px;border:1px solid hsl(var(--border));border-radius:6px;}

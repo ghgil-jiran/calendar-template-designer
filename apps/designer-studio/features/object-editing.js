@@ -435,6 +435,7 @@ function renderSemanticObject(item){
  if(layout==="image-only"&&item.showTitle===false&&item.showCaption===false)return `<div class="semantic-object semantic-logo"><div class="semantic-media">${d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)}" style="${userImageFitStyle(item)}">`:""}</div></div>`;
  const image=d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)} 이미지" style="${userImageFitStyle(item)}">`:`<span class="semantic-empty-visual non-output editor-only" aria-label="${semanticRoleLabel(role)} 이미지 슬롯"></span>`;
  const align=["left","center","right"].includes(item.style?.textAlign)?item.style.textAlign:"center";
+ if(role==="school-motto"&&d.image)return `<div class="semantic-object semantic-motto"><div class="semantic-media">${image}</div></div>`;
  const showTitle=semanticTitleVisible(item),title=showTitle?`<strong style="display:block;width:100%;text-align:${align};font-size:${item.style?.titleSize||18}px">${titleOverride||(role==="school-song"?d.name:"")||semanticRoleLabel(role)}</strong>`:"";
  if(role==="school-logo"){
   const style=item.style||{},background=style.background===true?(style.backgroundColor||"#ffffff"):typeof style.background==="string"?style.background:"transparent";
@@ -618,7 +619,7 @@ function renderFreeElements(pageNode){
  let layer=document.createElement("div");layer.className="free-layer";
  allVisibleElements().forEach(view=>{
   const box=document.createElement("div");box.className=`free-element ${view._scope==="master"?"master-element":""} ${view.id===selectedElementId&&view._scope===selectedElementScope?"active":""}`;
-  box.dataset.elementId=view.id;box.dataset.scope=view._scope;box.dataset.elementType=view.type;box.dataset.elementRole=view.role||"";box.dataset.themeRole=["year","school-name"].includes(view.role)?"title":view.role==="slogan"?"secondary":"body";box.style.left=view.x+"%";box.style.top=view.y+"%";box.style.width=view.width+"%";box.style.height=view.height+"%";box.style.zIndex=view.zIndex||1;box.style.transform=`rotate(${view.rotation||0}deg)`;
+  box.dataset.fullBleedBackground=String(["graphic-package-background","graphic-library-background","ai-design-background","background-decoration"].includes(view.role)&&Number(view.x)===0&&Number(view.y)===0&&Number(view.width)>=100&&Number(view.height)>=100);box.dataset.elementId=view.id;box.dataset.scope=view._scope;box.dataset.elementType=view.type;box.dataset.elementRole=view.role||"";box.dataset.themeRole=["year","school-name"].includes(view.role)?"title":view.role==="slogan"?"secondary":"body";box.style.left=view.x+"%";box.style.top=view.y+"%";box.style.width=view.width+"%";box.style.height=view.height+"%";box.style.zIndex=view.zIndex||1;box.style.transform=`rotate(${view.rotation||0}deg)`;
   if(view.role){
    const badge=document.createElement("span");badge.className="cover-role-badge";badge.textContent={"school-image":"학교 전경","year":"연도","school-name":"학교명","slogan":"슬로건"}[view.role]||view.role;box.appendChild(badge)
   }

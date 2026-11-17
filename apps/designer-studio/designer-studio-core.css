@@ -460,3 +460,11 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
 
 /* Binding marks are finishing guides, with consistent proportions at every zoom. */
 .page .binding{position:absolute;top:2%;left:3.5%;width:93%;height:3.5%;background-color:transparent;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 22'%3E%3Crect x='6' y='1' width='20' height='18' rx='3' fill='%23d8d6d3' fill-opacity='.5'/%3E%3C/svg%3E");background-size:3.8461538% 100%;background-repeat:repeat-x;opacity:1;z-index:1;pointer-events:none}
+
+/* Shared production guides: green safe, red trim, blue work area. */
+.page.editor-bleed-visible{outline:1px dashed #df3535;outline-offset:-1px}
+.page.editor-bleed-visible::before{border-color:#3b82f6;background:transparent}
+.page.editor-bleed-visible .free-element[data-full-bleed-background="true"]{left:calc(-1 * var(--export-bleed-x-pct))!important;top:calc(-1 * var(--export-bleed-y-pct))!important;width:calc(100% + 2 * var(--export-bleed-x-pct))!important;height:calc(100% + 2 * var(--export-bleed-y-pct))!important}
+.page.desk .binding{top:calc(var(--binding-center-y,12.5%) - var(--binding-hole-height,2.2222%) / 2);height:var(--binding-hole-height,2.2222%)}
+
+.page.editor-bleed-visible .ai-background-layer{overflow:visible}

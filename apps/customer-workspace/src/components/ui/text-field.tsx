@@ -4,7 +4,7 @@ export function TextField({label, value, required, hidden, allowHide, maxLength,
   hint?: string; error?: string; onChange: (value: string) => void; onHide: (hidden: boolean) => void;
 }) {
   const id = useId();
-  return <div className="field">
+  return <div className={`field ${hidden?'is-hidden':''}`}>
     <div className="field-heading"><label htmlFor={id}>{label}</label>
     {allowHide && <label className="checkbox"><input type="checkbox" aria-label={`${label} 표시하지 않음`} checked={hidden} onChange={event => onHide(event.target.checked)} />표시하지 않음</label>}</div>
     <input id={id} value={value} required={required} disabled={hidden} maxLength={maxLength} onChange={event => onChange(event.target.value)} aria-invalid={Boolean(error)} aria-describedby={error || hint ? `${id}-hint` : undefined} />

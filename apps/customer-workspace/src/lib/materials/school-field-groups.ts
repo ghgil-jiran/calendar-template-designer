@@ -1,3 +1,3 @@
 import type {SchoolField} from '../api/contracts';
-const sections=[{id:'identity',title:'학교 소개',keys:['name','englishName','slogan']},{id:'symbols',title:'학교 상징',keys:['treeName','flowerName','motto','treeDescription','flowerDescription']},{id:'contact',title:'학교 연락처',keys:[] as string[]}];
+const sections=[{id:'identity',title:'학교 기본 정보',keys:['name','englishName','slogan']},{id:'symbols',title:'학교 상징',keys:['motto','treeName','treeDescription','flowerName','flowerDescription']},{id:'contact',title:'학교 연락처',keys:[] as string[]}];
 export function schoolFieldGroups(fields:SchoolField[]){const known=new Set(sections.flatMap(s=>s.keys));return sections.map(s=>({...s,fields:s.id==='contact'?fields.filter(f=>f.group==='contact'):s.id==='identity'?[...s.keys.flatMap(key=>fields.filter(f=>f.key===key)),...fields.filter(f=>f.group!=='contact'&&!known.has(f.key))]:s.keys.flatMap(key=>fields.filter(f=>f.key===key))})).filter(s=>s.fields.length);}
