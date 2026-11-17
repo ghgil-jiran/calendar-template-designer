@@ -1,0 +1,7 @@
+import {NextResponse} from 'next/server';
+import {createOriginalStorage} from '@/server/customer-originals';
+export const runtime='nodejs';
+function storage(){return createOriginalStorage({url:process.env.SUPABASE_URL||'',key:process.env.SUPABASE_SERVICE_ROLE_KEY||''});}
+function token(request:Request){const value=request.headers.get('authorization')||'';if(!/^Bearer [a-f0-9]{64}$/.test(value))throw Error('프로젝트 원본 접근 정보가 올바르지 않아요.');return value.slice(7);}
+export async function POST(request:Request){try{if(request.headers.get('origin')!==new URL(request.url).origin)return NextResponse.json({error:'허용되지 않은 요청이에요.'},{status:403});if(Number(request.headers.get('content-length')||0)>1500000)return NextResponse.json({error:'전송 파일이 너무 커요.'},{status:413});const key=token(request),raw=await request.text();if(raw.length>1500000)return NextResponse.json({error:'전송 파일이 너무 커요.'},{status:413});return NextResponse.json(await storage().operation(key,JSON.parse(raw)),{headers:{'Cache-Control':'no-store'}});}catch(error){return NextResponse.json({error:error instanceof Error?error.message:'원본 보관에 실패했어요.'},{status:400});}}
+export async function GET(request:Request){try{const value=await storage().read(token(request),new URL(request.url).searchParams.get('sha256')||'');return new Response(new Uint8Array(value.bytes),{headers:{'Content-Type':value.mimeType,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});}catch{return NextResponse.json({error:'사진 원본을 불러오지 못했어요.'},{status:404});}}

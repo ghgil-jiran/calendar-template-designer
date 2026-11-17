@@ -173,7 +173,7 @@ export function Onboarding() {
     return saveQueue.current(async()=>{const latest=draftLatest.current;if(!latest)return false;saveLock.current=true;const captured=structuredClone({...latest,...overrides,id:activeLatest.current?.id||latest.id,revision:activeLatest.current?.revision||latest.revision,step:nextStep||latest.step,photos:[]}) as ProjectDraft;captured.photos=[...(overrides.photos||latest.photos)];const signature=draftSignature(captured);setSaving(true);setSaveError('');setSaveNotice('');
     try{const snapshot=await prepareSnapshot(captured),pinned=hydrateSnapshot(snapshot);let record;try{record=await writeSnapshot(snapshot,activeLatest.current?.revision??null);}catch(error){pinned.urls.forEach(URL.revokeObjectURL);throw error;}// Subsequent edits reuse the durable image bytes just saved, not expiring URLs.
     templateUrls.current.forEach(URL.revokeObjectURL);templateUrls.current=pinned.urls;setNativeSource(pinned.source);setWorkingTemplate(pinned.template);
-    activeLatest.current={id:record.id,revision:record.revision};setActiveProject(activeLatest.current);autoFailedSignature.current='';setSavedSignature(signature);setProjectName(record.name);setSaveNotice('이 브라우저에 저장했어요. 재배포 후에도 같은 주소에서 다시 열 수 있어요.');setLibraryVersion(v=>v+1);void navigator.storage?.persist?.().catch(()=>false);return true;}
+    activeLatest.current={id:record.id,revision:record.revision};setActiveProject(activeLatest.current);autoFailedSignature.current='';setSavedSignature(signature);setProjectName(record.name);setSaveNotice(captured.photos.length?'사진 원본을 서버에 보관하고 이 브라우저에 편집 내용을 저장했어요.':'이 브라우저에 편집 내용을 저장했어요.');setLibraryVersion(v=>v+1);void navigator.storage?.persist?.().catch(()=>false);return true;}
     catch(error){autoFailedSignature.current=signature;setSaveError(error instanceof Error?error.message:'저장하지 못했어요. 입력 내용은 그대로 유지됩니다.');if(propagateFailure)throw error;return false;}finally{saveLock.current=false;setSaving(false);}});
   }
   async function changeTemplate(template:TemplateCard){
@@ -190,7 +190,7 @@ export function Onboarding() {
   }
   const autoSaveLatest=useRef<()=>Promise<boolean>>(async()=>false);autoSaveLatest.current=()=>saveWorking();
   useEffect(()=>{
-    if(navigationPaused||step!=='editor'||!dirty||saving||!nativeSource||autoFailedSignature.current===currentSignature)return;
+    if(navigationPaused||(step!=='editor'&&step!=='photos')||!dirty||saving||!nativeSource||autoFailedSignature.current===currentSignature)return;
     const timer=window.setTimeout(()=>{void autoSaveLatest.current();},800);
     return()=>window.clearTimeout(timer);
   },[step,dirty,currentSignature,saving,nativeSource,navigationPaused]);
