@@ -877,3 +877,27 @@ img {max-width: 100%;}
 .information-status.empty{color:hsl(var(--muted-foreground));background:hsl(var(--border)/.6);}
 
 .editor-information-dialog .schedule-input-actions .schedule-method-button{min-height:34px;padding:8px;}
+
+/* Compact image library, aligned with the school information dialog. */
+.editor-image-library-dialog>header{padding:12px 16px;gap:12px;}
+.editor-image-library-dialog>header h2{font-size:16px;line-height:1.4;margin:0;}
+.editor-image-library-dialog>header .button{font-size:12px;padding:7px 11px;}
+.editor-image-library-dialog .editor-materials-body{padding:12px 16px;}
+.editor-image-library-dialog .form-section{padding:12px;margin:0;}
+.editor-image-library-dialog .form-section>h2{font-size:14px;line-height:1.4;margin:0 0 10px;}
+.editor-image-library-dialog .photo-preparation-banks{gap:12px;margin-top:10px;}
+.editor-image-library-dialog .photo-preparation-banks>section{padding:12px;}
+.editor-image-library-dialog .photo-preparation-banks h3{font-size:12px;line-height:1.4;margin:0;}
+.editor-image-library-dialog p{font-size:11px;line-height:1.45;margin:7px 0;}
+.editor-image-library-dialog .button{font-size:11px;line-height:1.25;padding:6px 9px;min-height:30px;}
+.editor-image-library-dialog .photo-grid{gap:10px;margin-top:10px;align-items:stretch;}
+.editor-image-library-dialog .photo-card{padding:8px;display:flex;flex-direction:column;gap:0;}
+.editor-image-library-dialog .photo-card>img{height:110px;aspect-ratio:auto;flex:none;}
+.editor-image-library-dialog .photo-card>strong{font-size:11px;line-height:1.3;margin:5px 0 2px;}
+.editor-image-library-dialog .photo-card>small{font-size:10px;line-height:1.3;margin:0;}
+.editor-image-library-dialog .common-image-roles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:6px 0;}
+.editor-image-library-dialog .common-image-roles .button{width:100%;min-width:0;min-height:26px;margin:0;padding:4px;font-size:10px;line-height:1.2;white-space:normal;}
+.editor-image-library-dialog .common-image-roles small{grid-column:1/-1;font-size:10px;line-height:1.3;margin:2px 0;}
+.editor-image-library-dialog .photo-card>.button{margin:6px auto 0;align-self:center;margin-top:auto;min-height:26px;padding:4px 10px;}
+.editor-image-library-dialog .photo-bank-scroll{max-height:370px;}
+.editor-image-library-dialog .actions{margin-top:10px;gap:8px;}
