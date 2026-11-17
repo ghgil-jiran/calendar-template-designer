@@ -74,6 +74,22 @@ export async function storeTemplateAsset(dataUrl){
   return signedAsset(row);
 }
 
+// Original images use bounded requests; final assembly verifies completeness and byte size.
+const ORIGINAL_UPLOAD_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function originalUpload(body){if(!ORIGINAL_UPLOAD_ID.test(body.uploadId||'')||!Number.isInteger(body.total)||body.total<1||body.total>26)throw Object.assign(Error('Invalid original image upload'),{statusCode:400,code:'INVALID_ORIGINAL_UPLOAD'});return `original-uploads/${body.uploadId}`;}
+export async function uploadTemplateAssetChunk(body,{write=(path,bytes)=>storageRequest(`object/${ASSET_BUCKET}/${path}`,{method:'POST',headers:{'Content-Type':'application/octet-stream','x-upsert':'true'},body:bytes})}={}){
+ const prefix=originalUpload(body);if(!Number.isInteger(body.index)||body.index<0||body.index>=body.total||typeof body.data!=='string'||body.data.length>1398104||!/^[A-Za-z0-9+/]+={0,2}$/.test(body.data))throw Object.assign(Error('Invalid original image chunk'),{statusCode:400,code:'INVALID_ORIGINAL_CHUNK'});
+ const bytes=Buffer.from(body.data,'base64');if(!bytes.length||bytes.length>1048576)throw Object.assign(Error('Original image chunk too large'),{statusCode:413,code:'ORIGINAL_CHUNK_TOO_LARGE'});
+ await write(`${prefix}/${body.index}`,bytes);return {index:body.index};
+}
+export async function completeTemplateAssetUpload(body,{read=async path=>(await storageBinaryRequest(`object/${ASSET_BUCKET}/${path}`)).bytes,store=storeTemplateAsset,remove=paths=>deleteStorageObjects(ASSET_BUCKET,paths)}={}){
+ const prefix=originalUpload(body);if(!ALLOWED_IMAGE_TYPES.has(body.mimeType)||!Number.isSafeInteger(body.byteSize)||body.byteSize<1||body.byteSize>25*1048576)throw Object.assign(Error('Invalid original image metadata'),{statusCode:400,code:'INVALID_ORIGINAL_UPLOAD'});
+ const paths=Array.from({length:body.total},(_,i)=>`${prefix}/${i}`),chunks=[];
+ for(const path of paths){const bytes=await read(path);if(!bytes.length||bytes.length>1048576)throw Object.assign(Error('Invalid stored original chunk'),{statusCode:400,code:'INVALID_ORIGINAL_CHUNK'});chunks.push(bytes)}
+ const bytes=Buffer.concat(chunks);if(bytes.length!==body.byteSize)throw Object.assign(Error('Original image size mismatch'),{statusCode:400,code:'ORIGINAL_SIZE_MISMATCH'});
+ const asset=await store(`data:${body.mimeType};base64,${bytes.toString('base64')}`);await remove(paths).catch(()=>{});return asset;
+}
+
 export async function resolveTemplateAssets(ids){
   const unique=[...new Set((Array.isArray(ids)?ids:[]).filter(id=>/^[0-9a-f-]{36}$/i.test(id)))];if(!unique.length)return [];
   const rows=await supabaseRequest(`template_assets?select=*&id=in.(${unique.map(encodeURIComponent).join(',')})`);

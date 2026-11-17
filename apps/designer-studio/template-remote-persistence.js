@@ -42,13 +42,45 @@
   return {expectsBackgrounds,resourceCount:resources.length,backgroundCount:backgrounds.length,resolvedBackgroundCount:backgrounds.length-unresolved.length,unresolvedBackgroundIds:unresolved.map(item=>item.id||'(unknown)')}
  }
  function assertAIDesignIntegrity(projectData){const integrity=aiDesignIntegrity(projectData);if(integrity.expectsBackgrounds&&(!integrity.resourceCount||!integrity.backgroundCount||integrity.resolvedBackgroundCount!==integrity.backgroundCount))throw Object.assign(new Error('AI 디자인 배경이 완전하지 않아 템플릿을 저장하거나 열 수 없습니다.'),{code:'AI_DESIGN_INCOMPLETE',integrity});return projectData}
+ // Local replacement IDs are not portable. Preserve original bytes before any save/export.
+ async function prepareImageOriginals(projectData){
+  const copy=structuredClone(projectData),cache=new Map(),missing=[],sources=new Map();
+  async function walk(value){
+   if(!value||typeof value!=='object')return;
+   if(typeof value.assetId==='string'&&value.assetId.startsWith('asset-')&&typeof value.src==='string'){
+    const localId=value.assetId;
+    if(!cache.has(localId))cache.set(localId,(async()=>{
+     try{if(!root.ACDLAssetStore?.originalDataUrl)throw Error('Original store unavailable');return await root.ACDLAssetStore.originalDataUrl(localId)}catch(error){return null}
+    })());
+    const original=await cache.get(localId);
+    if(!original)missing.push({assetId:localId,name:value.originalName||localId});
+    else {sources.set(value.src,original);value.previewSrc??=value.src;value.src=original;value.originalPreserved=true;}
+   }
+   for(const child of Object.values(value))if(child&&typeof child==='object')await walk(child);
+  }
+  await walk(copy);
+  if(missing.length){const unique=[...new Map(missing.map(item=>[item.assetId,item])).values()];throw Object.assign(new Error(`고품질 이미지 원본 ${unique.length}개를 찾지 못했습니다. 원래 업로드한 브라우저에서 저장하거나 원본 파일을 다시 선택해주세요. (${unique.slice(0,3).map(item=>item.name).join(', ')})`),{code:'IMAGE_ORIGINAL_MISSING',details:{missingOriginals:unique}})}
+  function share(value){if(!value||typeof value!=='object')return;for(const [key,child] of Object.entries(value)){if(typeof child==='string'&&key!=='previewSrc'&&sources.has(child))value[key]=sources.get(child);else if(child&&typeof child==='object')share(child)}}
+  share(copy);return copy;
+ }
+ async function uploadImage(dataUrl){
+  // Each request stays below hosting body limits, including base64 overhead.
+  if(dataUrl.length<=2*1024*1024)return request('/api/template-assets',{method:'POST',body:JSON.stringify({dataUrl})});
+  const match=/^data:(image\/[^;,]+);base64,([\s\S]+)$/.exec(dataUrl);if(!match)throw Error('대용량 이미지 형식을 확인해주세요.');
+  const uploadId=root.crypto.randomUUID(),data=match[2],partSize=4*Math.floor(1048576/3),total=Math.ceil(data.length/partSize),byteSize=data.length*3/4-(data.endsWith('==')?2:data.endsWith('=')?1:0);
+  for(let index=0;index<total;index++)await request('/api/template-assets',{method:'POST',body:JSON.stringify({operation:'original-chunk',uploadId,index,total,data:data.slice(index*partSize,(index+1)*partSize)})});
+  return request('/api/template-assets',{method:'POST',body:JSON.stringify({operation:'original-complete',uploadId,total,byteSize,mimeType:match[1]})});
+ }
  async function prepareProjectData(projectData,{onProgress,concurrency=4}={}){
   root.ACDLSharedMiniCalendar?.normalizePosterProject(projectData);
-  const copy=assertAIDesignIntegrity(materializeAIDesignBackgrounds(structuredClone(projectData))),images=new Set();visit(copy,value=>{if(value.startsWith('data:image/'))images.add(value)});const replacements=new Map(signedToMarker);
+  const copy=assertAIDesignIntegrity(materializeAIDesignBackgrounds(await prepareImageOriginals(projectData))),images=new Set();visit(copy,value=>{if(value.startsWith('data:image/'))images.add(value)});const replacements=new Map(signedToMarker);
   const pending=[...images],total=pending.length;let completed=0,next=0;onProgress?.({phase:'assets',completed,total});
-  const worker=async()=>{while(next<total){const index=next++,dataUrl=pending[index],result=await request('/api/template-assets',{method:'POST',body:JSON.stringify({dataUrl})});replacements.set(dataUrl,`acdl-asset://${result.asset.id}`);completed+=1;onProgress?.({phase:'assets',completed,total})}};
+  const worker=async()=>{while(next<total){const index=next++,dataUrl=pending[index],result=await uploadImage(dataUrl);replacements.set(dataUrl,`acdl-asset://${result.asset.id}`);completed+=1;onProgress?.({phase:'assets',completed,total})}};
   await Promise.all(Array.from({length:Math.min(Math.max(1,Number(concurrency)||1),total||1)},worker));
-  return assertAIDesignIntegrity(replace(copy,replacements));
+  const originalIds=new Map();visitOriginals(copy);function visitOriginals(value){if(!value||typeof value!=='object')return;if(value.originalPreserved&&value.assetId&&replacements.has(value.src)){const id=/^acdl-asset:\/\/([0-9a-f-]{36})$/i.exec(replacements.get(value.src))?.[1];if(id)originalIds.set(value.assetId,id)}for(const child of Object.values(value))if(child&&typeof child==='object')visitOriginals(child)}
+  const prepared=replace(copy,replacements);
+  function portable(value){if(!value||typeof value!=='object')return;if(originalIds.has(value.assetId))value.assetId=originalIds.get(value.assetId);if(value.originalPreserved&&typeof value.src==='string'){const id=/^acdl-asset:\/\/([0-9a-f-]{36})$/i.exec(value.src)?.[1];if(id)value.assetId=id;}for(const child of Object.values(value))if(child&&typeof child==='object')portable(child)}
+  portable(prepared);return assertAIDesignIntegrity(prepared);
  }
  async function hydrateProjectData(projectData,{onProgress}={}){
   onProgress?.({phase:'asset-scan',completed:0,total:1});
@@ -79,6 +111,6 @@
  async function restore(templateId,versionId,saveNote){return request('/api/template-restore',{method:'POST',body:JSON.stringify({templateId,versionId,saveNote})})}
  async function packagePreflight(templateId){return request(`/api/template-package-preflight?templateId=${encodeURIComponent(templateId)}`)}
  async function remove({templateId=null,stableKey,hideCatalog=false}){return request('/api/templates',{method:'DELETE',body:JSON.stringify({templateId,stableKey,hideCatalog})})}
- root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,remove,deletedCatalogKeys:()=>[...deletedCatalogKeys],toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareProjectData,hydrateProjectData,assetObjectUrl,assetObjectUrls,resolveAssetUrls,legacyStoragePath,canonicalAssetSource:src=>signedToMarker.get(src)||src});
+ root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,remove,deletedCatalogKeys:()=>[...deletedCatalogKeys],toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareImageOriginals,prepareProjectData,hydrateProjectData,assetObjectUrl,assetObjectUrls,resolveAssetUrls,legacyStoragePath,canonicalAssetSource:src=>signedToMarker.get(src)||src});
 })(window);
 

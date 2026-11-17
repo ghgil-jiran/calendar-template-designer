@@ -1,6 +1,6 @@
 (function(root){
  const list=v=>Array.isArray(v)?v:[],text=v=>String(v??'');
- const VERSION='template-image-print-quality.v2@0.1.0';
+ const VERSION='template-image-print-quality.v3@0.1.0';
  const COMMON=[['identity','사용 이미지·페이지·개체 연결'],['frameSuitability','원본 접근·파일 정상 여부'],['effectiveResolution','사진·이미지 실배치 300 DPI (PDF 배경 제외)'],['placementIntegrity','확대 선명도·잘림·CMYK 색상·계조'],['visualArtifacts','흐림·노이즈·깨짐']];
  const AI=[['generationStandard','AI 생성 기준·최대 품질'],['contentLegibility','AI 비정상 형상·원치 않는 문자·숫자']];
  const probes=new Map();
@@ -39,7 +39,7 @@
    if(item.placeholder){results.push({...item,status:'review',message:'사용자 교체용 빈 프레임: 최종 출력 전에 이미지 입력 또는 삭제가 필요합니다.'});continue}
    try{
     let src=item.src;
-    if(item.originalAssetId&&item.origin!=='graphic-library'&&root.ACDLAssetStore?.originalDataUrl){
+    if(item.originalAssetId&&!(root.ACDLTemplateRemotePersistence?.canonicalAssetSource?.(src)||src).endsWith('://'+item.originalAssetId)&&item.origin!=='graphic-library'&&root.ACDLAssetStore?.originalDataUrl){
      if(!originals.has(item.originalAssetId))originals.set(item.originalAssetId,(async()=>{
       try{return await root.ACDLAssetStore.originalDataUrl(item.originalAssetId)}catch(error){
        if(!root.ACDLTemplateRemotePersistence?.hydrateProjectData)throw error;
@@ -66,7 +66,7 @@
    let status='not_run',message='검사 전',evidence=null;
    if(key==='identity'){status=inv.items.every(i=>i.pageId&&i.objectId)?'passed':'failed';message=`사용 이미지·프레임 ${inv.count}개 위치 확인`}
    if(probeResult&&key==='frameSuitability'){status=probeResult.items.some(i=>!i.src&&!i.placeholder||i.status==='failed'&&!i.width)?'failed':probeResult.items.some(i=>i.placeholder)?'review':'passed';message='사용 원본 파일 접근·이미지 디코딩 검사'}
-   if(probeResult&&key==='effectiveResolution'){const raster=probeResult.items.filter(i=>!i.pdfSource);status=raster.some(i=>i.status==='failed')?'failed':raster.every(i=>i.status==='passed')?'passed':'review';message='이미지는 실배치 DPI를 검사합니다. PDF 배경은 미리보기 DPI를 판정에서 제외하며 원본 내부 이미지 해상도 확인이 필요합니다.';evidence={placements:probeResult.items.map(({id,width,height,dpi,previewDpi,sourceKind,pdfSource,status,message})=>({id,width,height,dpi,previewDpi,sourceKind,pdfSource,status,message}))}}
+   if(probeResult&&key==='effectiveResolution'){const raster=probeResult.items.filter(i=>!i.pdfSource),measured=raster.filter(i=>i.width&&i.height);status=measured.some(i=>i.status==='failed')?'failed':measured.length!==raster.length?'review':raster.every(i=>i.status==='passed')?'passed':'review';message='이미지는 실배치 DPI를 검사합니다. PDF 배경은 미리보기 DPI를 판정에서 제외하며 원본 내부 이미지 해상도 확인이 필요합니다.';evidence={placements:probeResult.items.map(({id,width,height,dpi,previewDpi,sourceKind,pdfSource,status,message})=>({id,width,height,dpi,previewDpi,sourceKind,pdfSource,status,message}))}}
    if(key==='placementIntegrity'&&inv.items.some(i=>i.pdfSource))message='원본 PDF 배경의 내부 이미지 선명도·해상도와 최종 CMYK PDF의 잘림·색상·계조를 확인하고 기록해주세요. 원본 합성 성공은 품질 통과를 뜻하지 않습니다.';
    if(key==='generationStandard'){const ai=inv.items.filter(i=>i.ai);status=ai.every(i=>i.generationEvidence?.quality==='high'&&i.generationEvidence?.status==='passed')?'passed':'review';message='생성 근거가 부족한 AI 이미지는 생성 기준을 직접 확인해야 합니다.'}
    if(fresh&&['placementIntegrity','visualArtifacts','contentLegibility','generationStandard'].includes(key)){const saved=check.criteria?.[key];if(saved){status=saved.status;message=saved.message;evidence=saved.evidence}}

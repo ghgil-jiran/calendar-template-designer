@@ -69,3 +69,11 @@ test('reloaded object URLs retain approval identity for the same remote asset',(
 });
 
 
+
+test('portable original is decoded without looking in another origins local store',async()=>{
+ const previous=globalThis.ACDLAssetStore,remote=globalThis.ACDLTemplateRemotePersistence;
+ try{globalThis.ACDLAssetStore={originalDataUrl:async()=>{throw Error('local lookup must not occur')}};globalThis.ACDLTemplateRemotePersistence={canonicalAssetSource:()=> 'acdl-asset://11111111-1111-4111-8111-111111111111'};const p=fixture();p.book.elementsByPage.cover=[{id:'photo',type:'image-frame',width:10,height:10,image:{src:'blob:original',assetId:'11111111-1111-4111-8111-111111111111',originalPreserved:true}}];await api.probe(p,load);assert.equal(api.inspect(p).criteria.find(c=>c.key==='frameSuitability').status,'passed');assert.equal(api.inspect(p).criteria.find(c=>c.key==='effectiveResolution').status,'passed');}finally{globalThis.ACDLAssetStore=previous;globalThis.ACDLTemplateRemotePersistence=remote}
+});
+test('missing originals fail source access but are not reported as measured low DPI',async()=>{
+ const p=fixture();await api.probe(p,async()=>{throw Error('missing original')});const r=api.inspect(p);assert.equal(r.criteria.find(c=>c.key==='frameSuitability').status,'failed');assert.equal(r.criteria.find(c=>c.key==='effectiveResolution').status,'review');
+});

@@ -55,7 +55,7 @@
   const binary=atob(match[3]),bytes=new Uint8Array(binary.length);for(let index=0;index<binary.length;index++)bytes[index]=binary.charCodeAt(index);return {mimeType:match[1],bytes}
  }
  function assetUuid(digest){const chars=digest.slice(0,32).split('');chars[12]='4';chars[16]=['8','9','a','b'][parseInt(chars[16],16)%4];return `${chars.slice(0,8).join('')}-${chars.slice(8,12).join('')}-${chars.slice(12,16).join('')}-${chars.slice(16,20).join('')}-${chars.slice(20,32).join('')}`}
- async function hydratePrintImageOriginals(value){const project=value?.project;if(project?.template?.nativePrintAuthoring?.enabled!==true)return value;const store=root.ACDLAssetStore;if(!store?.originalDataUrl)return value;const visitElement=async element=>{if(element?.printSource?.approved===true&&element.printSource.assetId&&!element.printSource.dataUrl)element.printSource.dataUrl=await store.originalDataUrl(element.printSource.assetId);for(const child of element?.children||[])await visitElement(child)};for(const element of [...Object.values(project.template.masterElements||{}).flat(),...Object.values(project.book?.elementsByPage||{}).flat()])await visitElement(element);return value}
+ async function hydratePrintImageOriginals(value){const project=value?.project;if(project?.template?.nativePrintAuthoring?.enabled!==true)return value;const store=root.ACDLAssetStore;if(!store?.originalDataUrl)return value;const visitElement=async element=>{if(element?.printSource?.approved===true&&element.printSource.assetId&&!element.printSource.dataUrl){const id=element.printSource.assetId;if(element.image?.originalPreserved&&element.image.assetId===id)element.printSource.dataUrl=element.image.src;else if(/^[0-9a-f-]{36}$/i.test(id)&&root.ACDLTemplateRemotePersistence?.hydrateProjectData)element.printSource.dataUrl=(await root.ACDLTemplateRemotePersistence.hydrateProjectData({src:'acdl-asset://'+id})).src;else element.printSource.dataUrl=await store.originalDataUrl(id);}for(const child of element?.children||[])await visitElement(child)};for(const element of [...Object.values(project.template.masterElements||{}).flat(),...Object.values(project.book?.elementsByPage||{}).flat()])await visitElement(element);return value}
  async function externalizeAssets(value,{templateId,version}){
   const byDigest=new Map(),assets=[];
   function registerAsset({bytes,mimeType,packagePath,kind}){return sha256(bytes).then(digest=>{let asset=byDigest.get(digest);if(!asset){const id=assetUuid(digest);asset={id,kind,mimeType,packagePath,byteLength:bytes.byteLength,sha256:digest,storagePath:`${templateId}/${version}/assets/${id}`,bytes};byDigest.set(digest,asset);assets.push(asset)}return asset})}
@@ -64,7 +64,7 @@
    if(Array.isArray(item))return Promise.all(item.map(visit));
    if(item&&typeof item==='object'){const output={};for(const [key,child] of Object.entries(item))output[key]=await visit(child);return output}return item
   }
-  const project=await visit(await hydratePrintImageOriginals(value)),packageProject=project?.project,nativePrint=packageProject?.template?.resources?.nativePrint;
+  const project=await visit(await inlineBlobUrls(await hydratePrintImageOriginals(value))),packageProject=project?.project,nativePrint=packageProject?.template?.resources?.nativePrint;
   if(packageProject?.template?.nativePrintAuthoring?.enabled===true&&nativePrint?.fonts){
    const processed=new Map();
    for(const [role,font] of Object.entries(nativePrint.fonts)){
@@ -97,6 +97,7 @@
  function publicationSource(project){const copy=structuredClone(project);if(copy.template){if(copy.template.metadata)delete copy.template.metadata.name;if(copy.template.publishing){delete copy.template.publishing.lastReviewPackage;delete copy.template.publishing.lastPrintInspectionPackage;delete copy.template.publishing.packageId;}if(copy.template.thumbnail?.source!=='custom-upload')delete copy.template.thumbnail;delete copy.template.remoteId;delete copy.template.remoteStableKey;delete copy.template.remoteVersionNumber;}return deterministic(copy)}
  function publicationRevision(project,record={}){return Math.max(0,...[project?.template?.remoteVersionNumber,record.editorRevision,record.version].map(value=>{const number=Number(value);return Number.isInteger(number)&&number>0?number:0}))+1}
  async function publish({record={},projectData,name,productType,activate=true,confirm=true,identityField='lastReviewPackage'}){
+  if(root.ACDLTemplateRemotePersistence?.prepareImageOriginals)Object.assign(projectData,await root.ACDLTemplateRemotePersistence.prepareImageOriginals(projectData));
   root.ACDLPageObjectModel?.normalizeProject(projectData);
   root.ACDLSharedMiniCalendar?.normalizePosterProject(projectData);
   root.ACDLUserEditingPolicy?.normalizeProject(projectData);

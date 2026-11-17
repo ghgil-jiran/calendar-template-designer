@@ -7,11 +7,12 @@ const source = await readFile(new URL('../apps/designer-studio/template-remote-p
 
 const assetResolverSource=await readFile(new URL('../apps/designer-studio/project-asset-resolver.js',import.meta.url),'utf8');
 
-function runtime({ hostname = 'templates.example.com', fetch, accessToken = 'admin-jwt', localApiProxy = false, assetResolver = false } = {}) {
+function runtime({ hostname = 'templates.example.com', fetch, accessToken = 'admin-jwt', localApiProxy = false, assetResolver = false, assetStore } = {}) {
   const values = new Map();
   let blobSequence=0;class BrowserURL extends URL{}BrowserURL.createObjectURL=()=>`blob:template-asset-${++blobSequence}`;BrowserURL.revokeObjectURL=()=>{};
   const browserFetch=async(path,options)=>String(path).startsWith('/api/template-assets?content=')?{ok:true,status:200,blob:async()=>new Blob(['image'])}:fetch(path,options);
   const window = { location: { hostname }, ACDL_LOCAL_API_PROXY:localApiProxy, URL:BrowserURL, Image:class{naturalWidth=850;naturalHeight=588;decode(){return Promise.resolve()}}, sessionStorage: { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) }, ACDLAdminAuth: { accessToken: () => accessToken, signOut() {} }, fetch:browserFetch };
+  window.ACDLAssetStore=assetStore;window.crypto={randomUUID:()=> '99999999-9999-4999-8999-999999999999'};
   if(assetResolver)vm.runInNewContext(assetResolverSource,{window});
   vm.runInNewContext(source, { window, URL, console, structuredClone });
   return window.ACDLTemplateRemotePersistence;
@@ -254,4 +255,27 @@ test('archiving preserves stored asset markers and missing thumbnails without re
  const calls=[];const api=runtime({fetch:async(path,options)=>{calls.push({path,body:JSON.parse(options.body)});return {ok:true,status:200,json:async()=>({template:{id:'t1'},version:{id:'v1',projectData}})}}});
  await api.save({state:'archived',projectData},{verifyThumbnail:false});
  assert.equal(calls.length,1);assert.equal(calls[0].path,'/api/templates');assert.deepEqual(calls[0].body.projectData,projectData);
+});
+
+test('replacement originals are portable, deduplicated across front/back, and preserve independent crop frames',async()=>{
+ const original='data:image/png;base64,T1JJR0lOQUw=',preview='data:image/jpeg;base64,U01BTEw=',rawId='11111111-1111-4111-8111-111111111111',smallId='22222222-2222-4222-8222-222222222222',uploads=[];let reads=0;
+ const api=runtime({assetStore:{originalDataUrl:async()=>{reads++;return original}},fetch:async(path,opts)=>{const data=JSON.parse(opts.body);uploads.push(data.dataUrl);return {ok:true,status:201,json:async()=>({asset:{id:data.dataUrl===original?rawId:smallId}})}}});
+ const project={template:{},book:{school:{profile:{tree:{image:preview}}},elementsByPage:{front:[{id:'small',type:'image-frame',x:5,width:10,printSource:{assetId:'asset-local',approved:true},image:{assetId:'asset-local',src:preview,scale:2,offsetX:9}}],back:[{id:'large',type:'image-frame',x:8,width:57,image:{assetId:'asset-local',src:preview,fit:'contain'}}]}}};
+ const saved=await api.prepareProjectData(project),small=saved.book.elementsByPage.front[0],large=saved.book.elementsByPage.back[0];
+ assert.equal(reads,1);assert.equal(uploads.filter(s=>s===original).length,1);assert.equal(uploads.filter(s=>s===preview).length,1);
+ assert.equal(small.image.src,`acdl-asset://${rawId}`);assert.equal(large.image.src,small.image.src);assert.equal(small.image.assetId,rawId);assert.equal(small.printSource.assetId,rawId);assert.equal(small.printSource.approved,true);assert.equal(small.image.previewSrc,`acdl-asset://${smallId}`);
+ assert.equal(saved.book.school.profile.tree.image,small.image.src);assert.equal(small.image.scale,2);assert.equal(small.width,10);assert.equal(large.width,57);assert.equal(small.image.offsetX,9);assert.equal(project.book.elementsByPage.front[0].image.src,preview);
+ // A fresh origin has no local store; re-saving the portable source does not need it.
+ const cold=runtime({fetch:async()=>{throw Error('No upload required')}});assert.deepEqual(JSON.parse(JSON.stringify(await cold.prepareProjectData(saved))),JSON.parse(JSON.stringify(saved)));
+});
+
+test('missing legacy originals block saving before uploading a preview as the original',async()=>{
+ let uploads=0;const api=runtime({assetStore:{originalDataUrl:async()=>{throw Error('missing')}},fetch:async()=>{uploads++;throw Error('must not upload')}});
+ await assert.rejects(api.prepareProjectData({template:{},book:{elementsByPage:{back:[{type:'image-frame',image:{assetId:'asset-lost',src:'data:image/jpeg;base64,U01BTEw=',originalName:'spring.png'}}]}}}),e=>e.code==='IMAGE_ORIGINAL_MISSING'&&e.details.missingOriginals[0].name==='spring.png');assert.equal(uploads,0);
+});
+
+test('large original uploads use bounded chunks and reconstruct identical bytes',async()=>{
+ const raw=Buffer.alloc(3*1048576+13,137),data='data:image/png;base64,'+raw.toString('base64'),chunks=[];let completion;
+ const api=runtime({fetch:async(path,options)=>{assert.ok(Buffer.byteLength(options.body)<1500000);const b=JSON.parse(options.body);if(b.operation==='original-chunk'){chunks[b.index]=Buffer.from(b.data,'base64');return {ok:true,status:200,json:async()=>({index:b.index})}}completion=b;return {ok:true,status:201,json:async()=>({asset:{id:'11111111-1111-4111-8111-111111111111'}})}}});
+ const saved=await api.prepareProjectData({template:{},book:{image:data}});assert.deepEqual(Buffer.concat(chunks),raw);assert.equal(completion.byteSize,raw.length);assert.equal(completion.operation,'original-complete');assert.match(saved.book.image,/^acdl-asset:\/\//);
 });
