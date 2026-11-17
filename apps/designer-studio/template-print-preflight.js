@@ -17,6 +17,17 @@
  // Legacy inlineContacts marks the built-in school.contacts text layout, already rendered by the shared contact renderer.
  // Catalog it only for that binding and boolean values; unrelated/unknown properties must still warn.
  const CONTACT_TEXT_STYLE_KEYS=new Set(['inlineContacts']);
+ // Authored by Sample A and consumed by the shared authoring renderer used for
+ // editor, customer pages and worker DOM printing. Keep these scoped: a text
+ // decoration on an image or a physical radius on another shape is unsupported.
+ function supportedAuthoredStyle(element,key,value){
+  if(key==='cornerRadiusMm')return element.type==='shape'&&element.shapeType==='rounded'&&Number.isFinite(value)&&value>0;
+  if(element.type!=='text')return false;
+  if(key==='textDecorationColor')return typeof value==='string'&&/^(#[0-9a-f]{3,4}|#[0-9a-f]{6}|#[0-9a-f]{8}|currentColor)$/i.test(value);
+  if(key==='textDecorationThickness')return Number.isFinite(value)&&value>0;
+  if(key==='textUnderlineOffset')return Number.isFinite(value);
+  return false;
+ }
  const CALENDAR_TYPES=new Set(['calendar','calendar-grid']);
  const CALENDAR_STYLE_KEYS=new Set(['design','presetId','gridStyle','eventStyle','sampleFamily','weekdayStyle','calendarLayout','calendarPreset','gridBackground','monthTitleSize','monthTitleAlign','monthTitleStyle','rangeEventStyle','calendarOverrides','showAdjacentMonths','calendarFontFamily','monthTitleFontFamily','eventMaxVisiblePerDay','authoredRegionFramePct','authoredRegionHeightPct']);
  const issue=(severity,code,message,path='')=>({severity,code,message,path});
@@ -116,7 +127,7 @@
     elementTypes.set(type,(elementTypes.get(type)||0)+1);capabilities.add(`element.${type}`);
     if(!ELEMENT_TYPES.has(type))problems.push(issue('error','ELEMENT_TYPE_UNSUPPORTED',`공통 Runtime 지원 목록에 없는 개체입니다: ${type}`,`${path}.type`));
     const binding=text(element?.binding||element?.dataBinding||element?.bindingPath);if(binding){bindings.add(binding);capabilities.add(`binding.${binding.split('.')[0]}`)}
-    styleEntries(element).forEach(([key,value])=>{styleKeys.set(key,(styleKeys.get(key)||0)+1);capabilities.add(`style.${key}`);if(!STYLE_KEYS.has(key)&&!WIDGET_STYLE_KEYS[type]?.has(key)&&!(type==='text'&&element.binding==='school.contacts'&&CONTACT_TEXT_STYLE_KEYS.has(key)&&typeof value==='boolean')&&!(CALENDAR_TYPES.has(type)&&CALENDAR_STYLE_KEYS.has(key)))problems.push(issue('warning','STYLE_NOT_CATALOGED',`아직 공식 스타일 목록에 등록되지 않은 속성입니다: ${key}`,`${path}.style.${key}`))});
+    styleEntries(element).forEach(([key,value])=>{styleKeys.set(key,(styleKeys.get(key)||0)+1);capabilities.add(`style.${key}`);if(!STYLE_KEYS.has(key)&&!WIDGET_STYLE_KEYS[type]?.has(key)&&!supportedAuthoredStyle(element,key,value)&&!(type==='text'&&element.binding==='school.contacts'&&CONTACT_TEXT_STYLE_KEYS.has(key)&&typeof value==='boolean')&&!(CALENDAR_TYPES.has(type)&&CALENDAR_STYLE_KEYS.has(key)))problems.push(issue('warning','STYLE_NOT_CATALOGED',`아직 공식 스타일 목록에 등록되지 않은 속성입니다: ${key}`,`${path}.style.${key}`))});
     if(['image','image-frame','frame'].includes(type)){const source=imageSource(element);if(source)assets.add(source);else if(isRequiredImage(element)&&!globalThis.ACDLProductionEditorAdapter?.isEmptyPlaceholder(element))problems.push(issue('error','REQUIRED_IMAGE_MISSING','필수 이미지 또는 AI 배경 자산이 없습니다.',path))}
    });
   });

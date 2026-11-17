@@ -20,6 +20,22 @@ function project(overrides={}){
  };
 }
 
+test('physical rounded shapes and text underline styles are cataloged only where rendered',()=>{
+ const p=project();p.book.elementsByPage.cover=[
+  {id:'slogan',type:'shape',shapeType:'rounded',style:{cornerRadiusMm:4.95}},
+  {id:'motto',type:'shape',shapeType:'rounded',style:{cornerRadiusMm:3}},
+  ...['tree','flower'].map(id=>({id,type:'text',style:{textDecoration:'underline',textDecorationColor:'#c46b62',textDecorationThickness:3,textUnderlineOffset:2}}))
+ ];
+ assert.equal(analyze(p).issues.filter(i=>i.code==='STYLE_NOT_CATALOGED').length,0);
+ // Do not silence unsupported elements, invalid values, or future unknown keys.
+ p.book.elementsByPage.cover[0].shapeType='rect';
+ p.book.elementsByPage.cover[1].style.cornerRadiusMm=-3;
+ p.book.elementsByPage.cover[2].type='image';
+ p.book.elementsByPage.cover[3].style.textDecorationThickness='thick';
+ p.book.elementsByPage.cover[3].style.unknownUnderlineToken=true;
+ assert.equal(analyze(p).issues.filter(i=>i.code==='STYLE_NOT_CATALOGED').length,7);
+});
+
 test('supported page, element, style, binding and asset capabilities are inventoried',()=>{
  const report=analyze(project());
  assert.equal(report.status,'passed');

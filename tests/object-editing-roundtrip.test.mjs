@@ -71,8 +71,21 @@ test('final canvas renderer applies saved rotation to text, photos and widgets w
  for(const [id,angle] of [['t',15],['i',25],['w',35]])assert.equal(nodes.find(n=>n.dataset.elementId===id).style.transform,`rotate(${angle}deg)`);
  assert.equal(nodes.find(n=>n.dataset.elementId==='s').style.transform,undefined);
  const gs=src.indexOf('function graphicMarkup('),ge=src.indexOf('\nconst v28RenderFreeElements',gs);vm.runInContext(src.slice(gs,ge),c);
+ c.project.productType={pageSize:{width:260,height:180}};
  let stroke;c.shapeSVG=(_type,_fill,_color,width)=>{stroke=width;return '<svg/>'};c.graphicMarkup({type:'shape',style:{strokeWidth:0}});assert.equal(stroke,0);
  assert.match(c.graphicMarkup({type:'image-frame',image:{src:'x'},style:{strokeWidth:0}}),/--frame-border-width:0px/);
+});
+test('cataloged underline and rounded-corner values reach the authoring renderer after serialization',()=>{
+ const c=context();c.project.productType={pageSize:{width:260,height:180}};
+ const textSource=read('features/object-editing.js'),ts=textSource.indexOf('function applyTextElementStyles('),te=textSource.indexOf('\nfunction ',ts+1);
+ vm.runInContext(textSource.slice(ts,te),c);
+ const view={type:'text',style:{fontSize:12,textDecoration:'underline',textDecorationColor:'#c46b62',textDecorationThickness:3,textUnderlineOffset:2}};
+ c.project.book.elementsByPage.p=[view];const saved=c.ACDLPersistenceProject.serialize(c.project);c.project=c.ACDLPersistenceProject.deserialize(saved);
+ const node={style:{setProperty(){}}};c.applyTextElementStyles(node,c.project.book.elementsByPage.p[0]);
+ assert.equal(node.style.textDecorationColor,'#c46b62');assert.equal(node.style.textDecorationThickness,'3px');assert.equal(node.style.textUnderlineOffset,'2px');
+ const src=read('features/studio-runtime-core.js'),ss=src.indexOf('function shapeSVG('),se=src.indexOf('\nfunction ',ss+1);vm.runInContext(src.slice(ss,se),c);
+ const svg=c.shapeSVG('rounded','#fff','#000',0,null,{radiusMm:3,widthMm:60,heightMm:20});
+ assert.match(svg,/rx="5" ry="15"/);assert.match(svg,/vector-effect="non-scaling-stroke"/);
 });
 test('shared schedule fitting respects manual type and the configured minimum without losing column choices',()=>{
  const c=context(),values={};const list={style:{setProperty:(key,value)=>{values[key]=value}},querySelectorAll:()=>Array(24),clientHeight:60,clientWidth:200,get scrollHeight(){return Number.parseFloat(values['--event-list-font-size']||'12')*10},scrollWidth:100};
