@@ -26,3 +26,9 @@ test('tampering and unpinned versions fail; unknown types are explicit unresolve
  result.legacySnapshot.book.elementsByPage.march[0].unknownOption.keep=false;
  assert.throws(()=>assertCandidateUnchanged(result),/changed/);
 });
+test('source identity survives jsonb-style object key reordering while array order remains significant',()=>{
+ const result=createMigrationCandidate(document(),provenance);
+ const reorder=value=>Array.isArray(value)?value.map(reorder):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).reverse().map(k=>[k,reorder(value[k])])):value;
+ result.legacySnapshot=reorder(result.legacySnapshot);assertCandidateUnchanged(result);
+ result.legacySnapshot.book.pageInstances.reverse();assert.throws(()=>assertCandidateUnchanged(result),/changed/);
+});

@@ -1,6 +1,6 @@
 # V2 매핑 초안 저장 경계
 
-상태: 검토용 계약. 실제 DB·API·인증 연결 및 SQL 적용은 아직 하지 않았다.
+상태: 검토용 계약. 기존 Supabase 프로젝트의 V2 전용 테이블 사용으로 결정(2026-11-17). 실제 DB·API·인증 연결 및 SQL 적용은 아직 하지 않았다.
 
 ## 독립 자원
 
@@ -23,6 +23,18 @@
 - 새 서버 인증과 쓰기 경계 확인. 후보에는 전체 원본이 있으므로 공개 API나 공개 저장소에 올리지 않는다.
 - 코드 테스트의 메모리 저장 검증은 Supabase 영속 저장 검증을 대신하지 않는다.
 - 기존 환경변수를 새 프로젝트에 복사하지 않는다. V2 전용 연결 변수와 인증 경로가 준비된 뒤 설정한다.
+
+## 준비된 적용 파일
+
+- 생성: `supabase/migrations/202611170001_calendar_v2_migration_drafts.sql`
+- 읽기 전용 확인: `supabase/checks/calendar_v2_migration_drafts.sql`
+- 이번 생성 SQL 하나만 SQL Editor에서 실행한다. 저장소의 과거 미적용 migration을 일괄 실행하지 않는다.
+- 원본 테이블·기존 사용자·Storage·정책은 변경하지 않는다. 새 테이블의 RLS와 권한만 설정한다.
+- 서버에만 SELECT/INSERT/UPDATE를 허용하고 삭제 권한은 부여하지 않는다. 브라우저 직접 접근은 허용하지 않는다.
+- 같은 service_role 키는 프로젝트 전체 권한을 가지므로 테이블 분리는 별도 DB와 같은 격리가 아니다. `server-transport.mjs`의 자원 허용 목록과 새 인증 API로 쓰기 범위를 제한한다. 아직 API에 연결하지 않았다.
+- V2 연결 변수는 `CALENDAR_V2_SUPABASE_URL`, `CALENDAR_V2_SUPABASE_SERVICE_ROLE_KEY`. 브라우저 공개 접두사는 사용하지 않으며, 기존 변수로 대체하지 않는다.
+- PostgreSQL jsonb의 키 순서 변경에 영향받지 않도록 원본 식별 해시는 객체 키를 정렬하고 배열 순서는 유지하여 계산한다.
+- 아직 실제 PostgreSQL에서 실행 검증하지 않았다. 코드 검사와 DB 적용 결과는 구분한다.
 
 ## 변환 단계
 

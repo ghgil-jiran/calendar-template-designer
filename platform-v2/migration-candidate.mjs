@@ -1,7 +1,10 @@
 import {createHash} from 'node:crypto';
 import {inspectLegacy} from './inspect-legacy.mjs';
 
-const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
+// jsonb reorders object keys; identity must survive a database round trip.
+const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'
+  ?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
+const hash=value=>createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex');
 const escapePointer=value=>String(value).replaceAll('~','~0').replaceAll('/','~1');
 const kinds=new Set(['text','image','image-frame','shape','vector','semantic-object','year-calendar','month-date-strip','mini-calendar','mini-calendar-prev','mini-calendar-next','monthly-schedule','monthly-quote','event-list','memo','calendar','calendar-grid']);
 

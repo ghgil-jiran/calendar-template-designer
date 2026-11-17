@@ -15,3 +15,6 @@
 
 ## 2026-11-17 V2 매핑 후보와 저장 경계
 두 V2 프로젝트의 3cc109b Production 배포 READY 확인(설정 분리이며 기능 전환 완료 아님). 원본 무변형 migration-candidate, 암묵 생성/미확정 역할 검토, 인쇄·게시 차단, 별도 자원 calendar_v2_migration_drafts의 revision 충돌 검사 추가. 기존 앱/API/DB 연결 미변경. 관련 11개 검사와 style 통과. 실제 Supabase 테스트 아님. 샘플 A v3 검토 자료 28면/138개/배경·장식17/역할검토40. 현재 초안과 원본 자산 미확인. V2 배포는 GitHub 자동 연동으로 확인. 다음은 실저장 DB 격리 위치 확정과 실제 최신 원본 확보.
+
+## 2026-11-17 기존 Supabase 내 V2 테이블 결정
+사용자 결정: 별도 프로젝트 대신 기존 Supabase의 V2 전용 테이블. 매핑 초안 1개 테이블 생성 migration과 read-only 확인 SQL 준비(미실행). 기존 테이블/Storage 변경 없음. 서버 전용 V2 변수 및 자원 allowlist transport 추가(기존 API 미연결). DB jsonb 키 순서에 안전한 원본 해시로 수정. 관련 14개 검사/style 통과, PostgreSQL 실실행 미검증. 다음 사용자 수동: 지정 SQL 하나만 SQL Editor에서 실행, 검증 결과 확인 후 인증 경로와 V2 변수 연결. 과거 migration 일괄 실행 금지.
