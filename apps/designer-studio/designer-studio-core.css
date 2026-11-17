@@ -465,6 +465,6 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
 .page.editor-bleed-visible{outline:1px dashed #df3535;outline-offset:-1px}
 .page.editor-bleed-visible::before{border-color:#3b82f6;background:transparent}
 .page.editor-bleed-visible .free-element[data-full-bleed-background="true"]{left:calc(-1 * var(--export-bleed-x-pct))!important;top:calc(-1 * var(--export-bleed-y-pct))!important;width:calc(100% + 2 * var(--export-bleed-x-pct))!important;height:calc(100% + 2 * var(--export-bleed-y-pct))!important}
-.page.desk .binding{top:calc(var(--binding-center-y,12.5%) - var(--binding-hole-height,2.2222%) / 2);height:var(--binding-hole-height,2.2222%)}
+
 
 .page.editor-bleed-visible .ai-background-layer{overflow:visible}

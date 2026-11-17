@@ -859,3 +859,21 @@ img {max-width: 100%;}
 @media(max-width:650px){.school-symbol-field-group{grid-template-columns:1fr;}.school-symbol-field-group .school-symbol-image-row{justify-content:flex-start;}}
 
 .editor-template-title .editor-template-trigger{height:30px;border:1px solid hsl(var(--border));border-radius:6px;}
+
+/* Review corrections: independent page heading and compact dialog rhythm. */
+.editor-properties .editor-page-heading{height:var(--editor-heading-height);min-height:var(--editor-heading-height);box-sizing:border-box;display:flex;align-items:center;padding:0 14px;border-bottom:1px solid hsl(var(--border));background:hsl(var(--surface));}
+.editor-selected-object-name{padding:0 14px;margin:12px 0 8px;}
+.editor-information-dialog .field>input{margin-top:3px;}
+.editor-information-dialog .field-heading{line-height:1.25;min-height:18px;}
+.editor-information-dialog .field-heading label{margin:0;}
+.editor-information-dialog .form-section{padding:14px;margin:0 0 12px;}
+.editor-information-dialog .form-section+.form-section{margin-top:0;}
+.editor-information-dialog .form-section h2,.editor-information-dialog .schedule-review>summary{font-size:14px;line-height:1.4;margin:0 0 8px;font-weight:600;}
+.editor-information-dialog .form-section>p{margin:6px 0;font-size:12px;}
+.editor-information-dialog .schedule-input-actions{gap:12px;margin:10px 0;}
+.editor-information-dialog .schedule-input-actions>.schedule-method{padding:12px;}
+.editor-information-dialog .schedule-input-actions p{margin:7px 0 0;}
+.editor-information-dialog .schedule-review .schedule-view-switch,.editor-information-dialog .schedule-months{margin:8px 0;}
+.information-status.empty{color:hsl(var(--muted-foreground));background:hsl(var(--border)/.6);}
+
+.editor-information-dialog .schedule-input-actions .schedule-method-button{min-height:34px;padding:8px;}
