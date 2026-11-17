@@ -9,7 +9,7 @@
   'mini-calendar':new Set(['titleStyle','dateSize','dayGridStyle','preset','monthNumberSize','monthEnglishSize','monthNumberFontFamily','monthEnglishFontFamily','dateFontFamily','titleGap','rowGap','dateWeight','ruleWidth','ruleGap','bottomRule']),
   'mini-calendar-prev':new Set(['titleStyle','dateSize','dayGridStyle','preset','monthNumberSize','monthEnglishSize','monthNumberFontFamily','monthEnglishFontFamily','dateFontFamily','titleGap','rowGap','dateWeight','ruleWidth','ruleGap','bottomRule']),
   'mini-calendar-next':new Set(['titleStyle','dateSize','dayGridStyle','preset','monthNumberSize','monthEnglishSize','monthNumberFontFamily','monthEnglishFontFamily','dateFontFamily','titleGap','rowGap','dateWeight','ruleWidth','ruleGap','bottomRule']),
-  'year-calendar':new Set(['monthNumberSize','monthEnglishSize','monthNumberFontFamily','columnGap','rowGap','dateSize','dayGridStyle','monthBorderWidth','containerBorderWidth','containerBorderColor','showAdjacentMonths']),
+  'year-calendar':new Set(['monthNumberSize','monthEnglishSize','monthNumberFontFamily','monthEnglishFontFamily','columnGap','rowGap','dateSize','dayGridStyle','monthBorderWidth','containerBorderWidth','containerBorderColor','showAdjacentMonths']),
   'event-list':new Set(['titleBackground','contentBackground','containerBackground','containerBorderRadius','containerBorderWidth','containerBorderColor','titlePosition']),
   'monthly-schedule':new Set(['titleBackground','contentBackground','containerBackground','containerBorderRadius','containerBorderWidth','containerBorderColor','titlePosition']),
   memo:new Set(['dateScale','titleScale','stripeColor'])

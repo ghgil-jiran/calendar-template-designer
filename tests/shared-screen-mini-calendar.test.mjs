@@ -30,3 +30,11 @@ test('shared annual calendar preserves open and grouped layouts with academic-ye
  widget.layoutType='vertical-three-month-groups';const grouped=api.renderAnnualCalendarMarkup(api.resolveAnnualCalendar(widget,{calendarYear:2027}),widget);
  assert.equal((grouped.match(/class="year-calendar-group"/g)||[]).length,4);
 });
+
+test('annual English month font is independent from number and date fonts',()=>{
+ const widget={startMonth:3,monthCount:12,columns:4,monthLabelStyle:'number-en',style:{fontFamily:'Arial',monthNumberFontFamily:'Georgia',monthEnglishFontFamily:'Times New Roman',monthNumberSize:23,monthEnglishSize:11}};
+ const html=mini.renderAnnualCalendarMarkup(mini.resolveAnnualCalendar(widget,{calendarYear:2027}),widget);
+ assert.match(html,/font-family:Times New Roman;font-size:11px/);
+ assert.match(html,/font-family:Georgia;font-size:23px/);
+ assert.match(html,/font-family:Arial/);
+});
