@@ -59,7 +59,9 @@ function ProjectCover({id,revision}:{id:string;revision:number}){
  const pages=project?.book.pageInstances;
  const page=pages?.find((entry:{role?:string})=>entry.role==='cover-front')||pages?.[0];
  const cover=saved?.template.coverUrl||saved?.template.pages[0]?.imageUrl;
+ const previewWidth=project?Math.min(100,100*Number(project.productType.pageSize.width)/Number(project.productType.pageSize.height)*180/260):100;
+ const previewSize={width:`${previewWidth}%`};
  return <div className="project-cover">
-   {project&&page?<NativePreview project={project} pageId={page.id} compact/>:cover?<img src={cover} alt="저장한 달력 표지"/>:<p className="muted">표지 미리보기</p>}
+   {project&&page?<div className="project-cover-page" style={previewSize}><NativePreview project={project} pageId={page.id} compact showAssetWarning={false}/></div>:cover?<img src={cover} alt="저장한 달력 표지"/>:<p className="muted">표지 미리보기</p>}
  </div>;
 }

@@ -951,8 +951,9 @@ img {max-width: 100%;}
 .project-page-heading {justify-content:space-between;margin-bottom:20px;}
 .project-page-heading h1 {margin:0;font-size:clamp(20px, 2vw, 26px);}
 .project-header-actions {margin-left:auto;justify-content:flex-end;}
-.project-cover {display:grid;grid-template-columns:minmax(0,1fr);align-items:center;min-height:96px;background:hsl(var(--surface));border-radius:8px;overflow:hidden;}
-.project-cover img {display:block;width:100%;height:auto;}
+.project-cover {display:grid;grid-template:minmax(0,1fr) / minmax(0,1fr);place-items:center;aspect-ratio:260/180;background:hsl(var(--surface));border-radius:8px;overflow:hidden;}
+.project-cover-page {min-width:0;}
+.project-cover img {display:block;width:100%;height:100%;min-height:0;object-fit:contain;}
 .project-cover > p {text-align:center;}
 .project-card-heading {margin-top:14px;flex-wrap:nowrap;}
 .project-card-heading h2 {min-width:0;margin:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:var(--project-card-detail-size);}
