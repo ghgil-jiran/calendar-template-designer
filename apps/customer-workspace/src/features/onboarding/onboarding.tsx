@@ -30,11 +30,12 @@ import {prepareSnapshot,writeSnapshot,readSnapshot,hydrateSnapshot,type ProjectD
 
 import {draftSignature} from '@/lib/projects/signature';
 
-const heroPhotos: Record<string, string> = {
-  '5c3eee14-3b66-4990-894d-d95d56d6d0f3': '/images/hero/flower-2027.webp',
-  '00ccd75a-3223-40dc-a942-480913e5394b': '/images/hero/landscape-2027.webp',
-  '5f8d091b-4072-432b-88a6-b528052c5dba': '/images/hero/fabric-2027.webp',
-};
+const heroPhotos = [
+  {src: '/images/hero/sample-a-2027.webp', name: '플라워 사진형'},
+  {src: '/images/hero/sample-b-2027.webp', name: '사계절 산수 사진형'},
+  {src: '/images/hero/sample-c-2027.webp', name: '사계절 일러스트형'},
+  {src: '/images/hero/sample-d-2027.webp', name: '학교 전경 표지 프레임형'},
+];
 
 type Step = 'editor' | 'schedule' | 'photos' | 'catalog' | 'detail' | 'guide' | 'school' | 'input-review' | 'projects';
 
@@ -82,13 +83,7 @@ export function Onboarding() {
   const [playing, setPlaying] = useState(true);
   const [heroIndex, setHeroIndex] = useState(0);
   const [heroHover, setHeroHover] = useState(false);
-  const heroTemplates = useMemo(() => {
-    const templates = catalog?.templates || [];
-    const prepared = templates.filter(template => heroPhotos[template.id]);
-    return prepared.length ? prepared : templates;
-  }, [catalog]);
-  const heroTemplate = heroTemplates[heroIndex % (heroTemplates.length || 1)];
-  const heroPhoto = heroTemplate && heroPhotos[heroTemplate.id];
+  const heroPhoto = heroPhotos[heroIndex];
   const previewRef = useRef<HTMLDialogElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const started = useRef(false);
@@ -140,12 +135,12 @@ export function Onboarding() {
     return () => media.removeEventListener('change', sync);
   }, []);
   useEffect(() => {
-    if (!playing || heroHover || step !== 'catalog' || heroTemplates.length < 2) return;
+    if (!playing || heroHover || step !== 'catalog' || heroPhotos.length < 2) return;
     const timer = window.setInterval(() => {
-      if (!document.hidden) setHeroIndex(index => (index + 1) % heroTemplates.length);
+      if (!document.hidden) setHeroIndex(index => (index + 1) % heroPhotos.length);
     }, 5500);
     return () => window.clearInterval(timer);
-  }, [playing, heroHover, step, heroTemplates]);
+  }, [playing, heroHover, step]);
 
   async function choose(template: TemplateCard) {
     if(saving)return;
@@ -225,9 +220,9 @@ export function Onboarding() {
       {appFailure && <Panel className="state-panel"><h1>목록을 다시 불러올게요</h1><p role="alert">{failure}</p><Button variant="primary" onClick={() => setRequest(value => value + 1)}>다시 시도하기</Button></Panel>}
       {!appLoading && !appFailure && catalog && step === 'catalog' && <>
         <section className="hero catalog-hero"><div><span className="badge">2027학년도 · 우리 학교 맞춤 달력</span><h1 ref={headingRef} tabIndex={-1}>디자인은 골라주세요.<br /><em>우리 학교 달력</em>으로<br />완성해 드려요.</h1><p className="muted hero-copy">학교 정보와 학사일정, 사진을 넣으면 돼요.<br />완성된 페이지를 확인하고 주문하세요.</p><ol className="journey"><li><span>1</span>디자인 선택</li><li><span>2</span>학교 자료 입력</li><li><span>3</span>확인 후 주문</li></ol></div>
-          {heroTemplate && <div className={`hero-showcase${heroPhoto ? ' hero-photo' : ''}`} tabIndex={0} aria-label="달력 디자인 미리보기" onMouseEnter={() => setHeroHover(true)} onMouseLeave={() => setHeroHover(false)} onFocusCapture={() => setHeroHover(true)} onBlurCapture={event => {if (!event.currentTarget.contains(event.relatedTarget)) setHeroHover(false);}}>
-            <div className="hero-art" key={heroTemplate.id}>{heroPhoto ? <img src={heroPhoto} alt={`${heroTemplate.name} · 책상 위 탁상달력 연출 이미지`} width={1536} height={1024} fetchPriority="high" /> : <><PreviewImage eager url={heroTemplate.coverUrl} label={heroTemplate.name} /><PreviewImage className="hero-interior" url={heroTemplate.pages[(heroTemplate.representativePages[1]||1)-1]?.imageUrl} label="대표 페이지" /></>}</div>
-          </div>}
+          <div className="hero-showcase hero-photo" tabIndex={0} aria-label="달력 디자인 미리보기" onMouseEnter={() => setHeroHover(true)} onMouseLeave={() => setHeroHover(false)} onFocusCapture={() => setHeroHover(true)} onBlurCapture={event => {if (!event.currentTarget.contains(event.relatedTarget)) setHeroHover(false);}}>
+            <div className="hero-art" key={heroPhoto.src}><img src={heroPhoto.src} alt={`${heroPhoto.name} · 책상 위 탁상달력 연출 이미지`} width={1374} height={1145} fetchPriority="high" /></div>
+          </div>
         </section>
         <section aria-labelledby="catalog-title"><div className="catalog-heading"><div><h2 id="catalog-title">마음에 드는 디자인을 골라보세요</h2><p className="muted">탁상형·벽보형 달력의 전체 구성을 먼저 살펴볼 수 있어요.</p></div><span className="badge">{catalog.templates.length}종 {catalog.mode==='review'?'선택 구성 검토':'템플릿'}</span></div>
           {!catalog.templates.length ? <Panel><h3>공개된 디자인을 준비 중이에요</h3><p className="muted">준비가 끝나면 이곳에서 고를 수 있어요.</p></Panel> : <><div className="catalog-filters" role="group" aria-label="달력 유형">{([["desk","탁상형 달력"],["poster","벽보형 달력"],["all","전체 달력"]] as const).map(([key,label])=><Button key={key} aria-pressed={kindFilter===key} onClick={()=>setKindFilter(key)}>{label}</Button>)}</div>{!catalog.templates.some(t=>kindFilter==='all'||(t.calendarKind||'desk')===kindFilter)&&<Panel>선택한 유형의 디자인을 준비 중이에요.</Panel>}<div className="catalog-grid">{catalog.templates.filter(t=>kindFilter==='all'||(t.calendarKind||'desk')===kindFilter).map(template => <article className="template-card" key={template.id}>
