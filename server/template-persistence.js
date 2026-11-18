@@ -26,7 +26,7 @@ async function storageRequest(path,options={}){
   const {url,key}=supabaseConfig();
   const response=await fetch(`${url}/storage/v1/${path}`,{...options,headers:{apikey:key,Authorization:`Bearer ${key}`,...options.headers}});
   const text=await response.text(),body=text?JSON.parse(text):null;
-  if(!response.ok){const error=new Error(body?.message||'Supabase storage request failed');error.statusCode=502;error.code='SUPABASE_STORAGE_FAILED';error.storageStatus=response.status;throw error}
+  if(!response.ok){const error=new Error(body?.message||'Supabase storage request failed');error.statusCode=502;error.code='SUPABASE_STORAGE_FAILED';error.storageStatus=response.status;console.error('[template-persistence] storage request rejected',{operation:options.method||'GET',stage:path.split('/')[0],status:response.status,message:body?.message||body?.error});throw error}
   return body;
 }
 
@@ -75,14 +75,23 @@ export async function storeTemplateAsset(dataUrl){
 }
 
 // Original images use bounded requests; final assembly verifies completeness and byte size.
+const ORIGINAL_UPLOAD_BUCKET='template-original-uploads';
+let originalUploadBucketReady;
+async function ensureOriginalUploadBucket(){
+ if(!originalUploadBucketReady)originalUploadBucketReady=(async()=>{
+  try{await storageRequest(`bucket/${ORIGINAL_UPLOAD_BUCKET}`);return}catch(error){if(![400,404].includes(error.storageStatus))throw error}
+  try{await storageRequest('bucket',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:ORIGINAL_UPLOAD_BUCKET,name:ORIGINAL_UPLOAD_BUCKET,public:false,file_size_limit:1048576,allowed_mime_types:['application/octet-stream']})})}catch(error){if(![400,409].includes(error.storageStatus))throw error;await storageRequest(`bucket/${ORIGINAL_UPLOAD_BUCKET}`)}
+ })().catch(error=>{originalUploadBucketReady=null;throw error});
+ return originalUploadBucketReady;
+}
 const ORIGINAL_UPLOAD_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function originalUpload(body){if(!ORIGINAL_UPLOAD_ID.test(body.uploadId||'')||!Number.isInteger(body.total)||body.total<1||body.total>26)throw Object.assign(Error('Invalid original image upload'),{statusCode:400,code:'INVALID_ORIGINAL_UPLOAD'});return `original-uploads/${body.uploadId}`;}
-export async function uploadTemplateAssetChunk(body,{write=(path,bytes)=>storageRequest(`object/${ASSET_BUCKET}/${path}`,{method:'POST',headers:{'Content-Type':'application/octet-stream','x-upsert':'true'},body:bytes})}={}){
+export async function uploadTemplateAssetChunk(body,{write=async(path,bytes)=>{await ensureOriginalUploadBucket();return storageRequest(`object/${ORIGINAL_UPLOAD_BUCKET}/${path}`,{method:'POST',headers:{'Content-Type':'application/octet-stream','x-upsert':'true'},body:bytes})}}={}){
  const prefix=originalUpload(body);if(!Number.isInteger(body.index)||body.index<0||body.index>=body.total||typeof body.data!=='string'||body.data.length>1398104||!/^[A-Za-z0-9+/]+={0,2}$/.test(body.data))throw Object.assign(Error('Invalid original image chunk'),{statusCode:400,code:'INVALID_ORIGINAL_CHUNK'});
  const bytes=Buffer.from(body.data,'base64');if(!bytes.length||bytes.length>1048576)throw Object.assign(Error('Original image chunk too large'),{statusCode:413,code:'ORIGINAL_CHUNK_TOO_LARGE'});
  await write(`${prefix}/${body.index}`,bytes);return {index:body.index};
 }
-export async function completeTemplateAssetUpload(body,{read=async path=>(await storageBinaryRequest(`object/${ASSET_BUCKET}/${path}`)).bytes,store=storeTemplateAsset,remove=paths=>deleteStorageObjects(ASSET_BUCKET,paths)}={}){
+export async function completeTemplateAssetUpload(body,{read=async path=>(await storageBinaryRequest(`object/${ORIGINAL_UPLOAD_BUCKET}/${path}`)).bytes,store=storeTemplateAsset,remove=paths=>deleteStorageObjects(ORIGINAL_UPLOAD_BUCKET,paths)}={}){
  const prefix=originalUpload(body);if(!ALLOWED_IMAGE_TYPES.has(body.mimeType)||!Number.isSafeInteger(body.byteSize)||body.byteSize<1||body.byteSize>25*1048576)throw Object.assign(Error('Invalid original image metadata'),{statusCode:400,code:'INVALID_ORIGINAL_UPLOAD'});
  const paths=Array.from({length:body.total},(_,i)=>`${prefix}/${i}`),chunks=[];
  for(const path of paths){const bytes=await read(path);if(!bytes.length||bytes.length>1048576)throw Object.assign(Error('Invalid stored original chunk'),{statusCode:400,code:'INVALID_ORIGINAL_CHUNK'});chunks.push(bytes)}
