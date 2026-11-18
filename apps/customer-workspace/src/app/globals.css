@@ -929,5 +929,3 @@ img {max-width: 100%;}
 .production-guide-bleed{stroke:#3b82f6;}
 @media print{.production-guides,.production-guide-paper{display:none!important;}}
 
-.production-guides .production-guide-binding-zone{fill:rgba(217,119,6,.035);stroke:#b7791f;}
-.production-guide-legend .guide-binding::before{color:#b7791f;}
