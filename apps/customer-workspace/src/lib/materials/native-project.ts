@@ -1,3 +1,4 @@
+import {templateCalendarDisplay,resolveCalendarDisplay} from './calendar-display.ts';
 import {schoolInformationFields,normalizeSchoolVisibility} from '../api/school-visibility.ts';
 import '../../../../designer-studio/shared-page-object-model.js';
 import '../../../../designer-studio/persistence-project.js';
@@ -76,7 +77,7 @@ export function applyMaterials(source:NativeProject,fields:SchoolField[],school:
   const path=`school.profile.${key}`,ids=new Set(all.filter(e=>e.bindingEnabled!==false&&(imageBinding(e)===path||e.binding?.startsWith(path+'.'))).map(e=>e.id));
   for(const e of all)if(e.bindingEnabled!==false&&(imageBinding(e)===path||e.binding?.startsWith(path+'.')||ids.has(e.metadata?.parentObjectId)))e.visible=false;
  }
- if(school.calendarDisplay)project.settings.calendarData={...project.settings.calendarData,...school.calendarDisplay};
+ project.settings.calendarData={...project.settings.calendarData,...resolveCalendarDisplay(templateCalendarDisplay(source),school.calendarDisplay)};
  if(school.omitEmptyContacts){for(const field of fields.filter(f=>f.binding?.match(/^school\.contacts\.\d+\.phone$/))){const row=project.book.school.contacts?.[Number(field.binding!.split('.')[2])];if(row&&!row.phone)row.value='';}const contacts=project.book.school?.contacts||[];if(!contacts.some((r:NativeProject)=>r.phone||r.value))project.book.school.phone='';if(!contacts.some((r:NativeProject)=>r.fax))project.book.school.fax='';if(!contacts.some((r:NativeProject)=>r.phone||r.value||r.fax)&&!project.book.school.phone&&!project.book.school.fax)for(const e of all)if(e.bindingEnabled!==false&&e.binding==='school.contacts')e.visible=false;}
  if(school.hidden.some(key=>fields.find(f=>f.key===key)?.binding?.startsWith('school.contacts.'))){const contacts=project.book.school.contacts||[];if(!contacts.some((r:NativeProject)=>r.phone||r.value||r.fax))for(const e of all)if(e.bindingEnabled!==false&&e.binding==='school.contacts')e.visible=false;if(!contacts.some((r:NativeProject)=>r.phone||r.value))project.book.school.phone='';if(!contacts.some((r:NativeProject)=>r.fax))project.book.school.fax='';}
  project.book.events=[...(project.book.events||[]).filter((e:NativeProject)=>e.source!=='user'&&(bindingVersion<5||e.source!=='user-import')),...events.map(e=>({...e,category:'school',source:'user'}))];

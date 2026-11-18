@@ -29,6 +29,8 @@
   return result;
  }
  function validateState(state){
+  if(state?.deskScheduleSizing){const s=state.deskScheduleSizing;if(typeof s!=='object'||Array.isArray(s)||Object.keys(s).some(k=>!['fontSizePt','barHeight'].includes(k))||s.fontSizePt!==undefined&&(!Number.isFinite(s.fontSizePt)||s.fontSizePt<4||s.fontSizePt>18)||s.barHeight!==undefined&&(!Number.isFinite(s.barHeight)||s.barHeight<1||s.barHeight>24))throw Error('일정 글자 크기와 영역 높이를 확인해 주세요.');}
+
   if(state?.deskScheduleStyle!==undefined&&!['bar','text','line'].includes(state.deskScheduleStyle))throw Error('일정 표시 스타일을 확인해 주세요.');
   if(state?.logoMode!==undefined&&!['split','combined'].includes(state.logoMode))throw Error('로고 구성을 확인해 주세요.');
   if(state?.logoGeometry)for(const [mode,edits] of Object.entries(state.logoGeometry)){if(!['split','combined'].includes(mode))throw Error('로고 배치를 확인해 주세요.');validateState({version:1,pageId:state.pageId,edits});}
@@ -94,6 +96,7 @@
  function apply(project,state,assets,{capabilities}={}){
   validateState(state);project=withCopies(project,state,capabilities);if(!project.book.pageInstances.some(p=>p.id===state.pageId))throw Error('편집 페이지가 없어요.');const document=clone(project);
   if(state.deskScheduleStyle){if(project.productType?.category!=='desk'||!document.template.masters?.calendar)throw Error('탁상형 월력 설정을 찾을 수 없습니다.');document.template.masters.calendar.rangeEventStyle=root.ACDLSharedSchedule.displayStyle(state.deskScheduleStyle,document.template.masters.calendar.rangeEventStyle);}
+  if(state.deskScheduleSizing){if(project.productType?.category!=='desk'||!document.template.masters?.calendar)throw Error('탁상형 월력 설정을 찾을 수 없습니다.');document.template.masters.calendar.rangeEventStyle={...document.template.masters.calendar.rangeEventStyle,...state.deskScheduleSizing};}
   for(const edit of state.edits){
    if(edit.elementId==='$calendar-grid')throw Error('날짜 격자는 일정 표시 스타일만 변경할 수 있습니다.');
    const target=targets(project,edit.pageId,capabilities).find(t=>t.elementId===edit.elementId&&t.scope===edit.scope);if(!target){
@@ -125,7 +128,8 @@
   apply(source,current,assets,{capabilities});
   function commit(next){if(capabilities==='school-basic-v2')next.capabilityVersion=2;apply(source,next,assets,{capabilities});if(equal(current,next))return false;past.push(clone(current));if(past.length>20)past.shift();current=next;future=[];return true;}
   return Object.freeze({targets:pageId=>targets(withCopies(source,current,capabilities),pageId,capabilities),select(target){selection=target?targets(withCopies(source,current,capabilities),target.pageId,capabilities).find(t=>t.elementId===target.elementId&&t.scope===target.scope)||null:null;return selection;},selection:()=>selection,getState:()=>clone(current),getDocument:()=>apply(source,current,assets,{capabilities}),canUndo:()=>past.length>0,canRedo:()=>future.length>0,
-   setDeskScheduleStyle(mode){if(!selection?.rights.scheduleStyle)throw Error('날짜 격자를 먼저 선택해 주세요.');const next=clone(current);next.deskScheduleStyle=mode;return commit(next);},
+   setDeskScheduleSizing(patch){if(!selection?.rights.scheduleStyle)throw Error('날짜 격자를 먼저 선택해 주세요.');const next=clone(current);next.deskScheduleSizing={...next.deskScheduleSizing,...patch};return commit(next);},
+   setDeskScheduleStyle(mode){if(!selection?.rights.scheduleStyle)throw Error('날짜 격자를 먼저 선택해 주세요.');const next=clone(current);next.deskScheduleStyle=mode;const style=apply(source,current,assets,{capabilities}).template.masters.calendar.rangeEventStyle;next.deskScheduleSizing={...(style?.barHeight?{barHeight:style.barHeight}:{}),...next.deskScheduleSizing};return commit(next);},
    setLogoMode(mode){
     if(!['split','combined'].includes(mode))throw Error('로고 구성을 확인해 주세요.');
     if(!selection?.logoGroupId||selection.logoPart!=='image')throw Error('로고 이미지 개체를 선택해 주세요.');

@@ -41,9 +41,9 @@ test('new input clears blank contacts including fallback text while legacy proje
  assert.equal(q.book.school.address,'');assert.equal(q.book.school.phone,'');assert.equal(q.book.school.fax,'');assert.equal(q.book.elementsByPage.p.find(e=>e.id==='address').visible,false);assert.equal(q.book.elementsByPage.p.find(e=>e.id==='contacts').visible,false);
  assert.equal(applyMaterials(p,fields,{values:{},hidden:[]},[],{}).book.school.address,'샘플 주소');assert.equal(p.book.school.address,'샘플 주소');
 });
-test('user calendar display choices override defaults without mutating the template or events',()=>{
- const p=source();p.settings.calendarData={includeLunar:true,other:'preserved'};const calendarDisplay={includeHolidays:false,includeAnniversaries:true,includeSolarTerms:false,includeLunar:false};
- const q=applyMaterials(p,fieldsForProject(p),{values:{},hidden:[],calendarDisplay},[],{});assert.deepEqual(q.settings.calendarData,{...calendarDisplay,other:'preserved'});assert.equal(p.settings.calendarData.includeLunar,true);
+test('holiday/lunar choices override defaults while locked flags follow template without mutating it',()=>{
+ const p=source();p.settings.calendarData={includeLunar:true,includeAnniversaries:false,includeSolarTerms:false,other:'preserved'};const calendarDisplay={includeHolidays:false,includeAnniversaries:true,includeSolarTerms:false,includeLunar:false};
+ const q=applyMaterials(p,fieldsForProject(p),{values:{},hidden:[],calendarDisplay},[],{});assert.deepEqual(q.settings.calendarData,{...calendarDisplay,includeAnniversaries:false,other:'preserved'});assert.equal(p.settings.calendarData.includeLunar,true);
 });
 
 test('symbol exclusions cover master/local text, nested image bindings, semantic objects and split titles, preserving backgrounds and samples',()=>{

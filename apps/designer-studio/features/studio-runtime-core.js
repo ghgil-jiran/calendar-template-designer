@@ -957,7 +957,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     const weekdayHeight=stageHeight*chrome.weekdayStage/100;
     const cellHeight=Math.max(1,(stageHeight-weekdayHeight)/rows),reservedTop=32;
     const physicalFont=Number(style.fontSizePt)>0?window.ACDLSharedSchedule.physicalFontPx(style,el("page")?.clientWidth||850,project.productType.pageSize.width):0;
-    const presetMode=['bar','text','line'].includes(style.displayMode),requestedHeight=presetMode?14:Number(style.barHeight||14);
+    const presetMode=['bar','text','line'].includes(style.displayMode),requestedHeight=Number(style.barHeight||14);
     const fittedHeight=Math.max(1,Math.floor((cellHeight-reservedTop-Math.max(0,layout.maxLanes-1)*gap)/Math.max(1,layout.maxLanes)));
     const barHeight=Math.min(physicalFont?Math.max(requestedHeight,Math.ceil(physicalFont*1.5)+4):requestedHeight,fittedHeight),activeGridStyle=calendarVerticalLayout().preset?.presentation?.gridStyle||project.template.masters.calendar.design?.gridStyle,detachedCards=activeGridStyle==='detached-cards';let html='<div class="range-event-layer">';
     layout.segments.forEach(seg=>{
