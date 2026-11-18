@@ -397,6 +397,20 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-object-tag {position:absolute;left:-1px;bottom:calc(100% + 3px);font-size:10px;line-height:1.3;white-space:nowrap;background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-radius:3px;padding:3px 6px;pointer-events:none;}
 .editor-resize-handle {position:absolute;width:8px;height:8px;background:hsl(var(--canvas));border:1px solid hsl(var(--primary));border-radius:1px;}
 .editor-resize-handle.nw {left:-5px;top:-5px;cursor:nwse-resize;}.editor-resize-handle.ne {right:-5px;top:-5px;cursor:nesw-resize;}.editor-resize-handle.sw {left:-5px;bottom:-5px;cursor:nesw-resize;}.editor-resize-handle.se {right:-5px;bottom:-5px;cursor:nwse-resize;}
+.editor-resize-handle {z-index:1;touch-action:none;}
+.editor-resize-handle.n,.editor-resize-handle.s {left:50%;transform:translateX(-50%);cursor:ns-resize;}
+.editor-resize-handle.w,.editor-resize-handle.e {top:50%;transform:translateY(-50%);cursor:ew-resize;}
+.editor-resize-handle.n {top:-5px;}
+.editor-resize-handle.s {bottom:-5px;}
+.editor-resize-handle.w {left:-5px;}
+.editor-resize-handle.e {right:-5px;}
+.editor-text-edge {position:absolute;cursor:move;touch-action:none;}
+.editor-text-edge.n,.editor-text-edge.s {left:0;right:0;height:min(5px,30%);}
+.editor-text-edge.w,.editor-text-edge.e {top:0;bottom:0;width:min(5px,30%);}
+.editor-text-edge.n {top:0;}
+.editor-text-edge.s {bottom:0;}
+.editor-text-edge.w {left:0;}
+.editor-text-edge.e {right:0;}
 .editor-stage-tools small {font-size:10px;color:hsl(var(--muted-foreground));}
 .editor-preview-dialog {width:min(1100px,95vw);max-height:94dvh;padding:18px;border:1px solid hsl(var(--border));border-radius:12px;background:hsl(var(--canvas));color:hsl(var(--foreground));overflow:auto;}
 .editor-preview-dialog::backdrop {background:hsl(var(--foreground)/.45);}
@@ -468,6 +482,7 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-shell .editor-photo-thumb span,.editor-shell .editor-photo-thumb small,.editor-shell .editor-sidebar-eyebrow,.editor-shell .editor-object-name,.editor-shell .editor-save-state,.editor-shell .editor-upload-note,.editor-shell .editor-stage-tools small,.editor-shell .editor-page-strip span {font-size:var(--type-meta);}
 .editor-shell .editor-selection-tip {border-left:3px solid hsl(var(--primary)/.35);}
 .editor-shell .editor-target {cursor:pointer;touch-action:auto;}
+.editor-shell .editor-target.movable-image {cursor:move;touch-action:none;}
 .photo-selection-trigger {width:100%;justify-content:flex-start;min-width:0;text-align:left;}
 .photo-selection-trigger img {width:56px;height:42px;object-fit:contain;border-radius:5px;background:hsl(var(--surface));flex-shrink:0;}
 .photo-selection-trigger span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
