@@ -930,3 +930,9 @@ img {max-width: 100%;}
 .production-guide-bleed{stroke:#3b82f6;}
 @media print{.production-guides,.production-guide-paper{display:none!important;}}
 
+
+.binding-preview-surface,.template-preview-with-binding{position:relative;}
+.template-preview-with-binding{margin:0 auto;}
+.template-preview-with-binding>.preview-image{width:100%;height:100%;max-height:none;margin:0;object-fit:contain;}
+.binding-preview-marks{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:hidden;}
+@media print{.binding-preview-marks{display:none!important;}}

@@ -6,3 +6,8 @@ export function productionGuideGeometry(size:{width:number;height:number},catego
  const bleed=CUSTOMER_CANVAS_BLEED_MM;
  return {width,height,bleed,safeX:category==='desk'?3:bleed+width*.02,safeTop:category==='desk'?15:bleed+height*.02,safeBottom:category==='desk'?3:bleed+height*.02};
 }
+
+export function bindingPreviewRects(width:number,height:number){
+ const pitch=width*.93/26;
+ return Array.from({length:26},(_,i)=>({x:width*.035+pitch*(i+6/36),y:height*(.02+.035/22),width:pitch*20/36,height:height*.035*18/22,rx:.6}));
+}
