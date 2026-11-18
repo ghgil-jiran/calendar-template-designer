@@ -32,8 +32,10 @@ export function ProjectLibrary({onOpen,onDeleted,refresh=0}:{onOpen:(id:string)=
       <p className="muted">마지막 저장 <time dateTime={project.updatedAt}>{new Date(project.updatedAt).toLocaleString('ko-KR')}</time></p>
       <div className="project-card-actions">
         <Button variant="primary" disabled={Boolean(busy)} onClick={()=>void action(project.id,()=>onOpen(project.id))}>편집하기</Button>
-        <Button disabled={Boolean(busy)} onClick={()=>setOrder(true)}>주문하기</Button>
-        <Button disabled={Boolean(busy)} onClick={()=>void action(project.id,async()=>{await downloadReviewPdf(project.id);})}>확인용 PDF 다운로드</Button>
+        <div className="project-card-order-actions">
+          <Button disabled={Boolean(busy)} onClick={()=>setOrder(true)}>주문하기</Button>
+          <Button disabled={Boolean(busy)} onClick={()=>void action(project.id,async()=>{await downloadReviewPdf(project.id);})}>확인용 PDF 다운로드</Button>
+        </div>
       </div>
       {busy===project.id&&<p role="status">처리하고 있어요.</p>}
     </Panel>)}
