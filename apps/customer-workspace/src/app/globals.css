@@ -137,7 +137,7 @@ img {max-width: 100%;}
 .preview-header h2 {margin: 0;}
 .preview-header p {font-size: 12px; margin: 3px 0 0;}
 .preview-image {width: 100%; max-height: 65dvh; object-fit: contain; margin: 20px auto; display: block;}
-.preview-controls {display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px;}
+.preview-controls {margin-top: 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px;}
 @media (max-width: 720px) {
   .header-inner {padding: 15px 18px; gap: 10px;}
   .header-caption {display: none;}
