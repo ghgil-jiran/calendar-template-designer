@@ -100,7 +100,7 @@
 
   // Dedicated, non-destructive preview path with explicit poster dimensions.
   function cleanPreviewClone(live,pageInfo){
-    return window.ACDLPreviewState.clonePage(live,pageInfo);
+    const clone=window.ACDLPreviewState.clonePage(live,pageInfo);window.ACDLCanvasProductionGuides?.binding(clone,project.productType,{review:true});return clone;
   }
   window.openFullPreview=function(){
     if(!project?.book?.pageInstances?.length){showEditorToast('미리보기할 페이지가 없습니다.');return}

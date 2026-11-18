@@ -468,3 +468,12 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
 
 
 .page.editor-bleed-visible .ai-background-layer{overflow:visible}
+
+/* Canvas-only overlays never intercept object selection or enter production PDF. */
+.page.canvas-uniform-guides{overflow:visible;outline:none!important;}
+.page.canvas-uniform-guides::before,.page.canvas-uniform-guides::after{display:none!important;}
+.page:has(>.binding-guide-preview)>.binding{display:none!important;}
+.studio-production-legend{display:flex;justify-content:center;gap:18px;padding:6px;font-size:11px;flex:none;background:#f7f9fc;}
+.studio-production-legend span::before{content:'';display:inline-block;width:16px;margin-right:6px;border-top:1px dashed;vertical-align:middle;}
+.studio-production-legend .safe::before{color:#16a34a}.studio-production-legend .trim::before{color:#df3535}.studio-production-legend .work::before{color:#3b82f6}
+@media print{.canvas-production-overlay,.canvas-production-paper,.studio-production-legend{display:none!important}.binding-guide-preview{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}
