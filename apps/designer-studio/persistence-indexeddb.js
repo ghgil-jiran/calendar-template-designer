@@ -7,12 +7,14 @@
    request.onupgradeneeded=()=>{const db=request.result;for(const [name,options] of Object.entries(stores)){if(!db.objectStoreNames.contains(name))db.createObjectStore(name,options)}};
    request.onsuccess=()=>resolve(request.result);
    request.onerror=()=>reject(request.error);
+   request.onblocked=()=>reject(new Error('브라우저 저장소가 다른 창에 의해 잠겨 있습니다. 다른 편집 창을 닫고 다시 시도해주세요.'));
   })}
   async function put(store,value){const db=await open();return new Promise((resolve,reject)=>{
    const transaction=db.transaction(store,"readwrite");
    transaction.objectStore(store).put(value);
    transaction.oncomplete=()=>{db.close();resolve(value)};
    transaction.onerror=()=>{db.close();reject(transaction.error)};
+   transaction.onabort=()=>{db.close();reject(transaction.error||new Error('브라우저 저장이 중단되었습니다. 저장 공간을 확인해주세요.'))};
   })}
   async function get(store,key){const db=await open();return new Promise((resolve,reject)=>{
    if(key===undefined||key===null||key===''){db.close();resolve(undefined);return}
@@ -26,6 +28,7 @@
    transaction.objectStore(store).delete(key);
    transaction.oncomplete=()=>{db.close();resolve(true)};
    transaction.onerror=()=>{db.close();reject(transaction.error)};
+   transaction.onabort=()=>{db.close();reject(transaction.error||new Error('브라우저 저장소 작업이 중단되었습니다.'))};
   })}
   return Object.freeze({databaseName,version,stores:Object.freeze({...stores}),open,put,get,remove})
  }
