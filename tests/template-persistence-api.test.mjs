@@ -8,6 +8,7 @@ import {
   resolveTemplateAssetsByPaths,
   saveDraft,
   saveVersion,
+  changeTemplateState,
   storeTemplateAsset,
   validateVersionSave
 } from '../server/template-persistence.js';
@@ -154,4 +155,20 @@ test('retrying a missing template completes without touching a replacement proje
 test('a stable-key mismatch remains an error and cannot delete another template',async()=>{
  globalThis.fetch=async()=>({ok:false,status:400,text:async()=>JSON.stringify({code:'P0001',message:'template_stable_key_mismatch'})});
  await assert.rejects(deleteTemplate({templateId:'22222222-2222-4222-8222-222222222222',stableKey:'different'}),/template_stable_key_mismatch/);
+});
+
+for (const state of ['ready','archived']) test(`state change to ${state} preserves canonical images and returns a small response`, async()=>{
+ const document={id:'original',template:{metadata:{name:'sample'},thumbnail:{dataUrl:'data:image/png;base64,existing'}},assets:{original:'acdl-asset://11111111-1111-4111-8111-111111111111'},book:{pageInstances:[{id:'page'}]}};
+ const row={id:'t1',stable_key:'sample',name:'sample',description:'',edition:2027,state:'published',product_type:'desk',template_key:'desk',latest_version_id:'v19',latest_version_number:19};let saved;
+ globalThis.fetch=async(url,options={})=>{
+  if(url.includes('/template_versions?'))return response([{id:'v19',schema_version:'2.0',project_data:document}]);
+  if(url.endsWith('/rpc/save_template_version')){saved=JSON.parse(options.body);return response({id:'v20',template_id:'t1',version_number:20,schema_version:'2.0',state,project_data:saved.p_project_data})}
+  if(url.includes('/template_version_assets?'))return response([]);
+  if(url.includes('/template_projects?'))return response([{...row,...(options.method==='PATCH'?{state,latest_version_number:20,latest_version_id:'v20'}:{})}]);
+  throw Error('Unexpected request '+url);
+ };
+ const result=await changeTemplateState({templateId:'t1',state,expectedVersion:19});
+ assert.deepEqual(saved.p_project_data.assets,document.assets);assert.deepEqual(saved.p_project_data.book,document.book);assert.deepEqual(saved.p_project_data.template.thumbnail,document.template.thumbnail);
+ assert.equal(saved.p_state,state);assert.equal(result.version.projectData,undefined);assert.equal(result.template.latestVersionNumber,20);
+ await assert.rejects(()=>changeTemplateState({templateId:'t1',state,expectedVersion:18}),e=>e.code==='VERSION_CONFLICT');
 });

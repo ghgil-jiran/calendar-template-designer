@@ -313,7 +313,17 @@
   closeButton.addEventListener('click',()=>jobDialog.classList.add('hidden'));
  }
  async function saveSettings(recordId,values){
-  const record=records().find(item=>item.id===recordId);if(!record)throw new Error('설정할 템플릿을 찾지 못했습니다.');const archiving=values.state==='archived',persistence=window.ACDLTemplateRemotePersistence,stored=archiving&&persistence?.isRemote?.()&&record.remoteId?await persistence.load(record.remoteId,{deferAssets:true}):null,sourceProject=stored?.version?.storedProjectData||stored?.version?.projectData||await projectForRecord(record),projectData=window.ACDLPersistenceProject.clone(sourceProject);projectData.template||={};projectData.template.metadata={...(projectData.template.metadata||{}),...values};
+  const record=records().find(item=>item.id===recordId);if(!record)throw new Error('설정할 템플릿을 찾지 못했습니다.');const remoteState=window.ACDLTemplateRemotePersistence;
+  if(record.remoteId&&remoteState?.isRemote?.()&&['ready','archived'].includes(values.state)&&values.name===record.name&&(values.description||'')===(record.description||'')&&Number(values.edition)===Number(record.edition)&&(values.isStandard===true)===(record.isStandard===true)){
+   window.ACDLTemplateSaveProgress?.({phase:'save-record',detail:'서버에 저장된 이미지와 디자인을 유지하고 상태만 변경합니다.'});
+   const result=await remoteState.changeState(record.remoteId,values.state,record.version),nextScope=values.state==='ready'?'base':scopeOf(record),saved=normalize({...record,...result.template,remoteId:result.template.id,state:values.state,status:values.state,version:result.template.latestVersionNumber,libraryScope:nextScope,storage:'supabase'},'local');
+   saveRecords([saved,...oldLibrary().filter(item=>item.id!==record.id&&item.id!==saved.id)]);
+   versionHistoryCache.delete(record.id);
+   window.ACDLTemplateSaveProgress?.({phase:'publishing',stage:'cleanup',detail:'사용자 서비스의 게시 목록을 동기화합니다.'});
+   await window.ACDLTemplatePublishing.synchronizeCatalog();
+   renderLibrary(activeLibraryState);renderUserChoices();showEditorToast('템플릿 상태를 저장했습니다.');return saved;
+  }
+  const archiving=values.state==='archived',persistence=window.ACDLTemplateRemotePersistence,stored=archiving&&persistence?.isRemote?.()&&record.remoteId?await persistence.load(record.remoteId,{deferAssets:true}):null,sourceProject=stored?.version?.storedProjectData||stored?.version?.projectData||await projectForRecord(record),projectData=window.ACDLPersistenceProject.clone(sourceProject);projectData.template||={};projectData.template.metadata={...(projectData.template.metadata||{}),...values};
   window.ACDLTemplateYearSynchronizer.synchronize(projectData,{year:Number(values.edition)||record.edition,startMonth:projectData.settings?.startMonth||3});
   if(!archiving){window.ACDLTemplateSaveProgress?.({phase:'publishing',stage:'prepare',detail:'첫 페이지를 라이브러리 대표 이미지로 생성하고 있습니다.'});if(!window.ACDLRepresentativePreview?.refresh)throw new Error('첫 페이지 대표 이미지 생성기를 불러오지 못했습니다.');await window.ACDLRepresentativePreview.refresh(projectData,{fileName:`${record.stableKey||record.id}-${Date.now()}-page-1.png`});}else window.ACDLTemplateSaveProgress?.({phase:'save-record',detail:'기존 원본과 미리보기 정보를 유지하고 보관 상태를 저장합니다.'});
   window.ACDLNativePrintPackageCompiler?.assertLifecycleReady?.(projectData,values.state);

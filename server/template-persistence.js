@@ -296,6 +296,19 @@ export async function getTemplate(templateId) {
   return { template, version: rowToVersion(versions[0]) };
 }
 
+// State-only changes reuse the canonical server document; never require browser originals.
+export async function changeTemplateState(input) {
+  if (!['ready', 'archived'].includes(input?.state)) throw Object.assign(new Error('Invalid target state'), {statusCode:400, code:'INVALID_REQUEST'});
+  const current = await getTemplate(input.templateId);
+  if (Number(input.expectedVersion) !== current.template.latestVersionNumber) throw Object.assign(new Error('템플릿 버전이 변경되었습니다. 목록을 새로 불러와 주세요.'), {statusCode:409, code:'VERSION_CONFLICT'});
+  const projectData = structuredClone(current.version.projectData);
+  projectData.template ||= {};
+  projectData.template.metadata = {...projectData.template.metadata, state:input.state};
+  const result = await saveVersion({...current.template, templateId:current.template.id, state:input.state, saveKind:'manual', saveNote:'라이브러리 상태 변경', schemaVersion:current.version.schemaVersion, projectData});
+  const {projectData: document, ...version} = result.version;
+  return {...result, template:{...result.template, thumbnail:document.template?.thumbnail}, version};
+}
+
 export async function saveVersion(input) {
   const data = validateVersionSave(input);
   const versionRow = firstRow(await supabaseRequest('rpc/save_template_version', {

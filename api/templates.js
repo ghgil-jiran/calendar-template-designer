@@ -1,4 +1,4 @@
-import { assertInternalAccess, deleteTemplate, getTemplate, listDeletedCatalogKeys, listTemplates, readJson, saveVersion, sendError, sendJson, supabaseRequest } from '../server/template-persistence.js';
+import { assertInternalAccess, changeTemplateState, deleteTemplate, getTemplate, listDeletedCatalogKeys, listTemplates, readJson, saveVersion, sendError, sendJson, supabaseRequest } from '../server/template-persistence.js';
 import { forwardReviewPackage } from '../server/user-service-review-publisher.js';
 import {createHash} from 'node:crypto';
 import {resolvePdfBackgroundPrintSources} from '../server/pdf-background-print-source.js';
@@ -22,6 +22,7 @@ export default async function handler(request, response) {
         return sendJson(response,200,await forwardReviewPackage({authorization,body:body.reviewBody}));
       }
       await assertInternalAccess(request);
+      if(body?.operation==='change-state')return sendJson(response,200,await changeTemplateState(body));
       return sendJson(response, 201, await saveVersion(body));
     }
     if (request.method === 'GET') {

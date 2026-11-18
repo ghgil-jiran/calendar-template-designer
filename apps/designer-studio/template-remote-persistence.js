@@ -104,6 +104,7 @@
   let objectUrl;try{objectUrl=await assetObjectUrl(match[1])}catch(error){throw Object.assign(new Error('저장된 대표 이미지 파일을 불러올 수 없습니다.'),{code:'THUMBNAIL_ASSET_INVALID',cause:error})}
   try{const image=new root.Image();image.src=objectUrl;await image.decode();if(!image.naturalWidth||!image.naturalHeight)throw new Error('Empty thumbnail image')}catch(error){throw Object.assign(new Error('저장된 대표 이미지 파일을 열 수 없습니다.'),{code:'THUMBNAIL_ASSET_INVALID',cause:error})}finally{root.URL.revokeObjectURL(objectUrl)}
  }
+ async function changeState(templateId,state,expectedVersion){return request('/api/templates',{method:'POST',body:JSON.stringify({operation:'change-state',templateId,state,expectedVersion})})}
  async function save(input,options={}){const projectData=input.state==='archived'?structuredClone(input.projectData):await prepareProjectData(input.projectData,options);options.onProgress?.({phase:'version',completed:1,total:1});const result=await request('/api/templates',{method:'POST',body:JSON.stringify({...input,projectData})});if(options.verifyThumbnail)await verifySavedThumbnail(result,projectData.template?.thumbnail);options.onProgress?.({phase:'complete',completed:1,total:1});return result}
  async function saveDraft(input){const projectData=await prepareProjectData(input.projectData);return request('/api/template-drafts',{method:'PUT',body:JSON.stringify({...input,projectData})})}
  async function versions(templateId){return request(`/api/template-versions?templateId=${encodeURIComponent(templateId)}`)}
@@ -111,6 +112,6 @@
  async function restore(templateId,versionId,saveNote){return request('/api/template-restore',{method:'POST',body:JSON.stringify({templateId,versionId,saveNote})})}
  async function packagePreflight(templateId){return request(`/api/template-package-preflight?templateId=${encodeURIComponent(templateId)}`)}
  async function remove({templateId=null,stableKey,hideCatalog=false}){return request('/api/templates',{method:'DELETE',body:JSON.stringify({templateId,stableKey,hideCatalog})})}
- root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,remove,deletedCatalogKeys:()=>[...deletedCatalogKeys],toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareImageOriginals,prepareProjectData,hydrateProjectData,assetObjectUrl,assetObjectUrls,resolveAssetUrls,legacyStoragePath,canonicalAssetSource:src=>signedToMarker.get(src)||src});
+ root.ACDLTemplateRemotePersistence=Object.freeze({isRemote,hasSession:()=>Boolean(accessToken()),accessToken,list,load,changeState,save,saveDraft,versions,hydrateVersion,restore,packagePreflight,remove,deletedCatalogKeys:()=>[...deletedCatalogKeys],toLibraryRecord:record,materializeAIDesignBackgrounds,aiDesignIntegrity,assertAIDesignIntegrity,prepareImageOriginals,prepareProjectData,hydrateProjectData,assetObjectUrl,assetObjectUrls,resolveAssetUrls,legacyStoragePath,canonicalAssetSource:src=>signedToMarker.get(src)||src});
 })(window);
 
