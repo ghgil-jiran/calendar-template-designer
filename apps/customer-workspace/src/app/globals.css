@@ -941,3 +941,8 @@ img {max-width: 100%;}
 .schedule-sizing-fields label{display:grid;gap:4px;min-width:0;font-size:10px;color:hsl(var(--muted-foreground));}
 .editor-properties .schedule-sizing-fields input{width:100%;min-width:0;padding:7px 8px;font-size:12px;}
 .calendar-display-options .checkbox:has(input:disabled){color:hsl(var(--muted-foreground));}
+
+.card-preview-trigger {display:block;width:100%;padding:0;border:0;background:transparent;cursor:pointer;}
+.card-preview-trigger:focus-visible {outline:2px solid hsl(var(--primary));outline-offset:-2px;}
+.template-copy .card-actions {justify-content:flex-start;}
+.catalog-preview-actions {display:grid;justify-items:center;gap:8px;margin-top:14px;}

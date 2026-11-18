@@ -3,7 +3,7 @@ import {templateCalendarDisplay,resolveCalendarDisplay} from '@/lib/materials/ca
 import {BindingPreview} from '@/features/materials/binding-preview';
 import {SchoolFieldSections} from '@/features/materials/school-field-sections';
 import {createSaveQueue} from '@/lib/editor/save-queue';
-import {largePreviewUrl,majorPageNumbers} from '@/lib/materials/template-preview';
+import {largePreviewUrl} from '@/lib/materials/template-preview';
 import {normalizeSchoolVisibility} from '@/lib/api/school-visibility';
 import {updateSchoolField,stageSchoolImages} from '@/lib/editor/materials';
 import {compatibleTemplate,templateChangeDraft} from '@/lib/editor/template-change';
@@ -19,7 +19,6 @@ import {TextField} from '@/components/ui/text-field';
 
 import {ScheduleInput} from '@/features/materials/schedule-input';
 import {PhotoInput,type PhotoFile} from '@/features/materials/photo-input';
-import {TemplatePagePreview} from '@/features/materials/template-page-preview';
 import {fetchTemplateSource} from '@/lib/materials/template-source';
 import {NativePreview} from '@/features/materials/native-preview';
 import {applyMaterials,assertNativeProject,photoSlotsForProject,photoPageLabel,fieldsForProject,schoolSamples,type NativeProject} from '@/lib/materials/native-project';
@@ -37,7 +36,7 @@ const heroPhotos = [
   {src: '/images/hero/sample-d-2027.webp', name: '학교 전경 표지 프레임형'},
 ];
 
-type Step = 'editor' | 'schedule' | 'photos' | 'catalog' | 'detail' | 'guide' | 'school' | 'input-review' | 'projects';
+type Step = 'editor' | 'schedule' | 'photos' | 'catalog' | 'guide' | 'school' | 'input-review' | 'projects';
 
 export function Onboarding() {
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
@@ -63,8 +62,8 @@ export function Onboarding() {
   const [school, setSchool] = useState<SchoolInput>({values: {}, hidden: []});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [previewIndex, setPreviewIndex] = useState(0);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewSingle,setPreviewSingle]=useState(false);
+  const [previewSource,setPreviewSource]=useState<NativeProject|null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<TemplateCard|null>(null);
   const [kindFilter,setKindFilter]=useState<'all'|'desk'|'poster'>('desk');
   const [editorState,setEditorState]=useState<EditorState|undefined>();
   const [events,setEvents]=useState<ScheduleEvent[]>([]);
@@ -124,9 +123,15 @@ export function Onboarding() {
 
   useEffect(() => {
     const dialog = previewRef.current;
-    if (previewOpen && dialog && !dialog.open) dialog.showModal();
-    if (!previewOpen && dialog?.open) dialog.close();
-  }, [previewOpen]);
+    if (previewTemplate && dialog && !dialog.open) dialog.showModal();
+    if (!previewTemplate && dialog?.open) dialog.close();
+  }, [previewTemplate]);
+  useEffect(()=>{
+    if(!previewTemplate?.sourceUrl)return;
+    let active=true;
+    void fetchTemplateSource(previewTemplate).then(source=>{if(active)setPreviewSource(source);}).catch(()=>{});
+    return ()=>{active=false;};
+  },[previewTemplate]);
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -143,17 +148,17 @@ export function Onboarding() {
   }, [playing, heroHover, step]);
 
   async function choose(template: TemplateCard) {
-    if(saving)return;
+    if(saving||nativeLoading)return;
+    if(selectedId!==template.id&&dirty&&hasInput&&!window.confirm('저장하지 않은 변경사항이 있어요. 저장본은 유지하고 다른 디자인으로 이동할까요?'))return;
     const requestId=++selectionRequest.current;
     if(selectedId!==template.id){
-      if(dirty&&hasInput&&!window.confirm('저장하지 않은 변경사항이 있어요. 저장본은 유지하고 다른 디자인으로 이동할까요?'))return;
       templateUrls.current.forEach(url=>URL.revokeObjectURL(url));templateUrls.current=[];setActiveProject(null);setSavedSignature('');setProjectName(template.name);setSaveNotice('');setSaveError('');resumeStep.current='editor';
       photos.forEach(p=>URL.revokeObjectURL(p.url));setSchool(emptySchoolInput(template.fields));setErrors({});setEditorState(undefined);setEvents([]);setPhotos([]);setAssignments({});setPhotoMode('collect');setPhotoSelections({});setPhotoPageId('');setMaterialPage(0);setNativeSource(null);
     }
-    setWorkingTemplate(template);setSelectedId(template.id);setStep('detail');setNativeFailure('');
-    if(!template.sourceUrl){setNativeLoading(false);return;}
+    setWorkingTemplate(template);setSelectedId(template.id);setNativeFailure('');
+    if(!template.sourceUrl){setNativeFailure('편집용 템플릿을 아직 준비 중이에요.');return;}
     setNativeLoading(true);
-    try{const project=await fetchTemplateSource(template);if(requestId!==selectionRequest.current)return;setNativeSource(project);setWorkingTemplate(current=>current?.id===template.id?{...current,fields:fieldsForProject(project),photoSlots:photoSlotsForProject(project)}:current);setSchool(current=>({...current,values:{...schoolSamples(project,fieldsForProject(project)),...Object.fromEntries(Object.entries(current.values).filter(([,v])=>v.trim()))},omitEmptyContacts:false,calendarDisplay:resolveCalendarDisplay(templateCalendarDisplay(project),current.calendarDisplay)}));}
+    try{const project=(previewTemplate?.id===template.id?previewSource:null)||await fetchTemplateSource(template);if(requestId!==selectionRequest.current)return;setPreviewTemplate(null);setStep('editor');setNativeSource(project);setWorkingTemplate(current=>current?.id===template.id?{...current,fields:fieldsForProject(project),photoSlots:photoSlotsForProject(project)}:current);setSchool(current=>({...current,values:{...schoolSamples(project,fieldsForProject(project)),...Object.fromEntries(Object.entries(current.values).filter(([,v])=>v.trim()))},omitEmptyContacts:false,calendarDisplay:resolveCalendarDisplay(templateCalendarDisplay(project),current.calendarDisplay)}));}
     catch(error){if(requestId===selectionRequest.current)setNativeFailure(error instanceof Error?error.message:'템플릿을 불러오지 못했습니다.');}
     finally{if(requestId===selectionRequest.current)setNativeLoading(false);}
   }
@@ -164,7 +169,7 @@ export function Onboarding() {
   }
   function resetToCatalog(){
     photos.forEach(p=>URL.revokeObjectURL(p.url));templateUrls.current.forEach(url=>URL.revokeObjectURL(url));templateUrls.current=[];
-    ++selectionRequest.current;setWorkingTemplate(null);setSelectedId(null);setActiveProject(null);setSavedSignature('');setProjectName('');setSchool({values:{},hidden:[]});setEditorState(undefined);setEvents([]);setPhotos([]);setAssignments({});setPhotoMode('collect');setPhotoSelections({});setPhotoPageId('');setNativeSource(null);setSaveNotice('');setSaveError('');setStep('catalog');
+    ++selectionRequest.current;setNativeLoading(false);setNativeFailure('');setPreviewTemplate(null);setWorkingTemplate(null);setSelectedId(null);setActiveProject(null);setSavedSignature('');setProjectName('');setSchool({values:{},hidden:[]});setEditorState(undefined);setEvents([]);setPhotos([]);setAssignments({});setPhotoMode('collect');setPhotoSelections({});setPhotoPageId('');setNativeSource(null);setSaveNotice('');setSaveError('');setStep('catalog');
   }
   async function saveWorking(nextStep?:ResumeStep,overrides:Partial<ProjectDraft>={},propagateFailure=false){
     return saveQueue.current(async()=>{const latest=draftLatest.current;if(!latest)return false;saveLock.current=true;const captured=structuredClone({...latest,...overrides,id:activeLatest.current?.id||latest.id,revision:activeLatest.current?.revision||latest.revision,step:nextStep||latest.step,photos:[]}) as ProjectDraft;captured.photos=[...(overrides.photos||latest.photos)];const signature=draftSignature(captured);setSaving(true);setSaveError('');setSaveNotice('');
@@ -199,7 +204,7 @@ export function Onboarding() {
     const state:ProjectDraft={id:r.id,revision:r.revision,name:r.name,template:restored.template,source:restored.source,editorState:r.editorState,school:normalizeSchoolVisibility(restored.template.fields,r.school),events:r.events,photos:restored.photos,assignments:restored.assignments,photoMode:r.photoMode||'assign',photoPageId:r.photoPageId||'',photoSelections:restored.photoSelections,step:r.step};setSavedSignature(draftSignature(state));
     setStep(['school','schedule','photos','input-review'].includes(r.step)?'editor':r.step);setPhotoMode('collect');
   }
-  function openPreview(index: number,single=false) {setPreviewSingle(single);setPreviewIndex(index); setPreviewOpen(true);}
+  function openPreview(template: TemplateCard,index=0) {if(nativeLoading)return;setNativeFailure('');setPreviewIndex(Math.max(0,index));setPreviewSource(null);setPreviewTemplate(template);}
   function continueSchool(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selected) return;
@@ -211,9 +216,11 @@ export function Onboarding() {
   }
   const heading = (eyebrow: string, title: string, description: string) => <div className="section-heading"><p className="eyebrow">{eyebrow}</p><h1 ref={headingRef} tabIndex={-1}>{title}</h1><p className="muted">{description}</p></div>;
 
+  const previewPage=previewTemplate?.pages[previewIndex];
+  const previewPageId=previewSource?.book.pageInstances[previewIndex]?.id;
   if(step==='editor'&&materialProject)return <PhotoEditor calendarDefaults={templateCalendarDisplay(nativeSource)} key={selected!.id} onTemplateChange={changeTemplate} templateName={selected!.name} templates={(catalog?.templates||[]).filter(t=>compatibleTemplate(selected!,t))} currentTemplateId={selected!.id} onNavigationPause={setNavigationPaused} onHome={async(save)=>{if(!save||await saveWorking('editor')){resetToCatalog();return true;}return false;}} commonPhotoIds={Object.fromEntries((nativeSource?photoSlotsForProject(nativeSource):[]).flatMap(slot=>assignments[slot.id]?[[slot.binding||'',assignments[slot.id].photoId]]:[]))} assignedPhotoIds={Object.values(assignments).map(a=>a.photoId)} project={materialProject} photos={photos} onPhotos={next=>{setPhotos(next);setAssignments(current=>Object.fromEntries(Object.entries(current).filter(([,a])=>next.some(p=>p.id===a.photoId))));setEditorState(current=>current?{...current,edits:current.edits.filter(e=>!e.photoId||next.some(p=>p.id===e.photoId))}:current);}} initialState={editorState} onChange={setEditorState} saveFailure={saveError} onComplete={async()=>{if(!dirty||await saveWorking('editor')){setStep('projects');}}} name={displayName} dirty={dirty} saving={saving} notice={saveError||(!dirty?saveNotice:'')} onSave={()=>saveWorking()} school={school} events={events} fields={selected!.fields} onFieldChange={(key,value)=>setSchool(p=>updateSchoolField(p,key,value))} onFieldHide={(key,hidden)=>setSchool(p=>({...p,hidden:hidden?[...new Set([...p.hidden,key])]:p.hidden.filter(k=>k!==key)}))} onSchoolPhoto={(binding,photo)=>{const slots=photoSlotsForProject(nativeSource!).filter(s=>s.binding===binding);setAssignments(p=>({...p,...Object.fromEntries(slots.map(s=>[s.id,{photoId:photo.id,url:photo.url}]))}));}} onMaterialsSave={async(nextSchool,nextEvents,images=[])=>{const staged=stageSchoolImages(photos,assignments,photoSlotsForProject(nativeSource!),editorState,images);const nextPhotos=staged.photos,nextAssignments=staged.assignments,nextEditor=staged.editorState;if(!await saveWorking('editor',{school:nextSchool,events:nextEvents,photos:nextPhotos,assignments:nextAssignments,editorState:nextEditor},true))return false;setSchool(nextSchool);setEvents(nextEvents);setPhotos(nextPhotos);setAssignments(nextAssignments);setEditorState(nextEditor);return true;}}/>;
   return <div className="workspace">
-    <header className="site-header"><div className="header-inner"><Button variant="quiet" className="brand" onClick={catalogHome} aria-label="우리학교달력 첫 화면으로 이동"><img className="school-calendar-logo" src="/school-calendar-logo.png" alt="우리학교달력" width="120" height="36"/></Button><p className="header-caption">우리 학교의 일 년을 담아요</p><Button disabled={saving} onClick={() => setStep('projects')}>내 프로젝트</Button></div></header>
+    <header className="site-header"><div className="header-inner"><Button variant="quiet" className="brand" onClick={catalogHome} aria-label="우리학교달력 첫 화면으로 이동"><img className="school-calendar-logo" src="/school-calendar-logo.png" alt="우리학교달력" width="120" height="36"/></Button><p className="header-caption">우리 학교의 일 년을 담아요</p><Button disabled={saving||nativeLoading} onClick={() => setStep('projects')}>내 프로젝트</Button></div></header>
     <main className={`main ${step==='catalog'?'catalog-main':''}`} data-motion={playing ? 'playing' : 'paused'}>
       {selected&&['school','schedule','photos','input-review','editor'].includes(step)&&<SavePanel name={projectName} onName={setProjectName} dirty={dirty} saved={Boolean(activeProject)} busy={saving||nativeLoading} notice={dirty&&activeProject?'저장하지 않은 변경사항이 있어요.':saveNotice} error={saveError} onSave={()=>void saveWorking()}/>}
       {appLoading && <Panel className="state-panel"><h1>디자인을 준비하고 있어요</h1><p className="muted" role="status">잠시만 기다려 주세요.</p></Panel>}
@@ -226,19 +233,20 @@ export function Onboarding() {
         </section>
         <section aria-labelledby="catalog-title"><div className="catalog-heading"><div><h2 id="catalog-title">마음에 드는 디자인을 골라보세요</h2><p className="muted">탁상형·벽보형 달력의 전체 구성을 먼저 살펴볼 수 있어요.</p></div><span className="badge">{catalog.templates.length}종 {catalog.mode==='review'?'선택 구성 검토':'템플릿'}</span></div>
           {!catalog.templates.length ? <Panel><h3>공개된 디자인을 준비 중이에요</h3><p className="muted">준비가 끝나면 이곳에서 고를 수 있어요.</p></Panel> : <><div className="catalog-filters" role="group" aria-label="달력 유형">{([["desk","탁상형 달력"],["poster","벽보형 달력"],["all","전체 달력"]] as const).map(([key,label])=><Button key={key} aria-pressed={kindFilter===key} onClick={()=>setKindFilter(key)}>{label}</Button>)}</div>{!catalog.templates.some(t=>kindFilter==='all'||(t.calendarKind||'desk')===kindFilter)&&<Panel>선택한 유형의 디자인을 준비 중이에요.</Panel>}<div className="catalog-grid">{catalog.templates.filter(t=>kindFilter==='all'||(t.calendarKind||'desk')===kindFilter).map(template => <article className="template-card" key={template.id}>
-            <TemplateCardArtwork template={template}/>
-            <div className="template-copy"><h3>{template.name}</h3><div className="card-actions"><span>{template.widthMm} × {template.heightMm} mm · {template.pageCount}면</span><Button onClick={() => choose(template)} aria-label={`${template.name} 전체면 살펴보기`}>전체면 살펴보기 →</Button></div></div>
+            <TemplateCardArtwork template={template} onPreview={number=>openPreview(template,template.pages.findIndex(page=>page.number===number))}/>
+            <div className="template-copy">
+              <h3>{template.name}</h3>
+              <p className="muted">{template.calendarKind==='poster'?'벽보형':'탁상형'} · {template.widthMm} × {template.heightMm} mm · {template.pageCount}면{template.period&&` · ${template.period}`}</p>
+              <div className="card-actions">
+                <Button disabled={!template.pages.length} onClick={()=>openPreview(template)}>미리 보기</Button>
+                <Button variant="primary" disabled={saving||nativeLoading||!template.sourceUrl} onClick={()=>void choose(template)}>이 템플릿으로 만들기</Button>
+              </div>
+              {selectedId===template.id&&!previewTemplate&&nativeLoading&&<p role="status">템플릿을 불러오고 있어요.</p>}
+              {selectedId===template.id&&!previewTemplate&&nativeFailure&&<p role="alert">{nativeFailure}</p>}
+            </div>
           </article>)}</div></>}
         </section>
-        <section className="before-start"><div><h3>자료는 디자인을 고른 뒤 준비해도 괜찮아요.</h3><p className="muted">선택한 디자인에 필요한 자료를 안내해 드려요.</p></div><div><h3>만들던 달력이 있나요?</h3><Button variant="quiet" disabled={saving} onClick={() => setStep('projects')}>내 프로젝트에서 이어하기 →</Button></div></section>
-      </>}
-
-      {!appLoading && !appFailure && selected && step === 'detail' && <>
-        <Button className="navigation-button" onClick={catalogHome}>← 이전 디자인 보기</Button>
-
-        <div className="detail-grid"><Panel><div className="large-preview">{selected.pages[0].imageUrl||selected.coverUrl?<PreviewImage url={selected.pages[0].imageUrl||selected.coverUrl} label="표지"/>:nativeSource?<NativePreview project={nativeSource} pageId={nativeSource.book.pageInstances[0].id}/>:<PreviewImage url={null} label="표지"/>}<Button className="all-pages-button" onClick={()=>openPreview(0)}>전체 페이지 보기</Button></div></Panel><Panel><span className="badge">학사달력 · {selected.calendarKind==='poster'?'벽보형':'탁상형'}</span><h2>{selected.name}</h2><p className="muted">{selected.description}</p><dl className="facts"><div><dt>규격</dt><dd>{selected.widthMm} × {selected.heightMm} mm</dd></div><div><dt>전체 면수</dt><dd>{selected.pageCount}면</dd></div><div><dt>사용 기간</dt><dd>{selected.period}</dd></div></dl><p>{selected.note}</p><Button variant="primary" className="wide-button" disabled={nativeLoading||Boolean(nativeFailure)} onClick={() => setStep('editor')}>이 디자인으로 만들기</Button></Panel></div>
-        {nativeLoading&&<p role="status">실제 템플릿을 불러오고 있어요.</p>}{nativeFailure&&<div role="alert"><p>{nativeFailure}</p><Button onClick={()=>void choose(selected)}>다시 불러오기</Button></div>}{!nativeSource&&catalog?.mode==='review'&&<div className="reference-note">전체면은 샘플 A의 기존 확인용 PDF 참고 이미지입니다. 다른 카드의 실제 디자인 또는 최종 인쇄 품질을 의미하지 않습니다.</div>}
-        <section className="all-pages" aria-labelledby="all-pages-title"><h2 id="all-pages-title">주요 페이지 보기</h2><div className="page-grid">{(selected.majorPages||majorPageNumbers(nativeSource?.book.pageInstances||[])).map(number=>({page:selected.pages[number-1],index:number-1})).filter(({page})=>Boolean(page)).map(({page,index}) => <button className="page-thumbnail" key={page.number} onClick={() => openPreview(index,true)} aria-label={`${page.number}면 ${page.label} 크게 보기`}>{page.imageUrl?<PreviewImage url={page.imageUrl} label={`${page.number}면`}/>:nativeSource?<TemplatePagePreview template={selected} number={page.number} project={nativeSource}/>:<PreviewImage url={null} label={`${page.number}면`}/>}<span>{page.number}면 · {page.label}</span></button>)}</div></section>
+        <section className="before-start"><div><h3>자료는 디자인을 고른 뒤 준비해도 괜찮아요.</h3><p className="muted">선택한 디자인에 필요한 자료를 안내해 드려요.</p></div><div><h3>만들던 달력이 있나요?</h3><Button variant="quiet" disabled={saving||nativeLoading} onClick={() => setStep('projects')}>내 프로젝트에서 이어하기 →</Button></div></section>
       </>}
 
       {!appLoading && !appFailure && selected && step === 'school' && <>
@@ -246,7 +254,7 @@ export function Onboarding() {
         <form onSubmit={continueSchool} noValidate>
           <Panel className="form-section"><SchoolFieldSections fields={selected.fields} school={school} errors={errors} onChange={(key,value)=>{setSchool(current=>updateSchoolField(current,key,value));setErrors(current=>({...current,[key]:''}));}} onHide={(key,hidden)=>{setSchool(current=>({...current,hidden:hidden?[...new Set([...current.hidden,key])]:current.hidden.filter(k=>k!==key)}));setErrors(current=>({...current,[key]:''}));}}/></Panel>
           {Object.values(errors).some(Boolean) && <p className="field-error" role="alert">입력이 필요한 항목을 확인해 주세요.</p>}
-          <div className="actions"><Button onClick={() => setStep('detail')}>← 디자인 보기</Button><Button type="submit" variant="primary">학사일정 입력하기 →</Button></div>
+          <div className="actions"><Button onClick={() => setStep('catalog')}>← 디자인 보기</Button><Button type="submit" variant="primary">학사일정 입력하기 →</Button></div>
         </form>
       </>}
 
@@ -266,11 +274,31 @@ export function Onboarding() {
     </main>
     <footer className="site-footer"><span>학교 자료만 준비하세요. 디자인은 이미 완성되어 있어요.</span><span>개발 검토용 · 실제 주문 서비스 아님</span></footer>
 
-    <dialog ref={previewRef} className="preview-dialog" onCancel={() => setPreviewOpen(false)} onClose={() => setPreviewOpen(false)} aria-labelledby="preview-title" onKeyDown={event => {
-      if (!previewSingle && event.key === 'ArrowRight' && selected) setPreviewIndex(index => Math.min(selected.pages.length - 1, index + 1));
-      if (!previewSingle && event.key === 'ArrowLeft') setPreviewIndex(index => Math.max(0, index - 1));
+    <dialog ref={previewRef} className="preview-dialog" onCancel={()=>setPreviewTemplate(null)} onClose={()=>setPreviewTemplate(null)} aria-labelledby="preview-title" onKeyDown={event=>{
+      if(!previewTemplate)return;
+      if(event.key==='ArrowRight')setPreviewIndex(index=>Math.min(previewTemplate.pages.length-1,index+1));
+      if(event.key==='ArrowLeft')setPreviewIndex(index=>Math.max(0,index-1));
     }}>
-      {selected && previewOpen && <><div className="preview-header"><div><h2 id="preview-title">{selected.pages[previewIndex]?.label}</h2><p className="muted">{selected.previewKind==='published'?'템플릿 미리보기':'공통 참고 이미지'} · {previewIndex + 1} / {selected.pageCount}면</p></div><Button onClick={() => setPreviewOpen(false)}>닫기 ×</Button></div><div className="template-preview-with-binding" ref={node=>{if(node){node.style.aspectRatio=`${selected.widthMm}/${selected.heightMm}`;node.style.width=`min(100%, calc(65dvh * ${selected.widthMm/selected.heightMm}))`;}}}>{nativeSource?<NativePreview project={nativeSource} pageId={nativeSource.book.pageInstances[previewIndex].id}/>:selected.pages[previewIndex]?.imageUrl||selected.pages[previewIndex]?.largeImageUrl?<PreviewImage className="preview-image" url={largePreviewUrl(selected.pages[previewIndex])} label={selected.pages[previewIndex]?.label||'페이지'}/>:<PreviewImage className="preview-image" url={null} label={selected.pages[previewIndex]?.label||'페이지'}/>}{!nativeSource&&(selected.pages[previewIndex]?.imageUrl||selected.pages[previewIndex]?.largeImageUrl)&&<BindingPreview width={selected.widthMm} height={selected.heightMm} enabled={selected.calendarKind!=='poster'}/>}</div>{!previewSingle&&<div className="preview-controls"><Button disabled={previewIndex === 0} onClick={() => setPreviewIndex(index => index - 1)}>← 이전 면</Button><span aria-live="polite">{previewIndex + 1} / {selected.pageCount}</span><Button disabled={previewIndex === selected.pages.length - 1} onClick={() => setPreviewIndex(index => index + 1)}>다음 면 →</Button></div>}</>}
+      {previewTemplate&&<>
+        <div className="preview-header">
+          <div><h2 id="preview-title">{previewTemplate.name} · {previewTemplate.pages[previewIndex]?.label}</h2><p className="muted">{previewTemplate.previewKind==='published'?'템플릿 미리보기':'공통 참고 이미지'} · {previewIndex+1} / {previewTemplate.pageCount}면</p></div>
+          <Button onClick={()=>setPreviewTemplate(null)}>닫기 ×</Button>
+        </div>
+        <div className="template-preview-with-binding" ref={node=>{if(node){const ratio=previewTemplate.widthMm/previewTemplate.heightMm;node.style.aspectRatio=String(ratio);node.style.width=`min(100%, calc(62dvh * ${ratio}))`;}}}>
+          {previewSource&&previewPageId?<NativePreview project={previewSource} pageId={previewPageId}/>:<PreviewImage className="preview-image" url={(previewPage&&largePreviewUrl(previewPage))||(!previewIndex?previewTemplate.coverUrl:null)} label={previewPage?.label||'페이지'}/>}
+          {!previewPageId&&(previewTemplate.pages[previewIndex]?.imageUrl||previewTemplate.pages[previewIndex]?.largeImageUrl||(!previewIndex&&previewTemplate.coverUrl))&&<BindingPreview width={previewTemplate.widthMm} height={previewTemplate.heightMm} enabled={previewTemplate.calendarKind!=='poster'}/>}
+        </div>
+        <div className="preview-controls">
+          <Button disabled={previewIndex===0} onClick={()=>setPreviewIndex(index=>index-1)}>← 이전 면</Button>
+          <span aria-live="polite">{previewIndex+1} / {previewTemplate.pageCount}</span>
+          <Button disabled={previewIndex===previewTemplate.pages.length-1} onClick={()=>setPreviewIndex(index=>index+1)}>다음 면 →</Button>
+        </div>
+        <div className="catalog-preview-actions">
+          <Button variant="primary" disabled={saving||nativeLoading||!previewTemplate.sourceUrl} onClick={()=>void choose(previewTemplate)}>이 템플릿으로 만들기</Button>
+          {nativeLoading&&<p role="status">템플릿을 불러오고 있어요.</p>}
+          {selectedId===previewTemplate.id&&nativeFailure&&<p role="alert">{nativeFailure}</p>}
+        </div>
+      </>}
     </dialog>
   </div>;
 }
@@ -287,21 +315,21 @@ function CardPreviewPage({template,number,decorative=false}:{template:TemplateCa
   useEffect(()=>{frame.current?.style.setProperty('--preview-ratio',String(template.widthMm/template.heightMm));},[template.widthMm,template.heightMm]);
   const page=template.pages.find(page=>page.number===number);
   const url=page?.imageUrl||(number===1?template.coverUrl:null);
-  return <div ref={frame} className="card-preview-page" aria-hidden={decorative||undefined}><div className="card-preview-content">{url?<PreviewImage url={url} label={page?.label||`${number}면`} decorative={decorative}/>:<div className="preview-placeholder" role="img" aria-label="저장된 미리보기 준비 중"><strong>미리보기 준비 중</strong><span>디자인 상세에서 확인해 주세요.</span></div>}</div></div>;
+  return <div ref={frame} className="card-preview-page" aria-hidden={decorative||undefined}><div className="card-preview-content">{url?<PreviewImage url={url} label={page?.label||`${number}면`} decorative={decorative}/>:<div className="preview-placeholder" role="img" aria-label="저장된 미리보기 준비 중"><strong>미리보기 준비 중</strong><span>미리 보기에서 확인해 주세요.</span></div>}</div></div>;
 }
 
-function TemplateCardArtwork({template}:{template:TemplateCard}) {
+function TemplateCardArtwork({template,onPreview}:{template:TemplateCard;onPreview:(number:number)=>void}) {
   const poster=template.calendarKind==='poster';
   const topPages=poster&&template.pageCount===2?[1,2]:[1];
   const smallPages=poster?template.pages.map(page=>page.number):template.representativePages;
   return <div className="template-art">
     <div className={`card-main-preview${topPages.length===2?' card-main-pair':''}`}>
-      {topPages.map(number=><CardPreviewPage key={number} template={template} number={number}/>)}
+      {topPages.map(number=><button type="button" className="card-preview-trigger" key={number} onClick={()=>onPreview(number)} disabled={!template.pages.some(page=>page.number===number)}><CardPreviewPage template={template} number={number}/></button>)}
     </div>
     {poster?<div className="poster-mini-previews" aria-label={`${template.name} 전체 ${template.pageCount}면`}>
-      {smallPages.map(number=><CardPreviewPage key={number} template={template} number={number}/>)}
+      {smallPages.map(number=><button type="button" className="card-preview-trigger" key={number} onClick={()=>onPreview(number)} disabled={!template.pages.some(page=>page.number===number)}><CardPreviewPage template={template} number={number}/></button>)}
     </div>:<div className="mini-previews" tabIndex={0} aria-label={`${template.name} 대표 ${smallPages.length}면 · 마우스를 올리거나 초점을 두면 멈춥니다`}><div className="mini-track">
-      {[...smallPages,...smallPages].map((number,index)=><div className="card-mini-slot" key={index}><CardPreviewPage template={template} number={number} decorative={index>=smallPages.length}/></div>)}
+      {[...smallPages,...smallPages].map((number,index)=><div className="card-mini-slot" key={index}>{index<smallPages.length?<button type="button" className="card-preview-trigger" onClick={()=>onPreview(number)} disabled={!template.pages.some(page=>page.number===number)}><CardPreviewPage template={template} number={number}/></button>:<CardPreviewPage template={template} number={number} decorative/>}</div>)}
     </div></div>}
   </div>;
 }
