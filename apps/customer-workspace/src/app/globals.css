@@ -920,7 +920,8 @@ img {max-width: 100%;}
 @media(max-width:650px){.editor-information-dialog .editor-information-layout{grid-template-rows:auto minmax(0,1fr);}.editor-information-dialog .editor-information-nav{max-height:90px;}.editor-information-dialog .editor-materials-body{max-height:none;}}
 
 /* Product-wide guides stay above opaque artwork; paper extends through bleed. */
-.editor-canvas>.native-preview{position:relative;z-index:1;}
+.editor-canvas>.native-preview{position:relative;z-index:1;pointer-events:none;}
+.editor-canvas>.editor-targets{z-index:2;}
 .production-guide-paper{position:absolute;background:#fff;z-index:0;pointer-events:none;}
 .production-guides{position:absolute;z-index:100;overflow:visible;pointer-events:none;}
 .production-guides rect{fill:none;stroke-width:1;stroke-dasharray:3 2;vector-effect:non-scaling-stroke;}
