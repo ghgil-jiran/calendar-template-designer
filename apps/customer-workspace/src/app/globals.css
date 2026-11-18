@@ -135,7 +135,9 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .site-footer {display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; max-width: 1120px; margin: auto; padding: 22px 32px; border-top: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: 11px;}
 .preview-dialog {width: min(930px, calc(100% - 30px)); max-height: calc(100dvh - 32px); padding: 24px; border: 1px solid hsl(var(--border)); border-radius: 17px; color: hsl(var(--foreground)); background: hsl(var(--canvas));}
 .preview-dialog::backdrop {background: hsl(var(--shadow) / .6);}
-.preview-header {display: flex; align-items: center; justify-content: space-between; gap: 15px;}
+.preview-header {display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;}
+.preview-header > .button {flex: none; min-height: 36px; padding: 5px 11px; white-space: nowrap;}
+.workspace .preview-header > .button {font-size: 13px;}
 .preview-header h2 {margin: 0;}
 .preview-header p {font-size: 12px; margin: 3px 0 0;}
 .preview-image {width: 100%; max-height: 65dvh; object-fit: contain; margin: 20px auto; display: block;}
