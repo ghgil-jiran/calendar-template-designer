@@ -37,9 +37,11 @@ img {max-width: 100%;}
 .button-quiet {background: transparent; border-color: transparent; color: hsl(var(--muted-foreground)); padding-left: 0; padding-right: 0;}
 .wide-button {width: 100%;}
 .panel {background: hsl(var(--canvas)); border: 1px solid hsl(var(--border)); padding: 26px; border-radius: 17px;}
+html:has(.site-header) {scrollbar-gutter: stable;}
 .site-header {background: hsl(var(--canvas)); border-bottom: 1px solid hsl(var(--border));}
 .header-inner {max-width: 1120px; margin: auto; display: flex; align-items: center; gap: 18px; padding: 20px 32px;}
-.header-inner > .button:last-child {margin-left: auto;}
+.site-header-actions {display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-left:auto;}
+.site-header-actions .button {white-space:nowrap;}
 .brand {color: hsl(var(--foreground)); font-size: 21px; letter-spacing: -.8px; gap: 0;}
 .brand span {color: hsl(var(--primary));}
 .header-caption {color: hsl(var(--muted-foreground)); margin: 0; font-size: 13px;}
@@ -141,6 +143,8 @@ img {max-width: 100%;}
 @media (max-width: 720px) {
   .header-inner {padding: 15px 18px; gap: 10px;}
   .header-caption {display: none;}
+  .site-header-actions {gap:6px;}
+  .site-header-actions .button {padding-inline:8px;}
   .brand {font-size: 18px;}
   .review-notice > div {padding: 10px 18px;}
   .main {padding: 24px 18px;}
@@ -947,10 +951,9 @@ img {max-width: 100%;}
 .template-copy .card-actions {justify-content:flex-start;}
 .catalog-preview-actions {display:grid;justify-items:center;gap:8px;margin-top:14px;}
 
-.project-page-heading,.project-header-actions,.project-card-heading {display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.project-page-heading,.project-card-heading {display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .project-page-heading {justify-content:space-between;margin-bottom:20px;}
 .project-page-heading h1 {margin:0;font-size:clamp(20px, 2vw, 26px);}
-.project-header-actions {margin-left:auto;justify-content:flex-end;}
 .project-cover {display:grid;grid-template:minmax(0,1fr) / minmax(0,1fr);place-items:center;aspect-ratio:260/180;background:hsl(var(--surface));border-radius:8px;overflow:hidden;}
 .project-cover-page {min-width:0;}
 .project-cover img {display:block;width:100%;height:100%;min-height:0;object-fit:contain;}
@@ -965,3 +968,5 @@ img {max-width: 100%;}
 @media(max-width:600px){.project-grid {grid-template-columns:minmax(0,1fr);}}
 .editor-stage {isolation:isolate;}
 .editor-library:has(.editor-template-options) {position:relative;z-index:50;}
+
+@media(max-width:400px){.header-inner > .brand .school-calendar-logo {width:100px;}}
