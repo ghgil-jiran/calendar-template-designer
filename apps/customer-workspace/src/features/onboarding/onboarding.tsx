@@ -61,6 +61,7 @@ export function Onboarding() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [school, setSchool] = useState<SchoolInput>({values: {}, hidden: []});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [visiblePreview,setVisiblePreview]=useState<CatalogPreviewPage|null>(null);
   const [previewIndex, setPreviewIndex] = useState(0);
   const [previewSource,setPreviewSource]=useState<NativeProject|null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<TemplateCard|null>(null);
@@ -205,7 +206,7 @@ export function Onboarding() {
     const state:ProjectDraft={id:r.id,revision:r.revision,name:r.name,template:restored.template,source:restored.source,editorState:r.editorState,school:normalizeSchoolVisibility(restored.template.fields,r.school),events:r.events,photos:restored.photos,assignments:restored.assignments,photoMode:r.photoMode||'assign',photoPageId:r.photoPageId||'',photoSelections:restored.photoSelections,step:r.step};setSavedSignature(draftSignature(state));
     setStep(['school','schedule','photos','input-review'].includes(r.step)?'editor':r.step);setPhotoMode('collect');
   }
-  function openPreview(template: TemplateCard,index=0) {if(nativeLoading)return;setNativeFailure('');setPreviewIndex(Math.max(0,index));setPreviewSource(null);setPreviewTemplate(template);}
+  function openPreview(template: TemplateCard,index=0) {if(nativeLoading)return;setNativeFailure('');setVisiblePreview(null);setPreviewIndex(Math.max(0,index));setPreviewSource(null);setPreviewTemplate(template);}
   function continueSchool(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selected) return;
@@ -219,6 +220,16 @@ export function Onboarding() {
 
   const previewPage=previewTemplate?.pages[previewIndex];
   const previewPageId=previewSource?.book.pageInstances[previewIndex]?.id;
+  const requestedPreview=previewTemplate?{
+    key:JSON.stringify([previewTemplate.id,previewIndex,previewPageId]),
+    index:previewIndex,
+    project:previewSource,
+    pageId:previewPageId,
+    url:(previewPage&&largePreviewUrl(previewPage))||(!previewIndex?previewTemplate.coverUrl:null),
+    label:previewPage?.label||'페이지',
+  }:null;
+  const displayedIndex=visiblePreview?.index??previewIndex;
+  const previewLayers=[visiblePreview,requestedPreview?.key===visiblePreview?.key?null:requestedPreview];
   if(step==='editor'&&materialProject)return <PhotoEditor calendarDefaults={templateCalendarDisplay(nativeSource)} key={selected!.id} onTemplateChange={changeTemplate} templateName={selected!.name} templates={(catalog?.templates||[]).filter(t=>compatibleTemplate(selected!,t))} currentTemplateId={selected!.id} onNavigationPause={setNavigationPaused} onHome={async(save)=>{if(!save||await saveWorking('editor')){resetToCatalog();return true;}return false;}} commonPhotoIds={Object.fromEntries((nativeSource?photoSlotsForProject(nativeSource):[]).flatMap(slot=>assignments[slot.id]?[[slot.binding||'',assignments[slot.id].photoId]]:[]))} assignedPhotoIds={Object.values(assignments).map(a=>a.photoId)} project={materialProject} photos={photos} onPhotos={next=>{setPhotos(next);setAssignments(current=>Object.fromEntries(Object.entries(current).filter(([,a])=>next.some(p=>p.id===a.photoId))));setEditorState(current=>current?{...current,edits:current.edits.filter(e=>!e.photoId||next.some(p=>p.id===e.photoId))}:current);}} initialState={editorState} onChange={setEditorState} saveFailure={saveError} onProjects={async()=>{if(await saveWorking('editor'))setStep('projects');}} name={displayName} saving={saving} onSave={()=>saveWorking()} school={school} events={events} fields={selected!.fields} onFieldChange={(key,value)=>setSchool(p=>updateSchoolField(p,key,value))} onFieldHide={(key,hidden)=>setSchool(p=>({...p,hidden:hidden?[...new Set([...p.hidden,key])]:p.hidden.filter(k=>k!==key)}))} onSchoolPhoto={(binding,photo)=>{const slots=photoSlotsForProject(nativeSource!).filter(s=>s.binding===binding);setAssignments(p=>({...p,...Object.fromEntries(slots.map(s=>[s.id,{photoId:photo.id,url:photo.url}]))}));}} onMaterialsSave={async(nextSchool,nextEvents,images=[])=>{const staged=stageSchoolImages(photos,assignments,photoSlotsForProject(nativeSource!),editorState,images);const nextPhotos=staged.photos,nextAssignments=staged.assignments,nextEditor=staged.editorState;if(!await saveWorking('editor',{school:nextSchool,events:nextEvents,photos:nextPhotos,assignments:nextAssignments,editorState:nextEditor},true))return false;setSchool(nextSchool);setEvents(nextEvents);setPhotos(nextPhotos);setAssignments(nextAssignments);setEditorState(nextEditor);return true;}}/>;
   return <div className="workspace">
     <header className="site-header"><div className="header-inner"><Button variant="quiet" className="brand" onClick={catalogHome} aria-label="우리학교달력 첫 화면으로 이동"><img className="school-calendar-logo" src="/school-calendar-logo.png" alt="우리학교달력" width="120" height="36"/></Button><p className="header-caption">우리 학교의 일 년을 담아요</p><div className="site-header-actions">{step==='projects'?<><Button onClick={()=>projectMenuDialog.current?.showModal()}>우리학교인쇄</Button><Button onClick={()=>projectMenuDialog.current?.showModal()}>장바구니</Button></>:<Button disabled={saving||nativeLoading} onClick={() => setStep('projects')}>내 프로젝트</Button>}</div></div></header>
@@ -288,16 +299,17 @@ export function Onboarding() {
     }}>
       {previewTemplate&&<>
         <div className="preview-header">
-          <div><h2 id="preview-title">{previewTemplate.name} · {previewTemplate.pages[previewIndex]?.label}</h2></div>
+          <div><h2 id="preview-title">{previewTemplate.name} · {previewTemplate.pages[displayedIndex]?.label}</h2></div>
           <Button onClick={()=>setPreviewTemplate(null)}>닫기 ×</Button>
         </div>
         <div className="template-preview-with-binding" ref={node=>{if(node){const ratio=previewTemplate.widthMm/previewTemplate.heightMm;node.style.aspectRatio=String(ratio);node.style.width=`min(100%, calc(62dvh * ${ratio}))`;}}}>
-          {previewSource&&previewPageId?<NativePreview project={previewSource} pageId={previewPageId}/>:<PreviewImage className="preview-image" url={(previewPage&&largePreviewUrl(previewPage))||(!previewIndex?previewTemplate.coverUrl:null)} label={previewPage?.label||'페이지'}/>}
-          {!previewPageId&&(previewTemplate.pages[previewIndex]?.imageUrl||previewTemplate.pages[previewIndex]?.largeImageUrl||(!previewIndex&&previewTemplate.coverUrl))&&<BindingPreview width={previewTemplate.widthMm} height={previewTemplate.heightMm} enabled={previewTemplate.calendarKind!=='poster'}/>}
+          {previewLayers.map(page=>page&&<CatalogPreviewLayer key={page.key} page={page} template={previewTemplate}
+            pending={page.key!==visiblePreview?.key} onReady={()=>setVisiblePreview(page)}/>)}
+          {!visiblePreview&&<p className="catalog-preview-loading" role="status">미리보기를 준비하고 있어요.</p>}
         </div>
         <div className="preview-controls">
           <Button disabled={previewIndex===0} onClick={()=>setPreviewIndex(index=>index-1)}>← 이전 면</Button>
-          <span aria-live="polite">{previewIndex+1} / {previewTemplate.pageCount}</span>
+          <span aria-live="polite">{displayedIndex+1} / {previewTemplate.pageCount}</span>
           <Button disabled={previewIndex===previewTemplate.pages.length-1} onClick={()=>setPreviewIndex(index=>index+1)}>다음 면 →</Button>
         </div>
         <div className="catalog-preview-actions">
@@ -310,9 +322,34 @@ export function Onboarding() {
   </div>;
 }
 
+type CatalogPreviewPage={
+  key:string;
+  index:number;
+  project:NativeProject|null;
+  pageId?:string;
+  url?:string|null;
+  label:string;
+};
+
+function CatalogPreviewLayer({page,template,pending,onReady}:{page:CatalogPreviewPage;template:TemplateCard;pending:boolean;onReady:()=>void}) {
+  const native=Boolean(page.project&&page.pageId);
+  useEffect(()=>{
+    if(pending&&!native&&!page.url)onReady();
+  },[pending,native,page.url,onReady]);
+  return <div className={`catalog-preview-layer${pending?' is-pending':''}`} inert={pending} aria-hidden={pending||undefined}>
+    {page.project&&page.pageId
+      ? <NativePreview project={page.project} pageId={page.pageId} onReady={onReady}/>
+      : <PreviewImage className="preview-image" url={page.url} label={page.label} eager onReady={onReady}/>}
+    {!native&&page.url&&<BindingPreview width={template.widthMm} height={template.heightMm} enabled={template.calendarKind!=='poster'}/>}
+  </div>;
+}
+
 function Progress({active=2}:{active?:2|3}) {return <ol className="journey progress" aria-label="달력 제작 과정"><li className="progress-complete"><span aria-label="완료">✓</span>디자인 선택</li><li className={active===3?'progress-complete':undefined} aria-current={active===2?'step':undefined}><span aria-label={active===3?'완료':undefined}>{active===3?'✓':'2'}</span>학교 자료 입력</li><li aria-current={active===3?'step':undefined}><span>3</span>달력 편집</li></ol>;}
-function PreviewImage({url, label, className = '', decorative = false, eager = false}: {url?: string | null; label: string; className?: string; decorative?: boolean; eager?: boolean}) {
-  return url ? <img className={className} src={url} alt={decorative ? '' : `${label} 미리보기`} loading={eager?'eager':'lazy'} /> : <div className={`preview-placeholder ${className}`} role="img" aria-label={`${label}: 이미지 연결 대기`}><strong>{label}</strong><span>미리보기 연결 대기</span></div>;
+function PreviewImage({url, label, className = '', decorative = false, eager = false, onReady}: {url?: string | null; label: string; className?: string; decorative?: boolean; eager?: boolean; onReady?:()=>void}) {
+  return url ? <img className={className} src={url} alt={decorative ? '' : `${label} 미리보기`} loading={eager?'eager':'lazy'} onLoad={onReady?event=>{
+    const image=event.currentTarget;
+    void image.decode().catch(()=>{}).then(()=>{if(image.isConnected)onReady();});
+  }:undefined} onError={onReady}/> : <div className={`preview-placeholder ${className}`} role="img" aria-label={`${label}: 이미지 연결 대기`}><strong>{label}</strong><span>미리보기 연결 대기</span></div>;
 }
 
 function MaterialStage({active}:{active:1|2|3}){return <div className="input-stage">{["학교 정보","학사일정","사진"].map((label,index)=><span className={index+1===active?"input-stage-current":""} key={label} aria-current={index+1===active?"step":undefined}>{label}</span>)}</div>;}

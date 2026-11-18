@@ -13,8 +13,10 @@ export async function loadEngine(){
   return manifest as {styles:string[]};})();
  try{return await ready;}catch(error){ready=undefined;throw error;}
 }
-export function NativePreview({project,pageId,compact=false,guides=false,showAssetWarning=true}:{project:NativeProject;pageId:string;compact?:boolean;guides?:boolean;showAssetWarning?:boolean}){
+export function NativePreview({project,pageId,compact=false,guides=false,showAssetWarning=true,onReady}:{project:NativeProject;pageId:string;compact?:boolean;guides?:boolean;showAssetWarning?:boolean;onReady?:()=>void}){
  const host=useRef<HTMLDivElement>(null),engine=useRef<Engine|null>(null),[failure,setFailure]=useState(''),[assetWarning,setAssetWarning]=useState(''),[loading,setLoading]=useState(true),[retry,setRetry]=useState(0);
+ const readyCallback=useRef(onReady);
+ useEffect(()=>{readyCallback.current=onReady;},[onReady]);
  useEffect(()=>{let alive=true;let cleanup=()=>{};setLoading(true);setFailure('');setAssetWarning('');
   (async()=>{const manifest=await loadEngine();if(!alive||!host.current)return;const shadow=host.current.shadowRoot||host.current.attachShadow({mode:'open'});shadow.replaceChildren();
    await Promise.all(manifest.styles.filter(file=>file!=='shared-screen-fonts.css').map(file=>new Promise<void>((resolve,reject)=>{const link=document.createElement('link');link.rel='stylesheet';link.href='/generated/page-runtime/'+file;link.onload=()=>resolve();link.onerror=()=>reject(Error('달력 스타일을 불러오지 못했습니다.'));shadow.append(link);})));if(!alive)return;
@@ -24,7 +26,8 @@ export function NativePreview({project,pageId,compact=false,guides=false,showAss
    const imageChecks=Array.from(rendered.querySelectorAll('img')).filter(img=>img.src).map(img=>Promise.race([img.decode().then(()=>true,()=>false),new Promise<boolean>(resolve=>setTimeout(()=>resolve(img.complete&&img.naturalWidth>0),5000))]));
    void Promise.all(imageChecks).then(results=>{if(alive&&results.some(ok=>!ok))setAssetWarning('일부 템플릿 이미지를 불러오지 못했어요. 디자인을 다시 선택해 이미지 연결을 확인해 주세요.');});
    const fit=()=>{if(!host.current)return;const scale=host.current.clientWidth/850;page.style.transform=`scale(${scale})`;host.current.style.height=`${850*Number(project.productType.pageSize.height)/Number(project.productType.pageSize.width)*scale}px`;};fit();await document.fonts.ready;await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));if(!alive)return;if(project.productType.category==='poster'){const issues=(window as unknown as {ACDLWallCalendar?:{inspect:(scope:HTMLElement)=>unknown[]}}).ACDLWallCalendar?.inspect(page)||[];if(issues.length)setAssetWarning('벽보형 월력에 '+issues.length+'곳의 공간 부족이 있습니다. 템플릿의 전체 월력 구성을 확인해 주세요.');}const observer=new ResizeObserver(fit);observer.observe(host.current);cleanup=()=>observer.disconnect();setLoading(false);
-  })().catch(error=>{if(alive){setFailure(error.message);setLoading(false);}});
+   if(readyCallback.current){await Promise.all(imageChecks);if(alive)readyCallback.current?.();}
+  })().catch(error=>{if(alive){setFailure(error.message);setLoading(false);readyCallback.current?.();}});
   return()=>{alive=false;cleanup();engine.current?.dispose();engine.current=null;};
  },[project,pageId,retry,guides]);
  return <div className="native-preview"><div className="binding-preview-surface"><div ref={host} aria-label="학교 자료가 반영된 달력" role="img" />{!guides&&<BindingPreview width={Number(project.productType.pageSize.width)} height={Number(project.productType.pageSize.height)} enabled={project.productType.category==='desk'}/>}</div>{showAssetWarning&&(!compact||project.productType.category==='poster')&&assetWarning&&<p className="field-error" role="alert">{assetWarning}</p>}{!compact&&loading&&<p role="status">달력을 표시하고 있어요.</p>}{failure&&<div role="alert"><p>{failure}</p>{!compact&&<button type="button" className="button" onClick={()=>setRetry(v=>v+1)}>다시 불러오기</button>}</div>}</div>;
