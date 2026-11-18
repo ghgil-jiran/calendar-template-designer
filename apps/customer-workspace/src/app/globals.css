@@ -918,3 +918,13 @@ img {max-width: 100%;}
 .editor-image-library-dialog .form-section>.actions{display:flex;justify-content:flex-end;}
 .editor-image-library-dialog>p{padding:0 16px;}
 @media(max-width:650px){.editor-information-dialog .editor-information-layout{grid-template-rows:auto minmax(0,1fr);}.editor-information-dialog .editor-information-nav{max-height:90px;}.editor-information-dialog .editor-materials-body{max-height:none;}}
+
+/* Product-wide guides stay above opaque artwork; paper extends through bleed. */
+.editor-canvas>.native-preview{position:relative;z-index:1;}
+.production-guide-paper{position:absolute;background:#fff;z-index:0;pointer-events:none;}
+.production-guides{position:absolute;z-index:100;overflow:visible;pointer-events:none;}
+.production-guides rect{fill:none;stroke-width:1;stroke-dasharray:3 2;vector-effect:non-scaling-stroke;}
+.production-guide-safe{stroke:#16a34a;}
+.production-guide-trim{stroke:#df3535;}
+.production-guide-bleed{stroke:#3b82f6;}
+@media print{.production-guides,.production-guide-paper{display:none!important;}}
