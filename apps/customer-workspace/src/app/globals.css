@@ -946,3 +946,15 @@ img {max-width: 100%;}
 .card-preview-trigger:focus-visible {outline:2px solid hsl(var(--primary));outline-offset:-2px;}
 .template-copy .card-actions {justify-content:flex-start;}
 .catalog-preview-actions {display:grid;justify-items:center;gap:8px;margin-top:14px;}
+
+.project-page-heading,.project-header-actions,.project-card-heading {display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.project-page-heading {justify-content:space-between;margin-bottom:20px;}
+.project-page-heading h1 {margin:0;}
+.project-cover {display:grid;align-items:center;min-height:96px;background:hsl(var(--surface));border-radius:8px;overflow:hidden;}
+.project-cover img {display:block;width:100%;height:auto;}
+.project-cover > p {text-align:center;}
+.project-card-heading {margin-top:14px;}
+.project-card-heading h2 {margin:0;}
+.project-card-menu {position:relative;margin-left:auto;}
+.project-card-menu summary {cursor:pointer;padding:4px 10px;font-size:20px;list-style:none;}
+.project-card-menu > .button {position:absolute;right:0;top:100%;z-index:1;white-space:nowrap;}
