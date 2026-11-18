@@ -27,10 +27,7 @@ export function ProjectLibrary({onOpen,onDeleted,refresh=0}:{onOpen:(id:string)=
       <div className="project-card-heading">
         <h2>{project.templateName}</h2>
         <span className="badge">저장됨</span>
-        <details className="project-card-menu">
-          <summary aria-label={`${project.name} 더보기`}>⋯</summary>
-          <Button disabled={Boolean(busy)} onClick={()=>{if(window.confirm(`‘${project.name}’과 함께 보관한 사진을 이 브라우저에서 삭제할까요? 삭제 후에는 복원할 수 없어요.`))void action(project.id,async()=>{await deleteLocalProject(project.id);onDeleted?.(project.id);});}}>삭제</Button>
-        </details>
+          <Button className="project-card-delete" disabled={Boolean(busy)} onClick={()=>{if(window.confirm(`‘${project.name}’과 함께 보관한 사진을 이 브라우저에서 삭제할까요? 삭제 후에는 복원할 수 없어요.`))void action(project.id,async()=>{await deleteLocalProject(project.id);onDeleted?.(project.id);});}}>삭제</Button>
       </div>
       {project.name!==project.templateName&&<p className="muted">{project.name}</p>}
       <p className="muted">마지막 저장 <time dateTime={project.updatedAt}>{new Date(project.updatedAt).toLocaleString('ko-KR')}</time></p>

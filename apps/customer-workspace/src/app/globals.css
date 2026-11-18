@@ -942,19 +942,24 @@ img {max-width: 100%;}
 .editor-properties .schedule-sizing-fields input{width:100%;min-width:0;padding:7px 8px;font-size:12px;}
 .calendar-display-options .checkbox:has(input:disabled){color:hsl(var(--muted-foreground));}
 
-.card-preview-trigger {display:block;width:100%;padding:0;border:0;background:transparent;cursor:pointer;}
+.card-preview-trigger {display:block;width:100%;height:100%;min-height:0;padding:0;border:0;background:transparent;cursor:pointer;}
 .card-preview-trigger:focus-visible {outline:2px solid hsl(var(--primary));outline-offset:-2px;}
 .template-copy .card-actions {justify-content:flex-start;}
 .catalog-preview-actions {display:grid;justify-items:center;gap:8px;margin-top:14px;}
 
 .project-page-heading,.project-header-actions,.project-card-heading {display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .project-page-heading {justify-content:space-between;margin-bottom:20px;}
-.project-page-heading h1 {margin:0;}
-.project-cover {display:grid;align-items:center;min-height:96px;background:hsl(var(--surface));border-radius:8px;overflow:hidden;}
+.project-page-heading h1 {margin:0;font-size:clamp(20px, 2vw, 26px);}
+.project-header-actions {margin-left:auto;justify-content:flex-end;}
+.project-cover {display:grid;grid-template-columns:minmax(0,1fr);align-items:center;min-height:96px;background:hsl(var(--surface));border-radius:8px;overflow:hidden;}
 .project-cover img {display:block;width:100%;height:auto;}
 .project-cover > p {text-align:center;}
 .project-card-heading {margin-top:14px;}
 .project-card-heading h2 {margin:0;}
-.project-card-menu {position:relative;margin-left:auto;}
-.project-card-menu summary {cursor:pointer;padding:4px 10px;font-size:20px;list-style:none;}
-.project-card-menu > .button {position:absolute;right:0;top:100%;z-index:1;white-space:nowrap;}
+.project-card-delete {margin-left:auto;}
+.project-grid {grid-template-columns:repeat(3,minmax(0,1fr));}
+.project-grid .project-card {min-width:0;padding:16px;}
+@media(max-width:960px){.project-grid {grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:600px){.project-grid {grid-template-columns:minmax(0,1fr);}}
+.editor-stage {isolation:isolate;}
+.editor-library:has(.editor-template-options) {position:relative;z-index:50;}
