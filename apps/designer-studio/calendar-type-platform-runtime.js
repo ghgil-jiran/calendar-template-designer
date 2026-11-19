@@ -28,8 +28,9 @@
   const poster=$('ctpFamily').value==='single-sheet',policy=$('ctpCover')?.closest('.type-setting-card');
   for(const id of ['ctpCover','ctpBackCover','ctpMonthlyFront','ctpMonthlyBack','ctpFrontMin','ctpFrontMax','ctpRearMin','ctpRearMax']){const input=$(id);if(!input)continue;input.disabled=poster;input.closest('label').hidden=poster;input.closest('label').classList.toggle('hidden',poster);if(poster)input.value=id.includes('Min')||id.includes('Max')?'0':'unsupported'}
   let field=$('ctpPosterPageCount')?.closest('label');if(!field){field=document.createElement('label');field.className='full';field.innerHTML='<span>壁</span><select id="ctpPosterPageCount"><option value="1">1페이지 · 12개월</option><option value="2">2페이지 · 페이지당 6개월</option></select><small>페이지별 월력 배치와 학교 정보는 템플릿에서 구성합니다. 표지·간지·월력 앞뒤 구분은 사용하지 않습니다.</small>';field.querySelector('span').textContent='벽보 페이지 구성';policy?.querySelector('.policy-fields')?.appendChild(field)}field.hidden=!poster;$('ctpPosterPageCount').value=String(domain.posterPageCount(type));
-  $('ctpPrint').disabled=poster;$('ctpMonths').disabled=poster;if(poster){$('ctpPrint').value='simplex';$('ctpMonths').value='12'}
-  const description=policy?.querySelector('header p');if(description&&poster)description.textContent='12개월을 1페이지 또는 2페이지에 배치합니다. 두 페이지도 각각 단면이며 앞면·뒷면 구분이 아닙니다.';
+  const syncPrint=()=>{const single=$('ctpFamily').value==='single-sheet',print=$('ctpPrint');print.disabled=single&&$('ctpPosterPageCount').value!=='2';if(print.disabled)print.value='simplex';};$('ctpPosterPageCount').onchange=syncPrint;syncPrint();
+  $('ctpMonths').disabled=poster;if(poster)$('ctpMonths').value='12'
+  const description=policy?.querySelector('header p');if(description&&poster)description.textContent='12개월을 한 면에 배치하거나 6개월씩 두 면에 나눕니다. 두 면은 단면 두 장 또는 양면 한 장으로 인쇄할 수 있습니다.';
   if(!$('ctpFamily').dataset.posterRulesBound){$('ctpFamily').dataset.posterRulesBound='true';$('ctpFamily').addEventListener('change',()=>applyPosterDetailRules(type))}
  }
  function addMonthlyDefaultsSection(type){

@@ -7,9 +7,10 @@ test('calendar type API contract accepts the production desk standard',()=>asser
 test('calendar type API contract rejects template-owned or malformed structural values',()=>assert.throws(()=>validateCalendarType({...valid,policies:{...valid.policies,cover:true}}),error=>error.code==='INVALID_CALENDAR_TYPE'));
 
 
-test('poster API round trip keeps two-sheet page rules and blocks desk-only policies',()=>{
+test('poster API round trip keeps two-page rules and blocks desk-only policies',()=>{
  const domain=globalThis.ACDLCalendarTypeDomain,input=domain.definition('poster-two-page');
  input.policies.monthlyBack='required';input.ranges.rearInsert.max=2;input.printSides='duplex';
- const saved=validateCalendarType(input);assert.equal(saved.pageRules[0].min,2);assert.equal(saved.pageRules[0].max,2);assert.equal(saved.policies.monthlyBack,'unsupported');assert.equal(saved.ranges.rearInsert.max,0);assert.equal(saved.printSides,'simplex');
+ const saved=validateCalendarType(input);assert.equal(saved.pageRules[0].min,2);assert.equal(saved.pageRules[0].max,2);assert.equal(saved.policies.monthlyBack,'unsupported');assert.equal(saved.ranges.rearInsert.max,0);assert.equal(saved.printSides,'duplex');
+ assert.equal(validateCalendarType({...domain.definition('poster-standard'),printSides:'duplex'}).printSides,'simplex');
  assert.throws(()=>validateCalendarType({...input,pageRules:[{role:'annual',kind:'required',min:3,max:3}]}),error=>error.code==='INVALID_CALENDAR_TYPE');
 });
