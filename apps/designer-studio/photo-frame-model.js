@@ -32,7 +32,14 @@
  const clip=id=>clips[get(id).id];
  function outline(id,color='#ffffff',width=3){color=/^#[0-9a-f]{3,8}$/i.test(color)?color:'transparent';width=Math.max(0,Math.min(20,Number(width)||0));return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" aria-hidden="true"><path d="${get(id).path}" fill="none" stroke="${color}" stroke-width="${width*2}" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;}
  function background(style={}){const value=style.background;return value===false||value==='transparent'?'transparent':value===true?(style.backgroundColor||'#eef2f7'):typeof value==='string'&&/^#[0-9a-f]{3,8}$/i.test(value)?value:'#eef2f7';}
- root.ACDLPhotoFrameModel=Object.freeze({catalog,get,clip,outline,background});
+ function featherAmount(value){return Math.max(0,Math.min(30,Number(value)||0));}
+ function featherStyle(value){
+  const amount=featherAmount(value);
+  if(!amount)return '';
+  const gradient=direction=>`linear-gradient(to ${direction}, transparent, black ${amount}%, black ${100-amount}%, transparent)`;
+  return `mask-image:${gradient('right')},${gradient('bottom')};mask-composite:intersect;`;
+ }
+ root.ACDLPhotoFrameModel=Object.freeze({catalog,get,clip,outline,background,featherAmount,featherStyle});
 })(globalThis);
 
 

@@ -48,3 +48,25 @@ test('five-week layout preserves both dates and events in a split final cell',()
  assert.match(out,/다음 해 마지막 줄 일정/);
  assert.doesNotMatch(out,/data-wall-region="list"/);
 });
+
+test('wall title palette changes by row and same-color month numbers stay visible',()=>{
+ const p=globalThis.ACDLPosterOnePageSample.create({}),e=grid(p);
+ e.posterMonthColors={'3':'#ffffff','4':'#ffffff'};
+ const settings={titleStyle:'band',titlePalette:['#ffffff','#224466'],titleNumberMonthColor:true};
+ e.wallCalendarSettings={...settings,titleColorMode:'month'};
+ const month=html(p,e);
+ assert.match(month,/<span style="color:#000000;">3<\/span>월/);
+ assert.match(month,/data-poster-month="2027-04"[^]*?<header[^>]*background:#224466/);
+ e.wallCalendarSettings={...settings,titleColorMode:'row'};
+ assert.match(html(p,e),/data-poster-month="2027-04"[^]*?<header[^>]*background:#ffffff/);
+});
+
+test('date-only cells support vertical centering and cell schedules retain top placement',()=>{
+ const p=globalThis.ACDLPosterOnePageSample.create({}),e=grid(p);
+ p.book.events=[{id:'school',title:'시험',category:'school',startDate:'2027-03-02',endDate:'2027-03-02'}];
+ e.wallCalendarSettings={dateAlign:'center',dateVerticalAlign:'center',schedulePlacement:'cells',referencePlacement:'hidden'};
+ const markup=html(p,e);
+ assert.match(markup,/data-poster-date="2027-03-03"[^>]*data-wall-centered-date/);
+ assert.doesNotMatch(markup,/data-poster-date="2027-03-02"[^>]*data-wall-centered-date/);
+ assert.match(markup,/시험/);
+});

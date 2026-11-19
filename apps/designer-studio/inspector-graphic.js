@@ -9,6 +9,7 @@
           fill: values.fill || item.style?.fill,
           stroke: values.stroke || item.style?.stroke,
           strokeWidth: Number(values.strokeWidth ?? item.style?.strokeWidth),
+          ...(values.borderRadius === undefined ? {} : {borderRadius: Math.max(0, Math.min(50, Number(values.borderRadius) || 0))}),
           dash: values.dash || 'solid',
           shadow: values.shadow === true || values.shadow === 'true',
           shadowColor: values.shadowColor || item.style?.shadowColor || '#000000',

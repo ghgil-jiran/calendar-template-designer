@@ -6,3 +6,11 @@ import {validateGraphicSvg} from '../server/graphic-library.js';
 const m=globalThis.ACDLPhotoFrameModel;
 test('authored openings scale proportionally and outlines share the same path',()=>{assert.equal(m.catalog.length,22);assert.equal(new Set(m.catalog.map(f=>f.id)).size,22);for(const f of m.catalog){assert.match(m.clip(f.id),/^polygon\(/);assert.ok(!m.clip(f.id).includes('NaN'));assert.ok(m.outline(f.id,'#123456',0).includes('stroke-width="0"'));assert.ok(m.outline(f.id,'#123456',3).includes(f.path));assert.ok(f.path.endsWith('Z'));}assert.equal(m.clip('unknown'),m.clip('rect'));});
 test('frame assets install once, resume interrupted registration and preserve edits/deletions',async()=>{const records=[],deps={records,validateSvg:validateGraphicSvg,storeAsset:async()=>({id:'original'}),createRecord:async r=>{records.push(r);return r}};let calls=0;await assert.rejects(installPhotoFrames({...deps,storeAsset:async()=>{if(++calls===4)throw Error('interrupted');return {id:'original'}}}));assert.equal(records.length,3);records[0].name='edited';records[0].status='archived';await installPhotoFrames(deps);assert.equal(records.length,m.catalog.length+1);assert.equal(records[0].name,'edited');assert.equal(records[0].status,'archived');assert.ok(records.some(r=>r.id===PHOTO_FRAME_INSTALL_ID));assert.equal(records.filter(r=>r.subjectId==='frames').length,m.catalog.length);records.splice(0,1);assert.deepEqual(await installPhotoFrames(deps),[]);});
+
+test('edge feather intersects the two frame axes and can be disabled',()=>{
+ assert.equal(m.featherStyle(0),'');
+ assert.match(m.featherStyle(8),/to right, transparent, black 8%, black 92%, transparent/);
+ assert.match(m.featherStyle(8),/to bottom, transparent, black 8%, black 92%, transparent/);
+ assert.match(m.featherStyle(8),/mask-composite:intersect/);
+ assert.equal(m.featherAmount(100),30);
+});

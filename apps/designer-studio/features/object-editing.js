@@ -447,21 +447,23 @@ function userImageFitStyle(item){
 }
 function renderSemanticObject(item){
  const raw=semanticData(item),d={...raw,name:escapeAttr(raw.name||""),description:escapeAttr(raw.description||""),image:escapeAttr(raw.image||"")},titleOverride=escapeAttr(item.titleOverride||""),layout=item.layoutPreset||"image-top",role=item.role;
- if(layout==="image-only"&&item.showTitle===false&&item.showCaption===false)return `<div class="semantic-object semantic-logo"><div class="semantic-media">${d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)}" style="${userImageFitStyle(item)}">`:""}</div></div>`;
+ const feather=role==="school-building"&&d.image?window.ACDLPhotoFrameModel.featherStyle(item.style?.edgeFeather):"";
+ const mediaStyle=feather?` style="${feather}"`:"";
+ if(layout==="image-only"&&item.showTitle===false&&item.showCaption===false)return `<div class="semantic-object semantic-logo"><div class="semantic-media"${mediaStyle}>${d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)}" style="${userImageFitStyle(item)}">`:""}</div></div>`;
  const image=d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)} 이미지" style="${userImageFitStyle(item)}">`:`<span class="semantic-empty-visual non-output editor-only" aria-label="${semanticRoleLabel(role)} 이미지 슬롯"></span>`;
  const align=["left","center","right"].includes(item.style?.textAlign)?item.style.textAlign:"center";
  const showTitle=semanticTitleVisible(item),title=showTitle?`<strong style="display:block;width:100%;text-align:${align};font-size:${item.style?.titleSize||18}px">${titleOverride||(role==="school-song"?d.name:"")||semanticRoleLabel(role)}</strong>`:"";
  if(role==="school-logo"){
   const style=item.style||{},background=style.background===true?(style.backgroundColor||"#ffffff"):typeof style.background==="string"?style.background:"transparent";
-  return `<div class="semantic-object semantic-logo" style="background:${escapeAttr(background)}"><div class="semantic-media">${image}</div></div>`;
+  return `<div class="semantic-object semantic-logo" style="background:${escapeAttr(background)}"><div class="semantic-media"${mediaStyle}>${image}</div></div>`;
  }
  if(layout==="desk-six-symbol-card"){
   if(role==="school-motto")return `<div class="semantic-object desk-six-symbol-card semantic-motto"><strong style="font-size:${item.style?.titleSize||15}px">${titleOverride||d.name||"교훈"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
-  return `<div class="semantic-object desk-six-symbol-card ${role==="school-song"?"semantic-song":""}">${title}<div class="semantic-media">${image}</div>${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||8}px">${d.description||""}</p>`}</div>`
+  return `<div class="semantic-object desk-six-symbol-card ${role==="school-song"?"semantic-song":""}">${title}<div class="semantic-media"${mediaStyle}>${image}</div>${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||8}px">${d.description||""}</p>`}</div>`
  }
  if(role==="school-motto")return `<div class="semantic-object semantic-motto"><strong style="font-size:${item.style?.titleSize||18}px">${titleOverride||d.name||"교훈"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
- if(role==="school-song")return `<div class="semantic-object semantic-song"><div class="semantic-media">${image}</div><div class="semantic-copy" style="width:100%;text-align:${align}">${title}${item.showCaption===false?"":`<p style="text-align:${align};font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p>`}</div></div>`;
- return `<div class="semantic-object ${layout==="image-left"?"semantic-layout-row":""}"><div class="semantic-media">${image}</div>${item.showCaption===true||showTitle?`<div class="semantic-copy" style="text-align:${item.style?.textAlign||"center"}">${title}${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p>`}</div>`:""}</div>`
+ if(role==="school-song")return `<div class="semantic-object semantic-song"><div class="semantic-media"${mediaStyle}>${image}</div><div class="semantic-copy" style="width:100%;text-align:${align}">${title}${item.showCaption===false?"":`<p style="text-align:${align};font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p>`}</div></div>`;
+ return `<div class="semantic-object ${layout==="image-left"?"semantic-layout-row":""}"><div class="semantic-media"${mediaStyle}>${image}</div>${item.showCaption===true||showTitle?`<div class="semantic-copy" style="text-align:${item.style?.textAlign||"center"}">${title}${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p>`}</div>`:""}</div>`
 }
 function pageRecommendations(p){
  if(p.role==="cover-front")return ["school-building","school-logo"];
@@ -820,7 +822,12 @@ function elementInspectorPanels(){
   let dsg=head+`<div class="inspector-group"><div class="inspector-group-title"><span>레이아웃과 스타일</span><small>표현 방식</small></div>`;
   if(item.layoutPreset!=="image-only"&&!["school-logo","school-motto"].includes(item.role))dsg+=`<label>내부 배치<select id="semanticLayout"><option value="image-top" ${item.layoutPreset==="image-top"?"selected":""}>이미지 위 · 설명 아래</option><option value="image-left" ${item.layoutPreset==="image-left"?"selected":""}>이미지 왼쪽 · 설명 오른쪽</option></select></label>`;
   if(item.layoutPreset!=="image-only")dsg+=`<div class="grid2"><label>제목 크기<input id="semanticTitleSize" type="number" min="8" max="60" value="${item.style?.titleSize||18}"></label><label>설명 크기<input id="semanticDescriptionSize" type="number" min="7" max="32" value="${item.style?.descriptionSize||11}"></label></div><label>텍스트 정렬<select id="semanticTextAlign"><option value="left" ${item.style?.textAlign==="left"?"selected":""}>왼쪽</option><option value="center" ${item.style?.textAlign==="center"?"selected":""}>가운데</option><option value="right" ${item.style?.textAlign==="right"?"selected":""}>오른쪽</option></select></label><button id="applySemanticTemplate" class="action">레이아웃·스타일 저장</button></div></div>`;
-  panels.design=item.layoutPreset==="image-only"?"":dsg;
+  if(item.role==="school-building"){
+   const featherField=`<label>사진 가장자리 흐림 (%)<input id="semanticEdgeFeather" type="number" min="0" max="30" step="1" value="${window.ACDLPhotoFrameModel.featherAmount(item.style?.edgeFeather)}"></label>`;
+   if(item.layoutPreset==="image-only")dsg+=featherField+`<button id="applySemanticTemplate" class="action">프레임 스타일 저장</button></div></div>`;
+   else dsg=dsg.replace('<button id="applySemanticTemplate"',featherField+'<button id="applySemanticTemplate"');
+  }
+  panels.design=item.layoutPreset==="image-only"&&item.role!=="school-building"?"":dsg;
  }else if(item.type==="text"){
   const boundText=!!item.binding,resolvedText=resolveTextContent(item,selectedPage());
   const yearFormat=item.role==="yearly-plan-month"?`<label>자동 월 표시 형식<select id="elemPlanMonthStyle"><option value="number-en" ${item.planMonthLabelStyle!=="number-ko"?"selected":""}>3 MAR</option><option value="number-ko" ${item.planMonthLabelStyle==="number-ko"?"selected":""}>3월</option></select></label>`:item.binding==="calendar.year"?`<label>연도 형식<select id="elemYearFormat"><option value="year-plain" ${!item.format||item.format==="year-plain"?"selected":""}>2028</option><option value="year-ko" ${item.format==="year-ko"?"selected":""}>2028년</option><option value="academic-year" ${item.format==="academic-year"?"selected":""}>2028학년도</option><option value="year-range" ${item.format==="year-range"?"selected":""}>2028–2029</option></select></label>`:"";
@@ -1204,6 +1211,7 @@ function bindInspector(){
   if(el("semanticTitleSize"))i.style.titleSize=Number(el("semanticTitleSize").value);
   if(el("semanticDescriptionSize"))i.style.descriptionSize=Number(el("semanticDescriptionSize").value);
   if(el("semanticTextAlign"))i.style.textAlign=el("semanticTextAlign").value;
+  if(el("semanticEdgeFeather"))i.style.edgeFeather=window.ACDLPhotoFrameModel.featherAmount(el("semanticEdgeFeather").value);
   
  }));
  bind("replaceSemanticImage",()=>{pendingSemanticRole=sourceElement()?.role;el("semanticImageInput").click()});
