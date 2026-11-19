@@ -34,3 +34,17 @@ test('a two-column annual grid honors its start month and keeps rollover schedul
  wall.apply(p,e,settings,{startMonth:0});
  assert.equal(mini.resolveAnnualCalendar(e,p.book.pageInstances[0],p.settings).months[0].month,1);
 });
+
+test('five-week layout preserves both dates and events in a split final cell',()=>{
+ const p=globalThis.ACDLPosterOnePageSample.create({}),e=grid(p);
+ e.wallCalendarSettings={weekRows:'split-five',monthFormat:'center-english',titleNumberLarge:true,schedulePlacement:'cells',referencePlacement:'hidden'};
+ p.book.events=[{id:'a',title:'23일 일정',startDate:'2027-05-23',endDate:'2027-05-23',category:'school'},{id:'b',title:'다음 해 마지막 줄 일정',startDate:'2028-01-31',endDate:'2028-01-31',category:'school'}];
+ const out=html(JSON.parse(JSON.stringify(p)));
+ assert.match(out,/font-size:1\.3em;">5<\/span> <span style="font-size:\.65em">MAY/);
+ assert.match(out,/data-poster-date="2027-05-23"[^>]*grid-row:9 \/ span 1/);
+ assert.match(out,/data-poster-date="2027-05-30"[^>]*grid-row:10 \/ span 1/);
+ assert.match(out,/data-poster-date="2027-05-25"[^>]*grid-row:9 \/ span 2/);
+ assert.match(out,/data-poster-date="2028-01-31"[^>]*grid-row:10 \/ span 1/);
+ assert.match(out,/다음 해 마지막 줄 일정/);
+ assert.doesNotMatch(out,/data-wall-region="list"/);
+});
