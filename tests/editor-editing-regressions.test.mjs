@@ -103,3 +103,22 @@ test('undo and redo reset stale inspector values and pending canvas saves',()=>{
  c.inspectorDirty=true;c.pendingCanvasGeometrySaveId='year';listeners.redoBtn();
  assert.equal(c.renderedX,18.4);assert.equal(c.inspectorDirty,false);assert.equal(c.pendingCanvasGeometrySaveId,null);assert.equal(c.drafts.length,0);
 });
+
+test('declining a school-name selection change preserves both text frames and the draft',()=>{
+ const school={id:'school',type:'text',x:20,y:90,width:14.023,height:1.047};
+ const english={id:'english',type:'text',x:20,y:92,width:21.314,height:1.257};
+ const before=structuredClone([school,english]);
+ const c=vm.createContext({
+  project:{},preview:false,renderFreeElements(){},resetEditorViewState(){},sourceElement:()=>school,
+  selectedElementId:'school',selectedElementScope:'page',inspectorDirty:true,pendingCanvasGeometrySaveId:'school',
+  document:{addEventListener(){}},masterElements:()=>[],pageElements:()=>[school,english],
+  confirmDiscardInspectorChanges:()=>false,el(){throw Error('Cancelled selection should not focus or measure the canvas')},
+  window:{ACDLCanvasSelection}
+ });
+ vm.runInContext(fs.readFileSync(new URL('../apps/designer-studio/features/object-editing-sprint2-runtime.js',import.meta.url),'utf8'),c);
+ c.startElementPointer({currentTarget:{dataset:{elementId:'english',scope:'page'}},preventDefault(){},stopPropagation(){}});
+ assert.deepEqual([school,english],before);
+ assert.equal(c.selectedElementId,'school');
+ assert.equal(c.inspectorDirty,true);
+ assert.equal(c.pendingCanvasGeometrySaveId,'school');
+});

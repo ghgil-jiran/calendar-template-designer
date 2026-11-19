@@ -64,6 +64,7 @@
 
  const oldStart=startElementPointer;
  startElementPointer=function(e){
+   if(!isWorkspace())return oldStart.call(this,e);
    const box=e.currentTarget,id=box.dataset.elementId,scope=box.dataset.scope;
    if((id!==selectedElementId||scope!==selectedElementScope)&&!confirmDiscardInspectorChanges())return;
    selectedElementId=id;selectedElementScope=scope;inspectorDirty=false;

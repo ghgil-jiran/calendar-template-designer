@@ -3,6 +3,7 @@
  const selection=window.ACDLCanvasSelection.createSelectionStore((id,scope)=>getItem(id,scope));
  const key=selection.key;
  const selectedViews=selection.views;
+ const focusCanvas=()=>el('editorPageViewport')?.focus?.({preventScroll:true});
  const syncPrimary=()=>{
   const next=selection.sync(selectedElementId&&selectedElementScope?{id:selectedElementId,scope:selectedElementScope}:null);
   if(!next)setPrimary(null,null)
@@ -42,25 +43,27 @@
  };
  startElementPointer=function(e){
   const box=e.currentTarget;let id=box.dataset.elementId,scope=box.dataset.scope,item=getItem(id,scope);if(!item||item.locked)return;
-  e.preventDefault();e.stopPropagation();if((id!==selectedElementId||scope!==selectedElementScope)&&!confirmDiscardInspectorChanges())return;
+  e.preventDefault();e.stopPropagation();if(!confirmDiscardInspectorChanges())return;
+  focusCanvas();
   const multi=e.shiftKey||e.ctrlKey||e.metaKey,wasSelected=selection.has(key(id,scope));
-  let snapshotTaken=false;
   if(multi)toggleSelection(id,scope);else if(!wasSelected)selectOnly(id,scope);else setPrimary(id,scope);
   inspectorDirty=false;inspectorNotice={type:'ready',message:'선택한 개체를 Canvas에서 직접 편집할 수 있습니다.'};
   const rect=el('page').getBoundingClientRect(),handle=e.target.dataset.handle||'move';
   gesture=window.ACDLCanvasGesture.begin({pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,handle,rect,views:selectedViews(),primary:{id,scope,item},node:box,pageSize:project.productType?.pageSize});
-  gesture.snapshotTaken=snapshotTaken;gesture.needsFullRender=multi||!wasSelected||selectedViews().length>1;
+  gesture.snapshotTaken=false;gesture.needsFullRender=multi||!wasSelected||selectedViews().length>1;
   releasePointer=window.ACDLCanvasInput.capturePointer(box,e.pointerId,{move:moveElementPointer,end:endElementPointer});box.classList.add('s2-selected');
  };
  moveElementPointer=function(e){
   if(!gesture)return;if(!gesture.snapshotTaken){const dx=(e.clientX-gesture.startX)/gesture.rect.width*100,dy=(e.clientY-gesture.startY)/gesture.rect.height*100;if(Math.abs(dx)<=.05&&Math.abs(dy)<=.05)return;snapshot();gesture.snapshotTaken=true}const p=window.ACDLCanvasGesture.update(gesture,{clientX:e.clientX,clientY:e.clientY,shiftKey:e.shiftKey}),n=gesture.node;n.style.left=p.x+'%';n.style.top=p.y+'%';n.style.width=p.width+'%';n.style.height=p.height+'%';n.style.transform=`rotate(${p.rotation||0}deg)`;
  };
- endElementPointer=function(e){if(!gesture)return;const g=gesture,result=window.ACDLCanvasGesture.finish(g);releasePointer?.(e.pointerId);releasePointer=null;if(result.discardSnapshot&&g.snapshotTaken){history.pop();el('undoBtn').disabled=!history.length}gesture=null;if(result.changed){if(selectedElementId&&selectedElementScope)selectOnly(selectedElementId,selectedElementScope);pendingCanvasGeometrySaveId=selectedElementId}markDirty();inspectorNotice={type:'success',message:result.message};if(g.needsFullRender||!result.changed)render();else{renderInspector();renderObjectRecommendations()}};
- document.addEventListener('pointerdown',e=>{if(!project||preview)return;const page=e.target.closest('#page');if(page&&!e.target.closest('.free-element')&&!e.target.closest('.s2-selection-toolbar')&&!e.target.closest('.calendar-region')&&!e.target.closest('.monthly-title-region')){clearSelection();render()}},true);
- document.addEventListener('keydown',e=>{if(!project||preview)return;const views=selectedViews(),command=window.ACDLCanvasInput.keyboardCommand(e,document.activeElement?.tagName,views.length>0);if(!command)return;e.preventDefault();
+ endElementPointer=function(e){if(!gesture)return;const g=gesture,cancelled=e.type==='pointercancel';if(cancelled)window.ACDLCanvasGesture.cancel(g);const result=window.ACDLCanvasGesture.finish(g);releasePointer?.(e.pointerId);releasePointer=null;if(result.discardSnapshot&&g.snapshotTaken){history.pop();el('undoBtn').disabled=!history.length}gesture=null;if(result.changed){if(selectedElementId&&selectedElementScope)selectOnly(selectedElementId,selectedElementScope);pendingCanvasGeometrySaveId=selectedElementId;markDirty()}inspectorNotice={type:'success',message:result.message};if(g.needsFullRender||!result.changed)render();else{renderInspector();renderObjectRecommendations()}};
+ document.addEventListener('pointerdown',e=>{if(!project||preview)return;const page=e.target.closest('#page');if(page&&!e.target.closest('.free-element')&&!e.target.closest('.s2-selection-toolbar')&&!e.target.closest('.calendar-region')&&!e.target.closest('.monthly-title-region')){if(!confirmDiscardInspectorChanges()){e.preventDefault();e.stopPropagation();return;}clearSelection();focusCanvas();render()}},true);
+ document.addEventListener('keydown',e=>{if(!project||preview||document.querySelector('dialog[open]'))return;syncPrimary();const views=selectedViews(),command=window.ACDLCanvasInput.keyboardCommand(e,document.activeElement,views.length>0);if(!command)return;e.preventDefault();
+  if(inspectorDirty&&command.type!=='nudge'&&!confirmDiscardInspectorChanges())return;
+  if(command.type==='nudge'&&inspectorDirty&&pendingCanvasGeometrySaveId!==selectedElementId)return;
   if(command.type==='select-all'){const last=selection.replace(allVisibleElements().map(v=>({id:v.id,scope:v._scope})));if(last)setPrimary(last.id,last.scope);render();return}
   if(command.type==='delete'){snapshot();views.filter(v=>!v.item.locked).forEach(v=>{const arr=v.scope==='master'?masterElements():pageElements();const i=arr.findIndex(x=>x.id===v.id);if(i>=0)arr.splice(i,1)});clearSelection();markDirty();render();return}
-  if(command.type==='nudge'){snapshot();views.filter(v=>!v.item.locked).forEach(v=>{Object.assign(v.item,window.ACDLCanvasGeometry.nudgeFrame(v.item,command.deltaX,command.deltaY));});if(selectedElementId&&selectedElementScope)selectOnly(selectedElementId,selectedElementScope);pendingCanvasGeometrySaveId=selectedElementId;markDirty();render()}
+  if(command.type==='nudge'){const moves=views.filter(v=>!v.item.locked).map(v=>({item:v.item,position:window.ACDLCanvasGeometry.nudgeFrame(v.item,command.deltaX,command.deltaY)})).filter(({item,position})=>item.x!==position.x||item.y!==position.y);if(!moves.length)return;snapshot();moves.forEach(({item,position})=>Object.assign(item,position));if(selectedElementId&&selectedElementScope)selectOnly(selectedElementId,selectedElementScope);pendingCanvasGeometrySaveId=selectedElementId;markDirty();render()}
  },true);
  function cancelInteraction(){if(gesture)releasePointer?.(gesture.pointerId);releasePointer=null;gesture=null;selection.clear();}
  const oldReset=resetEditorViewState;resetEditorViewState=function(){cancelInteraction();oldReset()};

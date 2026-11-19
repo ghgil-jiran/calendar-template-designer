@@ -45,3 +45,7 @@ assert.deepEqual(globalThis.ACDLCanvasGesture.finish(untouched), {
   discardSnapshot: true,
   message: '개체를 선택했습니다.'
 });
+
+globalThis.ACDLCanvasGesture.cancel(resize);
+assert.deepEqual([resizeItem.x, resizeItem.y, resizeItem.width, resizeItem.height], [20, 20, 40, 30]);
+assert.equal(globalThis.ACDLCanvasGesture.finish(resize).changed, false);

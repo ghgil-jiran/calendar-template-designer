@@ -6,7 +6,7 @@ const read = path => fs.readFileSync(new URL(path, import.meta.url), 'utf8');
 
 test('canvas selection defers history work until a real drag begins', () => {
   const source = read('../apps/designer-studio/features/object-editing-sprint2-runtime.js');
-  assert.match(source, /let snapshotTaken=false/);
+  assert.match(source, /gesture\.snapshotTaken=false/);
   assert.match(source, /Math\.abs\(dx\)<=\.05&&Math\.abs\(dy\)<=\.05\)return;snapshot\(\)/);
   assert.match(source, /if\(result\.discardSnapshot&&g\.snapshotTaken\)/);
 });

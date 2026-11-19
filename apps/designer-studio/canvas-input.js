@@ -15,8 +15,10 @@
     };
   }
 
-  function keyboardCommand(event, activeTagName, hasSelection) {
-    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(String(activeTagName || '').toUpperCase())) return null;
+  function keyboardCommand(event, activeElement, hasSelection) {
+    const tagName = typeof activeElement === 'string' ? activeElement : activeElement?.tagName;
+    if (event.defaultPrevented || event.isComposing || ['INPUT', 'TEXTAREA', 'SELECT'].includes(String(tagName || '').toUpperCase()) ||
+        activeElement?.isContentEditable || activeElement?.closest?.('[data-wall-resize]')) return null;
     const key = String(event.key || '');
     if ((event.ctrlKey || event.metaKey) && key.toLowerCase() === 'a') return Object.freeze({ type: 'select-all' });
     if (!hasSelection) return null;

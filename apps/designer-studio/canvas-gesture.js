@@ -53,6 +53,11 @@
     return gesture.primary.item;
   }
 
+  function cancel(gesture) {
+    for (const view of gesture.originals) Object.assign(view.item, view.original);
+    gesture.changed = false;
+  }
+
   function finish(gesture) {
     const changed = Boolean(gesture?.changed);
     return Object.freeze({
@@ -62,5 +67,5 @@
     });
   }
 
-  root.ACDLCanvasGesture = Object.freeze({ begin, update, finish });
+  root.ACDLCanvasGesture = Object.freeze({ begin, update, finish, cancel });
 })(typeof window !== 'undefined' ? window : globalThis);

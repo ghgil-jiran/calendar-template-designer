@@ -31,3 +31,23 @@ test('automatic list columns compare measured wrapped heights and retain every e
  tied.list.dataset.wallListLayout='three';wall.fit(tied.scope);assert.equal(tied.list.dataset.wallResolvedColumns,'3');
 }));
 test('customer display changes cannot alter sizes or reference inclusion flags',()=>{for(const name of Object.keys(wall.presets))assert.deepEqual(wall.validateCustomer(wall.presets[name]),wall.presets[name]);assert.deepEqual(wall.validateCustomer({listLayout:'three',titleStyle:'underline',weekdayFormat:'english'}),{listLayout:'three',titleStyle:'underline',weekdayFormat:'english'});assert.throws(()=>wall.validateCustomer({listLayout:'four'}));assert.throws(()=>wall.validateCustomer({includeLunar:true}));assert.throws(()=>wall.validateCustomer({datePt:4}));});
+
+test('basic poster styles keep date cells clear and share the list split across months',()=>{
+ const m=model();
+ m.p.book.events=[{id:'holiday-event',category:'holiday',title:'공휴일 검증',startDate:'2027-03-02'}];
+ for(const name of ['basic-1-1','basic-1-2','basic-2-1','basic-2-2']){
+  const side=name.endsWith('-2');
+  m.item.wallCalendarSettings={...wall.preset(wall.resolve(m.item,m.p),name),dateColor:'#008000',listPercent:32,listWidthPercent:38};
+  m.item.wallMonthOverrides={3:{listPercent:49,listWidthPercent:52}};
+  const rendered=html(m);
+  assert.equal((rendered.match(/공휴일 검증/g)||[]).length,1);
+  assert.match(rendered,/data-poster-list-event="holiday-event"/);
+  assert.match(rendered,/data-wall-list-percent="32"/);
+  assert.equal(wall.resolve(m.item,m.p,3).listWidthPercent,38);
+  assert.equal(wall.resolve(m.item,m.p,4).listWidthPercent,38);
+  assert.equal(rendered.includes('grid-template-columns:minmax(0,1fr) 38%'),side);
+  for(const [date,color] of [['2027-03-01','#d92d20'],['2027-03-02','#d92d20'],['2027-03-03','#008000'],['2027-03-06','#175cd3'],['2027-03-07','#d92d20']]){
+   assert.match(rendered,new RegExp('data-poster-date="'+date+'"[^]*?<b style="[^"]*color:'+color+'">'));
+  }
+ }
+});

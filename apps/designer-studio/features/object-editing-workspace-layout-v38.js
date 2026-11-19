@@ -144,10 +144,10 @@
  const page=()=>document.getElementById('page'),viewport=()=>document.getElementById('editorPageViewport'),canvas=()=>document.querySelector('.workspace>.center .canvas-wrap');
  let frame=0,mode='fit',manualScale=1,documentKey='';
  const isPoster=()=>typeof project!=='undefined'&&project?.productType?.category==='poster';
- const clamp=value=>window.ACDLEditorCanvasFit.clampCanvasScale(value,isPoster()?.05:.5,isPoster()?4:1.5);
+ const clamp=value=>window.ACDLEditorCanvasFit.clampCanvasScale(value,isPoster()?.05:.5,4);
  function updateControls(scale){
   const percent=Math.round(scale*100),range=document.getElementById('canvasZoomRange'),percentButton=document.getElementById('canvasZoomPercentBtn'),fitButton=document.getElementById('canvasFitBtn');
-  if(range){range.min=isPoster()?'5':'50';range.max=isPoster()?'400':'150';range.value=String(Math.round(percent/5)*5);}
+  if(range){range.min=isPoster()?'5':'50';range.max='400';range.value=String(Math.round(percent/5)*5);}
   if(percentButton)percentButton.textContent=`${percent}%`;
   if(fitButton){fitButton.classList.toggle('active',mode==='fit');fitButton.setAttribute('aria-pressed',String(mode==='fit'))}
  }

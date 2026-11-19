@@ -32,8 +32,8 @@ test('page navigation is a horizontal role-colored dock below the center canvas'
 
 test('editor page zoom preserves a fixed print-layout canvas while only the viewport scales', () => {
   assert.match(html, /data-runtime-source="workspace-layout-v38-runtime editor-page-auto-fit-runtime"/);
-  assert.match(html, /id="editorPageViewport" class="editor-page-viewport"/);
-  assert.match(html, /id="canvasZoomRange" type="range" min="50" max="150" step="5"/);
+  assert.match(html, /id="editorPageViewport" tabindex="-1" class="editor-page-viewport"/);
+  assert.match(html, /id="canvasZoomRange" type="range" min="50" max="400" step="5"/);
   assert.match(html, /id="canvasZoomPercentBtn"/);
   assert.match(html, /id="canvasFitBtn"/);
   assert.match(html, /window\.ACDLEditorCanvasFit\.fixedCanvasViewport\(\{pageWidth:width,pageHeight:height,availableWidth,availableHeight,\.\.\.\(isPoster\(\)\?\{physicalSize:true,minimumScale:\.05,maximumScale:4\}:\{\}\)\}\)/);
