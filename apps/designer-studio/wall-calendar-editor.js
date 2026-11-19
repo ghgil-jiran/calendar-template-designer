@@ -70,11 +70,6 @@
  }
  const original=renderInspector;renderInspector=function(){for(const handle of $('page')?.querySelectorAll('[data-wall-resize]')||[])handle.remove();const result=original.apply(this,arguments),item=sourceElement(),panel=$('inspector')?.querySelector('[data-panel="design"]');const add=document.querySelector('[data-widget-add="year-calendar"] strong');if(add)add.textContent=project?.productType?.category==='poster'?'전체 월력':'연간 월력';if(!item?.academicPoster||!panel){
   if(item)renderObjectSharing(item,panel);
-  if(item?.type==='year-calendar'&&project?.productType?.category==='poster'&&panel){
-   const button=document.createElement('button');button.type='button';button.className='action';button.textContent='학사 벽보형 월력으로 전환';
-   button.onclick=()=>change(()=>{item.academicPoster=true;item.posterPolicyVersion=2;item.monthCount=Number(item.monthCount)||(project.book.pageInstances.length===2?6:12);item.posterMonthOffset=item.posterMonthOffset??(item.monthCount===6?project.book.pageInstances.indexOf(selectedPage())*6:0);item.wallCalendarSettings=api.preset(api.resolve(item,project),'basic-2-1');});
-   panel.append(button);
-  }
   return result;
  }if(window.wallScopeItem!==item.id){window.wallCalendarMonthScope='';window.wallScopeItem=item.id;}
  const scope=window.wallCalendarMonthScope||'',v=api.resolve(item,project,scope?Number(scope):undefined),g=api.geometry(project,item,{...v,gapMm:api.resolve(item,project).gapMm}),months=window.ACDLSharedMiniCalendar.resolveAnnualCalendar(item,selectedPage(),{year:project.settings.year,startMonth:project.settings.startMonth,weekStart:project.settings.weekStart})?.months||[];

@@ -272,26 +272,41 @@ function ensureEditableCover(){
 }
 
 function createPosterElements(p){
- if(project.settings.posterPageCount===2)return [
+ const twoPages=project.settings.posterPageCount===2;
+ if(twoPages)return [
   {id:`poster.school-name.${p.id}`,type:'text',binding:'school.name',x:5,y:3,width:65,height:6,content:project.book.school.name,style:{fontSize:28,color:'#17202e',background:false}},
-  {id:`poster.calendar.${p.id}`,type:'year-calendar',label:'전체 월력',wallCalendarSettings:structuredClone(project.template.calendarTypeSnapshot?.definition?.wallCalendarDefaults||{}),academicPoster:true,posterMonthOffset:p.posterMonthOffset||0,posterShowList:false,posterGridStyle:'boxed',x:5,y:12,width:90,height:83,columns:2,monthCount:6,rowsMode:'adaptive',style:{fontReferenceWidthPx:1000,dateSize:21,titleSize:30,columnGap:20,rowGap:20}}
+  {id:`poster.calendar.${p.id}`,type:'year-calendar',label:'전체 월력',wallCalendarSettings:window.ACDLWallCalendar?.preset(window.ACDLWallCalendar.normalize(project.template.calendarTypeSnapshot?.definition?.wallCalendarDefaults),'basic-2-1'),academicPoster:true,posterMonthOffset:p.posterMonthOffset||0,posterShowList:false,posterGridStyle:'boxed',x:5,y:12,width:90,height:83,columns:2,monthCount:6,rowsMode:'adaptive',style:{fontReferenceWidthPx:1000,dateSize:21,titleSize:30,columnGap:20,rowGap:20}}
  ];
  const year=p.calendarYear||project.settings.year;
  return [
   {id:`poster.school-name.${p.id}`,type:"text",role:"school-name",binding:"school.name",x:5,y:3,width:65,height:7,zIndex:3,content:project.book.school.name,style:{fontSize:28,textAlign:"left",background:false,color:"#17202e"}},
   {id:`poster.year.${p.id}`,type:"text",role:"year",binding:"calendar.year",x:76,y:3,width:19,height:7,zIndex:3,content:String(year),style:{fontSize:28,textAlign:"right",background:false,color:"#17202e"}},
-  {id:`poster.year-calendar.${p.id}`,type:"year-calendar",x:5,y:13,width:68,height:82,zIndex:1,columns:Number(project.settings.posterColumns||4),startMonth:project.settings.startMonth||1,monthCount:12,rowsMode:"inherit",showWeekdayHeader:true},
-  {id:`poster.event-list.${p.id}`,type:"event-list",x:76,y:13,width:19,height:82,zIndex:2,title:"전체 학사일정",startMonth:project.settings.startMonth||1,monthCount:12,displayMode:"all",maxItems:24,showEndDate:false,columns:"auto",fontSize:8,minFontSize:6,autoShrink:true}
+  {id:`poster.year-calendar.${p.id}`,type:"year-calendar",x:5,y:13,width:90,height:82,zIndex:1,columns:Number(project.settings.posterColumns||3),startMonth:project.settings.startMonth||1,monthCount:12,rowsMode:"inherit",showWeekdayHeader:true},
  ]
 }
 function ensureEditablePoster(){
  project.book.elementsByPage ||= {};
  project.book.posterElementsInitialized ||= {};
  project.book.pageInstances.filter(p=>p.role==="poster-annual").forEach(p=>{
-  if(project.book.posterElementsInitialized[p.id])return;
-  const current=project.book.elementsByPage[p.id]||[];
-  if(current.length===0)project.book.elementsByPage[p.id]=createPosterElements(p);
-  project.book.posterElementsInitialized[p.id]=true
+  if(!project.book.posterElementsInitialized[p.id]){
+   if(!(project.book.elementsByPage[p.id]||[]).length)project.book.elementsByPage[p.id]=createPosterElements(p);
+   project.book.posterElementsInitialized[p.id]=true;
+  }
+  const wall=window.ACDLWallCalendar;
+  if(!wall||project.productionCorrection)return;
+  const monthCount=project.settings.posterPageCount===2||project.book.pageInstances.length===2?6:12;
+  const offset=p.posterMonthOffset??(monthCount===6?project.book.pageInstances.indexOf(p)*6:0);
+  const elements=[...(project.book.elementsByPage[p.id]||[]),...(project.template.masterElements?.[p.masterId]||[])];
+  for(const item of elements){
+   if(item.type!=='year-calendar'||item.academicPoster)continue;
+   item.academicPoster=true;
+   item.posterPolicyVersion=2;
+   item.label='전체 월력';
+   item.monthCount=monthCount;
+   item.posterMonthOffset=offset;
+   if(!(monthCount===6?[2,3]:[3,4]).includes(Number(item.columns)))item.columns=monthCount===6?2:3;
+   item.wallCalendarSettings=wall.preset(wall.resolve(item,project),'basic-2-1');
+  }
  })
 }
 function schoolBindingValue(binding){
