@@ -15,3 +15,22 @@ test('lunar selection is the same cached reference set used by the basic calenda
 
 test('wall range bars use desk segmentation, preserve cross-month dates and survive reopen',()=>{const p=globalThis.ACDLPosterOnePageSample.create({}),e=grid(p);e.wallCalendarSettings={schedulePlacement:'cells',rangeMode:'bars',rangeLabelMode:'continued',eventPt:5.5};p.book.events=[{id:'range',title:'기간시험',startDate:'2027-03-30',endDate:'2027-04-07',category:'school'}];const before=structuredClone(p.book.events),out=html(JSON.parse(JSON.stringify(p)));assert.match(out,/data-wall-range/);assert.match(out,/기간시험 · 계속/);assert.doesNotMatch(out,/data-wall-hidden-ranges/);assert.deepEqual(p.book.events,before);const expected=ACDLCalendarDomain.buildCalendarScheduleLanes(2027,3,p.book.events,'sunday',6).segments.length+ACDLCalendarDomain.buildCalendarScheduleLanes(2027,4,p.book.events,'sunday',6).segments.length;assert.equal((out.match(/data-wall-range /g)||[]).length,expected);});
 test('range lane capacity never silently omits print content',()=>{const p=globalThis.ACDLPosterOnePageSample.create({}),e=grid(p);e.wallCalendarSettings={schedulePlacement:'cells',rangeMode:'bars'};p.book.events=Array.from({length:12},(_,i)=>({id:'r'+i,title:'겹침'+i,startDate:'2027-03-02',endDate:'2027-03-05',category:'school'}));assert.match(html(p),/data-wall-hidden-ranges/);});
+
+test('a two-column annual grid honors its start month and keeps rollover schedules beside split titles',()=>{
+ const p=globalThis.ACDLPosterOnePageSample.create({}),e=grid(p);
+ p.settings.startMonth=1;
+ p.book.events=[{id:'rollover',title:'다음 해 일정',startDate:'2028-02-29',endDate:'2028-02-29',category:'school'}];
+ const settings={monthFormat:'split-english',titleNumberLarge:true,listPosition:'right'};
+ wall.apply(p,e,settings,{columns:2,startMonth:3});
+ const saved=JSON.parse(JSON.stringify(p)),out=html(saved);
+ assert.equal(wall.geometry(saved,grid(saved)).rows,6);
+ assert.equal(p.settings.startMonth,1);
+ assert.match(out,/data-poster-month="2027-03"/);
+ assert.match(out,/font-size:1\.3em;">03<\/span>[\s\S]*?>MARCH</);
+ assert.match(out,/data-poster-month="2028-02"[\s\S]*?data-wall-list-position="right"[\s\S]*?data-poster-list-event="rollover"/);
+ wall.apply(p,e,{...settings,titleNumberLarge:false},{columns:3});
+ assert.equal(wall.geometry(p,e).rows,4);
+ assert.doesNotMatch(html(p),/font-size:1\.3em;/);
+ wall.apply(p,e,settings,{startMonth:0});
+ assert.equal(mini.resolveAnnualCalendar(e,p.book.pageInstances[0],p.settings).months[0].month,1);
+});

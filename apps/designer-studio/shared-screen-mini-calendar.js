@@ -63,7 +63,7 @@
   function resolveAnnualCalendar(element, page, defaults = {}) {
     let baseYear = Number(page?.calendarYear || defaults.year);
     let startMonth = Number(element?.startMonth || defaults.startMonth || 1);
-    if(element?.academicPoster){const absolute=Number(defaults.startMonth||element.startMonth||1)-1+Number(element.posterMonthOffset||0);baseYear=Number(defaults.year||page?.calendarYear)+Math.floor(absolute/12);startMonth=((absolute%12)+12)%12+1;}
+    if(element?.academicPoster){const absolute=Number(element.posterStartMonth||defaults.startMonth||element.startMonth||1)-1+Number(element.posterMonthOffset||0);baseYear=Number(defaults.year||page?.calendarYear)+Math.floor(absolute/12);startMonth=((absolute%12)+12)%12+1;}
     if (!Number.isInteger(baseYear) || !Number.isInteger(startMonth) || startMonth < 1 || startMonth > 12) return null;
     const count = Math.max(1, Math.min(12, Number(element?.monthCount || 12)));
     const layout = ["open-grid","individual-month-boxes","vertical-three-month-groups","horizontal-four-month-groups"].includes(element?.layoutType) ? element.layoutType : "individual-month-boxes";
