@@ -36,6 +36,21 @@
  function renderDetail(){
   if(!current)return;$('reviewDialogClose').disabled=reviewBusy;$('reviewDialogDone').disabled=reviewBusy;const {receipt,assets}=current,snapshot=receipt.snapshot,checks=snapshot.imageChecks||[],warnings=checks.filter(item=>item.status==='warning'),host=$('reviewDetail');
   $('reviewDialogTitle').textContent=`${number(receipt.receipt_number)} · ${receipt.school_name}`;$('reviewDialogMeta').textContent=`${states[receipt.status]||receipt.status} · 접수 ${new Date(receipt.created_at).toLocaleString('ko-KR')}`;
+  if(snapshot.schemaVersion==='customer-production-receipt.v1'){
+   $('reviewSteps').replaceChildren();
+   host.replaceChildren(text('h3','사용자 편집본 접수'));
+   info(host,[['프로젝트',snapshot.name||'-'],['템플릿 버전',String(snapshot.doc?.meta?.templateVersion||'-')],['접수 면수',`${snapshot.document?.template?.pages?.length||0}면`],['보관 원본',`${assets.length}개`]]);
+   const originals=document.createElement('ul');
+   for(const asset of assets){
+    const url=new URL(asset.url);
+    if(!['http:','https:'].includes(url.protocol))continue;
+    const row=document.createElement('li'),link=text('a',asset.name||'사진 원본');
+    link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';
+    row.append(link);originals.append(row);
+   }
+   host.append(originals,button('접수 편집본 다운로드 (JSON)',download));
+   return;
+  }
   $('reviewSteps').replaceChildren();steps.forEach(([label,caption],index)=>{const node=button(`${index+1}. ${label}`,()=>{if((window.ACDLProductionCorrection?.isBusy()||window.ACDLProductionPrint?.isBusy()))return;step=index;renderDetail()});node.className='review-step';if(step===index){node.setAttribute('aria-current','step');node.append(text('strong','현재 단계'));}node.append(text('span',caption));$('reviewSteps').append(node)});
   window.ACDLProductionCorrection?.clear();window.ACDLProductionPrint?.clear();host.replaceChildren(text('h3',`${step+1}. ${steps[step][0]}`));if(reviewError){const error=text('p',reviewError);error.setAttribute('role','alert');error.className='review-callout';host.append(error)}if(reviewBusy){const progress=text('p','검수 시작 상태를 저장하는 중…');progress.setAttribute('role','status');host.append(progress)}
   if(step===0){

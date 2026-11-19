@@ -997,3 +997,11 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-library:has(.editor-template-options) {position:relative;z-index:50;}
 
 @media(max-width:400px){.header-inner > .brand .school-calendar-logo {width:100px;}}
+
+.projects-main {padding-top:16px;padding-bottom:16px;}
+.project-page-heading {margin-bottom:12px;}
+.project-scroll {overflow-y:auto;}
+.project-scroll[tabindex] {scrollbar-gutter:stable;}
+.editor-top-actions .button {min-height:34px;padding-block:6px;}
+.project-name-field {display:grid;gap:6px;margin-block:12px;}
+.project-name-field input {width:100%;border:1px solid hsl(var(--border));border-radius:8px;padding:8px 10px;}

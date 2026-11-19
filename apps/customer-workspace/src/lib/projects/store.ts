@@ -9,8 +9,8 @@ export type ResumeStep='school'|'schedule'|'photos'|'input-review'|'editor';
 export type InputPhoto={id:string;file:File;url:string;width:number;height:number;category?:PhotoCategory};
 export type ProjectDraft={id?:string;revision?:number;name:string;template:TemplateCard;source:NativeProject|null;school:SchoolInput;events:ScheduleEvent[];photos:InputPhoto[];assignments:Record<string,PhotoAssignment>;step:ResumeStep;photoMode?:PhotoInputMode;photoPageId?:string;photoSelections?:PhotoSelections;editorState?:EditorState};
 export type StoredPhoto={id:string;fileId:string;name:string;type:string;lastModified:number;width:number;height:number;size:number;category?:PhotoCategory};
-export type ProjectRecord={originals?:OriginalReference;schemaVersion:typeof PROJECT_SCHEMA;id:string;revision:number;name:string;createdAt:string;updatedAt:string;template:TemplateCard;source:NativeProject|null;appliedProject?:NativeProject|null;editorState?:EditorState;bindingVersion?:2|3|4|5;photoMode?:PhotoInputMode;photoPageId?:string;photoSelections?:Record<string,{photoId:string}|null>;school:SchoolInput;events:ScheduleEvent[];photos:StoredPhoto[];assignments:Record<string,{photoId:string}>;step:ResumeStep;byteSize:number};
-export type ProjectSummary=Pick<ProjectRecord,'id'|'name'|'revision'|'createdAt'|'updatedAt'|'byteSize'|'step'>&{templateName:string;photoCount:number;eventCount:number;bindingState?:'applied'|'input-only'};
+export type ProjectRecord={receiptNumber?:string;originals?:OriginalReference;schemaVersion:typeof PROJECT_SCHEMA;id:string;revision:number;name:string;createdAt:string;updatedAt:string;template:TemplateCard;source:NativeProject|null;appliedProject?:NativeProject|null;editorState?:EditorState;bindingVersion?:2|3|4|5;photoMode?:PhotoInputMode;photoPageId?:string;photoSelections?:Record<string,{photoId:string}|null>;school:SchoolInput;events:ScheduleEvent[];photos:StoredPhoto[];assignments:Record<string,{photoId:string}>;step:ResumeStep;byteSize:number};
+export type ProjectSummary=Pick<ProjectRecord,'id'|'name'|'revision'|'receiptNumber'|'createdAt'|'updatedAt'|'byteSize'|'step'>&{templateName:string;photoCount:number;eventCount:number;bindingState?:'applied'|'input-only'};
 export type StoredFile={key:string;projectId:string;id:string;kind:'photo'|'template-image';blob:Blob;name:string;type:string;lastModified:number};
 export type Snapshot={record:ProjectRecord;files:StoredFile[]};
 const IMAGE_KEYS=new Set(['src','image','dataUrl','imageUrl','coverUrl','largeImageUrl','previewSrc','thumbnailUrl','previewUrl','layoutImageSrc']);
@@ -23,7 +23,7 @@ function database(){
  return databasePromise;
 }
 const result=<T,>(request:IDBRequest<T>)=>new Promise<T>((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||Error('저장 내용을 읽지 못했어요.'));});
-export function projectSummary(r:ProjectRecord):ProjectSummary{return {id:r.id,name:r.name,revision:r.revision,createdAt:r.createdAt,updatedAt:r.updatedAt,byteSize:r.byteSize,step:r.step,templateName:r.template.name,photoCount:r.photos.length,eventCount:r.events.length,bindingState:r.appliedProject?'applied':'input-only'};}
+export function projectSummary(r:ProjectRecord):ProjectSummary{return {id:r.id,name:r.name,receiptNumber:r.receiptNumber,revision:r.revision,createdAt:r.createdAt,updatedAt:r.updatedAt,byteSize:r.byteSize,step:r.step,templateName:r.template.name,photoCount:r.photos.length,eventCount:r.events.length,bindingState:r.appliedProject?'applied':'input-only'};}
 export async function listLocalProjects(){const db=await database();return (await result(db.transaction('summaries','readonly').objectStore('summaries').getAll()) as ProjectSummary[]).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));}
 function mapValues(value:unknown,convert:(value:string,key:string)=>string,key=''):unknown{
  if(typeof value==='string')return convert(value,key);if(Array.isArray(value))return value.map(item=>mapValues(item,convert,key));if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,mapValues(v,convert,k)]));return value;
@@ -76,15 +76,15 @@ export async function prepareSnapshot(draft:ProjectDraft):Promise<Snapshot>{
  record.appliedProject=appliedDocument(record);
  const snapshot={record,files};validateSnapshot(snapshot);return snapshot;
 }
-export async function writeSnapshot(snapshot:Snapshot,expectedRevision:number|null):Promise<ProjectRecord>{
+export async function writeSnapshot(snapshot:Snapshot,expectedRevision:number|null,temporary=false):Promise<ProjectRecord>{
  validateSnapshot(snapshot);const db=await database(),r=snapshot.record;
  // Confirm remote originals before starting the local atomic commit.
  const previous=await result<ProjectRecord|undefined>(db.transaction('projects','readonly').objectStore('projects').get(r.id));
  if(expectedRevision===null?Boolean(previous):!previous||previous.revision!==expectedRevision)throw Error('다른 창에서 이 프로젝트가 변경됐어요. 다시 열어 주세요.');
- r.originals=await preserveOriginals(snapshot.files,previous?.originals||r.originals);
+ if(!temporary)r.originals=await preserveOriginals(snapshot.files,previous?.originals||r.originals);
  return new Promise((resolve,reject)=>{const tx=db.transaction(['projects','files','summaries'],'readwrite');let problem='저장하지 못했어요. 브라우저의 저장 공간을 확인해 주세요.';tx.oncomplete=()=>resolve(r);tx.onabort=()=>reject(Error(tx.error?.name==='QuotaExceededError'?'브라우저 저장 공간이 부족해요. 백업 파일을 내려받거나 사용하지 않는 프로젝트를 정리해 주세요.':problem));
  const projects=tx.objectStore('projects'),request=projects.get(r.id);request.onsuccess=()=>{const previous=request.result as ProjectRecord|undefined;if(expectedRevision===null?Boolean(previous):!previous||previous.revision!==expectedRevision){problem='다른 창에서 이 프로젝트가 변경됐거나 삭제됐어요. 현재 내용은 백업한 뒤 내 프로젝트에서 다시 열어 주세요.';tx.abort();return;}if(previous)r.createdAt=previous.createdAt;
- const files=tx.objectStore('files'),cursor=files.index('projectId').openKeyCursor(IDBKeyRange.only(r.id));cursor.onsuccess=()=>{const item=cursor.result;if(item){files.delete(item.primaryKey);item.continue();return;}try{snapshot.files.forEach(file=>files.put(file));projects.put(r);tx.objectStore('summaries').put(projectSummary(r));}catch{problem='이미지 파일을 저장하지 못했어요. 이전 저장본은 유지됩니다.';tx.abort();}};};});
+ const files=tx.objectStore('files'),cursor=files.index('projectId').openKeyCursor(IDBKeyRange.only(r.id));cursor.onsuccess=()=>{const item=cursor.result;if(item){files.delete(item.primaryKey);item.continue();return;}try{snapshot.files.forEach(file=>files.put(file));projects.put(r);if(!temporary)tx.objectStore('summaries').put(projectSummary(r));}catch{problem='이미지 파일을 저장하지 못했어요. 이전 저장본은 유지됩니다.';tx.abort();}};};});
 }
 export async function readSnapshot(id:string):Promise<Snapshot>{if(!isId(id))throw Error('프로젝트를 찾을 수 없어요.');const db=await database(),tx=db.transaction(['projects','files'],'readonly'),[record,files]=await Promise.all([result(tx.objectStore('projects').get(id)),result(tx.objectStore('files').index('projectId').getAll(IDBKeyRange.only(id)))]);if(!record)throw Error('프로젝트가 삭제됐거나 다른 주소에 저장돼 있어요.');const r=record as ProjectRecord,stored=files as StoredFile[];
  if(r.originals){for(const photo of r.photos){const meta=r.originals.files[photo.fileId],index=stored.findIndex(f=>f.id===photo.fileId),current=stored[index];if(!meta)throw Error('사진 원본 복구 정보가 누락됐어요.');if(!current||current.blob.size!==meta.byteSize||await digest(current.blob)!==meta.sha256){const blob=await restoreOriginal(r.originals,photo.fileId),file:StoredFile={key:`${id}:${photo.fileId}`,projectId:id,id:photo.fileId,kind:'photo',blob,name:photo.name,type:photo.type,lastModified:photo.lastModified};if(index<0)stored.push(file);else stored[index]=file;}}}
@@ -107,3 +107,20 @@ export async function restoreBackup(file:File):Promise<Snapshot>{
  const id=crypto.randomUUID(),now=new Date().toISOString();snapshot.record={...snapshot.record,id,revision:1,name:(snapshot.record.name+' · 복원').slice(0,120),createdAt:now,updatedAt:now};snapshot.files=snapshot.files.map(f=>({...f,projectId:id,key:`${id}:${f.id}`}));validateSnapshot(snapshot);return snapshot;
 }
 
+
+export async function saveReceiptNumber(id:string,revision:number,receiptNumber:string){
+ const db=await database();
+ await new Promise<void>((resolve,reject)=>{
+  const tx=db.transaction(['projects','summaries'],'readwrite'),projects=tx.objectStore('projects');
+  tx.oncomplete=()=>resolve();
+  tx.onabort=()=>reject(tx.error||Error('접수번호를 브라우저에 저장하지 못했어요.'));
+  const request=projects.get(id);
+  request.onsuccess=()=>{
+   const record=request.result as ProjectRecord|undefined;
+   if(!record||record.revision!==revision)return;
+   record.receiptNumber=receiptNumber;
+   projects.put(record);
+   tx.objectStore('summaries').put(projectSummary(record));
+  };
+ });
+}

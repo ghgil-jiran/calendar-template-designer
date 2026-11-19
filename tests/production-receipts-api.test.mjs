@@ -17,3 +17,20 @@ test('retrying review start returns the existing reviewing status',async()=>{rev
 test('review start cannot revert an approved receipt',async()=>{reviewFetch({status:'approved'});const res=response();await handler(startRequest(),res);assert.equal(res.statusCode,409)});
 test('database failure never reports review started',async()=>{reviewFetch({fail:true});const res=response();await handler(startRequest(),res);assert.equal(res.statusCode,502);assert.equal(res.body.receipt,undefined)});
 test.after(()=>{globalThis.fetch=oldFetch});
+
+test('admin can open a guest receipt original using the existing asset signing flow',async()=>{
+ const path=`guest/${receiptId}/photo-1`,calls=[];
+ globalThis.fetch=async url=>{
+  calls.push(url);
+  if(url.includes('/auth/v1/user'))return Response.json({id:'admin'});
+  if(url.includes('/template_admins?'))return Response.json([{user_id:'admin'}]);
+  if(url.includes('/calendar_production_requests?'))return Response.json([{id:receiptId,owner_id:null,snapshot:{assets:[{id:'photo-1',path}]}}]);
+  if(url.endsWith('/calendar-production-assets/'+path))return Response.json({signedURL:'/object/sign/original'});
+  throw Error('Unexpected URL');
+ };
+ const res=response();
+ await handler({method:'GET',headers:{authorization:'Bearer token'},query:{id:receiptId}},res);
+ assert.equal(res.statusCode,200);
+ assert.equal(res.body.assets[0].url,'https://example.invalid/storage/v1/object/sign/original');
+ assert.ok(calls.some(url=>url.endsWith('/calendar-production-assets/'+path)));
+});

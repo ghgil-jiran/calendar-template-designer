@@ -84,6 +84,13 @@ async function publishedSource(id:string,version:number){
  return {templateId:id,version,project:await hydrate(record.project_data)};
 }
 
-return {publishedCatalog,publishedSource};
+async function receiptSource(id:string,version:number){
+ if(!uuid.test(id)||!Number.isSafeInteger(version)||version<1)throw Error('템플릿 버전을 확인해 주세요.');
+ const records=await rows(`template_versions?select=project_data&template_id=eq.${id}&version_number=eq.${version}&state=eq.published&limit=2`);
+ if(records.length!==1)throw Error('접수에 사용한 게시 템플릿 버전을 찾지 못했어요.');
+ assertNativeProject(records[0].project_data);
+ return records[0].project_data;
+}
+return {publishedCatalog,publishedSource,receiptSource};
 }
 

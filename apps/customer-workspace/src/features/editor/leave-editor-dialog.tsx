@@ -1,4 +1,32 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {Button} from '@/components/ui/button';
-export function LeaveEditorDialog({onLeave,onClose}:{onLeave:(save:boolean)=>Promise<boolean>;onClose:()=>void}){const dialog=useRef<HTMLDialogElement>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');useEffect(()=>{dialog.current?.showModal();},[]);async function leave(save:boolean){if(busy)return;setBusy(true);setError('');try{if(!await onLeave(save))setError('저장하지 못했습니다. 편집 내용은 유지됩니다. 다시 시도해 주세요.');}catch{setError('이동하지 못했습니다. 편집 내용을 확인해 주세요.');}finally{setBusy(false);}}return <dialog ref={dialog} className="editor-leave-dialog" aria-labelledby="leave-editor-title" onCancel={e=>{e.preventDefault();if(!busy)onClose();}}><h2 id="leave-editor-title">첫 화면으로 이동할까요?</h2><p>지금까지 자동 저장된 내용은 내 프로젝트에 남습니다.</p>{error&&<p className="field-error" role="alert">{error}</p>}<div className="actions"><Button variant="primary" disabled={busy} onClick={()=>void leave(true)}>{busy?'처리 중…':'편집한 내용을 저장하고 이동'}</Button><Button disabled={busy} onClick={()=>void leave(false)}>저장하지 않고 이동</Button><Button disabled={busy} onClick={onClose}>취소</Button></div></dialog>;}
+
+export function LeaveEditorDialog({title,defaultName,onLeave,onClose,children,saveDisabled=false,saveLabel='저장하고 이동',discardLabel='저장하지 않고 이동'}:{
+ title:string;defaultName:string;onLeave:(save:boolean,name?:string)=>Promise<boolean>;onClose:()=>void;
+ children?:ReactNode;saveDisabled?:boolean;saveLabel?:string;discardLabel?:string;
+}){
+ const dialog=useRef<HTMLDialogElement>(null);
+ const [name,setName]=useState(defaultName),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ useEffect(()=>{dialog.current?.showModal();},[]);
+ async function leave(save:boolean){
+  if(busy||(save&&saveDisabled))return;
+  setBusy(true);setError('');
+  try{if(!await onLeave(save,name.trim()))setError('저장하지 못했습니다. 편집 내용을 유지했어요.');}
+  catch(error){setError(error instanceof Error?error.message:'작업을 완료하지 못했습니다.');}
+  finally{setBusy(false);}
+ }
+ return <dialog ref={dialog} className="editor-leave-dialog" aria-labelledby="leave-editor-title" onCancel={e=>{e.preventDefault();if(!busy)onClose();}}>
+  <h2 id="leave-editor-title">{title}</h2>
+  {children}
+  <form onSubmit={event=>{event.preventDefault();void leave(true);}}>
+   <label className="project-name-field">프로젝트명<input required maxLength={120} disabled={busy} value={name} onChange={event=>setName(event.target.value)}/></label>
+   {error&&<p className="field-error" role="alert">{error}</p>}
+   <div className="actions">
+    <Button type="submit" variant="primary" disabled={busy||saveDisabled||!name.trim()}>{busy?'처리 중…':saveLabel}</Button>
+    {discardLabel&&<Button disabled={busy} onClick={()=>void leave(false)}>{discardLabel}</Button>}
+    <Button disabled={busy} onClick={onClose}>취소</Button>
+   </div>
+  </form>
+ </dialog>;
+}

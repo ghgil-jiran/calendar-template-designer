@@ -1,3 +1,4 @@
+import {productionReceiptAssetPath} from './production-receipt-assets.js';
 import {createHash,randomBytes,timingSafeEqual} from 'node:crypto';
 import {supabaseRequest} from './template-persistence.js';
 import {storage,inspectRaster} from './production-correction-assets.js';
@@ -52,7 +53,7 @@ export async function freezeProductionPackage(receipt,revision,{purpose='print'}
    info={mimeType:asset.mimeType,kind:asset.kind||'image',...(asset.packagePath?{packagePath:asset.packagePath}:{})};
   }else{
    let asset=receipt.snapshot.assets?.find(item=>item.id===assetId),bucket='calendar-production-assets';
-   if(asset){if(asset.path!==`${receipt.owner_id}/${receipt.id}/${assetId}`)throw conflict('접수 원본 경로가 일치하지 않습니다.');}
+   if(asset){if(asset.path!==productionReceiptAssetPath(receipt,assetId))throw conflict('접수 원본 경로가 일치하지 않습니다.');}
    else{const rows=await supabaseRequest(`calendar_production_correction_assets?request_id=eq.${receipt.id}&id=eq.${assetId}&status=eq.ready&select=*&limit=1`);asset=rows[0];bucket='calendar-correction-assets';if(!asset||asset.path!==`${receipt.id}/${assetId}`)throw conflict('보관 완료된 교정 원본을 찾지 못했습니다.');}
    bytes=await readProductionImage(asset,bucket);const raster=inspectRaster(bytes);
    if(bytes.length!==Number(asset.byte_size??asset.byteSize)||raster.mimeType!==(asset.mime_type??asset.mimeType)||asset.content_hash&&asset.content_hash!==raster.contentHash)throw conflict('사용 원본 바이트가 보관 기록과 다릅니다.');

@@ -1,3 +1,4 @@
+import {productionReceiptAssetPath} from '../server/production-receipt-assets.js';
 import {assertInternalAccess, sendError, sendJson, supabaseRequest} from '../server/template-persistence.js';
 import {loadProductionEditorSource} from '../server/production-editor-source.js';
 import {createHash} from 'node:crypto';
@@ -37,7 +38,7 @@ export default async function handler(request, response) {
       return sendJson(response,200,{report:inspectProductionImageBytes(plan,source,{...asset,content_hash:asset.sha256},bytes)});
     }
     let asset = receipt.snapshot?.assets?.find(item => item.id === assetId), bucket = 'calendar-production-assets';
-    if (asset) { if (asset.path !== `${receipt.owner_id}/${requestId}/${assetId}`) throw Error('접수 원본 경로가 일치하지 않습니다.'); }
+    if (asset) { if (asset.path !== productionReceiptAssetPath(receipt,assetId)) throw Error('접수 원본 경로가 일치하지 않습니다.'); }
     else {
       const assets = await supabaseRequest(`calendar_production_correction_assets?request_id=eq.${requestId}&id=eq.${assetId}&status=eq.ready&select=*&limit=1`);
       asset = assets[0]; bucket = 'calendar-correction-assets';
