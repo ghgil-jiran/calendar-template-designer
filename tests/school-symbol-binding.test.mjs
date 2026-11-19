@@ -22,3 +22,10 @@ test('package-specific sibling frames identify song headings while separate cate
  const elements=[{id:'surface.a.song',type:'image-frame',role:'school-song'},{id:'surface.a.song.title',type:'text',content:'교가',style:{fontFamily:'Serif'}},{id:'surface.a.tree',type:'image-frame',role:'school-tree'},{id:'surface.a.tree.title',type:'text',content:'교목'},{id:'surface.a.tree.name',type:'text',binding:'school.profile.tree.name',content:'샘플'}];
  model.connectSymbolText(elements);assert.equal(model.schoolText(elements[1],{name:'입력학교'}),'입력학교 교가');assert.equal(elements[1].style.fontFamily,'Serif');assert.equal(elements[3].binding,undefined);assert.equal(elements[4].binding,'school.profile.tree.name');
 });
+
+test('independent contact bindings return only the authored department number',()=>{
+ const school={contacts:[{label:'행정실',phone:'031-200',fax:'031-201'},{label:'교무실',phone:'031-100'}]};
+ assert.equal(model.schoolText({binding:'school.contacts.academic.phone'},school),'031-100');
+ assert.equal(model.schoolText({binding:'school.contacts.admin.phone'},school),'031-200');
+ assert.equal(model.schoolText({binding:'school.contacts.admin.phone'},{phone:'031-100'}),'');
+});

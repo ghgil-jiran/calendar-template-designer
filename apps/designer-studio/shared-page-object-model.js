@@ -42,6 +42,11 @@
   if(element?.bindingEnabled===false)return undefined;
   if(element?.binding==='school.name'&&element?.format==='school-song-title')return String(school?.name||'').trim()?String(school.name).trim()+' 교가':'교가';
   const path=element?.binding;
+  const contact=/^school\.contacts\.(academic|admin)\.phone$/.exec(path||'');
+  if(contact){
+   const label=contact[1]==='academic'?'교무실':'행정실';
+   return schoolContactItems(school).find(item=>item.kind==='phone'&&item.label.includes(label))?.value||'';
+  }
   if(!/^school\.profile\.(tree|flower)\.(name|description)$/.test(path||''))return undefined;
   return path.split('.').slice(1).reduce((value,key)=>value?.[key],school);
  }

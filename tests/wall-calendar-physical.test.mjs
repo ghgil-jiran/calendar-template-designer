@@ -70,3 +70,14 @@ test('date-only cells support vertical centering and cell schedules retain top p
  assert.doesNotMatch(markup,/data-poster-date="2027-03-02"[^>]*data-wall-centered-date/);
  assert.match(markup,/시험/);
 });
+
+test('schedule background can follow rows or individual months independently of title colors',()=>{
+ const p=globalThis.ACDLPosterOnePageSample.create({}),e=grid(p);
+ const settings={schedulePlacement:'list',listBackground:'palette',listPalette:['#eeeeee','#dddddd'],titlePalette:['#ff0000']};
+ e.wallCalendarSettings={...settings,listColorMode:'row'};
+ const april=()=>html(p,e).match(/data-poster-month="2027-04"[^]*?<div class="academic-poster-month-list"[^>]*>/)[0];
+ assert.match(april(),/background:#eeeeee/);
+ e.wallCalendarSettings={...settings,listColorMode:'month'};
+ assert.match(april(),/background:#dddddd/);
+ assert.match(april(),/background:#ff0000/);
+});
