@@ -77,3 +77,11 @@ test('applying one page keeps every other authored background and PDF connection
 });
 
 test('poster PDF package maps both physical pages and preserves authored content through save/reopen',()=>{const source={documentId:'original',sha256:'c'.repeat(64),pageNumber:1},pkg={id:'poster',name:'벽보형',size:'poster-a2',mode:'pdf',revision:7,pages:{'poster-1':{graphicId:'one'},'poster-2':{graphicId:'two'}}},graphics=['one','two'].map((id,i)=>({id,name:id,previewAssetId:id,pdfSource:{...source,pageNumber:i+1},physicalSizeMm:{width:426,height:600}}));const p={productType:{category:'poster',pageSize:{width:420,height:594}},settings:{},template:{settings:{vectorBackgroundEnabled:true}},book:{pageInstances:[{id:'p1',role:'poster'},{id:'p2',role:'poster'}],elementsByPage:{p1:[{id:'calendar-1',academicPoster:true}],p2:[{id:'calendar-2',academicPoster:true}]}}};assert.equal(m.compatible(pkg,p.productType.pageSize),true);assert.equal(m.compatible(pkg,{width:260,height:180}),false);p.template.settings.graphicPackage=m.capture(pkg,graphics,p.productType.pageSize);m.apply(p);const reopened=JSON.parse(JSON.stringify(p));m.apply(reopened);for(const [i,id] of ['p1','p2'].entries()){const bg=reopened.book.elementsByPage[id][0];assert.equal(bg.graphicSource.pdfSource.pageNumber,i+1);assert.equal(bg.x,-3/420*100);assert.equal(bg.height,600/594*100);assert.equal(bg.graphicSource.packageRevision,7);assert.equal(reopened.book.elementsByPage[id][1].id,'calendar-'+(i+1));}pkg.revision=8;pkg.pages={};assert.equal(reopened.template.settings.graphicPackage.revision,7);});
+
+test('A3 poster PDF packages match A3 templates only',()=>{
+ const pkg={name:'벽보형 E',size:'poster-a3',mode:'pdf'};
+ assert.equal(globalThis.ACDLGraphicPackageModel.metadata(pkg).size,'poster-a3');
+ assert.equal(m.compatible(pkg,{width:297,height:420}),true);
+ assert.equal(m.compatible(pkg,{width:420,height:594}),false);
+ assert.equal(m.compatible({...pkg,mode:'vector'},{width:297,height:420}),false);
+});
