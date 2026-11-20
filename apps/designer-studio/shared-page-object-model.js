@@ -34,9 +34,10 @@
    if(item.bindingEnabled===false)continue;
    const path=item.image?.binding??item.binding;
    const connected=path===binding||path===binding+'.image';
-   if(item.type==='semantic-object'&&item.role===role&&(connected||path===undefined)){
+   if(item.type==='semantic-object'&&item.role===role&&(connected||!path&&item.bindingEnabled===true||path===undefined)){
     item.sampleContent={...(item.sampleContent||{}),image:image||''};
     delete item.sampleContent.imageOverride;
+    if(assetId)item.sampleAssetId=assetId;else delete item.sampleAssetId;
     delete item.sampleContent.assetId;if(assetId)item.sampleContent.assetId=assetId;
    }else if(connected&&['image','image-frame'].includes(item.type)){
     if(item.type==='image'||Object.hasOwn(item,'src'))item.src=image||'';
