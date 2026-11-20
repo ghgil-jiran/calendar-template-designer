@@ -114,6 +114,7 @@
     if(item.metadata?.correspondenceKey)return String(item.metadata.correspondenceKey);
     if(legacy&&item.type==='text')return 'wall-b.'+legacy[1];
     const binding=item.bindingEnabled===false?'':item.image?.binding||item.binding||'';
+    if(item.type==='semantic-object'&&item.role==='school-building')return 'school-building';
     if(item.role==='school-logo'||binding==='school.profile.logo')return 'logo';
     if(item.type==='text'&&(binding==='calendar.year'||Number(item.y)<=16&&binding.startsWith('school.')))return binding;
     if(item.type==='text'&&!binding&&/학사|달력|일정/.test(item.content||''))return 'heading:'+item.content;
@@ -128,12 +129,19 @@
       if(matches.length===1)result.push({pageId:page.id,item:matches[0]});
     }return result;
   }
-  function posterSharedValue(item,kind){return kind==='style'?{style:item.style||{},imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity}:Object.fromEntries(['x','y','width','height','rotation','autoSize'].map(key=>[key,item[key]??(key==='rotation'?0:undefined)]));}
+  function posterSharedValue(item,kind){
+    if(kind==='content')return {sampleContent:item.sampleContent,titleOverride:item.titleOverride};
+    if(kind==='style'&&item.role==='school-building')return {style:item.style||{},layoutPreset:item.layoutPreset,imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity};
+    return kind==='style'?{style:item.style||{},imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity}:Object.fromEntries(['x','y','width','height','rotation','autoSize'].map(key=>[key,item[key]??(key==='rotation'?0:undefined)]));}
   function posterSharingState(project,pageId,item,kind){const value=JSON.stringify(posterSharedValue(item,kind)),matches=posterCounterparts(project,pageId,item);return {pages:matches.length,changed:matches.filter(other=>JSON.stringify(posterSharedValue(other.item,kind))!==value).length};}
-  function applyPosterAppearance(project,pageId,item,{style=false,layout=false}={}){
+  function applyPosterAppearance(project,pageId,item,{style=false,layout=false,content=false}={}){
     const matches=posterCounterparts(project,pageId,item),seen=new Set();let count=0;
     for(const target of matches){const other=target.item;if(seen.has(other))continue;seen.add(other);let changed=false;
-      if(style&&JSON.stringify(posterSharedValue(other,'style'))!==JSON.stringify(posterSharedValue(item,'style'))){for(const [key,value] of Object.entries(posterSharedValue(item,'style'))){if(value===undefined)delete other[key];else other[key]=structuredClone(value);}changed=true;}
+      for(const [kind,enabled] of [['style',style],['content',content&&item.role==='school-building'&&project.book.pageInstances.length===2]]){
+        if(!enabled||JSON.stringify(posterSharedValue(other,kind))===JSON.stringify(posterSharedValue(item,kind)))continue;
+        for(const [key,value] of Object.entries(posterSharedValue(item,kind))){if(value===undefined)delete other[key];else other[key]=structuredClone(value);}
+        changed=true;
+      }
       if(layout&&JSON.stringify(posterSharedValue(other,'layout'))!==JSON.stringify(posterSharedValue(item,'layout'))){for(const key of ['x','y','width','height'])other[key]=item[key];if(item.rotation!==undefined)other.rotation=item.rotation;else delete other.rotation;if(item.autoSize!==undefined)other.autoSize=item.autoSize;else delete other.autoSize;changed=true;}
       if(changed)count++;
     }return count;

@@ -644,7 +644,12 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     }
     const key=map[item.role],d=key?school.profile?.[key]:null;
     if(!d)return oldSemanticData(item);
-    return resolve({name:d.name||semanticRoleLabel(item.role),description:d.description||'',image:d.image||''});
+    const result=resolve({name:d.name||semanticRoleLabel(item.role),description:d.description||'',image:d.image||''});
+    const binding='school.profile.'+key;
+    if(authoring&&['tree','flower'].includes(key)&&[binding,binding+'.image'].includes(item.binding)&&d.assetId&&d.image){
+      return {...result,image:d.image};
+    }
+    return result;
   };
 
   const oldApply=applyUserSchoolData;

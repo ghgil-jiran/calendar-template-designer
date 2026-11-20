@@ -31,9 +31,17 @@
   if(!key)return 0;
   const binding='school.profile.'+key,arrays=[...Object.values(project?.book?.elementsByPage||{}),...Object.values(project?.template?.masterElements||{})];let count=0;
   for(const elements of arrays)for(const item of Array.isArray(elements)?elements:[]){
-   if(item.type!=='semantic-object'||item.role!==role||item.bindingEnabled===false||item.binding!==binding)continue;
-   item.sampleContent={...(item.sampleContent||{}),image:image||''};
-   delete item.sampleContent.assetId;if(assetId)item.sampleContent.assetId=assetId;
+   if(item.bindingEnabled===false)continue;
+   const path=item.image?.binding??item.binding;
+   const connected=path===binding||path===binding+'.image';
+   if(item.type==='semantic-object'&&item.role===role&&(connected||path===undefined)){
+    item.sampleContent={...(item.sampleContent||{}),image:image||''};
+    delete item.sampleContent.assetId;if(assetId)item.sampleContent.assetId=assetId;
+   }else if(connected&&['image','image-frame'].includes(item.type)){
+    if(item.type==='image'||Object.hasOwn(item,'src'))item.src=image||'';
+    if(item.type==='image-frame'||item.image)item.image={...item.image,src:image||''};
+    delete item.sampleAssetId;
+   }else continue;
    count++;
   }
   return count;

@@ -12,3 +12,21 @@ test('inspector exposes independent share actions, blocks unsaved drafts, then d
 test('whole footer sync reproduces changed school-name, English-name, address and logo layout on every page after reopen',()=>{const p=fixture(),pageId=p.book.pageInstances[0].id,before=structuredClone(p);for(const [i,key] of ['logo','footer-name','footer-english','address','contacts'].entries()){const a=item(p,0,key);a.x=8+i*3;a.y=90+i*1.5;a.width=10+i*5;a.height=1+i*.2;a.style={...a.style,color:'#276f73',fontSize:10+i};a.autoSize='none';}item(p,1,'address').autoSize='height';item(p,1,'footer-name').content='면별 고정 문구';assert.equal(api.posterRegionState(p,pageId,'footer').items,5);assert.ok(api.posterRegionState(p,pageId,'footer').changed>0);assert.equal(api.applyPosterRegion(p,pageId,'footer'),5);assert.equal(api.posterRegionState(p,pageId,'footer').changed,0);const reopened=JSON.parse(JSON.stringify(p));for(const key of ['logo','footer-name','footer-english','address','contacts'])for(const field of ['x','y','width','height','style','autoSize'])assert.deepEqual(item(reopened,1,key)[field],item(reopened,0,key)[field]);assert.equal(item(reopened,1,'footer-name').content,'면별 고정 문구');assert.deepEqual(item(p,1,'name'),item(before,1,'name'));assert.deepEqual(item(p,1,'calendar'),item(before,1,'calendar'));assert.deepEqual(item(p,1,'background'),item(before,1,'background'));assert.deepEqual(item(p,1,'page'),item(before,1,'page'));assert.deepEqual(p.book.pageInstances,before.book.pageInstances);item(reopened,1,'footer-name').y=88;api.applyPosterRegion(reopened,reopened.book.pageInstances[1].id,'footer');assert.equal(item(reopened,0,'footer-name').y,88);});
 test('missing counterpart blocks whole-region application before changing any target',()=>{const p=fixture(),page=p.book.pageInstances[1];p.book.elementsByPage[page.id]=p.book.elementsByPage[page.id].filter(e=>e!==item(p,1,'address'));item(p,0,'footer-name').x=22;const before=structuredClone(p);assert.equal(api.posterRegionState(p,p.book.pageInstances[0].id,'footer').missing,1);assert.throws(()=>api.applyPosterRegion(p,p.book.pageInstances[0].id,'footer'),/대응 개체/);assert.deepEqual(p,before);});
 test('combined style/layout copies text-fit policy and supports legacy page overrides',()=>{const p=fixture(),a=item(p,0,'slogan'),b=item(p,1,'slogan');a.shadowOfMasterElementId=a.id;a.id='element.page-override.123';delete a.metadata;b.autoSize='height';a.autoSize='none';a.y=18;a.style.color='#123456';assert.equal(api.posterCounterparts(p,p.book.pageInstances[0].id,a)[0].item,b);api.applyPosterAppearance(p,p.book.pageInstances[0].id,a,{style:true,layout:true});assert.equal(b.autoSize,'none');assert.equal(b.y,18);assert.equal(b.style.color,'#123456');});
+
+test('school building content, style and layout apply independently between poster pages',()=>{
+ const p=fixture(),[front,back]=p.book.pageInstances;
+ const first={id:'building-front',type:'semantic-object',role:'school-building',sampleContent:{image:'front'},style:{edgeFeather:10},layoutPreset:'image-only',x:3};
+ const second={...structuredClone(first),id:'building-back',binding:'school.profile.building',sampleContent:{image:'back'},style:{edgeFeather:0},layoutPreset:'image-top',x:5};
+ p.book.elementsByPage[front.id].push(first);
+ p.book.elementsByPage[back.id].push(second);
+ assert.equal(api.applyPosterAppearance(p,front.id,first,{style:true}),1);
+ assert.equal(second.style.edgeFeather,10);
+ assert.equal(second.layoutPreset,'image-only');
+ assert.equal(second.sampleContent.image,'back');
+ assert.equal(second.x,5);
+ assert.equal(api.applyPosterAppearance(p,front.id,first,{content:true}),1);
+ assert.equal(second.sampleContent.image,'front');
+ assert.equal(second.binding,'school.profile.building');
+ assert.equal(api.applyPosterAppearance(p,front.id,first,{layout:true}),1);
+ assert.equal(second.x,3);
+});

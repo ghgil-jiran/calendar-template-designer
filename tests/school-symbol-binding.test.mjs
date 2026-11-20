@@ -29,3 +29,14 @@ test('independent contact bindings return only the authored department number',(
  assert.equal(model.schoolText({binding:'school.contacts.admin.phone'},school),'031-200');
  assert.equal(model.schoolText({binding:'school.contacts.admin.phone'},{phone:'031-100'}),'');
 });
+
+test('school image replacement updates connected legacy symbols and image frames but preserves fixed images',()=>{
+ const p=fixture(),items=p.book.elementsByPage.symbols;
+ items.push({id:'legacy',type:'semantic-object',role:'school-flower',sampleContent:{name:'장미',image:'old'}},
+  {id:'frame',type:'image-frame',image:{binding:'school.profile.flower.image',src:'old',fit:'cover'}},
+  {id:'fixed',type:'semantic-object',role:'school-flower',bindingEnabled:false,binding:'school.profile.flower',sampleContent:{image:'fixed'}});
+ assert.equal(model.updateBoundSchoolImage(p,'school-flower','new','asset'),3);
+ assert.deepEqual(items.find(e=>e.id==='legacy').sampleContent,{name:'장미',image:'new',assetId:'asset'});
+ assert.deepEqual(items.find(e=>e.id==='frame').image,{binding:'school.profile.flower.image',src:'new',fit:'cover'});
+ assert.equal(items.find(e=>e.id==='fixed').sampleContent.image,'fixed');
+});
