@@ -28,7 +28,10 @@ export async function extractWithSharedService(file:File,year:number,startMonth=
  if(!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(origin))throw Error('일정 분석 연결 설정을 확인해 주세요.');
  try{
   const form=new FormData();form.set('file',file);form.set('academicYear',String(year));form.set('startMonth',String(startMonth));
-  const response=await (options.fetcher||fetch)(origin+'/api/ai/schedule-extract',{method:'POST',body:form,signal:AbortSignal.timeout(55000)});
+  const endpoint=new URL('/api/ai/schedule-extract',origin);
+  const previewAccess=process.env.VERCEL_ENV==='preview'?process.env.SCHEDULE_EXTRACTION_PREVIEW_ACCESS:undefined;
+  if(previewAccess)endpoint.searchParams.set('x-vercel-protection-bypass',previewAccess);
+  const response=await (options.fetcher||fetch)(endpoint.href,{method:'POST',body:form,signal:AbortSignal.timeout(130000)});
   if(response.status===504)throw new DOMException('공통 일정 분석 시간이 초과됐어요.','TimeoutError');
   if(!response.ok)throw Error('공통 일정 분석 서버에서 파일을 처리하지 못했어요.');
   const result=normalizeSharedSchedules(await response.json(),year,startMonth);
