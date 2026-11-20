@@ -5,11 +5,11 @@
   const names = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
   const styles = ["number-stack", "number-inline", "number-only", "year-month-korean", "month-korean", "english-month"];
   const escape = (value) => String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
-  const fonts = ["Pretendard", "Noto Sans KR", "Noto Serif KR", "Nanum Gothic", "Nanum Myeongjo", "KoPub Batang", "IBM Plex Sans KR", "IBM Plex Sans", "Playfair Display", "Montserrat", "Bodoni Moda", "Bebas Neue", "DM Sans", "Arial", "Times New Roman"];
+  const validFamily = value => typeof value === "string" && /^[\p{L}\p{N} _-]{1,100}$/u.test(value.trim());
   function normalizeTypography(input = {}) {
     input = input && typeof input === "object" ? input : {};
     const result = {};
-    if (fonts.includes(input.fontFamily)) result.fontFamily = input.fontFamily;
+    if (validFamily(input.fontFamily)) result.fontFamily = input.fontFamily;
     if ([100,200,300,400,500,600,700,800,900].includes(Number(input.fontWeight))) result.fontWeight = Number(input.fontWeight);
     for (const key of ["numberSize", "yearSize", "englishSize", "textSize"]) {
       const value = Number(input[key]);
@@ -30,7 +30,7 @@
     if (["full","short"].includes(input.yearFormat)) result.yearFormat=input.yearFormat;
     if (["left","center","right"].includes(input.align)) result.align=input.align;
     for (const component of ["number","year","english"]) {
-      if(fonts.includes(input[component+"FontFamily"]))result[component+"FontFamily"]=input[component+"FontFamily"];
+      if(validFamily(input[component+"FontFamily"]))result[component+"FontFamily"]=input[component+"FontFamily"];
       if([100,200,300,400,500,600,700,800,900].includes(Number(input[component+"FontWeight"])))result[component+"FontWeight"]=Number(input[component+"FontWeight"]);
     }
     return result;

@@ -54,3 +54,16 @@ test('copying replaced photos preserves durable photo IDs and protected objects 
  s.select(s.targets('a').find(t=>t.elementId==='year'));assert.throws(()=>s.duplicate(),/복사할 수 없는/);
 });
 
+
+test('authored font and weight survive customer saves, and an explicit font change reopens correctly',()=>{
+ const p=project(true),original=p.book.elementsByPage.a.find(item=>item.id==='slogan');
+ original.style={fontFamily:'KoPub Batang',fontWeight:700,fontSize:14};
+ const s=createEditorSession({project:p,assets});
+ s.select(s.targets('a').find(target=>target.elementId==='slogan'));
+ s.editPhoto({textStyle:{color:'#123456'}});
+ const reopen=()=>createEditorSession({project:p,state:JSON.parse(JSON.stringify(s.getState())),assets});
+ assert.deepEqual(item(reopen(),'a','slogan').style,{...original.style,color:'#123456'});
+ s.editPhoto({textStyle:{fontFamily:'Jua'}});
+ assert.equal(item(reopen(),'a','slogan').style.fontFamily,'Jua');
+ assert.equal(original.style.fontFamily,'KoPub Batang');
+});
