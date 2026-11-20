@@ -34,7 +34,7 @@
   const frame=item.type==='image-frame',fit=item.image?.fit||item.fit||'cover',section=document.createElement('div');
   section.className='section inspector-group';
   if(!frame){
-   section.innerHTML='<strong>사진 맞춤</strong><label>맞춤<select id="editorPhotoFit">'+fitModes.map((mode,i)=>'<option value="'+mode+'" '+(fit===mode?'selected':'')+'>'+['틀 채우기','사진 전체 보기'][i]+'</option>').join('')+'</select></label>'+pictureFitControls.map(([key,label,min,max,step,fallback])=>'<label>'+label+'<input id="editorPhoto-'+key+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'" value="'+(Number(item.image?.[key]??fallback)||fallback)+'"></label>').join('')+'<button type="button" class="action" id="applyEditorPhotoFit">사진 맞춤 저장</button>';
+   section.innerHTML='<strong>사진 맞춤</strong><label>맞춤<select id="editorPhotoFit">'+fitModes.map((mode,i)=>'<option value="'+mode+'" '+(fit===mode?'selected':'')+'>'+['틀 채우기','사진 전체 보기'][i]+'</option>').join('')+'</select></label>'+pictureFitControls.map(([key,label,min,max,step,fallback])=>'<label><span>'+label+' <strong aria-hidden="true" data-photo-value="'+key+'"></strong></span><input id="editorPhoto-'+key+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'" value="'+(Number(item.image?.[key]??fallback)||fallback)+'"></label>').join('')+'<button type="button" class="action" id="applyEditorPhotoFit">사진 맞춤 저장</button>';
   }
   const reset=document.createElement('button');
   reset.type='button';reset.className='action secondary';reset.textContent='선택 사진 편집 되돌리기';reset.title='사진 맞춤, 확대와 위치를 기본값으로 되돌립니다.';
@@ -47,6 +47,18 @@
   };
   section.append(reset);panel.append(section);
   if(!frame){
+   for(const [key] of pictureFitControls){
+    const input=$('editorPhoto-'+key),readout=section.querySelector('[data-photo-value="'+key+'"]');
+    const updateValue=()=>{
+     const value=Number(input.value),percent=key==='scale'?Math.round(value*100):value;
+     const display=(key!=='scale'&&percent>0?'+':'')+percent+'%';
+     readout.textContent=display;
+     input.setAttribute('aria-valuetext',display);
+    };
+    input.addEventListener('input',updateValue);
+    input.addEventListener('change',updateValue);
+    updateValue();
+   }
    const apply=$('applyEditorPhotoFit');
    registerInspectorSaveButton(apply);
    apply.addEventListener('click',()=>{
