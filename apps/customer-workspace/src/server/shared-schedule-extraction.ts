@@ -28,11 +28,29 @@ export async function extractWithSharedService(file:File,year:number,startMonth=
  if(!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(origin))throw Error('일정 분석 연결 설정을 확인해 주세요.');
  try{
   const form=new FormData();form.set('file',file);form.set('academicYear',String(year));form.set('startMonth',String(startMonth));
-  const response=await (options.fetcher||fetch)(origin+'/api/ai/schedule-extract',{method:'POST',body:form,signal:AbortSignal.timeout(55000)});
-  if(!response.ok)throw Error('공통 분석 연결 실패');const data=await response.json(),result=normalizeSharedSchedules(data,year,startMonth);return {...result,sourceName:file.name};
- }catch{
-  if(!['docx','xlsx','csv','txt'].includes(ext||''))throw Error('공통 일정 분석을 완료하지 못했어요. 잠시 후 다시 시도하거나 DOCX·XLSX·CSV·TXT로 저장해 올려 주세요. 기존 일정은 유지됩니다.');
-  const result=await extractSchedule(file,year,startMonth);return {...result,method:'basic',warnings:['공통 분석을 완료하지 못해 기본 읽기를 사용했어요. 복잡한 표와 여러 일정이 적힌 칸은 원본과 비교해 주세요.',...result.warnings]};
+  const response=await (options.fetcher||fetch)(origin+'/api/ai/schedule-extract',{method:'POST',body:form,signal:AbortSignal.timeout(130000)});
+  if(response.status===504)throw new DOMException('공통 일정 분석 시간이 초과됐어요.','TimeoutError');
+  if(!response.ok)throw Error('공통 일정 분석 서버에서 파일을 처리하지 못했어요.');
+  const result=normalizeSharedSchedules(await response.json(),year,startMonth);
+  return {...result,sourceName:file.name};
+ }catch(error){
+  const reason=error instanceof Error&&error.name==='TimeoutError'
+   ?'공통 일정 분석 시간이 초과됐어요.'
+   :error instanceof Error&&['파일에서 유효한 일정을 찾지 못했어요. 날짜가 포함된 원본을 확인해 주세요.','공통 일정 분석 서버에서 파일을 처리하지 못했어요.'].includes(error.message)
+    ?error.message:'공통 일정 분석 결과를 받지 못했어요.';
+  if(!['docx','xlsx','csv','txt'].includes(ext||'')){
+   throw Error(reason+' 잠시 후 다시 시도해 주세요. 기존 일정은 유지됩니다.');
+  }
+  let result:ScheduleExtraction;
+  try{
+   result=await extractSchedule(file,year,startMonth);
+  }catch{
+   throw Error(reason+' 기본 읽기에서 파일 내용을 처리하지 못했어요. 기존 일정은 유지됩니다.');
+  }
+  if(!result.events.length){
+   throw Error(reason+' 기본 읽기에서도 일정을 찾지 못했어요. 원본의 날짜와 일정명을 확인해 주세요. 기존 일정은 유지됩니다.');
+  }
+  return {...result,method:'basic',warnings:[reason+' 기본 읽기로 가져왔어요. 복잡한 표와 여러 일정이 적힌 칸은 원본과 비교해 주세요.',...result.warnings]};
  }
 }
 export async function extractPastedSchedule(text:string,year:number,startMonth=3){

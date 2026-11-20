@@ -866,7 +866,7 @@ function renderPage(){
   html+=`<div id="calendarRegion" class="calendar-region calendar-grid-geometry ${project.template.masters.calendar.calendarLayout?.gridAppearance?"calendar-grid-appearance ":""}${calendarClasses} ${calendarEditing?"editing":""}"${presetAttr} data-calendar-composition="${chrome.contract?.schemaVersion||"monthly-calendar-composition.v1"}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%;--calendar-title-share:${vertical.title}%;--calendar-weekday-track:${chrome.weekdayStage}%;--calendar-weekday-grid-gap:${chrome.gridGapMm/Math.max(.01,chrome.trackMm)*100}%;--calendar-title-responsive:${project.template.masters.calendar.monthTitleSize/8.5}cqw;${presetVars}${Object.entries(window.ACDLSharedGridPresentation.appearanceVariables(project.template.masters.calendar.calendarLayout?.gridAppearance,project.settings.weekStart)).map(([key,value])=>key+":"+value).join(";")}"><div class="month-title ${monthTitleStyle}" style="font-size:${project.template.masters.calendar.monthTitleSize}px;color:var(--month-primary)">${titleFrame?"":titleMarkup}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
   weekDayHeaders().forEach(h=>html+=`<div class="cell head">${h}</div>`);
   const miniCells=project.settings.showAdjacentMiniCalendars?selectAdjacentMiniCells(grid,p.calendarMonth):[];
-  const hiddenScheduleByDate=assignRangeLanes(grid).hiddenByDate||{};
+  const hiddenScheduleByDate=project.template.masters.calendar.rangeEventStyle?.deskDateSchedule?{}:assignRangeLanes(grid).hiddenByDate||{};
   grid.forEach((c,cellIndex)=>{
    const renderDay=(day,extra=false)=>{
     const hideAdjacent=day.month!==p.calendarMonth&&project.template.masters.calendar.showAdjacentMonths===false;
@@ -921,7 +921,14 @@ function renderPage(){
   }
  }
  renderFreeElements(page);
- requestAnimationFrame(()=>window.ACDLSharedCalendarAnnotations?.fit(page));
+ const deskSchedule=p.role==="monthly-front"&&project.template.masters.calendar.rangeEventStyle;
+ if(deskSchedule?.deskDateSchedule&&deskSchedule.enabled!==false){
+  window.ACDLSharedCalendarAnnotations?.fit(page,{avoidEvents:false});
+  const shared=window.ACDLSharedSchedule;
+  const events=deskSchedule.displayMode==='text'?window.ACDLCalendarDomain.assignCalendarScheduleColors((project.book.events||[]).filter(event=>!isPublicReferenceEvent(event))):[];
+  const font=shared.physicalFontPx(deskSchedule,page.clientWidth,project.productType.pageSize.width)||7;
+  shared.fitDeskCalendar(page,deskSchedule,events,font,project.template.resources?.fontTheme?.calendar||project.template.resources?.fontTheme?.body||'Arial');
+ }else requestAnimationFrame(()=>window.ACDLSharedCalendarAnnotations?.fit(page));
  const selectMonthlyCalendar=e=>{e?.stopPropagation();return selectMonthlyPart("grid")};
  const titleRegionNode=el("monthlyTitleRegion");titleRegionNode?.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();titleRegionNode.click()}});titleRegionNode?.addEventListener("click",e=>{e.stopPropagation();selectMonthlyPart("title")});
  const calendarRegionNode=page.querySelector(".calendar-region");

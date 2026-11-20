@@ -28,5 +28,11 @@ test('inspector summarizes permitted actions and shows page/object identity with
 
 test('content inputs and unchanged save action share one card, with a separate style card',()=>{const html=render({selection:{label:'학교 이름',type:'text',binding:'school.name',rights:{content:true,textStyle:true}},fields:[{key:'name',binding:'school.name',label:'학교명',maxLength:200}],school:{values:{name:'학교'},hidden:[]}});assert.match(html,/editor-tool-card editor-text-content/);assert.match(html,/button-secondary editor-card-apply[\s\S]*?disabled/);assert.match(html,/editor-tool-card editor-compact-style/);assert.match(html,/<h3>글자 모양/);});
 
-test('wall tools expose presets and list columns without physical typography or month binding controls',()=>{const html=render({selection:{label:'전체 월력',type:'year-calendar',rights:{calendarStyle:true}},item:{wallCalendarSettings:{gridStyle:'boxed',schedulePlacement:'cells',referencePlacement:'cells',titleStyle:'band',dateAlign:'left'}}});assert.match(html,/일정형 · 날짜 칸에 표시/);assert.match(html,/value="schedule" selected/);assert.match(html,/자동 · 2단\/3단/);assert.match(html,/학교 일정 \/ 공휴일·기념일/);assert.doesNotMatch(html,/type="number"/);});
-
+test('wall tools expose the template style and schedule options',()=>{
+ const html=render({posterProject:{book:{pageInstances:[{}]},template:{}},selection:{label:'전체 월력',type:'year-calendar',rights:{calendarStyle:true}},item:{wallCalendarSettings:{gridStyle:'boxed',schedulePlacement:'cells',referencePlacement:'cells',titleStyle:'band',dateAlign:'left'}}});
+ assert.match(html,/적용 스타일<select disabled/);
+ assert.match(html,/목록 단수/);
+ assert.match(html,/글자 크기/);
+ assert.match(html,/날짜에 요일 표시/);
+ assert.match(html,/공휴일 포함/);
+});

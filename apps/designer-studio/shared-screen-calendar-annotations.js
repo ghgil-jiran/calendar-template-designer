@@ -48,9 +48,9 @@
   return '<div class="calendar-annotations-day ann-'+config.layout+'" data-ann-base="'+config.fontSize+'" style="--ann-size:'+config.fontSize+'pt;--ann-color:'+ctx.tone+';--ann-right:'+config.rightInsetMm+'mm"><div class="ann-heading"><span class="day ann-date">'+escape(day)+'</span>'+block(side,'side')+'</div>'+block(bottom,'bottom')+'</div>';
  }
  const css='.calendar-annotations-day{box-sizing:border-box;width:100%;padding-right:var(--ann-right,1.2mm);min-width:0;font-family:inherit;line-height:1.2}.calendar-annotations-day .ann-heading{display:flex;align-items:center;gap:.7mm;min-width:0}.calendar-annotations-day .ann-date{flex:none;align-self:flex-start}.calendar-annotations-day .calendar-annotation-text{font-family:inherit;font-size:var(--ann-size,6pt)!important;font-weight:400;line-height:1.2;letter-spacing:normal;color:var(--ann-color);white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere;word-break:normal;-webkit-line-clamp:unset!important;line-clamp:unset!important}.calendar-annotations-day .ann-side{flex:1;min-width:0}.calendar-annotations-day .ann-bottom{margin-top:.5mm}.calendar-annotations-day .ann-warning{color:#b54708;font:9px sans-serif;display:block}.calendar-annotations-day[data-ann-overflow="true"]{outline:1px dashed #d97706}@media print{.calendar-annotations-day .ann-warning{display:none!important}.calendar-annotations-day[data-ann-overflow="true"]{outline:none!important}}';
- function fit(scope){
+ function fit(scope,{avoidEvents=true}={}){
   if(!scope?.querySelectorAll)return;
-  const bars=[...scope.querySelectorAll('.range-event-bar,.shared-month-range-grid .absolute')].map(n=>n.getBoundingClientRect()).filter(r=>r.height>0);
+  const bars=avoidEvents?[...scope.querySelectorAll('.range-event-bar,.shared-month-range-grid .absolute')].map(n=>n.getBoundingClientRect()).filter(r=>r.height>0):[];
   for(const node of scope.querySelectorAll('.calendar-annotations-day')){
    node.querySelector('.ann-warning')?.remove();
    const cell=node.closest('.cell,.shared-month-day-cell,[data-annotation-cell]')||node.parentElement;

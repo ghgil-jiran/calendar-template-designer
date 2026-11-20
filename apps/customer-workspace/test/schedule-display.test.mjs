@@ -17,6 +17,31 @@ test('schedule sizing applies across all months, survives restore/style switches
  assert.equal(doc.template.masters.calendar.rangeEventStyle.fontSizePt,8.5);assert.equal(doc.template.masters.calendar.rangeEventStyle.barHeight,20);assert.deepEqual(doc.book,p.book);
  s.setDeskScheduleSizing({barHeight:16});s.undo();assert.equal(s.getDocument().template.masters.calendar.rangeEventStyle.barHeight,20);s.redo();assert.equal(s.getDocument().template.masters.calendar.rangeEventStyle.barHeight,16);
  const restored=createEditorSession({project:p,state});assert.equal(restored.getDocument().template.masters.calendar.rangeEventStyle.barHeight,20);
- for(const sizing of [{fontSizePt:3},{fontSizePt:19},{barHeight:0},{barHeight:25},{fontSizePt:NaN},{unknown:2}])assert.throws(()=>applyEditor(p,{...state,deskScheduleSizing:sizing},[]));
+ assert.equal(applyEditor(p,{...state,deskScheduleSizing:{fontSizePt:3,joinText:true}},[]).template.masters.calendar.rangeEventStyle.joinText,true);
+ for(const sizing of [{fontSizePt:2.5},{joinText:'yes'},{fontSizePt:19},{barHeight:0},{barHeight:25},{fontSizePt:NaN},{unknown:2}])assert.throws(()=>applyEditor(p,{...state,deskScheduleSizing:sizing},[]));
  const other=source();other.productType.category='poster';assert.throws(()=>applyEditor(other,state,[]));
+});
+
+test('automatic desk sizing counts overlapping range events on each date in displayed months',()=>{
+ const events=Array.from({length:4},(_,i)=>({startDate:'2027-03-0'+(i+1),endDate:'2027-03-06'}));
+ const pages=[{role:'monthly-front',calendarYear:2027,calendarMonth:3}];
+ assert.deepEqual(shared.deskScheduleDefaults(events,pages),{fontSizePt:3.5,barHeight:5});
+ assert.deepEqual(shared.deskScheduleDefaults([...events,{startDate:'2027-03-06'}],pages),{fontSizePt:3,barHeight:4});
+ assert.deepEqual(shared.deskScheduleDefaults([{startDate:'2027-04-02'}],pages),{});
+});
+
+test('desk text ranges default to a date label on the first day and can repeat on each day',()=>{
+ const date='2027-03-04', event={title:'행사',startDate:date,endDate:'2027-03-07'};
+ const events=[event,{...event,endDate:'2027-04-02'},{...event,endDate:'2028-01-02'},{...event,endDate:date}];
+ assert.deepEqual(shared.deskTextEventsForDate(events,date).map(e=>e.title),['행사 (3/4 - 7)','행사 (3/4 - 4/2)','행사 (2027/3/4 - 2028/1/2)','행사']);
+ assert.deepEqual(shared.deskTextEventsForDate(events,'2027-03-05'),[]);
+ assert.deepEqual(shared.deskTextEventsForDate([event],'2027-03-05',true),[event]);
+ const p=source(),s=createEditorSession({project:p});
+ s.select(s.targets('march').find(t=>t.rights.scheduleStyle));
+ s.setDeskScheduleStyle('text');
+ s.setDeskScheduleSizing({rangeEachDay:true,joinText:true});
+ const restored=applyEditor(p,JSON.parse(JSON.stringify(s.getState())),[]);
+ assert.equal(restored.template.masters.calendar.rangeEventStyle.rangeEachDay,true);
+ s.undo();
+ assert.equal(s.getDocument().template.masters.calendar.rangeEventStyle.rangeEachDay,undefined);
 });
