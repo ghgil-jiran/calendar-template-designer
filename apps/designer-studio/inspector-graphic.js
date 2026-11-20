@@ -75,7 +75,7 @@
       item.height = Number(values.height);
       item.rotation = Number(values.rotation || 0);
       item.opacity = Number(values.opacity ?? 1);
-      Object.assign(item, root.ACDLCanvasGeometry?.keepPartiallyVisible(item) || item);
+      Object.assign(item, root.ACDLCanvasGeometry?.keepPartiallyVisible(item, values.pageSize) || item);
     }
     if (action === 'frame') {
       root.ACDLPhotoFrameEditing.apply(item, values);

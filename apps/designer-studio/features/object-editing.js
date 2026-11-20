@@ -842,7 +842,7 @@ function elementInspectorPanels(){
  }
  else panels.content=head+`<button id="replaceImageBtn" class="action">이미지 파일 선택</button><label style="margin-top:8px">이미지 맞춤<select id="elemFit"><option value="cover" ${item.fit==="cover"?"selected":""}>영역 채우기</option><option value="contain" ${item.fit==="contain"?"selected":""}>전체 이미지 보기</option></select></label><label>비율 유지<select id="elemLockAspect"><option value="true" ${item.lockAspect!==false?"selected":""}>유지</option><option value="false" ${item.lockAspect===false?"selected":""}>자유 변형</option></select></label><div class="grid2"><label>밝기 %<input id="elemBrightness" type="number" min="0" max="300" value="${item.imageStyle?.brightness??100}"></label><label>대비 %<input id="elemContrast" type="number" min="0" max="300" value="${item.imageStyle?.contrast??100}"></label><label>채도 %<input id="elemSaturation" type="number" min="0" max="300" value="${item.imageStyle?.saturation??100}"></label><label>투명도<input id="elemImageOpacity" type="number" min="0" max="1" step=".05" value="${item.opacity??1}"></label></div><div class="grid2"><label>좌우 반전<select id="elemImageFlipX"><option value="false" ${!item.imageStyle?.flipX?"selected":""}>아니오</option><option value="true" ${item.imageStyle?.flipX?"selected":""}>예</option></select></label><label>상하 반전<select id="elemImageFlipY"><option value="false" ${!item.imageStyle?.flipY?"selected":""}>아니오</option><option value="true" ${item.imageStyle?.flipY?"selected":""}>예</option></select></label></div><label>대체 텍스트<input id="elemAlt" value="${item.alt||""}"></label><button id="applyImageStyle" class="action">이미지 설정 적용</button></div>`;
  if(item.type==="image")panels.design=head+`<div class="inspector-group"><div class="inspector-group-title">이미지 효과</div>${softEdgeFields(item.imageStyle?.softEdgePt)}<button id="applyImageEffects" class="action">이미지 효과 저장</button></div></div>`;
- panels.layout=head+`<div class="grid2"><label>X (%)<input id="elemX" type="number" step=".5" value="${item.x.toFixed(1)}"></label><label>Y (%)<input id="elemY" type="number" step=".5" value="${item.y.toFixed(1)}"></label><label>폭 (%)<input id="elemW" type="number" step=".5" value="${item.width.toFixed(1)}"></label><label>높이 (%)<input id="elemH" type="number" step=".5" value="${item.height.toFixed(1)}"></label></div><button id="applyElementGeometry" class="action secondary">배치 정보 저장</button><div class="row"><button id="sendBackward" class="secondary">뒤로</button><button id="bringForward" class="secondary">앞으로</button></div><div class="row"><button id="duplicateFromInspector" class="secondary">복제</button><button id="deleteFromInspector" class="danger">삭제</button></div></div>`;
+ panels.layout=head+`<div class="grid2"><label>X (%)<input id="elemX" type="number" step="any" value="${item.x}"></label><label>Y (%)<input id="elemY" type="number" step="any" value="${item.y}"></label><label>폭 (%)<input id="elemW" type="number" step="any" value="${item.width}"></label><label>높이 (%)<input id="elemH" type="number" step="any" value="${item.height}"></label></div><button id="applyElementGeometry" class="action secondary">배치 정보 저장</button><div class="row"><button id="sendBackward" class="secondary">뒤로</button><button id="bringForward" class="secondary">앞으로</button></div><div class="row"><button id="duplicateFromInspector" class="secondary">복제</button><button id="deleteFromInspector" class="danger">삭제</button></div></div>`;
  if(project.productType.category==='poster'&&project.book.pageInstances.length>1&&window.ACDLSharedMiniCalendar.posterPlacementKey(item))panels.layout=panels.layout.replace('<button id="applyElementGeometry"','<label><input id="posterApplyOtherPages" type="checkbox"> 다른 페이지에도 적용</label><button id="applyElementGeometry"');
  return panels
 }
@@ -1003,11 +1003,17 @@ function resetInspectorEditState(){
  inspectorNotice={type:"ready",message:"설정을 변경하면 저장 버튼이 활성화됩니다."};
 }
 function inspectorSelectionKey(){return `${selectedPage()?.id}:${selectedElementScope}:${selectedElementId}:${calendarEditing}:${monthTitleEditing}`}
+function syncInspectorCanvasGeometry(keys){
+ const item=sourceElement();
+ if(!item||inspectorSelectionKey()!==inspectorRenderedKey)return;
+ const ids={x:"elemX",y:"elemY",width:"elemW",height:"elemH"};
+ for(const key of keys){const field=el(ids[key]);if(field)field.value=String(item[key]);}
+}
 function captureInspectorDrafts(){
  const key=inspectorSelectionKey();
  if(key!==inspectorRenderedKey||(!inspectorDirty&&!inspectorSavedContainer))return [];
  const fields=new Map();
- inspectorTracked.filter(entry=>entry.container!==inspectorSavedContainer&&entry.button.classList.contains("has-changes")).forEach(entry=>{
+ inspectorTracked.filter(entry=>entry.container!==inspectorSavedContainer&&entry.button.classList.contains("has-changes")&&inspectorSignature(entry.container)!==entry.initial).forEach(entry=>{
   entry.container.querySelectorAll("input,select,textarea").forEach(node=>{if(node.id&&node.type!=="file")fields.set(node.id,{id:node.id,value:node.value,checked:node.checked});});
  });
  return [...fields.values()];

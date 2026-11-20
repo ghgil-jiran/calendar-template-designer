@@ -34,3 +34,8 @@ assert.equal(keyboardCommand({ key: 'Delete' }, 'DIV', false), null);
 assert.deepEqual(keyboardCommand({ key: 'Backspace' }, 'DIV', true), { type: 'delete' });
 assert.deepEqual(keyboardCommand({ key: 'ArrowLeft' }, 'DIV', true), { type: 'nudge', deltaX: -.2, deltaY: 0 });
 assert.deepEqual(keyboardCommand({ key: 'ArrowDown', shiftKey: true }, 'DIV', true), { type: 'nudge', deltaX: 0, deltaY: 1 });
+
+const posterStep = keyboardCommand({ key:'ArrowDown' }, 'DIV', true, {width:420,height:594});
+assert.ok(Math.abs(posterStep.deltaY * 594 / 100 - .36) < 1e-10);
+const posterHorizontal = keyboardCommand({ key:'ArrowRight', shiftKey:true }, 'DIV', true, {width:420,height:594});
+assert.ok(Math.abs(posterHorizontal.deltaX * 420 / 100 - 2.6) < 1e-10);
