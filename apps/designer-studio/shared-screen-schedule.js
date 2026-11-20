@@ -258,7 +258,10 @@
         };
         let shown=fill(available);
         if(shown<active.length&&style.overflowStyle!=='hide')shown=fill(Math.max(0,available-markerHeight));
-        if(!shown)node.remove();
+        if(shown){
+          const markerSpace=shown<active.length&&style.overflowStyle!=='hide'?markerHeight:0;
+          node.style.top=Math.max(area.top,area.bottom-markerSpace-node.scrollHeight)+'px';
+        }else node.remove();
         mark(area,active.length-shown);
       }
       return;
@@ -284,7 +287,8 @@
           bar.remove();
           continue;
         }
-        bar.style.top=top+lane*(laneHeight+gap)+'px';
+        // Lane zero remains nearest the bottom, as in the original desk layout.
+        bar.style.top=bottom-(withMarker?markerHeight:0)-(lane+1)*laneHeight-lane*gap+'px';
         bar.style.height=laneHeight+'px';
         const label=bar.querySelector('span');
         if(style.displayMode==='line'&&label){
