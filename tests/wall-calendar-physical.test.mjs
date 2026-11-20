@@ -81,3 +81,18 @@ test('schedule background can follow rows or individual months independently of 
  assert.match(april(),/background:#dddddd/);
  assert.match(april(),/background:#ff0000/);
 });
+
+test('independent gaps, centered dividers and weekday typography survive save and render',()=>{
+ const project=globalThis.ACDLPosterOnePageSample.create({}),element=grid(project);
+ assert.equal(wall.normalize({gapMm:5}).columnGapMm,5);
+ assert.equal(wall.normalize({gapMm:5}).rowGapMm,5);
+ wall.apply(project,element,{columnGapMm:13.7,rowGapMm:3.5,columnDividerMm:.71,columnDividerColor:'#e1f4fd',weekdayWeight:'700',weekdayFontFamily:'Noto Sans KR'});
+ const saved=JSON.parse(JSON.stringify(project)),out=html(saved);
+ const geometry=wall.geometry(saved,grid(saved));
+ const firstDivider=(geometry.monthWidth+13.7/2)/geometry.width*100;
+ const renderedDivider=Number(out.match(/data-wall-column-divider[^>]*?left:([\d.]+)cqw/)?.[1]);
+ assert.ok(Math.abs(renderedDivider-firstDivider)<1e-9);
+ assert.equal((out.match(/data-wall-column-divider/g)||[]).length,2);
+ assert.match(out,/font-family:Noto Sans KR;[^"]*font-weight:700;line-height:1.5/);
+ assert.equal(wall.resolve(grid(saved),saved).rowGapMm,3.5);
+});
