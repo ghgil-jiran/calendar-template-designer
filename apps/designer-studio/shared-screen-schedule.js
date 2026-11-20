@@ -197,7 +197,8 @@
     if(!layer||!layer.offsetHeight)return;
     const bounds=layer.getBoundingClientRect();
     const sx=bounds.width/layer.offsetWidth||1,sy=bounds.height/layer.offsetHeight||1;
-    const bottomInset=3;
+    const bottomInset=2;
+    const laneGap=1.5;
     const cells=[...page.querySelectorAll('.calendar > .cell:not(.head)')];
     const byDate=new Map();
     const rows=new Map();
@@ -207,11 +208,15 @@
       blocks.forEach((block,part)=>{
         if(!block.children.length)return;
         const start=block.getBoundingClientRect().top;
-        const headerBottom=Math.max(start,...[...block.children].map(node=>node.getBoundingClientRect().bottom));
+        const dateLine=block.querySelector('.ann-heading, .day-head-row');
+        const belowDate=block.querySelector('.ann-bottom, .calendar-reference.special');
+        const dateBottom=dateLine?.getBoundingClientRect().bottom??start;
+        const headerBottom=Math.max(dateBottom,belowDate?.getBoundingClientRect().bottom??start);
+        const headerGap=belowDate?1.5:2;
         const limit=part+1<blocks.length?block.nextElementSibling.getBoundingClientRect().top:box.bottom;
         const row=Math.floor(index/7);
         const area={date:block.dataset.date,x:(box.left-bounds.left)/sx+2,width:box.width/sx-4,
-          top:(headerBottom-bounds.top)/sy+1,bottom:(limit-bounds.top)/sy-bottomInset,row,column:index%7};
+          top:(headerBottom-bounds.top)/sy+headerGap,bottom:(limit-bounds.top)/sy-bottomInset,row,column:index%7};
         byDate.set(area.date,area);
         if(!rows.has(row))rows.set(row,[]);
         rows.get(row).push(area);
@@ -272,7 +277,7 @@
     for(const [row,areas] of rows){
       const top=Math.max(...areas.map(area=>area.top));
       const bottom=Math.min(...areas.map(area=>area.bottom));
-      const gap=1;
+      const gap=laneGap;
       const rowBars=bars.filter(bar=>Number(bar.dataset.deskRow)===row);
       const lanes=Math.max(0,...rowBars.map(bar=>Number(bar.dataset.deskLane)+1));
       const available=Math.max(0,bottom-top);
