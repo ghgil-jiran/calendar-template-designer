@@ -86,6 +86,9 @@ function PosterCalendarTools({project,item,onChange}:{project:NativeProject;item
    <label>목록 단수<select value={String(settings.cellListLayout||settings.listLayout)} onChange={e=>update({listLayout:e.target.value,cellListLayout:e.target.value})}><option value="auto">자동</option><option value="one">1단</option><option value="two">2단</option><option value="three">3단</option></select></label>
    <label>글꼴<select value={font} onChange={e=>update({scheduleFontFamily:e.target.value})}>{!font&&<option value="">템플릿 기본 글꼴</option>}{fontChoices(font).map(name=><option key={name}>{name}</option>)}</select></label>
    <label>글자 크기 (pt)<input type="number" min="5" max="24" step="0.5" value={size} onChange={e=>{const n=e.target.valueAsNumber;if(n>=5&&n<=24)update({schedulePt:n});}}/></label>
+   <label>일정 자간 (em)<input type="number" min="-0.1" max="0.2" step="0.01" value={Number(settings.scheduleTracking??0)} onChange={e=>{const n=e.target.valueAsNumber;if(n>=-0.1&&n<=0.2)update({scheduleTracking:n});}}/></label>
+   <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.cellAutoFit===true} onChange={e=>update({cellAutoFit:e.target.checked})}/>날짜 칸 일정 자동 맞춤</label>
+   <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.listAutoFit===true} onChange={e=>update({listAutoFit:e.target.checked})}/>월별 일정 목록 자동 맞춤</label>
    <label>글자색<input type="color" value={color} onChange={e=>update({scheduleColor:e.target.value})}/></label>
    <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.scheduleWeekday===true||(settings.scheduleWeekday==null&&settings.listDateFormat==='weekday')} onChange={e=>update({scheduleWeekday:e.target.checked})}/>날짜에 요일 표시</label>
    <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.includeHolidays!==false} onChange={e=>update({scheduleHolidays:e.target.checked})}/>공휴일 포함</label>

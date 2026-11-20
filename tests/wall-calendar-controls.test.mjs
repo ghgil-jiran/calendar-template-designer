@@ -19,7 +19,7 @@ function inspector(project=ACDLWallSampleB.create()){
  const ctx=vm.createContext({ACDLFontCatalog:globalThis.ACDLFontCatalog,ACDLWallCalendar:wall,ACDLSharedMiniCalendar:mini,project,renderInspector(){},sourceElement:()=>grid(project,0),selectedPage:()=>project.book.pageInstances[0],document:{createElement:()=>({}),getElementById:id=>id==='inspector'?{querySelector:()=>panel}:nodes.get(id),querySelector:()=>null},inspectorTracked:[],registerInspectorSaveButton(){},change:fn=>fn(),confirmDiscardInspectorChanges:()=>true,Event:class {constructor(type){this.type=type}},structuredClone});ctx.window=ctx;vm.runInContext(fs.readFileSync(new URL('../apps/designer-studio/wall-calendar-editor.js',import.meta.url),'utf8'),ctx);ctx.renderInspector();
  return {project,ctx,nodes,panel,apply:()=>nodes.get('wallApply').onclick(),change(key,value){const n=nodes.get('wall'+key);if(typeof value==='boolean')n.checked=value;else n.value=String(value);n.dispatchEvent({type:'change'});}};
 }
-test('cell-mode typography is immediately visible and only the relevant controls are enabled',()=>{const ui=inspector();assert.match(ui.panel.innerHTML,/data-wall-section="cell-info" open/);for(const key of ['eventPt','referencePt'])assert.equal(ui.nodes.get('wall'+key).disabled,false);assert.equal(ui.nodes.get('walllistPt').disabled,true);assert.match(ui.panel.innerHTML,/wall-check-copy/);assert.equal(ui.nodes.get('walleventPt').min,'5');assert.equal(ui.nodes.get('walleventPt').max,'24');ui.change('StylePreset','minimal');assert.equal(ui.nodes.get('walleventPt').disabled,true);assert.equal(ui.nodes.get('wallreferencePt').disabled,true);assert.equal(ui.nodes.get('walllistPt').disabled,false);ui.apply();assert.equal(grid(ui.project,0).wallCalendarSettings.eventPt,9);ui.change('schedulePlacement','both');assert.equal(ui.nodes.get('walleventPt').disabled,false);assert.equal(ui.nodes.get('walllistPt').disabled,false);});
+test('cell-mode typography is immediately visible and only the relevant controls are enabled',()=>{const ui=inspector();assert.match(ui.panel.innerHTML,/data-wall-section="cell-info" open/);for(const key of ['eventPt','referencePt'])assert.equal(ui.nodes.get('wall'+key).disabled,false);assert.equal(ui.nodes.get('walllistPt').disabled,true);assert.match(ui.panel.innerHTML,/wall-check-copy/);assert.equal(ui.nodes.get('walleventPt').min,'3');assert.equal(ui.nodes.get('walleventPt').max,'24');ui.change('StylePreset','minimal');assert.equal(ui.nodes.get('walleventPt').disabled,true);assert.equal(ui.nodes.get('wallreferencePt').disabled,true);assert.equal(ui.nodes.get('walllistPt').disabled,false);ui.apply();assert.equal(grid(ui.project,0).wallCalendarSettings.eventPt,9);ui.change('schedulePlacement','both');assert.equal(ui.nodes.get('walleventPt').disabled,false);assert.equal(ui.nodes.get('walllistPt').disabled,false);});
 test('actual inspector applies font sizes and month arrangement to both sheets without changing their identities',()=>{const ui=inspector(),p=ui.project,before=structuredClone(p.book.pageInstances);ui.change('eventPt',14.2);ui.change('referencePt',11.3);ui.change('listPt',12.4);ui.change('Columns',3);ui.change('AllPages',true);ui.apply();const reopened=JSON.parse(JSON.stringify(p));for(const i of [0,1]){const e=grid(reopened,i),v=wall.resolve(e,reopened);assert.equal(e.columns,3);assert.equal(v.eventPt,14.2);assert.equal(v.referencePt,11.3);assert.equal(v.listPt,12.4);}assert.deepEqual(reopened.book.pageInstances,before);assert.deepEqual([grid(p,0).posterMonthOffset,grid(p,1).posterMonthOffset],[0,6]);});
 test('per-month scope disables common layout, ignores old per-month gaps and retains the global gap',()=>{const p=ACDLWallSampleB.create();grid(p,0).wallMonthOverrides={3:{gapMm:12,eventPt:11}};const ui=inspector(p);ui.ctx.wallCalendarMonthScope='3';ui.ctx.renderInspector();assert.equal(ui.nodes.get('wallgapMm').disabled,true);assert.equal(ui.nodes.get('wallColumns').disabled,true);assert.equal(ui.nodes.get('wallResetMonths').disabled,true);assert.equal(ui.nodes.get('wallgapMm').value,'6');ui.change('eventPt',14);ui.apply();assert.equal(grid(p,0).wallMonthOverrides[3].gapMm,undefined);assert.equal(wall.resolve(grid(p,0),p,3).gapMm,6);assert.equal(wall.resolve(grid(p,0),p,3).eventPt,14);assert.equal(wall.resolve(grid(p,0),p,4).eventPt,9);});
 test('month overrides survive by default and reset only when explicitly selected, across both pages',()=>{const p=ACDLWallSampleB.create();grid(p,0).wallMonthOverrides={3:{eventPt:20}};grid(p,1).wallMonthOverrides={9:{eventPt:18}};const ui=inspector(p);assert.match(ui.panel.innerHTML,/월별 개별 설정 1개/);ui.change('eventPt',13);ui.change('AllPages',true);ui.apply();assert.equal(wall.resolve(grid(p,0),p,3).eventPt,20);assert.equal(wall.resolve(grid(p,1),p,9).eventPt,18);ui.change('ResetMonths',true);ui.apply();for(const i of [0,1]){assert.equal(grid(p,i).wallMonthOverrides,undefined);assert.equal(wall.resolve(grid(p,i),p).eventPt,13);}});
@@ -48,4 +48,34 @@ test('below and side layouts share the inspector and keep their saved arrangemen
   assert.equal(item.wallCalendarSettings.rowGapMm,6);
   assert.equal(wall.presetName(item.wallCalendarSettings),style);
  }
+});
+
+test('poster auto-fit and tracking settings survive applying and reopening',()=>{
+ const ui=inspector();
+ ui.change('cellAutoFit',true);
+ ui.change('listAutoFit',true);
+ ui.change('scheduleTracking',-.04);
+ ui.apply();
+ const reopened=inspector(JSON.parse(JSON.stringify(ui.project)));
+ assert.equal(reopened.nodes.get('wallcellAutoFit').checked,true);
+ assert.equal(reopened.nodes.get('walllistAutoFit').checked,true);
+ assert.equal(reopened.nodes.get('wallscheduleTracking').value,'-0.04');
+});
+
+test('cell fit tests leading before shrinking and stops at 3pt on overflow',()=>{
+ const values={};
+ let required=4.2;
+ const cell={clientHeight:10,clientWidth:10,scrollWidth:10,
+  get scrollHeight(){return parseFloat(values['--wall-cell-fit-size'])*Number(values['--wall-cell-fit-leading'])>required?12:10;}};
+ const wallGrid={clientHeight:100,querySelectorAll:()=>[{closest:()=>cell}]};
+ const month={querySelector:selector=>selector==='[data-wall-grid]'?wallGrid:null,
+  dataset:{wallCellFit:'4',wallPtUnit:'1'},style:{setProperty:(key,value)=>{values[key]=value;}}};
+ const scope={querySelectorAll:selector=>selector==='[data-wall-cell-fit]'?[month]:[]};
+ wall.fit(scope);
+ assert.equal(values['--wall-cell-fit-size'],'3.5cqw');
+ assert.equal(values['--wall-cell-fit-leading'],'1.1');
+ required=2;
+ wall.fit(scope);
+ assert.equal(values['--wall-cell-fit-size'],'3cqw');
+ assert.equal(cell.scrollHeight,12);
 });
