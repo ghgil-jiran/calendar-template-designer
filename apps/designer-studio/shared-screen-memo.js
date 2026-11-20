@@ -46,8 +46,8 @@
     return '<div class="widget-memo yearly-plan-grid yearly-layout-' + layout + '" data-container-style="' + escapeText(model?.yearlyContainerStyle || "none") + '" style="--yearly-cols:' + columns + '"><strong class="yearly-plan-title">' + escapeText(model?.title || "메모") + '</strong><div class="yearly-plan-months">' + content + '</div></div>';
   }
   // A date-based presentation of the existing daily planner, shared by all surfaces.
-  function projectHolidayDates(project) {
-    if (project?.settings?.calendarData?.includeHolidays === false) return [];
+  function projectHolidayDates(project, { respectVisibility = true } = {}) {
+    if (respectVisibility && project?.settings?.calendarData?.includeHolidays === false) return [];
     return [...new Set([
       ...(project?.book?.events || []).filter(e=>e.category === 'holiday').map(e=>e.startDate),
       ...Object.values(project?.book?.calendarReference?.years || {}).flatMap(year=>(year.public_holiday?.items || []).filter(item=>item.isHoliday !== false).map(item=>item.date))

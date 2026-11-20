@@ -38,3 +38,22 @@ test('annual English month font is independent from number and date fonts',()=>{
  assert.match(html,/font-family:Georgia;font-size:23px/);
  assert.match(html,/font-family:Arial/);
 });
+
+test('desk mini calendars give weekday and Saturday holidays priority over weekday colors', () => {
+  const previous = mini.resolveMiniCalendar({type:'mini-calendar-prev'}, {calendarYear:2028, calendarMonth:1});
+  const dates = ['2027-12-24', '2027-12-25'];
+  const cell = mini.renderCellMiniCalendarMarkup(previous, dates);
+  const separate = mini.renderMiniCalendarMarkup(previous, {holidayDates:dates});
+  assert.match(cell, /class="sun-mini">24<\/span>/);
+  assert.match(cell, /class="sun-mini">25<\/span>/);
+  assert.match(cell, /class="sat-mini">18<\/span>/);
+  assert.match(separate, /class="holiday">24<\/span>/);
+  assert.match(separate, /class="sat holiday">25<\/span>/);
+});
+
+test('five-row mini calendars can color only the holiday in a shared date cell', () => {
+  const model = mini.resolveMiniCalendar({type:'mini-calendar', calendarRows:5}, {calendarYear:2027, calendarMonth:5});
+  const dates = ['2027-05-31'];
+  assert.match(mini.renderCellMiniCalendarMarkup(model, dates), />24<\/span>\/<span class="mini-holiday-date">31<\/span>/);
+  assert.match(mini.renderMiniCalendarMarkup(model, {holidayDates:dates}), />24<\/span> · <span class="mini-holiday-date">31<\/span>/);
+});

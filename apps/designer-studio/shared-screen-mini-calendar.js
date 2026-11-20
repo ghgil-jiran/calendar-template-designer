@@ -30,6 +30,13 @@
     const label = element?.monthLabelStyle === "number-en" ? month + " " + monthNames[month - 1] : year + "년 " + month + "월";
     return { year, month, rows, headers, label, showWeekdayHeader: element?.showWeekdayHeader !== false, showAdjacentMonths:element?.showAdjacentMonths !== false, cells };
   }
+  function miniDateLabel(cell, holidays, separator) {
+    if (!cell.extra) return String(cell.day);
+    const first = holidays.has(cell.date), second = holidays.has(cell.extra.date);
+    if (first === second) return cell.day + separator + cell.extra.day;
+    const label = (day, holiday) => '<span class="' + (holiday ? 'mini-holiday-date' : '') + '">' + day + '</span>';
+    return label(cell.day, first) + separator + label(cell.extra.day, second);
+  }
   function renderMiniCalendarMarkup(model, options = {}) {
     if (!model || !Array.isArray(model.cells) || !Array.isArray(model.headers)) return "";
     const s = options.style || {};
@@ -43,18 +50,30 @@
     const holidays = new Set(Array.isArray(options.holidayDates) ? options.holidayDates : []);
     let inner = `<div class="widget-mini-calendar shared-screen-mini-calendar${reference ? " mini-reference-photo" : ""}${s.bottomRule ? " mini-bottom-rule" : ""}${s.gridLine ? " mini-grid-lines" : ""}" style="${css}"><strong${s.titleStyle === "editorial-photo"?' style="display:flex;align-items:baseline;justify-content:flex-start;border-bottom:1px dotted #9da7a5;padding-bottom:6px"':''}>${label}</strong><div class="mini-grid" style="--mini-calendar-rows:${model.rows};grid-template-rows:${model.showWeekdayHeader && !reference ? "auto " : ""}repeat(${model.rows},1fr)">`;
     if (model.showWeekdayHeader && !reference) model.headers.forEach(name => { inner += `<span class="mh">${escapeText(name)}</span>`; });
-    model.cells.forEach(cell => { const classes = [cell.month !== model.month ? "adj" : "", cell.weekday === 0 ? "sun" : "", cell.weekday === 6 ? "sat" : "", holidays.has(cell.date) ? "holiday" : ""].filter(Boolean).join(" "); inner += `<span class="${classes}">${cell.month!==model.month&&model.showAdjacentMonths===false?"":cell.day}${cell.extra ? ` · ${cell.extra.day}` : ""}</span>`; });
+    model.cells.forEach(cell => {
+      const adjacent = cell.month !== model.month;
+      const holiday = holidays.has(cell.date) && (!cell.extra || holidays.has(cell.extra.date));
+      const classes = [adjacent && !cell.extra ? "adj" : "", cell.weekday === 0 ? "sun" : "", cell.weekday === 6 ? "sat" : "", holiday ? "holiday" : ""].filter(Boolean).join(" ");
+      const label = adjacent && !model.showAdjacentMonths
+        ? cell.extra ? miniDateLabel(cell.extra, holidays, " · ") : ""
+        : miniDateLabel(cell, holidays, " · ");
+      const tone = adjacent && !model.showAdjacentMonths && cell.extra && holidays.has(cell.extra.date) ? classes + " holiday" : classes;
+      inner += `<span class="${tone}">${label}</span>`;
+    });
     return inner + "</div></div>";
   }
-  function renderCellMiniCalendarMarkup(model) {
+  function renderCellMiniCalendarMarkup(model, holidayDates = []) {
     if (!model || !Array.isArray(model.cells) || model.cells.length !== model.rows * 7) return "";
+    const holidays = new Set(holidayDates);
     let html = `<div class="cell-mini-calendar"><strong>${model.month}</strong><div class="cell-mini-grid" style="--mini-calendar-rows:${model.rows}">`;
     for (let index = 0; index < model.cells.length; index += 7) {
       html += '<div class="cell-mini-week">';
       model.cells.slice(index, index + 7).forEach(cell => {
         const current = cell.month === model.month;
-        const tone = !current ? "adj" : cell.weekday === 0 ? "sun-mini" : cell.weekday === 6 ? "sat-mini" : "";
-        html += `<span class="${tone}${cell.extra ? " merged" : ""}">${current ? cell.day + (cell.extra ? "/" + cell.extra.day : "") : ""}</span>`;
+        const holiday = holidays.has(cell.date) && (!cell.extra || holidays.has(cell.extra.date));
+        const tone = !current && !cell.extra ? "adj" : holiday || (!current && holidays.has(cell.extra?.date)) || cell.weekday === 0 ? "sun-mini" : cell.weekday === 6 ? "sat-mini" : "";
+        const label = current ? miniDateLabel(cell, holidays, "/") : cell.extra?.day ?? "";
+        html += `<span class="${tone}${cell.extra ? " merged" : ""}">${label}</span>`;
       });
       html += "</div>";
     }

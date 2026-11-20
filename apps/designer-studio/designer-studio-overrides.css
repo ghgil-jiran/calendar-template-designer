@@ -538,3 +538,17 @@ body:has(.page.poster[data-wall-sample="a"]) #inspector label>input[type="checkb
 /* Editing shows the same overflow regions that block wall printing. */
 body:not(.review-pdf-printing) .workspace .canvas-wrap #page [data-wall-region][data-wall-overflow="true"]{outline:1px dashed #c66a16;outline-offset:-1px}
 @media print{[data-wall-region][data-wall-overflow="true"]{outline:none!important}}
+
+.calendar-style-section .desk-schedule-inspector > .layer-chip{display:none}
+.desk-schedule-scope{display:block;text-align:right;color:var(--muted);margin-bottom:8px}
+.desk-schedule-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px}
+.desk-schedule-modes button{display:flex;flex-direction:column;gap:6px;padding:6px;min-width:0;font-size:11px;text-align:center}
+.desk-schedule-modes button[aria-pressed="true"]{border-color:#2563eb;background:#eff4ff;color:#1746ab}
+.desk-schedule-example{display:flex;align-items:center;width:100%;height:26px;font-size:9px;text-align:left}
+.desk-schedule-example > span{width:100%;padding:3px 2px}
+.desk-schedule-example.bar > span{background:#586779;color:#fff;border-radius:3px}
+.desk-schedule-example.text > span{color:#2563eb}
+.desk-schedule-example.line > span{border-bottom:2px solid #586779}
+.workspace>.right .desk-schedule-inspector .desk-schedule-check{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.workspace>.right .desk-schedule-inspector .desk-schedule-check input{width:16px;height:16px;flex:none;margin:0;padding:0}
+.desk-schedule-inspector [hidden]{display:none}

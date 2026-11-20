@@ -102,6 +102,10 @@
    const current=calendar.rangeEventStyle||{};
    const style=state.deskScheduleStyle?root.ACDLSharedSchedule.displayStyle(state.deskScheduleStyle,current):current;
    const sizing=project.mode==='calendar-workspace'?root.ACDLSharedSchedule.deskScheduleDefaults(document.book.events,document.book.pageInstances):{};
+   if(current.deskDateSchedule){
+    if(current.fontSizePt!=null)sizing.fontSizePt=current.fontSizePt;
+    if(current.barHeight!=null)sizing.barHeight=current.barHeight;
+   }
    calendar.rangeEventStyle={displayMode:'bar',...style,...sizing,...state.deskScheduleSizing,deskDateSchedule:true};
   }
   for(const edit of state.edits){

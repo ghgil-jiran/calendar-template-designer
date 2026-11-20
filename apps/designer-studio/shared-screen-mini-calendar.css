@@ -17,3 +17,5 @@
 
 .shared-screen-mini-calendar.mini-reference-photo strong>span{font-weight:700}
 .shared-screen-mini-calendar.mini-reference-photo strong>small{font-weight:600}
+
+.shared-screen-mini-calendar .mini-holiday-date{color:var(--mini-sunday,#ef3340)!important}

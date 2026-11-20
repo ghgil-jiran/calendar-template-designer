@@ -65,11 +65,11 @@ function selectAdjacentMiniCells(grid,currentMonth){
  if(leading.length>=3)return leading.slice(0,2);
  return []
 }
-function renderCellMiniCalendar(y,m){
+function renderCellMiniCalendar(y,m,holidayDates){
  const shared=window.ACDLSharedMiniCalendar;
  if(shared?.version!=="0.1.0-preview.1"||typeof shared.renderCellMiniCalendarMarkup!=="function")throw new Error("공통 미니월력 화면 모듈 버전이 일치하지 않습니다.");
  const model=shared.resolveMiniCalendar({type:"mini-calendar"},{calendarYear:y,calendarMonth:m},{calendarRows:project.settings.calendarRows,calendarRowsMode:project.settings.calendarRowsMode,sampleFamily:project.template?.metadata?.sampleFamily,weekStart:project.settings.weekStart});
- return shared.renderCellMiniCalendarMarkup(model)
+ return shared.renderCellMiniCalendarMarkup(model,holidayDates)
 }
 
 function isoDate(d){
