@@ -26,7 +26,7 @@
     const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
     if (!arrows[key]) return null;
     const scale = event.shiftKey ? 5 : 1;
-    return Object.freeze({ type: 'nudge', deltaX: arrows[key][0] * scale * .2, deltaY: arrows[key][1] * scale * .2 });
+    return Object.freeze({ type: 'nudge', deltaX: arrows[key][0] * scale * .05, deltaY: arrows[key][1] * scale * .05 });
   }
 
   root.ACDLCanvasInput = Object.freeze({ capturePointer, keyboardCommand });

@@ -32,8 +32,8 @@ assert.equal(keyboardCommand({ key: 'Delete' }, 'input', true), null);
 assert.deepEqual(keyboardCommand({ key: 'a', ctrlKey: true }, 'DIV', false), { type: 'select-all' });
 assert.equal(keyboardCommand({ key: 'Delete' }, 'DIV', false), null);
 assert.deepEqual(keyboardCommand({ key: 'Backspace' }, 'DIV', true), { type: 'delete' });
-assert.deepEqual(keyboardCommand({ key: 'ArrowLeft' }, 'DIV', true), { type: 'nudge', deltaX: -.2, deltaY: 0 });
-assert.deepEqual(keyboardCommand({ key: 'ArrowDown', shiftKey: true }, 'DIV', true), { type: 'nudge', deltaX: 0, deltaY: 1 });
+assert.deepEqual(keyboardCommand({ key: 'ArrowLeft' }, 'DIV', true), { type: 'nudge', deltaX: -.05, deltaY: 0 });
+assert.deepEqual(keyboardCommand({ key: 'ArrowDown', shiftKey: true }, 'DIV', true), { type: 'nudge', deltaX: 0, deltaY: .25 });
 
 assert.equal(keyboardCommand({ key: 'ArrowLeft' }, { tagName: 'DIV', isContentEditable: true }, true), null);
 assert.equal(keyboardCommand({ key: 'ArrowDown' }, { tagName: 'BUTTON', closest: () => ({}) }, true), null);

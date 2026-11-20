@@ -460,3 +460,11 @@ body:has(#entryScreen:not(.hidden)) #returnHomeBtn{display:none!important}
 
 /* Binding marks are finishing guides, with consistent proportions at every zoom. */
 .page .binding{position:absolute;top:2%;left:3.5%;width:93%;height:3.5%;background-color:transparent;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 22'%3E%3Crect x='6' y='1' width='20' height='18' rx='3' fill='%23d8d6d3' fill-opacity='.5'/%3E%3C/svg%3E");background-size:3.8461538% 100%;background-repeat:repeat-x;opacity:1;z-index:1;pointer-events:none}
+
+.page.editor-poster-print-guides.editor-bleed-visible::before{border:1.5px dashed #d74650;background:none}
+.page.editor-poster-print-guides.editor-bleed-visible::after{border:1.5px dashed #23804c}
+.page.editor-poster-print-guides.export-crop-marks{outline:1.5px solid #2563eb;outline-offset:-1px}
+@media print{.page.editor-poster-print-guides{outline:none}.page.editor-poster-print-guides::before,.page.editor-poster-print-guides::after{display:none!important}}
+
+.editor-poster-guide-legend{font-size:11px;color:#52627a;white-space:nowrap}
+@media print{.editor-poster-guide-legend{display:none!important}}
