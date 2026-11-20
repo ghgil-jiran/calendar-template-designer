@@ -46,16 +46,17 @@
  };for(const key of ['listBackground','titleStyle','schedulePlacement','referencePlacement','listPosition','rangeMode','showWeekdays','eventPt','referencePt','listPt',...flags.map(([key])=>key)]){for(const event of ['change','input'])$(prefix+key).addEventListener(event,sync);}sync();$(prefix+'StylePreset').onchange=()=>{const key=$(prefix+'StylePreset').value;if(!api.presets[key])return;for(const [field,val] of Object.entries(api.presets[key])){$(prefix+field).value=val;$(prefix+field).dispatchEvent(new Event('change',{bubbles:true}));}sync();};host.querySelectorAll('[data-wall-section]').forEach(el=>{const key=stateKey+':'+el.dataset.wallSection;if(remembered.has(key))el.open=remembered.get(key);el.ontoggle=()=>remembered.set(key,el.open);});}
  function renderType(type){const section=document.createElement('section');section.className='type-setting-card';section.innerHTML='<h4>벽보형 · 전체 월력 기본 구성</h4><p>새 템플릿의 기본값입니다. 기존 템플릿은 전체 월력에서 적용합니다.</p>'+form(api.normalize(type.wallCalendarDefaults),'ctpWall');$('typeDetailPanel')?.querySelector('.type-detail-grid')?.append(section);wire('ctpWall',section,'type:'+type.id);}
  window.ACDLWallCalendarEditor={renderType,readType:()=>read('ctpWall')};
- function renderBuildingSharing(item,inspector){
-  if(project?.productType?.category!=='poster'||project.book.pageInstances.length!==2)return;
+ function renderPageSharing(item,inspector,{includeContent=false}={}){
+  if(project?.productType?.category!=='poster'||project.book.pageInstances.length<2||includeContent&&project.book.pageInstances.length!==2)return;
   const sharing=window.ACDLSharedMiniCalendar,pageId=selectedPage().id;
   for(const [kind,tab,label] of [['content','content','콘텐츠'],['style','design','스타일'],['layout','layout','배치']]){
+   if(kind==='content'&&!includeContent)continue;
    const panel=inspector?.querySelector('[data-panel="'+tab+'"]');
    if(!panel)continue;
    const state=sharing.posterSharingState(project,pageId,item,kind),button=document.createElement('button');
    button.type='button';button.className='action secondary';button.disabled=!state.changed;
    button.textContent=label+'을 다른 페이지에 적용';
-   button.title=state.pages?'현재 개체에 저장한 설정을 적용합니다.':'다른 페이지에 대응하는 학교 전경 개체가 하나 있어야 합니다.';
+   button.title=state.pages?'현재 개체에 저장한 설정을 적용합니다.':'다른 페이지에 같은 항목의 대응 개체가 하나 있어야 합니다.';
    button.onclick=()=>{
     if(inspectorDirty){window.showEditorToast?.('현재 개체의 변경사항을 먼저 저장하세요.');return;}
     const current=sourceElement();
@@ -107,7 +108,8 @@
   }
  }
  const original=renderInspector;renderInspector=function(){for(const handle of $('page')?.querySelectorAll('[data-wall-resize]')||[])handle.remove();const result=original.apply(this,arguments),item=sourceElement(),panel=$('inspector')?.querySelector('[data-panel="design"]');const add=document.querySelector('[data-widget-add="year-calendar"] strong');if(add)add.textContent=project?.productType?.category==='poster'?'전체 월력':'연간 월력';if(!item?.academicPoster||!panel){
-  if(item?.type==='semantic-object'&&item.role==='school-building')renderBuildingSharing(item,$('inspector'));
+  if(item?.type==='semantic-object'&&item.role==='school-building')renderPageSharing(item,$('inspector'),{includeContent:true});
+  else if(window.ACDLSharedMiniCalendar.posterSchoolSymbolKey(item))renderPageSharing(item,$('inspector'));
   else if(item)renderObjectSharing(item,panel);
   return result;
  }if(window.wallScopeItem!==item.id){window.wallCalendarMonthScope='';window.wallScopeItem=item.id;}

@@ -107,10 +107,23 @@
     for(const items of [...Object.values(project.template?.masterElements||{}),...Object.values(project.book?.elementsByPage||{})])for(const item of Array.isArray(items)?items:[])normalizePosterElement(item);
     return project;
   }
+  function posterSchoolSymbolKey(item){
+    const binding=item?.bindingEnabled===false?'':item?.image?.binding||item?.binding||'';
+    const linked=String(binding).match(/^school\.profile\.(tree|flower)(?:\.(image|name|description))?$/);
+    if(linked&&item.type==='text')return 'school-symbol:text:'+linked[1]+':'+(linked[2]||'name');
+    if(linked&&['semantic-object','image','image-frame'].includes(item.type)&&(!linked[2]||linked[2]==='image'))return 'school-symbol:'+item.type+':'+linked[1];
+    if(item?.type==='semantic-object'&&item.bindingEnabled!==false&&/^school-(tree|flower)$/.test(item.role||'')&&!binding)return 'school-symbol:semantic-object:'+item.role.slice(7);
+    if(item?.type==='text'&&!binding){
+      const label=String(item.content||'').trim().replace(/\s*[-–—:：]\s*$/,'');
+      if(label==='교목'||label==='교화')return 'school-symbol:text:label:'+label;
+    }
+    return '';
+  }
   function posterPlacementKey(item){
     if(!item||item.academicPoster||item.role==='graphic-package-background'||item.type==='year-calendar'||/^(page-number|page-counter)$/.test(item.role||''))return '';
     const legacy=String(item.id||'').match(/^wall-b\.\d+\.(.+)$/)||String(item.shadowOfMasterElementId||'').match(/^wall-b\.\d+\.(.+)$/);
     if(legacy?.[1]==='page'||legacy?.[1]==='background')return '';
+    const symbolKey=posterSchoolSymbolKey(item);if(symbolKey)return symbolKey;
     if(item.metadata?.correspondenceKey)return String(item.metadata.correspondenceKey);
     if(legacy&&item.type==='text')return 'wall-b.'+legacy[1];
     const binding=item.bindingEnabled===false?'':item.image?.binding||item.binding||'';
@@ -131,6 +144,7 @@
   }
   function posterSharedValue(item,kind){
     if(kind==='content')return {sampleContent:item.sampleContent,titleOverride:item.titleOverride};
+    if(kind==='style'&&posterSchoolSymbolKey(item)&&item.type==='semantic-object')return {style:item.style||{},layoutPreset:item.layoutPreset,showTitle:item.showTitle,showCaption:item.showCaption,imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity};
     if(kind==='style'&&item.role==='school-building')return {style:item.style||{},layoutPreset:item.layoutPreset,imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity};
     return kind==='style'?{style:item.style||{},imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity}:Object.fromEntries(['x','y','width','height','rotation','autoSize'].map(key=>[key,item[key]??(key==='rotation'?0:undefined)]));}
   function posterSharingState(project,pageId,item,kind){const value=JSON.stringify(posterSharedValue(item,kind)),matches=posterCounterparts(project,pageId,item);return {pages:matches.length,changed:matches.filter(other=>JSON.stringify(posterSharedValue(other.item,kind))!==value).length};}
@@ -222,7 +236,7 @@
     else inner+=annual.months.map(renderMonth).join('');
     return inner+'</div>';
   }
-  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup, resolvePosterMonths, renderPosterCalendarMarkup, normalizePosterElement, normalizePosterProject, posterDefaults, posterPlacementKey, posterCounterparts, posterSharingState, applyPosterAppearance, posterObjectRegion, posterRegionState, applyPosterRegion, applyPosterPlacement});
+  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup, resolvePosterMonths, renderPosterCalendarMarkup, normalizePosterElement, normalizePosterProject, posterDefaults, posterSchoolSymbolKey, posterPlacementKey, posterCounterparts, posterSharingState, applyPosterAppearance, posterObjectRegion, posterRegionState, applyPosterRegion, applyPosterPlacement});
 })(globalThis);
 
 
