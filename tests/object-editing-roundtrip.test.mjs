@@ -61,19 +61,24 @@ test('late-added style section shares dirty tracking and preserving other sectio
 
 test('final canvas renderer applies saved rotation to text, photos and widgets without doubling graphic rotation',()=>{
  const c=context(),src=read('features/studio-runtime-core.js');
+ c.project.productType={pageSize:{width:260,height:180}};
+ const maskStart=src.indexOf('function photoEdgeMask('),graphicStart=src.indexOf('function graphicMarkup(',maskStart);
+ vm.runInContext(src.slice(maskStart,graphicStart),c);
  const nodes=[];const node=tag=>({tag,dataset:{},style:{},children:[],appendChild(child){this.children.push(child)},addEventListener(){},classList:classes()});
  c.document={createElement:tag=>{const value=node(tag);nodes.push(value);return value}};
- c.allVisibleElements=()=>[{id:'t',type:'text',content:'rotate',rotation:15},{id:'i',type:'image',src:'https://test.invalid/img.png',rotation:25},{id:'w',type:'memo',hideTitle:true,lineCount:4,rotation:35},{id:'s',type:'shape',rotation:45}].map(e=>({...e,x:1,y:1,width:20,height:20,_scope:'page'}));
+ c.allVisibleElements=()=>[{id:'t',type:'text',content:'rotate',rotation:15},{id:'i',type:'image',src:'https://test.invalid/img.png',rotation:25,imageStyle:{softEdgePt:6}},{id:'w',type:'memo',hideTitle:true,lineCount:4,rotation:35},{id:'s',type:'shape',rotation:45}].map(e=>({...e,x:1,y:1,width:20,height:20,_scope:'page'}));
  c.selectedElementId=null;c.selectedElementScope=null;c.preview=true;c.resolveElementImageSource=v=>v.src;c.applyTextElementStyles=()=>{};c.startElementPointer=()=>{};c.graphicMarkup=()=>'<svg/>';
  const start=src.indexOf('renderFreeElements=function(pageNode){',src.indexOf('const v28RenderFreeElements'));
  const end=src.indexOf('\nfunction permissionHTML',start);vm.runInContext(src.slice(start,end),c);
  c.renderFreeElements(node('page'));
  for(const [id,angle] of [['t',15],['i',25],['w',35]])assert.equal(nodes.find(n=>n.dataset.elementId===id).style.transform,`rotate(${angle}deg)`);
  assert.equal(nodes.find(n=>n.dataset.elementId==='s').style.transform,undefined);
+ assert.match(nodes.find(n=>n.dataset.elementId==='i').children[0].style.maskImage,/^url\(/);
  const gs=src.indexOf('function graphicMarkup('),ge=src.indexOf('\nconst v28RenderFreeElements',gs);vm.runInContext(src.slice(gs,ge),c);
  c.project.productType={pageSize:{width:260,height:180}};
  let stroke;c.shapeSVG=(_type,_fill,_color,width)=>{stroke=width;return '<svg/>'};c.graphicMarkup({type:'shape',style:{strokeWidth:0}});assert.equal(stroke,0);
  assert.match(c.graphicMarkup({type:'image-frame',image:{src:'x'},style:{strokeWidth:0}}),/--frame-border-width:0px/);
+ assert.match(c.graphicMarkup({type:'image-frame',width:20,height:20,image:{src:'x'},style:{softEdgePt:6}}),/mask-image:url\(/);
 });
 test('cataloged underline and rounded-corner values reach the authoring renderer after serialization',()=>{
  const c=context();c.project.productType={pageSize:{width:260,height:180}};
