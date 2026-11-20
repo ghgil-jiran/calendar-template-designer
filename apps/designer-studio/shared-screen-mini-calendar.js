@@ -149,7 +149,10 @@
     if(item.type==='semantic-object'&&item.role==='school-building')return 'school-building';
     if(item.role==='school-logo'||binding==='school.profile.logo')return 'logo';
     if(item.type==='text'&&(binding==='calendar.year'||Number(item.y)<=16&&binding.startsWith('school.')))return binding;
-    if(item.type==='text'&&!binding&&/학사|달력|일정/.test(item.content||''))return 'heading:'+item.content;
+    if(item.type==='text'&&!binding){
+      const text=String(item.content??'').trim().replace(/\s+/g,' ');
+      if(text)return 'text:'+text;
+    }
     return '';
   }
   function posterCounterparts(project,pageId,item){
@@ -157,7 +160,7 @@
     const result=[];
     for(const page of project.book.pageInstances||[]){if(page.id===pageId)continue;
       const local=project.book.elementsByPage?.[page.id]||[],shadowed=new Set(local.map(e=>e.shadowOfMasterElementId).filter(Boolean)),elements=[...(project.template?.masterElements?.[page.masterId]||[]).filter(e=>!shadowed.has(e.id)),...local];
-      const matches=elements.filter(e=>posterPlacementKey(e)===key);
+      const matches=elements.filter(e=>e.type===item.type&&posterPlacementKey(e)===key);
       if(matches.length===1)result.push({pageId:page.id,item:matches[0]});
     }return result;
   }
