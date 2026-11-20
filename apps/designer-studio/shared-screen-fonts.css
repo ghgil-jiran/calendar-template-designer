@@ -23,3 +23,6 @@
 
 /* ONE Mobile POP by ONE store, using the published Noonnu webfont. */
 @font-face{font-family:'ONE Mobile POP';src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff') format('woff');font-weight:400;font-style:normal;font-display:swap}
+
+/* Taenada by 태나다X투게더그룹, using the published Noonnu webfont. */
+@font-face{font-family:'Taenada';src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2210-2@1.0/Tenada.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
