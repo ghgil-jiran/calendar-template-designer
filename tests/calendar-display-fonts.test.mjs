@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import '../apps/designer-studio/shared-screen-month-title.js';
 import '../apps/designer-studio/shared-screen-font-catalog.js';
 test('new calendar fonts survive monthly title serialization and render independently',()=>{
- for(const family of ['Montserrat','Bodoni Moda','Bebas Neue','DM Sans','KoPub Batang']){
+ for(const family of ['Montserrat','Bodoni Moda','Bebas Neue','DM Sans','KoPub Batang','ONE Mobile POP']){
   const style=globalThis.ACDLSharedMonthTitle.normalizeTypography(JSON.parse(JSON.stringify({fontFamily:family,numberFontFamily:family,englishFontFamily:family,yearFontFamily:family})));
   assert.equal(style.fontFamily,family);assert.equal(style.numberFontFamily,family);assert.equal(style.englishFontFamily,family);assert.equal(style.yearFontFamily,family);
  }
@@ -23,6 +23,7 @@ test('KoPub Batang is selectable in text, calendar and theme controls and has th
 test('common font options include new and existing authored values after reopening',()=>{
  const catalog=globalThis.ACDLFontCatalog;
  assert.ok(catalog.choices().includes('Jua'));
+ assert.ok(catalog.choices().includes('ONE Mobile POP'));
  assert.ok(catalog.choices().includes('KoPub Batang'));
  const fontFamily='SampleC SchoolName';
  assert.equal(catalog.choices(fontFamily)[0],fontFamily);
