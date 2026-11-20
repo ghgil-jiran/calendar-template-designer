@@ -432,7 +432,7 @@ function userImageFitStyle(item){
 }
 function renderSemanticObject(item){
  const raw=semanticData(item),d={...raw,name:escapeAttr(raw.name||""),description:escapeAttr(raw.description||""),image:escapeAttr(raw.image||"")},titleOverride=escapeAttr(item.titleOverride||""),layout=item.layoutPreset||"image-top",role=item.role;
- if(layout==="image-only"&&item.showTitle===false&&item.showCaption===false)return `<div class="semantic-object semantic-logo"><div class="semantic-media">${d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)}" style="${userImageFitStyle(item)}">`:""}</div></div>`;
+ if(layout==="image-only"&&(["school-tree","school-flower"].includes(role)||(item.showTitle===false&&item.showCaption===false)))return `<div class="semantic-object semantic-logo"><div class="semantic-media">${d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)}" style="${userImageFitStyle(item)}">`:""}</div></div>`;
  const image=d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)} 이미지" style="${userImageFitStyle(item)}">`:`<span class="semantic-empty-visual non-output editor-only" aria-label="${semanticRoleLabel(role)} 이미지 슬롯"></span>`;
  const align=["left","center","right"].includes(item.style?.textAlign)?item.style.textAlign:"center";
  if(role==="school-motto"&&d.image)return `<div class="semantic-object semantic-motto"><div class="semantic-media">${image}</div></div>`;
