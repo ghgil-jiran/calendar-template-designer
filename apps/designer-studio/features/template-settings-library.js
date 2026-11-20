@@ -97,6 +97,8 @@ async function openDesignerProjectFromRecord(t){
    if(!isCurrentProjectTransition(transitionId))return;
   }
  }
+ // Templates opened for authoring must use their sample content even if cloned from a user calendar.
+ if(project.mode==='calendar-workspace'&&!project.productionCorrection)delete project.mode;
  project.template ||= {};
  project.template.id=t.id;
  if(t.remoteId||/^[0-9a-f-]{36}$/i.test(String(t.id))){

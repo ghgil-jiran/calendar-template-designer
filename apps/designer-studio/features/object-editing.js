@@ -1196,6 +1196,7 @@ function bindInspector(){
     next.image=semanticImageDraft;
     if(["school-tree","school-flower"].includes(i.role)){
      delete next.assetId;
+     delete i.sampleAssetId;
      next.imageOverride=true;
     }
    }
