@@ -63,7 +63,7 @@
   function resolveAnnualCalendar(element, page, defaults = {}) {
     let baseYear = Number(page?.calendarYear || defaults.year);
     let startMonth = Number(element?.startMonth || defaults.startMonth || 1);
-    if(element?.academicPoster){const absolute=Number(defaults.startMonth||element.startMonth||1)-1+Number(element.posterMonthOffset||0);baseYear=Number(defaults.year||page?.calendarYear)+Math.floor(absolute/12);startMonth=((absolute%12)+12)%12+1;}
+    if(element?.academicPoster){const absolute=Number(element.posterStartMonth||defaults.startMonth||element.startMonth||1)-1+Number(element.posterMonthOffset||0);baseYear=Number(defaults.year||page?.calendarYear)+Math.floor(absolute/12);startMonth=((absolute%12)+12)%12+1;}
     if (!Number.isInteger(baseYear) || !Number.isInteger(startMonth) || startMonth < 1 || startMonth > 12) return null;
     const count = Math.max(1, Math.min(12, Number(element?.monthCount || 12)));
     const layout = ["open-grid","individual-month-boxes","vertical-three-month-groups","horizontal-four-month-groups"].includes(element?.layoutType) ? element.layoutType : "individual-month-boxes";
@@ -107,13 +107,27 @@
     for(const items of [...Object.values(project.template?.masterElements||{}),...Object.values(project.book?.elementsByPage||{})])for(const item of Array.isArray(items)?items:[])normalizePosterElement(item);
     return project;
   }
+  function posterSchoolSymbolKey(item){
+    const binding=item?.bindingEnabled===false?'':item?.image?.binding||item?.binding||'';
+    const linked=String(binding).match(/^school\.profile\.(tree|flower)(?:\.(image|name|description))?$/);
+    if(linked&&item.type==='text')return 'school-symbol:text:'+linked[1]+':'+(linked[2]||'name');
+    if(linked&&['semantic-object','image','image-frame'].includes(item.type)&&(!linked[2]||linked[2]==='image'))return 'school-symbol:'+item.type+':'+linked[1];
+    if(item?.type==='semantic-object'&&item.bindingEnabled!==false&&/^school-(tree|flower)$/.test(item.role||'')&&!binding)return 'school-symbol:semantic-object:'+item.role.slice(7);
+    if(item?.type==='text'&&!binding){
+      const label=String(item.content||'').trim().replace(/\s*[-–—:：]\s*$/,'');
+      if(label==='교목'||label==='교화')return 'school-symbol:text:label:'+label;
+    }
+    return '';
+  }
   function posterPlacementKey(item){
     if(!item||item.academicPoster||item.role==='graphic-package-background'||item.type==='year-calendar'||/^(page-number|page-counter)$/.test(item.role||''))return '';
     const legacy=String(item.id||'').match(/^wall-b\.\d+\.(.+)$/)||String(item.shadowOfMasterElementId||'').match(/^wall-b\.\d+\.(.+)$/);
     if(legacy?.[1]==='page'||legacy?.[1]==='background')return '';
+    const symbolKey=posterSchoolSymbolKey(item);if(symbolKey)return symbolKey;
     if(item.metadata?.correspondenceKey)return String(item.metadata.correspondenceKey);
     if(legacy&&item.type==='text')return 'wall-b.'+legacy[1];
     const binding=item.bindingEnabled===false?'':item.image?.binding||item.binding||'';
+    if(item.type==='semantic-object'&&item.role==='school-building')return 'school-building';
     if(item.role==='school-logo'||binding==='school.profile.logo')return 'logo';
     if(item.type==='text'&&(binding==='calendar.year'||Number(item.y)<=16&&binding.startsWith('school.')))return binding;
     if(item.type==='text'&&!binding&&/학사|달력|일정/.test(item.content||''))return 'heading:'+item.content;
@@ -128,12 +142,20 @@
       if(matches.length===1)result.push({pageId:page.id,item:matches[0]});
     }return result;
   }
-  function posterSharedValue(item,kind){return kind==='style'?{style:item.style||{},imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity}:Object.fromEntries(['x','y','width','height','rotation','autoSize'].map(key=>[key,item[key]??(key==='rotation'?0:undefined)]));}
+  function posterSharedValue(item,kind){
+    if(kind==='content')return {sampleContent:item.sampleContent,titleOverride:item.titleOverride};
+    if(kind==='style'&&posterSchoolSymbolKey(item)&&item.type==='semantic-object')return {style:item.style||{},layoutPreset:item.layoutPreset,showTitle:item.showTitle,showCaption:item.showCaption,imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity};
+    if(kind==='style'&&item.role==='school-building')return {style:item.style||{},layoutPreset:item.layoutPreset,imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity};
+    return kind==='style'?{style:item.style||{},imageStyle:item.imageStyle,fit:item.fit,opacity:item.opacity}:Object.fromEntries(['x','y','width','height','rotation','autoSize'].map(key=>[key,item[key]??(key==='rotation'?0:undefined)]));}
   function posterSharingState(project,pageId,item,kind){const value=JSON.stringify(posterSharedValue(item,kind)),matches=posterCounterparts(project,pageId,item);return {pages:matches.length,changed:matches.filter(other=>JSON.stringify(posterSharedValue(other.item,kind))!==value).length};}
-  function applyPosterAppearance(project,pageId,item,{style=false,layout=false}={}){
+  function applyPosterAppearance(project,pageId,item,{style=false,layout=false,content=false}={}){
     const matches=posterCounterparts(project,pageId,item),seen=new Set();let count=0;
     for(const target of matches){const other=target.item;if(seen.has(other))continue;seen.add(other);let changed=false;
-      if(style&&JSON.stringify(posterSharedValue(other,'style'))!==JSON.stringify(posterSharedValue(item,'style'))){for(const [key,value] of Object.entries(posterSharedValue(item,'style'))){if(value===undefined)delete other[key];else other[key]=structuredClone(value);}changed=true;}
+      for(const [kind,enabled] of [['style',style],['content',content&&item.role==='school-building'&&project.book.pageInstances.length===2]]){
+        if(!enabled||JSON.stringify(posterSharedValue(other,kind))===JSON.stringify(posterSharedValue(item,kind)))continue;
+        for(const [key,value] of Object.entries(posterSharedValue(item,kind))){if(value===undefined)delete other[key];else other[key]=structuredClone(value);}
+        changed=true;
+      }
       if(layout&&JSON.stringify(posterSharedValue(other,'layout'))!==JSON.stringify(posterSharedValue(item,'layout'))){for(const key of ['x','y','width','height'])other[key]=item[key];if(item.rotation!==undefined)other.rotation=item.rotation;else delete other.rotation;if(item.autoSize!==undefined)other.autoSize=item.autoSize;else delete other.autoSize;changed=true;}
       if(changed)count++;
     }return count;
@@ -201,7 +223,7 @@
       return '<span data-date="'+cell.date+'" style="color:'+color+'">'+cell.day+'</span>';
     };
     const open=annual.layout==='open-grid',renderMonth=mm=>{
-      const label=element.monthLabelStyle==='number-en'&&Number(style.monthNumberSize)>0?'<span style="font-family:'+escapeText(String(style.monthNumberFontFamily||style.fontFamily||'inherit'))+';font-size:'+unit(Number(style.monthNumberSize))+'">'+mm.month+'</span><span style="font-family:'+escapeText(String(style.monthEnglishFontFamily||style.fontFamily||'inherit'))+';font-size:'+unit(Number(style.monthEnglishSize)||titleSize)+'"> '+escapeText(mm.label.split(' ').slice(1).join(' '))+'</span>':escapeText(mm.label);
+      const label=element.monthLabelStyle==='number-en'&&Number(style.monthNumberSize)>0?'<span style="font-family:'+escapeText(String(style.monthNumberFontFamily||style.fontFamily||'inherit'))+';font-size:'+unit(Number(style.monthNumberSize))+'">'+mm.month+'</span><span style="font-size:'+unit(Number(style.monthEnglishSize)||titleSize)+'"> '+escapeText(mm.label.split(' ').slice(1).join(' '))+'</span>':escapeText(mm.label);
       const border=gridStyle==='boxes'?'1px solid '+line:'none',underline=gridStyle==='underline'?'1px solid '+line:'none';
       let html='<section class="year-month" data-month-key="'+mm.year+'-'+String(mm.month).padStart(2,'0')+'" style="min-height:0;display:flex;flex-direction:column;'+(open?'border:0;border-radius:0;background:transparent;overflow:visible;':'')+'"><strong style="'+(open?'background:transparent;padding:0 0 6px;':'')+'font-size:'+unit(titleSize)+';color:'+hex(style.primary,dateColor)+';text-align:'+align(style.titleAlign||'center')+'">'+label+'</strong><div class="year-month-grid" style="min-height:0;flex:1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:'+(gridStyle==='none'?'0':'2px')+';font-size:'+unit(dateSize)+';grid-template-rows:'+(annual.showWeekdayHeader?'auto ':'')+'repeat('+mm.rows+',1fr)">';
       if(annual.showWeekdayHeader)mm.headers.forEach((name,index)=>{const weekday=element.weekStart==='monday'?(index+1)%7:index;html+='<span class="mh" style="font-size:'+unit(dateSize)+';color:'+(weekday===0?sunday:weekday===6?saturday:hex(style.weekdayColor,dateColor))+'">'+escapeText(name)+'</span>';});
@@ -214,7 +236,7 @@
     else inner+=annual.months.map(renderMonth).join('');
     return inner+'</div>';
   }
-  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup, resolvePosterMonths, renderPosterCalendarMarkup, normalizePosterElement, normalizePosterProject, posterDefaults, posterPlacementKey, posterCounterparts, posterSharingState, applyPosterAppearance, posterObjectRegion, posterRegionState, applyPosterRegion, applyPosterPlacement});
+  root.ACDLSharedMiniCalendar = Object.freeze({version, resolveMiniCalendar, renderMiniCalendarMarkup, renderCellMiniCalendarMarkup, resolveAnnualCalendar, renderAnnualCalendarMarkup, resolvePosterMonths, renderPosterCalendarMarkup, normalizePosterElement, normalizePosterProject, posterDefaults, posterSchoolSymbolKey, posterPlacementKey, posterCounterparts, posterSharingState, applyPosterAppearance, posterObjectRegion, posterRegionState, applyPosterRegion, applyPosterPlacement});
 })(globalThis);
 
 
