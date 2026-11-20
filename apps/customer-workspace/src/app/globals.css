@@ -1005,3 +1005,17 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-top-actions .button {min-height:34px;padding-block:6px;}
 .project-name-field {display:grid;gap:6px;margin-block:12px;}
 .project-name-field input {width:100%;border:1px solid hsl(var(--border));border-radius:8px;padding:8px 10px;}
+
+.poster-calendar-tools {display:grid;gap:8px}
+.poster-calendar-tools .editor-tool-card {margin:0;padding:10px 12px}
+.poster-calendar-tools details[open] {display:grid;gap:6px}
+.poster-calendar-tools summary {cursor:pointer;font-weight:700}
+.poster-calendar-tools details label {margin:0;gap:4px}
+.poster-calendar-tools select,.poster-calendar-tools input[type=number] {min-height:32px;padding:4px 8px}
+.poster-calendar-tools input[type=color] {width:44px;min-height:30px;padding:2px}
+.poster-calendar-tools .poster-calendar-checkbox {display:flex;align-items:center;gap:8px}
+.poster-calendar-tools input[type=checkbox] {width:auto;margin:0}
+
+.poster-inspector-body {gap:8px}
+.poster-inspector-body > .editor-tool-card {padding:10px 12px}
+.poster-inspector-body > details > summary {cursor:pointer;font-weight:700}
