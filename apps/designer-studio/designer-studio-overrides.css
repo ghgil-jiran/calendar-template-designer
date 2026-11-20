@@ -552,3 +552,17 @@ body:not(.review-pdf-printing) .workspace .canvas-wrap #page [data-wall-region][
 .workspace>.right .desk-schedule-inspector .desk-schedule-check{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .workspace>.right .desk-schedule-inspector .desk-schedule-check input{width:16px;height:16px;flex:none;margin:0;padding:0}
 .desk-schedule-inspector [hidden]{display:none}
+
+.workspace>.right .element-inspector .frame-transparent-check{
+ display:flex;align-items:center;gap:8px;
+}
+.workspace>.right .element-inspector .frame-transparent-check input{
+ width:16px;height:16px;min-width:16px;flex:none;margin:0;padding:0;
+}
+.text-style-toggles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0;}
+.text-effect-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.workspace>.right .element-inspector .style-toggle{position:relative;display:block;margin:0;cursor:pointer;}
+.workspace>.right .element-inspector .style-toggle input{position:absolute;width:1px;height:1px;opacity:0;margin:0;padding:0;}
+.style-toggle span{display:block;text-align:center;border:1px solid var(--line);border-radius:7px;padding:5px 9px;background:#fff;}
+.style-toggle input:checked+span{border-color:#2563eb;color:#1746ab;background:#eff4ff;}
+.style-toggle input:focus-visible+span{outline:2px solid #2563eb;outline-offset:2px;}

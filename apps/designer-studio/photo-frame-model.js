@@ -32,7 +32,17 @@
  const clip=id=>clips[get(id).id];
  function outline(id,color='#ffffff',width=3){color=/^#[0-9a-f]{3,8}$/i.test(color)?color:'transparent';width=Math.max(0,Math.min(20,Number(width)||0));return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" aria-hidden="true"><path d="${get(id).path}" fill="none" stroke="${color}" stroke-width="${width*2}" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;}
  function background(style={}){const value=style.background;return value===false||value==='transparent'?'transparent':value===true?(style.backgroundColor||'#eef2f7'):typeof value==='string'&&/^#[0-9a-f]{3,8}$/i.test(value)?value:'#eef2f7';}
- root.ACDLPhotoFrameModel=Object.freeze({catalog,get,clip,outline,background});
+ function softEdgeSize(value){return Math.max(0,Math.min(50,Number(value)||0));}
+ function edgeMask(id,value,widthMm,heightMm){
+  const size=softEdgeSize(value);
+  if(!size||!(widthMm>0)||!(heightMm>0))return '';
+  // Apply the fade inside the authored opening, in physical points along both axes.
+  const inset=size*25.4/72*100;
+  const x=Math.min(16,inset/widthMm/3).toFixed(3),y=Math.min(16,inset/heightMm/3).toFixed(3);
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><defs><filter id="fade" x="0" y="0" width="100" height="100" filterUnits="userSpaceOnUse"><feMorphology operator="erode" radius="${x} ${y}"/><feGaussianBlur stdDeviation="${x} ${y}"/></filter></defs><path d="${get(id).path}" fill="white" filter="url(#fade)"/></svg>`;
+  return `url('data:image/svg+xml,${encodeURIComponent(svg)}')`;
+ }
+ root.ACDLPhotoFrameModel=Object.freeze({catalog,get,clip,outline,background,softEdgeSize,edgeMask});
 })(globalThis);
 
 
