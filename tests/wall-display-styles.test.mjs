@@ -31,3 +31,16 @@ test('automatic list columns compare measured wrapped heights and retain every e
  tied.list.dataset.wallListLayout='three';wall.fit(tied.scope);assert.equal(tied.list.dataset.wallResolvedColumns,'3');
 }));
 test('customer display changes cannot alter sizes or reference inclusion flags',()=>{for(const name of Object.keys(wall.presets))assert.deepEqual(wall.validateCustomer(wall.presets[name]),wall.presets[name]);assert.deepEqual(wall.validateCustomer({listLayout:'three',titleStyle:'underline',weekdayFormat:'english'}),{listLayout:'three',titleStyle:'underline',weekdayFormat:'english'});assert.throws(()=>wall.validateCustomer({listLayout:'four'}));assert.throws(()=>wall.validateCustomer({includeLunar:true}));assert.throws(()=>wall.validateCustomer({datePt:4}));});
+
+test('wall schedules keep their configured size and draw column rules only when enabled',()=>{
+ const fixture=model(),{p,item}=fixture;
+ p.book.events=[{id:'wall-options',title:'개학식',startDate:'2027-03-02',endDate:'2027-03-02'}];
+ item.wallCalendarSettings={schedulePlacement:'list',listLayout:'two',listColumnColors:true};
+ assert.match(html(fixture),/data-wall-list-columns style="[^"]*column-rule:/);
+ item.wallCalendarSettings={schedulePlacement:'cells',scheduleDisplayMode:'text',eventPt:11};
+ const markup=html(fixture);
+ const cell=markup.match(/data-wall-cell-event style="[^"]+"/)?.[0];
+ assert.ok(cell);
+ assert.ok(cell.includes(100*(11*25.4/72)/wall.geometry(p,item).width+'cqw'),cell);
+ assert.doesNotMatch(markup,/column-rule:/);
+});

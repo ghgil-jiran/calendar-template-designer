@@ -648,6 +648,14 @@ function renderFreeElements(pageNode){
 function applyTextElementStyles(node,view){
  const style=view.style||{},size=style.fontSize||project.template.masters.cover.titleSize||18,align=style.textAlign||"left",vertical=style.verticalAlign||"top";
  if(style.padding!=null)node.style.padding=Number(style.padding)+"px";node.style.fontSize=Number(style.fontReferenceWidthPx)>0?(size/Number(style.fontReferenceWidthPx)*100)+"cqw":size+"px";node.style.setProperty("--element-font-size",String(size));node.style.fontFamily=style.fontFamily||(["year","school-name"].includes(view.role)?"var(--tpl-title-font)":"var(--tpl-body-font)");node.style.fontWeight=String(style.fontWeight||"normal");node.style.fontStyle=style.fontStyle||"normal";node.style.textDecoration=style.textDecoration||"none";node.style.textDecorationColor=style.textDecorationColor||"currentColor";node.style.textDecorationThickness=style.textDecorationThickness?style.textDecorationThickness+"px":"auto";node.style.textUnderlineOffset=style.textUnderlineOffset?style.textUnderlineOffset+"px":"auto";node.style.textAlign=align;node.style.justifyContent=align==="center"?"center":align==="right"?"flex-end":"flex-start";node.style.alignItems=vertical==="middle"?"center":vertical==="bottom"?"flex-end":"flex-start";node.style.whiteSpace=style.whiteSpace||"pre-line";node.style.color=style.color||"#17202e";node.style.letterSpacing=Number(style.letterSpacing||0)+"px";node.style.lineHeight=String(style.lineHeight||1.2);node.style.opacity=String(style.opacity??1);node.style.background=style.background?(style.backgroundColor||"#ffffff"):"transparent";node.style.webkitTextStroke=Number(style.strokeWidth||0)+"px "+(style.strokeColor||"transparent");if(view.binding==="school.contacts"&&view.bindingEnabled!==false){const contacts=window.ACDLPageObjectModel.renderSchoolContacts(project.book.school,view);if(contacts)node.innerHTML=contacts;}node.style.textShadow=style.shadow?`${Number(style.shadowX||0)}px ${Number(style.shadowY||0)}px ${Number(style.shadowBlur||0)}px ${style.shadowColor||"#000000"}`:"none"
+ // Center the visible lettering of this display font, whose line box is asymmetric.
+ // Keep the background and padding on the full frame and trim only the text block.
+ if(vertical==="middle"&&String(style.fontFamily).trim()==="Taenada"&&node.textContent?.trim()&&!node.childElementCount){
+  const text=document.createElement("span");
+  text.style.textBox="trim-both cap alphabetic";
+  text.textContent=node.textContent;
+  node.replaceChildren(text);
+ }
 }
 function startElementPointer(e){
  const box=e.currentTarget,id=box.dataset.elementId,scope=box.dataset.scope;
@@ -1112,6 +1120,7 @@ function renderInspector(){
   <div class="desk-schedule-modes" role="group" aria-label="일정 표시 방식">
    ${[['bar','색상 막대'],['text','텍스트만'],['line','가는 선']].map(([mode,label])=>`<button type="button" data-desk-schedule-mode="${mode}" aria-pressed="${scheduleMode===mode}"><span class="desk-schedule-example ${mode}" aria-hidden="true"><span>학교 일정</span></span>${label}</button>`).join('')}
   </div>
+  <label class="desk-schedule-check"><span>일정 앞 불릿 표시</span><input id="rangeBullet" type="checkbox" ${rs.bullet?'checked':''}></label>
   <div id="rangeTextOptions" ${scheduleMode==='text'?'':'hidden'}>
    <label class="desk-schedule-check"><span>일정을 '/'로 이어서 표시</span><input id="rangeJoinText" type="checkbox" ${rs.joinText?'checked':''}></label>
    <label class="desk-schedule-check"><span>구간 일정을 날짜별 표시</span><input id="rangeEachDay" type="checkbox" ${rs.rangeEachDay?'checked':''}></label>
@@ -1297,6 +1306,7 @@ function bindInspector(){
   if(Number.isFinite(height))s.barHeight=Math.max(1,Math.min(24,height));
   else delete s.barHeight;
   s.deskDateSchedule=true;
+  s.bullet=el('rangeBullet').checked;
   s.joinText=el('rangeJoinText').checked;
   s.rangeEachDay=el('rangeEachDay').checked;
   s.maxLanes=window.ACDLCalendarDomain.SCHEDULE_MAX_LANES;

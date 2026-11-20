@@ -253,7 +253,7 @@
           for(const event of active){
             if(!style.joinText&&shown===5)break;
             const label=layer.ownerDocument.createElement('span');
-            label.textContent=(style.joinText&&shown?' / ':'')+event.title;
+            label.textContent=(style.joinText&&shown?' / ':'')+(style.bullet?'• ':'')+event.title;
             if(!style.joinText)Object.assign(label.style,{display:'block',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'});
             if(event.color)label.style.color=event.color;
             node.append(label);

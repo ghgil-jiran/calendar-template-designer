@@ -95,3 +95,12 @@ test('one-page style changes columns and placement without modifying the month s
   assert.deepEqual(project.book.pageInstances,before);
  }
 });
+
+test('wall editor exposes and saves the list column separator option',()=>{
+ const ui=inspector();
+ assert.match(ui.panel.innerHTML,/단 구분선 표시/);
+ assert.equal(ui.nodes.get('walllistColumnColors').checked,false);
+ ui.change('listColumnColors',true);
+ ui.apply();
+ assert.equal(inspector(JSON.parse(JSON.stringify(ui.project))).nodes.get('walllistColumnColors').checked,true);
+});

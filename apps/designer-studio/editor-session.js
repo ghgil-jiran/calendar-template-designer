@@ -29,7 +29,7 @@
   return result;
  }
  function validateState(state){
-  if(state?.deskScheduleSizing){const s=state.deskScheduleSizing;if(typeof s!=='object'||Array.isArray(s)||Object.keys(s).some(k=>!['fontSizePt','barHeight','joinText','rangeEachDay'].includes(k))||s.fontSizePt!==undefined&&(!Number.isFinite(s.fontSizePt)||s.fontSizePt<3||s.fontSizePt>18)||s.barHeight!==undefined&&(!Number.isFinite(s.barHeight)||s.barHeight<1||s.barHeight>24)||s.joinText!==undefined&&typeof s.joinText!=='boolean'||s.rangeEachDay!==undefined&&typeof s.rangeEachDay!=='boolean')throw Error('일정 글자 크기와 영역 높이를 확인해 주세요.');}
+  if(state?.deskScheduleSizing){const s=state.deskScheduleSizing;if(typeof s!=='object'||Array.isArray(s)||Object.keys(s).some(k=>!['fontSizePt','barHeight','joinText','rangeEachDay','bullet'].includes(k))||s.fontSizePt!==undefined&&(!Number.isFinite(s.fontSizePt)||s.fontSizePt<3||s.fontSizePt>18)||s.barHeight!==undefined&&(!Number.isFinite(s.barHeight)||s.barHeight<1||s.barHeight>24)||s.joinText!==undefined&&typeof s.joinText!=='boolean'||s.rangeEachDay!==undefined&&typeof s.rangeEachDay!=='boolean'||s.bullet!==undefined&&typeof s.bullet!=='boolean')throw Error('일정 글자 크기와 영역 높이를 확인해 주세요.');}
 
   if(state?.deskScheduleStyle!==undefined&&!['bar','text','line'].includes(state.deskScheduleStyle))throw Error('일정 표시 스타일을 확인해 주세요.');
   if(state?.logoMode!==undefined&&!['split','combined'].includes(state.logoMode))throw Error('로고 구성을 확인해 주세요.');
