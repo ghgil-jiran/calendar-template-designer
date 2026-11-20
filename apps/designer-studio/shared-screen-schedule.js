@@ -156,6 +156,134 @@
     });
     return {segments, hiddenByDate: style.overflowStyle === 'hide' ? {} : hiddenByDate};
   }
-  root.ACDLSharedSchedule = Object.freeze({ version, physicalFontPx, fitPhysicalLanes, displayModes, displayStyle, fitDisplayLanes, displaySegment, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
+  function deskScheduleDefaults(events=[],pages=[]){
+    const counts=new Map(), months=new Set(pages.filter(p=>p.role==='monthly-front'&&p.calendarYear&&p.calendarMonth)
+      .map(p=>p.calendarYear+'-'+String(p.calendarMonth).padStart(2,'0')));
+    if(!months.size)return {};
+    for(const month of months){
+      const first=new Date(month+'-01T00:00:00Z');
+      for(const date=new Date(first);date.getUTCMonth()===first.getUTCMonth();date.setUTCDate(date.getUTCDate()+1)){
+        const key=date.toISOString().slice(0,10);
+        const count=events.filter(event=>event.startDate<=key&&(event.endDate||event.startDate)>=key).length;
+        counts.set(key,count);
+      }
+    }
+    const peak=Math.min(5,Math.max(0,...counts.values()));
+    if(!peak)return {};
+    const [fontSizePt,barHeight]=[[6,10],[5.5,9],[5,8],[3.5,5],[3,4]][peak-1];
+    return {fontSizePt,barHeight};
+  }
+
+  function deskScheduleMetrics(style,fontPx){
+    const minimum=Math.ceil(fontPx*1.1)+(style.displayMode==='text'?0:2);
+    return {minimum,height:Math.max(minimum,Number(style.barHeight)||minimum)};
+  }
+
+  function fitDeskCalendar(page,style,events,fontPx,fontFamily){
+    const layer=page.querySelector('.range-event-layer');
+    if(!layer||!layer.offsetHeight)return;
+    const bounds=layer.getBoundingClientRect();
+    const sx=bounds.width/layer.offsetWidth||1,sy=bounds.height/layer.offsetHeight||1;
+    const cells=[...page.querySelectorAll('.calendar > .cell:not(.head)')];
+    const byDate=new Map();
+    const rows=new Map();
+    cells.forEach((cell,index)=>{
+      const box=cell.getBoundingClientRect();
+      const blocks=[...cell.querySelectorAll('.day-block[data-date]')];
+      blocks.forEach((block,part)=>{
+        if(!block.children.length)return;
+        const start=block.getBoundingClientRect().top;
+        const headerBottom=Math.max(start,...[...block.children].map(node=>node.getBoundingClientRect().bottom));
+        const limit=part+1<blocks.length?block.nextElementSibling.getBoundingClientRect().top:box.bottom;
+        const row=Math.floor(index/7);
+        const area={date:block.dataset.date,x:(box.left-bounds.left)/sx+2,width:box.width/sx-4,
+          top:(headerBottom-bounds.top)/sy+1,bottom:(limit-bounds.top)/sy-1,row,column:index%7};
+        byDate.set(area.date,area);
+        if(!rows.has(row))rows.set(row,[]);
+        rows.get(row).push(area);
+      });
+    });
+    const {minimum,height}=deskScheduleMetrics(style,fontPx);
+    const markerHeight=8;
+    const addBox=(area,top,className)=>{
+      const node=layer.ownerDocument.createElement('div');
+      node.className=className;
+      Object.assign(node.style,{position:'absolute',left:area.x+'px',top:top+'px',width:Math.max(0,area.width)+'px',boxSizing:'border-box'});
+      layer.append(node);
+      return node;
+    };
+    const mark=(area,count)=>{
+      if(!count||style.overflowStyle==='hide'||area.bottom-area.top<markerHeight)return;
+      const marker=addBox(area,Math.max(area.top,area.bottom-markerHeight),'desk-schedule-overflow');
+      marker.textContent='+'+count;
+      marker.title='표시하지 못한 일정 '+count+'건';
+      Object.assign(marker.style,{height:markerHeight+'px',lineHeight:markerHeight+'px',fontSize:'7px',fontWeight:'700',color:'#526071',textAlign:'right'});
+    };
+    if(style.displayMode==='text'){
+      const sorted=[...events].sort((a,b)=>a.startDate.localeCompare(b.startDate));
+      for(const area of byDate.values()){
+        const active=sorted.filter(event=>event.startDate<=area.date&&(event.endDate||event.startDate)>=area.date);
+        if(!active.length)continue;
+        const node=addBox(area,area.top,'desk-schedule-text');
+        const available=Math.max(0,Math.floor(area.bottom-area.top));
+        const lineHeight=style.joinText?height:Math.max(minimum,Math.min(height,Math.floor(available/Math.min(5,active.length))));
+        Object.assign(node.style,{overflow:'hidden',fontFamily,fontSize:fontPx+'px',lineHeight:lineHeight+'px',maxHeight:available+'px',overflowWrap:'anywhere'});
+        const fill=budget=>{
+          node.replaceChildren();
+          let shown=0;
+          for(const event of active){
+            if(!style.joinText&&shown===5)break;
+            const label=layer.ownerDocument.createElement('span');
+            label.textContent=(style.joinText&&shown?' / ':'')+event.title;
+            if(!style.joinText)Object.assign(label.style,{display:'block',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'});
+            if(event.color)label.style.color=event.color;
+            node.append(label);
+            if(node.scrollHeight>budget){label.remove();break;}
+            shown++;
+          }
+          return shown;
+        };
+        let shown=fill(available);
+        if(shown<active.length&&style.overflowStyle!=='hide')shown=fill(Math.max(0,available-markerHeight));
+        if(!shown)node.remove();
+        mark(area,active.length-shown);
+      }
+      return;
+    }
+    const hidden=JSON.parse(layer.dataset.hiddenSchedule||'{}');
+    const bars=[...layer.querySelectorAll('[data-desk-lane]')];
+    for(const [row,areas] of rows){
+      const top=Math.max(...areas.map(area=>area.top));
+      const bottom=Math.min(...areas.map(area=>area.bottom));
+      const gap=1;
+      const rowBars=bars.filter(bar=>Number(bar.dataset.deskRow)===row);
+      const lanes=Math.max(0,...rowBars.map(bar=>Number(bar.dataset.deskLane)+1));
+      const available=Math.max(0,bottom-top);
+      const withMarker=style.overflowStyle!=='hide'&&(areas.some(area=>hidden[area.date])||lanes*minimum+Math.max(0,lanes-1)*gap>available);
+      const space=Math.max(0,available-(withMarker?markerHeight:0));
+      const limit=Math.min(lanes,Math.floor((space+gap)/(minimum+gap)));
+      const laneHeight=Math.min(height,Math.floor((space+gap)/Math.max(1,limit))-gap);
+      for(const bar of rowBars){
+        const lane=Number(bar.dataset.deskLane);
+        if(lane>=limit){
+          for(const area of areas)if(area.column>=Number(bar.dataset.deskStart)&&area.column<=Number(bar.dataset.deskEnd))
+            hidden[area.date]=(hidden[area.date]||0)+1;
+          bar.remove();
+          continue;
+        }
+        bar.style.top=top+lane*(laneHeight+gap)+'px';
+        bar.style.height=laneHeight+'px';
+        const label=bar.querySelector('span');
+        if(style.displayMode==='line'&&label){
+          label.style.fontSize=fontPx+'px';
+          label.style.lineHeight=Math.max(0,laneHeight-1)+'px';
+          label.style.height=Math.max(0,laneHeight-1)+'px';
+          bar.querySelector('i')?.style.setProperty('top',laneHeight-1+'px');
+        }
+      }
+    }
+    for(const area of byDate.values())mark(area,hidden[area.date]||0);
+  }
+  root.ACDLSharedSchedule = Object.freeze({ version, deskScheduleDefaults, deskScheduleMetrics, fitDeskCalendar, physicalFontPx, fitPhysicalLanes, displayModes, displayStyle, fitDisplayLanes, displaySegment, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
 })(globalThis);
 

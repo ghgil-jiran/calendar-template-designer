@@ -930,7 +930,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
       rows
     );
     let layout={...rawLayout,...window.ACDLSharedSchedule.monthSchedule(rawLayout,project.template.masters.calendar.rangeEventStyle,project.template.masters.calendar.eventMaxVisiblePerDay)};
-    if(Number(project.template.masters.calendar.rangeEventStyle?.fontSizePt)>0){
+    if(!project.template.masters.calendar.rangeEventStyle?.deskDateSchedule&&Number(project.template.masters.calendar.rangeEventStyle?.fontSizePt)>0){
       const region=calendarRegion(),vertical=calendarVerticalLayout(),presentation=vertical.preset?.presentation||project.template.masters.calendar.design||{},chrome=calendarChromeLayout(presentation,vertical,region),height=(el('page')?.clientHeight||700)*region.height/100,stage=Math.max(1,height-height*vertical.title/100);
       layout=window.ACDLSharedSchedule.fitPhysicalLanes(layout,project.template.masters.calendar.rangeEventStyle,grid,(stage-stage*chrome.weekdayStage/100)/rows,el('page')?.clientWidth||850,project.productType.pageSize.width);
     }
@@ -950,6 +950,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
   renderRangeEventLayer=function(grid,rows){
     const style=project.template.masters.calendar.rangeEventStyle;
     if(!style || style.enabled===false)return '';
+    if(style.deskDateSchedule&&style.displayMode==='text')return '<div class="range-event-layer"></div>';
     const layout=assignRangeLanes(grid),rowHeight=100/rows,gap=Number(style.laneGap??1);
     const pageHeight=el("page")?.clientHeight||700,region=calendarRegion(),vertical=calendarVerticalLayout(),design=project.template.masters.calendar.design||{},presentation=vertical.preset?.presentation||design,chrome=calendarChromeLayout(presentation,vertical,region);
     const regionHeight=Math.max(1,pageHeight*(region.height/100));
@@ -959,11 +960,12 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     const physicalFont=Number(style.fontSizePt)>0?window.ACDLSharedSchedule.physicalFontPx(style,el("page")?.clientWidth||850,project.productType.pageSize.width):0;
     const presetMode=['bar','text','line'].includes(style.displayMode),requestedHeight=Number(style.barHeight||14);
     const fittedHeight=Math.max(1,Math.floor((cellHeight-reservedTop-Math.max(0,layout.maxLanes-1)*gap)/Math.max(1,layout.maxLanes)));
-    const barHeight=Math.min(physicalFont?Math.max(requestedHeight,Math.ceil(physicalFont*1.5)+4):requestedHeight,fittedHeight),activeGridStyle=calendarVerticalLayout().preset?.presentation?.gridStyle||project.template.masters.calendar.design?.gridStyle,detachedCards=activeGridStyle==='detached-cards';let html='<div class="range-event-layer">';
+    const barHeight=Math.min(physicalFont?Math.max(requestedHeight,Math.ceil(physicalFont*1.5)+4):requestedHeight,fittedHeight),activeGridStyle=calendarVerticalLayout().preset?.presentation?.gridStyle||project.template.masters.calendar.design?.gridStyle,detachedCards=activeGridStyle==='detached-cards';let html=style.deskDateSchedule?`<div class="range-event-layer" data-hidden-schedule="${escapeAttr(JSON.stringify(layout.hiddenByDate))}">`:'<div class="range-event-layer">';
     layout.segments.forEach(seg=>{
       const left=seg.startColumn/7*100,width=(seg.endColumn-seg.startColumn+1)/7*100,classes=['range-event-bar',detachedCards?'detached-cell-range':'',style.labelPosition==='above'?'range-label-above':''].filter(Boolean).join(' '),color=eventColor(seg.event),bottomPx=3+(seg.lane+1)*(barHeight+gap)-gap,typography=physicalFont?{fontPx:physicalFont,maxLines:1}:window.ACDLCalendarDomain.calendarScheduleTypography(seg.title,seg.span),span=Math.max(1,seg.span||seg.endColumn-seg.startColumn+1),stops=Array.from({length:span},(_,i)=>`${color} ${i/span*100}% calc(${(i+1)/span*100}% - 3px),transparent calc(${(i+1)/span*100}% - 3px) ${(i+1)/span*100}%`).join(','),background=detachedCards&&span>1?`linear-gradient(90deg,${stops})`:color;
       const simple=window.ACDLSharedSchedule.displaySegment(style,{label:seg.label??seg.title,color,height:barHeight,fontPx:typography.fontPx,maxLines:typography.maxLines});
-      html+=`<div class="${classes}" title="${escapeAttr(seg.event.title)} · ${seg.event.startDate} ~ ${seg.event.endDate}" style="left:calc(${left}% + 2px);width:calc(${width}% - 4px);top:calc(${(seg.week+1)*rowHeight}% - ${bottomPx}px);height:${barHeight}px;background:${simple!==null?'transparent':background};${simple!==null?'padding:0;box-shadow:none;border:0;border-radius:0;opacity:1;text-align:left;':style.labelPosition==='above'?'overflow:visible;':''}${presetMode||physicalFont?`font-family:${escapeAttr(project.template.resources?.fontTheme?.calendar||project.template.resources?.fontTheme?.body||'Arial')};font-weight:400;`:""}font-size:${typography.fontPx}px;-webkit-line-clamp:${typography.maxLines}">${simple!==null?simple:`<span${style.labelPosition==='above'?` style="position:absolute;bottom:100%;left:0;color:${color}"`:""}>${escapeAttr(seg.label??seg.title)}</span>`}</div>`
+      const deskPosition=style.deskDateSchedule?` data-desk-row="${seg.week}" data-desk-lane="${seg.lane}" data-desk-start="${seg.startColumn}" data-desk-end="${seg.endColumn}"`:"";
+      html+=`<div class="${classes}"${deskPosition} title="${escapeAttr(seg.event.title)} · ${seg.event.startDate} ~ ${seg.event.endDate}" style="left:calc(${left}% + 2px);width:calc(${width}% - 4px);top:calc(${(seg.week+1)*rowHeight}% - ${bottomPx}px);height:${barHeight}px;background:${simple!==null?'transparent':background};${simple!==null?'padding:0;box-shadow:none;border:0;border-radius:0;opacity:1;text-align:left;':style.labelPosition==='above'&&!style.deskDateSchedule?'overflow:visible;':''}${presetMode||physicalFont?`font-family:${escapeAttr(project.template.resources?.fontTheme?.calendar||project.template.resources?.fontTheme?.body||'Arial')};font-weight:400;`:""}font-size:${typography.fontPx}px;-webkit-line-clamp:${typography.maxLines}">${simple!==null?simple:`<span${style.labelPosition==='above'&&!style.deskDateSchedule?` style="position:absolute;bottom:100%;left:0;color:${color}"`:""}>${escapeAttr(seg.label??seg.title)}</span>`}</div>`
 
     });
     return html+'</div>'

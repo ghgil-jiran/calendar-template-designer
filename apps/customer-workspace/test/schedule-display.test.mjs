@@ -17,6 +17,15 @@ test('schedule sizing applies across all months, survives restore/style switches
  assert.equal(doc.template.masters.calendar.rangeEventStyle.fontSizePt,8.5);assert.equal(doc.template.masters.calendar.rangeEventStyle.barHeight,20);assert.deepEqual(doc.book,p.book);
  s.setDeskScheduleSizing({barHeight:16});s.undo();assert.equal(s.getDocument().template.masters.calendar.rangeEventStyle.barHeight,20);s.redo();assert.equal(s.getDocument().template.masters.calendar.rangeEventStyle.barHeight,16);
  const restored=createEditorSession({project:p,state});assert.equal(restored.getDocument().template.masters.calendar.rangeEventStyle.barHeight,20);
- for(const sizing of [{fontSizePt:3},{fontSizePt:19},{barHeight:0},{barHeight:25},{fontSizePt:NaN},{unknown:2}])assert.throws(()=>applyEditor(p,{...state,deskScheduleSizing:sizing},[]));
+ assert.equal(applyEditor(p,{...state,deskScheduleSizing:{fontSizePt:3,joinText:true}},[]).template.masters.calendar.rangeEventStyle.joinText,true);
+ for(const sizing of [{fontSizePt:2.5},{joinText:'yes'},{fontSizePt:19},{barHeight:0},{barHeight:25},{fontSizePt:NaN},{unknown:2}])assert.throws(()=>applyEditor(p,{...state,deskScheduleSizing:sizing},[]));
  const other=source();other.productType.category='poster';assert.throws(()=>applyEditor(other,state,[]));
+});
+
+test('automatic desk sizing counts overlapping range events on each date in displayed months',()=>{
+ const events=Array.from({length:4},(_,i)=>({startDate:'2027-03-0'+(i+1),endDate:'2027-03-06'}));
+ const pages=[{role:'monthly-front',calendarYear:2027,calendarMonth:3}];
+ assert.deepEqual(shared.deskScheduleDefaults(events,pages),{fontSizePt:3.5,barHeight:5});
+ assert.deepEqual(shared.deskScheduleDefaults([...events,{startDate:'2027-03-06'}],pages),{fontSizePt:3,barHeight:4});
+ assert.deepEqual(shared.deskScheduleDefaults([{startDate:'2027-04-02'}],pages),{});
 });
