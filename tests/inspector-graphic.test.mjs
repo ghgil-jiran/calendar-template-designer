@@ -30,3 +30,14 @@ const layout = { type: 'shape' };
 apply(layout, 'layout', { x: '10', y: '20', width: '30', height: '40', rotation: '15', opacity: '.8' });
 apply(layout, 'permission', { permissions: { move: true, resize: false } });
 assert.deepEqual(layout, { type: 'shape', x: 10, y: 20, width: 30, height: 40, rotation: 15, opacity: .8, permissions: { move: true, resize: false } });
+
+const posterSize = {width:420,height:594};
+const footer = {type:'shape',shapeType:'rect',width:75,height:5,style:{fill:'#ffffff',strokeWidth:0,shadow:false}};
+apply(footer,'shape-form',{shapeType:'rounded',cornerPercent:'50',pageSize:posterSize});
+assert.equal(footer.shapeType,'rounded');
+assert.equal(footer.style.cornerRadiusMm,7.425);
+assert.equal(footer.style.strokeWidth,0);
+assert.equal(globalThis.ACDLInspectorGraphic.shapeCornerPercent(footer,posterSize),50);
+apply(footer,'shape-form',{shapeType:'rect',pageSize:posterSize});
+assert.equal(footer.shapeType,'rect');
+assert.equal(footer.style.cornerRadiusMm,7.425);

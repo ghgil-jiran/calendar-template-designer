@@ -953,6 +953,7 @@ const INSPECTOR_SAVE_MESSAGES={
  applyMonthlyQuoteContent:"명언 콘텐츠를 저장했습니다.",
  applyMonthlyQuoteStyle:"명언 스타일을 저장했습니다.",
  applyGraphicStyle:"그래픽 스타일을 저장했습니다.",
+ applyGraphicShapeForm:"도형 형태를 저장했습니다.",
  applyGraphicLayout:"그래픽 배치를 저장했습니다.",
  applyFrameImage:"프레임 이미지 설정을 저장했습니다.",
  savePageWidgetStyles:"개체 스타일을 저장했습니다.",

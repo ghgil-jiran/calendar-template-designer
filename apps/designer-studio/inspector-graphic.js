@@ -1,6 +1,22 @@
 (function (root) {
+  function maximumShapeRadius(item, pageSize) {
+    return Math.min(item.width * pageSize.width, item.height * pageSize.height) / 200;
+  }
+  function shapeCornerPercent(item, pageSize) {
+    const maximum = maximumShapeRadius(item, pageSize);
+    return maximum > 0 ? Math.min(100, (item.style?.cornerRadiusMm ?? 3) / maximum * 100) : 100;
+  }
   function apply(item, action, values) {
     if (!item) return null;
+    if (action === 'shape-form' && item.type === 'shape') {
+      item.shapeType = values.shapeType;
+      if (item.shapeType === 'rounded') {
+        const maximum = maximumShapeRadius(item, values.pageSize);
+        const ratio = Number(values.cornerPercent);
+        const radius = maximum > 0 && ratio > 0 ? maximum * Math.min(100, ratio) / 100 : 3;
+        item.style = {...item.style, cornerRadiusMm: radius};
+      }
+    }
     if (action === 'style') {
       if (item.type === 'shape') {
         item.shapeType = values.shapeType || item.shapeType;
@@ -71,6 +87,6 @@
     return item;
   }
 
-  root.ACDLInspectorGraphic = Object.freeze({ apply });
+  root.ACDLInspectorGraphic = Object.freeze({ apply, shapeCornerPercent });
 })(typeof window !== 'undefined' ? window : globalThis);
 
