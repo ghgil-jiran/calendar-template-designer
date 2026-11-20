@@ -209,7 +209,7 @@ el("semanticImageInput").addEventListener("change",e=>{
  const reader=new FileReader();reader.onload=()=>{
   const i=sourceElement();if(!i||i.type!=="semantic-object")return;
   semanticImageDraft=reader.result;semanticImageDraftElementId=i.id;pendingSemanticRole=null;
-  inspectorNotice={type:"dirty",message:"샘플 이미지가 선택되었습니다. 샘플 콘텐츠 저장 버튼을 눌러 반영하세요."};renderInspector();showEditorToast("샘플 이미지를 선택했습니다. 샘플 콘텐츠 저장 버튼을 눌러 확정하세요.")
+  inspectorNotice={type:"dirty",message:"샘플 이미지가 선택되었습니다. 샘플 콘텐츠 저장 버튼을 눌러 확정하세요."};renderPage();renderInspector();showEditorToast("샘플 이미지를 선택했습니다. 샘플 콘텐츠 저장 버튼을 눌러 확정하세요.")
  };reader.readAsDataURL(file);e.target.value=""
 });
 
@@ -646,7 +646,7 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     if(!d)return oldSemanticData(item);
     const result=resolve({name:d.name||semanticRoleLabel(item.role),description:d.description||'',image:d.image||''});
     const binding='school.profile.'+key;
-    if(authoring&&['tree','flower'].includes(key)&&[binding,binding+'.image'].includes(item.binding)&&d.assetId&&d.image){
+    if(authoring&&['tree','flower'].includes(key)&&[binding,binding+'.image'].includes(item.binding)&&!sample?.imageOverride&&d.assetId&&d.image){
       return {...result,image:d.image};
     }
     return result;

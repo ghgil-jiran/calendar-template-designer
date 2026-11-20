@@ -446,7 +446,9 @@ function userImageFitStyle(item){
  return `width:100%;height:100%;max-width:none;max-height:none;object-fit:${v.fit};transform:translate(${x}%,${y}%) scale(${scale});transform-origin:center;`;
 }
 function renderSemanticObject(item){
- const raw=semanticData(item),d={...raw,name:escapeAttr(raw.name||""),description:escapeAttr(raw.description||""),image:escapeAttr(raw.image||"")},titleOverride=escapeAttr(item.titleOverride||""),layout=item.layoutPreset||"image-top",role=item.role;
+ const raw=semanticData(item);
+ const draftImage=!preview&&editMode==="template"&&item._scope===selectedElementScope&&item.id===selectedElementId&&item.id===semanticImageDraftElementId?semanticImageDraft:null;
+ const d={...raw,name:escapeAttr(raw.name||""),description:escapeAttr(raw.description||""),image:escapeAttr(draftImage||raw.image||"")},titleOverride=escapeAttr(item.titleOverride||""),layout=item.layoutPreset||"image-top",role=item.role;
  const feather=role==="school-building"&&d.image?window.ACDLPhotoFrameModel.featherStyle(item.style?.edgeFeather):"";
  const mediaStyle=feather?` style="${feather}"`:"";
  if(layout==="image-only"&&item.showTitle===false&&item.showCaption===false)return `<div class="semantic-object semantic-logo"><div class="semantic-media"${mediaStyle}>${d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)}" style="${userImageFitStyle(item)}">`:""}</div></div>`;
@@ -1190,7 +1192,13 @@ function bindInspector(){
    const next={...(i.sampleContent||{})};
    if(el("semanticName")){next.name=el("semanticName").value;if(i.role==="school-song")i.titleOverride=next.name;}
    if(el("semanticDescription"))next.description=el("semanticDescription").value;
-   if(semanticImageDraftElementId===i.id&&semanticImageDraft)next.image=semanticImageDraft;
+   if(semanticImageDraftElementId===i.id&&semanticImageDraft){
+    next.image=semanticImageDraft;
+    if(["school-tree","school-flower"].includes(i.role)){
+     delete next.assetId;
+     next.imageOverride=true;
+    }
+   }
    i.sampleContent=next;
    semanticImageDraft=null;semanticImageDraftElementId=null
   });
