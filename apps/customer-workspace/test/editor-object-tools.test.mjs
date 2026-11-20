@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import ts from 'typescript';
-import {wallStylePatch,wallStyleName} from '../src/lib/editor/session.ts';
+import {wallStylePatch,wallStyleName,wallOptions} from '../src/lib/editor/session.ts';
 import {applyFieldDrafts,fieldChanged} from '../src/lib/editor/card-state.ts';
 const require=createRequire(new URL('../src/features/editor/object-tools.tsx',import.meta.url));
 const React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
-function component(url){const js=ts.transpileModule(readFileSync(url,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,module={exports:{}};new Function('require','module','exports',js)(name=>name==='@/lib/editor/session'?{wallStylePatch,wallStyleName}:name==='@/lib/editor/card-state'?{applyFieldDrafts,fieldChanged}:name==='@/components/ui/button'?component(new URL('../src/components/ui/button.tsx',import.meta.url)):require(name),module,module.exports);return module.exports;}
+function component(url){const js=ts.transpileModule(readFileSync(url,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,module={exports:{}};new Function('require','module','exports',js)(name=>name==='@/lib/editor/session'?{wallStylePatch,wallStyleName,wallOptions}:name==='@/lib/editor/card-state'?{applyFieldDrafts,fieldChanged}:name==='@/components/ui/button'?component(new URL('../src/components/ui/button.tsx',import.meta.url)):require(name),module,module.exports);return module.exports;}
 const {ObjectTools,TextFormattingToolbar}=component(new URL('../src/features/editor/object-tools.tsx',import.meta.url));
 const noop=()=>{},props={selection:null,item:undefined,fields:[],school:{values:{},hidden:[]},fit:{fit:'contain',scale:1,offsetX:0,offsetY:0},hasEditableTargets:false,schoolImageLinked:false,sharing:{layout:false,image:false,layoutCount:0,imageCount:0,poster:false},canReset:false,onFieldChange:noop,onFieldHide:noop,onStyle:noop,onFit:noop,onShare:noop,onReset:noop};
 const render=p=>renderToStaticMarkup(React.createElement(ObjectTools,{...props,...p}));
