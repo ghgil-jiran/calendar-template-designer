@@ -26,3 +26,6 @@
 
 /* Taenada by 태나다X투게더그룹, using the published Noonnu webfont. */
 @font-face{font-family:'Taenada';src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2210-2@1.0/Tenada.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+
+/* Tway Sky by T'way Air and Fontlab, using the published Noonnu webfont. */
+@font-face{font-family:'TwaySky';src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_tway@1.0/twaysky.woff') format('woff');font-weight:400;font-style:normal;font-display:swap}
