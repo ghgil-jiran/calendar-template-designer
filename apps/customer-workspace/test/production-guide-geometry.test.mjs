@@ -8,7 +8,7 @@ test('desk guides use one physical geometry across template and page overrides',
  }
 });
 test('different physical sizes retain 3mm bleed and valid inset rectangles',()=>{
- const g=productionGuideGeometry({width:297,height:205.615});assert.equal(g.bleed,3);assert.equal(g.safeX,3);assert.equal(g.safeTop,15);assert.equal(g.safeBottom,3);assert.ok(Math.abs((g.height-g.safeTop-g.safeBottom)-187.615)<1e-8);const poster=productionGuideGeometry({width:420,height:594},"poster");assert.equal(poster.safeTop,poster.safeBottom);
+ const g=productionGuideGeometry({width:297,height:205.615});assert.equal(g.bleed,3);assert.equal(g.safeX,3);assert.equal(g.safeTop,15);assert.equal(g.safeBottom,3);assert.ok(Math.abs((g.height-g.safeTop-g.safeBottom)-187.615)<1e-8);const poster=productionGuideGeometry({width:420,height:594},"poster");assert.deepEqual(poster,{width:420,height:594,bleed:3,safeX:5,safeTop:5,safeBottom:5});
  for(const size of [{width:0,height:180},{width:260,height:NaN}])assert.throws(()=>productionGuideGeometry(size));
 });
 

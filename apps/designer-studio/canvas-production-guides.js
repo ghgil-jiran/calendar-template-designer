@@ -1,6 +1,11 @@
 (function(root){
  const NS='http://www.w3.org/2000/svg';
- function geometry(product){const size=product?.pageSize||{},width=Number(size.width)||260,height=Number(size.height)||180,desk=product?.category==='desk';return {width,height,bleed:3,left:desk?3:3+width*.02,right:desk?3:3+width*.02,top:desk?15:3+height*.02,bottom:desk?3:3+height*.02,desk};}
+ function geometry(product){
+  const size=product?.pageSize||{},width=Number(size.width)||260,height=Number(size.height)||180;
+  const desk=product?.category==='desk';
+  if(product?.category==='poster')return {width,height,bleed:3,left:5,right:5,top:5,bottom:5,desk};
+  return {width,height,bleed:3,left:desk?3:3+width*.02,right:desk?3:3+width*.02,top:desk?15:3+height*.02,bottom:desk?3:3+height*.02,desk};
+ }
  function svgNode(name,attrs){const node=document.createElementNS(NS,name);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,String(value));return node;}
  function bindingRects(width,height){
   const pitch=width*.93/26;
