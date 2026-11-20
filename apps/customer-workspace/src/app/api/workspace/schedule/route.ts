@@ -1,7 +1,7 @@
 import {NextResponse} from 'next/server';
 import {extractWithSharedService,extractPastedSchedule} from '@/server/shared-schedule-extraction';
 export const runtime='nodejs';
-export const maxDuration=60;
+export const maxDuration=145;
 export async function POST(request:Request){
  if(Number(request.headers.get('content-length')||0)>3*1024*1024+65536)return NextResponse.json({error:'파일은 3MB 이하로 선택해 주세요.'},{status:413});
  try{
