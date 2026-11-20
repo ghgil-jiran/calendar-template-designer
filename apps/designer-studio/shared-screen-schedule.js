@@ -179,6 +179,19 @@
     return {minimum,height:Math.max(minimum,Number(style.barHeight)||minimum)};
   }
 
+  function deskTextEventsForDate(events,date,rangeEachDay){
+    if(rangeEachDay)return events.filter(event=>event.startDate<=date&&(event.endDate||event.startDate)>=date);
+    return events.filter(event=>event.startDate===date).map(event=>{
+      const end=event.endDate;
+      if(!end||end<=date)return event;
+      const [year,month,day]=date.split('-').map(Number);
+      const [endYear,endMonth,endDay]=end.split('-').map(Number);
+      const startLabel=year===endYear?month+'/'+day:year+'/'+month+'/'+day;
+      const endLabel=year!==endYear?endYear+'/'+endMonth+'/'+endDay:month!==endMonth?endMonth+'/'+endDay:endDay;
+      return {...event,title:event.title+' ('+startLabel+' - '+endLabel+')'};
+    });
+  }
+
   function fitDeskCalendar(page,style,events,fontPx,fontFamily){
     const layer=page.querySelector('.range-event-layer');
     if(!layer||!layer.offsetHeight)return;
@@ -222,7 +235,7 @@
     if(style.displayMode==='text'){
       const sorted=[...events].sort((a,b)=>a.startDate.localeCompare(b.startDate));
       for(const area of byDate.values()){
-        const active=sorted.filter(event=>event.startDate<=area.date&&(event.endDate||event.startDate)>=area.date);
+        const active=deskTextEventsForDate(sorted,area.date,style.rangeEachDay);
         if(!active.length)continue;
         const node=addBox(area,area.top,'desk-schedule-text');
         const available=Math.max(0,Math.floor(area.bottom-area.top));
@@ -284,6 +297,6 @@
     }
     for(const area of byDate.values())mark(area,hidden[area.date]||0);
   }
-  root.ACDLSharedSchedule = Object.freeze({ version, deskScheduleDefaults, deskScheduleMetrics, fitDeskCalendar, physicalFontPx, fitPhysicalLanes, displayModes, displayStyle, fitDisplayLanes, displaySegment, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
+  root.ACDLSharedSchedule = Object.freeze({ version, deskScheduleDefaults, deskScheduleMetrics, deskTextEventsForDate, fitDeskCalendar, physicalFontPx, fitPhysicalLanes, displayModes, displayStyle, fitDisplayLanes, displaySegment, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
 })(globalThis);
 

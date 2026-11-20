@@ -29,3 +29,19 @@ test('automatic desk sizing counts overlapping range events on each date in disp
  assert.deepEqual(shared.deskScheduleDefaults([...events,{startDate:'2027-03-06'}],pages),{fontSizePt:3,barHeight:4});
  assert.deepEqual(shared.deskScheduleDefaults([{startDate:'2027-04-02'}],pages),{});
 });
+
+test('desk text ranges default to a date label on the first day and can repeat on each day',()=>{
+ const date='2027-03-04', event={title:'행사',startDate:date,endDate:'2027-03-07'};
+ const events=[event,{...event,endDate:'2027-04-02'},{...event,endDate:'2028-01-02'},{...event,endDate:date}];
+ assert.deepEqual(shared.deskTextEventsForDate(events,date).map(e=>e.title),['행사 (3/4 - 7)','행사 (3/4 - 4/2)','행사 (2027/3/4 - 2028/1/2)','행사']);
+ assert.deepEqual(shared.deskTextEventsForDate(events,'2027-03-05'),[]);
+ assert.deepEqual(shared.deskTextEventsForDate([event],'2027-03-05',true),[event]);
+ const p=source(),s=createEditorSession({project:p});
+ s.select(s.targets('march').find(t=>t.rights.scheduleStyle));
+ s.setDeskScheduleStyle('text');
+ s.setDeskScheduleSizing({rangeEachDay:true,joinText:true});
+ const restored=applyEditor(p,JSON.parse(JSON.stringify(s.getState())),[]);
+ assert.equal(restored.template.masters.calendar.rangeEventStyle.rangeEachDay,true);
+ s.undo();
+ assert.equal(s.getDocument().template.masters.calendar.rangeEventStyle.rangeEachDay,undefined);
+});
