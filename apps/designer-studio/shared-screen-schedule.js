@@ -197,6 +197,7 @@
     if(!layer||!layer.offsetHeight)return;
     const bounds=layer.getBoundingClientRect();
     const sx=bounds.width/layer.offsetWidth||1,sy=bounds.height/layer.offsetHeight||1;
+    const bottomInset=3;
     const cells=[...page.querySelectorAll('.calendar > .cell:not(.head)')];
     const byDate=new Map();
     const rows=new Map();
@@ -210,7 +211,7 @@
         const limit=part+1<blocks.length?block.nextElementSibling.getBoundingClientRect().top:box.bottom;
         const row=Math.floor(index/7);
         const area={date:block.dataset.date,x:(box.left-bounds.left)/sx+2,width:box.width/sx-4,
-          top:(headerBottom-bounds.top)/sy+1,bottom:(limit-bounds.top)/sy-1,row,column:index%7};
+          top:(headerBottom-bounds.top)/sy+1,bottom:(limit-bounds.top)/sy-bottomInset,row,column:index%7};
         byDate.set(area.date,area);
         if(!rows.has(row))rows.set(row,[]);
         rows.get(row).push(area);
