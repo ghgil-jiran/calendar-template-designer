@@ -27,3 +27,25 @@ test('shared arrangement leaves a different month-count layout intact',()=>{cons
 test('boxed date grid closes every left edge and bottom row; horizontal and no-line styles remain distinct',()=>{const p=ACDLWallSampleB.create(),page=p.book.pageInstances[0],e=grid(p,0),render=()=>mini.renderPosterCalendarMarkup(mini.resolveAnnualCalendar(e,page,p.settings),e,p),cells=()=>[...render().matchAll(/data-poster-date="[^"]+" data-wall-region="day" style="([^"]*)"/g)].slice(0,42).map(m=>m[1]);for(const [i,style] of cells().entries()){assert.equal(style.includes('border-left:'),i%7===0);assert.equal(style.includes('border-bottom:'),i>=35);}e.wallCalendarSettings.gridStyle='horizontal';for(const [i,style] of cells().entries()){assert.equal(style.includes('border-left:'),false);assert.equal(style.includes('border-right:'),false);assert.equal(style.includes('border-bottom:'),i>=35);}e.wallCalendarSettings.gridStyle='none';for(const style of cells()){assert.match(style,/border-top:0;/);assert.doesNotMatch(style,/border-(left|right|bottom):/);}});
 
 test('small type preserves exact values through save/reopen and warns without blocking',()=>{const ui=inspector();ui.change('eventPt',5.2);ui.change('referencePt',5.5);assert.match(ui.nodes.get('wallSmallTypeHint').textContent,/6pt 미만/);ui.apply();const p=JSON.parse(JSON.stringify(ui.project));assert.equal(wall.resolve(grid(p,0),p).eventPt,5.2);assert.equal(wall.resolve(grid(p,0),p).referencePt,5.5);ui.change('eventPt',6);ui.change('referencePt',6);assert.equal(ui.nodes.get('wallSmallTypeHint').textContent,'');});
+
+test('below and side layouts share the inspector and keep their saved arrangement',()=>{
+ for(const [style,position,columns] of [['basic-2-1','bottom',3],['basic-1-2','right',2]]){
+  const project=ACDLWallSampleB.create(),item=grid(project,0);
+  item.monthCount=12;
+  item.columns=columns;
+  item.wallCalendarSettings={...wall.presets[style],listWidthPercent:47,columnGapMm:3,rowGapMm:6};
+  const ui=inspector(project);
+  assert.match(ui.panel.innerHTML,/data-wall-section="list"/);
+  assert.match(ui.panel.innerHTML,/data-wall-section="cell-info"/);
+  assert.equal(ui.nodes.get('wallStylePreset').value,style);
+  assert.equal(ui.nodes.get('walllistPosition').value,position);
+  ui.change('listPt',10);
+  ui.apply();
+  assert.equal(item.columns,columns);
+  assert.equal(item.wallCalendarSettings.listPosition,position);
+  assert.equal(item.wallCalendarSettings.listWidthPercent,47);
+  assert.equal(item.wallCalendarSettings.columnGapMm,3);
+  assert.equal(item.wallCalendarSettings.rowGapMm,6);
+  assert.equal(wall.presetName(item.wallCalendarSettings),style);
+ }
+});
