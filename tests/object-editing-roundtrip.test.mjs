@@ -95,7 +95,8 @@ test('cataloged underline and rounded-corner values reach the authoring renderer
  assert.equal(c.shapeSVG('rounded','#fff','#000',0,null,{widthMm:60,heightMm:20}),svg);
  assert.match(c.shapeSVG('rounded','#fff','#000',0,null,{widthMm:120,heightMm:40}),/rx="2.5" ry="7.5"/);
  assert.match(c.shapeSVG('rounded','#fff','#000',0,null,{radiusMm:4.95,widthMm:60,heightMm:20}),/rx="8.25" ry="24.75"/);
- assert.match(c.shapeSVG('rounded','#fff','#000',0,null,{widthMm:4,heightMm:2}),/rx="50" ry="50"/);
+ assert.match(c.shapeSVG('rounded','#fff','#000',0,null,{borderRadius:0,radiusMm:4.95,widthMm:60,heightMm:20}),/rx="8.25" ry="24.75"/);
+ assert.match(c.shapeSVG('rounded','#fff','#000',0,null,{widthMm:4,heightMm:2}),/rx="25" ry="50"/);
 });
 test('shared schedule fitting respects manual type and the configured minimum without losing column choices',()=>{
  const c=context(),values={};const list={style:{setProperty:(key,value)=>{values[key]=value}},querySelectorAll:()=>Array(24),clientHeight:60,clientWidth:200,get scrollHeight(){return Number.parseFloat(values['--event-list-font-size']||'12')*10},scrollWidth:100};

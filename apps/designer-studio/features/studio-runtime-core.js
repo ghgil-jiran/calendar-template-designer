@@ -994,12 +994,13 @@ function shapeSVG(id,fill="#4777bd",stroke="#172033",strokeWidth=1.5,dash="solid
  const open=`<svg viewBox="0 0 100 100" preserveAspectRatio="none">`;
  const dashAttr=dash==="dashed"?' stroke-dasharray="6 4"':'';
  const savedRadius=physical?.borderRadius;
+ const hasPhysicalRadius=Number(physical?.radiusMm)>0;
  const radius=savedRadius!=null&&Number.isFinite(Number(savedRadius))?Math.max(0,Math.min(50,Number(savedRadius))):null;
- if(id==="rect"||id==="rounded"&&radius!==null){
+ if(id==="rect"||id==="rounded"&&!hasPhysicalRadius&&radius!==null){
   const inset=id==="rounded"?1:0,size=100-inset*2;
   return `${open}<rect x="${inset}" y="${inset}" width="${size}" height="${size}" rx="${radius??0}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"/></svg>`;
  }
- if(id==="rounded"){const radius=Number(physical?.radiusMm)>0?Number(physical.radiusMm):3,width=Number(physical?.widthMm)>0?Number(physical.widthMm):60,height=Number(physical?.heightMm)>0?Number(physical.heightMm):40,rx=Math.min(50,radius/width*100),ry=Math.min(50,radius/height*100);return `${open}<rect x="0" y="0" width="100" height="100" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"/></svg>`;}
+ if(id==="rounded"){const radius=Number(physical?.radiusMm)>0?Number(physical.radiusMm):3,width=Number(physical?.widthMm)>0?Number(physical.widthMm):60,height=Number(physical?.heightMm)>0?Number(physical.heightMm):40,corner=Math.min(radius,width/2,height/2),rx=corner/width*100,ry=corner/height*100;return `${open}<rect x="0" y="0" width="100" height="100" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"/></svg>`;}
  if(id==="circle")return `${open}<circle cx="50" cy="50" r="49" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"/></svg>`;
  if(id==="ellipse")return `${open}<ellipse cx="50" cy="50" rx="49" ry="49" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"/></svg>`;
  return `${open}<path d="${shapePath(id)}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
