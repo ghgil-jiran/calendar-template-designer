@@ -79,3 +79,19 @@ test('cell fit tests leading before shrinking and stops at 3pt on overflow',()=>
  assert.equal(values['--wall-cell-fit-size'],'3cqw');
  assert.equal(cell.scrollHeight,12);
 });
+
+test('one-page style changes columns and placement without modifying the month sequence',()=>{
+ const project=ACDLWallSampleB.create();
+ project.book.pageInstances.splice(1);
+ const item=grid(project,0);
+ item.monthCount=12;item.columns=3;
+ const before=structuredClone(project.book.pageInstances);
+ const ui=inspector(project);
+ for(const [preset,columns,placement] of [['poster-right',2,'list'],['poster-cells',3,'cells'],['poster-bottom',3,'list']]){
+  ui.change('StylePreset',preset);
+  ui.apply();
+  assert.equal(item.columns,columns);
+  assert.equal(item.wallCalendarSettings.schedulePlacement,placement);
+  assert.deepEqual(project.book.pageInstances,before);
+ }
+});

@@ -71,6 +71,9 @@ function PosterCalendarTools({project,item,onChange}:{project:NativeProject;item
  const multiple=project.book.pageInstances.length>1;
  const settings=wallOptions(item,project);
  const update=(patch:Record<string,string|boolean|number>)=>onChange?.(patch,multiple&&allPages);
+ const arrangements=[['poster-bottom','3×4 · 하단 일정형'],['poster-right','2×6 · 오른쪽 일정형'],['poster-cells','3×4 · 날짜 칸 일정형']] as const;
+ const canChangeArrangement=!multiple&&Number(item?.monthCount)===12;
+ const arrangement=settings.schedulePlacement==='cells'&&Number(item?.columns)===3?'poster-cells':settings.schedulePlacement==='list'&&settings.listPosition==='right'&&Number(item?.columns)===2?'poster-right':settings.schedulePlacement==='list'&&settings.listPosition==='bottom'&&Number(item?.columns)===3?'poster-bottom':'';
  const styleName=wallStyleName(settings);
  const styleLabels:Record<string,string>={custom:'사용자 설정',minimal:'간결형 · 날짜와 목록',grid:'격자형 · 격자와 목록',schedule:'일정형 · 날짜 칸에 표시','basic-1-1':'기본형 1-1','basic-1-2':'기본형 1-2','basic-2-1':'기본형 2-1','basic-2-2':'기본형 2-2'};
  const font=String(settings.scheduleFontFamily||settings.listFontFamily||settings.fontFamily||item?.style?.fontFamily||'');
@@ -79,15 +82,22 @@ function PosterCalendarTools({project,item,onChange}:{project:NativeProject;item
  return <div className="poster-calendar-tools">
   <details className="editor-tool-card" open>
    <summary>공통</summary>
-   <label>적용 스타일<select disabled value={styleName}><option value={styleName}>{styleLabels[styleName]||styleName}</option></select></label>
+   <label>적용 스타일{canChangeArrangement?<select value={arrangement} onChange={e=>e.target.value&&update({scheduleStylePreset:e.target.value})}><option value="" disabled>사용자 설정</option>{arrangements.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select>:<select disabled value={styleName}><option value={styleName}>{styleLabels[styleName]||styleName}</option></select>}</label>
   </details>
   <details className="editor-tool-card" open>
    <summary>일정</summary>
+   {settings.schedulePlacement!=='list'&&<label>날짜 칸 일정 표시<select value={String(settings.scheduleDisplayMode??(multiple&&settings.rangeMode!=='bars'?'text':'legacy'))} onChange={e=>update({scheduleDisplayMode:e.target.value})}><option value="legacy">기존 방식</option><option value="bar">색상 막대</option><option value="text">텍스트만</option><option value="line">가는 선</option></select></label>}
+   {(settings.scheduleDisplayMode==='text'||(multiple&&!settings.scheduleDisplayMode&&settings.rangeMode!=='bars'&&settings.schedulePlacement==='cells'))&&<>
+    <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.scheduleRangeEachDay===true} onChange={e=>update({scheduleRangeEachDay:e.target.checked})}/>기간 일정을 날짜마다 표시</label>
+    <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.scheduleJoinText===true} onChange={e=>update({scheduleJoinText:e.target.checked})}/>텍스트 일정을 한 줄로 연결</label>
+   </>}
+   <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.scheduleBullet===true} onChange={e=>update({scheduleBullet:e.target.checked})}/>일정 앞 불릿 표시</label>
+   {settings.schedulePlacement!=='list'&&<label>일정 영역 높이 (px)<input type="number" min="1" max="24" placeholder="자동" value={Number(settings.scheduleBarHeight)||''} onChange={e=>{const n=e.target.valueAsNumber;if(n>=1&&n<=24)update({scheduleBarHeight:n});}}/></label>}
    <label>목록 단수<select value={String(settings.cellListLayout||settings.listLayout)} onChange={e=>update({listLayout:e.target.value,cellListLayout:e.target.value})}><option value="auto">자동</option><option value="one">1단</option><option value="two">2단</option><option value="three">3단</option></select></label>
    <label>글꼴<select value={font} onChange={e=>update({scheduleFontFamily:e.target.value})}>{!font&&<option value="">템플릿 기본 글꼴</option>}{fontChoices(font).map(name=><option key={name}>{name}</option>)}</select></label>
    <label>글자 크기 (pt)<input type="number" min="5" max="24" step="0.5" value={size} onChange={e=>{const n=e.target.valueAsNumber;if(n>=5&&n<=24)update({schedulePt:n});}}/></label>
    <label>일정 자간 (em)<input type="number" min="-0.1" max="0.2" step="0.01" value={Number(settings.scheduleTracking??0)} onChange={e=>{const n=e.target.valueAsNumber;if(n>=-0.1&&n<=0.2)update({scheduleTracking:n});}}/></label>
-   <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.cellAutoFit===true} onChange={e=>update({cellAutoFit:e.target.checked})}/>날짜 칸 일정 자동 맞춤</label>
+   <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.cellAutoFit===true||(settings.cellAutoFit==null&&(settings.scheduleDisplayMode==='text'||(!settings.scheduleDisplayMode&&multiple&&settings.schedulePlacement==='cells'&&settings.rangeMode!=='bars')))} onChange={e=>update({cellAutoFit:e.target.checked})}/>날짜 칸 일정 자동 맞춤</label>
    <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.listAutoFit===true} onChange={e=>update({listAutoFit:e.target.checked})}/>월별 일정 목록 자동 맞춤</label>
    <label>글자색<input type="color" value={color} onChange={e=>update({scheduleColor:e.target.value})}/></label>
    <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.scheduleWeekday===true||(settings.scheduleWeekday==null&&settings.listDateFormat==='weekday')} onChange={e=>update({scheduleWeekday:e.target.checked})}/>날짜에 요일 표시</label>

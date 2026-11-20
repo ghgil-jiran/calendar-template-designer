@@ -13,7 +13,7 @@ function model(){const p=ACDLPosterTwoPageSample.create({}),page=p.book.pageInst
 const html=({p,page,item})=>wall.render(mini.resolveAnnualCalendar(item,page,p.settings),item,p);
 test('display presets retain physical typography, reference flags, geometry and both pages month bindings',()=>{
  const {p,item}=model(),before=structuredClone(p);const value={...wall.resolve(item,p),datePt:17,listPt:9,includeLunar:true,includeSolarTerms:true};
- for(const name of Object.keys(wall.presets)){const next=wall.preset(value,name);assert.equal(next.datePt,17);assert.equal(next.listPt,9);assert.equal(next.includeLunar,true);assert.equal(next.includeSolarTerms,true);assert.equal(wall.presetName(next),name);wall.apply(p,item,next,{allPages:true});}
+ for(const name of Object.keys(wall.presets)){const next=wall.preset(value,name);assert.equal(next.datePt,17);assert.equal(next.listPt,9);assert.equal(next.includeLunar,true);assert.equal(next.includeSolarTerms,true);assert.equal(wall.presetName(next,wall.onePageStyles[name]?.columns),name);wall.apply(p,item,next,{allPages:true});}
  assert.deepEqual(p.book.pageInstances,before.book.pageInstances);assert.deepEqual(p.book.events,before.book.events);for(const page of p.book.pageInstances){const a=p.book.elementsByPage[page.id].find(e=>e.academicPoster),b=before.book.elementsByPage[page.id].find(e=>e.academicPoster);for(const key of ['id','x','y','width','height','posterMonthOffset','monthCount'])assert.equal(a[key],b[key]);}
 });
 test('weekday order and date columns agree for every displayed month and both week starts',()=>{
