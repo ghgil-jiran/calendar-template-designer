@@ -1,6 +1,6 @@
 const DEFAULT_REVIEW_ENDPOINT='https://school-calendar-editor-servic-git-8cf1b7-gil-gighyun-s-projects.vercel.app/api/template-packages/review';
 const PRODUCTION_REVIEW_ENDPOINT='https://school-calendar-editor-service.vercel.app/api/template-packages/review';
-const DEFAULT_PRINT_PREFLIGHT_ENDPOINT='https://school-calendar-editor-servic-git-8c38c5-gil-gighyun-s-projects.vercel.app/api/template-print-preflight';
+const DEFAULT_PRINT_PREFLIGHT_ENDPOINT='https://school-calendar-editor-servic-git-99613e-gil-gighyun-s-projects.vercel.app/api/template-print-preflight';
 const PRINT_PREFLIGHT_MODES=['ensure-print-output-variant','ensure-print-preflight','print-preflight-status','print-preflight-download','print-preflight-history','record-trim-content-parity-review','record-template-image-review','record-ai-image-print-quality-review','record-template-image-print-quality-review'];
 const ALLOWED_MODES=new Set(['next-version','asset-chunk','chunk','finalize','activate-review','withdraw','retire-packages','inspect-review-catalog','sync-review-catalog',...PRINT_PREFLIGHT_MODES]);
 
