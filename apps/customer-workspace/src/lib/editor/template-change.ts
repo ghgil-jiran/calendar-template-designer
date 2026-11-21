@@ -3,6 +3,14 @@ import type {ProjectDraft} from '../projects/store';
 import {fieldsForProject,photoSlotsForProject,type NativeProject} from '../materials/native-project.ts';
 import {createEditorSession} from './session.ts';
 export function compatibleTemplate(current:TemplateCard,next:TemplateCard){return (current.calendarKind||'desk')===(next.calendarKind||'desk')&&Math.abs(current.widthMm-next.widthMm)<.01&&Math.abs(current.heightMm-next.heightMm)<.01&&current.period===next.period;}
+export function compatibleCatalogTemplates(current:TemplateCard,templates:TemplateCard[],paperPairs: [TemplateCard,TemplateCard][]=[]){
+ const pairsById=new Map(paperPairs.flatMap(pair=>pair.map(item=>[item.id,pair] as const)));
+ return templates.flatMap(card=>{
+  if(compatibleTemplate(current,card))return [card];
+  const linked=pairsById.get(card.id)?.find(item=>compatibleTemplate(current,item));
+  return linked?[{...linked,coverUrl:linked.coverUrl||card.coverUrl}]:[];
+ });
+}
 export function templateChangeDraft(current:ProjectDraft,next:TemplateCard,source:NativeProject,paperPair?:[TemplateCard,TemplateCard]):ProjectDraft{
  const paperChange=Boolean(paperPair&&current.template.id!==next.id&&paperPair.some(t=>t.id===current.template.id)&&paperPair.some(t=>t.id===next.id));
  if(!current.source||!paperChange&&!compatibleTemplate(current.template,next))throw Error('같은 유형·규격·사용 기간의 템플릿만 변경할 수 있습니다.');
