@@ -237,6 +237,7 @@ function PageObjectPicker({id,kind,onPick,onClose}:{id:string;kind:'illustration
  },[kind]);
  const title={illustration:'일러스트',shape:'도형과 선',frame:'사진 프레임'}[kind];
  const svg=(item:PublishedIllustration)=>{
+  if(item.image)return `/api/workspace/illustrations?id=${encodeURIComponent(item.id)}&version=${encodeURIComponent(item.image.version)}`;
   try{
    const renderer=(globalThis as typeof globalThis & {ACDLGraphicVectorObject?:{svg:(value:unknown)=>string}}).ACDLGraphicVectorObject;
    return renderer?`data:image/svg+xml,${encodeURIComponent(renderer.svg(item.vectorObject))}`:null;

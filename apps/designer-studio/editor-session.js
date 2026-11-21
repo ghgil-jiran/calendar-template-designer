@@ -120,7 +120,16 @@
    if(type==='illustration'){
     const graphic=addition.graphic;
     if(!graphic||typeof graphic.id!=='string'||typeof graphic.name!=='string'||graphic.name.length>120)throw Error('일러스트 정보를 확인해 주세요.');
-    element={...root.ACDLGraphicVectorObject.placement({...graphic,status:'active'},document.productType.pageSize),label:graphic.name};
+    if(graphic.image&&!graphic.vectorObject){
+     const {version,width,height}=graphic.image;
+     if(!/^[0-9a-f-]{36}$/i.test(graphic.id)||!/^[a-f0-9]{64}$/.test(version)||
+       !Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)throw Error('일러스트 원본 정보를 확인해 주세요.');
+     const pageSize=document.productType.pageSize;
+     const ratio=width/height*pageSize.height/pageSize.width;
+     const w=Math.min(25,25*ratio),h=Math.min(25,25/ratio);
+     element={type:'image',role:'graphic-library-illustration',label:graphic.name,alt:graphic.name,fit:'contain',
+      src:`/api/workspace/illustrations?id=${graphic.id}&version=${version}`,x:50-w/2,y:50-h/2,width:w,height:h};
+    }else element={...root.ACDLGraphicVectorObject.placement({...graphic,status:'active'},document.productType.pageSize),label:graphic.name};
    }else{
     if(additionPresets[type]&&!additionPresets[type].includes(addition.preset))throw Error('개체 모양을 확인해 주세요.');
     const line=type==='shape'&&addition.preset.startsWith('line');

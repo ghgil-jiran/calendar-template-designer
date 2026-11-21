@@ -95,8 +95,9 @@ async function receiptSource(id:string,version:number){
  assertNativeProject(records[0].project_data);
  return records[0].project_data;
 }
-async function illustrations(){
- const response=await fetch(`${url}/storage/v1/object/common-graphics/customer-publications/illustrations.json`,{
+async function illustrations(version?:string){
+ const path=version?`illustrations/${version}.json`:'illustrations.json';
+ const response=await fetch(`${url}/storage/v1/object/common-graphics/customer-publications/${path}`,{
   headers:{apikey:key,Authorization:`Bearer ${key}`},signal:AbortSignal.timeout(12000)
  });
  if(!response.ok){
@@ -108,9 +109,28 @@ async function illustrations(){
  }
  const catalog=await response.json();
  if(catalog.schemaVersion!=='customer-illustrations.v1'||!Array.isArray(catalog.items))throw Error('일러스트 목록 형식을 확인해 주세요.');
- return {version:catalog.version,items:catalog.items.filter((item:NativeProject)=>uuid.test(item.id)&&typeof item.name==='string'&&item.vectorObject)
-  .map(({id,name,revision,originalAssetId,vectorObject}:NativeProject)=>({id,name,revision,originalAssetId,vectorObject}))};
+ const items=catalog.items.flatMap((item:NativeProject)=>{
+  const {id,name,revision,originalAssetId,vectorObject,image}=item;
+  if(!uuid.test(id)||typeof name!=='string')return [];
+  if(vectorObject)return [{id,name,revision,originalAssetId,vectorObject}];
+  if(!/^[a-f0-9]{64}$/.test(catalog.version)||!uuid.test(originalAssetId)||
+    !['image/png','image/svg+xml'].includes(image?.mimeType)||!(image.width>0&&image.height>0))return [];
+  return [{id,name,revision,originalAssetId,image:{...image,version:catalog.version}}];
+ });
+ return {version:catalog.version,items};
 }
-return {publishedCatalog,publishedSource,receiptSource,illustrations};
+async function illustrationImage(id:string,version:string){
+ if(!uuid.test(id)||!/^[a-f0-9]{64}$/.test(version))return null;
+ const catalog=await illustrations(version);
+ const item=catalog.version===version&&catalog.items.find((entry:NativeProject)=>entry.id===id&&entry.image);
+ if(!item)return null;
+ const [asset]=await rows(`template_assets?select=storage_bucket,storage_path&id=eq.${item.originalAssetId}&limit=1`);
+ if(asset?.storage_bucket!=='template-assets'||typeof asset.storage_path!=='string')return null;
+ const path=asset.storage_path.split('/').map(encodeURIComponent).join('/');
+ const response=await fetch(`${url}/storage/v1/object/template-assets/${path}`,{
+  headers:{apikey:key,Authorization:`Bearer ${key}`},signal:AbortSignal.timeout(15000)
+ });
+ return response.ok?{body:response.body,mimeType:item.image.mimeType}:null;
 }
-
+return {publishedCatalog,publishedSource,receiptSource,illustrations,illustrationImage};
+}
