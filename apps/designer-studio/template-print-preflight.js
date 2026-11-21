@@ -22,7 +22,10 @@
  // decoration on an image or a physical radius on another shape is unsupported.
  function supportedAuthoredStyle(element,key,value){
   if(key==='cornerRadiusMm')return element.type==='shape'&&element.shapeType==='rounded'&&Number.isFinite(value)&&value>0;
+  if(key==='softEdgePt')return (element.type==='image-frame'||element.type==='semantic-object'&&element.role==='school-building')&&Number.isFinite(value)&&value>=0&&value<=50;
   if(element.type!=='text')return false;
+  if(key==='textStrokeColor')return typeof value==='string'&&/^(?:#[0-9a-f]{3,4}|#[0-9a-f]{6}|#[0-9a-f]{8}|transparent|currentColor)$/i.test(value);
+  if(key==='textStrokeWidth')return Number.isFinite(value)&&value>=0;
   if(key==='textDecorationColor')return typeof value==='string'&&/^(#[0-9a-f]{3,4}|#[0-9a-f]{6}|#[0-9a-f]{8}|currentColor)$/i.test(value);
   if(key==='textDecorationThickness')return Number.isFinite(value)&&value>0;
   if(key==='textUnderlineOffset')return Number.isFinite(value);
