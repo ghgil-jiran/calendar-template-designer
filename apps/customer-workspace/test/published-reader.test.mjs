@@ -96,6 +96,6 @@ test(`linked ${kind} pair exposes one representative and both posted formats`,as
  assert.deepEqual(catalog.paperPairs.map(pair=>pair.map(card=>[card.id,card.widthMm,card.heightMm])),[[[id,base.width,base.height],[a2,large.width,large.height]]]);
  assert.deepEqual((await reader.publishedSource(a2,1)).project.productType.pageSize,large);
  representative=a2;
- assert.deepEqual((await reader.publishedCatalog()).templates.map(card=>card.id),[a2]);
+ assert.deepEqual((await reader.publishedCatalog()).templates.map(card=>card.id),[kind==='desk'?id:a2]);
 });
 }

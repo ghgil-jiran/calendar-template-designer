@@ -33,7 +33,15 @@ async function publishedCatalog():Promise<CatalogResponse>{
  const ids=[...new Set(published.filter(row=>templates.includes(row)||links.some(link=>row.id===link.a3_id||row.id===link.a2_id)).map(r=>r.latest_version_id).filter(x=>uuid.test(x)))],versions:NativeProject[]=[];
  for(let i=0;i<ids.length;i+=50)versions.push(...await rows(`template_versions?select=id,template_id,version_number,catalog_format:project_data->format,catalog_settings:project_data->settings,catalog_product:project_data->productType,catalog_pages:project_data->book->pageInstances,catalog_thumbnail:project_data->template->thumbnail,catalog_previews:project_data->template->savedPagePreviews,catalog_publishing:project_data->template->publishing&state=eq.published&id=in.(${ids.slice(i,i+50).join(',')})`));
  for(const record of versions)if(!record.project_data)record.project_data={format:record.catalog_format,settings:record.catalog_settings,productType:record.catalog_product,template:{masters:{},masterElements:{},thumbnail:record.catalog_thumbnail,savedPagePreviews:record.catalog_previews,publishing:record.catalog_publishing},book:{school:{},pageInstances:record.catalog_pages,elementsByPage:{}}};
- const cards=templates.flatMap(row=>{const version=versions.find(v=>v.id===row.latest_version_id&&v.template_id===row.id);return version?[card(row,version)]:[]});
+ const cards=published.flatMap(row=>{
+  const version=versions.find(v=>v.id===row.latest_version_id&&v.template_id===row.id);
+  if(!version)return [];
+  const product=version.project_data.productType;
+  const desk=calendarKind(version.project_data)==='desk';
+  if(desk&&product?.pageSize?.width===297&&product?.pageSize?.height===205.615)return [];
+  const linkedDeskBase=desk&&product?.pageSize?.width===260&&product?.pageSize?.height===180&&links.some(link=>link.a3_id===row.id);
+  return templates.includes(row)||linkedDeskBase?[card(row,version)]:[];
+ });
  await Promise.all(cards.map(async item=>{
   const record=versions.find(v=>v.template_id===item.id&&Number(v.version_number)===item.version);
   const saved=record?.project_data?.template?.savedPagePreviews;
