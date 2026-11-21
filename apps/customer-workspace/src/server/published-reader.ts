@@ -6,9 +6,12 @@ export function createPublishedReader(settings:{url:string;key:string;fetcher?:t
  const url=settings.url.trim().replace(/\/$/,''),key=settings.key.trim(),fetch=settings.fetcher||globalThis.fetch;
  if(!/^https:\/\//.test(url)||!key)throw Error('템플릿 연결 설정이 준비되지 않았습니다.');
  function config(){return {url,key};}
-async function rows(path:string):Promise<NativeProject[]>{const {url,key}=config();const response=await fetch(`${url}/rest/v1/${path}`,{headers:{apikey:key,Authorization:`Bearer ${key}`},cache:'no-store',signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error('게시 템플릿을 불러오지 못했습니다.');return response.json();}
+async function rows(path:string):Promise<NativeProject[]>{const {url,key}=config();const response=await fetch(`${url}/rest/v1/${path}`,{headers:{apikey:key,Authorization:`Bearer ${key}`},cache:'no-store',signal:AbortSignal.timeout(15000)});if(!response.ok){
+ const error=await response.json().catch(()=>null);
+ throw Object.assign(Error('게시 템플릿을 불러오지 못했습니다.'),{code:error?.code});
+ }return response.json();}
 async function publishedRows(id?:string){
- const query='template_projects?select=id,name,description,state,latest_version_id,updated_at&state=eq.published&order=updated_at.desc,id.asc';
+ const query='template_projects?select=*&state=eq.published&order=updated_at.desc,id.asc';
  if(id)return rows(query+`&id=eq.${encodeURIComponent(id)}&limit=1`);
  const result:NativeProject[]=[];
  for(let offset=0;;offset+=100){const page=await rows(query+`&limit=100&offset=${offset}`);result.push(...page);if(page.length<100)return result;}
@@ -19,7 +22,15 @@ function card(row:NativeProject,version:NativeProject):TemplateCard{
  return {calendarKind:kind,majorPages:majorPageNumbers(pages),id:row.id,version:Number(version.version_number),name:row.name,description:kind==='poster'?`${pages.length}면 벽보형 학사달력이에요.`:/사계절.*산수/.test(row.name)?'사계절 산수 배경에 학교 사진과 학사일정을 담아, 우리 학교의 일 년을 따뜻하게 전해요.':/플라워|꽃/.test(row.name)?'꽃의 계절감과 학교 사진이 어우러져, 우리 학교의 일 년을 화사하게 담아요.':`학교 사진과 학사일정을 담아 우리 학교의 일 년을 완성하는 ${pages.length}면 탁상달력이에요.`,note:`${p.productType.pageSize.width} × ${p.productType.pageSize.height} mm · ${kind==='poster'?'벽보형':'탁상형'}`,previewKind:'published',sourceUrl:`/api/workspace/templates/${row.id}?version=${version.version_number}`,coverUrl:cover,representativePages:pages.map((_:unknown,i:number)=>i+1).filter((_:unknown,i:number)=>[1,2,3,4].includes(i)),pageCount:pages.length,widthMm:p.productType.pageSize.width,heightMm:p.productType.pageSize.height,period:`${p.settings.year}년 ${p.settings.startMonth||1}월부터`,pages:pages.map((page:NativeProject,i:number)=>({number:i+1,label:kind==='poster'?`벽보형 ${i+1}면`:page.label||(page.calendarMonth?`${page.calendarMonth}월 ${String(page.role).endsWith('front')?'월력 앞면':'월력 뒷면'}`:page.role==='cover-front'?'표지':page.semanticPageRole==='school-symbols'?'학교 상징':`달력 ${i+1}면`),imageUrl:null})),composition:[{label:'전체',count:pages.length}],fields:fieldsForProject(p),photoSlots:photoSlotsForProject(p),photoGuide:'교체할 수 있는 사진 영역에 준비한 사진을 배정해 주세요.'};
 }
 async function publishedCatalog():Promise<CatalogResponse>{
- const templates=await publishedRows(),ids=[...new Set(templates.map(r=>r.latest_version_id).filter(x=>uuid.test(x)))],versions:NativeProject[]=[];
+ const [published,links]=await Promise.all([publishedRows(),rows('template_paper_links?select=a3_id,a2_id,representative_id').catch(error=>{
+  if(['PGRST205','42P01'].includes(error.code))return [];
+  throw error;
+ })]);
+ const templates=published.filter(row=>{
+  const pair=links.find(link=>row.id===link.a3_id||row.id===link.a2_id);
+  return pair?row.id===pair.representative_id:row.visible_in_customer_catalog!==false;
+ });
+ const ids=[...new Set(templates.map(r=>r.latest_version_id).filter(x=>uuid.test(x)))],versions:NativeProject[]=[];
  for(let i=0;i<ids.length;i+=50)versions.push(...await rows(`template_versions?select=id,template_id,version_number,catalog_format:project_data->format,catalog_settings:project_data->settings,catalog_product:project_data->productType,catalog_pages:project_data->book->pageInstances,catalog_thumbnail:project_data->template->thumbnail,catalog_previews:project_data->template->savedPagePreviews,catalog_publishing:project_data->template->publishing&state=eq.published&id=in.(${ids.slice(i,i+50).join(',')})`));
  for(const record of versions)if(!record.project_data)record.project_data={format:record.catalog_format,settings:record.catalog_settings,productType:record.catalog_product,template:{masters:{},masterElements:{},thumbnail:record.catalog_thumbnail,savedPagePreviews:record.catalog_previews,publishing:record.catalog_publishing},book:{school:{},pageInstances:record.catalog_pages,elementsByPage:{}}};
  const cards=templates.flatMap(row=>{const version=versions.find(v=>v.id===row.latest_version_id&&v.template_id===row.id);return version?[card(row,version)]:[]});
