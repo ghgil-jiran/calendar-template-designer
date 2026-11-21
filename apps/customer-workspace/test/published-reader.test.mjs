@@ -70,3 +70,32 @@ test('published poster school images resolve inside the customer runtime',async(
   assert.equal(result.project.book.elementsByPage.cover.at(-1).src,'/generated/page-runtime/assets/sample-school/'+file);
  }
 });
+
+for(const [kind,base,large] of [
+ ['poster',{width:297,height:420},{width:420,height:594}],
+ ['desk',{width:260,height:180},{width:297,height:205.615}],
+]){
+test(`linked ${kind} pair exposes one representative and both posted formats`,async()=>{
+ const a2=assetId,a2Version='44444444-4444-4444-8444-444444444444';
+ let representative=id;
+ const templates=[{id,name:'E A3',latest_version_id:versionId},{id:a2,name:'E A2',latest_version_id:a2Version}];
+ const versions=templates.map(row=>{
+  const data=project();data.productType={category:kind,pageSize:row.id===id?base:large};
+  data.template.thumbnail=null;data.book.elementsByPage.cover=[];
+  return {id:row.latest_version_id,template_id:row.id,version_number:1,project_data:data};
+ });
+ const reader=createPublishedReader({url:'https://fixture.supabase.invalid',key:'fixture-key',fetcher:async input=>{
+  const url=new URL(input),filter=url.searchParams.get('id');
+  if(url.pathname.endsWith('/template_paper_links'))return Response.json([{a3_id:id,a2_id:a2,representative_id:representative}]);
+  if(url.pathname.endsWith('/template_projects'))return Response.json(templates.filter(row=>!filter||filter==='eq.'+row.id));
+  if(url.pathname.endsWith('/template_versions'))return Response.json(versions.filter(row=>filter==='eq.'+row.id||filter?.includes(row.id)));
+  throw Error('Unexpected request '+url.pathname);
+ }});
+ const catalog=await reader.publishedCatalog();
+ assert.deepEqual(catalog.templates.map(card=>card.id),[id]);
+ assert.deepEqual(catalog.paperPairs.map(pair=>pair.map(card=>[card.id,card.widthMm,card.heightMm])),[[[id,base.width,base.height],[a2,large.width,large.height]]]);
+ assert.deepEqual((await reader.publishedSource(a2,1)).project.productType.pageSize,large);
+ representative=a2;
+ assert.deepEqual((await reader.publishedCatalog()).templates.map(card=>card.id),[a2]);
+});
+}

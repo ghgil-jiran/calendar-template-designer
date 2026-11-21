@@ -7,7 +7,7 @@ export function TemplatePicker({projectName,templates,currentId,onChange,onPendi
  const host=useRef<HTMLDivElement>(null);
  const [paperBusy,setPaperBusy]=useState(false),[paperError,setPaperError]=useState('');
  const currentPaper=paperOptions?.find(item=>item.id===currentId);
- const sizeLabel=(item:TemplateCard)=>item.widthMm===420?'A2':'A3';
+ const sizeLabel=(item:TemplateCard)=>item.calendarKind==='poster'?(item.widthMm===420?'A2':'A3'):(item.widthMm===297?'확대형':'기본형');
  async function selectPaper(id:string){
   if(id===currentId||paperBusy||disabled)return;
   setPaperBusy(true);setPaperError('');onPendingChange(true);

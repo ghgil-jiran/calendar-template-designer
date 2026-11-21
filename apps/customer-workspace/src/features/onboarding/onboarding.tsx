@@ -289,6 +289,9 @@ export function Onboarding() {
     label:previewPage?.label||'페이지',
   }:null;
   const displayedIndex=visiblePreview?.index??previewIndex;
+  const previewPaperPair=previewTemplate?.calendarKind==='desk'
+    ?catalog?.paperPairs?.find(pair=>pair.some(paper=>paper.id===previewTemplate.id)):undefined;
+  const previewChoices=previewPaperPair||(previewTemplate?[previewTemplate]:[]);
   const previewLayers=[visiblePreview,requestedPreview?.key===visiblePreview?.key?null:requestedPreview];
   if(step==='editor'&&materialProject)return <PhotoEditor onOrder={orderProject} calendarDefaults={templateCalendarDisplay(nativeSource)} key={selected!.id} paperOptions={catalog?.paperPairs?.find(pair=>pair.some(item=>item.id===selected!.id))} onPaperChange={changePaperSize} onTemplateChange={changeTemplate} templateName={selected!.name} templates={compatibleCatalogTemplates(selected!,catalog?.templates||[],catalog?.paperPairs)} currentTemplateId={selected!.id} onNavigationPause={setNavigationPaused} onHome={(save,name)=>leaveEditor('catalog',save,name)} commonPhotoIds={Object.fromEntries((nativeSource?photoSlotsForProject(nativeSource):[]).flatMap(slot=>assignments[slot.id]?[[slot.binding||'',assignments[slot.id].photoId]]:[]))} assignedPhotoIds={Object.values(assignments).map(a=>a.photoId)} project={materialProject} photos={photos} onPhotos={next=>{setPhotos(next);setAssignments(current=>Object.fromEntries(Object.entries(current).filter(([,a])=>next.some(p=>p.id===a.photoId))));setEditorState(current=>current?{...current,edits:current.edits.filter(e=>!e.photoId||next.some(p=>p.id===e.photoId))}:current);}} initialState={editorState} onChange={setEditorState} saveFailure={saveError} onProjects={(save,name)=>leaveEditor('projects',save,name)} name={displayName} saving={saving} onSave={()=>saveWorking(undefined,{},false,true)} school={school} events={events} fields={selected!.fields} onFieldChange={(key,value)=>setSchool(p=>updateSchoolField(p,key,value))} onFieldHide={(key,hidden)=>setSchool(p=>({...p,hidden:hidden?[...new Set([...p.hidden,key])]:p.hidden.filter(k=>k!==key)}))} onSchoolPhoto={(binding,photo)=>{const slots=photoSlotsForProject(nativeSource!).filter(s=>s.binding===binding);setAssignments(p=>({...p,...Object.fromEntries(slots.map(s=>[s.id,{photoId:photo.id,url:photo.url}]))}));}} onMaterialsSave={async(nextSchool,nextEvents,images=[])=>{const staged=stageSchoolImages(photos,assignments,photoSlotsForProject(nativeSource!),editorState,images);const nextPhotos=staged.photos,nextAssignments=staged.assignments,nextEditor=staged.editorState;if(!await saveWorking('editor',{school:nextSchool,events:nextEvents,photos:nextPhotos,assignments:nextAssignments,editorState:nextEditor},true,true))return false;setSchool(nextSchool);setEvents(nextEvents);setPhotos(nextPhotos);setAssignments(nextAssignments);setEditorState(nextEditor);return true;}}/>;
   return <div className="workspace">
@@ -304,19 +307,26 @@ export function Onboarding() {
           </div>
         </section>
         <section aria-labelledby="catalog-title"><div className="catalog-heading"><div><h2 id="catalog-title">마음에 드는 디자인을 골라보세요</h2><p className="muted">탁상형·벽보형 달력의 전체 구성을 먼저 살펴볼 수 있어요.</p></div><span className="badge">{catalog.templates.length}종 {catalog.mode==='review'?'선택 구성 검토':'템플릿'}</span></div>
-          {!catalog.templates.length ? <Panel><h3>공개된 디자인을 준비 중이에요</h3><p className="muted">준비가 끝나면 이곳에서 고를 수 있어요.</p></Panel> : <><div className="catalog-filters" role="group" aria-label="달력 유형">{([["desk","탁상형 달력"],["poster","벽보형 달력"],["all","전체 달력"]] as const).map(([key,label])=><Button key={key} aria-pressed={kindFilter===key} onClick={()=>setKindFilter(key)}>{label}</Button>)}</div>{!catalog.templates.some(t=>kindFilter==='all'||(t.calendarKind||'desk')===kindFilter)&&<Panel>선택한 유형의 디자인을 준비 중이에요.</Panel>}<div className="catalog-grid">{catalog.templates.filter(t=>kindFilter==='all'||(t.calendarKind||'desk')===kindFilter).map(template => <article className="template-card" key={template.id}>
+          {!catalog.templates.length ? <Panel><h3>공개된 디자인을 준비 중이에요</h3><p className="muted">준비가 끝나면 이곳에서 고를 수 있어요.</p></Panel> : <><div className="catalog-filters" role="group" aria-label="달력 유형">{([["desk","탁상형 달력"],["poster","벽보형 달력"],["all","전체 달력"]] as const).map(([key,label])=><Button key={key} aria-pressed={kindFilter===key} onClick={()=>setKindFilter(key)}>{label}</Button>)}</div>{!catalog.templates.some(t=>kindFilter==='all'||(t.calendarKind||'desk')===kindFilter)&&<Panel>선택한 유형의 디자인을 준비 중이에요.</Panel>}<div className="catalog-grid">{catalog.templates.filter(t=>kindFilter==='all'||(t.calendarKind||'desk')===kindFilter).map(template => {
+            const paperPair=template.calendarKind==='desk'?catalog.paperPairs?.find(pair=>pair.some(paper=>paper.id===template.id)):undefined;
+            const choices=paperPair||[template];
+            return <article className="template-card" key={template.id}>
             <TemplateCardArtwork template={template} onPreview={number=>openPreview(template,template.pages.findIndex(page=>page.number===number))}/>
             <div className="template-copy">
               <h3>{template.name}</h3>
               <p className="muted">{template.calendarKind==='poster'?'벽보형':'탁상형'} · {template.widthMm} × {template.heightMm} mm · {template.pageCount}면{template.period&&` · ${template.period}`}</p>
+              {paperPair&&<p className="muted">{paperPair.map((paper,index)=>`${index===0?'기본형':'확대형'} ${paper.widthMm} × ${paper.heightMm} mm`).join(' · ')}</p>}
               <div className="card-actions">
                 <Button disabled={!template.pages.length} onClick={()=>openPreview(template)}>미리 보기</Button>
-                <Button variant="primary" disabled={saving||nativeLoading||!template.sourceUrl} onClick={()=>void choose(template)}>이 템플릿으로 만들기</Button>
+                {choices.map(choice=><Button key={choice.id} variant="primary" disabled={saving||nativeLoading||!choice.sourceUrl} onClick={()=>void choose(choice)}>
+                  {paperPair?(choice.widthMm===297?'확대형으로 만들기':'기본형으로 만들기'):'이 템플릿으로 만들기'}
+                </Button>)}
               </div>
-              {selectedId===template.id&&!previewTemplate&&nativeLoading&&<p role="status">템플릿을 불러오고 있어요.</p>}
-              {selectedId===template.id&&!previewTemplate&&nativeFailure&&<p role="alert">{nativeFailure}</p>}
+              {choices.some(choice=>choice.id===selectedId)&&!previewTemplate&&nativeLoading&&<p role="status">템플릿을 불러오고 있어요.</p>}
+              {choices.some(choice=>choice.id===selectedId)&&!previewTemplate&&nativeFailure&&<p role="alert">{nativeFailure}</p>}
             </div>
-          </article>)}</div></>}
+          </article>
+          })}</div></>}
         </section>
         <section className="before-start"><div><h3>자료는 디자인을 고른 뒤 준비해도 괜찮아요.</h3><p className="muted">선택한 디자인에 필요한 자료를 안내해 드려요.</p></div><div><h3>만들던 달력이 있나요?</h3><Button variant="quiet" disabled={saving||nativeLoading} onClick={() => setStep('projects')}>내 프로젝트에서 이어하기 →</Button></div></section>
       </>}
@@ -369,9 +379,11 @@ export function Onboarding() {
           <Button disabled={previewIndex===previewTemplate.pages.length-1} onClick={()=>setPreviewIndex(index=>index+1)}>다음 면 →</Button>
         </div>
         <div className="catalog-preview-actions">
-          <Button variant="primary" disabled={saving||nativeLoading||!previewTemplate.sourceUrl} onClick={()=>void choose(previewTemplate)}>이 템플릿으로 만들기</Button>
+          {previewChoices.map((choice,index)=><Button key={choice.id} variant="primary" disabled={saving||nativeLoading||!choice.sourceUrl} onClick={()=>void choose(choice)}>
+            {previewPaperPair?(index===0?'기본형으로 만들기':'확대형으로 만들기'):'이 템플릿으로 만들기'}
+          </Button>)}
           {nativeLoading&&<p role="status">템플릿을 불러오고 있어요.</p>}
-          {selectedId===previewTemplate.id&&nativeFailure&&<p role="alert">{nativeFailure}</p>}
+          {previewChoices.some(choice=>choice.id===selectedId)&&nativeFailure&&<p role="alert">{nativeFailure}</p>}
         </div>
       </>}
     </dialog>

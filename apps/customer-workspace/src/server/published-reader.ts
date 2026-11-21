@@ -54,9 +54,12 @@ async function publishedCatalog():Promise<CatalogResponse>{
    const version=row&&versions.find(item=>item.id===row.latest_version_id&&item.template_id===id);
    return version?{...card(row,version),coverUrl:null}:null;
   });
-  const [a3,a2]=pair;
-  return a3?.calendarKind==='poster'&&a2?.calendarKind==='poster'&&a3.widthMm===297&&a3.heightMm===420&&
-   a2.widthMm===420&&a2.heightMm===594&&a3.period===a2.period&&a3.pageCount===a2.pageCount?[[a3,a2]]:[];
+  const [base,large]=pair;
+  if(!base||!large||base.calendarKind!==large.calendarKind||base.period!==large.period||base.pageCount!==large.pageCount)return [];
+  const validSize=base.calendarKind==='poster'
+   ?base.widthMm===297&&base.heightMm===420&&large.widthMm===420&&large.heightMm===594
+   :base.calendarKind==='desk'&&base.widthMm===260&&base.heightMm===180&&large.widthMm===297&&large.heightMm===205.615;
+  return validSize?[[base,large]]:[];
  });
  return {paperPairs,mode:'published' as const,notice:'게시된 템플릿입니다. 입력 자료의 서버 저장·로그인 연결은 준비 중입니다.',templates:cards};
 }
