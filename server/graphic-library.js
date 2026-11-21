@@ -1,3 +1,4 @@
+import {legacyVectorIllustrations} from './legacy-illustration-catalog.js';
 import {withPackageUsage,assertPackageUnused} from './graphic-package-usage.js';
 import {installGardenIllustrations} from './graphic-garden-illustrations.js';
 import {installLearningGarden,gardenAssetSvg,GARDEN_ASSET_ID} from './graphic-learning-garden.js';
@@ -65,12 +66,79 @@ export async function createGraphic(body){const metadata=validateGraphicMetadata
  const original=await storeTemplateAsset(`data:${body.mimeType};base64,${bytes.toString('base64')}`),preview=await storeTemplateAsset(body.previewDataUrl);const record=await write({schemaVersion:'graphic-library.v1',id:randomUUID(),...metadata,registrationMethod:'upload',thumbnailDataUrl:validateThumbnail(body.thumbnailDataUrl),originalAssetId:original.id,previewAssetId:preview.id,mimeType:body.mimeType,byteSize:bytes.length,fileName:String(body.fileName||'').slice(0,200),status:'active',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
  await storage(`object/${BUCKET}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:chunks.map((_,i)=>`graphics-uploads/${body.uploadId}/${i}`)})}).catch(()=>{});return record}
 export function validateThumbnail(value){if(value==null)return null;if(typeof value!=='string'||value.length>180000||!/^data:image\/(png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(value))fail('INVALID_GRAPHIC_THUMBNAIL');const bytes=Buffer.from(value.split(',')[1],'base64'),valid=value.startsWith('data:image/png')?bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])):bytes.toString('ascii',0,4)==='RIFF'&&bytes.toString('ascii',8,12)==='WEBP';if(!valid)fail('INVALID_GRAPHIC_THUMBNAIL');return value;}
-export async function updateGraphic(body){const current=await getGraphic(body.id),changes={};if(current.schemaVersion!=='graphic-library.v1')fail('INVALID_GRAPHIC_ID');if(body.status!==undefined){if(!['active','archived'].includes(body.status))fail('INVALID_GRAPHIC_STATUS');changes.status=body.status}if(['name','category','tags','source'].some(key=>Object.hasOwn(body,key)))Object.assign(changes,validateGraphicMetadata({...current,...Object.fromEntries(['name','category','tags','source'].filter(key=>Object.hasOwn(body,key)).map(key=>[key,body[key]]))}));if(body.subjectId!==undefined){if(body.subjectId&&!globalThis.ACDLGraphicIllustrationModel.subjects[body.subjectId])fail('INVALID_GRAPHIC_SUBJECT');changes.subjectId=body.subjectId||''}if(body.illustrationCategory!==undefined){if(body.illustrationCategory&&!Object.hasOwn(globalThis.ACDLGraphicIllustrationModel.categories,body.illustrationCategory))fail('INVALID_ILLUSTRATION_CATEGORY');changes.illustrationCategory=body.illustrationCategory||null}if(body.themeId!==undefined){if(body.themeId){if(!UUID.test(body.themeId))fail('INVALID_ILLUSTRATION_THEME');const theme=await getGraphic(body.themeId);if(theme.schemaVersion!=='graphic-illustration-theme.v1'||theme.status!=='active')fail('INVALID_ILLUSTRATION_THEME');changes.themeId=theme.id;changes.themeName=theme.name;if(!Object.hasOwn(body,'illustrationCategory')&&!current.illustrationCategory)changes.illustrationCategory=theme.category}else{changes.themeId=null;changes.themeName=null}if(current.illustrationRecipe&&current.themeId&&!current.generationThemeId)changes.generationThemeId=current.themeId}if(body.thumbnailDataUrl!==undefined)changes.thumbnailDataUrl=validateThumbnail(body.thumbnailDataUrl);return write({...current,...changes,updatedAt:new Date().toISOString()})}
+const LEGACY_ASSET_ORIGIN='https://school-calendar-editor-service.vercel.app';
+const legacyImages=Object.entries({flower:'교화',tree:'교목',motto:'교훈'}).flatMap(([category,label])=>
+ Array.from({length:20},(_,index)=>{
+  const number=String(index+1).padStart(2,'0'),id=category+'-'+number;
+  return {id,name:label+' '+number,tags:label,path:`/element-images/${category}/${id}.png`,mimeType:'image/png'};
+ }));
+const legacyIllustrations=[...legacyImages,...legacyVectorIllustrations.map(([id,name,file,viewBox])=>
+ ({id,name,tags:'일러스트',path:'/assets/school-calendar/'+file,viewBox,mimeType:'image/svg+xml'}))];
 
-export function validateGraphicSvg(value){
+async function importLegacyIllustration(asset){
+ const key=createHash('sha256').update('legacy-school-calendar-v1:'+asset.id).digest('hex');
+ const id=`${key.slice(0,8)}-${key.slice(8,12)}-4${key.slice(13,16)}-8${key.slice(17,20)}-${key.slice(20,32)}`;
+ try{await getGraphic(id);return false}catch(error){if(![400,404].includes(error.storageStatus))throw error}
+ const response=await fetch(LEGACY_ASSET_ORIGIN+asset.path,{signal:AbortSignal.timeout(12000),redirect:'error'});
+ if(!response.ok)fail('LEGACY_ILLUSTRATION_DOWNLOAD_FAILED',502);
+ let bytes=Buffer.from(await response.arrayBuffer());
+ if(!bytes.length||bytes.length>4*1024*1024)fail('LEGACY_ILLUSTRATION_SIZE');
+ let width,height;
+ if(asset.mimeType==='image/png'){
+  if(bytes.length<24||!bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])))fail('LEGACY_ILLUSTRATION_FORMAT');
+  width=bytes.readUInt32BE(16);height=bytes.readUInt32BE(20);
+ }else{
+  // Remove presentation metadata before applying the regular upload SVG validator.
+  const svg=bytes.toString('utf8').replace(/<title(?:\s[^>]*)?>[^<]*<\/title>/g,'')
+   .replace(/(<svg\s[^>]*>)/,tag=>tag.replace(/\s+(?:role|aria-labelledby|shape-rendering)="[^"]*"/g,''));
+  bytes=Buffer.from(validateGraphicSvg(svg,{legacyShadow:true}));
+  [, ,width,height]=asset.viewBox.split(/\s+/).map(Number);
+ }
+ const metadata=validateGraphicMetadata({name:asset.name,category:'illustration',width,height,tags:asset.tags,source:'구 학사달력 사용자 서비스 v1.1'});
+ const original=await storeTemplateAsset(`data:${asset.mimeType};base64,${bytes.toString('base64')}`);
+ const now=new Date().toISOString();
+ await writeNew({schemaVersion:'graphic-library.v1',id,...metadata,legacyAssetId:asset.id,
+  registrationMethod:'legacy-import',originalAssetId:original.id,previewAssetId:original.id,
+  mimeType:asset.mimeType,byteSize:bytes.length,status:'active',createdAt:now,updatedAt:now});
+ return true;
+}
+export async function importLegacyIllustrationBatch(offset){
+ if(!Number.isInteger(offset)||offset<0||offset>=legacyIllustrations.length)fail('INVALID_LEGACY_ILLUSTRATION_OFFSET');
+ await ensureGraphicBucket();
+ const batch=legacyIllustrations.slice(offset,offset+3);
+ const results=await Promise.allSettled(batch.map(importLegacyIllustration));
+ return {next:offset+batch.length,total:legacyIllustrations.length,
+  imported:results.filter(r=>r.status==='fulfilled'&&r.value).length,
+  failed:batch.filter((_,i)=>results[i].status==='rejected').map(a=>a.name)};
+}
+
+const CUSTOMER_ILLUSTRATIONS_PATH='customer-publications/illustrations.json';
+export function canPublishIllustration(graphic){
+ return graphic.category==='illustration'&&graphic.status==='active'&&!!graphic.vectorObject&&
+  !graphic.frameType&&!['shape','frame','line'].includes(graphic.illustrationCategory)&&!graphic.ownership;
+}
+export async function publishCustomerIllustrations(){
+ const records=await listGraphics();
+ const items=records.filter(g=>g.customerIllustration===true&&canPublishIllustration(g))
+  .sort((a,b)=>a.name.localeCompare(b.name,'ko')||a.id.localeCompare(b.id))
+  .map(g=>({id:g.id,name:g.name,revision:g.revision??1,originalAssetId:g.originalAssetId,
+   previewAssetId:g.previewAssetId,vectorObject:g.vectorObject}));
+ const version=createHash('sha256').update(JSON.stringify(items)).digest('hex');
+ const snapshot={schemaVersion:'customer-illustrations.v1',version,publishedAt:new Date().toISOString(),items};
+ await storage(`object/${BUCKET}/${CUSTOMER_ILLUSTRATIONS_PATH}`,{method:'POST',
+  headers:{'Content-Type':'application/json','x-upsert':'true'},body:JSON.stringify(snapshot)});
+ return {version,count:items.length};
+}
+export async function updateGraphic(body){const current=await getGraphic(body.id),changes={};if(current.schemaVersion!=='graphic-library.v1')fail('INVALID_GRAPHIC_ID');if(body.status!==undefined){if(!['active','archived'].includes(body.status))fail('INVALID_GRAPHIC_STATUS');changes.status=body.status}if(['name','category','tags','source'].some(key=>Object.hasOwn(body,key)))Object.assign(changes,validateGraphicMetadata({...current,...Object.fromEntries(['name','category','tags','source'].filter(key=>Object.hasOwn(body,key)).map(key=>[key,body[key]]))}));if(body.subjectId!==undefined){if(body.subjectId&&!globalThis.ACDLGraphicIllustrationModel.subjects[body.subjectId])fail('INVALID_GRAPHIC_SUBJECT');changes.subjectId=body.subjectId||''}if(body.illustrationCategory!==undefined){if(body.illustrationCategory&&!Object.hasOwn(globalThis.ACDLGraphicIllustrationModel.categories,body.illustrationCategory))fail('INVALID_ILLUSTRATION_CATEGORY');changes.illustrationCategory=body.illustrationCategory||null}if(body.themeId!==undefined){if(body.themeId){if(!UUID.test(body.themeId))fail('INVALID_ILLUSTRATION_THEME');const theme=await getGraphic(body.themeId);if(theme.schemaVersion!=='graphic-illustration-theme.v1'||theme.status!=='active')fail('INVALID_ILLUSTRATION_THEME');changes.themeId=theme.id;changes.themeName=theme.name;if(!Object.hasOwn(body,'illustrationCategory')&&!current.illustrationCategory)changes.illustrationCategory=theme.category}else{changes.themeId=null;changes.themeName=null}if(current.illustrationRecipe&&current.themeId&&!current.generationThemeId)changes.generationThemeId=current.themeId}if(body.thumbnailDataUrl!==undefined)changes.thumbnailDataUrl=validateThumbnail(body.thumbnailDataUrl);if(Object.hasOwn(body,'customerIllustration')){
+ if(typeof body.customerIllustration!=='boolean'||body.customerIllustration&&!canPublishIllustration({...current,...changes}))fail('INVALID_CUSTOMER_ILLUSTRATION');
+ changes.customerIllustration=body.customerIllustration;
+ }return write({...current,...changes,updatedAt:new Date().toISOString()})}
+
+export function validateGraphicSvg(value,{legacyShadow=false}={}){
  if(typeof value!=='string'||value.length>4*1024*1024||!/^\s*<svg\s/.test(value)||!/<\/svg>\s*$/.test(value))fail('INVALID_GRAPHIC_SVG');
  const tags=new Set(['svg','g','defs','rect','circle','ellipse','path','polygon','polyline','line','linearGradient','radialGradient','stop','clipPath']);
  const attrs=new Set(['xmlns','width','height','viewBox','id','x','y','x1','y1','x2','y2','cx','cy','r','rx','ry','d','points','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','stroke-dasharray','fill-rule','clip-rule','opacity','fill-opacity','stroke-opacity','transform','offset','stop-color','stop-opacity','gradientUnits','gradientTransform','spreadMethod','fx','fy','clip-path','clipPathUnits']);
+ if(legacyShadow){for(const tag of ['filter','feDropShadow'])tags.add(tag);for(const attr of ['filter','dx','dy','stdDeviation','flood-color','flood-opacity'])attrs.add(attr);}
  const stack=[];let cursor=0,roots=0;const tokens=value.matchAll(/<([^<>]+)>/g);
  for(const token of tokens){if(value.slice(cursor,token.index).trim())fail('INVALID_GRAPHIC_SVG');cursor=token.index+token[0].length;const content=token[1],closing=content.startsWith('/'),match=content.match(/^\/?([A-Za-z]+)([\s\S]*?)\/?$/);if(!match||!tags.has(match[1]))fail('INVALID_GRAPHIC_SVG');
   const tag=match[1],rest=match[2];if(closing){if(rest.trim()||stack.pop()!==tag)fail('INVALID_GRAPHIC_SVG');continue}
