@@ -566,3 +566,18 @@ body:not(.review-pdf-printing) .workspace .canvas-wrap #page [data-wall-region][
 .style-toggle span{display:block;text-align:center;border:1px solid var(--line);border-radius:7px;padding:5px 9px;background:#fff;}
 .style-toggle input:checked+span{border-color:#2563eb;color:#1746ab;background:#eff4ff;}
 .style-toggle input:focus-visible+span{outline:2px solid #2563eb;outline-offset:2px;}
+
+/* Keep the resize hit area while reducing the visible handle. */
+.free-element .elem-label,.free-element .semantic-role-badge,.free-element .workspace-binding-badge {display:none}
+.free-element .elem-handle {background:transparent;border-color:transparent}
+.free-element .elem-handle::after {content:"";position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);width:5px;height:5px;background:white;border:1px solid var(--accent);pointer-events:none}
+body #inspector label:has(>input[type="checkbox"]),
+body:has(.page.poster[data-wall-sample="a"]) #inspector label:has(>input[type="checkbox"]) {display:flex;align-items:center;justify-content:space-between;gap:8px}
+#inspector label>input[type="checkbox"] {order:1;flex:0 0 16px;width:16px;min-width:16px;height:16px;margin:0 0 0 auto}
+.template-color-palette {position:fixed;inset:auto;margin:0;width:232px;max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);overflow:auto;padding:12px;box-sizing:border-box;border:1px solid #d7dce5;border-radius:8px;background:white;color:#17202e;box-shadow:0 8px 24px #17202e26;font-size:12px}
+.template-color-grid {display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin:6px 0 10px}
+.template-color-grid button {height:23px;min-width:0;border:1px solid #17202e40;border-radius:4px;cursor:pointer}
+.template-color-grid button[aria-pressed="true"] {outline:2px solid var(--accent);outline-offset:1px}
+.template-color-palette summary {cursor:pointer}
+.template-custom-color {display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:5px;margin-top:8px}
+.template-custom-color input {width:100%;min-width:0}

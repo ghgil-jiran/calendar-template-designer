@@ -121,8 +121,8 @@ test('template objects allow overlap without collision avoidance or forced grid 
   assert.doesNotMatch(html, /findOpenWidgetPlacement|widgetOverlap|placementItems/);
   assert.match(html, /function findSemanticPlacement\(base,arr\)\{\s*return \{/);
   assert.doesNotMatch(html, /if\(e\.altKey===false\)\{x=snap\(x,grid\.x\);y=snap\(y,grid\.y\)\}/);
-  assert.match(html, /data-s2="front">맨 앞으로/);
-  assert.match(html, /data-s2="back">맨 뒤로/);
+  assert.doesNotMatch(html, /data-s2="front">맨 앞으로/);
+  assert.doesNotMatch(html, /data-s2="back">맨 뒤로/);
 });
 
 test('dragging and resizing mutate only the selected element', () => {

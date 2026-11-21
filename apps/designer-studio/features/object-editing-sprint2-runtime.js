@@ -17,20 +17,6 @@
   let h=pageNode.querySelector('.s2-snap-line.h');if(!h){h=document.createElement('div');h.className='s2-snap-line h';pageNode.appendChild(h)}
   const hint=document.createElement('div');hint.className='s2-key-hint';hint.textContent='Shift 다중 선택 · 방향키 이동 · Delete 삭제 · Ctrl+Z 실행 취소';pageNode.appendChild(hint)
  }
- function renderToolbar(pageNode){
-  const views=selectedViews();if(!views.length||preview)return;
-  const bar=document.createElement('div');bar.className='s2-selection-toolbar';bar.innerHTML=`<span class="s2-count">${views.length}개 선택</span><button data-s2="front">맨 앞으로</button><button data-s2="back">맨 뒤로</button><button data-s2="duplicate">복제</button><button data-s2="lock">잠금</button><button data-s2="hide">숨김</button><button data-s2="delete" class="danger">삭제</button>`;
-  bar.addEventListener('pointerdown',e=>e.stopPropagation());
-  bar.addEventListener('click',e=>{const action=e.target.closest('button')?.dataset.s2;if(!action)return;e.stopPropagation();const list=selectedViews().filter(view=>action==='lock'||!view.item.locked);if(!list.length)return;snapshot();
-   if(action==='front')list.forEach(v=>v.item.zIndex=maxZ(v.scope)+1);
-   if(action==='back')list.forEach(v=>v.item.zIndex=0);
-   if(action==='duplicate'){const newSel=[];list.forEach(v=>{const arr=v.scope==='master'?masterElements():pageElements();const copy=structuredClone(v.item);copy.id=`${v.item.id}.copy.${Date.now()}.${Math.random().toString(36).slice(2,6)}`;copy.x=Math.min(100-copy.width,copy.x+2);copy.y=Math.min(100-copy.height,copy.y+2);copy.zIndex=maxZ(v.scope)+1;arr.push(copy);newSel.push({id:copy.id,scope:v.scope})});const next=selection.replace(newSel);setPrimary(next.id,next.scope)}
-   if(action==='lock')list.forEach(v=>v.item.locked=!v.item.locked);
-   if(action==='hide')list.forEach(v=>v.item.visible=false);
-   if(action==='delete'){list.forEach(v=>{const arr=v.scope==='master'?masterElements():pageElements();const i=arr.findIndex(x=>x.id===v.id);if(i>=0)arr.splice(i,1)});clearSelection()}
-   markDirty();render();
-  });pageNode.appendChild(bar)
- }
  const baseRenderFreeElements=renderFreeElements;
  renderFreeElements=function(pageNode){
   syncPrimary();baseRenderFreeElements(pageNode);ensureOverlay(pageNode);
@@ -38,7 +24,7 @@
    const k=key(box.dataset.elementId,box.dataset.scope),isSel=selection.has(k);box.classList.toggle('s2-selected',isSel);box.classList.toggle('s2-secondary',isSel&&!(box.dataset.elementId===selectedElementId&&box.dataset.scope===selectedElementScope));
    const item=getItem(box.dataset.elementId,box.dataset.scope);box.classList.toggle('s2-locked',!!item?.locked);if(item?.visible===false)box.style.display='none';
    if(isSel&&box.dataset.elementId===selectedElementId&&box.dataset.scope===selectedElementScope&&!preview){['n','w','nw','ne','sw'].forEach(pos=>{if(!box.querySelector(`.elem-handle.${pos}`)){const h=document.createElement('span');h.className=`elem-handle ${pos}`;h.dataset.handle=pos;box.appendChild(h)}});if(!box.querySelector('.elem-rotate-handle')){const r=document.createElement('span');r.className='elem-rotate-handle';r.dataset.handle='rotate';box.appendChild(r)}}
-  });renderToolbar(pageNode)
+  });
  };
  startElementPointer=function(e){
   const box=e.currentTarget;let id=box.dataset.elementId,scope=box.dataset.scope,item=getItem(id,scope);if(!item||item.locked)return;

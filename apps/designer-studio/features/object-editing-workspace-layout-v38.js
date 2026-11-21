@@ -178,6 +178,21 @@
  const priorRenderPage=window.renderPage;
  if(typeof priorRenderPage==='function')window.renderPage=function(){const result=priorRenderPage.apply(this,arguments);scheduleFit();return result};
  const host=canvas();
+ host?.addEventListener('wheel',event=>{
+  if(!project||preview||event.ctrlKey||event.deltaY===0||Math.abs(event.deltaX)>Math.abs(event.deltaY)||(event.target instanceof Element&&event.target.closest('input,textarea,select,[contenteditable]')))return;
+  const frameNode=viewport(),scale=Number(frameNode?.dataset.canvasScale);
+  if(!frameNode||!scale)return;
+  event.preventDefault();
+  const before=frameNode.getBoundingClientRect();
+  const x=(event.clientX-before.left)/before.width,y=(event.clientY-before.top)/before.height;
+  const next=clamp(scale+(event.deltaY<0?.05:-.05));
+  if((event.deltaY<0&&next<=scale)||(event.deltaY>0&&next>=scale))return;
+  mode='manual';manualScale=next;
+  fitEditorPageToViewport();
+  const after=frameNode.getBoundingClientRect();
+  host.scrollLeft+=after.left+after.width*x-event.clientX;
+  host.scrollTop+=after.top+after.height*y-event.clientY;
+ },{passive:false});
  if(host&&'ResizeObserver'in window)new ResizeObserver(scheduleFit).observe(host);
  window.addEventListener('resize',scheduleFit,{passive:true});
  window.visualViewport?.addEventListener('resize',scheduleFit,{passive:true});
