@@ -243,10 +243,34 @@ function firstRow(value) {
 export async function listTemplates() {
   const rows = await supabaseRequest('template_projects?select=*&order=updated_at.desc');
   if (!rows.length) return [];
+  const links = await supabaseRequest('template_paper_links?select=a3_id,a2_id,representative_id').catch(error=>{
+    if(error.supabaseCode==='PGRST205'||error.supabaseCode==='42P01')return null;
+    throw error;
+  });
   const ids = rows.map(row => row.latest_version_id).filter(Boolean);
-  const versions = ids.length ? await supabaseRequest(`template_versions?select=id,thumbnail:project_data->template->thumbnail,project_standard:project_data->template->metadata->isStandard,calendar_type_size:project_data->template->calendarTypeSnapshot->definition->finishedSize&id=in.(${ids.map(encodeURIComponent).join(',')})`) : [];
+  const versions = ids.length ? await supabaseRequest(`template_versions?select=id,thumbnail:project_data->template->thumbnail,project_standard:project_data->template->metadata->isStandard,calendar_type_size:project_data->productType->pageSize,duplex:project_data->productType->duplex&id=in.(${ids.map(encodeURIComponent).join(',')})`) : [];
   const versionMeta = new Map(versions.map(version => [version.id, version]));
-  return rows.map(row => {const meta=versionMeta.get(row.latest_version_id);return rowToLibraryItem(row,meta?.project_standard===true,meta?.thumbnail,meta?.calendar_type_size)});
+  return rows.map(row => {const meta=versionMeta.get(row.latest_version_id);const item=rowToLibraryItem(row,meta?.project_standard===true,meta?.thumbnail,meta?.calendar_type_size);
+    if(links===null)return item;
+    const pair=links.find(link=>row.id===link.a3_id||row.id===link.a2_id);
+    return {...item,paperCatalog:{duplex:meta?.duplex,linkedId:pair?(row.id===pair.a3_id?pair.a2_id:pair.a3_id):null,
+      visible:pair?row.id===pair.representative_id:row.visible_in_customer_catalog!==false}}});
+}
+
+export async function savePaperCatalog(input){
+  const uuid=/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+  if(!uuid.test(input.templateId||'')||(input.linkedId!=null&&!uuid.test(input.linkedId))||typeof input.visible!=='boolean')
+    throw Object.assign(Error('템플릿 연결 설정을 확인해 주세요.'),{statusCode:400});
+  try{
+    await supabaseRequest('rpc/save_template_catalog_paper_link',{method:'POST',
+      body:JSON.stringify({p_id:input.templateId,p_other:input.linkedId??null,p_visible:input.visible})});
+  }catch(error){
+    const messages={template_already_linked:'이미 연결된 템플릿입니다. 목록을 새로고침해 주세요.',
+      incompatible_wall_templates:'같은 면 구성의 A3와 A2 벽보형만 연결할 수 있습니다.',invalid_wall_template:'벽보형 템플릿을 확인해 주세요.'};
+    if(messages[error.message])throw Object.assign(Error(messages[error.message]),{statusCode:409});
+    throw error;
+  }
+  return {saved:true};
 }
 
 export async function listDeletedCatalogKeys(){

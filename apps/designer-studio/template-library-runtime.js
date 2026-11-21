@@ -271,8 +271,31 @@
   link.href=url;link.download=`template-source-v${revision}.acdl.json`;link.textContent=`저장 원본 v${revision} 파일 저장`;
   let details=el('templateSourceExport');if(details){const old=details.querySelector('a');if(old)URL.revokeObjectURL(old.href);details.remove();}details=document.createElement('details');details.id='templateSourceExport';details.open=true;const summary=document.createElement('summary');summary.textContent='저장 원본 확인';const text=document.createElement('textarea');text.readOnly=true;text.setAttribute('aria-label','저장 원본 JSON');text.style.width='100%';text.rows=5;text.value=JSON.stringify(data);details.append(summary,link,text);el('templateSaveDialogHelp').append(details);
  }
+ function setupPaperCatalog(record){
+  let panel=el('templatePaperCatalog');
+  if(!panel){
+   panel=document.createElement('div');
+   panel.id='templatePaperCatalog';
+   panel.innerHTML='<label>연결 템플릿<select id="linkedPaperTemplate"></select></label><label><span>사용자 서비스 목록에 표시</span><input type="checkbox" id="visibleInCustomerCatalog"></label>';
+   el('saveTemplateState').closest('label').after(panel);
+  }
+  const size=r=>r?.type==='poster'&&r.calendarTypeSize?.width===297&&r.calendarTypeSize?.height===420?'A3':
+   r?.type==='poster'&&r.calendarTypeSize?.width===420&&r.calendarTypeSize?.height===594?'A2':null;
+  panel.hidden=!(record.remoteId&&record.paperCatalog&&size(record));
+  if(panel.hidden)return;
+  const select=el('linkedPaperTemplate'),linked=record.paperCatalog.linkedId;
+  select.replaceChildren(new Option(linked?'연결된 템플릿':'연결 안 함',''));
+  const candidates=records().filter(r=>r.remoteId&&r.remoteId!==record.remoteId&&(
+   linked?r.remoteId===linked:size(r)&&size(r)!==size(record)&&r.paperCatalog?.duplex===record.paperCatalog.duplex&&!r.paperCatalog?.linkedId
+  ));
+  for(const candidate of candidates)select.add(new Option(candidate.name,candidate.remoteId));
+  if(linked&&!candidates.length)select.add(new Option('연결된 템플릿',linked));
+  select.value=linked||'';
+  select.disabled=Boolean(linked);
+  el('visibleInCustomerCatalog').checked=record.paperCatalog.visible;
+ }
  function openSettings(record){
-  if(!record)return;const dialog=el('templateSaveDialog');dialog.dataset.mode='settings';dialog.dataset.recordId=record.id;el('templateSaveDialogTitle').textContent='템플릿 설정';el('templateSaveDialogHelp').textContent='디자인은 변경하지 않고 라이브러리 관리 정보만 저장합니다.';el('saveTemplateName').value=record.name;el('saveTemplateDescription').value=record.description||'';el('saveTemplateEdition').value=record.edition;configureStateOptions(scopeOf(record),record.state);el('saveTemplateStandard').checked=record.isStandard===true;el('templateSaveFeedback').className='save-feedback hidden';el('deleteTemplatePermanentlyBtn')?.classList.remove('hidden');dialog.classList.remove('hidden');let download=el('downloadTemplateSourceBtn');if(!download){download=document.createElement('button');download.id='downloadTemplateSourceBtn';download.type='button';download.className='action';download.textContent='저장 원본 다운로드';el('templateSaveDialogHelp').append(download)}download.onclick=async()=>{download.disabled=true;try{await downloadTemplateSource(record)}catch(error){showEditorToast(error?.message||'원본 다운로드 실패')}finally{download.disabled=false}}
+  if(!record)return;const dialog=el('templateSaveDialog');setupPaperCatalog(record);dialog.dataset.mode='settings';dialog.dataset.recordId=record.id;el('templateSaveDialogTitle').textContent='템플릿 설정';el('templateSaveDialogHelp').textContent='디자인은 변경하지 않고 라이브러리 관리 정보만 저장합니다.';el('saveTemplateName').value=record.name;el('saveTemplateDescription').value=record.description||'';el('saveTemplateEdition').value=record.edition;configureStateOptions(scopeOf(record),record.state);el('saveTemplateStandard').checked=record.isStandard===true;el('templateSaveFeedback').className='save-feedback hidden';el('deleteTemplatePermanentlyBtn')?.classList.remove('hidden');dialog.classList.remove('hidden');let download=el('downloadTemplateSourceBtn');if(!download){download=document.createElement('button');download.id='downloadTemplateSourceBtn';download.type='button';download.className='action';download.textContent='저장 원본 다운로드';el('templateSaveDialogHelp').append(download)}download.onclick=async()=>{download.disabled=true;try{await downloadTemplateSource(record)}catch(error){showEditorToast(error?.message||'원본 다운로드 실패')}finally{download.disabled=false}}
  }
  function installPermanentDeleteDialog(){
   const button=el('deleteTemplatePermanentlyBtn');if(!button)return;
@@ -314,7 +337,20 @@
  }
  async function saveSettings(recordId,values){
   const record=records().find(item=>item.id===recordId);if(!record)throw new Error('설정할 템플릿을 찾지 못했습니다.');const remoteState=window.ACDLTemplateRemotePersistence;
-  if(record.remoteId&&remoteState?.isRemote?.()&&['ready','archived'].includes(values.state)&&values.name===record.name&&(values.description||'')===(record.description||'')&&Number(values.edition)===Number(record.edition)&&(values.isStandard===true)===(record.isStandard===true)){
+  const paperPanel=el('templatePaperCatalog');
+  const paper=paperPanel&&!paperPanel.hidden?{linkedId:el('linkedPaperTemplate').value||null,visible:el('visibleInCustomerCatalog').checked}:null;
+  const paperChanged=paper&&(paper.linkedId!==record.paperCatalog.linkedId||paper.visible!==record.paperCatalog.visible);
+  const sameMetadata=values.state===record.state&&values.name===record.name&&
+   (values.description||'')===(record.description||'')&&Number(values.edition)===Number(record.edition)&&
+   (values.isStandard===true)===(record.isStandard===true);
+  if(sameMetadata&&paperChanged){
+   window.ACDLTemplateSaveProgress?.({phase:'save-record',detail:'용지 연결과 목록 표시 설정을 저장합니다.'});
+   await remoteState.savePaperCatalog(record.remoteId,paper);
+   await remoteState.list().then(list=>saveRecords([...list,...oldLibrary().filter(item=>!item.remoteId)]));
+   renderLibrary(activeLibraryState);renderUserChoices();
+   return;
+  }
+  if(!paperChanged&&record.remoteId&&remoteState?.isRemote?.()&&['ready','archived'].includes(values.state)&&values.name===record.name&&(values.description||'')===(record.description||'')&&Number(values.edition)===Number(record.edition)&&(values.isStandard===true)===(record.isStandard===true)){
    window.ACDLTemplateSaveProgress?.({phase:'save-record',detail:'서버에 저장된 이미지와 디자인을 유지하고 상태만 변경합니다.'});
    const result=await remoteState.changeState(record.remoteId,values.state,record.version),nextScope=values.state==='ready'?'base':scopeOf(record),saved=normalize({...record,...result.template,remoteId:result.template.id,state:values.state,status:values.state,version:result.template.latestVersionNumber,libraryScope:nextScope,storage:'supabase'},'local');
    saveRecords([saved,...oldLibrary().filter(item=>item.id!==record.id&&item.id!==saved.id)]);
@@ -333,6 +369,10 @@
   else if(record.state==='published')await window.ACDLTemplatePublishing.withdraw(projectData);
   if(remote?.isRemote?.()){const result=await remote.save({templateId:record.remoteId||(/^[0-9a-f-]{36}$/i.test(String(record.id))?record.id:null),stableKey:record.stableKey||record.catalogId||record.id,name:values.name||record.name,description:values.description||'',edition:Number(values.edition)||record.edition,state:values.state,isStandard:values.isStandard===true,productType:record.type,templateKey:record.template,saveKind:values.state==='published'?'publish':'manual',saveNote:'라이브러리 설정 변경',schemaVersion:'2.0',projectData},{onProgress:window.ACDLTemplateSaveProgress,verifyThumbnail:!archiving});const persistedThumbnail=result.version?.projectData?.template?.thumbnail||projectData.template.thumbnail;saved=normalize({...record,...result.template,id:result.template.id,remoteId:result.template.id,stableKey:result.template.stableKey,name:result.template.name,description:result.template.description,edition:result.template.edition,state:result.template.state,status:result.template.state,isStandard:result.template.isStandard,libraryScope:nextScope,type:result.template.productType,template:result.template.templateKey,thumbnail:persistedThumbnail,version:result.template.latestVersionNumber,storage:'supabase',source:'local',catalogId:record.catalogId||record.id},'local');projectData.template.thumbnail=window.ACDLPersistenceProject.clone(persistedThumbnail);await saveTemplateProjectData(saved.id,projectData);if(values.state==='published'||archiving){window.ACDLTemplateSaveProgress?.({phase:'publishing',stage:'cleanup',detail:'사용자 서비스의 활성 템플릿 목록을 동기화하고 있습니다.'});await window.ACDLTemplatePublishing.synchronizeCatalog()}}else await saveTemplateProjectData(saved.id,projectData);
   const list=oldLibrary().filter(item=>item.id!==record.id&&item.id!==saved.id&&item.stableKey!==saved.stableKey),updated=[saved,...list];saveRecords(updated);
+  if(paperChanged){
+   await remoteState.savePaperCatalog(saved.remoteId,paper);
+   await remoteState.list().then(list=>saveRecords([...list,...oldLibrary().filter(item=>!item.remoteId)]));
+  }
   if(publicationResult)window.ACDLTemplatePublishing.completePublication?.(publicationResult.templateId,publicationResult.version);renderLibrary(activeLibraryState);renderUserChoices();showEditorToast('템플릿 설정과 사용자 서비스 게시 목록을 동기화했습니다.');return saved
  }
  window.ACDLTemplateLibrarySettings=Object.freeze({open:openSettings,save:saveSettings,startNewFrom,clonedProject,scopeOf,configureStateOptions});
