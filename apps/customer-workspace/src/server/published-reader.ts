@@ -95,6 +95,17 @@ async function receiptSource(id:string,version:number){
  assertNativeProject(records[0].project_data);
  return records[0].project_data;
 }
-return {publishedCatalog,publishedSource,receiptSource};
+async function illustrations(){
+ const response=await fetch(`${url}/storage/v1/object/common-graphics/customer-publications/illustrations.json`,{
+  headers:{apikey:key,Authorization:`Bearer ${key}`},signal:AbortSignal.timeout(12000)
+ });
+ if(response.status===404)return {version:null,items:[]};
+ if(!response.ok)throw Error('일러스트 목록을 불러오지 못했습니다.');
+ const catalog=await response.json();
+ if(catalog.schemaVersion!=='customer-illustrations.v1'||!Array.isArray(catalog.items))throw Error('일러스트 목록 형식을 확인해 주세요.');
+ return {version:catalog.version,items:catalog.items.filter((item:NativeProject)=>uuid.test(item.id)&&typeof item.name==='string'&&item.vectorObject)
+  .map(({id,name,revision,originalAssetId,vectorObject}:NativeProject)=>({id,name,revision,originalAssetId,vectorObject}))};
+}
+return {publishedCatalog,publishedSource,receiptSource,illustrations};
 }
 

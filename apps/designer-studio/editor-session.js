@@ -6,8 +6,11 @@
  const layerDirections=['forward','backward','front','back'];
  const pageById=(project,pageId)=>project.book.pageInstances.find(p=>p.id===pageId);
  const supportsPageObjects=project=>['desk','poster'].includes(project.productType?.category);
+ const additionPresets={shape:['rect','rounded','ellipse','line'],frame:['rect','rounded','circle','ellipse']};
+ const additionKinds=['text','image','shape','frame','illustration'];
  function canAddPageObject(project,page,type){
-  return supportsPageObjects(project)&&page&&project.template.userEditing?.restrictions?.additions?.[type]!==false&&page.userEditing?.restrictions?.additions?.[type]!==false;
+  const permission=['frame','illustration'].includes(type)?'image':type==='shape'?'shape':type;
+  return supportsPageObjects(project)&&page&&project.template.userEditing?.restrictions?.additions?.[permission]!==false&&page.userEditing?.restrictions?.additions?.[permission]!==false;
  }
  function customerRights(project,page,item,original){
   const binding=bindingOf(item),school=binding.startsWith('school.'),background=supportsPageObjects(project)?protectedBackground(item):/background|decoration/.test(item.role||''),photo=['image','image-frame'].includes(item.type)||item.type==='semantic-object'&&/^school-(logo|building|song|tree|flower)$/.test(item.role||'');
@@ -108,13 +111,28 @@
   if(!Array.isArray(additions)||additions.length>200)throw Error('추가 개체 수를 확인해 주세요.');
   for(const addition of additions){
    const {id,pageId,type}=addition||{},page=pageById(document,pageId);
-   if(!['image','text'].includes(type)||!canAddPageObject(document,page,type)||typeof id!=='string'||!/^user-object:[\w-]+$/.test(id))throw Error('추가 개체 정보를 확인해 주세요.');
+   if(!additionKinds.includes(type)||!canAddPageObject(document,page,type)||typeof id!=='string'||!/^user-object:[\w-]+$/.test(id))throw Error('추가 개체 정보를 확인해 주세요.');
    document.book.elementsByPage||={};
    const local=document.book.elementsByPage[pageId]||=[],master=document.template.masterElements?.[page.masterId]||[];
    if([...local,...master].some(e=>e.id===id))throw Error('추가 개체가 중복되었습니다.');
    const zIndex=Math.max(0,...[...master,...local].map(e=>Number(e.zIndex)||0))+1;
-   local.push({id,type:type==='text'?'text':'image-frame',role:type==='text'?'user-text':'user-image',label:type==='text'?'추가 텍스트':'추가 이미지',x:30,y:30,width:35,height:type==='text'?8:25,zIndex,
-    ...(type==='text'?{content:'새 텍스트',style:{fontSize:22,color:'#17202e'}}:{image:{fit:'contain',scale:1,offsetX:0,offsetY:0}})});
+   let element;
+   if(type==='illustration'){
+    const graphic=addition.graphic;
+    if(!graphic||typeof graphic.id!=='string'||typeof graphic.name!=='string'||graphic.name.length>120)throw Error('일러스트 정보를 확인해 주세요.');
+    element={...root.ACDLGraphicVectorObject.placement({...graphic,status:'active'},document.productType.pageSize),label:graphic.name};
+   }else{
+    if(additionPresets[type]&&!additionPresets[type].includes(addition.preset))throw Error('개체 모양을 확인해 주세요.');
+    const line=type==='shape'&&addition.preset==='line';
+    element={type:type==='shape'?'shape':type==='text'?'text':'image-frame',
+     role:type==='shape'?'user-shape':type==='text'?'user-text':'user-image',
+     label:type==='text'?'추가 텍스트':line?'선':type==='shape'?'도형':type==='frame'?'사진 프레임':'추가 이미지',
+     x:30,y:30,width:type==='frame'&&addition.preset==='circle'?25*document.productType.pageSize.height/document.productType.pageSize.width:35,height:type==='text'?8:line?3:25};
+    if(type==='shape')Object.assign(element,{shapeType:addition.preset,style:{fill:'#4777bd',stroke:'#4777bd',strokeWidth:line?2:0,...(addition.preset==='rounded'?{cornerRadiusMm:3}:addition.preset==='rect'?{borderRadius:0}:{})}});
+    else if(type==='text')Object.assign(element,{content:'새 텍스트',style:{fontSize:22,color:'#17202e'}});
+    else Object.assign(element,{frameType:addition.preset||'rect',image:{fit:type==='frame'?'cover':'contain',scale:1,offsetX:0,offsetY:0}});
+   }
+   local.push({...element,id,zIndex});
   }
   if(!Array.isArray(copies)||copies.length>200)throw Error('복사 개체 수를 확인해 주세요.');
   const ids=new Set();
@@ -172,7 +190,7 @@
     for(const value of Object.values(item.wallMonthOverrides||{}))Object.assign(value,patch);
    }
    if(edit.text!==undefined)item.content=edit.text;
-   if(edit.fill!==undefined)item.style={...item.style,fill:edit.fill};
+   if(edit.fill!==undefined)item.style={...item.style,...(item.shapeType==='line'?{stroke:edit.fill}:{fill:edit.fill})};
    if(edit.textStyle){item.style={...item.style,...edit.textStyle};if(edit.textStyle.backgroundColor!==undefined)item.style.background=edit.textStyle.backgroundColor!=='transparent';}
    if(edit.hidden!==undefined)item.visible=!edit.hidden;
    if(edit.fontSize!==undefined)root.ACDLInspectorElement.apply(item,'text-size',{fontSize:edit.fontSize});
@@ -224,12 +242,12 @@
     for(const saved of next.logoGeometry[mode]||[]){const index=next.edits.findIndex(e=>e.pageId===saved.pageId&&e.scope===saved.scope&&e.elementId===saved.elementId);if(index<0)next.edits.push(clone(saved));else Object.assign(next.edits[index],saved);}
     next.logoMode=mode;return commit(next);
    },
-   canAddObject(type){return ['text','image'].includes(type)&&!!canAddPageObject(source,pageById(source,current.pageId),type);},
-   addObject(type,photoId){
-    if(!this.canAddObject(type)||type==='image'&&typeof photoId!=='string')throw Error('개체를 추가할 수 없어요.');
+   canAddObject(type){return additionKinds.includes(type)&&!!canAddPageObject(source,pageById(source,current.pageId),type);},
+   addObject(type,value){
+    if(!this.canAddObject(type)||type==='image'&&typeof value!=='string')throw Error('개체를 추가할 수 없어요.');
     const next=clone(current),id='user-object:'+crypto.randomUUID(),pageId=current.pageId;
-    (next.additions||=[]).push({id,pageId,type});
-    if(type==='image')next.edits.push({pageId,elementId:id,scope:'page',photoId});
+    (next.additions||=[]).push({id,pageId,type,...(additionPresets[type]?{preset:value}:type==='illustration'?{graphic:clone(value)}:{})});
+    if(type==='image')next.edits.push({pageId,elementId:id,scope:'page',photoId:value});
     commit(next);
     selection=targets(withCopies(source,current,capabilities),pageId,capabilities).find(t=>t.elementId===id);
     return selection;
