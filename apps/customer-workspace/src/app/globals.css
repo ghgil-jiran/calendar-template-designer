@@ -1032,3 +1032,21 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .poster-inspector-body > details > summary {cursor:pointer;font-weight:700}
 
 .editor-shell .wall-schedule-warning {margin:0;padding:8px;border:1px solid hsl(var(--destructive)/.3);border-radius:6px;background:hsl(var(--destructive)/.06);}
+
+
+.editor-palette {display:inline-flex;justify-self:start;}
+.editor-palette-trigger {display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:29px;padding:3px 6px;border:1px solid hsl(var(--border));border-radius:5px;background:hsl(var(--background));color:hsl(var(--foreground));}
+.editor-palette-trigger:disabled {opacity:.5;}
+.editor-palette-current {width:18px;height:16px;border:1px solid hsl(var(--border));border-radius:2px;}
+.editor-palette-panel {position:fixed;inset:auto;margin:0;left:var(--palette-left);top:var(--palette-top);width:min(232px,calc(100vw - 16px));max-height:min(380px,calc(100dvh - var(--palette-top) - 8px));overflow:auto;padding:10px;border:1px solid hsl(var(--border));border-radius:9px;background:hsl(var(--background));color:hsl(var(--foreground));box-shadow:0 6px 20px hsl(var(--foreground)/.16);font-size:12px;}
+.editor-palette-panel[data-above="true"] {top:auto;bottom:var(--palette-bottom);max-height:min(380px,calc(100dvh - var(--palette-bottom) - 8px));}
+.editor-palette-section {margin-bottom:9px;}
+.editor-palette-grid {display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin-top:4px;}
+.editor-palette-swatch {width:100%;height:23px;border:1px solid hsl(var(--border));border-radius:3px;}
+.editor-palette-swatch:hover,.editor-palette-swatch[aria-pressed="true"] {box-shadow:inset 0 0 0 2px hsl(var(--background)),0 0 0 1px hsl(var(--primary));}
+.editor-palette-action {display:block;width:100%;padding:7px 2px;border-top:1px solid hsl(var(--border));text-align:left;}
+.editor-palette-custom {display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:5px;}
+.editor-palette-custom input {width:100%;min-width:0;}
+.editor-palette-custom button {padding:3px 5px;}
+.editor-palette-custom button:disabled {opacity:.5;}
+.poster-calendar-tools .poster-calendar-color {display:flex;align-items:center;justify-content:space-between;}
