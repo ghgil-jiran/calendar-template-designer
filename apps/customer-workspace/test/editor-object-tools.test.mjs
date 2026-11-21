@@ -37,3 +37,12 @@ test('wall tools expose the template style and schedule options',()=>{
  assert.match(html,/날짜에 요일 표시/);
  assert.match(html,/공휴일 포함/);
 });
+
+test('wall calendar shows schedule overflow guidance only for supported cell layouts',()=>{
+ const props={selection:{label:'전체 월력',type:'year-calendar',rights:{calendarStyle:true}},posterProject:{book:{pageInstances:[{},{}]},template:{}},posterTemplateName:'벽보형 샘플 G',wallScheduleOverflow:true};
+ const item={monthCount:6,wallCalendarSettings:{schedulePlacement:'cells',scheduleDisplayMode:'text'}};
+ assert.match(render({...props,item}),/role="alert">일정이 많아 일부 일정이 제대로 표시되지 않았습니다. 글자 크기나 줄 높이를 줄여 주세요./);
+ assert.match(render({...props,item:{...item,wallCalendarSettings:{...item.wallCalendarSettings,scheduleDisplayMode:'bar'}}}),/‘텍스트만’으로 바꿔 주세요/);
+ assert.doesNotMatch(render({...props,item,wallScheduleOverflow:false}),/wall-schedule-warning/);
+ assert.doesNotMatch(render({...props,posterTemplateName:'벽보형 샘플 E',item:{monthCount:12,wallCalendarSettings:{schedulePlacement:'list'}}}),/wall-schedule-warning/);
+});
