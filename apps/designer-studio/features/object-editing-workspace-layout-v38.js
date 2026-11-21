@@ -8,11 +8,11 @@
  permissionHTML=function(item){
   if(project?.productionCorrection)return previousPermissionHTML(item);
   policy.normalizeProject(project);policy.normalizeElement(item);
-  const page=selectedPage(),poster=project.productType?.category==='poster',defaults=poster?window.ACDLEditorSession?.customerRights?.(project,page,item,item.permissions):null,p=defaults?{...item.permissions,...defaults,color:defaults.textStyle||defaults.fill,delete:defaults.visibility,...item.customerEditingRestrictions}:item.permissions,editing=project.template.userEditing,photo=policy.isImage(item),managed=policy.managedImage(item);
+  const page=selectedPage(),pageObjects=['desk','poster'].includes(project.productType?.category),defaults=pageObjects?window.ACDLEditorSession?.customerRights?.(project,page,item,item.permissions):null,p=defaults?{...item.permissions,...defaults,color:defaults.textStyle||defaults.fill,delete:defaults.visibility,...item.customerEditingRestrictions}:item.permissions,editing=project.template.userEditing,photo=policy.isImage(item),managed=policy.managedImage(item);
   const checkbox=(key,label,disabled=false)=>`<label class="permission-compact-option"><input type="checkbox" data-user-permission="${key}" ${p[key]?'checked':''} ${disabled?'disabled':''}><span>${label}</span></label>`;
   const additionLabel={image:'새 이미지 추가',text:'자유 텍스트 추가'};
-  const additions=['image','text'].map(key=>`<label class="permission-compact-option"><input type="checkbox" data-template-addition="${key}" ${(poster?editing.restrictions?.additions?.[key]!==false:editing.additions[key])?'checked':''}><span>${additionLabel[key]} 허용</span></label>`).join('');
-  const overrides=['image','text'].map(key=>{const value=poster?page?.userEditing?.restrictions?.additions?.[key]:page?.userEditing?.additions?.[key],selected=typeof value==='boolean'?String(value):'inherit';return `<label>${additionLabel[key]}<select data-page-addition="${key}" ${page?'':'disabled'}>${[['inherit','템플릿 기본값 사용'],['true','이 면에서 허용'],['false','이 면에서 금지']].map(([value,label])=>`<option value="${value}" ${selected===value?'selected':''}>${label}</option>`).join('')}</select></label>`}).join('');
+  const additions=['image','text'].map(key=>`<label class="permission-compact-option"><input type="checkbox" data-template-addition="${key}" ${(pageObjects?editing.restrictions?.additions?.[key]!==false:editing.additions[key])?'checked':''}><span>${additionLabel[key]} 허용</span></label>`).join('');
+  const overrides=['image','text'].map(key=>{const value=pageObjects?page?.userEditing?.restrictions?.additions?.[key]:page?.userEditing?.additions?.[key],selected=typeof value==='boolean'?String(value):'inherit';return `<label>${additionLabel[key]}<select data-page-addition="${key}" ${page?'':'disabled'}>${[['inherit','템플릿 기본값 사용'],['true','이 면에서 허용'],['false','이 면에서 금지']].map(([value,label])=>`<option value="${value}" ${selected===value?'selected':''}>${label}</option>`).join('')}</select></label>`}).join('');
   const monthlyScope=['monthly-front','monthly-back'].includes(page?.role)&&matchingMonthlyObjectsFor(item).length>1;
   return `<div class="section element-inspector"><div class="inspector-group"><div class="inspector-group-title"><span>선택 개체의 사용자 편집</span></div><p class="permission-help">사용자가 바꿀 수 있는 항목을 선택합니다. 학교 정보·일정 입력은 연결 데이터에서 관리합니다.</p>${photo?checkbox('replaceImage','이미지 교체',managed)+checkbox('imageFit','프레임 안쪽 위치·확대·회전 조정'):''}${managed?'<p class="hint">학교 공통 이미지는 입력 정보에서 교체합니다. 면별 이미지 교체는 보호됩니다.</p>':''}${permissionControls.map(([key,label])=>checkbox(key,label,key==='delete'&&item.required===true)).join('')}<label class="permission-compact-option"><input type="checkbox" id="graphicRequired" ${item.required?'checked':''}><span>필수 개체 · 사용자 삭제 방지</span></label>${monthlyScope?`<label class="permission-compact-option"><input type="checkbox" id="applyMonthlyPermissions" ${item.shadowOfMasterElementId?'':'checked'}><span>같은 월력 ${page.role==='monthly-front'?'앞면':'뒷면'} 전체에 개체 권한 적용</span></label>`:''}</div><div class="inspector-group"><div class="inspector-group-title"><span>템플릿의 추가 허용</span></div>${additions}<p class="hint">추가한 이미지·텍스트는 사용자가 편집할 수 있습니다. 면수·순서·출력 규격은 보호됩니다.</p></div><div class="inspector-group"><div class="inspector-group-title"><span>현재 면의 추가 허용</span></div>${overrides}</div><p class="hint">사용자 서비스의 편집 기능 연결은 다음 단계에서 적용됩니다.</p><button id="applyGraphicPermissions" class="action">권한 설정 저장</button></div>`;
  };
@@ -120,7 +120,7 @@
   snapshot();
   targets.forEach(target=>{
    target.permissions={...(target.permissions||{}),...values};
-   if(project.productType?.category==='poster')target.customerEditingRestrictions={...values};
+   if(['desk','poster'].includes(project.productType?.category))target.customerEditingRestrictions={...values};
    if(required)target.required=required.checked;
    if(policy.isImage(target)){
     target.userReplaceable=values.replaceImage===true;
@@ -128,16 +128,16 @@
    }
    policy.normalizeElement(target);
   });
-  const poster=project.productType?.category==='poster';
+  const pageObjects=['desk','poster'].includes(project.productType?.category);
   const additionPolicy=editing=>((editing.restrictions||={}).additions||={});
   for(const control of panel.querySelectorAll('[data-template-addition]')){
-   const additions=poster?additionPolicy(project.template.userEditing):project.template.userEditing.additions;
+   const additions=pageObjects?additionPolicy(project.template.userEditing):project.template.userEditing.additions;
    additions[control.dataset.templateAddition]=control.checked;
   }
   const page=selectedPage();
   if(page)for(const control of panel.querySelectorAll('[data-page-addition]')){
    const key=control.dataset.pageAddition;
-   const additions=poster?additionPolicy(page.userEditing):page.userEditing.additions;
+   const additions=pageObjects?additionPolicy(page.userEditing):page.userEditing.additions;
    if(control.value==='inherit')delete additions[key];else additions[key]=control.value==='true';
   }
   policy.normalizeProject(project);
