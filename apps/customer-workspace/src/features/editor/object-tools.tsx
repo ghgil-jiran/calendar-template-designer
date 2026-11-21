@@ -26,8 +26,8 @@ export function TextFormattingToolbar({style,onChange,disabled=false}:{style:Tex
  </div>;
 }
 
-type Props={scheduleSizing?:{fontSizePt?:number;barHeight?:number;joinText?:boolean;rangeEachDay?:boolean;bullet?:boolean};onScheduleSizing?:(patch:{fontSizePt?:number;barHeight?:number;joinText?:boolean;rangeEachDay?:boolean;bullet?:boolean})=>void;scheduleStyle?:string;onScheduleStyle?:(mode:'bar'|'text'|'line')=>void;pageName?:string;posterProject?:NativeProject;editableTargets?:EditorTarget[];onSelect?:(target:EditorTarget)=>void;selection:EditorTarget|null;item:NativeProject|undefined;fields:SchoolField[];school:SchoolInput;fit:PhotoFit;hasEditableTargets:boolean;schoolImageLinked:boolean;sharing:{layout:boolean;image:boolean;layoutCount:number;imageCount:number;poster:boolean};canReset:boolean;onFieldChange:(key:string,value:string)=>void;onFieldHide:(key:string,hidden:boolean)=>void;onStyle:(patch:TextStyle)=>void;onFit:(fit:PhotoFit)=>void;onShare:(kind:'layout'|'image',checked:boolean)=>void;onReset:()=>void;onSchoolSave:(school:SchoolInput)=>Promise<boolean>;saving:boolean;logoMode?:'split'|'combined';onLogoMode?:(mode:'split'|'combined')=>void;onReplaceImage?:()=>void;onCalendar?:(patch:Record<string,string|boolean|number>,allPages:boolean)=>void;onPendingChange?:(pending:boolean)=>void};
-export function ObjectTools({scheduleSizing,onScheduleSizing,scheduleStyle,onScheduleStyle,pageName='현재 페이지',posterProject,editableTargets=[],onSelect,selection,item,fields,school,fit,hasEditableTargets,schoolImageLinked,sharing,canReset,onStyle,onFit,onShare,onReset,onSchoolSave,saving,logoMode='split',onLogoMode,onReplaceImage,onCalendar,onPendingChange}:Props){
+type Props={scheduleSizing?:{fontSizePt?:number;barHeight?:number;joinText?:boolean;rangeEachDay?:boolean;bullet?:boolean};onScheduleSizing?:(patch:{fontSizePt?:number;barHeight?:number;joinText?:boolean;rangeEachDay?:boolean;bullet?:boolean})=>void;scheduleStyle?:string;onScheduleStyle?:(mode:'bar'|'text'|'line')=>void;pageName?:string;posterProject?:NativeProject;posterTemplateName?:string;editableTargets?:EditorTarget[];onSelect?:(target:EditorTarget)=>void;selection:EditorTarget|null;item:NativeProject|undefined;fields:SchoolField[];school:SchoolInput;fit:PhotoFit;hasEditableTargets:boolean;schoolImageLinked:boolean;sharing:{layout:boolean;image:boolean;layoutCount:number;imageCount:number;poster:boolean};canReset:boolean;onFieldChange:(key:string,value:string)=>void;onFieldHide:(key:string,hidden:boolean)=>void;onStyle:(patch:TextStyle)=>void;onFit:(fit:PhotoFit)=>void;onShare:(kind:'layout'|'image',checked:boolean)=>void;onReset:()=>void;onSchoolSave:(school:SchoolInput)=>Promise<boolean>;saving:boolean;logoMode?:'split'|'combined';onLogoMode?:(mode:'split'|'combined')=>void;onReplaceImage?:()=>void;onCalendar?:(patch:Record<string,string|boolean|number>,allPages:boolean)=>void;onPendingChange?:(pending:boolean)=>void};
+export function ObjectTools({scheduleSizing,onScheduleSizing,scheduleStyle,onScheduleStyle,pageName='현재 페이지',posterProject,posterTemplateName,editableTargets=[],onSelect,selection,item,fields,school,fit,hasEditableTargets,schoolImageLinked,sharing,canReset,onStyle,onFit,onShare,onReset,onSchoolSave,saving,logoMode='split',onLogoMode,onReplaceImage,onCalendar,onPendingChange}:Props){
  const [drafts,setDrafts]=useState<Record<string,SchoolFieldDraft>>({}),[applying,setApplying]=useState(false),[saveError,setSaveError]=useState('');
  const style=item?.style||{},editable=selection&&Object.values(selection.rights).some(Boolean),textFields=selection?fields.filter(f=>f.binding===selection.binding||selection.binding==='school.contacts'&&f.binding?.startsWith('school.contacts.')):[];
  const value=(key:string)=>drafts[key]||{value:school.values[key]??'',hidden:school.hidden.includes(key)};
@@ -50,7 +50,7 @@ export function ObjectTools({scheduleSizing,onScheduleSizing,scheduleStyle,onSch
      <label className="schedule-text-option"><span>일정을 '/'로 이어서 표시</span><input type="checkbox" checked={scheduleSizing?.joinText===true} onChange={e=>onScheduleSizing?.({joinText:e.target.checked})}/></label>
      <label className="schedule-text-option"><span>구간 일정을 날짜별 표시</span><input type="checkbox" checked={scheduleSizing?.rangeEachDay===true} onChange={e=>onScheduleSizing?.({rangeEachDay:e.target.checked})}/></label>
    </>}<label className="schedule-text-option"><span>일정 앞 불릿 표시</span><input type="checkbox" checked={scheduleSizing?.bullet===true} onChange={e=>onScheduleSizing?.({bullet:e.target.checked})}/></label><div className="schedule-sizing-fields"><label>일정 글자 크기(pt)<input type="number" min="3" max="18" step="0.5" value={scheduleSizing?.fontSizePt??''} placeholder="자동" onChange={e=>{const value=e.target.valueAsNumber;if(Number.isFinite(value)&&value>=3&&value<=18)onScheduleSizing?.({fontSizePt:value});}}/></label><label>{scheduleStyle==='text'?'일정 줄 높이(px)':'일정 영역 높이(px)'}<input type="number" min="1" max="24" step="1" value={scheduleSizing?.barHeight??14} onChange={e=>{const value=e.target.valueAsNumber;if(Number.isFinite(value)&&value>=1&&value<=24)onScheduleSizing?.({barHeight:value});}}/></label></div><p className="field-hint">일정이 숨겨지면 글자 크기와 영역 높이를 줄여 보세요. 날짜 칸 높이에 따라 표시 개수가 달라집니다.</p></section>}
-   {selection.rights.calendarStyle&&posterProject&&<PosterCalendarTools key={posterProject.book.pageInstances.length} project={posterProject} item={item} onChange={onCalendar}/>} 
+   {selection.rights.calendarStyle&&posterProject&&<PosterCalendarTools key={posterProject.book.pageInstances.length} project={posterProject} item={item} templateName={posterTemplateName} onChange={onCalendar}/>} 
    {selection.logoGroupId&&selection.logoPart==='image'&&<ToolGroup collapsible={!!collapsible} className="editor-logo-configuration" title="로고 구성"><label><input type="radio" name="logo-configuration" checked={logoMode==='split'} onChange={()=>onLogoMode?.('split')}/>교표만</label><label><input type="radio" name="logo-configuration" checked={logoMode==='combined'} onChange={()=>onLogoMode?.('combined')}/>학교명 포함 로고</label></ToolGroup>}
    {selection.rights.content&&textFields.length>0&&<ToolGroup collapsible={!!collapsible} className="editor-text-content" title="내용 수정" ariaLabel="학교 정보 내용 수정">{textFields.map(field=><div className="editor-content-field" key={field.key}><div className="editor-field-heading">{field.allowHide?<label className="editor-visibility-toggle"><input type="checkbox" aria-label={field.label+' 표시'} disabled={applying} checked={!value(field.key).hidden} onChange={e=>change(field.key,{hidden:!e.target.checked})}/>{field.label}</label>:<label htmlFor={'editor-field-'+field.key}>{field.label}</label>}</div><input id={'editor-field-'+field.key} aria-label={field.label+' 내용'} value={value(field.key).value} placeholder={selection.binding==='school.contacts'?'저장된 연락처':String(item?.content||'')} maxLength={field.maxLength} disabled={applying||value(field.key).hidden} onChange={e=>change(field.key,{value:e.target.value})}/></div>)}<Button className="editor-card-apply" variant={changed?'primary':'secondary'} disabled={!changed||saving||applying} onClick={()=>void save()}>{applying?'저장 중…':'수정된 정보를 학교 정보에 저장'}</Button>{saveError&&<p className="field-error" role="alert">{saveError}</p>}</ToolGroup>}
    {selection.rights.textStyle&&<ToolGroup collapsible={!!collapsible} className="editor-compact-style" title="글자 모양"><label className="editor-inline-control">글꼴<select value={style.fontFamily||''} onChange={e=>onStyle({fontFamily:e.target.value})}><option value="">템플릿 기본 글꼴</option>{fontChoices(style.fontFamily).map(font=><option key={font}>{font}</option>)}</select></label><label className="editor-inline-control">글자 크기<input aria-label="글자 크기" type="number" min="1" max="240" step=".5" value={style.fontSize||18} onChange={e=>{if(e.target.value)onStyle({fontSize:Number(e.target.value)});}}/></label><label className="editor-inline-control">글자색<input aria-label="글자색" type="color" value={/^#[0-9a-f]{6}$/i.test(style.color||'')?style.color:'#17202e'} onChange={e=>onStyle({color:e.target.value})}/></label></ToolGroup>}
@@ -66,7 +66,71 @@ export function ObjectTools({scheduleSizing,onScheduleSizing,scheduleStyle,onSch
 
 
 
-function PosterCalendarTools({project,item,onChange}:{project:NativeProject;item?:NativeProject;onChange:Props['onCalendar']}){
+type PosterToolsProps={project:NativeProject;item?:NativeProject;onChange:Props['onCalendar'];templateName?:string};
+const posterArrangements=[
+ ['poster-bottom','3×4 · 하단 일정형'],
+ ['poster-right','2×6 · 오른쪽 일정형'],
+ ['poster-cells','3×4 · 날짜 칸 일정형'],
+] as const;
+
+function PosterCalendarTools({project,item,onChange,templateName}:PosterToolsProps){
+ const sample=templateName?.match(/샘플\s*([EFG])\b/i)?.[1].toUpperCase();
+ if(!sample)return <LegacyPosterCalendarTools project={project} item={item} onChange={onChange}/>;
+
+ const isG=sample==='G';
+ const settings=wallOptions(item,project);
+ const cells=isG||settings.schedulePlacement==='cells';
+ const arrangement=cells?'poster-cells':settings.listPosition==='right'?'poster-right':'poster-bottom';
+ const mode=settings.scheduleDisplayMode??(isG&&settings.rangeMode!=='bars'?'text':'legacy');
+ const selectedMode=mode==='legacy'?(settings.rangeMode==='bars'?'bar':'text'):mode;
+ const textOnly=selectedMode==='text';
+ const size=Number(settings.schedulePt??(cells?settings.eventPt:settings.listPt));
+ const update=(patch:Record<string,string|boolean|number>)=>onChange?.(patch,isG);
+ const color=String(settings.scheduleColor||settings.listColor||settings.dateColor||'#17202e');
+ const cellAutoFit=settings.cellAutoFit===true||(settings.cellAutoFit==null&&mode==='text');
+ function checkbox(label:string,key:string,checked:boolean,disabled=false){
+  return <label className="schedule-text-option"><span>{label}</span><input type="checkbox" checked={checked} disabled={disabled} onChange={e=>update({[key]:e.target.checked})}/></label>;
+ }
+ const bullet=checkbox('일정 앞 불릿 표시','scheduleBullet',settings.scheduleBullet===true);
+ return <div className="poster-calendar-tools poster-calendar-refined">
+  <details className="editor-tool-card" open>
+   <summary>공통</summary>
+   <label>연력 프레임 구성{isG
+    ? <select disabled value="custom"><option value="custom">사용자 설정</option></select>
+    : <select value={arrangement} onChange={e=>update({scheduleStylePreset:e.target.value})}>{posterArrangements.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select>}
+   </label>
+  </details>
+  <details className="editor-tool-card schedule-style-card" open>
+   <summary>일정 표시 {isG&&<small>두 페이지에 적용</small>}</summary>
+   {cells?<div className="schedule-style-options" role="group" aria-label="날짜 칸 일정 표시">
+    {([['bar','색상 막대'],['text','텍스트만'],['line','가는 선']] as const).map(([value,label])=><Button key={value} aria-pressed={selectedMode===value} onClick={()=>update({scheduleDisplayMode:value})}>
+     <span className={'schedule-style-example '+value} aria-hidden="true"><span>학교 일정</span></span><span>{label}</span>
+    </Button>)}
+   </div>:<label>목록 단수<select value={String(settings.listLayout)} onChange={e=>update({listLayout:e.target.value})}><option value="auto">자동</option><option value="one">1단</option><option value="two">2단</option><option value="three">3단</option></select></label>}
+   {cells&&textOnly&&<>
+    {checkbox("일정을 '/'로 이어서 표시",'scheduleJoinText',settings.scheduleJoinText===true)}
+    {checkbox('구간 일정을 날짜별 표시','scheduleRangeEachDay',settings.scheduleRangeEachDay===true)}
+   </>}
+   {bullet}
+   {!cells&&<>
+    {checkbox('단 구분선 표시','listColumnColors',settings.listColumnColors===true)}
+    {checkbox('날짜에 요일 표시','scheduleWeekday',settings.scheduleWeekday===true||(settings.scheduleWeekday==null&&settings.listDateFormat==='weekday'))}
+    {checkbox('공휴일 표시','scheduleHolidays',settings.includeHolidays!==false)}
+   </>}
+   <div className="schedule-sizing-fields">
+    <label>일정 글자 크기(pt)<input type="number" min="5" max="24" step="0.1" value={size} onChange={e=>{const n=e.target.valueAsNumber;if(n>=5&&n<=24)update({schedulePt:n});}}/></label>
+    {cells?<label>{textOnly?'일정 줄 높이(px)':'일정 영역 높이(px)'}<input type="number" min="1" max="24" placeholder="자동" value={Number(settings.scheduleBarHeight)||''} onChange={e=>{const n=e.target.valueAsNumber;if(n>=1&&n<=24)update({scheduleBarHeight:n});}}/></label>
+     :<label>일정 자간(em)<input type="number" min="-0.1" max="0.2" step="0.01" value={Number(settings.scheduleTracking??0)} onChange={e=>{const n=e.target.valueAsNumber;if(n>=-0.1&&n<=0.2)update({scheduleTracking:n});}}/></label>}
+   </div>
+   <label className="poster-calendar-color"><span>글자색</span><input type="color" value={color} onChange={e=>update({scheduleColor:e.target.value})}/></label>
+   {checkbox('날짜 칸 일정 자동 맞춤','cellAutoFit',cellAutoFit,!cells)}
+   {!isG&&checkbox('월별 일정 목록 자동 맞춤','listAutoFit',settings.listAutoFit===true,cells)}
+   {cells&&<p className="schedule-sizing-help">일정이 숨겨지면 글자 크기와 {textOnly?'줄 높이':'영역 높이'}를 줄여 보세요. 날짜 칸 높이에 따라 표시 개수가 달라집니다.</p>}
+  </details>
+ </div>;
+}
+
+function LegacyPosterCalendarTools({project,item,onChange}:{project:NativeProject;item?:NativeProject;onChange:Props['onCalendar']}){
  const [allPages,setAllPages]=useState(false);
  const multiple=project.book.pageInstances.length>1;
  const settings=wallOptions(item,project);

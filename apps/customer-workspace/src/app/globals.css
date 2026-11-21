@@ -1015,6 +1015,13 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .poster-calendar-tools input[type=color] {width:44px;min-height:30px;padding:2px}
 .poster-calendar-tools .poster-calendar-checkbox {display:flex;align-items:center;gap:8px}
 .poster-calendar-tools input[type=checkbox] {width:auto;margin:0}
+.poster-calendar-refined .schedule-text-option,
+.poster-calendar-refined .poster-calendar-color {display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.poster-calendar-refined .schedule-text-option:has(input:disabled) {opacity:.55;}
+.poster-calendar-refined .schedule-sizing-help {margin:0;color:hsl(var(--muted-foreground));}
+.poster-calendar-refined summary small {float:right;font-weight:400;color:hsl(var(--muted-foreground));}
+.poster-calendar-refined .schedule-style-options,
+.poster-calendar-refined .schedule-sizing-fields {margin-top:0;}
 
 .poster-inspector-body {gap:8px}
 .poster-inspector-body > .editor-tool-card {padding:10px 12px}
