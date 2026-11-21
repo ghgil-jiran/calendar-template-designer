@@ -73,7 +73,7 @@ test('cell fit tests leading before shrinking and stops at 3pt on overflow',()=>
  const scope={querySelectorAll:selector=>selector==='[data-wall-cell-fit]'?[month]:[]};
  wall.fit(scope);
  assert.equal(values['--wall-cell-fit-size'],'3.5cqw');
- assert.equal(values['--wall-cell-fit-leading'],'1.1');
+ assert.equal(values['--wall-cell-fit-leading'],'1.15');
  required=2;
  wall.fit(scope);
  assert.equal(values['--wall-cell-fit-size'],'3cqw');

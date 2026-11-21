@@ -84,7 +84,8 @@ function PosterCalendarTools({project,item,onChange,templateName}:PosterToolsPro
  const mode=settings.scheduleDisplayMode??(isG&&settings.rangeMode!=='bars'?'text':'legacy');
  const selectedMode=mode==='legacy'?(settings.rangeMode==='bars'?'bar':'text'):mode;
  const textOnly=selectedMode==='text';
- const size=Number(settings.schedulePt??(cells?settings.eventPt:settings.listPt));
+ const minimumSize=cells?3:5;
+ const size=Math.max(minimumSize,Number(settings.schedulePt??(cells?settings.eventPt:settings.listPt)));
  const update=(patch:Record<string,string|boolean|number>)=>onChange?.(patch,isG);
  const color=String(settings.scheduleColor||settings.listColor||settings.dateColor||'#17202e');
  const cellAutoFit=settings.cellAutoFit===true||(settings.cellAutoFit==null&&mode==='text');
@@ -106,7 +107,7 @@ function PosterCalendarTools({project,item,onChange,templateName}:PosterToolsPro
     {([['bar','색상 막대'],['text','텍스트만'],['line','가는 선']] as const).map(([value,label])=><Button key={value} aria-pressed={selectedMode===value} onClick={()=>update({scheduleDisplayMode:value})}>
      <span className={'schedule-style-example '+value} aria-hidden="true"><span>학교 일정</span></span><span>{label}</span>
     </Button>)}
-   </div>:<label>목록 단수<select value={String(settings.listLayout)} onChange={e=>update({listLayout:e.target.value})}><option value="auto">자동</option><option value="one">1단</option><option value="two">2단</option><option value="three">3단</option></select></label>}
+   </div>:<label className="poster-list-columns">목록 단수<select value={String(settings.listLayout)} onChange={e=>update({listLayout:e.target.value})}><option value="auto">자동</option><option value="one">1단</option><option value="two">2단</option><option value="three">3단</option></select></label>}
    {cells&&textOnly&&<>
     {checkbox("일정을 '/'로 이어서 표시",'scheduleJoinText',settings.scheduleJoinText===true)}
     {checkbox('구간 일정을 날짜별 표시','scheduleRangeEachDay',settings.scheduleRangeEachDay===true)}
@@ -118,14 +119,14 @@ function PosterCalendarTools({project,item,onChange,templateName}:PosterToolsPro
     {checkbox('공휴일 표시','scheduleHolidays',settings.includeHolidays!==false)}
    </>}
    <div className="schedule-sizing-fields">
-    <label>일정 글자 크기(pt)<input type="number" min="5" max="24" step="0.1" value={size} onChange={e=>{const n=e.target.valueAsNumber;if(n>=5&&n<=24)update({schedulePt:n});}}/></label>
+    <label>일정 글자 크기(pt)<input type="number" min={minimumSize} max="24" step="0.1" value={size} onChange={e=>{const n=e.target.valueAsNumber;if(n>=minimumSize&&n<=24)update({schedulePt:n});}}/></label>
     {cells?<label>{textOnly?'일정 줄 높이(px)':'일정 영역 높이(px)'}<input type="number" min="1" max="24" placeholder="자동" value={Number(settings.scheduleBarHeight)||''} onChange={e=>{const n=e.target.valueAsNumber;if(n>=1&&n<=24)update({scheduleBarHeight:n});}}/></label>
      :<label>일정 자간(em)<input type="number" min="-0.1" max="0.2" step="0.01" value={Number(settings.scheduleTracking??0)} onChange={e=>{const n=e.target.valueAsNumber;if(n>=-0.1&&n<=0.2)update({scheduleTracking:n});}}/></label>}
    </div>
    <label className="poster-calendar-color"><span>글자색</span><input type="color" value={color} onChange={e=>update({scheduleColor:e.target.value})}/></label>
    {checkbox('날짜 칸 일정 자동 맞춤','cellAutoFit',cellAutoFit,!cells)}
    {!isG&&checkbox('월별 일정 목록 자동 맞춤','listAutoFit',settings.listAutoFit===true,cells)}
-   {cells&&<p className="schedule-sizing-help">일정이 숨겨지면 글자 크기와 {textOnly?'줄 높이':'영역 높이'}를 줄여 보세요. 날짜 칸 높이에 따라 표시 개수가 달라집니다.</p>}
+   {cells&&<p className="schedule-sizing-help">일정이 잘리면 글자 크기나 {textOnly?'줄 높이':'영역 높이'}를 줄여 보세요.</p>}
   </details>
  </div>;
 }

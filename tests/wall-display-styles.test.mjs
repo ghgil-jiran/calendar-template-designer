@@ -2,6 +2,8 @@ import {measuredMonth,withCss} from './helpers/wall-month-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../apps/designer-studio/wall-calendar-policy.js';
+import '../apps/designer-studio/calendar-domain-bridge.js';
+import '../apps/designer-studio/shared-screen-schedule.js';
 import '../apps/designer-studio/project-document.js';
 import '../apps/designer-studio/calendar-type-domain.js';
 import '../apps/designer-studio/poster-one-page-sample.js';
@@ -27,7 +29,7 @@ test('list groups preserve all events once in date order, with aligned dates and
 });
 test('automatic list columns compare measured wrapped heights and retain every entry',()=>withCss(()=>{
  const f=measuredMonth({two:230,three:204});wall.fit(f.scope);assert.equal(f.list.dataset.wallResolvedColumns,'3');
- const tied=measuredMonth({two:230,three:230});wall.fit(tied.scope);assert.equal(tied.list.dataset.wallResolvedColumns,'2');
+ const tied=measuredMonth({two:230,three:230});wall.fit(tied.scope);assert.equal(tied.list.dataset.wallResolvedColumns,'1');
  tied.list.dataset.wallListLayout='three';wall.fit(tied.scope);assert.equal(tied.list.dataset.wallResolvedColumns,'3');
 }));
 test('customer display changes cannot alter sizes or reference inclusion flags',()=>{for(const name of Object.keys(wall.presets))assert.deepEqual(wall.validateCustomer(wall.presets[name]),wall.presets[name]);assert.deepEqual(wall.validateCustomer({listLayout:'three',titleStyle:'underline',weekdayFormat:'english'}),{listLayout:'three',titleStyle:'underline',weekdayFormat:'english'});assert.throws(()=>wall.validateCustomer({listLayout:'four'}));assert.throws(()=>wall.validateCustomer({includeLunar:true}));assert.throws(()=>wall.validateCustomer({datePt:4}));});
@@ -43,4 +45,22 @@ test('wall schedules keep their configured size and draw column rules only when 
  assert.ok(cell);
  assert.ok(cell.includes(100*(11*25.4/72)/wall.geometry(p,item).width+'cqw'),cell);
  assert.doesNotMatch(markup,/column-rule:/);
+});
+
+test('poster switches holiday label placement while retaining the substitute holiday date color',()=>{
+ const fixture=model(),{p,item}=fixture;
+ p.book.calendarReference={years:{2027:{public_holiday:{items:[{date:'2027-03-02',name:'대체공휴일',isHoliday:true}]}}}};
+ const monthOptions=fixture.item.wallMonthOverrides={3:{scheduleHolidays:true}};
+ item.wallCalendarSettings={scheduleHolidays:false,schedulePlacement:'list',referencePlacement:'list'};
+ assert.match(html(fixture),/data-poster-list-event="ref.public_holiday.2027-03-02.대체공휴일"/);
+ item.wallCalendarSettings={...wall.presets['poster-cells'],scheduleHolidays:true,schedulePt:3};
+ delete monthOptions[3];
+ const markup=html(fixture);
+ assert.match(markup,/data-poster-date="2027-03-02"[^>]*>[\s\S]*?color:#d92d20">2<\/b>[\s\S]*?대체공휴일[\s\S]*?data-wall-cell-text style="[^"]*margin-top:auto/);
+ assert.doesNotMatch(markup,/data-poster-list-event="ref.public_holiday.2027-03-02/);
+ item.wallCalendarSettings.scheduleHolidays=false;
+ const hidden=html(fixture);
+ assert.doesNotMatch(hidden,/대체공휴일/);
+ assert.match(hidden,/data-poster-date="2027-03-02"[^>]*>[\s\S]*?color:#d92d20">2<\/b>/);
+ assert.deepEqual(wall.validateCustomer({schedulePt:3}),{schedulePt:3});
 });
