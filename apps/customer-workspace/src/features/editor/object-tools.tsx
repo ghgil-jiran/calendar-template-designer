@@ -8,9 +8,9 @@ import type {SchoolField,SchoolInput} from '@/lib/api/contracts';
 import {fontChoices} from '@/lib/editor/font-catalog';
 import type {NativeProject} from '@/lib/materials/native-project';
 
-type ToolIconName='undo'|'redo'|'copy'|'paste'|'delete'|'left'|'center'|'right'|'justify'|'school'|'schedule'|'image';
+type ToolIconName='undo'|'redo'|'copy'|'paste'|'delete'|'left'|'center'|'right'|'justify'|'school'|'schedule'|'image'|'text-box';
 export function ToolIcon({name}:{name:ToolIconName}){
- const paths:Record<ToolIconName,string>={undo:'M9 5 4 10l5 5M4 10h10a6 6 0 0 1 0 12',redo:'m15 5 5 5-5 5M20 10H10a6 6 0 0 0 0 12',copy:'M9 8h11v13H9zM15 8V3H4v13h5',paste:'M9 5H5v17h14V5h-4M9 3h6v5H9z',delete:'M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6',left:'M3 5h18M3 10h12M3 15h18M3 20h12',center:'M3 5h18M6 10h12M3 15h18M6 20h12',right:'M3 5h18M9 10h12M3 15h18M9 20h12',justify:'M3 5h18M3 10h18M3 15h18M3 20h18',school:'m3 10 9-6 9 6M5 9v12h14V9M9 21v-7h6v7M12 4V1',schedule:'M4 5h16v16H4zM8 2v6M16 2v6M4 10h16M8 14h2M14 14h2M8 18h2',image:'M3 4h18v16H3zM3 16l6-6 5 5 3-3 4 4M16 8h.01'};
+ const paths:Record<ToolIconName,string>={undo:'M9 5 4 10l5 5M4 10h10a6 6 0 0 1 0 12',redo:'m15 5 5 5-5 5M20 10H10a6 6 0 0 0 0 12',copy:'M9 8h11v13H9zM15 8V3H4v13h5',paste:'M9 5H5v17h14V5h-4M9 3h6v5H9z',delete:'M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6',left:'M3 5h18M3 10h12M3 15h18M3 20h12',center:'M3 5h18M6 10h12M3 15h18M6 20h12',right:'M3 5h18M9 10h12M3 15h18M9 20h12',justify:'M3 5h18M3 10h18M3 15h18M3 20h18',school:'m3 10 9-6 9 6M5 9v12h14V9M9 21v-7h6v7M12 4V1',schedule:'M4 5h16v16H4zM8 2v6M16 2v6M4 10h16M8 14h2M14 14h2M8 18h2','text-box':'M3 4h18v16H3zM8 9h8M12 9v7',image:'M3 4h18v16H3zM3 16l6-6 5 5 3-3 4 4M16 8h.01'};
  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d={paths[name]}/></svg>;
 }
 

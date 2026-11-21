@@ -59,7 +59,7 @@ export function ColorPalette({label,value,onChange,theme=[],disabled=false,allow
  }
  return <div className="editor-palette">
   <button ref={trigger} type="button" className="editor-palette-trigger" disabled={disabled} title={label} aria-label={label} aria-controls={id} popoverTarget={id} onClick={open}>
-   <span className="editor-palette-current" style={swatchStyle(color)}/><span aria-hidden="true">⌄</span>
+   <span className="editor-palette-current" style={swatchStyle(color)}/><span className="editor-palette-chevron" aria-hidden="true"/>
   </button>
   <div ref={panel} id={id} popover="auto" className="editor-palette-panel" aria-label={label}>
    {swatches('템플릿 색',theme)}

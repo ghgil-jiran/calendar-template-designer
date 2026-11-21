@@ -1050,3 +1050,12 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-palette-custom button {padding:3px 5px;}
 .editor-palette-custom button:disabled {opacity:.5;}
 .poster-calendar-tools .poster-calendar-color {display:flex;align-items:center;justify-content:space-between;}
+
+.editor-stage-viewport{position:relative;display:flex;flex:1;flex-direction:column;min-height:0}
+.editor-commandbar .editor-add-tools-toggle{width:auto;padding-inline:8px;white-space:nowrap}
+.editor-add-tools-toggle[aria-expanded=true]{color:hsl(var(--primary));background:hsl(var(--primary)/.12);border-color:hsl(var(--primary)/.45)}
+.editor-command-actions,.editor-command-actions>.editor-preview-menu{border-left:1px solid hsl(var(--border));padding-left:6px}
+.editor-add-tools{position:absolute;top:10px;left:10px;z-index:4;display:flex;align-items:stretch;gap:4px;padding:5px;border:1px solid hsl(var(--border));border-radius:8px;background:hsl(var(--canvas));box-shadow:0 3px 12px hsl(var(--shadow)/.14)}
+.editor-add-tools .button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:58px;padding:6px;font-size:12px}
+.editor-add-tools .editor-add-tools-close{align-self:flex-start;min-width:24px;font-size:16px;line-height:1}
+.editor-palette-chevron{box-sizing:border-box;width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-1.5px) rotate(45deg);flex:none}
