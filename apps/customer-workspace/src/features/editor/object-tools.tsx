@@ -91,7 +91,7 @@ function PosterCalendarTools({project,item,onChange,templateName}:PosterToolsPro
  function checkbox(label:string,key:string,checked:boolean,disabled=false){
   return <label className="schedule-text-option"><span>{label}</span><input type="checkbox" checked={checked} disabled={disabled} onChange={e=>update({[key]:e.target.checked})}/></label>;
  }
- const bullet=checkbox('일정 앞 불릿 표시','scheduleBullet',settings.scheduleBullet===true);
+ const bullet=checkbox(cells?'일정 앞 불릿 표시':'날짜 앞 불릿 표시','scheduleBullet',settings.scheduleBullet===true);
  return <div className="poster-calendar-tools poster-calendar-refined">
   <details className="editor-tool-card" open>
    <summary>공통</summary>
@@ -155,7 +155,7 @@ function LegacyPosterCalendarTools({project,item,onChange}:{project:NativeProjec
     <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.scheduleRangeEachDay===true} onChange={e=>update({scheduleRangeEachDay:e.target.checked})}/>기간 일정을 날짜마다 표시</label>
     <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.scheduleJoinText===true} onChange={e=>update({scheduleJoinText:e.target.checked})}/>텍스트 일정을 한 줄로 연결</label>
    </>}
-   <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.scheduleBullet===true} onChange={e=>update({scheduleBullet:e.target.checked})}/>일정 앞 불릿 표시</label>
+   <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.scheduleBullet===true} onChange={e=>update({scheduleBullet:e.target.checked})}/>{settings.schedulePlacement==='list'?'날짜 앞 불릿 표시':'일정 앞 불릿 표시'}</label>
    {settings.schedulePlacement!=='list'&&<label>일정 영역 높이 (px)<input type="number" min="1" max="24" placeholder="자동" value={Number(settings.scheduleBarHeight)||''} onChange={e=>{const n=e.target.valueAsNumber;if(n>=1&&n<=24)update({scheduleBarHeight:n});}}/></label>}
    {canChangeArrangement&&settings.schedulePlacement!=='cells'&&<label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.listColumnColors===true} onChange={e=>update({listColumnColors:e.target.checked})}/>단 구분선 표시</label>}
    <label>목록 단수<select value={String(settings.cellListLayout||settings.listLayout)} onChange={e=>update({listLayout:e.target.value,cellListLayout:e.target.value})}><option value="auto">자동</option><option value="one">1단</option><option value="two">2단</option><option value="three">3단</option></select></label>
