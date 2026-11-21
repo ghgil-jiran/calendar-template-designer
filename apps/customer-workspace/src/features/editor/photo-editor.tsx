@@ -51,6 +51,8 @@ export function PhotoEditor({onOrder,calendarDefaults,onTemplateChange,templateN
  useEffect(()=>{if(!pendingSchool)return;const warn=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue='';};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[pendingSchool]);
  const uploadAlive=useRef(true);useEffect(()=>{uploadAlive.current=true;return()=>{uploadAlive.current=false;};},[]);
  const [objectPicker,setObjectPicker]=useState<'illustration'|'shape'|'frame'|null>(null);
+ const pickerId=useId();
+ const pickerTrigger=useRef<HTMLButtonElement>(null);
  const [addToolsOpen,setAddToolsOpen]=useState(false);
  const addToolsId=useId();
  const addToolsPanel=useRef<HTMLDivElement>(null);
@@ -63,7 +65,12 @@ export function PhotoEditor({onOrder,calendarDefaults,onTemplateChange,templateN
  const canAddText=session.canAddObject('text'),canAddImage=session.canAddObject('image');
  const canAddExtras=session.canAddObject('illustration')||session.canAddObject('shape')||session.canAddObject('frame');
  const showAddTools=addToolsOpen&&(canAddText||canAddImage||canAddExtras);
+ function closeObjectPicker(){
+  setObjectPicker(null);
+  pickerTrigger.current?.focus();
+ }
  function closeAddTools(){
+  setObjectPicker(null);
   setAddToolsOpen(false);
   addToolsButton.current?.focus();
  }
@@ -152,7 +159,7 @@ export function PhotoEditor({onOrder,calendarDefaults,onTemplateChange,templateN
  return <div className={`editor-shell ${draggingPhoto?'dragging-photo':''}`} onKeyDown={e=>{
   if(e.key==='Escape'&&showAddTools&&!e.defaultPrevented&&!documentHasOpenOverlay(e.currentTarget)){
    e.preventDefault();
-   closeAddTools();
+   if(objectPicker)closeObjectPicker();else closeAddTools();
   }
  }}>
  <header className="editor-topbar"><div className="editor-title"><h1><button type="button" className="editor-home-brand" disabled={saving||uploading} onClick={()=>setLeaveOpen('home')} aria-label="우리학교달력 첫 화면으로 이동"><img className="school-calendar-logo" src="/school-calendar-logo.png" alt="우리학교달력" width="120" height="36"/></button></h1></div><div className="editor-top-actions">
@@ -174,21 +181,24 @@ export function PhotoEditor({onOrder,calendarDefaults,onTemplateChange,templateN
  </div>}
  {selection?.rights.layer&&<div className="editor-command-group" role="group" aria-label="레이어 순서">{(['forward','backward','front','back'] as const).map((direction,index)=><Button key={direction} title={['앞으로','뒤로','맨 앞으로','맨 뒤로'][index]} aria-label={['앞으로','뒤로','맨 앞으로','맨 뒤로'][index]} onClick={()=>act(()=>session.moveLayer(direction))}>{['↑','↓','⇈','⇊'][index]}</Button>)}</div>}
  <div className="editor-command-group"><Button title="실행 취소" disabled={!session.canUndo()} onClick={()=>act(()=>{session.undo();setSelection(null);})}><ToolIcon name="undo"/><span className="sr-only">실행 취소</span></Button><Button title="다시 실행" disabled={!session.canRedo()} onClick={()=>act(()=>{session.redo();setSelection(null);})}><ToolIcon name="redo"/><span className="sr-only">다시 실행</span></Button></div><div className="editor-command-group"><Button title="복사" aria-label="복사" disabled={!selection||!!selection.rights.calendarStyle||!!selection.rights.scheduleStyle||!selection.rights.duplicate} onClick={()=>{setClipboard(selection);setMessage('개체를 복사했어요.');}}><ToolIcon name="copy"/></Button><Button title="붙여넣기" aria-label="붙여넣기" disabled={!clipboard} onClick={()=>act(()=>{session.select(clipboard);const target=session.duplicate();setSelection(target);})}><ToolIcon name="paste"/></Button><Button title="삭제" aria-label="삭제" disabled={!selection?.rights.visibility} onClick={()=>act(()=>{session.remove();setSelection(null);})}><ToolIcon name="delete"/></Button></div>{selection?.rights.textStyle&&<TextFormattingToolbar theme={editorThemeColors(document.template.resources?.colorTheme)} disabled={!selection.rights.textStyle} style={selected?.style||{}} onChange={textStyle}/>}<div className="editor-command-actions">{selection?.rights.replaceImage&&<Button title="사진 교체" aria-label="사진 교체" onClick={()=>{setLibraryOpen(true);}}><ToolIcon name="image"/></Button>}<div className="editor-zoom-control" role="group" aria-label="캔버스 확대 축소"><Button aria-label="화면 축소" title="화면 축소" disabled={(fitMode?fitZoom:zoom)<=50} onClick={()=>{setZoom(Math.max(50,(fitMode?fitZoom:zoom)-5));setFitMode(false);}}>−</Button><input type="range" aria-label="화면 배율" min="50" max="150" step="1" value={Math.max(50,Math.min(150,fitMode?fitZoom:zoom))} onChange={e=>{setZoom(Number(e.target.value));setFitMode(false);}}/><Button aria-label="화면 확대" title="화면 확대" disabled={(fitMode?fitZoom:zoom)>=150} onClick={()=>{setZoom(Math.min(150,(fitMode?fitZoom:zoom)+5));setFitMode(false);}}>＋</Button><Button className="editor-zoom-percent" title="화면 맞춤으로 전환" onClick={()=>setFitMode(true)}>{fitMode?fitZoom:zoom}%</Button><Button className="editor-zoom-fit" aria-pressed={fitMode} onClick={()=>setFitMode(true)}>화면 맞춤</Button></div><details className="editor-preview-menu"><summary>미리보기 ▾</summary><div><Button onClick={e=>{e.currentTarget.closest('details')?.removeAttribute('open');setPreviewSingle(true);setPreview(pageIndex);}}>현재 페이지 미리보기</Button><Button onClick={e=>{e.currentTarget.closest('details')?.removeAttribute('open');setPreviewSingle(false);setPreview(0);}}>전체 페이지 미리보기</Button></div></details></div></div><div className="editor-stage-viewport">
- {showAddTools&&<div ref={addToolsPanel} id={addToolsId} className="editor-add-tools" role="group" aria-label="추가할 개체">
+ {showAddTools&&<div className="editor-add-popover"><div ref={addToolsPanel} id={addToolsId} className="editor-add-tools" role="group" aria-label="추가할 개체">
   {canAddImage&&<Button disabled={uploading} onClick={()=>addImageInput.current?.click()}><ToolIcon name="image"/>그림</Button>}
-  {session.canAddObject('illustration')&&<Button onClick={()=>setObjectPicker('illustration')}>일러스트</Button>}
-  {session.canAddObject('shape')&&<Button onClick={()=>setObjectPicker('shape')}>도형</Button>}
-  {session.canAddObject('frame')&&<Button onClick={()=>setObjectPicker('frame')}>프레임</Button>}
+  {(['illustration','shape','frame'] as const).map(kind=>session.canAddObject(kind)&&
+   <Button key={kind} aria-expanded={objectPicker===kind} aria-controls={objectPicker===kind?pickerId:undefined} onClick={e=>{
+    pickerTrigger.current=e.currentTarget;
+    setObjectPicker(current=>current===kind?null:kind);
+   }}><ToolIcon name={kind}/>{{illustration:'일러스트',shape:'도형',frame:'프레임'}[kind]}</Button>)}
   {canAddText&&<Button onClick={addText}><ToolIcon name="text-box"/>텍스트 상자</Button>}
   <Button className="editor-add-tools-close" aria-label="개체 추가 닫기" onClick={closeAddTools}>×</Button>
+ </div>
+ {objectPicker&&<PageObjectPicker key={objectPicker} id={pickerId} kind={objectPicker} onClose={closeObjectPicker} onPick={value=>{
+  act(()=>select(session.addObject(objectPicker,value)));
+  closeObjectPicker();
+ }}/>}
  </div>}
  <div className="editor-stage-scroll" ref={stage}><div className="editor-page-wrap" ref={wrap}><div className="editor-canvas" ref={surface} onClick={e=>{if(!(e.target as HTMLElement).closest('.editor-target')){session.select(null);setSelection(null);}}}><NativePreview compact guides project={document} pageId={state.pageId} onWallScheduleOverflow={setWallScheduleOverflow}/><ProductionGuides project={document} pageId={state.pageId}/><div className="editor-targets">{editableTargets.map((target,i)=><button key={`${target.scope}:${target.elementId}`} type="button" aria-label={`${target.type==='calendar-grid'?'날짜 격자':target.type==='text'?'글자':'사진'} 영역 ${i+1} 선택: ${target.label}`} aria-pressed={same(selection,target)} className={`editor-target ${target.rights.replaceImage?'can-drop':''} ${target.type==='text'?'text-target':''} ${target.type!=='text'&&target.type!=='calendar-grid'&&target.rights.move?'movable-image':''} ${hover===target.elementId?'drop-active':''}`} ref={node=>placeTarget(node,target)} onClick={()=>select(target)} onPointerDown={e=>{if(target.type!=='text')drag(e,target);}} onKeyDown={e=>{if(target.rights.move&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();select(target);const item=selectedItem(target),step=e.shiftKey?1:.2;geometry({x:item.x+(e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0),y:item.y+(e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0)},target);}}} onDragOver={e=>{if(target.rights.replaceImage&&e.dataTransfer.types.includes('application/x-calendar-photo')){e.preventDefault();e.dataTransfer.dropEffect='copy';setHover(target.elementId);}}} onDragLeave={()=>setHover('')} onDrop={e=>{e.preventDefault();setDraggingPhoto(false);setHover('');const photo=photos.find(p=>p.id===e.dataTransfer.getData('application/x-calendar-photo'));if(photo&&target.rights.replaceImage)assign(target,photo);}}><span className="sr-only">{target.label}</span>{target.type==='text'&&target.rights.move&&textEdges.map(edge=><span key={edge} className={`editor-text-edge ${edge}`} onPointerDown={e=>drag(e,target)} aria-hidden="true"/>)}{same(selection,target)&&<><span className="editor-object-tag">{target.label}</span>{target.rights.resize&&resizeDirections.map(direction=><span key={direction} className={`editor-resize-handle ${direction}`} onPointerDown={e=>drag(e,target,direction)} aria-hidden="true"/>)}</>}{hover===target.elementId&&<span className="editor-drop-label">여기에 사진 놓기</span>}</button>)}</div></div></div></div></div> <ProductionGuideLegend/><div className="editor-page-navigation"><Button aria-label="이전 페이지" disabled={pageIndex<=0} onClick={()=>{changePage(pages[pageIndex-1].id);strip.current?.children[pageIndex-1]?.scrollIntoView({block:'nearest',inline:'nearest'});}}>‹</Button><nav ref={strip} className="editor-page-strip" aria-label="달력 페이지 목록" onWheel={e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX))e.currentTarget.scrollLeft+=e.deltaY;}}>{pages.map((page,i)=><button type="button" key={page.id} aria-current={page.id===state.pageId?'page':undefined} aria-label={`${document.productType.category==='poster'?editorPageLabel(document,page,i):`${i+1}면 ${photoPageLabel(page,i)}`} 편집`} onClick={()=>changePage(page.id)}><PageThumbnail project={document} pageId={page.id} signature={materialSignature+state.logoMode+JSON.stringify(state.copies)+JSON.stringify(state.edits.filter(e=>e.pageId===page.id))}/><span>{document.productType.category==='poster'?editorPageLabel(document,page,i):`${i+1}. ${photoPageLabel(page,i)}`}</span></button>)}</nav><Button aria-label="다음 페이지" disabled={pageIndex>=pages.length-1} onClick={()=>{changePage(pages[pageIndex+1].id);strip.current?.children[pageIndex+1]?.scrollIntoView({block:'nearest',inline:'nearest'});}}>›</Button></div></main>
  <aside ref={properties} className="editor-properties" aria-label="편집 도구"><ObjectTools onFreeText={text=>act(()=>session.editPhoto({text}))} onFill={fill=>act(()=>session.editPhoto({fill}))} themeColors={editorThemeColors(document.template.resources?.colorTheme)} wallScheduleOverflow={wallScheduleOverflow} scheduleSizing={document.template.masters.calendar?.rangeEventStyle} onScheduleSizing={patch=>act(()=>session.setDeskScheduleSizing(patch))} scheduleStyle={document.template.masters.calendar?.rangeEventStyle?.displayMode} onScheduleStyle={mode=>act(()=>session.setDeskScheduleStyle(mode))} pageName={editorPageLabel(document,pages[pageIndex],pageIndex)} posterTemplateName={templateName} posterProject={document.productType.category==='poster'?document:undefined} editableTargets={editableTargets} onSelect={select} onCalendar={(calendarSettings,allPages)=>act(()=>session.editPhoto({calendarSettings},{calendarAll:allPages}))} onPendingChange={setPendingSchool} logoMode={state.logoMode||'split'} onLogoMode={mode=>act(()=>{session.setLogoMode(mode);const target=session.targets(state.pageId).find(t=>same(selection,t))||null;setSelection(target);if(target)setFit(readFit(selectedItem(target,session.getDocument()),target));setMessage('모든 연결 페이지의 로고 구성을 변경했어요.');})} saving={saving} onReplaceImage={()=>{setLibraryOpen(true);setTab('all');setMessage('왼쪽 사진을 선택하거나 끌어 놓아 교체해 주세요.');}} onSchoolSave={async nextSchool=>{const ok=await onMaterialsSave(nextSchool,events);if(ok)setMessage('수정된 정보를 학교 정보에 저장했어요.');return ok;}} selection={selection} item={selected?.academicPoster?{...selected,wallCalendarSettings:{...project.template.calendarTypeSnapshot?.definition?.wallCalendarDefaults,...selected.wallCalendarSettings}}:selected} fields={fields} school={school} fit={fit} hasEditableTargets={editableTargets.length>0} schoolImageLinked={schoolImageLinked} sharing={{...sharing,layoutCount,imageCount,poster:project.productType.category==='poster'}} canReset={state.edits.some(e=>same(selection,e as EditorTarget)&&!!(e.photoId||e.photoCopy||e.fit))} onFieldChange={onFieldChange} onFieldHide={onFieldHide} onStyle={textStyle} onFit={changeFit} onShare={changeSharing} onReset={()=>act(()=>{session.resetPhoto({imageAll:sharing.image});if(selection)select(selection);})}/></aside>
  </div>
- {objectPicker&&<PageObjectPicker kind={objectPicker} onClose={()=>setObjectPicker(null)} onPick={value=>{
-  act(()=>select(session.addObject(objectPicker,value)));
-  setObjectPicker(null);
- }}/>}
  {imageDialog&&<ImageLibraryDialog busy={imageSaving||saving} error={imageSaveError} onClose={()=>{setImageDialog(false);setImageSaveError('');}}><PhotoInput embedded stage="prepare" onStageChange={()=>{}} template={{} as never} project={project} pages={[]} pageId="" onPageId={()=>{}} selections={{}} onSelections={()=>{}} photos={photos} onPhotos={onPhotos} slots={photoSlotsForProject(project)} assignments={Object.fromEntries(photoSlotsForProject(project).flatMap(slot=>{const photo=photos.find(p=>p.id===commonPhotoIds[slot.binding||'']);return photo?[[slot.id,{photoId:photo.id,url:photo.url}]]:[];}))} onCommonPhoto={(binding,photo)=>{act(()=>session.resetBoundPhotos(binding));onSchoolPhoto(binding,photo);}} onAssignments={()=>{}} onBack={()=>{}} onNext={()=>{if(imageSaving||saving)return;setImageSaving(true);setImageSaveError('');void onSave().then(ok=>{if(ok)setImageDialog(false);else setImageSaveError('저장하지 못했어요. 이미지는 유지됩니다. 다시 저장해 주세요.');}).catch(()=>setImageSaveError('저장하지 못했어요. 이미지는 유지됩니다. 다시 저장해 주세요.')).finally(()=>setImageSaving(false));}}/></ImageLibraryDialog>}
  {leaveOpen&&<LeaveEditorDialog defaultName={name}
   title={leaveOpen==='home'?'첫 화면으로 이동할까요?':leaveOpen==='projects'?'내 프로젝트로 이동할까요?':'주문하기'}
@@ -213,10 +223,8 @@ const objectPresets={
  shape:[['rect','사각형'],['rounded','둥근 사각형'],['ellipse','타원'],['line','선']],
  frame:[['rect','사각 프레임'],['rounded','둥근 프레임'],['circle','원형 프레임'],['ellipse','타원 프레임']],
 };
-function PageObjectPicker({kind,onPick,onClose}:{kind:'illustration'|'shape'|'frame';onPick:(value:string|PublishedIllustration)=>void;onClose:()=>void}){
- const dialog=useRef<HTMLDialogElement>(null);
+function PageObjectPicker({id,kind,onPick,onClose}:{id:string;kind:'illustration'|'shape'|'frame';onPick:(value:string|PublishedIllustration)=>void;onClose:()=>void}){
  const [items,setItems]=useState<PublishedIllustration[]|null>(null),[error,setError]=useState('');
- useEffect(()=>{dialog.current?.showModal();},[]);
  useEffect(()=>{
   if(kind!=='illustration')return;
   const controller=new AbortController();
@@ -234,11 +242,11 @@ function PageObjectPicker({kind,onPick,onClose}:{kind:'illustration'|'shape'|'fr
    return renderer?`data:image/svg+xml,${encodeURIComponent(renderer.svg(item.vectorObject))}`:null;
   }catch{return null;}
  };
- return <dialog ref={dialog} className="editor-object-picker" aria-label={title} onCancel={e=>{e.preventDefault();onClose();}}>
-  <header><h2>{title}</h2><Button onClick={onClose}>닫기</Button></header>
+ return <section id={id} className="editor-object-picker" aria-label={title}>
+  <header><h2>{title}</h2><Button aria-label={title+' 목록 닫기'} onClick={onClose}>×</Button></header>
   {error?<p role="alert">{error}</p>:kind==='illustration'?
    items===null?<p role="status">일러스트를 불러오는 중입니다.</p>:items.length===0?<p>게시된 일러스트가 없습니다.</p>:
    <div className="editor-object-options">{items.map(item=>{const src=svg(item);return <Button key={item.id} disabled={!src} onClick={()=>onPick(item)}>{src&&<img src={src} alt="" loading="lazy"/>}{item.name}</Button>;})}</div>:
    <div className="editor-object-options">{objectPresets[kind].map(([preset,label])=><Button key={preset} onClick={()=>onPick(preset)}><span aria-hidden="true" className={`editor-object-sample ${kind} ${preset}`}/>{label}</Button>)}</div>}
- </dialog>;
+ </section>;
 }

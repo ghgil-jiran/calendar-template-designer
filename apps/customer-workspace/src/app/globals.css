@@ -1055,19 +1055,24 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-commandbar .editor-add-tools-toggle{width:auto;padding-inline:8px;white-space:nowrap}
 .editor-add-tools-toggle[aria-expanded=true]{color:hsl(var(--primary));background:hsl(var(--primary)/.12);border-color:hsl(var(--primary)/.45)}
 .editor-command-actions,.editor-command-actions>.editor-preview-menu{border-left:1px solid hsl(var(--border));padding-left:6px}
-.editor-add-tools{position:absolute;top:10px;left:10px;z-index:4;display:flex;align-items:stretch;gap:4px;padding:5px;border:1px solid hsl(var(--border));border-radius:8px;background:hsl(var(--canvas));box-shadow:0 3px 12px hsl(var(--shadow)/.14)}
-.editor-add-tools .button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:58px;padding:6px;font-size:12px}
-.editor-add-tools .editor-add-tools-close{align-self:flex-start;min-width:24px;font-size:16px;line-height:1}
+.editor-add-popover{position:absolute;inset:6px auto auto 6px;z-index:4;width:max-content;max-width:calc(100% - 12px)}
+.editor-add-tools,.editor-object-picker{border:1px solid hsl(var(--border));border-radius:7px;background:hsl(var(--canvas)/.95);box-shadow:0 3px 10px hsl(var(--shadow)/.12)}
+.editor-add-tools{display:flex;align-items:stretch;gap:2px;padding:3px;flex-wrap:wrap}
+.editor-add-tools .button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:40px;min-height:36px;padding:3px 5px;border-radius:4px;background:transparent;font-size:10px;line-height:1.2;white-space:nowrap}
+.editor-add-tools .button svg{width:14px;height:14px}
+.editor-add-tools .button:hover,.editor-add-tools .button[aria-expanded=true]{background:hsl(var(--primary)/.1)}
+.editor-add-tools .editor-add-tools-close{align-self:flex-start;min-width:20px;min-height:24px;font-size:14px}
 .editor-palette-chevron{box-sizing:border-box;width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-1.5px) rotate(45deg);flex:none}
-.editor-object-picker{position:fixed;inset:auto 0 0;margin:0 auto;width:min(720px,100%);max-height:55dvh;overflow:auto;padding:16px;border:1px solid hsl(var(--border));border-radius:12px 12px 0 0;background:hsl(var(--canvas));color:hsl(var(--foreground))}
-.editor-object-picker::backdrop{background:hsl(var(--foreground)/.2)}
-.editor-object-picker header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.editor-object-options{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:8px}
-.editor-object-options .button{display:grid;justify-items:center;align-content:start;gap:6px;min-height:84px}
-.editor-object-options img{width:48px;height:48px;object-fit:contain}
-.editor-object-sample{display:block;width:42px;height:30px;margin:4px;border:2px solid hsl(var(--primary));background:hsl(var(--primary)/.15)}
+.editor-object-picker{margin-top:4px;padding:5px;color:hsl(var(--foreground))}
+.editor-object-picker header{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:4px}
+.editor-object-picker h2,.editor-object-picker p{margin:0;font-size:11px}
+.editor-object-picker header .button{min-height:20px;padding:0 5px;font-size:13px}
+.editor-object-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(48px,1fr));gap:3px;max-height:min(190px,28dvh);overflow-y:auto;overscroll-behavior:contain;padding:2px}
+.editor-object-options .button{display:grid;justify-items:center;align-content:start;gap:3px;min-width:0;min-height:46px;padding:4px 2px;font-size:10px;line-height:1.2;overflow-wrap:anywhere}
+.editor-object-options img{width:28px;height:28px;object-fit:contain}
+.editor-object-sample{display:block;width:26px;height:18px;margin:2px;border:1px solid hsl(var(--primary));background:hsl(var(--primary)/.15)}
 .editor-object-sample.frame{background:transparent}
-.editor-object-sample.rounded{border-radius:8px}
-.editor-object-sample.circle{width:30px;border-radius:50%}
+.editor-object-sample.rounded{border-radius:5px}
+.editor-object-sample.circle{width:18px;border-radius:50%}
 .editor-object-sample.ellipse{border-radius:50%}
-.editor-object-sample.line{height:0;border-width:0 0 2px;margin-block:19px}
+.editor-object-sample.line{height:0;border-width:0 0 1px;margin-block:11px}
