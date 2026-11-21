@@ -2,28 +2,30 @@
  const clone=value=>structuredClone(value),equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
  const labels={'school-logo':'교표 이미지','school-building':'학교 전경','school-song':'교가 악보','school-tree':'교목 이미지','school-flower':'교화 이미지','school.name':'학교 이름','school.englishName':'영문 학교명','school.slogan':'학교 슬로건','school.address':'학교 주소','school.website':'학교 홈페이지','school.contacts':'학교 연락처','school.profile.motto.description':'교훈'};
  const bindingOf=item=>item.bindingEnabled===false?'':item.image?.binding||item.binding||'';
- const posterBackground=item=>/background/i.test(item.role||'')||Boolean(item.backgroundPresetId||item.metadata?.isBackground);
- const posterLayers=['forward','backward','front','back'];
- const posterPage=(project,pageId)=>project.book.pageInstances.find(p=>p.id===pageId);
- function canAddPosterObject(project,page,type){
-  return project.productType?.category==='poster'&&page&&project.template.userEditing?.restrictions?.additions?.[type]!==false&&page.userEditing?.restrictions?.additions?.[type]!==false;
+ const protectedBackground=item=>/background/i.test(item.role||'')||Boolean(item.backgroundPresetId||item.metadata?.isBackground);
+ const layerDirections=['forward','backward','front','back'];
+ const pageById=(project,pageId)=>project.book.pageInstances.find(p=>p.id===pageId);
+ const supportsPageObjects=project=>['desk','poster'].includes(project.productType?.category);
+ function canAddPageObject(project,page,type){
+  return supportsPageObjects(project)&&page&&project.template.userEditing?.restrictions?.additions?.[type]!==false&&page.userEditing?.restrictions?.additions?.[type]!==false;
  }
  function customerRights(project,page,item,original){
-  const binding=bindingOf(item),school=binding.startsWith('school.'),background=project.productType?.category==='poster'?posterBackground(item):/background|decoration/.test(item.role||''),photo=['image','image-frame'].includes(item.type)||item.type==='semantic-object'&&/^school-(logo|building|song|tree|flower)$/.test(item.role||'');
+  const binding=bindingOf(item),school=binding.startsWith('school.'),background=supportsPageObjects(project)?protectedBackground(item):/background|decoration/.test(item.role||''),photo=['image','image-frame'].includes(item.type)||item.type==='semantic-object'&&/^school-(logo|building|song|tree|flower)$/.test(item.role||'');
   const cover=/cover/.test(page.role||''),symbols=[page.role,page.semanticPageRole,page.contentPurpose].includes('school-symbols')||photo&&/^school-(song|tree|flower)$/.test(item.role||''),front=page.role==='monthly-front',back=page.role==='monthly-back',poster=project.productType?.category==='poster';
-  const text=item.type==='text'&&school&&!/calendar|year|month/.test(binding),allowed=cover||symbols||front||back||poster||school||original.content===true||original.replaceImage===true;
+  const text=item.type==='text'&&school&&!/calendar|year|month/.test(binding),allowed=cover||symbols||front||back||supportsPageObjects(project)||school||original.content===true||original.replaceImage===true;
   if(item.locked||item.selectable===false||background||!allowed||(project.template.publishing?.dataRequirements||[]).some(r=>r.stage==='excluded'&&school&&(binding===r.path||binding.startsWith(r.path+'.'))))return {};
   if(poster&&item.type==='year-calendar'&&item.academicPoster)return {calendarStyle:true};
   const userPhoto=photo&&(school||original.replaceImage===true||/monthly-image|user-image|cover-photo/.test(item.role||'')||binding.startsWith('calendar.monthlyImages.'));
-  if(poster){
+  if(supportsPageObjects(project)){
    const isText=item.type==='text',shape=item.type==='shape',editable=isText||shape||photo||['graphic','vector'].includes(item.type);
    if(!editable)return {};
+   if(!poster&&isText&&binding.startsWith('calendar.'))return {content:false};
    const limit=item.customerEditingRestrictions||{};
    const allowed=action=>limit[action]!==false;
    return {replaceImage:userPhoto&&(school||original.replaceImage===true||item.role==='user-image')&&allowed('replaceImage'),
-    imageFit:userPhoto&&(school||original.imageFit===true||item.role==='user-image')&&allowed('imageFit'),
+    imageFit:userPhoto&&(school||original.imageFit===true||item.role==='user-image'||!poster&&item.type!=='image-frame')&&allowed('imageFit'),
     content:isText&&allowed('content')&&(!binding||school),freeText:isText&&!binding&&allowed('content'),
-    move:allowed('move'),resize:allowed('resize'),layer:allowed('layer'),duplicate:allowed('duplicate'),
+    move:allowed('move'),resize:allowed('resize')&&(poster||!back||!userPhoto||item.role==='user-image'),layer:allowed('layer'),duplicate:allowed('duplicate'),
     visibility:item.required!==true&&allowed('delete'),textStyle:isText&&allowed('color'),textSize:isText&&allowed('color'),fill:shape&&allowed('color')};
   }
   return {replaceImage:userPhoto&&(school||original.replaceImage===true),imageFit:userPhoto&&(item.type!=='image-frame'||school||original.imageFit===true),content:text&&allowed,move:(text||userPhoto)&&(cover||symbols||poster||front&&userPhoto||back&&userPhoto||original.move===true),resize:(text||userPhoto)&&(cover||symbols||poster||front&&userPhoto||original.resize===true&&!back),textStyle:text&&allowed,textSize:text&&allowed,visibility:(text||userPhoto)&&allowed};
@@ -32,7 +34,7 @@
   const page=project.book.pageInstances.find(p=>p.id===pageId);if(!page)throw Error('페이지를 찾을 수 없어요.');
   const local=project.book.elementsByPage?.[page.id]||[];
   const movable=['cover-front','back-cover-front','back-cover-back'].includes(page.role)||page.semanticPageRole==='school-symbols';
-  const result=root.ACDLSharedScreenComposition.visibleElements(page,project.template.masterElements?.[page.masterId]||[],local).filter(item=>(includeHidden||item.visible!==false&&item.hidden!==true)&&['image-frame','image','text','semantic-object','year-calendar',...(project.productType?.category==='poster'?['shape','graphic','vector']:[])].includes(item.type)).map(item=>{
+  const result=root.ACDLSharedScreenComposition.visibleElements(page,project.template.masterElements?.[page.masterId]||[],local).filter(item=>(includeHidden||item.visible!==false&&item.hidden!==true)&&['image-frame','image','text','semantic-object','year-calendar',...(supportsPageObjects(project)?['shape','graphic','vector']:[])].includes(item.type)).map(item=>{
    const rights=item.locked||item.selectable===false?{}:{...root.ACDLUserEditingPolicy.effectivePermissions(project,page,item)},authoredRights={...rights};
    rights.move=movable&&rights.move===true;rights.resize=movable&&rights.resize===true;rights.textSize=movable&&item.type==='text'&&rights.color===true;
    if(item.type!=='image-frame')rights.imageFit=false;if(!['image-frame','image'].includes(item.type))rights.replaceImage=false;
@@ -105,8 +107,8 @@
   const additions=state.additions??[];
   if(!Array.isArray(additions)||additions.length>200)throw Error('추가 개체 수를 확인해 주세요.');
   for(const addition of additions){
-   const {id,pageId,type}=addition||{},page=posterPage(document,pageId);
-   if(!['image','text'].includes(type)||!canAddPosterObject(document,page,type)||typeof id!=='string'||!/^user-object:[\w-]+$/.test(id))throw Error('추가 개체 정보를 확인해 주세요.');
+   const {id,pageId,type}=addition||{},page=pageById(document,pageId);
+   if(!['image','text'].includes(type)||!canAddPageObject(document,page,type)||typeof id!=='string'||!/^user-object:[\w-]+$/.test(id))throw Error('추가 개체 정보를 확인해 주세요.');
    document.book.elementsByPage||={};
    const local=document.book.elementsByPage[pageId]||=[],master=document.template.masterElements?.[page.masterId]||[];
    if([...local,...master].some(e=>e.id===id))throw Error('추가 개체가 중복되었습니다.');
@@ -119,7 +121,7 @@
   for(const c of copies){
    if(!c||typeof c.id!=='string'||!c.id.startsWith('user-copy:')||ids.has(c.id)||!document.book.pageInstances.some(p=>p.id===c.pageId))throw Error('복사 개체 정보를 확인해 주세요.');
    ids.add(c.id);const t=targets(document,c.source?.pageId,capabilities,true).find(t=>t.elementId===c.source.elementId&&t.scope===c.source.scope);
-   if(!t||(project.productType?.category==='poster'?!t.rights.duplicate:!Object.values(t.rights).some(Boolean)))throw Error('복사할 수 없는 개체입니다.');
+   if(!t||(supportsPageObjects(project)&&capabilities==='school-basic-v2'?!t.rights.duplicate:!Object.values(t.rights).some(Boolean)))throw Error('복사할 수 없는 개체입니다.');
    const item=clone(originalItem(document,t));item.id=c.id;delete item.shadowOfMasterElementId;item.originScope='page';
    document.book.elementsByPage||={};const list=document.book.elementsByPage[c.pageId]||=[];if(list.some(e=>e.id===c.id))throw Error('복사 개체가 중복되었습니다.');list.push(item);
   }return document;
@@ -149,7 +151,7 @@
    }
    if(edit.calendarSettings&&!target.rights.calendarStyle)throw Error('전체 월력 표시를 변경할 수 없습니다.');
    if(edit.text!==undefined&&!target.rights.freeText||edit.fill!==undefined&&!target.rights.fill)throw Error('이 개체에서 허용하지 않은 편집이에요.');
-   if(edit.textStyle?.backgroundColor!==undefined&&(project.productType?.category!=='poster'||typeof edit.textStyle.backgroundColor!=='string'||!/^(?:transparent|#[0-9a-f]{6})$/i.test(edit.textStyle.backgroundColor)))throw Error('글자 배경색을 확인해 주세요.');
+   if(edit.textStyle?.backgroundColor!==undefined&&(!supportsPageObjects(project)||typeof edit.textStyle.backgroundColor!=='string'||!/^(?:transparent|#[0-9a-f]{6})$/i.test(edit.textStyle.backgroundColor)))throw Error('글자 배경색을 확인해 주세요.');
    if(edit.textStyle&&!target.rights.textStyle||edit.hidden!==undefined&&!target.rights.visibility)throw Error('허용하지 않은 글자 편집이에요.');
    if((edit.photoId!==undefined||edit.photoCopy)&&!target.rights.replaceImage||edit.fit&&!target.rights.imageFit)throw Error('템플릿에서 허용하지 않은 사진 편집이에요.');
    const page=document.book.pageInstances.find(p=>p.id===edit.pageId);document.book.elementsByPage||={};const local=document.book.elementsByPage[page.id]||=[];
@@ -177,16 +179,16 @@
    if(edit.fit)root.ACDLPhotoFrameEditing.apply(item,{...item.image,...edit.fit});
   }
   const moves=state.layerMoves??[];
-  if(!Array.isArray(moves)||moves.length>1000||moves.length&&project.productType?.category!=='poster')throw Error('개체 순서 정보를 확인해 주세요.');
+  if(!Array.isArray(moves)||moves.length>1000||moves.length&&!supportsPageObjects(project))throw Error('개체 순서 정보를 확인해 주세요.');
   for(const pageId of new Set(moves.map(move=>move?.pageId))){
-   const page=posterPage(document,pageId);
+   const page=pageById(document,pageId);
    if(!page)throw Error('개체 순서를 적용할 페이지를 찾을 수 없어요.');
    const local=document.book.elementsByPage[pageId]||=[],master=document.template.masterElements?.[page.masterId]||[];
    const all=root.ACDLSharedScreenComposition.visibleElements(page,master,local);
-   const foreground=all.filter(item=>!posterBackground(item)),background=all.filter(posterBackground);
+   const foreground=all.filter(item=>!protectedBackground(item)),background=all.filter(protectedBackground);
    for(const move of moves.filter(move=>move.pageId===pageId)){
     const rights=targets(project,pageId,capabilities,true).find(t=>t.scope===move.scope&&t.elementId===move.elementId)?.rights;
-    if(!rights?.layer||!posterLayers.includes(move.direction))throw Error('개체 순서를 변경할 수 없어요.');
+    if(!rights?.layer||!layerDirections.includes(move.direction))throw Error('개체 순서를 변경할 수 없어요.');
     const index=foreground.findIndex(item=>(item.shadowOfMasterElementId||item.id)===move.elementId&&(item.shadowOfMasterElementId?'master':item._scope)===move.scope);
     if(index<0)continue;
     const to={forward:Math.min(index+1,foreground.length-1),backward:Math.max(index-1,0),front:foreground.length-1,back:0}[move.direction];
@@ -222,7 +224,7 @@
     for(const saved of next.logoGeometry[mode]||[]){const index=next.edits.findIndex(e=>e.pageId===saved.pageId&&e.scope===saved.scope&&e.elementId===saved.elementId);if(index<0)next.edits.push(clone(saved));else Object.assign(next.edits[index],saved);}
     next.logoMode=mode;return commit(next);
    },
-   canAddObject(type){return ['text','image'].includes(type)&&!!canAddPosterObject(source,posterPage(source,current.pageId),type);},
+   canAddObject(type){return ['text','image'].includes(type)&&!!canAddPageObject(source,pageById(source,current.pageId),type);},
    addObject(type,photoId){
     if(!this.canAddObject(type)||type==='image'&&typeof photoId!=='string')throw Error('개체를 추가할 수 없어요.');
     const next=clone(current),id='user-object:'+crypto.randomUUID(),pageId=current.pageId;
@@ -233,10 +235,10 @@
     return selection;
    },
    moveLayer(direction){
-    if(!selection?.rights.layer||!posterLayers.includes(direction))throw Error('개체 순서를 변경할 수 없어요.');
+    if(!selection?.rights.layer||!layerDirections.includes(direction))throw Error('개체 순서를 변경할 수 없어요.');
     const {pageId,elementId,scope}=selection,next=clone(current);
-    const doc=apply(source,current,assets,{capabilities}),page=posterPage(doc,pageId);
-    const layers=root.ACDLSharedScreenComposition.visibleElements(page,doc.template.masterElements?.[page.masterId]||[],doc.book.elementsByPage?.[pageId]||[]).filter(item=>!posterBackground(item));
+    const doc=apply(source,current,assets,{capabilities}),page=pageById(doc,pageId);
+    const layers=root.ACDLSharedScreenComposition.visibleElements(page,doc.template.masterElements?.[page.masterId]||[],doc.book.elementsByPage?.[pageId]||[]).filter(item=>!protectedBackground(item));
     const index=layers.findIndex(item=>(item.shadowOfMasterElementId||item.id)===elementId&&(item.shadowOfMasterElementId?'master':item._scope)===scope);
     if(index<0||index===0&&['back','backward'].includes(direction)||index===layers.length-1&&['front','forward'].includes(direction))return false;
     (next.layerMoves||=[]).push({pageId,elementId,scope,direction});
