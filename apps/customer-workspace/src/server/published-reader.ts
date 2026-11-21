@@ -114,7 +114,7 @@ async function illustrations(version?:string){
   if(!uuid.test(id)||typeof name!=='string')return [];
   if(vectorObject)return [{id,name,revision,originalAssetId,vectorObject}];
   if(!/^[a-f0-9]{64}$/.test(catalog.version)||!uuid.test(originalAssetId)||
-    !['image/png','image/svg+xml'].includes(image?.mimeType)||!(image.width>0&&image.height>0))return [];
+    !['image/png','image/jpeg','image/webp','image/svg+xml'].includes(image?.mimeType)||!(image.width>0&&image.height>0))return [];
   return [{id,name,revision,originalAssetId,image:{...image,version:catalog.version}}];
  });
  return {version:catalog.version,items};
