@@ -5,3 +5,20 @@ test('customer calendar edits reject geometry, pt sizes and non-wall targets',()
 
 test('wall style changes persist across pages and undo without changing dates, positions or inclusion flags',()=>{const p=project();p.settings.calendarData={includeLunar:true};const s=createEditorSession({project:p});s.select(s.targets('a').find(t=>t.elementId==='cal-a'));s.editPhoto({calendarSettings:{gridStyle:'none',dateAlign:'center',titleStyle:'plain',listLayout:'three',listGrouping:'separate'}},{calendarAll:true});const out=applyEditor(p,JSON.parse(JSON.stringify(s.getState())),[]);for(const id of ['a','b']){assert.equal(out.book.elementsByPage[id][0].wallCalendarSettings.listLayout,'three');assert.equal(out.book.elementsByPage[id][0].x,4);}assert.deepEqual(out.settings.calendarData,p.settings.calendarData);assert.deepEqual(out.book.events,p.book.events);assert.deepEqual(out.book.pageInstances,p.book.pageInstances);s.undo();assert.ok(!s.getDocument().book.elementsByPage.a[0].wallCalendarSettings);});
 
+
+test('poster objects restore text, original image and layer order without crossing the background',()=>{
+ const p=project(),assets=[{id:'image',url:'production-asset://original'}];
+ p.book.elementsByPage.a.push({id:'background',type:'shape',role:'background-decoration',zIndex:0},{id:'art',type:'vector',role:'decoration',zIndex:2});
+ const s=createEditorSession({project:p,assets}),text=s.addObject('text');
+ s.editPhoto({text:'행사 안내'});
+ const image=s.addObject('image','image');
+ s.moveLayer('back');
+ const saved=JSON.parse(JSON.stringify(s.getState())),output=applyEditor(p,saved,assets).book.elementsByPage.a;
+ assert.equal(output.find(item=>item.id===text.elementId).content,'행사 안내');
+ assert.equal(output.find(item=>item.id===image.elementId).image.src,'production-asset://original');
+ assert.deepEqual([...output].sort((a,b)=>a.zIndex-b.zIndex).map(item=>item.id),['background',image.elementId,'cal-a','art',text.elementId]);
+ assert.throws(()=>applyEditor(p,{...saved,layerMoves:[{pageId:'a',scope:'page',elementId:'cal-a',direction:'front'}]},assets),/순서/);
+ assert.ok(s.undo());
+ const undone=s.getDocument().book.elementsByPage.a;
+ assert.ok(undone.find(item=>item.id===image.elementId).zIndex>undone.find(item=>item.id===text.elementId).zIndex);
+});

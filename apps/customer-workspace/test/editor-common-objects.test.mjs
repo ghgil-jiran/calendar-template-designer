@@ -28,8 +28,8 @@ test('ambiguous or missing counterparts are skipped instead of changing unrelate
  const p=project();p.book.elementsByPage.b.push(photo('extra'));const s=createEditorSession({project:p,assets});selectPhoto(s);assert.equal(s.counterparts().length,0);s.editPhoto({photoId:'new'},{imageAll:true});assert.equal(item(s,'b','b-photo').image.src,'other');assert.equal(item(s,'b','extra').image.src,'template:extra');
  p.book.elementsByPage.a[0].metadata={correspondenceKey:'main'};p.book.elementsByPage.b[0].metadata={correspondenceKey:'main'};const explicit=createEditorSession({project:p,assets});selectPhoto(explicit);assert.equal(explicit.counterparts().length,1);
 });
-test('backgrounds, automatic years and locked recipients remain protected',()=>{
- const p=project(true);p.book.elementsByPage.b[0].locked=true;const s=createEditorSession({project:p,assets});for(const id of ['year','background']){const t=s.targets('a').find(t=>t.elementId===id);assert.ok(!Object.values(t.rights).some(Boolean));s.select(t);assert.throws(()=>s.editPhoto({textStyle:{fontStyle:'italic'}}),/허용/);}
+test('backgrounds, linked year content and locked recipients remain protected',()=>{
+ const p=project(true);p.book.elementsByPage.b[0].locked=true;const s=createEditorSession({project:p,assets});const background=s.targets('a').find(t=>t.elementId==='background');assert.ok(!Object.values(background.rights).some(Boolean));s.select(background);assert.throws(()=>s.editPhoto({textStyle:{fontStyle:'italic'}}),/허용/);const year=s.targets('a').find(t=>t.elementId==='year');s.select(year);assert.equal(year.rights.textStyle,true);assert.throws(()=>s.editPhoto({text:'2030'}),/허용/);
  selectPhoto(s);assert.equal(s.counterparts().length,0);s.editPhoto({photoId:'new'},{imageAll:true});assert.equal(item(s,'b','b-photo').image.src,'other');assert.throws(()=>s.editPhoto({textStyle:{fontStyle:'oblique'}}),/스타일/);
 });
 test('reset with image sharing is atomic and keeps geometry',()=>{
