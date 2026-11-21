@@ -1076,3 +1076,22 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-object-sample.circle{width:18px;border-radius:50%}
 .editor-object-sample.ellipse{border-radius:50%}
 .editor-object-sample.line{height:0;border-width:0 0 1px;margin-block:11px}
+.editor-palette-alpha{padding:5px 2px}
+.editor-palette-alpha label{display:grid;gap:3px}
+.editor-palette-alpha input[type=range]{width:100%;min-height:20px}
+.editor-object-sample.triangle{clip-path:polygon(50% 0,100% 100%,0 100%)}
+.editor-object-sample.diamond{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.editor-object-sample.pentagon{clip-path:polygon(50% 0,100% 40%,80% 100%,20% 100%,0 40%)}
+.editor-object-sample.hexagon{clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.editor-object-sample.octagon{clip-path:polygon(25% 0,75% 0,100% 25%,100% 75%,75% 100%,25% 100%,0 75%,0 25%)}
+.editor-object-sample.star{clip-path:polygon(50% 0,63% 35%,100% 35%,71% 58%,82% 100%,50% 73%,18% 100%,29% 58%,0 35%,37% 35%)}
+.editor-object-sample.heart{clip-path:polygon(50% 100%,5% 55%,0 25%,20% 5%,38% 5%,50% 22%,62% 5%,80% 5%,100% 25%,95% 55%)}
+.editor-object-sample.cross{clip-path:polygon(35% 0,65% 0,65% 35%,100% 35%,100% 65%,65% 65%,65% 100%,35% 100%,35% 65%,0 65%,0 35%,35% 35%)}
+.editor-object-sample.speech{clip-path:polygon(0 0,100% 0,100% 72%,60% 72%,35% 100%,40% 72%,0 72%)}
+.editor-object-sample.ribbon{clip-path:polygon(0 0,100% 0,82% 50%,100% 100%,0 100%,18% 50%)}
+.editor-object-sample.cloud{border-radius:50% 45% 35% 40%}
+.editor-object-sample.arch{border-radius:60% 60% 0 0}
+.editor-object-sample.line-dashed,.editor-object-sample.line-dotted,.editor-object-sample.line-bold{height:0;border-width:0 0 1px;margin-block:11px}
+.editor-object-sample.line-dashed{border-bottom-style:dashed}
+.editor-object-sample.line-dotted{border-bottom-style:dotted}
+.editor-object-sample.line-bold{border-bottom-width:3px}

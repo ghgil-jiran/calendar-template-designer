@@ -99,8 +99,13 @@ async function illustrations(){
  const response=await fetch(`${url}/storage/v1/object/common-graphics/customer-publications/illustrations.json`,{
   headers:{apikey:key,Authorization:`Bearer ${key}`},signal:AbortSignal.timeout(12000)
  });
- if(response.status===404)return {version:null,items:[]};
- if(!response.ok)throw Error('일러스트 목록을 불러오지 못했습니다.');
+ if(!response.ok){
+  const failure=await response.json().catch(()=>null);
+  const missing=new Set(['NoSuchKey','NoSuchBucket','not_found','Not Found']);
+  if(response.status===404||response.status===400&&(missing.has(failure?.code)||missing.has(failure?.error)||['Object not found','Bucket not found','The resource was not found'].includes(failure?.message)))return {version:null,items:[]};
+  console.error('customer illustration publication read failed',{status:response.status});
+  throw Error('일러스트 목록을 불러오지 못했습니다.');
+ }
  const catalog=await response.json();
  if(catalog.schemaVersion!=='customer-illustrations.v1'||!Array.isArray(catalog.items))throw Error('일러스트 목록 형식을 확인해 주세요.');
  return {version:catalog.version,items:catalog.items.filter((item:NativeProject)=>uuid.test(item.id)&&typeof item.name==='string'&&item.vectorObject)

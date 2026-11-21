@@ -6,7 +6,7 @@
  const layerDirections=['forward','backward','front','back'];
  const pageById=(project,pageId)=>project.book.pageInstances.find(p=>p.id===pageId);
  const supportsPageObjects=project=>['desk','poster'].includes(project.productType?.category);
- const additionPresets={shape:['rect','rounded','ellipse','line'],frame:['rect','rounded','circle','ellipse']};
+ const additionPresets={shape:['rect','rounded','circle','ellipse','triangle','diamond','pentagon','hexagon','octagon','star','heart','cross','speech','ribbon','cloud','arch','line','line-dashed','line-dotted','line-bold'],frame:['rect','rounded','circle','ellipse']};
  const additionKinds=['text','image','shape','frame','illustration'];
  function canAddPageObject(project,page,type){
   const permission=['frame','illustration'].includes(type)?'image':type==='shape'?'shape':type;
@@ -65,7 +65,7 @@
    if(edit.layout&&(Object.keys(edit.layout).some(k=>!['x','y','width','height'].includes(k))||['x','y','width','height'].some(k=>!Number.isFinite(edit.layout[k]))||edit.layout.width<.2||edit.layout.width>500||edit.layout.height<.2||edit.layout.height>500||Math.abs(edit.layout.x)>500||Math.abs(edit.layout.y)>500))throw Error('배치 값을 확인해 주세요.');
    if(edit.photoCopy){const c=edit.photoCopy;if(typeof c!=='object'||Object.keys(c).some(k=>!['photoId','source'].includes(k))||Boolean(c.photoId)===Boolean(c.source)||c.photoId!==undefined&&typeof c.photoId!=='string'||edit.photoId!==undefined)throw Error('공통 이미지 정보를 확인해 주세요.');if(c.source){const r=c.source;if(Object.keys(r).some(k=>!['pageId','scope','elementId'].includes(k))||!['master','page'].includes(r.scope)||typeof r.pageId!=='string'||typeof r.elementId!=='string')throw Error('공통 이미지 영역을 확인해 주세요.');}}
    if(edit.hidden!==undefined&&typeof edit.hidden!=='boolean')throw Error('표시 값을 확인해 주세요.');
-   if(edit.textStyle){const v=edit.textStyle;if(v.textAlign!==undefined&&!['left','center','right','justify'].includes(v.textAlign))throw Error('글자 정렬을 확인해 주세요.');if(Object.keys(v).some(k=>!['fontFamily','fontSize','fontWeight','color','backgroundColor','fontStyle','textDecoration','textAlign'].includes(k))||v.fontFamily!==undefined&&(typeof v.fontFamily!=='string'||v.fontFamily.length>100||/[;{}<>\n]/.test(v.fontFamily))||v.fontSize!==undefined&&(!Number.isFinite(v.fontSize)||v.fontSize<1||v.fontSize>240)||v.fontStyle!==undefined&&!['normal','italic'].includes(v.fontStyle)||v.textDecoration!==undefined&&!['none','underline','line-through','underline line-through'].includes(v.textDecoration)||v.fontWeight!==undefined&&![400,700].includes(v.fontWeight)||v.color!==undefined&&!/^#[a-f0-9]{6}$/i.test(v.color))throw Error('글자 스타일을 확인해 주세요.');}
+   if(edit.textStyle){const v=edit.textStyle;if(v.textAlign!==undefined&&!['left','center','right','justify'].includes(v.textAlign))throw Error('글자 정렬을 확인해 주세요.');if(Object.keys(v).some(k=>!['fontFamily','fontSize','fontWeight','color','backgroundColor','fontStyle','textDecoration','textAlign'].includes(k))||v.fontFamily!==undefined&&(typeof v.fontFamily!=='string'||v.fontFamily.length>100||/[;{}<>\n]/.test(v.fontFamily))||v.fontSize!==undefined&&(!Number.isFinite(v.fontSize)||v.fontSize<1||v.fontSize>240)||v.fontStyle!==undefined&&!['normal','italic'].includes(v.fontStyle)||v.textDecoration!==undefined&&!['none','underline','line-through','underline line-through'].includes(v.textDecoration)||v.fontWeight!==undefined&&![400,700].includes(v.fontWeight)||v.color!==undefined&&!/^#[a-f0-9]{6}(?:[a-f0-9]{2})?$/i.test(v.color))throw Error('글자 스타일을 확인해 주세요.');}
    if(edit.fontSize!==undefined&&(!Number.isFinite(edit.fontSize)||edit.fontSize<1||edit.fontSize>240))throw Error('글자 크기를 확인해 주세요.');
    if(edit.fit){if(Object.keys(edit.fit).some(k=>!['fit','scale','offsetX','offsetY'].includes(k)))throw Error('알 수 없는 사진 맞춤 항목이에요.');if(!['cover','contain'].includes(edit.fit.fit)||!Number.isFinite(edit.fit.scale)||edit.fit.scale<.1||edit.fit.scale>10||!Number.isFinite(edit.fit.offsetX)||Math.abs(edit.fit.offsetX)>100||!Number.isFinite(edit.fit.offsetY)||Math.abs(edit.fit.offsetY)>100)throw Error('사진 맞춤 값을 확인해 주세요.');}
   }
@@ -123,12 +123,12 @@
     element={...root.ACDLGraphicVectorObject.placement({...graphic,status:'active'},document.productType.pageSize),label:graphic.name};
    }else{
     if(additionPresets[type]&&!additionPresets[type].includes(addition.preset))throw Error('개체 모양을 확인해 주세요.');
-    const line=type==='shape'&&addition.preset==='line';
+    const line=type==='shape'&&addition.preset.startsWith('line');
     element={type:type==='shape'?'shape':type==='text'?'text':'image-frame',
      role:type==='shape'?'user-shape':type==='text'?'user-text':'user-image',
      label:type==='text'?'추가 텍스트':line?'선':type==='shape'?'도형':type==='frame'?'사진 프레임':'추가 이미지',
-     x:30,y:30,width:type==='frame'&&addition.preset==='circle'?25*document.productType.pageSize.height/document.productType.pageSize.width:35,height:type==='text'?8:line?3:25};
-    if(type==='shape')Object.assign(element,{shapeType:addition.preset,style:{fill:'#4777bd',stroke:'#4777bd',strokeWidth:line?2:0,...(addition.preset==='rounded'?{cornerRadiusMm:3}:addition.preset==='rect'?{borderRadius:0}:{})}});
+     x:30,y:30,width:['frame','shape'].includes(type)&&addition.preset==='circle'?25*document.productType.pageSize.height/document.productType.pageSize.width:35,height:type==='text'?8:line?3:25};
+    if(type==='shape')Object.assign(element,{shapeType:line?'line':addition.preset,style:{fill:'#4777bd',stroke:'#4777bd',strokeWidth:line?(addition.preset==='line-bold'?5:2):0,...(line?{dash:addition.preset.slice(5)||'solid'}:{}),...(addition.preset==='rounded'?{cornerRadiusMm:3}:addition.preset==='rect'?{borderRadius:0}:{})}});
     else if(type==='text')Object.assign(element,{content:'새 텍스트',style:{fontSize:22,color:'#17202e'}});
     else Object.assign(element,{frameType:addition.preset||'rect',image:{fit:type==='frame'?'cover':'contain',scale:1,offsetX:0,offsetY:0}});
    }
@@ -169,7 +169,7 @@
    }
    if(edit.calendarSettings&&!target.rights.calendarStyle)throw Error('전체 월력 표시를 변경할 수 없습니다.');
    if(edit.text!==undefined&&!target.rights.freeText||edit.fill!==undefined&&!target.rights.fill)throw Error('이 개체에서 허용하지 않은 편집이에요.');
-   if(edit.textStyle?.backgroundColor!==undefined&&(!supportsPageObjects(project)||typeof edit.textStyle.backgroundColor!=='string'||!/^(?:transparent|#[0-9a-f]{6})$/i.test(edit.textStyle.backgroundColor)))throw Error('글자 배경색을 확인해 주세요.');
+   if(edit.textStyle?.backgroundColor!==undefined&&(!supportsPageObjects(project)||typeof edit.textStyle.backgroundColor!=='string'||!/^(?:transparent|#[0-9a-f]{6}(?:[0-9a-f]{2})?)$/i.test(edit.textStyle.backgroundColor)))throw Error('글자 배경색을 확인해 주세요.');
    if(edit.textStyle&&!target.rights.textStyle||edit.hidden!==undefined&&!target.rights.visibility)throw Error('허용하지 않은 글자 편집이에요.');
    if((edit.photoId!==undefined||edit.photoCopy)&&!target.rights.replaceImage||edit.fit&&!target.rights.imageFit)throw Error('템플릿에서 허용하지 않은 사진 편집이에요.');
    const page=document.book.pageInstances.find(p=>p.id===edit.pageId);document.book.elementsByPage||={};const local=document.book.elementsByPage[page.id]||=[];

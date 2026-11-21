@@ -993,7 +993,7 @@ function shapePath(id){
 }
 function shapeSVG(id,fill="#4777bd",stroke="#172033",strokeWidth=1.5,dash="solid",physical){
  const open=`<svg viewBox="0 0 100 100" preserveAspectRatio="none">`;
- const dashAttr=dash==="dashed"?' stroke-dasharray="6 4"':'';
+ const dashAttr=dash==="dashed"?' stroke-dasharray="6 4"':dash==="dotted"?' stroke-dasharray="1 4" stroke-linecap="round"':'';
  if(id==="line")return `${open}<path d="M0 50 H100" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"/></svg>`;
  const savedRadius=physical?.borderRadius;
  const hasPhysicalRadius=Number(physical?.radiusMm)>0;

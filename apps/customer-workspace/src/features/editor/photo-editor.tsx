@@ -220,7 +220,7 @@ function ImageLibraryDialog({children,onClose,busy,error}:{children:React.ReactN
 
 
 const objectPresets={
- shape:[['rect','사각형'],['rounded','둥근 사각형'],['ellipse','타원'],['line','선']],
+ shape:[['rect','사각형'],['rounded','둥근 사각형'],['circle','원'],['ellipse','타원'],['triangle','삼각형'],['diamond','마름모'],['pentagon','오각형'],['hexagon','육각형'],['octagon','팔각형'],['star','별'],['heart','하트'],['cross','십자'],['speech','말풍선'],['ribbon','리본'],['cloud','구름'],['arch','아치'],['line','실선'],['line-dashed','파선'],['line-dotted','점선'],['line-bold','굵은 실선']],
  frame:[['rect','사각 프레임'],['rounded','둥근 프레임'],['circle','원형 프레임'],['ellipse','타원 프레임']],
 };
 function PageObjectPicker({id,kind,onPick,onClose}:{id:string;kind:'illustration'|'shape'|'frame';onPick:(value:string|PublishedIllustration)=>void;onClose:()=>void}){
@@ -232,7 +232,7 @@ function PageObjectPicker({id,kind,onPick,onClose}:{id:string;kind:'illustration
    if(!response.ok)throw Error();
    const catalog=await response.json();
    setItems(catalog.items);
-  }).catch(()=>{if(!controller.signal.aborted)setError('일러스트 목록을 불러오지 못했습니다. 다시 열어 주세요.');});
+  }).catch(()=>{if(!controller.signal.aborted)setError('일러스트 게시 목록에 연결하지 못했습니다. 잠시 후 다시 열어 주세요.');});
   return()=>controller.abort();
  },[kind]);
  const title={illustration:'일러스트',shape:'도형과 선',frame:'사진 프레임'}[kind];
@@ -245,7 +245,7 @@ function PageObjectPicker({id,kind,onPick,onClose}:{id:string;kind:'illustration
  return <section id={id} className="editor-object-picker" aria-label={title}>
   <header><h2>{title}</h2><Button aria-label={title+' 목록 닫기'} onClick={onClose}>×</Button></header>
   {error?<p role="alert">{error}</p>:kind==='illustration'?
-   items===null?<p role="status">일러스트를 불러오는 중입니다.</p>:items.length===0?<p>게시된 일러스트가 없습니다.</p>:
+   items===null?<p role="status">일러스트를 불러오는 중입니다.</p>:items.length===0?<p>아직 게시된 일러스트가 없습니다.</p>:
    <div className="editor-object-options">{items.map(item=>{const src=svg(item);return <Button key={item.id} disabled={!src} onClick={()=>onPick(item)}>{src&&<img src={src} alt="" loading="lazy"/>}{item.name}</Button>;})}</div>:
    <div className="editor-object-options">{objectPresets[kind].map(([preset,label])=><Button key={preset} onClick={()=>onPick(preset)}><span aria-hidden="true" className={`editor-object-sample ${kind} ${preset}`}/>{label}</Button>)}</div>}
  </section>;
