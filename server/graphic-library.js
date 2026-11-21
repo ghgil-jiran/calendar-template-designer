@@ -113,18 +113,26 @@ export async function importLegacyIllustrationBatch(offset){
 }
 
 const CUSTOMER_ILLUSTRATIONS_PATH='customer-publications/illustrations.json';
+function isLegacyIllustrationImage(graphic){
+ return graphic.registrationMethod==='legacy-import'&&UUID.test(graphic.originalAssetId)&&
+  ['image/png','image/svg+xml'].includes(graphic.mimeType)&&graphic.width>0&&graphic.height>0;
+}
 export function canPublishIllustration(graphic){
- return graphic.category==='illustration'&&graphic.status==='active'&&!!graphic.vectorObject&&
+ return graphic.category==='illustration'&&graphic.status==='active'&&(!!graphic.vectorObject||isLegacyIllustrationImage(graphic))&&
   !graphic.frameType&&!['shape','frame','line'].includes(graphic.illustrationCategory)&&!graphic.ownership;
 }
 export async function publishCustomerIllustrations(){
  const records=await listGraphics();
- const items=records.filter(g=>g.customerIllustration===true&&canPublishIllustration(g))
+ const items=records.filter(g=>(g.customerIllustration===true||g.customerIllustration==null&&isLegacyIllustrationImage(g))&&canPublishIllustration(g))
   .sort((a,b)=>a.name.localeCompare(b.name,'ko')||a.id.localeCompare(b.id))
   .map(g=>({id:g.id,name:g.name,revision:g.revision??1,originalAssetId:g.originalAssetId,
-   previewAssetId:g.previewAssetId,vectorObject:g.vectorObject}));
+   previewAssetId:g.previewAssetId,vectorObject:g.vectorObject,
+   ...(!g.vectorObject?{image:{mimeType:g.mimeType,width:g.width,height:g.height}}:{})}));
  const version=createHash('sha256').update(JSON.stringify(items)).digest('hex');
  const snapshot={schemaVersion:'customer-illustrations.v1',version,publishedAt:new Date().toISOString(),items};
+ // Keep the source of illustrations already inserted into saved projects addressable.
+ if(items.some(item=>item.image))await storage(`object/${BUCKET}/customer-publications/illustrations/${version}.json`,{method:'POST',
+  headers:{'Content-Type':'application/json','x-upsert':'true'},body:JSON.stringify(snapshot)});
  await storage(`object/${BUCKET}/${CUSTOMER_ILLUSTRATIONS_PATH}`,{method:'POST',
   headers:{'Content-Type':'application/json','x-upsert':'true'},body:JSON.stringify(snapshot)});
  return {version,count:items.length};
