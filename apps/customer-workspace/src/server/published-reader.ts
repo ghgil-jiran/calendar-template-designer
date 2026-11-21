@@ -30,7 +30,7 @@ async function publishedCatalog():Promise<CatalogResponse>{
   const pair=links.find(link=>row.id===link.a3_id||row.id===link.a2_id);
   return pair?row.id===pair.representative_id:row.visible_in_customer_catalog!==false;
  });
- const ids=[...new Set(templates.map(r=>r.latest_version_id).filter(x=>uuid.test(x)))],versions:NativeProject[]=[];
+ const ids=[...new Set(published.filter(row=>templates.includes(row)||links.some(link=>row.id===link.a3_id||row.id===link.a2_id)).map(r=>r.latest_version_id).filter(x=>uuid.test(x)))],versions:NativeProject[]=[];
  for(let i=0;i<ids.length;i+=50)versions.push(...await rows(`template_versions?select=id,template_id,version_number,catalog_format:project_data->format,catalog_settings:project_data->settings,catalog_product:project_data->productType,catalog_pages:project_data->book->pageInstances,catalog_thumbnail:project_data->template->thumbnail,catalog_previews:project_data->template->savedPagePreviews,catalog_publishing:project_data->template->publishing&state=eq.published&id=in.(${ids.slice(i,i+50).join(',')})`));
  for(const record of versions)if(!record.project_data)record.project_data={format:record.catalog_format,settings:record.catalog_settings,productType:record.catalog_product,template:{masters:{},masterElements:{},thumbnail:record.catalog_thumbnail,savedPagePreviews:record.catalog_previews,publishing:record.catalog_publishing},book:{school:{},pageInstances:record.catalog_pages,elementsByPage:{}}};
  const cards=templates.flatMap(row=>{const version=versions.find(v=>v.id===row.latest_version_id&&v.template_id===row.id);return version?[card(row,version)]:[]});
@@ -48,7 +48,17 @@ async function publishedCatalog():Promise<CatalogResponse>{
   if(!item.pages[0]?.imageUrl)await storedPreviews(item,record?.project_data);
   if(item.coverUrl?.startsWith('acdl-asset://')){const hydrated=await hydrate({image:item.coverUrl});item.coverUrl=hydrated.image;}
  }));
- return {mode:'published' as const,notice:'게시된 템플릿입니다. 입력 자료의 서버 저장·로그인 연결은 준비 중입니다.',templates:cards};
+ const paperPairs=links.flatMap((link):[TemplateCard,TemplateCard][]=>{
+  const pair=[link.a3_id,link.a2_id].map(id=>{
+   const row=published.find(item=>item.id===id);
+   const version=row&&versions.find(item=>item.id===row.latest_version_id&&item.template_id===id);
+   return version?{...card(row,version),coverUrl:null}:null;
+  });
+  const [a3,a2]=pair;
+  return a3?.calendarKind==='poster'&&a2?.calendarKind==='poster'&&a3.widthMm===297&&a3.heightMm===420&&
+   a2.widthMm===420&&a2.heightMm===594&&a3.period===a2.period&&a3.pageCount===a2.pageCount?[[a3,a2]]:[];
+ });
+ return {paperPairs,mode:'published' as const,notice:'게시된 템플릿입니다. 입력 자료의 서버 저장·로그인 연결은 준비 중입니다.',templates:cards};
 }
 // Read only the package explicitly linked by this saved editor version.
 async function storedPreviews(item:TemplateCard,project:NativeProject){

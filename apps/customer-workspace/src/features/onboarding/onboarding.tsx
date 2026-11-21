@@ -89,10 +89,11 @@ export function Onboarding() {
   const previewRef = useRef<HTMLDialogElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const started = useRef(false);
+  const [paperEdits,setPaperEdits]=useState<ProjectDraft['paperEdits']>();
   const selected = workingTemplate || catalog?.templates.find(template => template.id === selectedId) || null;
   if(['school','schedule','photos','input-review','editor'].includes(step))resumeStep.current=step as ResumeStep;
   const displayName=projectName.trim()||(school.values.name?.trim()?school.values.name.trim()+' 달력':selected?.name||'우리 학교 달력');
-  const draft:ProjectDraft|null=selected?{id:activeProject?.id,revision:activeProject?.revision,name:displayName,template:selected,source:nativeSource,editorState,school,events,photos,assignments,photoMode,photoPageId,photoSelections,step:resumeStep.current}:null;
+  const draft:ProjectDraft|null=selected?{id:activeProject?.id,revision:activeProject?.revision,name:displayName,template:selected,source:nativeSource,editorState,paperEdits,school,events,photos,assignments,photoMode,photoPageId,photoSelections,step:resumeStep.current}:null;
   const draftLatest=useRef(draft),activeLatest=useRef(activeProject);draftLatest.current=draft;activeLatest.current=activeProject;
   const currentSignature=draft?draftSignature(draft):'';
   const dirty=Boolean(draft)&&currentSignature!==savedSignature;
@@ -156,7 +157,7 @@ export function Onboarding() {
     const requestId=++selectionRequest.current;
     if(selectedId!==template.id){
       templateUrls.current.forEach(url=>URL.revokeObjectURL(url));templateUrls.current=[];setActiveProject(null);setSavedSignature('');setProjectName(template.name);setSaveNotice('');setSaveError('');resumeStep.current='editor';
-      photos.forEach(p=>URL.revokeObjectURL(p.url));setSchool(emptySchoolInput(template.fields));setErrors({});setEditorState(undefined);setEvents([]);setPhotos([]);setAssignments({});setPhotoMode('collect');setPhotoSelections({});setPhotoPageId('');setMaterialPage(0);setNativeSource(null);
+      photos.forEach(p=>URL.revokeObjectURL(p.url));setSchool(emptySchoolInput(template.fields));setErrors({});setEditorState(undefined);setPaperEdits(undefined);setEvents([]);setPhotos([]);setAssignments({});setPhotoMode('collect');setPhotoSelections({});setPhotoPageId('');setMaterialPage(0);setNativeSource(null);
     }
     setWorkingTemplate(template);setSelectedId(template.id);setNativeFailure('');
     if(!template.sourceUrl){setNativeFailure('편집용 템플릿을 아직 준비 중이에요.');return;}
@@ -172,7 +173,7 @@ export function Onboarding() {
   }
   function resetToCatalog(){
     photos.forEach(p=>URL.revokeObjectURL(p.url));templateUrls.current.forEach(url=>URL.revokeObjectURL(url));templateUrls.current=[];
-    ++selectionRequest.current;setNativeLoading(false);setNativeFailure('');setPreviewTemplate(null);setWorkingTemplate(null);setSelectedId(null);setActiveProject(null);setSavedSignature('');setProjectName('');setSchool({values:{},hidden:[]});setEditorState(undefined);setEvents([]);setPhotos([]);setAssignments({});setPhotoMode('collect');setPhotoSelections({});setPhotoPageId('');setNativeSource(null);setSaveNotice('');setSaveError('');setStep('catalog');
+    ++selectionRequest.current;setNativeLoading(false);setNativeFailure('');setPreviewTemplate(null);setWorkingTemplate(null);setSelectedId(null);setActiveProject(null);setSavedSignature('');setProjectName('');setSchool({values:{},hidden:[]});setEditorState(undefined);setPaperEdits(undefined);setEvents([]);setPhotos([]);setAssignments({});setPhotoMode('collect');setPhotoSelections({});setPhotoPageId('');setNativeSource(null);setSaveNotice('');setSaveError('');setStep('catalog');
   }
   async function clearTemporary(){
     const draft=temporary.current;
@@ -216,8 +217,27 @@ export function Onboarding() {
     setActiveProject(null);
     setWorkingTemplate(next.template);setSelectedId(template.id);setProjectName(next.name);setNativeSource(source);
     setSchool(next.school);setEvents(next.events);setPhotos(next.photos);setAssignments(next.assignments);
-    setEditorState(next.editorState);setPhotoSelections({});setPhotoMode('collect');setPhotoPageId('');
+    setEditorState(next.editorState);setPaperEdits(undefined);setPhotoSelections({});setPhotoMode('collect');setPhotoPageId('');
     setSavedSignature('');setSaveError('');setStep('editor');
+  }
+  async function changePaperSize(targetId:string){
+    return saveQueue.current(async()=>{
+      const current=draftLatest.current;
+      if(!current)return;
+      const response=await fetch('/api/workspace/catalog',{cache:'no-store'});
+      if(!response.ok)throw Error('판형 정보를 불러오지 못했어요.');
+      const latest=await response.json() as CatalogResponse;
+      const pair=latest.paperPairs?.find(pair=>pair.some(item=>item.id===current.template.id)&&pair.some(item=>item.id===targetId));
+      const target=pair?.find(item=>item.id===targetId);
+      if(!pair||!target)throw Error('선택한 판형이 현재 게시되어 있지 않아요.');
+      const source=await fetchTemplateSource(target);
+      if(draftLatest.current?.template.id!==current.template.id||draftLatest.current?.id!==current.id)return;
+      const next=templateChangeDraft(draftLatest.current,target,source,pair);
+      setCatalog(latest);
+      setWorkingTemplate(next.template);setSelectedId(target.id);setNativeSource(source);
+      setAssignments(next.assignments);setEditorState(next.editorState);setPaperEdits(next.paperEdits);
+      setPhotoSelections({});setPhotoPageId('');setSaveError('');setSaveNotice('');
+    });
   }
   const autoSaveLatest=useRef<()=>Promise<boolean>>(async()=>false);autoSaveLatest.current=()=>saveWorking(undefined,{},false,true);
   useEffect(()=>{
@@ -229,8 +249,8 @@ export function Onboarding() {
     if(!recovery&&dirty&&hasInput&&!window.confirm('저장하지 않은 변경사항이 있어요. 저장본은 유지하고 선택한 프로젝트를 열까요?'))return;
     const snapshot=await readSnapshot(id),restored=hydrateSnapshot(snapshot),r=restored.record;if(restored.source)restored.template={...restored.template,fields:fieldsForProject(restored.source),photoSlots:photoSlotsForProject(restored.source)};
     photos.forEach(p=>URL.revokeObjectURL(p.url));templateUrls.current.forEach(url=>URL.revokeObjectURL(url));templateUrls.current=restored.urls;
-    ++selectionRequest.current;setWorkingTemplate(restored.template);setSelectedId(restored.template.id);setActiveProject(recovery?recovery.saved:{id:r.id,revision:r.revision});setProjectName(r.name);setSchool(normalizeSchoolVisibility(restored.template.fields,r.school));setEditorState(r.editorState);setEvents(r.events);setPhotos(restored.photos);setAssignments(restored.assignments);setPhotoMode(r.photoMode||'assign');setPhotoSelections(restored.photoSelections);setPhotoPageId(r.photoPageId||'');setNativeSource(restored.source);setNativeLoading(false);setNativeFailure('');setErrors({});setMaterialPage(0);setSaveError('');setSaveNotice('저장한 프로젝트를 다시 열었어요.');resumeStep.current=r.step;
-    const state:ProjectDraft={id:r.id,revision:r.revision,name:r.name,template:restored.template,source:restored.source,editorState:r.editorState,school:normalizeSchoolVisibility(restored.template.fields,r.school),events:r.events,photos:restored.photos,assignments:restored.assignments,photoMode:r.photoMode||'assign',photoPageId:r.photoPageId||'',photoSelections:restored.photoSelections,step:r.step};
+    ++selectionRequest.current;setWorkingTemplate(restored.template);setSelectedId(restored.template.id);setActiveProject(recovery?recovery.saved:{id:r.id,revision:r.revision});setProjectName(r.name);setSchool(normalizeSchoolVisibility(restored.template.fields,r.school));setEditorState(r.editorState);setPaperEdits(r.paperEdits);setEvents(r.events);setPhotos(restored.photos);setAssignments(restored.assignments);setPhotoMode(r.photoMode||'assign');setPhotoSelections(restored.photoSelections);setPhotoPageId(r.photoPageId||'');setNativeSource(restored.source);setNativeLoading(false);setNativeFailure('');setErrors({});setMaterialPage(0);setSaveError('');setSaveNotice('저장한 프로젝트를 다시 열었어요.');resumeStep.current=r.step;
+    const state:ProjectDraft={id:r.id,revision:r.revision,name:r.name,template:restored.template,source:restored.source,editorState:r.editorState,paperEdits:r.paperEdits,school:normalizeSchoolVisibility(restored.template.fields,r.school),events:r.events,photos:restored.photos,assignments:restored.assignments,photoMode:r.photoMode||'assign',photoPageId:r.photoPageId||'',photoSelections:restored.photoSelections,step:r.step};
     if(recovery){temporary.current={id:r.id,revision:r.revision,signature:draftSignature(state)};setSavedSignature('');}
     else setSavedSignature(draftSignature(state));
     setStep(['school','schedule','photos','input-review'].includes(r.step)?'editor':r.step);setPhotoMode('collect');
@@ -270,7 +290,7 @@ export function Onboarding() {
   }:null;
   const displayedIndex=visiblePreview?.index??previewIndex;
   const previewLayers=[visiblePreview,requestedPreview?.key===visiblePreview?.key?null:requestedPreview];
-  if(step==='editor'&&materialProject)return <PhotoEditor onOrder={orderProject} calendarDefaults={templateCalendarDisplay(nativeSource)} key={selected!.id} onTemplateChange={changeTemplate} templateName={selected!.name} templates={(catalog?.templates||[]).filter(t=>compatibleTemplate(selected!,t))} currentTemplateId={selected!.id} onNavigationPause={setNavigationPaused} onHome={(save,name)=>leaveEditor('catalog',save,name)} commonPhotoIds={Object.fromEntries((nativeSource?photoSlotsForProject(nativeSource):[]).flatMap(slot=>assignments[slot.id]?[[slot.binding||'',assignments[slot.id].photoId]]:[]))} assignedPhotoIds={Object.values(assignments).map(a=>a.photoId)} project={materialProject} photos={photos} onPhotos={next=>{setPhotos(next);setAssignments(current=>Object.fromEntries(Object.entries(current).filter(([,a])=>next.some(p=>p.id===a.photoId))));setEditorState(current=>current?{...current,edits:current.edits.filter(e=>!e.photoId||next.some(p=>p.id===e.photoId))}:current);}} initialState={editorState} onChange={setEditorState} saveFailure={saveError} onProjects={(save,name)=>leaveEditor('projects',save,name)} name={displayName} saving={saving} onSave={()=>saveWorking(undefined,{},false,true)} school={school} events={events} fields={selected!.fields} onFieldChange={(key,value)=>setSchool(p=>updateSchoolField(p,key,value))} onFieldHide={(key,hidden)=>setSchool(p=>({...p,hidden:hidden?[...new Set([...p.hidden,key])]:p.hidden.filter(k=>k!==key)}))} onSchoolPhoto={(binding,photo)=>{const slots=photoSlotsForProject(nativeSource!).filter(s=>s.binding===binding);setAssignments(p=>({...p,...Object.fromEntries(slots.map(s=>[s.id,{photoId:photo.id,url:photo.url}]))}));}} onMaterialsSave={async(nextSchool,nextEvents,images=[])=>{const staged=stageSchoolImages(photos,assignments,photoSlotsForProject(nativeSource!),editorState,images);const nextPhotos=staged.photos,nextAssignments=staged.assignments,nextEditor=staged.editorState;if(!await saveWorking('editor',{school:nextSchool,events:nextEvents,photos:nextPhotos,assignments:nextAssignments,editorState:nextEditor},true,true))return false;setSchool(nextSchool);setEvents(nextEvents);setPhotos(nextPhotos);setAssignments(nextAssignments);setEditorState(nextEditor);return true;}}/>;
+  if(step==='editor'&&materialProject)return <PhotoEditor onOrder={orderProject} calendarDefaults={templateCalendarDisplay(nativeSource)} key={selected!.id} paperOptions={catalog?.paperPairs?.find(pair=>pair.some(item=>item.id===selected!.id))} onPaperChange={changePaperSize} onTemplateChange={changeTemplate} templateName={selected!.name} templates={(catalog?.templates||[]).filter(t=>compatibleTemplate(selected!,t))} currentTemplateId={selected!.id} onNavigationPause={setNavigationPaused} onHome={(save,name)=>leaveEditor('catalog',save,name)} commonPhotoIds={Object.fromEntries((nativeSource?photoSlotsForProject(nativeSource):[]).flatMap(slot=>assignments[slot.id]?[[slot.binding||'',assignments[slot.id].photoId]]:[]))} assignedPhotoIds={Object.values(assignments).map(a=>a.photoId)} project={materialProject} photos={photos} onPhotos={next=>{setPhotos(next);setAssignments(current=>Object.fromEntries(Object.entries(current).filter(([,a])=>next.some(p=>p.id===a.photoId))));setEditorState(current=>current?{...current,edits:current.edits.filter(e=>!e.photoId||next.some(p=>p.id===e.photoId))}:current);}} initialState={editorState} onChange={setEditorState} saveFailure={saveError} onProjects={(save,name)=>leaveEditor('projects',save,name)} name={displayName} saving={saving} onSave={()=>saveWorking(undefined,{},false,true)} school={school} events={events} fields={selected!.fields} onFieldChange={(key,value)=>setSchool(p=>updateSchoolField(p,key,value))} onFieldHide={(key,hidden)=>setSchool(p=>({...p,hidden:hidden?[...new Set([...p.hidden,key])]:p.hidden.filter(k=>k!==key)}))} onSchoolPhoto={(binding,photo)=>{const slots=photoSlotsForProject(nativeSource!).filter(s=>s.binding===binding);setAssignments(p=>({...p,...Object.fromEntries(slots.map(s=>[s.id,{photoId:photo.id,url:photo.url}]))}));}} onMaterialsSave={async(nextSchool,nextEvents,images=[])=>{const staged=stageSchoolImages(photos,assignments,photoSlotsForProject(nativeSource!),editorState,images);const nextPhotos=staged.photos,nextAssignments=staged.assignments,nextEditor=staged.editorState;if(!await saveWorking('editor',{school:nextSchool,events:nextEvents,photos:nextPhotos,assignments:nextAssignments,editorState:nextEditor},true,true))return false;setSchool(nextSchool);setEvents(nextEvents);setPhotos(nextPhotos);setAssignments(nextAssignments);setEditorState(nextEditor);return true;}}/>;
   return <div className="workspace">
     <header className="site-header"><div className="header-inner"><Button variant="quiet" className="brand" onClick={catalogHome} aria-label="우리학교달력 첫 화면으로 이동"><img className="school-calendar-logo" src="/school-calendar-logo.png" alt="우리학교달력" width="120" height="36"/></Button><p className="header-caption">우리 학교의 일 년을 담아요</p><div className="site-header-actions">{step==='projects'?<><a className="button button-secondary" href="https://schoolp.co.kr/" target="_blank" rel="noopener noreferrer">우리학교인쇄</a><a className="button button-secondary" href="https://schoolp.co.kr/me/cart/" target="_blank" rel="noopener noreferrer">장바구니</a></>:<Button disabled={saving||nativeLoading} onClick={() => setStep('projects')}>내 프로젝트</Button>}</div></div></header>
     <main className={`main ${step==='catalog'?'catalog-main':step==='projects'?'projects-main':''}`} data-motion={playing ? 'playing' : 'paused'}>
