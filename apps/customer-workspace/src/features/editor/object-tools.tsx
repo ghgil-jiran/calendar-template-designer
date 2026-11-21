@@ -103,8 +103,8 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
   </details>
   <details className="editor-tool-card schedule-style-card" open>
    <summary>일정 표시 {isG&&<small>두 페이지에 적용</small>}</summary>
-   {cells&&scheduleOverflow&&<p className="editor-feedback wall-schedule-warning" role="alert">
-    일정이 많아 일부 일정이 제대로 표시되지 않았습니다. {textOnly?'글자 크기나 줄 높이를 줄여 주세요.':'글자 크기를 줄이거나 ‘텍스트만’으로 바꿔 주세요.'}
+   {scheduleOverflow&&<p className="editor-feedback wall-schedule-warning" role="alert">
+    일정이 많아 일부 일정이 제대로 표시되지 않았습니다. {!cells?'글자 크기나 자간을 줄이거나 목록 단수를 조정해 주세요.':textOnly?'글자 크기나 줄 높이를 줄여 주세요.':'글자 크기를 줄이거나 ‘텍스트만’으로 바꿔 주세요.'}
    </p>}
    {cells?<div className="schedule-style-options" role="group" aria-label="날짜 칸 일정 표시">
     {([['bar','색상 막대'],['text','텍스트만'],['line','가는 선']] as const).map(([value,label])=><Button key={value} aria-pressed={selectedMode===value} onClick={()=>update({scheduleDisplayMode:value})}>

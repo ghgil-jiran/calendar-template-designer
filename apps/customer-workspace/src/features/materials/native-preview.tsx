@@ -21,6 +21,15 @@ function hasWallScheduleOverflow(page:HTMLElement){
   const rect=label.getBoundingClientRect();
   return rect.height>0&&content.top<rect.bottom-tolerance&&content.bottom>rect.top+tolerance;
  });
+ for(const list of page.querySelectorAll<HTMLElement>('[data-wall-list-layout]')){
+  const bounds=list.getBoundingClientRect();
+  if(list.scrollWidth>list.clientWidth+1||list.scrollHeight>list.clientHeight+1)return true;
+  for(const event of list.querySelectorAll<HTMLElement>('[data-poster-list-event]')){
+   for(const rect of event.getClientRects()){
+    if(exceeds(rect,bounds))return true;
+   }
+  }
+ }
  for(const grid of page.querySelectorAll<HTMLElement>('[data-wall-grid]')){
   if(grid.querySelector('[data-wall-hidden-ranges]'))return true;
   const days=new Map(Array.from(grid.querySelectorAll<HTMLElement>('[data-wall-cell-index]'),cell=>[Number(cell.dataset.wallCellIndex),cell]));
@@ -121,6 +130,8 @@ export function NativePreview({project,pageId,compact=false,guides=false,showAss
     setAssetWarning('');
     void Promise.all(imageChecks).then(results=>{if(alive&&results.some(ok=>!ok))setAssetWarning('일부 템플릿 이미지를 불러오지 못했어요. 디자인을 다시 선택해 이미지 연결을 확인해 주세요.');});
     await document.fonts.ready;
+    if(!alive)return;
+    await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
     if(!alive)return;
     if(poster){
      const issues=(window as unknown as {ACDLWallCalendar?:{inspect:(scope:HTMLElement)=>unknown[]}}).ACDLWallCalendar?.inspect(page)||[];
