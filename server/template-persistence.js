@@ -266,7 +266,8 @@ export async function savePaperCatalog(input){
       body:JSON.stringify({p_id:input.templateId,p_other:input.linkedId??null,p_visible:input.visible})});
   }catch(error){
     const messages={template_already_linked:'이미 연결된 템플릿입니다. 목록을 새로고침해 주세요.',
-      incompatible_wall_templates:'같은 면 구성의 A3와 A2 벽보형만 연결할 수 있습니다.',invalid_wall_template:'벽보형 템플릿을 확인해 주세요.'};
+      incompatible_wall_templates:'같은 면 구성의 A3와 A2 벽보형만 연결할 수 있습니다.',invalid_wall_template:'벽보형 템플릿을 확인해 주세요.',
+      incompatible_paper_templates:'같은 달력 유형과 면 구성의 기본형·확대형을 연결해 주세요.',invalid_paper_template:'연결할 수 있는 달력 판형인지 확인해 주세요.'};
     if(messages[error.message])throw Object.assign(Error(messages[error.message]),{statusCode:409});
     throw error;
   }

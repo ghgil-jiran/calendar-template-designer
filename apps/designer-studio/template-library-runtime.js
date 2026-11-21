@@ -279,20 +279,28 @@
    panel.innerHTML='<label>연결 템플릿<select id="linkedPaperTemplate"></select></label><label><span>사용자 서비스 목록에 표시</span><input type="checkbox" id="visibleInCustomerCatalog"></label>';
    el('saveTemplateState').closest('label').after(panel);
   }
-  const size=r=>r?.type==='poster'&&r.calendarTypeSize?.width===297&&r.calendarTypeSize?.height===420?'A3':
-   r?.type==='poster'&&r.calendarTypeSize?.width===420&&r.calendarTypeSize?.height===594?'A2':null;
+  const size=r=>{
+   const {width,height}=r?.calendarTypeSize||{};
+   if(r?.type==='poster')return width===297&&height===420?'base':width===420&&height===594?'large':null;
+   if(r?.type==='desk')return width===260&&height===180?'base':width===297&&height===205.615?'large':null;
+   return null;
+  };
   panel.hidden=!(record.remoteId&&record.paperCatalog&&size(record));
   if(panel.hidden)return;
   const select=el('linkedPaperTemplate'),linked=record.paperCatalog.linkedId;
   select.replaceChildren(new Option(linked?'연결된 템플릿':'연결 안 함',''));
   const candidates=records().filter(r=>r.remoteId&&r.remoteId!==record.remoteId&&(
-   linked?r.remoteId===linked:size(r)&&size(r)!==size(record)&&r.paperCatalog?.duplex===record.paperCatalog.duplex&&!r.paperCatalog?.linkedId
+   linked?r.remoteId===linked:r.type===record.type&&size(r)&&size(r)!==size(record)&&r.paperCatalog?.duplex===record.paperCatalog.duplex&&!r.paperCatalog?.linkedId
   ));
   for(const candidate of candidates)select.add(new Option(candidate.name,candidate.remoteId));
   if(linked&&!candidates.length)select.add(new Option('연결된 템플릿',linked));
   select.value=linked||'';
   select.disabled=Boolean(linked);
-  el('visibleInCustomerCatalog').checked=record.paperCatalog.visible;
+  const visible=el('visibleInCustomerCatalog');
+  visible.checked=record.paperCatalog.visible;
+  select.onchange=()=>{
+   visible.checked=record.type==='desk'&&select.value?size(record)==='base':record.paperCatalog.visible;
+  };
  }
  function openSettings(record){
   if(!record)return;const dialog=el('templateSaveDialog');setupPaperCatalog(record);dialog.dataset.mode='settings';dialog.dataset.recordId=record.id;el('templateSaveDialogTitle').textContent='템플릿 설정';el('templateSaveDialogHelp').textContent='디자인은 변경하지 않고 라이브러리 관리 정보만 저장합니다.';el('saveTemplateName').value=record.name;el('saveTemplateDescription').value=record.description||'';el('saveTemplateEdition').value=record.edition;configureStateOptions(scopeOf(record),record.state);el('saveTemplateStandard').checked=record.isStandard===true;el('templateSaveFeedback').className='save-feedback hidden';el('deleteTemplatePermanentlyBtn')?.classList.remove('hidden');dialog.classList.remove('hidden');let download=el('downloadTemplateSourceBtn');if(!download){download=document.createElement('button');download.id='downloadTemplateSourceBtn';download.type='button';download.className='action';download.textContent='저장 원본 다운로드';el('templateSaveDialogHelp').append(download)}download.onclick=async()=>{download.disabled=true;try{await downloadTemplateSource(record)}catch(error){showEditorToast(error?.message||'원본 다운로드 실패')}finally{download.disabled=false}}
