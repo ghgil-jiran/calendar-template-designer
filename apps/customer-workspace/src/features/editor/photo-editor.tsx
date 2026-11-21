@@ -1,5 +1,5 @@
 'use client';
-import {memo,useEffect,useId,useMemo,useRef,useState} from 'react';
+import {memo,useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {NativePreview} from '@/features/materials/native-preview';
 import {photoPageLabel,photoSlotsForProject,type NativeProject} from '@/lib/materials/native-project';
@@ -40,6 +40,8 @@ export function PhotoEditor({onOrder,calendarDefaults,onTemplateChange,paperOpti
  const [wallScheduleOverflow,setWallScheduleOverflow]=useState(false);
  const [revision,setRevision]=useState(0),[selection,setSelection]=useState<EditorTarget|null>(null),[fit,setFit]=useState<PhotoFit>(defaults),[failure,setFailure]=useState(''),[message,setMessage]=useState(''),[tab,setTab]=useState<'all'|'school'|'monthly'>('all'),[libraryOpen,setLibraryOpen]=useState(false),[hover,setHover]=useState(''),[zoom,setZoom]=useState(100),[draggingPhoto,setDraggingPhoto]=useState(false),[uploading,setUploading]=useState(false),[preview,setPreview]=useState<number|null>(null),[previewSingle,setPreviewSingle]=useState(false);
  const [templatePending,setTemplatePending]=useState(false),[fitZoom,setFitZoom]=useState(100),[fitMode,setFitMode]=useState(true);
+ const [initialPosterZoom,setInitialPosterZoom]=useState(project.productType.category==='poster');
+
  const [leaveOpen,setLeaveOpen]=useState<'home'|'projects'|'order'|null>(null);
  const [templatePickerOpen,setTemplatePickerOpen]=useState(false);
  const [materials,setMaterials]=useState<'school'|'schedule'|null>(null);
@@ -61,6 +63,7 @@ export function PhotoEditor({onOrder,calendarDefaults,onTemplateChange,paperOpti
  const addImageInput=useRef<HTMLInputElement>(null);
  const strip=useRef<HTMLElement>(null);
  const stage=useRef<HTMLDivElement>(null),wrap=useRef<HTMLDivElement>(null),surface=useRef<HTMLDivElement>(null);
+ const wheelAnchor=useRef<{x:number;y:number;clientX:number;clientY:number}|null>(null);
  const document=useMemo(()=>{session.setProject(project);session.setAssets(photos.map(p=>({id:p.id,url:p.url})));return session.getDocument();},[session,revision,project,photos]),state=session.getState(),pages=project.book.pageInstances as NativeProject[];
  const canAddText=session.canAddObject('text'),canAddImage=session.canAddObject('image');
  const canAddExtras=session.canAddObject('illustration')||session.canAddObject('shape')||session.canAddObject('frame');
@@ -90,7 +93,31 @@ export function PhotoEditor({onOrder,calendarDefaults,onTemplateChange,paperOpti
  const layoutCount=selection?.rights.move&&selection.rights.resize?counterparts.filter(t=>t.rights.move&&t.rights.resize).length:0,imageCount=selection?.binding==='school.profile.logo'?0:counterparts.filter(t=>t.rights.replaceImage).length;
  const schoolImageLinked=!!selection?.binding.startsWith('school.profile.')&&(selection.binding==='school.profile.logo'||counterparts.length===0);
  const used=new Set([...assignedPhotoIds,...state.edits.flatMap(e=>e.photoId?[e.photoId]:[])]),visiblePhotos=photos.filter(p=>tab==='all'||p.category===tab||p.category==='both'||!p.category&&tab==='monthly');
- useEffect(()=>{if(!stage.current||!wrap.current)return;const host=stage.current,pageWrap=wrap.current,fitPage=()=>{if(!host.isConnected||!pageWrap.isConnected)return;const width=Math.max(100,host.clientWidth-40),height=Math.max(180,host.clientHeight-40),ratio=Number(project.productType.pageSize.width)/Number(project.productType.pageSize.height);const fitted=Math.min(width,height*ratio);setFitZoom(Math.round(fitted/850*100));pageWrap.style.width=(fitMode?fitted:850*zoom/100)+'px';};fitPage();const observer=new ResizeObserver(fitPage);observer.observe(host);return()=>observer.disconnect();},[zoom,fitMode,project.productType.pageSize.width,project.productType.pageSize.height]);
+ useLayoutEffect(()=>{if(!stage.current||!wrap.current)return;const host=stage.current,pageWrap=wrap.current,fitPage=()=>{if(!host.isConnected||!pageWrap.isConnected)return;const width=Math.max(100,host.clientWidth-40),height=Math.max(180,host.clientHeight-40),ratio=Number(project.productType.pageSize.width)/Number(project.productType.pageSize.height);const fitted=Math.min(width,height*ratio);setFitZoom(Math.round(fitted/850*100));pageWrap.style.width=(fitMode?(initialPosterZoom?Math.max(fitted,595):fitted):850*zoom/100)+'px';
+ const anchor=wheelAnchor.current;
+ if(anchor){
+  const bounds=pageWrap.getBoundingClientRect();
+  host.scrollLeft+=bounds.left+bounds.width*anchor.x-anchor.clientX;
+  host.scrollTop+=bounds.top+bounds.height*anchor.y-anchor.clientY;
+  wheelAnchor.current=null;
+ }};fitPage();const observer=new ResizeObserver(fitPage);observer.observe(host);return()=>observer.disconnect();},[zoom,fitMode,initialPosterZoom,project.productType.pageSize.width,project.productType.pageSize.height]);
+ const shownZoom=fitMode?(initialPosterZoom?Math.max(fitZoom,70):fitZoom):zoom;
+ useEffect(()=>{
+  const host=stage.current,pageWrap=wrap.current;
+  if(!host||!pageWrap)return;
+  const wheel=(event:WheelEvent)=>{
+   if(event.ctrlKey||event.deltaY===0||Math.abs(event.deltaX)>Math.abs(event.deltaY)||(event.target instanceof Element&&event.target.closest('input,textarea,select,[contenteditable]')))return;
+   event.preventDefault();
+   const next=Math.min(Math.max(150,shownZoom),Math.max(25,shownZoom+(event.deltaY<0?5:-5)));
+   if(next===shownZoom)return;
+   const rect=pageWrap.getBoundingClientRect();
+   if(!rect.width||!rect.height)return;
+   wheelAnchor.current={x:(event.clientX-rect.left)/rect.width,y:(event.clientY-rect.top)/rect.height,clientX:event.clientX,clientY:event.clientY};
+   setZoom(next);setFitMode(false);
+  };
+  host.addEventListener('wheel',wheel,{passive:false});
+  return()=>host.removeEventListener('wheel',wheel);
+ },[shownZoom]);
  const pageIndex=pages.findIndex(p=>p.id===state.pageId);
  const pageEditingGuide=[targets.some(t=>t.rights.replaceImage)?'이미지 변경':null,targets.some(t=>t.rights.imageFit)?'사진 맞춤':null].filter(Boolean).join('과 ');
 
@@ -180,7 +207,7 @@ export function PhotoEditor({onOrder,calendarDefaults,onTemplateChange,paperOpti
   {canAddImage&&<input ref={addImageInput} type="file" accept="image/*" hidden onChange={e=>{void upload(Array.from(e.target.files||[]),true);e.target.value='';}}/>}
  </div>}
  {selection?.rights.layer&&<div className="editor-command-group" role="group" aria-label="레이어 순서">{(['forward','backward','front','back'] as const).map((direction,index)=><Button key={direction} title={['앞으로','뒤로','맨 앞으로','맨 뒤로'][index]} aria-label={['앞으로','뒤로','맨 앞으로','맨 뒤로'][index]} onClick={()=>act(()=>session.moveLayer(direction))}>{['↑','↓','⇈','⇊'][index]}</Button>)}</div>}
- <div className="editor-command-group"><Button title="실행 취소" disabled={!session.canUndo()} onClick={()=>act(()=>{session.undo();setSelection(null);})}><ToolIcon name="undo"/><span className="sr-only">실행 취소</span></Button><Button title="다시 실행" disabled={!session.canRedo()} onClick={()=>act(()=>{session.redo();setSelection(null);})}><ToolIcon name="redo"/><span className="sr-only">다시 실행</span></Button></div><div className="editor-command-group"><Button title="복사" aria-label="복사" disabled={!selection||!!selection.rights.calendarStyle||!!selection.rights.scheduleStyle||!selection.rights.duplicate} onClick={()=>{setClipboard(selection);setMessage('개체를 복사했어요.');}}><ToolIcon name="copy"/></Button><Button title="붙여넣기" aria-label="붙여넣기" disabled={!clipboard} onClick={()=>act(()=>{session.select(clipboard);const target=session.duplicate();setSelection(target);})}><ToolIcon name="paste"/></Button><Button title="삭제" aria-label="삭제" disabled={!selection?.rights.visibility} onClick={()=>act(()=>{session.remove();setSelection(null);})}><ToolIcon name="delete"/></Button></div>{selection?.rights.textStyle&&<TextFormattingToolbar theme={editorThemeColors(document.template.resources?.colorTheme)} disabled={!selection.rights.textStyle} style={selected?.style||{}} onChange={textStyle}/>}<div className="editor-command-actions">{selection?.rights.replaceImage&&<Button title="사진 교체" aria-label="사진 교체" onClick={()=>{setLibraryOpen(true);}}><ToolIcon name="image"/></Button>}<div className="editor-zoom-control" role="group" aria-label="캔버스 확대 축소"><Button aria-label="화면 축소" title="화면 축소" disabled={(fitMode?fitZoom:zoom)<=50} onClick={()=>{setZoom(Math.max(50,(fitMode?fitZoom:zoom)-5));setFitMode(false);}}>−</Button><input type="range" aria-label="화면 배율" min="50" max="150" step="1" value={Math.max(50,Math.min(150,fitMode?fitZoom:zoom))} onChange={e=>{setZoom(Number(e.target.value));setFitMode(false);}}/><Button aria-label="화면 확대" title="화면 확대" disabled={(fitMode?fitZoom:zoom)>=150} onClick={()=>{setZoom(Math.min(150,(fitMode?fitZoom:zoom)+5));setFitMode(false);}}>＋</Button><Button className="editor-zoom-percent" title="화면 맞춤으로 전환" onClick={()=>setFitMode(true)}>{fitMode?fitZoom:zoom}%</Button><Button className="editor-zoom-fit" aria-pressed={fitMode} onClick={()=>setFitMode(true)}>화면 맞춤</Button></div><details className="editor-preview-menu"><summary>미리보기 ▾</summary><div><Button onClick={e=>{e.currentTarget.closest('details')?.removeAttribute('open');setPreviewSingle(true);setPreview(pageIndex);}}>현재 페이지 미리보기</Button><Button onClick={e=>{e.currentTarget.closest('details')?.removeAttribute('open');setPreviewSingle(false);setPreview(0);}}>전체 페이지 미리보기</Button></div></details></div></div><div className="editor-stage-viewport">
+ <div className="editor-command-group"><Button title="실행 취소" disabled={!session.canUndo()} onClick={()=>act(()=>{session.undo();setSelection(null);})}><ToolIcon name="undo"/><span className="sr-only">실행 취소</span></Button><Button title="다시 실행" disabled={!session.canRedo()} onClick={()=>act(()=>{session.redo();setSelection(null);})}><ToolIcon name="redo"/><span className="sr-only">다시 실행</span></Button></div><div className="editor-command-group"><Button title="복사" aria-label="복사" disabled={!selection||!!selection.rights.calendarStyle||!!selection.rights.scheduleStyle||!selection.rights.duplicate} onClick={()=>{setClipboard(selection);setMessage('개체를 복사했어요.');}}><ToolIcon name="copy"/></Button><Button title="붙여넣기" aria-label="붙여넣기" disabled={!clipboard} onClick={()=>act(()=>{session.select(clipboard);const target=session.duplicate();setSelection(target);})}><ToolIcon name="paste"/></Button><Button title="삭제" aria-label="삭제" disabled={!selection?.rights.visibility} onClick={()=>act(()=>{session.remove();setSelection(null);})}><ToolIcon name="delete"/></Button></div>{selection?.rights.textStyle&&<TextFormattingToolbar theme={editorThemeColors(document.template.resources?.colorTheme)} disabled={!selection.rights.textStyle} style={selected?.style||{}} onChange={textStyle}/>}<div className="editor-command-actions">{selection?.rights.replaceImage&&<Button title="사진 교체" aria-label="사진 교체" onClick={()=>{setLibraryOpen(true);}}><ToolIcon name="image"/></Button>}<div className="editor-zoom-control" role="group" aria-label="캔버스 확대 축소"><Button aria-label="화면 축소" title="화면 축소" disabled={(shownZoom)<=25} onClick={()=>{setZoom(Math.max(25,(shownZoom)-5));setFitMode(false);}}>−</Button><input type="range" aria-label="화면 배율" min="25" max="150" step="1" value={Math.max(25,Math.min(150,shownZoom))} onChange={e=>{setZoom(Number(e.target.value));setFitMode(false);}}/><Button aria-label="화면 확대" title="화면 확대" disabled={(shownZoom)>=150} onClick={()=>{setZoom(Math.min(150,(shownZoom)+5));setFitMode(false);}}>＋</Button><Button className="editor-zoom-percent" title="화면 맞춤으로 전환" onClick={()=>{setInitialPosterZoom(false);setFitMode(true);}}>{shownZoom}%</Button><Button className="editor-zoom-fit" aria-pressed={fitMode&&!initialPosterZoom} onClick={()=>{setInitialPosterZoom(false);setFitMode(true);}}>화면 맞춤</Button></div><details className="editor-preview-menu"><summary>미리보기 ▾</summary><div><Button onClick={e=>{e.currentTarget.closest('details')?.removeAttribute('open');setPreviewSingle(true);setPreview(pageIndex);}}>현재 페이지 미리보기</Button><Button onClick={e=>{e.currentTarget.closest('details')?.removeAttribute('open');setPreviewSingle(false);setPreview(0);}}>전체 페이지 미리보기</Button></div></details></div></div><div className="editor-stage-viewport">
  {showAddTools&&<div className="editor-add-popover"><div ref={addToolsPanel} id={addToolsId} className="editor-add-tools" role="group" aria-label="추가할 개체">
   {canAddImage&&<Button disabled={uploading} onClick={()=>addImageInput.current?.click()}><ToolIcon name="image"/>그림</Button>}
   {(['illustration','shape','frame'] as const).map(kind=>session.canAddObject(kind)&&
