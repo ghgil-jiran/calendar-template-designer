@@ -34,7 +34,7 @@ export async function ensureGraphicBucket(){
 }
 const path=id=>{if(!UUID.test(id))fail('INVALID_GRAPHIC_ID');return `${PREFIX}/${id}.json`};
 const CATALOG_INDEX_PATH='graphics-catalog/index-v1.json';
-const RECORD_SCHEMAS=new Set(['graphic-library.v1','graphic-package.v1','graphic-illustration-theme.v1','graphic-package-installation.v1','graphic-asset-installation.v1']);
+const RECORD_SCHEMAS=new Set(['graphic-library.v1','graphic-package.v1','graphic-illustration-theme.v1','graphic-package-installation.v1','graphic-asset-installation.v1','graphic-deletion.v1']);
 export async function listGraphicRecords(){
  await ensureGraphicBucket();const rows=[];let offset=0;
  while(true){const response=await storage(`object/list/${BUCKET}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix:PREFIX,limit:100,offset,sortBy:{column:'name',order:'asc'}})}),page=await response.json();rows.push(...page.filter(row=>UUID.test(row.name.replace(/\.json$/,''))&&row.name.endsWith('.json')));if(page.length<100)break;offset+=100}
@@ -114,12 +114,37 @@ export async function importLegacyIllustrationBatch(offset){
 
 const CUSTOMER_ILLUSTRATIONS_PATH='customer-publications/illustrations.json';
 function isLegacyIllustrationImage(graphic){
- return graphic.registrationMethod==='legacy-import'&&UUID.test(graphic.originalAssetId)&&
-  ['image/png','image/svg+xml'].includes(graphic.mimeType)&&graphic.width>0&&graphic.height>0;
+ return graphic.registrationMethod==='legacy-import'&&isCustomerIllustrationImage(graphic);
+}
+function isCustomerIllustrationImage(graphic){
+ return UUID.test(graphic.originalAssetId)&&
+  ['image/png','image/jpeg','image/webp','image/svg+xml'].includes(graphic.mimeType)&&graphic.width>0&&graphic.height>0;
 }
 export function canPublishIllustration(graphic){
- return graphic.category==='illustration'&&graphic.status==='active'&&(!!graphic.vectorObject||isLegacyIllustrationImage(graphic))&&
+ return graphic.category==='illustration'&&graphic.status==='active'&&(!!graphic.vectorObject||isCustomerIllustrationImage(graphic))&&
   !graphic.frameType&&!['shape','frame','line'].includes(graphic.illustrationCategory)&&!graphic.ownership;
+}
+export async function customerIllustrationIds(){
+ try{
+  const snapshot=await storage(`object/${BUCKET}/${CUSTOMER_ILLUSTRATIONS_PATH}`).then(response=>response.json());
+  if(snapshot.schemaVersion!=='customer-illustrations.v1'||!Array.isArray(snapshot.items))fail('GRAPHIC_STORAGE_FAILED',502);
+  return snapshot.items.map(item=>item.id);
+ }catch(error){
+  if(error.storageStatus===404||error.storageStatus===400&&['not_found','Not Found','NoSuchKey'].includes(error.storageErrorCode))return [];
+  throw error;
+ }
+}
+export async function deleteArchivedIllustration(id){
+ const record=await getGraphic(id);
+ if(record.schemaVersion==='graphic-deletion.v1')return {deletedGraphicId:id};
+ if(record.schemaVersion!=='graphic-library.v1'||record.status!=='archived'||record.category!=='illustration'||
+  record.frameType||record.ownership||['shape','frame','line'].includes(record.illustrationCategory))fail('GRAPHIC_DELETE_NOT_ALLOWED',409);
+ if((await customerIllustrationIds()).includes(id))fail('GRAPHIC_DELETE_STILL_PUBLISHED',409);
+ const packages=(await listGraphicRecords()).filter(item=>item.schemaVersion==='graphic-package.v1');
+ if(packages.some(pkg=>Object.values(pkg.pages||{}).some(page=>page.graphicId===id)))fail('GRAPHIC_DELETE_NOT_ALLOWED',409);
+ // Retain the original bytes because template assets are shared and historical publications may reference them.
+ await write({schemaVersion:'graphic-deletion.v1',id,deletedAt:new Date().toISOString()});
+ return {deletedGraphicId:id};
 }
 export async function publishCustomerIllustrations(){
  const records=await listGraphics();
@@ -135,7 +160,7 @@ export async function publishCustomerIllustrations(){
   headers:{'Content-Type':'application/json','x-upsert':'true'},body:JSON.stringify(snapshot)});
  await storage(`object/${BUCKET}/${CUSTOMER_ILLUSTRATIONS_PATH}`,{method:'POST',
   headers:{'Content-Type':'application/json','x-upsert':'true'},body:JSON.stringify(snapshot)});
- return {version,count:items.length};
+ return {version,count:items.length,ids:items.map(item=>item.id)};
 }
 export async function updateGraphic(body){const current=await getGraphic(body.id),changes={};if(current.schemaVersion!=='graphic-library.v1')fail('INVALID_GRAPHIC_ID');if(body.status!==undefined){if(!['active','archived'].includes(body.status))fail('INVALID_GRAPHIC_STATUS');changes.status=body.status}if(['name','category','tags','source'].some(key=>Object.hasOwn(body,key)))Object.assign(changes,validateGraphicMetadata({...current,...Object.fromEntries(['name','category','tags','source'].filter(key=>Object.hasOwn(body,key)).map(key=>[key,body[key]]))}));if(body.subjectId!==undefined){if(body.subjectId&&!globalThis.ACDLGraphicIllustrationModel.subjects[body.subjectId])fail('INVALID_GRAPHIC_SUBJECT');changes.subjectId=body.subjectId||''}if(body.illustrationCategory!==undefined){if(body.illustrationCategory&&!Object.hasOwn(globalThis.ACDLGraphicIllustrationModel.categories,body.illustrationCategory))fail('INVALID_ILLUSTRATION_CATEGORY');changes.illustrationCategory=body.illustrationCategory||null}if(body.themeId!==undefined){if(body.themeId){if(!UUID.test(body.themeId))fail('INVALID_ILLUSTRATION_THEME');const theme=await getGraphic(body.themeId);if(theme.schemaVersion!=='graphic-illustration-theme.v1'||theme.status!=='active')fail('INVALID_ILLUSTRATION_THEME');changes.themeId=theme.id;changes.themeName=theme.name;if(!Object.hasOwn(body,'illustrationCategory')&&!current.illustrationCategory)changes.illustrationCategory=theme.category}else{changes.themeId=null;changes.themeName=null}if(current.illustrationRecipe&&current.themeId&&!current.generationThemeId)changes.generationThemeId=current.themeId}if(body.thumbnailDataUrl!==undefined)changes.thumbnailDataUrl=validateThumbnail(body.thumbnailDataUrl);if(Object.hasOwn(body,'customerIllustration')){
  if(typeof body.customerIllustration!=='boolean'||body.customerIllustration&&!canPublishIllustration({...current,...changes}))fail('INVALID_CUSTOMER_ILLUSTRATION');
