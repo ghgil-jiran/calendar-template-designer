@@ -41,25 +41,59 @@ document.querySelectorAll('.production-review-nav').forEach(link=>link.addEventL
  if (!button || !dialog) return;
 
  const viewer = dialog.querySelector('iframe');
- const storageKey = 'acdl.template-designer.designs.v1';
- window.addEventListener('message', ({ source, origin, data }) => {
+ const legacyKey = 'acdl.template-designer.designs.v1';
+ const endpoint = '/api/template-designs';
+ const auth = window.ACDLAdminAuth;
+ let migration;
+
+ async function request(options) {
+  const response = await auth.authorizedFetch(endpoint, options);
+  if (!response.ok) throw new Error('Design storage request failed');
+  return response.json();
+ }
+
+ function saveDesign(design, importExisting = false) {
+  return request({
+   method: 'POST',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify({ design, importExisting })
+  });
+ }
+
+ function migrateBrowserDesigns() {
+  if (migration) return migration;
+  migration = (async () => {
+   const source = localStorage.getItem(legacyKey);
+   if (!source) return;
+   const designs = JSON.parse(source);
+   if (!Array.isArray(designs)) throw new Error('Invalid browser designs');
+   for (const design of designs) await saveDesign(design, true);
+   if (localStorage.getItem(legacyKey) === source) localStorage.removeItem(legacyKey);
+  })().finally(() => { migration = undefined; });
+  return migration;
+ }
+
+ window.addEventListener('message', async ({ source, origin, data }) => {
   if (source !== viewer.contentWindow || origin !== 'null' || !dialog.open ||
-      !window.ACDLAdminAuth?.isSignedIn() || data?.channel !== 'template-designer-storage') return;
+      !auth?.isSignedIn() || data?.channel !== 'template-designer-storage') return;
 
   const reply = payload => source.postMessage({ channel: data.channel, ...payload }, '*');
-  try {
-   if (data.action === 'load') {
-    const designs = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    reply({ action: 'loaded', designs });
-   } else if (data.action === 'save' && typeof data.design?.set_id === 'string') {
-    const designs = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    const index = designs.findIndex(design => design.set_id === data.design.set_id);
-    designs[index < 0 ? designs.length : index] = data.design;
-    localStorage.setItem(storageKey, JSON.stringify(designs));
-    reply({ action: 'saved', ok: true });
+  if (data.action === 'load') {
+   try {
+    let migrationFailed = false;
+    try { await migrateBrowserDesigns(); } catch { migrationFailed = true; }
+    const { designs } = await request();
+    reply({ action: 'loaded', designs, migrationFailed });
+   } catch {
+    reply({ action: 'loaded', ok: false });
    }
-  } catch {
-   reply({ action: data.action === 'save' ? 'saved' : 'loaded', ok: false });
+  } else if (data.action === 'save') {
+   try {
+    await saveDesign(data.design);
+    reply({ action: 'saved', ok: true });
+   } catch {
+    reply({ action: 'saved', ok: false });
+   }
   }
  });
 
