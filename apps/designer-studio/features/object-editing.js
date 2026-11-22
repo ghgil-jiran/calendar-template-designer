@@ -497,6 +497,21 @@ function matchingMonthlyObjectsFor(item){
  const page=selectedPage(),role=page?.role;
  if(!item||!["monthly-front","monthly-back"].includes(role))return [];
  const masterId=canonicalMasterIdForPage(page),binding=value=>value.binding||value.image?.binding||"";
+ const pages=monthlyPagesForRole(role);
+ // Imported page objects use a page ID prefix and a stable object key.
+ // Use the key to distinguish multiple images or text boxes with the same role.
+ const prefix=page.id+".";
+ const objectKey=item.id?.startsWith(prefix)?item.id.slice(prefix.length):"";
+ if(objectKey&&!item.shadowOfMasterElementId&&!item.aiDesignComponent&&project.book.elementsByPage[page.id]?.includes(item)){
+  return pages.flatMap(month=>{
+   if(month.id===page.id)return [item];
+   const matches=(project.book.elementsByPage[month.id]||[]).filter(candidate=>
+    candidate.id===month.id+"."+objectKey&&candidate.type===item.type&&
+    (candidate.role||"")===(item.role||"")&&binding(candidate)===binding(item)&&
+    !candidate.shadowOfMasterElementId&&!candidate.aiDesignComponent);
+   return matches.length===1?matches:[];
+  });
+ }
  const same=candidate=>{
   if(!candidate||candidate.type!==item.type)return false;
   if(item.shadowOfMasterElementId)return candidate.id===item.shadowOfMasterElementId||candidate.shadowOfMasterElementId===item.shadowOfMasterElementId;
@@ -505,7 +520,7 @@ function matchingMonthlyObjectsFor(item){
   if(item.type==="memo")return candidate.memoLayout===item.memoLayout&&candidate.title===item.title;
   return true;
  };
- const containers=[project.template.masterElements?.[masterId]||[],...monthlyPagesForRole(role).map(month=>pageElements(month))];
+ const containers=[project.template.masterElements?.[masterId]||[],...pages.map(month=>pageElements(month))];
  const own=containers.find(items=>items.includes(item));
  // A duplicate is an independent object. Never guess which of two same-role
  // objects corresponds to another month's object, even for an explicit copy.
