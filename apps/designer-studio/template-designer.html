@@ -538,8 +538,9 @@
                 }
                 populateTemplateSetSelector();
                 document.getElementById('templateSetSelect').value = currentSetIndex;
+                if (data.migrationFailed) showToast('기존 시안은 브라우저에 남아 있습니다.');
             } else if (data.action === 'saved') {
-                showToast(data.ok ? '시안을 이 브라우저에 저장했습니다.' : '시안을 저장할 수 없습니다. JSON 원본을 보관해 주세요.');
+                showToast(data.ok ? '시안을 Supabase에 저장했습니다.' : '시안을 저장할 수 없습니다. JSON 원본을 보관해 주세요.');
             } else if (data.action === 'loaded' && data.ok === false) {
                 showToast('저장된 시안을 불러올 수 없습니다.');
             }
