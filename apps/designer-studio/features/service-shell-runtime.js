@@ -1,7 +1,7 @@
 (()=>{
  const home=el('returnHomeBtn');if(!home)return;
  home.addEventListener('click',()=>{
-  const changed=!!project&&((el('saveStatus')?.textContent||'').includes('변경')||(savedHash&&savedHash!==window.ACDLPersistenceProject.hash(project)));
+  const changed=hasUnsavedEditorChanges();
   if(changed&&!confirm('저장하지 않은 변경 사항이 있습니다. 처음 화면으로 돌아갈까요?'))return;
   el('templateLibraryModal')?.classList.add('hidden');el('templateMenuDropdown')?.classList.add('hidden');el('templateSaveDialog')?.classList.add('hidden');el('resourceModal')?.classList.add('hidden');el('objectDrawer')?.classList.add('hidden');el('workflowModal')?.classList.add('hidden');
   document.body.classList.remove('user-mode');
@@ -31,7 +31,7 @@
 })();
 
 document.querySelectorAll('.production-review-nav').forEach(link=>link.addEventListener('click',event=>{
- const changed=typeof project!=='undefined'&&!!project&&((document.getElementById('saveStatus')?.textContent||'').includes('변경')||(savedHash&&savedHash!==window.ACDLPersistenceProject.hash(project)));
+ const changed=hasUnsavedEditorChanges();
  if(changed&&!confirm('저장하지 않은 변경 사항이 있습니다. 제작 검수로 이동할까요?'))event.preventDefault();
 }));
 
