@@ -111,7 +111,7 @@ async function openDesignerProjectFromRecord(t){
  selectedPageId=project.book.pageInstances[0]?.id||null;selectedElementId=null;selectedElementScope=null;history=[];future=[];
  el("appBrand").childNodes[0].nodeValue="우리학교인쇄 CALENDAR EDITOR ";el("newBtn").textContent="새 템플릿";el("saveBtn").textContent="템플릿 저장";el("templateMode").textContent="템플릿 설계";el("modeHelp").textContent="샘플 콘텐츠, 데이터 연결, 위치와 스타일을 한 화면에서 설계합니다.";
  el("templateLibraryModal").classList.add("hidden");
- openProgress?.update?.({phase:'render',completed:0,total:1});setEditorContext("템플릿 라이브러리");stable();render();updateRoleIndicator();
+ openProgress?.update?.({phase:'render',completed:0,total:1});setEditorContext("템플릿 라이브러리");render();updateRoleIndicator();stable();
  if(project.template?.assetRecovery?.status==='pending')showEditorToast('페이지는 복원했습니다. AI 이미지는 다시 불러오는 중입니다.');
  const openedProject=project;
  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(isCurrentProjectTransition(transitionId)&&project===openedProject)render()}));
