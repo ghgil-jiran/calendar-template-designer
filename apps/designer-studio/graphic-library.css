@@ -185,3 +185,32 @@
 
 #graphicCustomerIllustration:not([hidden]){display:flex;flex-direction:row;align-items:center;gap:8px}
 #graphicCustomerIllustration input[type="checkbox"]{width:16px;height:16px;margin:0;padding:0}
+@media (min-width: 1200px) {
+ .landing-actions:has(#designerHomeTemplateDesigner) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+.template-designer-dialog {
+ width: min(1480px, 96vw);
+ max-width: 96vw;
+ height: 94dvh;
+ max-height: 94dvh;
+ padding: 0;
+ border: 1px solid var(--line);
+ border-radius: 16px;
+ overflow: hidden;
+ color: var(--text);
+ background: var(--panel);
+}
+
+.template-designer-dialog[open] { display: flex; flex-direction: column; }
+.template-designer-dialog::backdrop { background: #17203380; }
+.template-designer-header {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ gap: 12px;
+ padding: 12px 18px;
+ border-bottom: 1px solid var(--line);
+}
+.template-designer-header h2 { margin: 0; font-size: 17px; }
+.template-designer-dialog iframe { flex: 1; width: 100%; min-height: 0; border: 0; }

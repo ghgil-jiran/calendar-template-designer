@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE YEAR IN OBJECTS 2027 - 탁상달력 템플릿 시안 뷰어</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Noto+Serif+KR:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        paper: '#F5F1E8',
+                        ink: '#23211E',
+                        studio: '#121110',
+                        studioCard: '#1C1A18',
+                        studioBorder: '#2E2B27'
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'Noto Serif KR', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        kr: ['Noto Serif KR', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Paper Texture Overlay */
+        .paper-bg {
+            background-color: #F5F1E8;
+            background-image: radial-gradient(#E2DDD0 0.75px, transparent 0.75px);
+            background-size: 12px 12px;
+        }
+        
+        /* 3D Flip Card Effect */
+        .perspective-1000 {
+            perspective: 1200px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Twin Ring Binding Visual */
+        .ring-hole {
+            width: 7px;
+            height: 12px;
+            border-radius: 4px;
+            background-color: #38342F;
+            box-shadow: inset 0 2px 3px rgba(0,0,0,0.6);
+        }
+        .ring-wire {
+            width: 10px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid #999083;
+            background: linear-gradient(135deg, #D4CDC3 0%, #70685D 50%, #3B362F 100%);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #181614;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3B362F;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #575046;
+        }
+
+        /* Subtle Drop Shadows */
+        .calendar-shadow {
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4), 0 5px 15px -3px rgba(0, 0, 0, 0.2);
+        }
+        .desk-shadow {
+            box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.7), 0 10px 20px -5px rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-studio text-gray-200 font-sans min-h-screen flex flex-col antialiased selection:bg-amber-800 selection:text-white">
+
+    <!-- TOP HEADER / STUDIO CONTROL BAR -->
+    <header class="border-b border-studioBorder bg-studioCard/90 backdrop-blur-md sticky top-0 z-40 px-4 lg:px-8 py-3 transition-all">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Brand & Spec Info -->
+            <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center gap-3">
+                    <span class="w-3 h-3 rounded-full bg-amber-600 animate-pulse"></span>
+                    <div>
+                        <h1 class="font-serif font-semibold text-lg text-amber-100 tracking-wide flex items-center gap-2">
+                            THE YEAR IN OBJECTS 2027
+                            <span class="text-xs font-sans font-normal px-2 py-0.5 rounded bg-amber-950/80 text-amber-400 border border-amber-800/50">art_season_object_01</span>
+                        </h1>
+                        <p class="text-xs text-gray-400">사계절 아트 & 오브제 탁상달력 자동 생성 템플릿 마스터 시안</p>
+                    </div>
+                </div>
+
+                <!-- Mobile Action Toggle -->
+                <button id="mobileMenuBtn" class="md:hidden text-gray-400 hover:text-white p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+
+            <!-- View Switchers & Controls -->
+            <div id="controlPanel" class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+                
+                <!-- View Mode Buttons -->
+                <div class="bg-studio border border-studioBorder rounded-lg p-1 flex items-center text-xs">
+                    <button id="btnViewGrid" onclick="switchViewMode('grid')" class="px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 bg-amber-900/40 text-amber-200 border border-amber-700/50">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        전체 한눈에 보기
+                    </button>
+                    <button id="btnViewDesk" onclick="switchViewMode('desk')" class="px-3 py-1.5 rounded-md font-medium text-gray-400 hover:text-white transition-all flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        탁상 거치 뷰
+                    </button>
+                    <button id="btnViewSpread" onclick="switchViewMode('spread')" class="px-3 py-1.5 rounded-md font-medium text-gray-400 hover:text-white transition-all flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        양면 펼침 뷰
+                    </button>
+                </div>
+
+                <!-- Global Face Switcher -->
+                <div class="bg-studio border border-studioBorder rounded-lg p-1 flex items-center text-xs">
+                    <button id="btnFaceFront" onclick="setGlobalFace('front')" class="px-2.5 py-1.5 rounded font-medium text-amber-300 bg-amber-950/60 border border-amber-800/40">앞면 (아트)</button>
+                    <button id="btnFaceBack" onclick="setGlobalFace('back')" class="px-2.5 py-1.5 rounded font-medium text-gray-400 hover:text-white">뒷면 (달력)</button>
+                    <button onclick="toggleAllCardsFlip()" class="px-2.5 py-1.5 rounded text-amber-400 hover:bg-amber-900/30 font-medium" title="전체 뒤집기">🔄 뒤집기</button>
+                </div>
+
+                <!-- JSON Spec & Export Actions -->
+                <div class="flex items-center gap-2">
+                    <button onclick="openSpecModal()" class="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-xs text-gray-200 border border-zinc-700 font-medium flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        설계 스펙 JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SUB-NAV: SEASON & MONTH FILTER TABS -->
+    <nav class="bg-studioCard/60 border-b border-studioBorder py-2.5 px-4 lg:px-8 text-xs overflow-x-auto">
+        <div class="max-w-7xl mx-auto flex items-center gap-2 min-w-max">
+            <span class="text-gray-500 font-medium mr-2">빠른 필터:</span>
+            <button onclick="filterCards('all')" class="filter-tab px-3 py-1 rounded-full bg-amber-900/40 text-amber-200 border border-amber-700/50 font-medium">전체 (Cover + 12M)</button>
+            <button onclick="filterCards('cover')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">표지 (Cover)</button>
+            <button onclick="filterCards('q1')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">1분기 (1~3월)</button>
+            <button onclick="filterCards('q2')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">2분기 (4~6월)</button>
+            <button onclick="filterCards('q3')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">3분기 (7~9월)</button>
+            <button onclick="filterCards('q4')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">4분기 (10~12월)</button>
+            <div class="h-4 w-px bg-zinc-800 mx-2"></div>
+            <span class="text-gray-400 font-sans" id="filterCount">총 13개 카드 표시 중</span>
+        </div>
+    </nav>
+
+    <!-- MAIN VIEW AREA -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8">
+        
+        <!-- 1. GALLERY GRID VIEW -->
+        <section id="viewGrid" class="space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-serif text-amber-100 flex items-center gap-2">
+                        사계절 오브제 에디션 13종 시안 갤러리
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-0.5">카드를 클릭하면 Flip(앞/뒷면 뒤집기)되거나 상세 정보 레이어가 표시됩니다.</p>
+                </div>
+                <div class="text-xs text-gray-400 flex items-center gap-4">
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-paper inline-block border border-gray-400"></span> 앞면: 아트 오브제</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-zinc-300 inline-block"></span> 뒷면: 2027 캘린더</span>
+                </div>
+            </div>
+
+            <!-- CARD GRID CONTAINER -->
+            <div id="cardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <!-- Dynamically populated by JS -->
+            </div>
+        </section>
+
+        <!-- 2. DESK MOCKUP VIEW -->
+        <section id="viewDesk" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900/80 border border-zinc-800 p-4 rounded-xl">
+                <div>
+                    <h2 class="text-lg font-serif text-amber-100 flex items-center gap-2">
+                        실제 탁상 거치 3D 모의 시뮬레이션
+                    </h2>
+                    <p class="text-xs text-gray-400">책상 위 실물 달력의 질감과 넘김 효과를 미리 경험해보세요.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="prevDeskMonth()" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-xs rounded border border-zinc-700 flex items-center gap-1">
+                        ← 이전 달
+                    </button>
+                    <select id="deskMonthSelect" onchange="changeDeskMonth(this.value)" class="bg-zinc-950 border border-zinc-700 text-amber-200 text-xs rounded px-3 py-1.5 font-serif focus:outline-none">
+                        <!-- Populated by JS -->
+                    </select>
+                    <button onclick="nextDeskMonth()" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-xs rounded border border-zinc-700 flex items-center gap-1">
+                        다음 달 →
+                    </button>
+                    <button onclick="flipDeskCard()" class="px-3 py-1.5 bg-amber-900/60 hover:bg-amber-800 text-amber-200 text-xs rounded border border-amber-700 flex items-center gap-1 font-medium ml-2">
+                        🔄 앞/뒷면 뒤집기
+                    </button>
+                </div>
+            </div>
+
+            <!-- DESK ENVIRONMENT CANVAS -->
+            <div class="relative w-full min-h-[550px] bg-gradient-to-b from-zinc-950 via-stone-950 to-zinc-900 border border-zinc-800/80 rounded-2xl p-6 sm:p-12 flex flex-col items-center justify-center overflow-hidden">
+                <!-- Desk Surface Background Light Glow -->
+                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-950/20 via-transparent to-transparent pointer-events-none"></div>
+
+                <!-- 3D STAND & CARD CONTAINER -->
+                <div class="relative z-10 w-full max-w-xl perspective-1000">
+                    
+                    <!-- TRIANGLE STAND BASE SHADOW -->
+                    <div class="absolute -bottom-8 left-1/2 -translate-x-1/2 w-[92%] h-12 bg-black/80 blur-xl rounded-full desk-shadow pointer-events-none"></div>
+
+                    <!-- FLIP CARD OBJECT -->
+                    <div id="deskFlipCard" class="relative w-full aspect-[4/3] transform-style-3d cursor-pointer calendar-shadow rounded-t-xl" onclick="flipDeskCard()">
+                        
+                        <!-- FRONT CARD FACE -->
+                        <div id="deskCardFront" class="absolute inset-0 w-full h-full backface-hidden rounded-xl overflow-hidden border border-stone-300">
+                            <!-- Filled dynamically -->
+                        </div>
+
+                        <!-- BACK CARD FACE -->
+                        <div id="deskCardBack" class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-xl overflow-hidden border border-stone-300">
+                            <!-- Filled dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- STAND BASE VISUAL -->
+                    <div class="w-[104%] -ml-[2%] h-7 bg-gradient-to-r from-stone-800 via-stone-700 to-stone-800 rounded-b-md shadow-2xl flex items-center justify-between px-4 text-[9px] text-stone-400 font-mono">
+                        <span>SERIES: ART_SEASON_OBJECT_01</span>
+                        <span>FINISH: MATTE COATING 250GSM</span>
+                    </div>
+                </div>
+
+                <p class="mt-8 text-xs text-stone-400 font-light flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+                    달력을 클릭하면 180도 뒤집어 뒷면 달력 표를 확인할 수 있습니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- 3. SPREAD VIEW (SIDE BY SIDE) -->
+        <section id="viewSpread" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-zinc-900/80 border border-zinc-800 p-4 rounded-xl">
+                <div>
+                    <h2 class="text-lg font-serif text-amber-100">양면 나란히 보기 (Front & Back Spread)</h2>
+                    <p class="text-xs text-gray-400">인쇄 넘김 규격 및 앞면(아트)과 뒷면(달력)의 조화를 대조 검토합니다.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select id="spreadMonthSelect" onchange="renderSpreadView(this.value)" class="bg-zinc-950 border border-zinc-700 text-amber-200 text-xs rounded px-3 py-1.5 font-serif focus:outline-none">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+            </div>
+
+            <div id="spreadContainer" class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <!-- Dynamically rendered -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SPEC & PROMPT INSPECTOR MODAL / DRAWER -->
+    <div id="specModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                    <h3 class="font-serif text-lg text-amber-100" id="modalTitle">템플릿 설계 스펙 & AI 프롬프트 Inspector</h3>
+                </div>
+                <button onclick="closeSpecModal()" class="text-gray-400 hover:text-white text-xl font-bold p-1">✕</button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-6 overflow-y-auto space-y-6 text-xs text-gray-300 font-sans" id="modalBody">
+                <!-- Populated dynamically -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-3 border-t border-zinc-800 bg-zinc-950 flex items-center justify-between">
+                <button onclick="copyFullJSON()" class="px-4 py-2 bg-amber-900/50 hover:bg-amber-800 text-amber-200 rounded border border-amber-700 font-medium flex items-center gap-1.5 text-xs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    전체 JSON 스펙 복사
+                </button>
+                <button onclick="closeSpecModal()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-gray-300 rounded text-xs font-medium">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-amber-900 text-amber-100 border border-amber-700 text-xs px-4 py-2.5 rounded-lg shadow-xl opacity-0 transition-opacity pointer-events-none z-50 flex items-center gap-2">
+        <span class="text-base">✅</span>
+        <span id="toastMsg">복사되었습니다.</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- 1. DATA SPECIFICATION (art_season_object_01) ---
+        const calendarDataset = {
+            set_id: "art_season_object_01",
+            title: "THE YEAR IN OBJECTS 2027",
+            format: {
+                type: "desk_calendar",
+                orientation: "landscape_4_3",
+                front_role: "art_object_and_month_label",
+                back_role: "calendar_grid_and_notes"
+            },
+            global_style_lock: {
+                paper_bg: "#F5F1E8",
+                ink_primary: "#23211E",
+                texture: "subtle matte fine paper grain",
+                rule_no_random_calendar_text_in_ai_art: true
+            },
+            cover: {
+                id: "cover",
+                month: 0,
+                label: "COVER",
+                title: "THE YEAR IN OBJECTS",
+                subline: "2027 DESK EDITION",
+                accent: "#2E5A44",
+                accentName: "Deep Forest Green",
+                memo_title: "2027 EDITION OVERVIEW",
+                prompt_subject: "Minimalist contemporary editorial illustration on warm cream paper (#F5F1E8), four neat seasonal objects arranged in a balanced composition: a small green sprout, warm sunlight beam, autumn leaf, and glowing table lamp, deep forest green (#2E5A44) and charcoal (#23211E) ink accents, subtle paper grain, clean layout, no text",
+                svgType: "cover"
+            },
+            months: [
+                { id: "m01", month: 1, label: "JAN", title: "JANUARY", accent: "#C85A32", accentName: "Terracotta", memo_title: "2027 FIRST GOALS", prompt_subject: "a ceramic mug and warm morning sunlight beam casting soft shadows on cream paper, terracotta (#C85A32) accent, minimalist editorial illustration, no text", svgType: "jan" },
+                { id: "m02", month: 2, label: "FEB", title: "FEBRUARY", accent: "#D98A9C", accentName: "Soft Rose", memo_title: "SMALL JOY NOTES", prompt_subject: "a slender glass vase with early spring blossoms and soft morning light on cream paper, soft rose (#D98A9C) accent, minimalist editorial illustration, no text", svgType: "feb" },
+                { id: "m03", month: 3, label: "MAR", title: "MARCH", accent: "#5B8C5A", accentName: "Spring Green", memo_title: "SPRING PLANS", prompt_subject: "a canvas tote bag with fresh green shoots and gentle breeze lines on cream paper, spring green (#5B8C5A) accent, minimalist editorial illustration, no text", svgType: "mar" },
+                { id: "m04", month: 4, label: "APR", title: "APRIL", accent: "#4A7C9B", accentName: "Sky Blue", memo_title: "READING & REST", prompt_subject: "an open hardcover book and teacup beside a bright window frame on cream paper, sky blue (#4A7C9B) accent, minimalist editorial illustration, no text", svgType: "apr" },
+                { id: "m05", month: 5, label: "MAY", title: "MAY", accent: "#3D7A4A", accentName: "Leaf Green", memo_title: "DAYS TO REMEMBER", prompt_subject: "lush green leaves and a woven picnic basket in warm daylight on cream paper, leaf green (#3D7A4A) accent, minimalist editorial illustration, no text", svgType: "may" },
+                { id: "m06", month: 6, label: "JUN", title: "JUNE", accent: "#3B6E8C", accentName: "Rain Blue", memo_title: "MID-YEAR CHECK", prompt_subject: "a clear umbrella with delicate raindrop motifs on cream paper, rain blue (#3B6E8C) accent, minimalist editorial illustration, no text", svgType: "jun" },
+                { id: "m07", month: 7, label: "JUL", title: "JULY", accent: "#E07A38", accentName: "Sunset Orange", memo_title: "SUMMER LOG", prompt_subject: "sunglasses, a folding fan, and warm summer sun shapes on cream paper, sunset orange (#E07A38) accent, minimalist editorial illustration, no text", svgType: "jul" },
+                { id: "m08", month: 8, label: "AUG", title: "AUGUST", accent: "#6E8B74", accentName: "Sage Green", memo_title: "SLOW DOWN", prompt_subject: "folded linen fabric and a gently swaying curtain in calm afternoon light on cream paper, sage green (#6E8B74) accent, minimalist editorial illustration, no text", svgType: "aug" },
+                { id: "m09", month: 9, label: "SEP", title: "SEPTEMBER", accent: "#9C6644", accentName: "Warm Walnut", memo_title: "AUTUMN ROUTINE", prompt_subject: "a notebook and fountain pen with crisp autumn air feeling on cream paper, warm walnut (#9C6644) accent, minimalist editorial illustration, no text", svgType: "sep" },
+                { id: "m10", month: 10, label: "OCT", title: "OCTOBER", accent: "#B85D3B", accentName: "Autumn Brick", memo_title: "FAVORITE MOMENTS", prompt_subject: "fallen autumn leaves and a warm ceramic cup on cream paper, autumn brick (#B85D3B) accent, minimalist editorial illustration, no text", svgType: "oct" },
+                { id: "m11", month: 11, label: "NOV", title: "NOVEMBER", accent: "#7A5C43", accentName: "Cocoa Brown", memo_title: "GRATITUDE LIST", prompt_subject: "a cozy desk lamp glowing softly with knitted texture details on cream paper, cocoa brown (#7A5C43) accent, minimalist editorial illustration, no text", svgType: "nov" },
+                { id: "m12", month: 12, label: "DEC", title: "DECEMBER", accent: "#8C3B3B", accentName: "Winter Crimson", memo_title: "WRAP UP 2027", prompt_subject: "winter berries, a small candle, and a neatly tied gift box on cream paper, winter crimson (#8C3B3B) accent, minimalist editorial illustration, no text", svgType: "dec" }
+            ]
+        };
+
+        // --- 2. ACCURATE 2027 KOREAN HOLIDAYS DATA ---
+        const holidays2027 = {
+            "1-1": "신정",
+            "2-6": "설날 연휴",
+            "2-7": "설날",
+            "2-8": "설날 연휴",
+            "2-9": "대체공휴일",
+            "3-1": "삼일절",
+            "5-5": "어린이날",
+            "5-13": "부처님오신날",
+            "6-6": "현충일",
+            "8-15": "광복절",
+            "8-16": "대체공휴일",
+            "9-14": "추석 연휴",
+            "9-15": "추석",
+            "9-16": "추석 연휴",
+            "10-3": "개천절",
+            "10-4": "대체공휴일",
+            "10-9": "한글날",
+            "10-11": "대체공휴일",
+            "12-25": "성탄절"
+        };
+
+        // State Management
+        let currentViewMode = 'grid'; // 'grid' | 'desk' | 'spread'
+        let currentGlobalFace = 'front'; // 'front' | 'back'
+        let currentDeskIndex = 0; // 0 is cover, 1..12 are months
+        let cardFlippedStates = {}; // cardId -> boolean (true=back, false=front)
+        let activeFilter = 'all';
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            initCardStates();
+            populateSelectOptions();
+            renderGridCards();
+            renderDeskCard();
+            renderSpreadView(1);
+        });
+
+        function initCardStates() {
+            cardFlippedStates['cover'] = false;
+            calendarDataset.months.forEach(m => {
+                cardFlippedStates[m.id] = false;
+            });
+        }
+
+        function populateSelectOptions() {
+            const deskSelect = document.getElementById('deskMonthSelect');
+            const spreadSelect = document.getElementById('spreadMonthSelect');
+            
+            let optionsHTML = `<option value="0">표지 (COVER)</option>`;
+            calendarDataset.months.forEach(m => {
+                optionsHTML += `<option value="${m.month}">${m.month}월 (${m.label}) - ${m.memo_title}</option>`;
+            });
+
+            deskSelect.innerHTML = optionsHTML;
+            spreadSelect.innerHTML = optionsHTML.replace('<option value="0">표지 (COVER)</option>', ''); // Spread is for months
+        }
+
+        // --- 3. VECTOR ARTWORK GENERATOR FOR MONTHS ---
+        function generateSVGVisual(item) {
+            const color = item.accent;
+            const ink = "#23211E";
+            
+            // Standard SVG Template Wrapper
+            let innerSVG = '';
+            
+            switch (item.svgType) {
+                case 'cover':
+                    innerSVG = `
+                        <g transform="translate(60, 40)">
+                            <!-- 4 Quadrant Grid of Seasonal Icons -->
+                            <rect x="0" y="0" width="280" height="180" fill="none" stroke="${color}" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.4"/>
+                            <line x1="140" y1="0" x2="140" y2="180" stroke="${color}" stroke-width="1" opacity="0.3"/>
+                            <line x1="0" y1="90" x2="280" y2="90" stroke="${color}" stroke-width="1" opacity="0.3"/>
+                            
+                            <!-- Q1: Sprout -->
+                            <g transform="translate(70,45)">
+                                <path d="M0 20 Q0 0 15 -10 Q10 15 0 20 Z" fill="${color}"/>
+                                <path d="M0 20 Q-15 5 -10 -5 Q5 5 0 20 Z" fill="${ink}" opacity="0.8"/>
+                                <line x1="0" y1="20" x2="0" y2="30" stroke="${ink}" stroke-width="2"/>
+                            </g>
+                            <!-- Q2: Sunbeam -->
+                            <g transform="translate(210,45)">
+                                <circle cx="0" cy="0" r="12" fill="none" stroke="${color}" stroke-width="2.5"/>
+                                <path d="M-20 0 L-14 0 M20 0 L14 0 M0 -20 L0 -14 M0 20 L0 14" stroke="${ink}" stroke-width="2"/>
+                            </g>
+                            <!-- Q3: Autumn Leaf -->
+                            <g transform="translate(70,135)">
+                                <path d="M0 -15 C15 -10 20 10 0 20 C-20 10 -15 -10 0 -15 Z" fill="none" stroke="${color}" stroke-width="2"/>
+                                <line x1="0" y1="-10" x2="0" y2="25" stroke="${ink}" stroke-width="1.5"/>
+                            </g>
+                            <!-- Q4: Lamp -->
+                            <g transform="translate(210,135)">
+                                <path d="M-15 10 L15 10 L8 -12 L-8 -12 Z" fill="${color}"/>
+                                <path d="M0 -12 L0 -20 M-6 10 L6 10 L10 20 L-10 20 Z" fill="${ink}"/>
+                            </g>
+                        </g>
+                    `;
+                    break;
+
+                case 'jan': // Ceramic Mug & Sunbeam
+                    innerSVG = `
+                        <g transform="translate(130, 60)">
+                            <!-- Sun Rays -->
+                            <polygon points="0,-30 80,120 -40,120" fill="${color}" opacity="0.15"/>
+                            <!-- Sun Circle -->
+                            <circle cx="20" cy="-10" r="28" fill="${color}" opacity="0.8"/>
+                            <!-- Ceramic Mug -->
+                            <rect x="50" y="70" width="55" height="65" rx="6" fill="${ink}"/>
+                            <path d="M105 80 C120 80 120 115 105 115" fill="none" stroke="${ink}" stroke-width="6"/>
+                            <!-- Steam Lines -->
+                            <path d="M65 55 Q70 45 65 35" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M85 58 Q90 48 85 38" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round"/>
+                        </g>
+                    `;
+                    break;
+
+                case 'feb': // Glass Vase & Blossom
+                    innerSVG = `
+                        <g transform="translate(160, 50)">
+                            <!-- Branch -->
+                            <path d="M20 160 Q0 90 40 10" fill="none" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M25 80 Q50 65 60 55" fill="none" stroke="${ink}" stroke-width="2"/>
+                            <!-- Blossoms -->
+                            <circle cx="40" cy="10" r="12" fill="${color}"/>
+                            <circle cx="60" cy="55" r="9" fill="${color}"/>
+                            <circle cx="15" cy="105" r="8" fill="${color}" opacity="0.8"/>
+                            <!-- Glass Vase -->
+                            <path d="M0 110 L40 110 L45 165 L-5 165 Z" fill="${color}" opacity="0.25" stroke="${color}" stroke-width="2"/>
+                        </g>
+                    `;
+                    break;
+
+                case 'mar': // Tote Bag & Sprout
+                    innerSVG = `
+                        <g transform="translate(130, 55)">
+                            <!-- Breeze lines -->
+                            <path d="M-30 40 Q20 30 70 45" fill="none" stroke="${color}" stroke-width="2" stroke-dasharray="4 4"/>
+                            <path d="M-10 20 Q40 10 90 25" fill="none" stroke="${color}" stroke-width="1.5"/>
+                            <!-- Tote Bag -->
+                            <path d="M30 60 C30 35 70 35 70 60" fill="none" stroke="${ink}" stroke-width="5"/>
+                            <rect x="15" y="60" width="70" height="85" rx="4" fill="${color}"/>
+                            <!-- Sprout on bag -->
+                            <path d="M50 100 Q65 85 70 100 Q50 115 50 100 Z" fill="${ink}"/>
+                        </g>
+                    `;
+                    break;
+
+                case 'apr': // Book & Teacup
+                    innerSVG = `
+                        <g transform="translate(120, 65)">
+                            <!-- Window Light -->
+                            <rect x="-20" y="-20" width="100" height="120" fill="${color}" opacity="0.12" rx="4"/>
+                            <!-- Open Book -->
+                            <path d="M10 80 Q45 70 80 80 L80 125 Q45 115 10 125 Z" fill="${ink}"/>
+                            <path d="M80 80 Q115 70 150 80 L150 125 Q115 115 80 125 Z" fill="${ink}" opacity="0.9"/>
+                            <path d="M80 80 L80 125" stroke="${color}" stroke-width="3"/>
+                            <!-- Teacup -->
+                            <circle cx="120" cy="50" r="16" fill="${color}"/>
+                            <path d="M136 50 C144 50 144 60 136 60" fill="none" stroke="${color}" stroke-width="3"/>
+                        </g>
+                    `;
+                    break;
+
+                case 'may': // Picnic Basket & Leaf
+                    innerSVG = `
+                        <g transform="translate(130, 60)">
+                            <!-- Woven Basket Base -->
+                            <path d="M10 70 L90 70 L80 130 L20 130 Z" fill="${color}"/>
+                            <path d="M5 65 L95 65 L95 75 L5 75 Z" fill="${ink}"/>
+                            <path d="M30 65 C30 25 70 25 70 65" fill="none" stroke="${ink}" stroke-width="5"/>
+                            <!-- Leaf Silhouettes -->
+                            <path d="M90 40 Q130 20 110 70 Q80 50 90 40 Z" fill="${color}" opacity="0.8"/>
+                            <path d="M-10 50 Q20 20 0 70 Q-30 60 -10 50 Z" fill="${ink}" opacity="0.7"/>
+                        </g>
+                    `;
+                    break;
+
+                case 'jun': // Umbrella & Raindrops
+                    innerSVG = `
+                        <g transform="translate(140, 50)">
+                            <!-- Raindrops -->
+                            <circle cx="-30" cy="20" r="4" fill="${color}"/>
+                            <circle cx="110" cy="30" r="5" fill="${color}"/>
+                            <circle cx="90" cy="-10" r="3.5" fill="${color}"/>
+                            <circle cx="-10" cy="-15" r="4.5" fill="${color}"/>
+                            <!-- Umbrella Dome -->
+                            <path d="M0 70 A50 50 0 0 1 100 70 Q50 60 0 70 Z" fill="none" stroke="${color}" stroke-width="3"/>
+                            <path d="M0 70 Q25 60 50 70 Q75 60 100 70 Q50 20 0 70 Z" fill="${color}" opacity="0.2"/>
+                            <!-- Handle -->
+                            <line x1="50" y1="20" x2="50" y2="125" stroke="${ink}" stroke-width="3"/>
+                            <path d="M50 125 C50 135 40 135 40 128" fill="none" stroke="${ink}" stroke-width="3"/>
+                        </g>
+                    `;
+                    break;
+
+                case 'jul': // Sunglasses & Sun
+                    innerSVG = `
+                        <g transform="translate(120, 50)">
+                            <!-- Big Summer Sun -->
+                            <circle cx="80" cy="20" r="40" fill="${color}" opacity="0.3"/>
+                            <!-- Sunglasses -->
+                            <rect x="0" y="70" width="55" height="40" rx="12" fill="${ink}"/>
+                            <rect x="65" y="70" width="55" height="40" rx="12" fill="${ink}"/>
+                            <line x1="55" y1="80" x2="65" y2="80" stroke="${ink}" stroke-width="4"/>
+                            <path d="M0 75 L-15 65" stroke="${ink}" stroke-width="3"/>
+                            <path d="M120 75 L135 65" stroke="${ink}" stroke-width="3"/>
+                        </g>
+                    `;
+                    break;
+
+                case 'aug': // Linen Fabric & Curtain Wave
+                    innerSVG = `
+                        <g transform="translate(110, 45)">
+                            <!-- Curtain Waves -->
+                            <path d="M0 0 Q30 60 0 140 L30 140 Q60 60 30 0 Z" fill="${color}" opacity="0.4"/>
+                            <path d="M40 0 Q70 60 40 140 L70 140 Q100 60 70 0 Z" fill="${color}"/>
+                            <!-- Linen Fold Lines -->
+                            <path d="M100 80 Q130 100 150 70" fill="none" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M90 100 Q120 120 140 90" fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>
+                        </g>
+                    `;
+                    break;
+
+                case 'sep': // Notebook & Fountain Pen
+                    innerSVG = `
+                        <g transform="translate(130, 50)">
+                            <!-- Notebook -->
+                            <rect x="0" y="30" width="90" height="110" rx="4" fill="${color}"/>
+                            <line x1="18" y1="30" x2="18" y2="140" stroke="${ink}" stroke-width="2" opacity="0.4"/>
+                            <!-- Fountain Pen -->
+                            <g transform="rotate(-35 60 60)">
+                                <rect x="50" y="-10" width="12" height="110" rx="3" fill="${ink}"/>
+                                <polygon points="50,100 62,100 56,118" fill="${color}"/>
+                            </g>
+                        </g>
+                    `;
+                    break;
+
+                case 'oct': // Autumn Leaves & Mug
+                    innerSVG = `
+                        <g transform="translate(120, 50)">
+                            <!-- Leaves -->
+                            <path d="M0 40 Q40 0 50 60 Q10 70 0 40 Z" fill="${color}"/>
+                            <path d="M110 30 Q140 70 80 80 Q80 40 110 30 Z" fill="${ink}" opacity="0.8"/>
+                            <!-- Cozy Ceramic Mug -->
+                            <rect x="35" y="75" width="60" height="60" rx="10" fill="${color}"/>
+                            <path d="M95 85 C108 85 108 115 95 115" fill="none" stroke="${color}" stroke-width="5"/>
+                        </g>
+                    `;
+                    break;
+
+                case 'nov': // Lamp & Knit
+                    innerSVG = `
+                        <g transform="translate(130, 45)">
+                            <!-- Glowing Light Cone -->
+                            <polygon points="50,40 -10,140 110,140" fill="${color}" opacity="0.2"/>
+                            <!-- Lamp Head & Stand -->
+                            <path d="M30 40 L70 40 L80 15 L20 15 Z" fill="${ink}"/>
+                            <path d="M50 40 L50 140 M30 140 L70 140" stroke="${ink}" stroke-width="4"/>
+                            <!-- Knit Pattern Box -->
+                            <rect x="-20" y="100" width="45" height="35" fill="none" stroke="${color}" stroke-width="2" stroke-dasharray="3 3"/>
+                        </g>
+                    `;
+                    break;
+
+                case 'dec': // Berries, Candle & Gift
+                    innerSVG = `
+                        <g transform="translate(120, 50)">
+                            <!-- Candle & Flame -->
+                            <rect x="20" y="60" width="28" height="75" rx="2" fill="${ink}"/>
+                            <path d="M34 40 Q42 52 34 58 Q26 52 34 40 Z" fill="${color}"/>
+                            <!-- Gift Box -->
+                            <rect x="70" y="80" width="55" height="55" rx="3" fill="${color}"/>
+                            <rect x="92" y="80" width="10" height="55" fill="${ink}"/>
+                            <rect x="70" y="100" width="55" height="10" fill="${ink}"/>
+                            <!-- Winter Berries -->
+                            <circle cx="0" cy="110" r="7" fill="${color}"/>
+                            <circle cx="12" cy="120" r="7" fill="${color}"/>
+                            <circle cx="-10" cy="125" r="7" fill="${color}"/>
+                        </g>
+                    `;
+                    break;
+            }
+
+            return `
+                <svg viewBox="0 0 400 300" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="400" height="300" fill="#F5F1E8"/>
+                    <!-- Subtle Frame Border -->
+                    <rect x="16" y="16" width="368" height="268" fill="none" stroke="${ink}" stroke-width="1" opacity="0.15"/>
+                    ${innerSVG}
+                </svg>
+            `;
+        }
+
+        // --- 4. RENDER FRONT CARD FACE ---
+        function createFrontCardHTML(item) {
+            const isCover = item.month === 0;
+            return `
+                <div class="w-full h-full paper-bg text-ink flex flex-col justify-between p-5 relative select-none overflow-hidden">
+                    
+                    <!-- TOP TWIN RING BINDING VISUAL -->
+                    <div class="absolute top-1.5 left-0 right-0 flex justify-between px-8 z-20 pointer-events-none">
+                        ${Array(12).fill(0).map(() => `
+                            <div class="flex flex-col items-center">
+                                <div class="ring-wire"></div>
+                                <div class="ring-hole -mt-1.5"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- CARD HEADER -->
+                    <div class="mt-4 flex items-start justify-between border-b border-ink/10 pb-2">
+                        <div>
+                            <span class="text-[10px] font-mono tracking-widest text-ink/60 uppercase">2027 DESK CALENDAR</span>
+                            <h3 class="font-serif font-bold text-lg md:text-xl tracking-tight" style="color: ${item.accent}">
+                                ${isCover ? item.title : `${String(item.month).padStart(2, '0')}. ${item.title}`}
+                            </h3>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-serif text-2xl font-bold tracking-tighter" style="color: ${item.accent}">
+                                ${isCover ? '2027' : item.label}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- MAIN VISUAL ARTWORK -->
+                    <div class="flex-1 my-2 relative flex items-center justify-center overflow-hidden rounded border border-ink/5">
+                        ${generateSVGVisual(item)}
+                    </div>
+
+                    <!-- CARD FOOTER (MINI CAPTION & CONCEPT TAG) -->
+                    <div class="pt-2 border-t border-ink/10 flex items-center justify-between text-[10px] font-sans text-ink/70">
+                        <span class="font-medium tracking-wide" style="color: ${item.accent}">${item.memo_title}</span>
+                        <span class="font-mono text-[9px] bg-ink/5 px-2 py-0.5 rounded">${item.accentName} (${item.accent})</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 5. ACCURATE 2027 CALENDAR MATRIX GENERATOR & BACK FACE ---
+        function generate2027CalendarHTML(monthNum, accentColor, memoTitle) {
+            if (monthNum === 0) {
+                // COVER BACK SIDE: INDEX & SPEC OVERVIEW
+                return `
+                    <div class="w-full h-full paper-bg text-ink p-6 flex flex-col justify-between select-none">
+                        <!-- Top Rings -->
+                        <div class="absolute top-1.5 left-0 right-0 flex justify-between px-8 z-20">
+                            ${Array(12).fill(0).map(() => `<div class="flex flex-col items-center"><div class="ring-wire"></div><div class="ring-hole -mt-1.5"></div></div>`).join('')}
+                        </div>
+
+                        <div class="mt-4 border-b border-ink/20 pb-3">
+                            <h3 class="font-serif text-xl font-bold" style="color: ${accentColor}">THE YEAR IN OBJECTS 2027</h3>
+                            <p class="text-xs text-ink/70">탁상달력 12개월 구성 표 및 월별 테마 인덱스</p>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 text-[10px] my-auto">
+                            ${calendarDataset.months.map(m => `
+                                <div class="p-2 rounded bg-ink/5 border border-ink/10 flex flex-col justify-between">
+                                    <span class="font-bold" style="color: ${m.accent}">${m.month}월 ${m.label}</span>
+                                    <span class="text-[9px] truncate text-ink/70">${m.memo_title}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="border-t border-ink/20 pt-2 text-[10px] flex justify-between text-ink/60 font-mono">
+                            <span>FORMAT: 4:3 LANDSCAPE DESK</span>
+                            <span>STOCK: MATTE ART 250GSM</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 2027 Month calculations
+            // 2027-01-01 starts on Friday (Day 5 if Sun=0)
+            const daysInMonths2027 = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            const startDay2027 = [0, 5, 1, 1, 4, 6, 2, 4, 0, 3, 5, 1, 3]; // Day of week for 1st of each month
+
+            const totalDays = daysInMonths2027[monthNum];
+            const firstDayOfWeek = startDay2027[monthNum];
+
+            // Build weeks grid
+            let dayCells = [];
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                dayCells.push({ day: '', isHoliday: false, label: '' });
+            }
+            for (let d = 1; d <= totalDays; d++) {
+                const key = `${monthNum}-${d}`;
+                const isHoliday = holidays2027[key] !== undefined;
+                const holiName = holidays2027[key] || '';
+                const dayOfWeek = (firstDayOfWeek + d - 1) % 7;
+                const isSunday = dayOfWeek === 0;
+
+                dayCells.push({
+                    day: d,
+                    isSunday: isSunday,
+                    isHoliday: isHoliday || isSunday,
+                    holiName: holiName
+                });
+            }
+
+            return `
+                <div class="w-full h-full paper-bg text-ink p-4 md:p-5 flex flex-col justify-between select-none relative overflow-hidden">
+                    
+                    <!-- TOP TWIN RING BINDING VISUAL -->
+                    <div class="absolute top-1.5 left-0 right-0 flex justify-between px-8 z-20 pointer-events-none">
+                        ${Array(12).fill(0).map(() => `<div class="flex flex-col items-center"><div class="ring-wire"></div><div class="ring-hole -mt-1.5"></div></div>`).join('')}
+                    </div>
+
+                    <!-- BACK HEADER -->
+                    <div class="mt-4 flex items-center justify-between border-b border-ink/15 pb-2">
+                        <div class="flex items-baseline gap-2">
+                            <span class="font-serif text-2xl font-bold tracking-tight" style="color: ${accentColor}">${String(monthNum).padStart(2, '0')}</span>
+                            <span class="font-serif font-bold text-sm tracking-widest text-ink/80">${calendarDataset.months[monthNum-1].title}</span>
+                        </div>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-ink/5 text-ink/70">2027 CALENDAR</span>
+                    </div>
+
+                    <!-- MAIN GRID + MEMO SIDE SPLIT -->
+                    <div class="flex-1 my-2 grid grid-cols-12 gap-3 items-stretch">
+                        
+                        <!-- CALENDAR GRID (8 Cols) -->
+                        <div class="col-span-8 flex flex-col justify-between">
+                            <!-- Weekdays Header -->
+                            <div class="grid grid-cols-7 text-center text-[9px] font-bold text-ink/50 border-b border-ink/10 pb-1">
+                                <span class="text-red-700">SUN</span>
+                                <span>MON</span>
+                                <span>TUE</span>
+                                <span>WED</span>
+                                <span>THU</span>
+                                <span>FRI</span>
+                                <span class="text-blue-700">SAT</span>
+                            </div>
+
+                            <!-- Dates Cells -->
+                            <div class="grid grid-cols-7 gap-y-1 text-center text-[10px] font-medium flex-1 pt-1">
+                                ${dayCells.map(c => {
+                                    if (!c.day) return `<div></div>`;
+                                    let textColor = "text-ink";
+                                    if (c.isHoliday) textColor = "text-red-600 font-bold";
+                                    return `
+                                        <div class="flex flex-col items-center justify-center p-0.5 rounded hover:bg-ink/5 transition-colors">
+                                            <span class="${textColor}">${c.day}</span>
+                                            ${c.holiName ? `<span class="text-[7px] text-red-500 font-normal tracking-tighter truncate max-w-full scale-90">${c.holiName}</span>` : ''}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <!-- MEMO & NOTES ZONE (4 Cols) -->
+                        <div class="col-span-4 border-l border-ink/15 pl-3 flex flex-col justify-between">
+                            <div>
+                                <h4 class="text-[9px] font-bold tracking-wider uppercase border-b border-ink/15 pb-1 mb-2" style="color: ${accentColor}">
+                                    ${memoTitle}
+                                </h4>
+                                <!-- Ruled Note Lines -->
+                                <div class="space-y-2.5 pt-1">
+                                    <div class="border-b border-ink/10 h-3"></div>
+                                    <div class="border-b border-ink/10 h-3"></div>
+                                    <div class="border-b border-ink/10 h-3"></div>
+                                    <div class="border-b border-ink/10 h-3"></div>
+                                    <div class="border-b border-ink/10 h-3"></div>
+                                </div>
+                            </div>
+                            <div class="text-[8px] text-ink/40 font-mono text-right">
+                                MONTHLY LOG
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- FOOTER -->
+                    <div class="pt-1.5 border-t border-ink/10 flex items-center justify-between text-[9px] text-ink/50 font-mono">
+                        <span>THE YEAR IN OBJECTS 2027</span>
+                        <span>PAGE ${monthNum * 2} OF 26</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 6. RENDER CARDS GRID ---
+        function renderGridCards() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '';
+
+            const allItems = [calendarDataset.cover, ...calendarDataset.months];
+            
+            // Filter logic
+            const filtered = allItems.filter(item => {
+                if (activeFilter === 'all') return true;
+                if (activeFilter === 'cover') return item.month === 0;
+                if (activeFilter === 'q1') return item.month >= 1 && item.month <= 3;
+                if (activeFilter === 'q2') return item.month >= 4 && item.month <= 6;
+                if (activeFilter === 'q3') return item.month >= 7 && item.month <= 9;
+                if (activeFilter === 'q4') return item.month >= 10 && item.month <= 12;
+                return true;
+            });
+
+            document.getElementById('filterCount').textContent = `총 ${filtered.length}개 카드 표시 중`;
+
+            filtered.forEach(item => {
+                const cardId = item.id;
+                const isFlipped = cardFlippedStates[cardId] || (currentGlobalFace === 'back');
+
+                const cardHTML = `
+                    <div class="flex flex-col space-y-2">
+                        <!-- FLIP CARD WRAPPER -->
+                        <div class="perspective-1000 w-full aspect-[4/3]">
+                            <div id="cardInner_${cardId}" class="relative w-full h-full transform-style-3d transition-transform duration-500 cursor-pointer calendar-shadow rounded-xl ${isFlipped ? 'rotate-y-180' : ''}" onclick="toggleCardFlip('${cardId}')">
+                                
+                                <!-- FRONT FACE -->
+                                <div class="absolute inset-0 w-full h-full backface-hidden rounded-xl overflow-hidden border border-stone-300">
+                                    ${createFrontCardHTML(item)}
+                                </div>
+
+                                <!-- BACK FACE -->
+                                <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-xl overflow-hidden border border-stone-300">
+                                    ${generate2027CalendarHTML(item.month, item.accent, item.memo_title)}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CARD CONTROLS & INSPECTOR TRIGGER -->
+                        <div class="flex items-center justify-between text-xs px-1">
+                            <span class="font-serif font-semibold text-amber-200">
+                                ${item.month === 0 ? '표지 (Cover)' : `${item.month}월 ${item.label}`}
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <button onclick="toggleCardFlip('${cardId}')" class="text-gray-400 hover:text-amber-300 text-[11px] font-mono">
+                                    🔄 ${isFlipped ? '앞면 보기' : '뒷면 보기'}
+                                </button>
+                                <button onclick="openSpecModal('${cardId}')" class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 text-[10px]">
+                                    🔍 프롬프트 & 스펙
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+
+        function toggleCardFlip(cardId) {
+            cardFlippedStates[cardId] = !cardFlippedStates[cardId];
+            const el = document.getElementById(`cardInner_${cardId}`);
+            if (el) {
+                el.classList.toggle('rotate-y-180');
+            }
+        }
+
+        function toggleAllCardsFlip() {
+            currentGlobalFace = currentGlobalFace === 'front' ? 'back' : 'front';
+            setGlobalFace(currentGlobalFace);
+        }
+
+        function setGlobalFace(face) {
+            currentGlobalFace = face;
+            const allItems = [calendarDataset.cover, ...calendarDataset.months];
+            allItems.forEach(item => {
+                cardFlippedStates[item.id] = (face === 'back');
+            });
+
+            // Update Header Buttons styling
+            const btnFront = document.getElementById('btnFaceFront');
+            const btnBack = document.getElementById('btnFaceBack');
+            if (face === 'front') {
+                btnFront.className = "px-2.5 py-1.5 rounded font-medium text-amber-300 bg-amber-950/60 border border-amber-800/40";
+                btnBack.className = "px-2.5 py-1.5 rounded font-medium text-gray-400 hover:text-white";
+            } else {
+                btnBack.className = "px-2.5 py-1.5 rounded font-medium text-amber-300 bg-amber-950/60 border border-amber-800/40";
+                btnFront.className = "px-2.5 py-1.5 rounded font-medium text-gray-400 hover:text-white";
+            }
+
+            renderGridCards();
+        }
+
+        // --- 7. DESK MOCKUP VIEW LOGIC ---
+        function renderDeskCard() {
+            const allItems = [calendarDataset.cover, ...calendarDataset.months];
+            const item = allItems[currentDeskIndex];
+
+            const frontEl = document.getElementById('deskCardFront');
+            const backEl = document.getElementById('deskCardBack');
+            const selectEl = document.getElementById('deskMonthSelect');
+
+            frontEl.innerHTML = createFrontCardHTML(item);
+            backEl.innerHTML = generate2027CalendarHTML(item.month, item.accent, item.memo_title);
+            selectEl.value = item.month;
+        }
+
+        function flipDeskCard() {
+            const card = document.getElementById('deskFlipCard');
+            card.classList.toggle('rotate-y-180');
+        }
+
+        function changeDeskMonth(val) {
+            currentDeskIndex = parseInt(val, 10);
+            renderDeskCard();
+        }
+
+        function prevDeskMonth() {
+            currentDeskIndex = (currentDeskIndex - 1 + 13) % 13;
+            renderDeskCard();
+        }
+
+        function nextDeskMonth() {
+            currentDeskIndex = (currentDeskIndex + 1) % 13;
+            renderDeskCard();
+        }
+
+        // --- 8. SPREAD VIEW LOGIC ---
+        function renderSpreadView(monthNum) {
+            const mIndex = parseInt(monthNum, 10);
+            const item = calendarDataset.months[mIndex - 1] || calendarDataset.months[0];
+            const container = document.getElementById('spreadContainer');
+
+            container.innerHTML = `
+                <!-- FRONT SPREAD -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-xs text-amber-200">
+                        <span class="font-serif font-bold">앞면 (FRONT ARTWORK)</span>
+                        <span class="font-mono text-[10px] text-gray-400">${item.label} / ${item.accentName} (${item.accent})</span>
+                    </div>
+                    <div class="w-full aspect-[4/3] rounded-xl overflow-hidden calendar-shadow border border-stone-300">
+                        ${createFrontCardHTML(item)}
+                    </div>
+                </div>
+
+                <!-- BACK SPREAD -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-xs text-amber-200">
+                        <span class="font-serif font-bold">뒷면 (BACK 2027 CALENDAR GRID)</span>
+                        <span class="font-mono text-[10px] text-gray-400">${item.memo_title}</span>
+                    </div>
+                    <div class="w-full aspect-[4/3] rounded-xl overflow-hidden calendar-shadow border border-stone-300">
+                        ${generate2027CalendarHTML(item.month, item.accent, item.memo_title)}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('spreadMonthSelect').value = item.month;
+        }
+
+        // --- 9. VIEW MODE SWITCHING ---
+        function switchViewMode(mode) {
+            currentViewMode = mode;
+            const gridSec = document.getElementById('viewGrid');
+            const deskSec = document.getElementById('viewDesk');
+            const spreadSec = document.getElementById('viewSpread');
+
+            const btnGrid = document.getElementById('btnViewGrid');
+            const btnDesk = document.getElementById('btnViewDesk');
+            const btnSpread = document.getElementById('btnViewSpread');
+
+            gridSec.classList.add('hidden');
+            deskSec.classList.add('hidden');
+            spreadSec.classList.add('hidden');
+
+            const activeBtnClass = "px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 bg-amber-900/40 text-amber-200 border border-amber-700/50";
+            const inactiveBtnClass = "px-3 py-1.5 rounded-md font-medium text-gray-400 hover:text-white transition-all flex items-center gap-1.5";
+
+            btnGrid.className = inactiveBtnClass;
+            btnDesk.className = inactiveBtnClass;
+            btnSpread.className = inactiveBtnClass;
+
+            if (mode === 'grid') {
+                gridSec.classList.remove('hidden');
+                btnGrid.className = activeBtnClass;
+            } else if (mode === 'desk') {
+                deskSec.classList.remove('hidden');
+                btnDesk.className = activeBtnClass;
+                renderDeskCard();
+            } else if (mode === 'spread') {
+                spreadSec.classList.remove('hidden');
+                btnSpread.className = activeBtnClass;
+                renderSpreadView(1);
+            }
+        }
+
+        function filterCards(type) {
+            activeFilter = type;
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.className = "filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700 font-medium text-xs";
+            });
+            event.target.className = "filter-tab px-3 py-1 rounded-full bg-amber-900/40 text-amber-200 border border-amber-700/50 font-medium text-xs";
+            renderGridCards();
+        }
+
+        // --- 10. SPEC MODAL & PROMPT INSPECTOR ---
+        function openSpecModal(cardId = 'cover') {
+            const allItems = [calendarDataset.cover, ...calendarDataset.months];
+            const item = allItems.find(i => i.id === cardId) || calendarDataset.cover;
+
+            const modal = document.getElementById('specModal');
+            const titleEl = document.getElementById('modalTitle');
+            const bodyEl = document.getElementById('modalBody');
+
+            titleEl.textContent = `설계 스펙 & AI 프롬프트 Inspector: ${item.month === 0 ? '표지 (Cover)' : `${item.month}월 (${item.label})`}`;
+
+            bodyEl.innerHTML = `
+                <!-- 1. COLOR & METADATA -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-zinc-950 border border-zinc-800">
+                    <div>
+                        <span class="text-gray-400 text-[10px] block font-mono">포인트 컬러 (Accent Hex)</span>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="w-5 h-5 rounded border border-white/20 inline-block" style="background-color: ${item.accent}"></span>
+                            <span class="font-mono text-amber-200 text-xs font-bold">${item.accent} (${item.accentName})</span>
+                            <button onclick="copyToClipboard('${item.accent}', '컬러 코드가 복사되었습니다!')" class="text-[10px] text-amber-400 hover:underline">복사</button>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-[10px] block font-mono">뒷면 메모 타이틀</span>
+                        <span class="font-serif text-amber-100 text-xs mt-1 block font-bold">${item.memo_title}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-[10px] block font-mono">판형 및 종이 재질</span>
+                        <span class="text-gray-300 text-xs mt-1 block">4:3 가로 탁상 (랑데뷰 250g)</span>
+                    </div>
+                </div>
+
+                <!-- 2. EXACT AI IMAGE PROMPT -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-serif text-sm font-semibold text-amber-200">생성 AI 프롬프트 (Midjourney / Firefly 용)</span>
+                        <button onclick="copyToClipboard(\`${item.prompt_subject.replace(/'/g, "\\'")}\`, '프롬프트가 복사되었습니다!')" class="px-3 py-1 bg-amber-900/60 hover:bg-amber-800 text-amber-200 rounded border border-amber-700 text-xs font-medium flex items-center gap-1">
+                            📋 프롬프트 복사
+                        </button>
+                    </div>
+                    <div class="p-4 bg-zinc-950 border border-zinc-800 rounded-lg font-mono text-xs text-amber-300/90 leading-relaxed select-all">
+                        ${item.prompt_subject}
+                    </div>
+                </div>
+
+                <!-- 3. DESIGN RULE SPEC (GLOBAL LOCK) -->
+                <div class="space-y-2">
+                    <span class="font-serif text-sm font-semibold text-amber-200">12개월 일관성 유지 규칙 (Global Style Lock)</span>
+                    <ul class="list-disc list-inside space-y-1 text-gray-400 text-xs bg-zinc-950 p-3 rounded-lg border border-zinc-800">
+                        <li>배경 종이 톤: <code class="text-amber-300">#F5F1E8</code> (Paper Cream) 고정</li>
+                        <li>주요 텍스트 잉크: <code class="text-amber-300">#23211E</code> (Charcoal) 고정</li>
+                        <li>금지 규칙: AI 생성 이미지 내에 임의의 달력 숫자 텍스트 금지 (<code class="text-amber-300">no text</code>)</li>
+                        <li>뒷면 달력: 2027년 한국 공휴일 및 일요일 자동 표준 표기</li>
+                    </ul>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeSpecModal() {
+            document.getElementById('specModal').classList.add('hidden');
+        }
+
+        async function copyToClipboard(text, msg = '복사되었습니다!') {
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast(msg);
+                return;
+            } catch {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                let copied = false;
+                try {
+                    copied = document.execCommand('copy');
+                } catch {
+                    // Embedded viewers may restrict legacy clipboard access too.
+                } finally {
+                    textArea.remove();
+                }
+                showToast(copied ? msg : '클립보드에 복사할 수 없습니다.');
+            }
+        }
+
+        function copyFullJSON() {
+            const jsonStr = JSON.stringify(calendarDataset, null, 2);
+            copyToClipboard(jsonStr, '전체 JSON 데이터가 클립보드에 복사되었습니다!');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.textContent = msg;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 2500);
+        }
+
+        // Mobile Menu Toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            const panel = document.getElementById('controlPanel');
+            panel.classList.toggle('hidden');
+            panel.classList.toggle('flex');
+        });
+    </script>
+</body>
+</html>
