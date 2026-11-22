@@ -41,6 +41,28 @@ document.querySelectorAll('.production-review-nav').forEach(link=>link.addEventL
  if (!button || !dialog) return;
 
  const viewer = dialog.querySelector('iframe');
+ const storageKey = 'acdl.template-designer.designs.v1';
+ window.addEventListener('message', ({ source, origin, data }) => {
+  if (source !== viewer.contentWindow || origin !== 'null' || !dialog.open ||
+      !window.ACDLAdminAuth?.isSignedIn() || data?.channel !== 'template-designer-storage') return;
+
+  const reply = payload => source.postMessage({ channel: data.channel, ...payload }, '*');
+  try {
+   if (data.action === 'load') {
+    const designs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    reply({ action: 'loaded', designs });
+   } else if (data.action === 'save' && typeof data.design?.set_id === 'string') {
+    const designs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    const index = designs.findIndex(design => design.set_id === data.design.set_id);
+    designs[index < 0 ? designs.length : index] = data.design;
+    localStorage.setItem(storageKey, JSON.stringify(designs));
+    reply({ action: 'saved', ok: true });
+   }
+  } catch {
+   reply({ action: data.action === 'save' ? 'saved' : 'loaded', ok: false });
+  }
+ });
+
  button.addEventListener('click', () => {
   if (!viewer.hasAttribute('src')) viewer.src = viewer.dataset.src;
   dialog.showModal();

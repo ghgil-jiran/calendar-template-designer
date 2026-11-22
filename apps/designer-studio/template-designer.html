@@ -350,7 +350,7 @@
 
             <div class="p-6 space-y-4 text-xs text-gray-300">
                 <p class="text-gray-400">
-                    JSON 파일을 선택하거나 아래에 코드를 붙여넣으세요. 추가한 시안은 이 화면을 새로고침하기 전까지 볼 수 있습니다.
+                    JSON 파일을 선택하거나 아래에 코드를 붙여넣으세요. 추가한 시안은 이 브라우저에 자동 저장됩니다.
                 </p>
                 <div>
                     <label for="importJsonFile" class="block mb-1">JSON 파일 선택</label>
@@ -511,10 +511,45 @@
         let cardFlippedStates = {}; // cardId -> boolean
         let activeFilter = 'all';
 
+        const builtInCount = CALENDAR_SETS_REGISTRY.length;
+        const storageChannel = 'template-designer-storage';
+        const editorOrigin = document.referrer ? new URL(document.referrer).origin : '*';
+
+        function requestDesignerStorage(action, design) {
+            if (window.parent === window) return false;
+            window.parent.postMessage({ channel: storageChannel, action, design }, editorOrigin);
+            return true;
+        }
+
+        window.addEventListener('message', ({ source, origin, data }) => {
+            if (source !== window.parent || (editorOrigin !== '*' && origin !== editorOrigin) ||
+                data?.channel !== storageChannel) return;
+
+            if (data.action === 'loaded' && Array.isArray(data.designs)) {
+                for (const design of data.designs) {
+                    try {
+                        const normalized = normalizeImportedSet(design);
+                        if (!CALENDAR_SETS_REGISTRY.slice(builtInCount).some(set => set.set_id === normalized.set_id)) {
+                            CALENDAR_SETS_REGISTRY.push(normalized);
+                        }
+                    } catch {
+                        // An invalid saved design does not prevent restoring the rest.
+                    }
+                }
+                populateTemplateSetSelector();
+                document.getElementById('templateSetSelect').value = currentSetIndex;
+            } else if (data.action === 'saved') {
+                showToast(data.ok ? '시안을 이 브라우저에 저장했습니다.' : '시안을 저장할 수 없습니다. JSON 원본을 보관해 주세요.');
+            } else if (data.action === 'loaded' && data.ok === false) {
+                showToast('저장된 시안을 불러올 수 없습니다.');
+            }
+        });
+
         // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
             populateTemplateSetSelector();
             loadActiveSet(0);
+            requestDesignerStorage('load');
         });
 
         document.getElementById('importJsonFile').addEventListener('change', async event => {
@@ -1281,15 +1316,18 @@
             try {
                 const parsed = normalizeImportedSet(JSON.parse(rawText));
 
-                CALENDAR_SETS_REGISTRY.push(parsed);
+                const savedIndex = CALENDAR_SETS_REGISTRY.findIndex((set, index) =>
+                    index >= builtInCount && set.set_id === parsed.set_id
+                );
+                const newIdx = savedIndex === -1 ? CALENDAR_SETS_REGISTRY.length : savedIndex;
+                CALENDAR_SETS_REGISTRY[newIdx] = parsed;
                 populateTemplateSetSelector();
-                
-                const newIdx = CALENDAR_SETS_REGISTRY.length - 1;
                 document.getElementById('templateSetSelect').value = newIdx;
                 switchTemplateSet(newIdx);
-                
                 closeImportModal();
-                showToast(`새 JSON 템플릿 세트가 성공적으로 등록되었습니다! (${parsed.title})`);
+                if (!requestDesignerStorage('save', parsed)) {
+                    showToast('시안을 불러왔습니다. 자동 저장은 템플릿 에디터에서 사용할 수 있습니다.');
+                }
             } catch (err) {
                 alert('JSON 시안을 불러올 수 없습니다. ' + err.message);
             }
