@@ -126,8 +126,10 @@ function closeTemplateLibrary(){
  if(project){
   el("designerHome")?.classList.add("hidden");
   el("setup")?.classList.add("hidden");
+  const wasClean=!hasUnsavedEditorChanges();
   updateRoleIndicator();
   render();
+  if(wasClean)stable();
  }else if(!el("setup")?.classList.contains("hidden")){
   el("designerHome")?.classList.add("hidden");
  }else{

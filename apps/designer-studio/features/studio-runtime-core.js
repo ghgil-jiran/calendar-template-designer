@@ -443,7 +443,11 @@ el("confirmTemplateSaveBtn")?.addEventListener("click",async ()=>{
   v22SaveLibrary(list);
   renderUserTemplateChoices();
   const verified=v22Library().find(x=>x.id===savedId);if(!verified)throw new Error("저장 후 라이브러리에서 템플릿을 확인하지 못했습니다.");
-  window.ACDLReturnToLibraryOnSaveCancel=false;el("templateSaveDialog").classList.add("hidden");if(isStandard||state==="published"||state==="archived"){el("templateLibraryModal").classList.remove("hidden");renderTemplateLibrary("all")}else render();stable();
+  window.ACDLReturnToLibraryOnSaveCancel=false;el("templateSaveDialog").classList.add("hidden");
+  pendingCanvasGeometrySaveId=null;
+  render();
+  stable();
+  if(isStandard||state==="published"||state==="archived"){el("templateLibraryModal").classList.remove("hidden");renderTemplateLibrary("all")}
   if(publicationResult)window.ACDLTemplatePublishing.completePublication?.(publicationResult.templateId,publicationResult.version);window.ACDLTemplateSaveJob?.complete(`${name} · ${remoteSaved?`편집 이력 v${remoteVersion}`:'브라우저 저장'} 저장이 완료되었습니다.`);showEditorToast(`${name} ${edition} Edition ${remoteSaved?`원격 저장 완료 · v${remoteVersion}`:"브라우저 저장 완료"}`);
  }catch(err){
   if(projectBeforeSave)project=projectBeforeSave;else if(project?.template?.metadata&&previousSaveState!==undefined)project.template.metadata.state=previousSaveState;
