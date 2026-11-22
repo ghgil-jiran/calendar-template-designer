@@ -30,7 +30,7 @@
  async function request(body){
   const token=root.ACDLTemplateRemotePersistence?.accessToken?.()||root.ACDLAdminAuth?.accessToken?.();if(!token)throw new Error('게시하려면 Master Admin 로그인이 필요합니다.');
   const response=await (root.ACDLAdminAuth?.authorizedFetch||root.fetch.bind(root))('/api/templates',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({operation:'publish-review',reviewBody:body})}),result=await response.json().catch(()=>({}));
-  if(!response.ok){const error=new Error(result.message||result.error||'사용자 서비스로 템플릿을 보내지 못했습니다.');error.code=result.error||'USER_SERVICE_REVIEW_FAILED';error.status=response.status;throw error}return result
+  if(!response.ok){const error=new Error(response.status===401&&result.error==='unauthorized'?'사용자 서비스가 게시 요청의 인증을 거부했습니다. 편집 화면을 유지한 채 관리자 로그인 상태를 확인하고 실패 단계부터 다시 진행해주세요.':result.message||result.error||'사용자 서비스로 템플릿을 보내지 못했습니다.');error.code=result.error||'USER_SERVICE_REVIEW_FAILED';error.status=response.status;throw error}return result
  }
  function progress(stage,detail='',completed=0,total=1){root.ACDLTemplateSaveProgress?.({phase:'publishing',stage,detail,completed,total})}
  function confirmPublish({name,id,currentVersion,nextVersion}){

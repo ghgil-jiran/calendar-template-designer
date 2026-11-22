@@ -591,6 +591,9 @@ function normalizeAIDesignBackgrounds(){
   item.zIndex=0;item.locked=true;item.selectable=false;
  });
 }
+function monthlySurfaceBackground(page){
+ return (project.book.elementsByPage[page.id]||[]).find(item=>item.visible!==false&&item.type==="shape"&&item.role==="background-decoration"&&item.width>=95&&item.height>=90);
+}
 function pageElements(p=selectedPage()){normalizeElementData();return project.book.elementsByPage[p.id]}
 function masterElements(p=selectedPage()){
  normalizeElementData();
@@ -886,7 +889,7 @@ function setupInspectorTabs(){
 }
 
 function renderPage(){
- const p=selectedPage(),page=el("page"),ps=project.productType.pageSize,neutralBase=p.aiDesignBase?.mode==="neutral";page.className=`page ${project.productType.category} ${p.role}-surface ${isInsertPage(p)?"template-insert-page":""} ${p.role==="monthly-back"?"planner-back-surface":""}`;page.dataset.wallSample=project.productType.category==='poster'&&project.template?.metadata?.posterSample==='wall-sample-a.v1'?'a':'';page.dataset.surfaceRole=p.role;page.dataset.standardFamily=project.template?.metadata?.sampleFamily||"";page.dataset.aiDesignBase=neutralBase?"neutral":"inherited";page.dataset.editableBackground=pageElements(p).some(item=>item.role==="background-decoration")?"true":"false";page.style.aspectRatio=`${ps.width}/${ps.height}`;{const content=window.ACDLSharedScreenComposition.contentFrame(project,p);page.style.setProperty("--surface-inset-top",`${content.y}%`);page.style.setProperty("--surface-inset-right",`${100-content.x-content.width}%`);page.style.setProperty("--surface-inset-bottom",`${100-content.y-content.height}%`);page.style.setProperty("--surface-inset-left",`${content.x}%`)}const derivedMonthKey=p.monthKey||p.calendarYear&&p.calendarMonth?`${p.calendarYear}-${String(p.calendarMonth).padStart(2,"0")}`:null,monthlyStyles=project.book.monthlyStyleOverrides||[],monthPageIndex=project.book.pageInstances.filter(item=>item.role==="monthly-front").findIndex(item=>item.id===p.id||item.calendarYear===p.calendarYear&&item.calendarMonth===p.calendarMonth),monthStyle=monthlyStyles.find(item=>item.monthKey===derivedMonthKey)||monthlyStyles[monthPageIndex]||null,monthPrimary=monthStyle?.tokens?.primary||project.template.resources?.colorTheme?.primary||"#315e9e";page.style.setProperty("--month-primary",monthPrimary);page.style.setProperty("--month-mini-background",monthStyle?.tokens?.miniBackground||"#ffffff");page.style.setProperty("--planner-background",monthStyle?.tokens?.plannerBackground||"#eef5f2");const explicitBackground=p.overrides?.pageBackgroundColor;page.style.background=["monthly-front","monthly-back"].includes(p.role)&&/^#[0-9a-f]{6}$/i.test(explicitBackground)?explicitBackground:p.role==="monthly-back"?(monthStyle?.tokens?.plannerBackground||"#eef5f2"):"#fff";let html='<div class="binding"></div><div class="surface-content">';
+ const p=selectedPage(),page=el("page"),ps=project.productType.pageSize,neutralBase=p.aiDesignBase?.mode==="neutral";page.className=`page ${project.productType.category} ${p.role}-surface ${isInsertPage(p)?"template-insert-page":""} ${p.role==="monthly-back"?"planner-back-surface":""}`;page.dataset.wallSample=project.productType.category==='poster'&&project.template?.metadata?.posterSample==='wall-sample-a.v1'?'a':'';page.dataset.surfaceRole=p.role;page.dataset.standardFamily=project.template?.metadata?.sampleFamily||"";page.dataset.aiDesignBase=neutralBase?"neutral":"inherited";page.dataset.editableBackground=pageElements(p).some(item=>item.role==="background-decoration")?"true":"false";page.style.aspectRatio=`${ps.width}/${ps.height}`;{const content=window.ACDLSharedScreenComposition.contentFrame(project,p);page.style.setProperty("--surface-inset-top",`${content.y}%`);page.style.setProperty("--surface-inset-right",`${100-content.x-content.width}%`);page.style.setProperty("--surface-inset-bottom",`${100-content.y-content.height}%`);page.style.setProperty("--surface-inset-left",`${content.x}%`)}const derivedMonthKey=p.monthKey||p.calendarYear&&p.calendarMonth?`${p.calendarYear}-${String(p.calendarMonth).padStart(2,"0")}`:null,monthlyStyles=project.book.monthlyStyleOverrides||[],monthPageIndex=project.book.pageInstances.filter(item=>item.role==="monthly-front").findIndex(item=>item.id===p.id||item.calendarYear===p.calendarYear&&item.calendarMonth===p.calendarMonth),monthStyle=monthlyStyles.find(item=>item.monthKey===derivedMonthKey)||monthlyStyles[monthPageIndex]||null,monthPrimary=monthStyle?.tokens?.primary||project.template.resources?.colorTheme?.primary||"#315e9e";page.style.setProperty("--month-primary",monthPrimary);page.style.setProperty("--month-mini-background",monthStyle?.tokens?.miniBackground||"#ffffff");const explicitBackground=p.overrides?.pageBackgroundColor,validBackground=/^#[0-9a-f]{6}$/i.test(explicitBackground);page.style.setProperty("--planner-background",(validBackground&&explicitBackground)||monthStyle?.tokens?.plannerBackground||"#eef5f2");page.style.background=p.role==="monthly-back"?(monthStyle?.tokens?.plannerBackground||"#eef5f2"):p.role==="monthly-front"&&validBackground?explicitBackground:"#fff";let html='<div class="binding"></div><div class="surface-content">';
  if(p.role==="monthly-front"||p.role==="monthly-back")window.ACDLScheduleApiClient?.ensureCalendarReferences?.(project).catch(()=>{});
  if(p.role==="monthly-front"){
   const miniHolidayDates=project.settings.showAdjacentMiniCalendars ? window.ACDLSharedMemo.projectHolidayDates(project,{respectVisibility:false}) : [];
@@ -1097,9 +1100,10 @@ function renderInspector(){
  const p=selectedPage(),ins=el("inspector"),panels=elementInspectorPanels();
  let content=panels.content||"",design=panels.design||"",layout=panels.layout||"";
  if(!sourceElement()&&["monthly-front","monthly-back"].includes(p.role)){
-  const color=el("page").style.backgroundColor;
+  const canvas=el("page"),fill=monthlySurfaceBackground(p)?.style?.fill;
+  const color=fill||(p.role==="monthly-back"?canvas.style.getPropertyValue("--planner-background"):canvas.style.backgroundColor);
   const rgb=color.match(/^rgb\((\d+), *(\d+), *(\d+)\)$/);
-  const current=rgb?"#"+rgb.slice(1).map(channel=>Number(channel).toString(16).padStart(2,"0")).join(""):"#ffffff";
+  const current=/^#[0-9a-f]{6}$/i.test(color)?color:rgb?"#"+rgb.slice(1).map(channel=>Number(channel).toString(16).padStart(2,"0")).join(""):"#ffffff";
   design=`<div class="section"><strong>페이지 배경색</strong><label>배경색<input id="monthlyPageBackground" type="color" value="${current}"></label><button id="saveMonthlyPageBackground" class="action">이 페이지 배경색 저장</button><button id="applyMonthlyPageBackground" class="action">전체 월력 ${p.role==="monthly-front"?"앞면":"뒷면"}에 적용</button></div>`+design;
  }
 
@@ -1287,6 +1291,8 @@ function bindInspector(){
    for(const target of all?monthlyPagesForRole(page.role):[page]){
     target.overrides||={};
     target.overrides.pageBackgroundColor=color;
+    const background=monthlySurfaceBackground(target);
+    if(background)background.style={...background.style,fill:color};
    }
   });
  };
