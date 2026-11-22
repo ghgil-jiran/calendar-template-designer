@@ -105,13 +105,13 @@
             <!-- Brand & Spec Info -->
             <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
                 <div class="flex items-center gap-3">
-                    <span class="w-3 h-3 rounded-full bg-amber-600 animate-pulse"></span>
+                    <span class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></span>
                     <div>
                         <h1 class="font-serif font-semibold text-lg text-amber-100 tracking-wide flex items-center gap-2">
-                            THE YEAR IN OBJECTS 2027
-                            <span class="text-xs font-sans font-normal px-2 py-0.5 rounded bg-amber-950/80 text-amber-400 border border-amber-800/50">art_season_object_01</span>
+                            <span id="activeSetTitleDisplay">THE YEAR IN OBJECTS 2027</span>
+                            <span id="activeSetIdBadge" class="text-xs font-sans font-normal px-2 py-0.5 rounded bg-amber-950/80 text-amber-400 border border-amber-800/50">art_season_object_01</span>
                         </h1>
-                        <p class="text-xs text-gray-400">사계절 아트 & 오브제 탁상달력 자동 생성 템플릿 마스터 시안</p>
+                        <p id="activeSetSubtitleDisplay" class="text-xs text-gray-400">사계절 아트 & 오브제 탁상달력 자동 생성 템플릿 마스터 시안</p>
                     </div>
                 </div>
 
@@ -124,6 +124,16 @@
             <!-- View Switchers & Controls -->
             <div id="controlPanel" class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
                 
+                <!-- TEMPLATE SET SELECTOR DROPDOWN -->
+                <div class="flex items-center gap-2 bg-amber-950/40 border border-amber-800/60 rounded-lg px-3 py-1 text-xs">
+                    <label for="templateSetSelect" class="text-amber-300 font-semibold flex items-center gap-1">
+                        <span>🎨 템플릿 세트:</span>
+                    </label>
+                    <select id="templateSetSelect" onchange="switchTemplateSet(this.value)" class="bg-zinc-950 text-amber-100 font-serif font-medium border border-amber-700/60 rounded px-2.5 py-1 focus:outline-none focus:border-amber-400">
+                        <!-- Populated dynamically by JS -->
+                    </select>
+                </div>
+
                 <!-- View Mode Buttons -->
                 <div class="bg-studio border border-studioBorder rounded-lg p-1 flex items-center text-xs">
                     <button id="btnViewGrid" onclick="switchViewMode('grid')" class="px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 bg-amber-900/40 text-amber-200 border border-amber-700/50">
@@ -147,8 +157,11 @@
                     <button onclick="toggleAllCardsFlip()" class="px-2.5 py-1.5 rounded text-amber-400 hover:bg-amber-900/30 font-medium" title="전체 뒤집기">🔄 뒤집기</button>
                 </div>
 
-                <!-- JSON Spec & Export Actions -->
+                <!-- JSON Spec & Import Actions -->
                 <div class="flex items-center gap-2">
+                    <button onclick="openImportModal()" class="px-3 py-1.5 rounded-md bg-emerald-950/70 hover:bg-emerald-900 text-emerald-200 border border-emerald-700/60 text-xs font-semibold flex items-center gap-1">
+                        <span>➕ 새 JSON 세트 추가</span>
+                    </button>
                     <button onclick="openSpecModal()" class="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-xs text-gray-200 border border-zinc-700 font-medium flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
                         설계 스펙 JSON
@@ -158,18 +171,29 @@
         </div>
     </header>
 
-    <!-- SUB-NAV: SEASON & MONTH FILTER TABS -->
+    <!-- SUB-NAV: DYNAMIC STYLE LOCK BAR & SEASON TABS -->
     <nav class="bg-studioCard/60 border-b border-studioBorder py-2.5 px-4 lg:px-8 text-xs overflow-x-auto">
-        <div class="max-w-7xl mx-auto flex items-center gap-2 min-w-max">
-            <span class="text-gray-500 font-medium mr-2">빠른 필터:</span>
-            <button onclick="filterCards('all')" class="filter-tab px-3 py-1 rounded-full bg-amber-900/40 text-amber-200 border border-amber-700/50 font-medium">전체 (Cover + 12M)</button>
-            <button onclick="filterCards('cover')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">표지 (Cover)</button>
-            <button onclick="filterCards('q1')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">1분기 (1~3월)</button>
-            <button onclick="filterCards('q2')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">2분기 (4~6월)</button>
-            <button onclick="filterCards('q3')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">3분기 (7~9월)</button>
-            <button onclick="filterCards('q4')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">4분기 (10~12월)</button>
-            <div class="h-4 w-px bg-zinc-800 mx-2"></div>
-            <span class="text-gray-400 font-sans" id="filterCount">총 13개 카드 표시 중</span>
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3 min-w-max">
+            <div class="flex items-center gap-2">
+                <span class="text-gray-500 font-medium mr-1">빠른 필터:</span>
+                <button onclick="filterCards('all')" class="filter-tab px-3 py-1 rounded-full bg-amber-900/40 text-amber-200 border border-amber-700/50 font-medium">전체 (Cover + 12M)</button>
+                <button onclick="filterCards('cover')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">표지 (Cover)</button>
+                <button onclick="filterCards('q1')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">1분기 (1~3월)</button>
+                <button onclick="filterCards('q2')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">2분기 (4~6월)</button>
+                <button onclick="filterCards('q3')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">3분기 (7~9월)</button>
+                <button onclick="filterCards('q4')" class="filter-tab px-3 py-1 rounded-full bg-zinc-800 text-gray-300 hover:text-white border border-zinc-700">4분기 (10~12월)</button>
+                <span class="text-gray-400 font-sans ml-2" id="filterCount">총 13개 카드 표시 중</span>
+            </div>
+
+            <!-- DYNAMIC STYLE LOCK RULE DISPLAY -->
+            <div class="flex items-center gap-3 text-[11px] text-gray-300 bg-zinc-950/80 px-3 py-1 rounded-md border border-zinc-800">
+                <span class="text-amber-400 font-medium">🔒 Style Lock Rules:</span>
+                <span class="flex items-center gap-1"><span id="styleBgDot" class="w-2.5 h-2.5 rounded-full inline-block border border-gray-400"></span> <span id="stylePaperText">Paper: #F5F1E8</span></span>
+                <span class="text-gray-600">|</span>
+                <span class="flex items-center gap-1"><span id="styleInkDot" class="w-2.5 h-2.5 rounded-full inline-block"></span> <span id="styleInkText">Ink: #23211E</span></span>
+                <span class="text-gray-600">|</span>
+                <span id="styleTargetType" class="text-amber-200 font-mono">무사진 트렌디형</span>
+            </div>
         </div>
     </nav>
 
@@ -304,11 +328,50 @@
             <div class="px-6 py-3 border-t border-zinc-800 bg-zinc-950 flex items-center justify-between">
                 <button onclick="copyFullJSON()" class="px-4 py-2 bg-amber-900/50 hover:bg-amber-800 text-amber-200 rounded border border-amber-700 font-medium flex items-center gap-1.5 text-xs">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                    전체 JSON 스펙 복사
+                    현재 활성 세트 JSON 복사
                 </button>
                 <button onclick="closeSpecModal()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-gray-300 rounded text-xs font-medium">
                     닫기
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW JSON IMPORT MODAL -->
+    <div id="importJsonModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-emerald-700/60 rounded-2xl max-w-2xl w-full flex flex-col shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950">
+                <div class="flex items-center gap-2">
+                    <span class="text-emerald-400 text-lg">➕</span>
+                    <h3 class="font-serif text-lg text-emerald-100">새 템플릿 JSON 데이터 실시간 추가</h3>
+                </div>
+                <button onclick="closeImportModal()" class="text-gray-400 hover:text-white text-xl font-bold p-1">✕</button>
+            </div>
+
+            <div class="p-6 space-y-4 text-xs text-gray-300">
+                <p class="text-gray-400">
+                    JSON 파일을 선택하거나 아래에 코드를 붙여넣으세요. 추가한 시안은 이 화면을 새로고침하기 전까지 볼 수 있습니다.
+                </p>
+                <div>
+                    <label for="importJsonFile" class="block mb-1">JSON 파일 선택</label>
+                    <input id="importJsonFile" type="file" accept=".json,application/json" class="block w-full mb-3">
+                    <label for="importJsonTextArea" class="block font-mono text-[11px] text-amber-300 mb-1">JSON 스펙 데이터 텍스트</label>
+                    <textarea id="importJsonTextArea" rows="12" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 font-mono text-xs text-amber-200/90 focus:outline-none focus:border-emerald-500" placeholder='{ "set_id": "custom_01", "title": "MY CUSTOM TEMPLATE 2027", ... }'></textarea>
+                </div>
+            </div>
+
+            <div class="px-6 py-3 border-t border-zinc-800 bg-zinc-950 flex items-center justify-between">
+                <button onclick="loadSampleJsonIntoImport()" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-amber-300 rounded text-xs">
+                    💡 예시 JSON 불러오기
+                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="submitImportedJson()" class="px-4 py-2 bg-emerald-900/80 hover:bg-emerald-800 text-emerald-100 font-semibold rounded text-xs border border-emerald-600">
+                        등록 및 시안 적용하기
+                    </button>
+                    <button onclick="closeImportModal()" class="px-3 py-1.5 bg-zinc-800 text-gray-300 rounded text-xs">
+                        취소
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -321,49 +384,102 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // --- 1. DATA SPECIFICATION (art_season_object_01) ---
-        const calendarDataset = {
-            set_id: "art_season_object_01",
-            title: "THE YEAR IN OBJECTS 2027",
-            format: {
-                type: "desk_calendar",
-                orientation: "landscape_4_3",
-                front_role: "art_object_and_month_label",
-                back_role: "calendar_grid_and_notes"
+        // --- 1. MULTI-TEMPLATE SETS REGISTRY ---
+        const CALENDAR_SETS_REGISTRY = [
+            {
+                set_id: "art_season_object_01",
+                target_type: "무사진 트렌디형",
+                title: "THE YEAR IN OBJECTS 2027",
+                subtitle: "사계절 아트 & 오브제 탁상달력 자동 생성 템플릿 마스터 시안",
+                format: {
+                    type: "desk_calendar",
+                    orientation: "landscape_4_3",
+                    front_role: "art_object_and_month_label",
+                    back_role: "calendar_grid_and_notes"
+                },
+                global_style_lock: {
+                    paper_bg: "#F5F1E8",
+                    ink_primary: "#23211E",
+                    texture: "subtle matte fine paper grain",
+                    rule_no_random_calendar_text_in_ai_art: true
+                },
+                cover: {
+                    id: "cover",
+                    month: 0,
+                    label: "COVER",
+                    title: "THE YEAR IN OBJECTS",
+                    subline: "2027 DESK EDITION",
+                    accent: "#2E5A44",
+                    accentName: "Deep Forest Green",
+                    memo_title: "2027 EDITION OVERVIEW",
+                    prompt_subject: "Minimalist contemporary editorial illustration on warm cream paper (#F5F1E8), four neat seasonal objects arranged in a balanced composition: a small green sprout, warm sunlight beam, autumn leaf, and glowing table lamp, deep forest green (#2E5A44) and charcoal (#23211E) ink accents, subtle paper grain, clean layout, no text",
+                    svgType: "cover"
+                },
+                months: [
+                    { id: "m01", month: 1, label: "JAN", title: "JANUARY", accent: "#C85A32", accentName: "Terracotta", memo_title: "2027 FIRST GOALS", prompt_subject: "a ceramic mug and warm morning sunlight beam casting soft shadows on cream paper, terracotta (#C85A32) accent, minimalist editorial illustration, no text", svgType: "jan" },
+                    { id: "m02", month: 2, label: "FEB", title: "FEBRUARY", accent: "#D98A9C", accentName: "Soft Rose", memo_title: "SMALL JOY NOTES", prompt_subject: "a slender glass vase with early spring blossoms and soft morning light on cream paper, soft rose (#D98A9C) accent, minimalist editorial illustration, no text", svgType: "feb" },
+                    { id: "m03", month: 3, label: "MAR", title: "MARCH", accent: "#5B8C5A", accentName: "Spring Green", memo_title: "SPRING PLANS", prompt_subject: "a canvas tote bag with fresh green shoots and gentle breeze lines on cream paper, spring green (#5B8C5A) accent, minimalist editorial illustration, no text", svgType: "mar" },
+                    { id: "m04", month: 4, label: "APR", title: "APRIL", accent: "#4A7C9B", accentName: "Sky Blue", memo_title: "READING & REST", prompt_subject: "an open hardcover book and teacup beside a bright window frame on cream paper, sky blue (#4A7C9B) accent, minimalist editorial illustration, no text", svgType: "apr" },
+                    { id: "m05", month: 5, label: "MAY", title: "MAY", accent: "#3D7A4A", accentName: "Leaf Green", memo_title: "DAYS TO REMEMBER", prompt_subject: "lush green leaves and a woven picnic basket in warm daylight on cream paper, leaf green (#3D7A4A) accent, minimalist editorial illustration, no text", svgType: "may" },
+                    { id: "m06", month: 6, label: "JUN", title: "JUNE", accent: "#3B6E8C", accentName: "Rain Blue", memo_title: "MID-YEAR CHECK", prompt_subject: "a clear umbrella with delicate raindrop motifs on cream paper, rain blue (#3B6E8C) accent, minimalist editorial illustration, no text", svgType: "jun" },
+                    { id: "m07", month: 7, label: "JUL", title: "JULY", accent: "#E07A38", accentName: "Sunset Orange", memo_title: "SUMMER LOG", prompt_subject: "sunglasses, a folding fan, and warm summer sun shapes on cream paper, sunset orange (#E07A38) accent, minimalist editorial illustration, no text", svgType: "jul" },
+                    { id: "m08", month: 8, label: "AUG", title: "AUGUST", accent: "#6E8B74", accentName: "Sage Green", memo_title: "SLOW DOWN", prompt_subject: "folded linen fabric and a gently swaying curtain in calm afternoon light on cream paper, sage green (#6E8B74) accent, minimalist editorial illustration, no text", svgType: "aug" },
+                    { id: "m09", month: 9, label: "SEP", title: "SEPTEMBER", accent: "#9C6644", accentName: "Warm Walnut", memo_title: "AUTUMN ROUTINE", prompt_subject: "a notebook and fountain pen with crisp autumn air feeling on cream paper, warm walnut (#9C6644) accent, minimalist editorial illustration, no text", svgType: "sep" },
+                    { id: "m10", month: 10, label: "OCT", title: "OCTOBER", accent: "#B85D3B", accentName: "Autumn Brick", memo_title: "FAVORITE MOMENTS", prompt_subject: "fallen autumn leaves and a warm ceramic cup on cream paper, autumn brick (#B85D3B) accent, minimalist editorial illustration, no text", svgType: "oct" },
+                    { id: "m11", month: 11, label: "NOV", title: "NOVEMBER", accent: "#7A5C43", accentName: "Cocoa Brown", memo_title: "GRATITUDE LIST", prompt_subject: "a cozy desk lamp glowing softly with knitted texture details on cream paper, cocoa brown (#7A5C43) accent, minimalist editorial illustration, no text", svgType: "nov" },
+                    { id: "m12", month: 12, label: "DEC", title: "DECEMBER", accent: "#8C3B3B", accentName: "Winter Crimson", memo_title: "WRAP UP 2027", prompt_subject: "winter berries, a small candle, and a neatly tied gift box on cream paper, winter crimson (#8C3B3B) accent, minimalist editorial illustration, no text", svgType: "dec" }
+                ]
             },
-            global_style_lock: {
-                paper_bg: "#F5F1E8",
-                ink_primary: "#23211E",
-                texture: "subtle matte fine paper grain",
-                rule_no_random_calendar_text_in_ai_art: true
-            },
-            cover: {
-                id: "cover",
-                month: 0,
-                label: "COVER",
-                title: "THE YEAR IN OBJECTS",
-                subline: "2027 DESK EDITION",
-                accent: "#2E5A44",
-                accentName: "Deep Forest Green",
-                memo_title: "2027 EDITION OVERVIEW",
-                prompt_subject: "Minimalist contemporary editorial illustration on warm cream paper (#F5F1E8), four neat seasonal objects arranged in a balanced composition: a small green sprout, warm sunlight beam, autumn leaf, and glowing table lamp, deep forest green (#2E5A44) and charcoal (#23211E) ink accents, subtle paper grain, clean layout, no text",
-                svgType: "cover"
-            },
-            months: [
-                { id: "m01", month: 1, label: "JAN", title: "JANUARY", accent: "#C85A32", accentName: "Terracotta", memo_title: "2027 FIRST GOALS", prompt_subject: "a ceramic mug and warm morning sunlight beam casting soft shadows on cream paper, terracotta (#C85A32) accent, minimalist editorial illustration, no text", svgType: "jan" },
-                { id: "m02", month: 2, label: "FEB", title: "FEBRUARY", accent: "#D98A9C", accentName: "Soft Rose", memo_title: "SMALL JOY NOTES", prompt_subject: "a slender glass vase with early spring blossoms and soft morning light on cream paper, soft rose (#D98A9C) accent, minimalist editorial illustration, no text", svgType: "feb" },
-                { id: "m03", month: 3, label: "MAR", title: "MARCH", accent: "#5B8C5A", accentName: "Spring Green", memo_title: "SPRING PLANS", prompt_subject: "a canvas tote bag with fresh green shoots and gentle breeze lines on cream paper, spring green (#5B8C5A) accent, minimalist editorial illustration, no text", svgType: "mar" },
-                { id: "m04", month: 4, label: "APR", title: "APRIL", accent: "#4A7C9B", accentName: "Sky Blue", memo_title: "READING & REST", prompt_subject: "an open hardcover book and teacup beside a bright window frame on cream paper, sky blue (#4A7C9B) accent, minimalist editorial illustration, no text", svgType: "apr" },
-                { id: "m05", month: 5, label: "MAY", title: "MAY", accent: "#3D7A4A", accentName: "Leaf Green", memo_title: "DAYS TO REMEMBER", prompt_subject: "lush green leaves and a woven picnic basket in warm daylight on cream paper, leaf green (#3D7A4A) accent, minimalist editorial illustration, no text", svgType: "may" },
-                { id: "m06", month: 6, label: "JUN", title: "JUNE", accent: "#3B6E8C", accentName: "Rain Blue", memo_title: "MID-YEAR CHECK", prompt_subject: "a clear umbrella with delicate raindrop motifs on cream paper, rain blue (#3B6E8C) accent, minimalist editorial illustration, no text", svgType: "jun" },
-                { id: "m07", month: 7, label: "JUL", title: "JULY", accent: "#E07A38", accentName: "Sunset Orange", memo_title: "SUMMER LOG", prompt_subject: "sunglasses, a folding fan, and warm summer sun shapes on cream paper, sunset orange (#E07A38) accent, minimalist editorial illustration, no text", svgType: "jul" },
-                { id: "m08", month: 8, label: "AUG", title: "AUGUST", accent: "#6E8B74", accentName: "Sage Green", memo_title: "SLOW DOWN", prompt_subject: "folded linen fabric and a gently swaying curtain in calm afternoon light on cream paper, sage green (#6E8B74) accent, minimalist editorial illustration, no text", svgType: "aug" },
-                { id: "m09", month: 9, label: "SEP", title: "SEPTEMBER", accent: "#9C6644", accentName: "Warm Walnut", memo_title: "AUTUMN ROUTINE", prompt_subject: "a notebook and fountain pen with crisp autumn air feeling on cream paper, warm walnut (#9C6644) accent, minimalist editorial illustration, no text", svgType: "sep" },
-                { id: "m10", month: 10, label: "OCT", title: "OCTOBER", accent: "#B85D3B", accentName: "Autumn Brick", memo_title: "FAVORITE MOMENTS", prompt_subject: "fallen autumn leaves and a warm ceramic cup on cream paper, autumn brick (#B85D3B) accent, minimalist editorial illustration, no text", svgType: "oct" },
-                { id: "m11", month: 11, label: "NOV", title: "NOVEMBER", accent: "#7A5C43", accentName: "Cocoa Brown", memo_title: "GRATITUDE LIST", prompt_subject: "a cozy desk lamp glowing softly with knitted texture details on cream paper, cocoa brown (#7A5C43) accent, minimalist editorial illustration, no text", svgType: "nov" },
-                { id: "m12", month: 12, label: "DEC", title: "DECEMBER", accent: "#8C3B3B", accentName: "Winter Crimson", memo_title: "WRAP UP 2027", prompt_subject: "winter berries, a small candle, and a neatly tied gift box on cream paper, winter crimson (#8C3B3B) accent, minimalist editorial illustration, no text", svgType: "dec" }
-            ]
-        };
+            {
+                set_id: "kids_growth_01",
+                target_type: "아이 포함 부부형",
+                title: "OUR LITTLE YEAR 2027",
+                subtitle: "성장 기록 & 파스텔 동화 프레임 탁상 포토달력 템플릿 세트",
+                format: {
+                    type: "desk_calendar_photo_album",
+                    orientation: "landscape_4_3",
+                    front_role: "photo_slots_and_seasonal_storybook_art",
+                    back_role: "calendar_grid_and_growth_notes"
+                },
+                global_style_lock: {
+                    paper_bg: "#FFFDF7",
+                    ink_primary: "#2F3A4A",
+                    texture: "warm pastel paper grain with soft gouache and colored pencil accents",
+                    rule_no_random_calendar_text_in_ai_art: true
+                },
+                cover: {
+                    id: "cover",
+                    month: 0,
+                    label: "COVER",
+                    title: "OUR LITTLE YEAR",
+                    subline: "2027 KIDS & FAMILY EDITION",
+                    photo_slots: 2,
+                    accent: "#F2A65A",
+                    accentName: "Warm Amber",
+                    memo_title: "2027 FAMILY & GROWTH COVER",
+                    prompt_subject: "Warm pastel cream paper (#FFFDF7) with gentle hand-drawn colored pencil and soft gouache clouds, tiny stars, and small seasonal leaves around the borders, two neat empty photo frame areas in the center, cozy storybook illustration style, no text",
+                    svgType: "kids_cover"
+                },
+                months: [
+                    { id: "m01", month: 1, label: "JAN", title: "JANUARY", photo_slots: 2, accent: "#5A8FA8", accentName: "Winter Sky", memo_title: "2027 첫 기록 (키·몸무게·새해 소원)", prompt_subject: "two clean open photo frame spaces with delicate winter snowflakes, a tiny knit mitten, and soft snowdrifts in colored pencil and gouache on #FFFDF7 cream paper, winter sky (#5A8FA8) accent, cozy children's book style, no text", svgType: "kids_jan" },
+                    { id: "m02", month: 2, label: "FEB", title: "FEBRUARY", photo_slots: 2, accent: "#E58C9A", accentName: "Coral Blossom", memo_title: "이달의 애정 표현 & 작은 변화", prompt_subject: "two clean open photo frame spaces surrounded by tiny tulip buds, gentle pastel dots, and warm morning light in colored pencil and gouache on #FFFDF7 cream paper, coral blossom (#E58C9A) accent, cozy storybook illustration, no text", svgType: "kids_feb" },
+                    { id: "m03", month: 3, label: "MAR", title: "MARCH", photo_slots: 3, accent: "#68A357", accentName: "Spring Pistachio", memo_title: "첫 봄나들이 & 새로 배운 것", prompt_subject: "three clean open photo frame spaces with fresh green sprouts, a small paper airplane, and gentle breeze lines in colored pencil and gouache on #FFFDF7 cream paper, spring pistachio (#68A357) accent, cozy storybook illustration, no text", svgType: "kids_mar" },
+                    { id: "m04", month: 4, label: "APR", title: "APRIL", photo_slots: 2, accent: "#E8998D", accentName: "Peach Petal", memo_title: "이달의 웃음 포인트 & 말버릇", prompt_subject: "two clean open photo frame spaces accented with drifting cherry blossom petals and a small butterfly in colored pencil and gouache on #FFFDF7 cream paper, peach petal (#E8998D) accent, cozy storybook illustration, no text", svgType: "kids_apr" },
+                    { id: "m05", month: 5, label: "MAY", title: "MAY", photo_slots: 3, accent: "#4D9078", accentName: "Meadow Green", memo_title: "가정의 달 특별 이벤트 & 성장", prompt_subject: "three clean open photo frame spaces with lush leafy branches, a tiny ladybug, and warm daylight in colored pencil and gouache on #FFFDF7 cream paper, meadow green (#4D9078) accent, cozy storybook illustration, no text", svgType: "kids_may" },
+                    { id: "m06", month: 6, label: "JUN", title: "JUNE", photo_slots: 2, accent: "#4A89AA", accentName: "Aqua Breeze", memo_title: "상반기 돌아보기 & 컨디션 메모", prompt_subject: "two clean open photo frame spaces with fresh water droplet motifs and tiny aquatic pebbles in colored pencil and gouache on #FFFDF7 cream paper, aqua breeze (#4A89AA) accent, cozy storybook illustration, no text", svgType: "kids_jun" },
+                    { id: "m07", month: 7, label: "JUL", title: "JULY", photo_slots: 3, accent: "#F08A4B", accentName: "Sunshine Tangerine", memo_title: "여름방학·물놀이 추억 기록", prompt_subject: "three clean open photo frame spaces with a straw sun hat, small watermelon slice motif, and bright summer rays in colored pencil and gouache on #FFFDF7 cream paper, sunshine tangerine (#F08A4B) accent, cozy storybook illustration, no text", svgType: "kids_jul" },
+                    { id: "m08", month: 8, label: "AUG", title: "AUGUST", photo_slots: 2, accent: "#5C7AEA", accentName: "Midnight Indigo", memo_title: "무더위 속 쉼표 & 잠버릇 메모", prompt_subject: "two clean open photo frame spaces with a crescent moon, twinkling stars, and soft night glow in colored pencil and gouache on #FFFDF7 cream paper, midnight indigo (#5C7AEA) accent, cozy storybook illustration, no text", svgType: "kids_aug" },
+                    { id: "m09", month: 9, label: "SEP", title: "SEPTEMBER", photo_slots: 2, accent: "#C47D3B", accentName: "Autumn Almond", memo_title: "가을 산책 & 새로 생긴 습관", prompt_subject: "two clean open photo frame spaces with acorns, chestnuts, and crisp autumn leaves in colored pencil and gouache on #FFFDF7 cream paper, autumn almond (#C47D3B) accent, cozy storybook illustration, no text", svgType: "kids_sep" },
+                    { id: "m10", month: 10, label: "OCT", title: "OCTOBER", photo_slots: 3, accent: "#D45D3F", accentName: "Maple Orange", memo_title: "소풍 기록 & 가장 좋아한 놀이", prompt_subject: "three clean open photo frame spaces framed by colorful maple leaves and a small picnic basket in colored pencil and gouache on #FFFDF7 cream paper, maple orange (#D45D3F) accent, cozy storybook illustration, no text", svgType: "kids_oct" },
+                    { id: "m11", month: 11, label: "NOV", title: "NOVEMBER", photo_slots: 2, accent: "#9C7A54", accentName: "Soft Cocoa", memo_title: "하반기 성장 체크 (키·몸무게·언어)", prompt_subject: "two clean open photo frame spaces with a plush toy bunny, warm cup, and cozy knit pattern accents in colored pencil and gouache on #FFFDF7 cream paper, soft cocoa (#9C7A54) accent, cozy storybook illustration, no text", svgType: "kids_nov" },
+                    { id: "m12", month: 12, label: "DEC", title: "DECEMBER", photo_slots: 3, accent: "#C84B4B", accentName: "Festive Red", memo_title: "올해의 베스트 순간 & 내년에게", prompt_subject: "three clean open photo frame spaces with small gift boxes, winter berries, and gentle holiday lights in colored pencil and gouache on #FFFDF7 cream paper, festive red (#C84B4B) accent, cozy storybook illustration, no text", svgType: "kids_dec" }
+                ]
+            }
+        ];
+
+        // Active State Pointer
+        let currentSetIndex = 0;
+        let calendarDataset = CALENDAR_SETS_REGISTRY[0];
 
         // --- 2. ACCURATE 2027 KOREAN HOLIDAYS DATA ---
         const holidays2027 = {
@@ -392,17 +508,72 @@
         let currentViewMode = 'grid'; // 'grid' | 'desk' | 'spread'
         let currentGlobalFace = 'front'; // 'front' | 'back'
         let currentDeskIndex = 0; // 0 is cover, 1..12 are months
-        let cardFlippedStates = {}; // cardId -> boolean (true=back, false=front)
+        let cardFlippedStates = {}; // cardId -> boolean
         let activeFilter = 'all';
 
         // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
+            populateTemplateSetSelector();
+            loadActiveSet(0);
+        });
+
+        document.getElementById('importJsonFile').addEventListener('change', async event => {
+            const input = event.currentTarget;
+            const file = input.files[0];
+            if (!file) return;
+            try {
+                document.getElementById('importJsonTextArea').value = (await file.text()).replace(/^\uFEFF/, '');
+            } catch {
+                alert('JSON 파일을 읽을 수 없습니다.');
+            } finally {
+                input.value = '';
+            }
+        });
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[char]);
+        }
+
+        function populateTemplateSetSelector() {
+            const selectEl = document.getElementById('templateSetSelect');
+            let html = '';
+            CALENDAR_SETS_REGISTRY.forEach((set, idx) => {
+                html += `<option value="${idx}">${escapeHtml(set.title)} (${escapeHtml(set.target_type)})</option>`;
+            });
+            selectEl.innerHTML = html;
+        }
+
+        function switchTemplateSet(idxVal) {
+            currentSetIndex = parseInt(idxVal, 10);
+            loadActiveSet(currentSetIndex);
+            showToast(`템플릿이 변경되었습니다: ${calendarDataset.title}`);
+        }
+
+        function loadActiveSet(idx) {
+            calendarDataset = CALENDAR_SETS_REGISTRY[idx] || CALENDAR_SETS_REGISTRY[0];
+            
+            // Header Info update
+            document.getElementById('activeSetTitleDisplay').textContent = calendarDataset.title;
+            document.getElementById('activeSetIdBadge').textContent = calendarDataset.set_id;
+            document.getElementById('activeSetSubtitleDisplay').textContent = calendarDataset.subtitle || calendarDataset.target_type;
+
+            // Style Lock Bar Update
+            const paperBg = calendarDataset.global_style_lock.paper_bg || "#F5F1E8";
+            const inkColor = calendarDataset.global_style_lock.ink_primary || "#23211E";
+            document.getElementById('styleBgDot').style.backgroundColor = paperBg;
+            document.getElementById('stylePaperText').textContent = `Paper: ${paperBg}`;
+            document.getElementById('styleInkDot').style.backgroundColor = inkColor;
+            document.getElementById('styleInkText').textContent = `Ink: ${inkColor}`;
+            document.getElementById('styleTargetType').textContent = calendarDataset.target_type || "템플릿 세트";
+
             initCardStates();
             populateSelectOptions();
             renderGridCards();
             renderDeskCard();
             renderSpreadView(1);
-        });
+        }
 
         function initCardStates() {
             cardFlippedStates['cover'] = false;
@@ -417,47 +588,48 @@
             
             let optionsHTML = `<option value="0">표지 (COVER)</option>`;
             calendarDataset.months.forEach(m => {
-                optionsHTML += `<option value="${m.month}">${m.month}월 (${m.label}) - ${m.memo_title}</option>`;
+                optionsHTML += `<option value="${m.month}">${m.month}월 (${escapeHtml(m.label)}) - ${escapeHtml(m.memo_title)}</option>`;
             });
 
             deskSelect.innerHTML = optionsHTML;
-            spreadSelect.innerHTML = optionsHTML.replace('<option value="0">표지 (COVER)</option>', ''); // Spread is for months
+            spreadSelect.innerHTML = optionsHTML.replace('<option value="0">표지 (COVER)</option>', '');
         }
 
-        // --- 3. VECTOR ARTWORK GENERATOR FOR MONTHS ---
+        // --- 3. EXTENSIBLE SVG VISUAL GENERATOR ---
         function generateSVGVisual(item) {
             const color = item.accent;
-            const ink = "#23211E";
-            
-            // Standard SVG Template Wrapper
+            const ink = calendarDataset.global_style_lock.ink_primary || "#23211E";
+            const paperBg = calendarDataset.global_style_lock.paper_bg || "#F5F1E8";
+            const slotsCount = item.photo_slots || 0;
+
+            // STORYBOOK / PHOTO SLOTS TEMPLATES (e.g., kids_growth_01 or any photo family template)
+            if (slotsCount > 0 || item.svgType?.startsWith('kids_')) {
+                return renderPhotoFrameSVG(item, color, ink, paperBg, slotsCount);
+            }
+
+            // OBJECT ARTWORK TEMPLATES (art_season_object_01)
             let innerSVG = '';
-            
             switch (item.svgType) {
                 case 'cover':
                     innerSVG = `
                         <g transform="translate(60, 40)">
-                            <!-- 4 Quadrant Grid of Seasonal Icons -->
                             <rect x="0" y="0" width="280" height="180" fill="none" stroke="${color}" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.4"/>
                             <line x1="140" y1="0" x2="140" y2="180" stroke="${color}" stroke-width="1" opacity="0.3"/>
                             <line x1="0" y1="90" x2="280" y2="90" stroke="${color}" stroke-width="1" opacity="0.3"/>
                             
-                            <!-- Q1: Sprout -->
                             <g transform="translate(70,45)">
                                 <path d="M0 20 Q0 0 15 -10 Q10 15 0 20 Z" fill="${color}"/>
                                 <path d="M0 20 Q-15 5 -10 -5 Q5 5 0 20 Z" fill="${ink}" opacity="0.8"/>
                                 <line x1="0" y1="20" x2="0" y2="30" stroke="${ink}" stroke-width="2"/>
                             </g>
-                            <!-- Q2: Sunbeam -->
                             <g transform="translate(210,45)">
                                 <circle cx="0" cy="0" r="12" fill="none" stroke="${color}" stroke-width="2.5"/>
                                 <path d="M-20 0 L-14 0 M20 0 L14 0 M0 -20 L0 -14 M0 20 L0 14" stroke="${ink}" stroke-width="2"/>
                             </g>
-                            <!-- Q3: Autumn Leaf -->
                             <g transform="translate(70,135)">
                                 <path d="M0 -15 C15 -10 20 10 0 20 C-20 10 -15 -10 0 -15 Z" fill="none" stroke="${color}" stroke-width="2"/>
                                 <line x1="0" y1="-10" x2="0" y2="25" stroke="${ink}" stroke-width="1.5"/>
                             </g>
-                            <!-- Q4: Lamp -->
                             <g transform="translate(210,135)">
                                 <path d="M-15 10 L15 10 L8 -12 L-8 -12 Z" fill="${color}"/>
                                 <path d="M0 -12 L0 -20 M-6 10 L6 10 L10 20 L-10 20 Z" fill="${ink}"/>
@@ -465,187 +637,48 @@
                         </g>
                     `;
                     break;
-
-                case 'jan': // Ceramic Mug & Sunbeam
+                case 'jan':
                     innerSVG = `
                         <g transform="translate(130, 60)">
-                            <!-- Sun Rays -->
                             <polygon points="0,-30 80,120 -40,120" fill="${color}" opacity="0.15"/>
-                            <!-- Sun Circle -->
                             <circle cx="20" cy="-10" r="28" fill="${color}" opacity="0.8"/>
-                            <!-- Ceramic Mug -->
                             <rect x="50" y="70" width="55" height="65" rx="6" fill="${ink}"/>
                             <path d="M105 80 C120 80 120 115 105 115" fill="none" stroke="${ink}" stroke-width="6"/>
-                            <!-- Steam Lines -->
                             <path d="M65 55 Q70 45 65 35" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round"/>
                             <path d="M85 58 Q90 48 85 38" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round"/>
                         </g>
                     `;
                     break;
-
-                case 'feb': // Glass Vase & Blossom
+                case 'feb':
                     innerSVG = `
                         <g transform="translate(160, 50)">
-                            <!-- Branch -->
                             <path d="M20 160 Q0 90 40 10" fill="none" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>
                             <path d="M25 80 Q50 65 60 55" fill="none" stroke="${ink}" stroke-width="2"/>
-                            <!-- Blossoms -->
                             <circle cx="40" cy="10" r="12" fill="${color}"/>
                             <circle cx="60" cy="55" r="9" fill="${color}"/>
                             <circle cx="15" cy="105" r="8" fill="${color}" opacity="0.8"/>
-                            <!-- Glass Vase -->
                             <path d="M0 110 L40 110 L45 165 L-5 165 Z" fill="${color}" opacity="0.25" stroke="${color}" stroke-width="2"/>
                         </g>
                     `;
                     break;
-
-                case 'mar': // Tote Bag & Sprout
+                case 'mar':
                     innerSVG = `
                         <g transform="translate(130, 55)">
-                            <!-- Breeze lines -->
                             <path d="M-30 40 Q20 30 70 45" fill="none" stroke="${color}" stroke-width="2" stroke-dasharray="4 4"/>
                             <path d="M-10 20 Q40 10 90 25" fill="none" stroke="${color}" stroke-width="1.5"/>
-                            <!-- Tote Bag -->
                             <path d="M30 60 C30 35 70 35 70 60" fill="none" stroke="${ink}" stroke-width="5"/>
                             <rect x="15" y="60" width="70" height="85" rx="4" fill="${color}"/>
-                            <!-- Sprout on bag -->
                             <path d="M50 100 Q65 85 70 100 Q50 115 50 100 Z" fill="${ink}"/>
                         </g>
                     `;
                     break;
-
-                case 'apr': // Book & Teacup
+                default:
+                    // Generic fallback for objects
                     innerSVG = `
-                        <g transform="translate(120, 65)">
-                            <!-- Window Light -->
-                            <rect x="-20" y="-20" width="100" height="120" fill="${color}" opacity="0.12" rx="4"/>
-                            <!-- Open Book -->
-                            <path d="M10 80 Q45 70 80 80 L80 125 Q45 115 10 125 Z" fill="${ink}"/>
-                            <path d="M80 80 Q115 70 150 80 L150 125 Q115 115 80 125 Z" fill="${ink}" opacity="0.9"/>
-                            <path d="M80 80 L80 125" stroke="${color}" stroke-width="3"/>
-                            <!-- Teacup -->
-                            <circle cx="120" cy="50" r="16" fill="${color}"/>
-                            <path d="M136 50 C144 50 144 60 136 60" fill="none" stroke="${color}" stroke-width="3"/>
-                        </g>
-                    `;
-                    break;
-
-                case 'may': // Picnic Basket & Leaf
-                    innerSVG = `
-                        <g transform="translate(130, 60)">
-                            <!-- Woven Basket Base -->
-                            <path d="M10 70 L90 70 L80 130 L20 130 Z" fill="${color}"/>
-                            <path d="M5 65 L95 65 L95 75 L5 75 Z" fill="${ink}"/>
-                            <path d="M30 65 C30 25 70 25 70 65" fill="none" stroke="${ink}" stroke-width="5"/>
-                            <!-- Leaf Silhouettes -->
-                            <path d="M90 40 Q130 20 110 70 Q80 50 90 40 Z" fill="${color}" opacity="0.8"/>
-                            <path d="M-10 50 Q20 20 0 70 Q-30 60 -10 50 Z" fill="${ink}" opacity="0.7"/>
-                        </g>
-                    `;
-                    break;
-
-                case 'jun': // Umbrella & Raindrops
-                    innerSVG = `
-                        <g transform="translate(140, 50)">
-                            <!-- Raindrops -->
-                            <circle cx="-30" cy="20" r="4" fill="${color}"/>
-                            <circle cx="110" cy="30" r="5" fill="${color}"/>
-                            <circle cx="90" cy="-10" r="3.5" fill="${color}"/>
-                            <circle cx="-10" cy="-15" r="4.5" fill="${color}"/>
-                            <!-- Umbrella Dome -->
-                            <path d="M0 70 A50 50 0 0 1 100 70 Q50 60 0 70 Z" fill="none" stroke="${color}" stroke-width="3"/>
-                            <path d="M0 70 Q25 60 50 70 Q75 60 100 70 Q50 20 0 70 Z" fill="${color}" opacity="0.2"/>
-                            <!-- Handle -->
-                            <line x1="50" y1="20" x2="50" y2="125" stroke="${ink}" stroke-width="3"/>
-                            <path d="M50 125 C50 135 40 135 40 128" fill="none" stroke="${ink}" stroke-width="3"/>
-                        </g>
-                    `;
-                    break;
-
-                case 'jul': // Sunglasses & Sun
-                    innerSVG = `
-                        <g transform="translate(120, 50)">
-                            <!-- Big Summer Sun -->
-                            <circle cx="80" cy="20" r="40" fill="${color}" opacity="0.3"/>
-                            <!-- Sunglasses -->
-                            <rect x="0" y="70" width="55" height="40" rx="12" fill="${ink}"/>
-                            <rect x="65" y="70" width="55" height="40" rx="12" fill="${ink}"/>
-                            <line x1="55" y1="80" x2="65" y2="80" stroke="${ink}" stroke-width="4"/>
-                            <path d="M0 75 L-15 65" stroke="${ink}" stroke-width="3"/>
-                            <path d="M120 75 L135 65" stroke="${ink}" stroke-width="3"/>
-                        </g>
-                    `;
-                    break;
-
-                case 'aug': // Linen Fabric & Curtain Wave
-                    innerSVG = `
-                        <g transform="translate(110, 45)">
-                            <!-- Curtain Waves -->
-                            <path d="M0 0 Q30 60 0 140 L30 140 Q60 60 30 0 Z" fill="${color}" opacity="0.4"/>
-                            <path d="M40 0 Q70 60 40 140 L70 140 Q100 60 70 0 Z" fill="${color}"/>
-                            <!-- Linen Fold Lines -->
-                            <path d="M100 80 Q130 100 150 70" fill="none" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>
-                            <path d="M90 100 Q120 120 140 90" fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>
-                        </g>
-                    `;
-                    break;
-
-                case 'sep': // Notebook & Fountain Pen
-                    innerSVG = `
-                        <g transform="translate(130, 50)">
-                            <!-- Notebook -->
-                            <rect x="0" y="30" width="90" height="110" rx="4" fill="${color}"/>
-                            <line x1="18" y1="30" x2="18" y2="140" stroke="${ink}" stroke-width="2" opacity="0.4"/>
-                            <!-- Fountain Pen -->
-                            <g transform="rotate(-35 60 60)">
-                                <rect x="50" y="-10" width="12" height="110" rx="3" fill="${ink}"/>
-                                <polygon points="50,100 62,100 56,118" fill="${color}"/>
-                            </g>
-                        </g>
-                    `;
-                    break;
-
-                case 'oct': // Autumn Leaves & Mug
-                    innerSVG = `
-                        <g transform="translate(120, 50)">
-                            <!-- Leaves -->
-                            <path d="M0 40 Q40 0 50 60 Q10 70 0 40 Z" fill="${color}"/>
-                            <path d="M110 30 Q140 70 80 80 Q80 40 110 30 Z" fill="${ink}" opacity="0.8"/>
-                            <!-- Cozy Ceramic Mug -->
-                            <rect x="35" y="75" width="60" height="60" rx="10" fill="${color}"/>
-                            <path d="M95 85 C108 85 108 115 95 115" fill="none" stroke="${color}" stroke-width="5"/>
-                        </g>
-                    `;
-                    break;
-
-                case 'nov': // Lamp & Knit
-                    innerSVG = `
-                        <g transform="translate(130, 45)">
-                            <!-- Glowing Light Cone -->
-                            <polygon points="50,40 -10,140 110,140" fill="${color}" opacity="0.2"/>
-                            <!-- Lamp Head & Stand -->
-                            <path d="M30 40 L70 40 L80 15 L20 15 Z" fill="${ink}"/>
-                            <path d="M50 40 L50 140 M30 140 L70 140" stroke="${ink}" stroke-width="4"/>
-                            <!-- Knit Pattern Box -->
-                            <rect x="-20" y="100" width="45" height="35" fill="none" stroke="${color}" stroke-width="2" stroke-dasharray="3 3"/>
-                        </g>
-                    `;
-                    break;
-
-                case 'dec': // Berries, Candle & Gift
-                    innerSVG = `
-                        <g transform="translate(120, 50)">
-                            <!-- Candle & Flame -->
-                            <rect x="20" y="60" width="28" height="75" rx="2" fill="${ink}"/>
-                            <path d="M34 40 Q42 52 34 58 Q26 52 34 40 Z" fill="${color}"/>
-                            <!-- Gift Box -->
-                            <rect x="70" y="80" width="55" height="55" rx="3" fill="${color}"/>
-                            <rect x="92" y="80" width="10" height="55" fill="${ink}"/>
-                            <rect x="70" y="100" width="55" height="10" fill="${ink}"/>
-                            <!-- Winter Berries -->
-                            <circle cx="0" cy="110" r="7" fill="${color}"/>
-                            <circle cx="12" cy="120" r="7" fill="${color}"/>
-                            <circle cx="-10" cy="125" r="7" fill="${color}"/>
+                        <g transform="translate(150, 80)">
+                            <circle cx="50" cy="50" r="45" fill="${color}" opacity="0.25"/>
+                            <rect x="10" y="10" width="80" height="80" rx="8" fill="none" stroke="${ink}" stroke-width="2"/>
+                            <path d="M50 20 L50 80 M20 50 L80 50" stroke="${color}" stroke-width="2"/>
                         </g>
                     `;
                     break;
@@ -653,10 +686,66 @@
 
             return `
                 <svg viewBox="0 0 400 300" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="400" height="300" fill="#F5F1E8"/>
-                    <!-- Subtle Frame Border -->
+                    <rect width="400" height="300" fill="${paperBg}"/>
                     <rect x="16" y="16" width="368" height="268" fill="none" stroke="${ink}" stroke-width="1" opacity="0.15"/>
                     ${innerSVG}
+                </svg>
+            `;
+        }
+
+        // PHOTO FRAME SVG RENDERER FOR KIDS/FAMILY TEMPLATES
+        function renderPhotoFrameSVG(item, color, ink, paperBg, slotsCount) {
+            let framesHTML = '';
+            
+            if (slotsCount === 3) {
+                framesHTML = `
+                    <g transform="translate(30, 60)">
+                        <rect x="0" y="0" width="105" height="150" rx="8" fill="#FFFFFF" stroke="${color}" stroke-width="2.5" stroke-dasharray="5 5"/>
+                        <rect x="120" y="0" width="105" height="150" rx="8" fill="#FFFFFF" stroke="${color}" stroke-width="2.5" stroke-dasharray="5 5"/>
+                        <rect x="240" y="0" width="105" height="150" rx="8" fill="#FFFFFF" stroke="${color}" stroke-width="2.5" stroke-dasharray="5 5"/>
+                        
+                        <text x="52" y="70" text-anchor="middle" fill="${ink}" font-size="16" opacity="0.7">📷</text>
+                        <text x="52" y="92" text-anchor="middle" fill="${ink}" font-size="10" font-weight="bold">PHOTO #1</text>
+                        
+                        <text x="172" y="70" text-anchor="middle" fill="${ink}" font-size="16" opacity="0.7">📷</text>
+                        <text x="172" y="92" text-anchor="middle" fill="${ink}" font-size="10" font-weight="bold">PHOTO #2</text>
+                        
+                        <text x="292" y="70" text-anchor="middle" fill="${ink}" font-size="16" opacity="0.7">📷</text>
+                        <text x="292" y="92" text-anchor="middle" fill="${ink}" font-size="10" font-weight="bold">PHOTO #3</text>
+                    </g>
+                `;
+            } else {
+                // 2 Slots or Cover (default 2)
+                framesHTML = `
+                    <g transform="translate(45, 55)">
+                        <rect x="0" y="0" width="145" height="165" rx="10" fill="#FFFFFF" stroke="${color}" stroke-width="2.5" stroke-dasharray="6 6"/>
+                        <rect x="165" y="0" width="145" height="165" rx="10" fill="#FFFFFF" stroke="${color}" stroke-width="2.5" stroke-dasharray="6 6"/>
+                        
+                        <text x="72" y="80" text-anchor="middle" fill="${ink}" font-size="20" opacity="0.7">📷</text>
+                        <text x="72" y="105" text-anchor="middle" fill="${ink}" font-size="11" font-weight="bold">FAMILY PHOTO #1</text>
+                        <text x="72" y="122" text-anchor="middle" fill="${color}" font-size="9">(드래그앤드롭 인화 영역)</text>
+                        
+                        <text x="237" y="80" text-anchor="middle" fill="${ink}" font-size="20" opacity="0.7">📷</text>
+                        <text x="237" y="105" text-anchor="middle" fill="${ink}" font-size="11" font-weight="bold">FAMILY PHOTO #2</text>
+                        <text x="237" y="122" text-anchor="middle" fill="${color}" font-size="9">(드래그앤드롭 인화 영역)</text>
+                    </g>
+                `;
+            }
+
+            return `
+                <svg viewBox="0 0 400 300" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="400" height="300" fill="${paperBg}"/>
+                    <!-- Outer Decorative Hand-drawn Border -->
+                    <rect x="14" y="14" width="372" height="272" rx="12" fill="none" stroke="${color}" stroke-width="2" opacity="0.4"/>
+                    
+                    <!-- Decorative Storybook Accents -->
+                    <circle cx="30" cy="30" r="8" fill="${color}" opacity="0.3"/>
+                    <circle cx="370" cy="30" r="12" fill="${color}" opacity="0.2"/>
+                    <circle cx="370" cy="270" r="6" fill="${color}" opacity="0.4"/>
+                    <circle cx="30" cy="270" r="10" fill="${color}" opacity="0.25"/>
+                    <path d="M 180 25 Q 200 10 220 25" stroke="${ink}" stroke-width="1.5" fill="none" opacity="0.5"/>
+
+                    ${framesHTML}
                 </svg>
             `;
         }
@@ -664,8 +753,12 @@
         // --- 4. RENDER FRONT CARD FACE ---
         function createFrontCardHTML(item) {
             const isCover = item.month === 0;
+            const paperBg = calendarDataset.global_style_lock.paper_bg || "#F5F1E8";
+            const inkColor = calendarDataset.global_style_lock.ink_primary || "#23211E";
+            const slotsCount = item.photo_slots || 0;
+
             return `
-                <div class="w-full h-full paper-bg text-ink flex flex-col justify-between p-5 relative select-none overflow-hidden">
+                <div class="w-full h-full text-ink flex flex-col justify-between p-5 relative select-none overflow-hidden" style="background-color: ${paperBg}; color: ${inkColor};">
                     
                     <!-- TOP TWIN RING BINDING VISUAL -->
                     <div class="absolute top-1.5 left-0 right-0 flex justify-between px-8 z-20 pointer-events-none">
@@ -678,29 +771,34 @@
                     </div>
 
                     <!-- CARD HEADER -->
-                    <div class="mt-4 flex items-start justify-between border-b border-ink/10 pb-2">
+                    <div class="mt-4 flex items-start justify-between border-b pb-2" style="border-color: rgba(0,0,0,0.1)">
                         <div>
-                            <span class="text-[10px] font-mono tracking-widest text-ink/60 uppercase">2027 DESK CALENDAR</span>
+                            <span class="text-[10px] font-mono tracking-widest opacity-60 uppercase">2027 DESK CALENDAR</span>
                             <h3 class="font-serif font-bold text-lg md:text-xl tracking-tight" style="color: ${item.accent}">
-                                ${isCover ? item.title : `${String(item.month).padStart(2, '0')}. ${item.title}`}
+                                ${isCover ? escapeHtml(item.title) : `${String(item.month).padStart(2, '0')}. ${escapeHtml(item.title)}`}
                             </h3>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right flex flex-col items-end">
                             <span class="font-serif text-2xl font-bold tracking-tighter" style="color: ${item.accent}">
-                                ${isCover ? '2027' : item.label}
+                                ${isCover ? '2027' : escapeHtml(item.label)}
                             </span>
+                            ${slotsCount > 0 ? `
+                                <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-900 border border-amber-600/30">
+                                    📷 사진 ${slotsCount}컷
+                                </span>
+                            ` : ''}
                         </div>
                     </div>
 
-                    <!-- MAIN VISUAL ARTWORK -->
-                    <div class="flex-1 my-2 relative flex items-center justify-center overflow-hidden rounded border border-ink/5">
+                    <!-- MAIN VISUAL ARTWORK / PHOTO SLOTS STAGE -->
+                    <div class="flex-1 my-2 relative flex items-center justify-center overflow-hidden rounded border border-black/5">
                         ${generateSVGVisual(item)}
                     </div>
 
-                    <!-- CARD FOOTER (MINI CAPTION & CONCEPT TAG) -->
-                    <div class="pt-2 border-t border-ink/10 flex items-center justify-between text-[10px] font-sans text-ink/70">
-                        <span class="font-medium tracking-wide" style="color: ${item.accent}">${item.memo_title}</span>
-                        <span class="font-mono text-[9px] bg-ink/5 px-2 py-0.5 rounded">${item.accentName} (${item.accent})</span>
+                    <!-- CARD FOOTER (CAPTION & CONCEPT TAG) -->
+                    <div class="pt-2 border-t flex items-center justify-between text-[10px] font-sans" style="border-color: rgba(0,0,0,0.1)">
+                        <span class="font-medium tracking-wide" style="color: ${item.accent}">${escapeHtml(item.memo_title)}</span>
+                        <span class="font-mono text-[9px] bg-black/5 px-2 py-0.5 rounded opacity-80">${escapeHtml(item.accentName)} (${item.accent})</span>
                     </div>
                 </div>
             `;
@@ -708,46 +806,44 @@
 
         // --- 5. ACCURATE 2027 CALENDAR MATRIX GENERATOR & BACK FACE ---
         function generate2027CalendarHTML(monthNum, accentColor, memoTitle) {
+            const paperBg = calendarDataset.global_style_lock.paper_bg || "#F5F1E8";
+            const inkColor = calendarDataset.global_style_lock.ink_primary || "#23211E";
+
             if (monthNum === 0) {
-                // COVER BACK SIDE: INDEX & SPEC OVERVIEW
                 return `
-                    <div class="w-full h-full paper-bg text-ink p-6 flex flex-col justify-between select-none">
-                        <!-- Top Rings -->
+                    <div class="w-full h-full p-6 flex flex-col justify-between select-none" style="background-color: ${paperBg}; color: ${inkColor};">
                         <div class="absolute top-1.5 left-0 right-0 flex justify-between px-8 z-20">
                             ${Array(12).fill(0).map(() => `<div class="flex flex-col items-center"><div class="ring-wire"></div><div class="ring-hole -mt-1.5"></div></div>`).join('')}
                         </div>
 
-                        <div class="mt-4 border-b border-ink/20 pb-3">
-                            <h3 class="font-serif text-xl font-bold" style="color: ${accentColor}">THE YEAR IN OBJECTS 2027</h3>
-                            <p class="text-xs text-ink/70">탁상달력 12개월 구성 표 및 월별 테마 인덱스</p>
+                        <div class="mt-4 border-b pb-3" style="border-color: rgba(0,0,0,0.15)">
+                            <h3 class="font-serif text-xl font-bold" style="color: ${accentColor}">${escapeHtml(calendarDataset.title)}</h3>
+                            <p class="text-xs opacity-70">${escapeHtml(calendarDataset.subtitle || '탁상달력 12개월 구성 및 인덱스')}</p>
                         </div>
 
                         <div class="grid grid-cols-3 gap-2 text-[10px] my-auto">
                             ${calendarDataset.months.map(m => `
-                                <div class="p-2 rounded bg-ink/5 border border-ink/10 flex flex-col justify-between">
-                                    <span class="font-bold" style="color: ${m.accent}">${m.month}월 ${m.label}</span>
-                                    <span class="text-[9px] truncate text-ink/70">${m.memo_title}</span>
+                                <div class="p-2 rounded bg-black/5 border border-black/10 flex flex-col justify-between">
+                                    <span class="font-bold" style="color: ${m.accent}">${m.month}월 ${escapeHtml(m.label)}</span>
+                                    <span class="text-[9px] truncate opacity-70">${escapeHtml(m.memo_title)}</span>
                                 </div>
                             `).join('')}
                         </div>
 
-                        <div class="border-t border-ink/20 pt-2 text-[10px] flex justify-between text-ink/60 font-mono">
+                        <div class="border-t pt-2 text-[10px] flex justify-between opacity-60 font-mono" style="border-color: rgba(0,0,0,0.15)">
+                            <span>TARGET: ${escapeHtml(calendarDataset.target_type || 'Custom')}</span>
                             <span>FORMAT: 4:3 LANDSCAPE DESK</span>
-                            <span>STOCK: MATTE ART 250GSM</span>
                         </div>
                     </div>
                 `;
             }
 
-            // 2027 Month calculations
-            // 2027-01-01 starts on Friday (Day 5 if Sun=0)
             const daysInMonths2027 = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-            const startDay2027 = [0, 5, 1, 1, 4, 6, 2, 4, 0, 3, 5, 1, 3]; // Day of week for 1st of each month
+            const startDay2027 = [0, 5, 1, 1, 4, 6, 2, 4, 0, 3, 5, 1, 3];
 
             const totalDays = daysInMonths2027[monthNum];
             const firstDayOfWeek = startDay2027[monthNum];
 
-            // Build weeks grid
             let dayCells = [];
             for (let i = 0; i < firstDayOfWeek; i++) {
                 dayCells.push({ day: '', isHoliday: false, label: '' });
@@ -768,29 +864,26 @@
             }
 
             return `
-                <div class="w-full h-full paper-bg text-ink p-4 md:p-5 flex flex-col justify-between select-none relative overflow-hidden">
+                <div class="w-full h-full p-4 md:p-5 flex flex-col justify-between select-none relative overflow-hidden" style="background-color: ${paperBg}; color: ${inkColor};">
                     
-                    <!-- TOP TWIN RING BINDING VISUAL -->
                     <div class="absolute top-1.5 left-0 right-0 flex justify-between px-8 z-20 pointer-events-none">
                         ${Array(12).fill(0).map(() => `<div class="flex flex-col items-center"><div class="ring-wire"></div><div class="ring-hole -mt-1.5"></div></div>`).join('')}
                     </div>
 
                     <!-- BACK HEADER -->
-                    <div class="mt-4 flex items-center justify-between border-b border-ink/15 pb-2">
+                    <div class="mt-4 flex items-center justify-between border-b pb-2" style="border-color: rgba(0,0,0,0.15)">
                         <div class="flex items-baseline gap-2">
                             <span class="font-serif text-2xl font-bold tracking-tight" style="color: ${accentColor}">${String(monthNum).padStart(2, '0')}</span>
-                            <span class="font-serif font-bold text-sm tracking-widest text-ink/80">${calendarDataset.months[monthNum-1].title}</span>
+                            <span class="font-serif font-bold text-sm tracking-widest opacity-80">${escapeHtml(calendarDataset.months[monthNum-1].title)}</span>
                         </div>
-                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-ink/5 text-ink/70">2027 CALENDAR</span>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/5 opacity-70">2027 CALENDAR</span>
                     </div>
 
                     <!-- MAIN GRID + MEMO SIDE SPLIT -->
                     <div class="flex-1 my-2 grid grid-cols-12 gap-3 items-stretch">
                         
-                        <!-- CALENDAR GRID (8 Cols) -->
                         <div class="col-span-8 flex flex-col justify-between">
-                            <!-- Weekdays Header -->
-                            <div class="grid grid-cols-7 text-center text-[9px] font-bold text-ink/50 border-b border-ink/10 pb-1">
+                            <div class="grid grid-cols-7 text-center text-[9px] font-bold opacity-50 border-b pb-1" style="border-color: rgba(0,0,0,0.1)">
                                 <span class="text-red-700">SUN</span>
                                 <span>MON</span>
                                 <span>TUE</span>
@@ -800,14 +893,13 @@
                                 <span class="text-blue-700">SAT</span>
                             </div>
 
-                            <!-- Dates Cells -->
                             <div class="grid grid-cols-7 gap-y-1 text-center text-[10px] font-medium flex-1 pt-1">
                                 ${dayCells.map(c => {
                                     if (!c.day) return `<div></div>`;
-                                    let textColor = "text-ink";
+                                    let textColor = "text-current";
                                     if (c.isHoliday) textColor = "text-red-600 font-bold";
                                     return `
-                                        <div class="flex flex-col items-center justify-center p-0.5 rounded hover:bg-ink/5 transition-colors">
+                                        <div class="flex flex-col items-center justify-center p-0.5 rounded hover:bg-black/5 transition-colors">
                                             <span class="${textColor}">${c.day}</span>
                                             ${c.holiName ? `<span class="text-[7px] text-red-500 font-normal tracking-tighter truncate max-w-full scale-90">${c.holiName}</span>` : ''}
                                         </div>
@@ -816,31 +908,29 @@
                             </div>
                         </div>
 
-                        <!-- MEMO & NOTES ZONE (4 Cols) -->
-                        <div class="col-span-4 border-l border-ink/15 pl-3 flex flex-col justify-between">
+                        <!-- MEMO & NOTES ZONE -->
+                        <div class="col-span-4 border-l pl-3 flex flex-col justify-between" style="border-color: rgba(0,0,0,0.15)">
                             <div>
-                                <h4 class="text-[9px] font-bold tracking-wider uppercase border-b border-ink/15 pb-1 mb-2" style="color: ${accentColor}">
-                                    ${memoTitle}
+                                <h4 class="text-[9px] font-bold tracking-wider uppercase border-b pb-1 mb-2" style="color: ${accentColor}; border-color: rgba(0,0,0,0.15);">
+                                    ${escapeHtml(memoTitle)}
                                 </h4>
-                                <!-- Ruled Note Lines -->
                                 <div class="space-y-2.5 pt-1">
-                                    <div class="border-b border-ink/10 h-3"></div>
-                                    <div class="border-b border-ink/10 h-3"></div>
-                                    <div class="border-b border-ink/10 h-3"></div>
-                                    <div class="border-b border-ink/10 h-3"></div>
-                                    <div class="border-b border-ink/10 h-3"></div>
+                                    <div class="border-b h-3" style="border-color: rgba(0,0,0,0.1)"></div>
+                                    <div class="border-b h-3" style="border-color: rgba(0,0,0,0.1)"></div>
+                                    <div class="border-b h-3" style="border-color: rgba(0,0,0,0.1)"></div>
+                                    <div class="border-b h-3" style="border-color: rgba(0,0,0,0.1)"></div>
+                                    <div class="border-b h-3" style="border-color: rgba(0,0,0,0.1)"></div>
                                 </div>
                             </div>
-                            <div class="text-[8px] text-ink/40 font-mono text-right">
-                                MONTHLY LOG
+                            <div class="text-[8px] opacity-40 font-mono text-right">
+                                MEMO & RECORD
                             </div>
                         </div>
 
                     </div>
 
-                    <!-- FOOTER -->
-                    <div class="pt-1.5 border-t border-ink/10 flex items-center justify-between text-[9px] text-ink/50 font-mono">
-                        <span>THE YEAR IN OBJECTS 2027</span>
+                    <div class="pt-1.5 border-t flex items-center justify-between text-[9px] opacity-50 font-mono" style="border-color: rgba(0,0,0,0.1)">
+                        <span>${escapeHtml(calendarDataset.title)}</span>
                         <span>PAGE ${monthNum * 2} OF 26</span>
                     </div>
                 </div>
@@ -854,7 +944,6 @@
 
             const allItems = [calendarDataset.cover, ...calendarDataset.months];
             
-            // Filter logic
             const filtered = allItems.filter(item => {
                 if (activeFilter === 'all') return true;
                 if (activeFilter === 'cover') return item.month === 0;
@@ -873,26 +962,20 @@
 
                 const cardHTML = `
                     <div class="flex flex-col space-y-2">
-                        <!-- FLIP CARD WRAPPER -->
                         <div class="perspective-1000 w-full aspect-[4/3]">
                             <div id="cardInner_${cardId}" class="relative w-full h-full transform-style-3d transition-transform duration-500 cursor-pointer calendar-shadow rounded-xl ${isFlipped ? 'rotate-y-180' : ''}" onclick="toggleCardFlip('${cardId}')">
-                                
-                                <!-- FRONT FACE -->
                                 <div class="absolute inset-0 w-full h-full backface-hidden rounded-xl overflow-hidden border border-stone-300">
                                     ${createFrontCardHTML(item)}
                                 </div>
-
-                                <!-- BACK FACE -->
                                 <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-xl overflow-hidden border border-stone-300">
                                     ${generate2027CalendarHTML(item.month, item.accent, item.memo_title)}
                                 </div>
                             </div>
                         </div>
 
-                        <!-- CARD CONTROLS & INSPECTOR TRIGGER -->
                         <div class="flex items-center justify-between text-xs px-1">
                             <span class="font-serif font-semibold text-amber-200">
-                                ${item.month === 0 ? '표지 (Cover)' : `${item.month}월 ${item.label}`}
+                                ${item.month === 0 ? '표지 (Cover)' : `${item.month}월 ${escapeHtml(item.label)}`}
                             </span>
                             <div class="flex items-center gap-2">
                                 <button onclick="toggleCardFlip('${cardId}')" class="text-gray-400 hover:text-amber-300 text-[11px] font-mono">
@@ -929,7 +1012,6 @@
                 cardFlippedStates[item.id] = (face === 'back');
             });
 
-            // Update Header Buttons styling
             const btnFront = document.getElementById('btnFaceFront');
             const btnBack = document.getElementById('btnFaceBack');
             if (face === 'front') {
@@ -946,7 +1028,7 @@
         // --- 7. DESK MOCKUP VIEW LOGIC ---
         function renderDeskCard() {
             const allItems = [calendarDataset.cover, ...calendarDataset.months];
-            const item = allItems[currentDeskIndex];
+            const item = allItems[currentDeskIndex] || allItems[0];
 
             const frontEl = document.getElementById('deskCardFront');
             const backEl = document.getElementById('deskCardBack');
@@ -984,22 +1066,20 @@
             const container = document.getElementById('spreadContainer');
 
             container.innerHTML = `
-                <!-- FRONT SPREAD -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between text-xs text-amber-200">
-                        <span class="font-serif font-bold">앞면 (FRONT ARTWORK)</span>
-                        <span class="font-mono text-[10px] text-gray-400">${item.label} / ${item.accentName} (${item.accent})</span>
+                        <span class="font-serif font-bold">앞면 (FRONT VISUAL)</span>
+                        <span class="font-mono text-[10px] text-gray-400">${escapeHtml(item.label)} / ${escapeHtml(item.accentName)} (${item.accent})</span>
                     </div>
                     <div class="w-full aspect-[4/3] rounded-xl overflow-hidden calendar-shadow border border-stone-300">
                         ${createFrontCardHTML(item)}
                     </div>
                 </div>
 
-                <!-- BACK SPREAD -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between text-xs text-amber-200">
                         <span class="font-serif font-bold">뒷면 (BACK 2027 CALENDAR GRID)</span>
-                        <span class="font-mono text-[10px] text-gray-400">${item.memo_title}</span>
+                        <span class="font-mono text-[10px] text-gray-400">${escapeHtml(item.memo_title)}</span>
                     </div>
                     <div class="w-full aspect-[4/3] rounded-xl overflow-hidden calendar-shadow border border-stone-300">
                         ${generate2027CalendarHTML(item.month, item.accent, item.memo_title)}
@@ -1055,7 +1135,7 @@
             renderGridCards();
         }
 
-        // --- 10. SPEC MODAL & PROMPT INSPECTOR ---
+        // --- 10. SPEC INSPECTOR & NEW JSON IMPORT MODALS ---
         function openSpecModal(cardId = 'cover') {
             const allItems = [calendarDataset.cover, ...calendarDataset.months];
             const item = allItems.find(i => i.id === cardId) || calendarDataset.cover;
@@ -1064,59 +1144,155 @@
             const titleEl = document.getElementById('modalTitle');
             const bodyEl = document.getElementById('modalBody');
 
-            titleEl.textContent = `설계 스펙 & AI 프롬프트 Inspector: ${item.month === 0 ? '표지 (Cover)' : `${item.month}월 (${item.label})`}`;
+            titleEl.textContent = `설계 스펙 & AI 프롬프트 Inspector: ${calendarDataset.title} [${item.month === 0 ? '표지' : `${item.month}월`}]`;
 
             bodyEl.innerHTML = `
-                <!-- 1. COLOR & METADATA -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-zinc-950 border border-zinc-800">
                     <div>
                         <span class="text-gray-400 text-[10px] block font-mono">포인트 컬러 (Accent Hex)</span>
                         <div class="flex items-center gap-2 mt-1">
                             <span class="w-5 h-5 rounded border border-white/20 inline-block" style="background-color: ${item.accent}"></span>
-                            <span class="font-mono text-amber-200 text-xs font-bold">${item.accent} (${item.accentName})</span>
+                            <span class="font-mono text-amber-200 text-xs font-bold">${item.accent} (${escapeHtml(item.accentName)})</span>
                             <button onclick="copyToClipboard('${item.accent}', '컬러 코드가 복사되었습니다!')" class="text-[10px] text-amber-400 hover:underline">복사</button>
                         </div>
                     </div>
                     <div>
-                        <span class="text-gray-400 text-[10px] block font-mono">뒷면 메모 타이틀</span>
-                        <span class="font-serif text-amber-100 text-xs mt-1 block font-bold">${item.memo_title}</span>
+                        <span class="text-gray-400 text-[10px] block font-mono">뒷면 메모/기록 타이틀</span>
+                        <span class="font-serif text-amber-100 text-xs mt-1 block font-bold">${escapeHtml(item.memo_title)}</span>
                     </div>
                     <div>
-                        <span class="text-gray-400 text-[10px] block font-mono">판형 및 종이 재질</span>
-                        <span class="text-gray-300 text-xs mt-1 block">4:3 가로 탁상 (랑데뷰 250g)</span>
+                        <span class="text-gray-400 text-[10px] block font-mono">사진 슬롯 / 타깃</span>
+                        <span class="text-amber-300 text-xs mt-1 block font-semibold">${item.photo_slots ? `📷 ${item.photo_slots}컷 슬롯` : '무사진 완성형'} (${escapeHtml(calendarDataset.target_type)})</span>
                     </div>
                 </div>
 
-                <!-- 2. EXACT AI IMAGE PROMPT -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="font-serif text-sm font-semibold text-amber-200">생성 AI 프롬프트 (Midjourney / Firefly 용)</span>
-                        <button onclick="copyToClipboard(\`${item.prompt_subject.replace(/'/g, "\\'")}\`, '프롬프트가 복사되었습니다!')" class="px-3 py-1 bg-amber-900/60 hover:bg-amber-800 text-amber-200 rounded border border-amber-700 text-xs font-medium flex items-center gap-1">
+                        <button id="copyDesignerPromptBtn" class="px-3 py-1 bg-amber-900/60 hover:bg-amber-800 text-amber-200 rounded border border-amber-700 text-xs font-medium flex items-center gap-1">
                             📋 프롬프트 복사
                         </button>
                     </div>
                     <div class="p-4 bg-zinc-950 border border-zinc-800 rounded-lg font-mono text-xs text-amber-300/90 leading-relaxed select-all">
-                        ${item.prompt_subject}
+                        ${escapeHtml(item.prompt_subject)}
                     </div>
                 </div>
 
-                <!-- 3. DESIGN RULE SPEC (GLOBAL LOCK) -->
                 <div class="space-y-2">
-                    <span class="font-serif text-sm font-semibold text-amber-200">12개월 일관성 유지 규칙 (Global Style Lock)</span>
-                    <ul class="list-disc list-inside space-y-1 text-gray-400 text-xs bg-zinc-950 p-3 rounded-lg border border-zinc-800">
-                        <li>배경 종이 톤: <code class="text-amber-300">#F5F1E8</code> (Paper Cream) 고정</li>
-                        <li>주요 텍스트 잉크: <code class="text-amber-300">#23211E</code> (Charcoal) 고정</li>
-                        <li>금지 규칙: AI 생성 이미지 내에 임의의 달력 숫자 텍스트 금지 (<code class="text-amber-300">no text</code>)</li>
-                        <li>뒷면 달력: 2027년 한국 공휴일 및 일요일 자동 표준 표기</li>
-                    </ul>
+                    <span class="font-serif text-sm font-semibold text-amber-200">전체 세트 JSON 스펙 미리보기</span>
+                    <pre class="bg-zinc-950 p-3 rounded-lg border border-zinc-800 font-mono text-[11px] text-gray-300 max-h-48 overflow-y-auto">${escapeHtml(JSON.stringify(calendarDataset, null, 2))}</pre>
                 </div>
             `;
 
+            bodyEl.querySelector('#copyDesignerPromptBtn').addEventListener('click', () => {
+                copyToClipboard(item.prompt_subject, '프롬프트가 복사되었습니다!');
+            });
             modal.classList.remove('hidden');
         }
 
         function closeSpecModal() {
             document.getElementById('specModal').classList.add('hidden');
+        }
+
+        function openImportModal() {
+            document.getElementById('importJsonModal').classList.remove('hidden');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importJsonModal').classList.add('hidden');
+        }
+
+        function loadSampleJsonIntoImport() {
+            const sampleJson = {
+                set_id: "extended_family_01",
+                target_type: "대가족형",
+                title: "OUR BIG FAMILY 2027",
+                subtitle: "대가족 생신·행사 강조 & 웜 린넨 골드 테두리 탁상달력 템플릿",
+                global_style_lock: {
+                    paper_bg: "#FAF6F0",
+                    ink_primary: "#3E3229",
+                    texture: "warm ivory linen paper with gold line borders",
+                    rule_no_random_calendar_text_in_ai_art: true
+                },
+                cover: {
+                    month: 0, label: "COVER", title: "OUR BIG FAMILY", subline: "2027 EXTENDED EDITION",
+                    photo_slots: 4, accent: "#B88B58", accentName: "Warm Gold",
+                    memo_title: "2027 EXTENDED FAMILY COVER",
+                    prompt_subject: "Warm ivory textured linen paper background (#FAF6F0), subtle botanical gold line border, soft warm lighting, four empty photo slots layout, clean design, no text"
+                },
+                months: [
+                    { month: 1, label: "JAN", title: "JANUARY", photo_slots: 3, accent: "#A65B32", accentName: "Warm Rust", memo_title: "새해 가족 신년회 & 생신 메모", prompt_subject: "Ivory linen background with elegant gold botanical corner illustration and three clean photo frames, no text" }
+                ]
+            };
+            document.getElementById('importJsonTextArea').value = JSON.stringify(sampleJson, null, 2);
+        }
+
+        function normalizeImportedSet(set) {
+            const isRecord = value => value && typeof value === 'object' && !Array.isArray(value);
+            const hasText = value => typeof value === 'string' && value.trim();
+            const color = (value, fallback) => /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value) ? value : fallback;
+            if (!isRecord(set) || !hasText(set.set_id) || !hasText(set.title) || !isRecord(set.cover)) {
+                throw new Error('set_id, title, cover 항목이 필요합니다.');
+            }
+            const months = set.months ?? [];
+            if (!Array.isArray(months) || months.some(item =>
+                !isRecord(item) || !Number.isInteger(item.month) || item.month < 1 || item.month > 12
+            ) || new Set(months.map(item => item.month)).size !== months.length) {
+                throw new Error('months 항목에는 1~12월을 중복 없이 입력해 주세요.');
+            }
+
+            const normalizePage = (page, month, label, title) => ({
+                ...page,
+                id: month ? `m${String(month).padStart(2, '0')}` : 'cover',
+                month,
+                label: hasText(page.label) ? page.label : label,
+                title: hasText(page.title) ? page.title : title,
+                accent: color(page.accent, '#C85A32'),
+                accentName: page.accentName ?? 'Accent',
+                memo_title: page.memo_title ?? '',
+                prompt_subject: typeof page.prompt_subject === 'string' ? page.prompt_subject : '',
+                svgType: typeof page.svgType === "string" ? page.svgType : undefined,
+                photo_slots: Number.isInteger(page.photo_slots) && page.photo_slots >= 0 && page.photo_slots <= 12 ? page.photo_slots : 0
+            });
+            const style = isRecord(set.global_style_lock) ? set.global_style_lock : {};
+            const monthNames = 'JANUARY FEBRUARY MARCH APRIL MAY JUNE JULY AUGUST SEPTEMBER OCTOBER NOVEMBER DECEMBER'.split(' ');
+            return {
+                ...set,
+                global_style_lock: {
+                    ...style,
+                    paper_bg: color(style.paper_bg, '#F5F1E8'),
+                    ink_primary: color(style.ink_primary, '#23211E')
+                },
+                cover: normalizePage(set.cover, 0, 'COVER', set.title),
+                months: monthNames.map((title, index) => {
+                    const month = index + 1;
+                    return normalizePage(months.find(item => item.month === month) ?? {}, month, title.slice(0, 3), title);
+                })
+            };
+        }
+
+        function submitImportedJson() {
+            const rawText = document.getElementById('importJsonTextArea').value.trim();
+            if (!rawText) {
+                alert('JSON 코드를 입력해 주세요.');
+                return;
+            }
+
+            try {
+                const parsed = normalizeImportedSet(JSON.parse(rawText));
+
+                CALENDAR_SETS_REGISTRY.push(parsed);
+                populateTemplateSetSelector();
+                
+                const newIdx = CALENDAR_SETS_REGISTRY.length - 1;
+                document.getElementById('templateSetSelect').value = newIdx;
+                switchTemplateSet(newIdx);
+                
+                closeImportModal();
+                showToast(`새 JSON 템플릿 세트가 성공적으로 등록되었습니다! (${parsed.title})`);
+            } catch (err) {
+                alert('JSON 시안을 불러올 수 없습니다. ' + err.message);
+            }
         }
 
         async function copyToClipboard(text, msg = '복사되었습니다!') {
@@ -1143,7 +1319,7 @@
 
         function copyFullJSON() {
             const jsonStr = JSON.stringify(calendarDataset, null, 2);
-            copyToClipboard(jsonStr, '전체 JSON 데이터가 클립보드에 복사되었습니다!');
+            copyToClipboard(jsonStr, '현재 템플릿 세트 JSON 데이터가 클립보드에 복사되었습니다!');
         }
 
         function showToast(msg) {
@@ -1158,7 +1334,6 @@
             }, 2500);
         }
 
-        // Mobile Menu Toggle
         document.getElementById('mobileMenuBtn').addEventListener('click', () => {
             const panel = document.getElementById('controlPanel');
             panel.classList.toggle('hidden');
