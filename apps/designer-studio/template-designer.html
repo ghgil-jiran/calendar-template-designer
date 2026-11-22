@@ -828,9 +828,12 @@
 
                     <!-- MAIN VISUAL ARTWORK / PHOTO SLOTS STAGE -->
                     <div class="flex-1 my-2 relative flex items-center justify-center overflow-hidden rounded border border-black/5">
-                        ${generateSVGVisual(item)}
+                        ${illustrationSource(item.illustration_image)
+                            ? `<img class="absolute inset-0 w-full h-full object-contain" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">`
+                            : generateSVGVisual(item)}
                     </div>
 
+                    ${item.concept_text ? `<p class="mb-2 text-xs leading-snug whitespace-pre-line line-clamp-3">${escapeHtml(item.concept_text)}</p>` : ''}
                     <!-- CARD FOOTER (CAPTION & CONCEPT TAG) -->
                     <div class="pt-2 border-t flex items-center justify-between text-[10px] font-sans" style="border-color: rgba(0,0,0,0.1)">
                         <span class="font-medium tracking-wide" style="color: ${item.accent}">${escapeHtml(item.memo_title)}</span>
@@ -1214,6 +1217,21 @@
                     </div>
                 </div>
 
+                <div class="space-y-2 p-4 rounded-xl bg-zinc-950 border border-zinc-800">
+                    <h3 class="font-semibold text-amber-200">일러스트와 컨셉</h3>
+                    ${illustrationSource(item.illustration_image) ? `<img class="max-h-48 object-contain" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">` : ''}
+                    ${currentSetIndex >= builtInCount ? `
+                        <label class="block text-sm">샘플 일러스트
+                            <input id="designerIllustration" class="block mt-1 w-full text-sm" type="file" accept="image/png,image/jpeg,image/webp">
+                        </label>
+                        ${item.illustration_image ? '<label class="block text-sm"><input id="designerRemoveIllustration" type="checkbox"> 등록 이미지 제거</label>' : ''}
+                        <label class="block text-sm">컨셉 설명
+                            <textarea id="designerConcept" rows="3" maxlength="600" class="block mt-1 w-full rounded border border-zinc-700 bg-zinc-900 p-2">${escapeHtml(item.concept_text)}</textarea>
+                        </label>
+                        <button id="saveDesignerPageDetails" type="button" class="rounded bg-amber-400 px-3 py-2 text-sm font-semibold text-zinc-950">변경 저장</button>
+                    ` : `<p class="whitespace-pre-line text-sm">${escapeHtml(item.concept_text || '기본 시안입니다. 등록한 시안의 일러스트와 컨셉을 편집할 수 있습니다.')}</p>`}
+                </div>
+
                 <div class="space-y-2">
                     <span class="font-serif text-sm font-semibold text-amber-200">전체 세트 JSON 스펙 미리보기</span>
                     <pre class="bg-zinc-950 p-3 rounded-lg border border-zinc-800 font-mono text-[11px] text-gray-300 max-h-48 overflow-y-auto">${escapeHtml(JSON.stringify(calendarDataset, null, 2))}</pre>
@@ -1222,6 +1240,32 @@
 
             bodyEl.querySelector('#copyDesignerPromptBtn').addEventListener('click', () => {
                 copyToClipboard(item.prompt_subject, '프롬프트가 복사되었습니다!');
+            });
+            bodyEl.querySelector('#saveDesignerPageDetails')?.addEventListener('click', async event => {
+                const button = event.currentTarget;
+                const design = calendarDataset;
+                const file = bodyEl.querySelector('#designerIllustration').files[0];
+                const remove = bodyEl.querySelector('#designerRemoveIllustration')?.checked;
+                const concept = bodyEl.querySelector('#designerConcept').value.trim();
+                button.disabled = true;
+                try {
+                    const image = file ? await prepareIllustration(file) : remove ? undefined : item.illustration_image;
+                    if (calendarDataset !== design || !bodyEl.contains(button)) return;
+                    const updatedItem = { ...item, illustration_image: image, concept_text: concept };
+                    const updated = item.month
+                        ? { ...design, months: design.months.map(page => page.month === item.month ? updatedItem : page) }
+                        : { ...design, cover: updatedItem };
+                    CALENDAR_SETS_REGISTRY[currentSetIndex] = calendarDataset = updated;
+                    renderGridCards();
+                    renderDeskCard();
+                    renderSpreadView(document.getElementById('spreadMonthSelect').value);
+                    openSpecModal(item.id);
+                    if (!requestDesignerStorage('save', updated)) showToast('미리보기를 갱신했습니다. 서버 저장은 템플릿 에디터에서 사용할 수 있습니다.');
+                } catch (error) {
+                    showToast(error.message || '이미지를 불러오지 못했습니다.');
+                } finally {
+                    button.disabled = false;
+                }
             });
             modal.classList.remove('hidden');
         }
@@ -1263,6 +1307,32 @@
             document.getElementById('importJsonTextArea').value = JSON.stringify(sampleJson, null, 2);
         }
 
+        function illustrationSource(value) {
+            return typeof value === 'string' && value.length <= 200000 &&
+                /^data:image\/(?:webp|jpeg|png);base64,[A-Za-z0-9+/]+={0,2}$/.test(value) ? value : '';
+        }
+
+        async function prepareIllustration(file) {
+            if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+                throw new Error('PNG, JPEG, WebP 이미지를 선택해 주세요.');
+            }
+            const bitmap = await createImageBitmap(file);
+            const canvas = document.createElement('canvas');
+            try {
+                for (const maxSide of [1200, 900, 640, 450]) {
+                    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+                    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+                    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+                    canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+                    const source = illustrationSource(canvas.toDataURL('image/webp', .82));
+                    if (source) return source;
+                }
+                throw new Error('미리보기 이미지로 변환하지 못했습니다.');
+            } finally {
+                bitmap.close();
+            }
+        }
+
         function normalizeImportedSet(set) {
             const isRecord = value => value && typeof value === 'object' && !Array.isArray(value);
             const hasText = value => typeof value === 'string' && value.trim();
@@ -1279,6 +1349,11 @@
 
             const normalizePage = (page, month, label, title) => ({
                 ...page,
+                illustration_image: illustrationSource(page.illustration_image) || undefined,
+                concept_text: typeof page.concept_text === 'string' ? page.concept_text.slice(0, 600) : [
+                    page.scene_setting?.background,
+                    page.scene_setting?.plating_composition
+                ].filter(hasText).join('\n').slice(0, 600),
                 id: month ? `m${String(month).padStart(2, '0')}` : 'cover',
                 month,
                 label: hasText(page.label) ? page.label : label,
