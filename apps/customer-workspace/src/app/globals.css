@@ -477,7 +477,7 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-shell {font-size:var(--type-body);}
 .editor-shell .editor-title h1 {font-size:var(--type-subtitle);}
 .editor-shell .editor-library h2,.editor-shell .editor-inspector-heading h2,.editor-shell .editor-add-objects h2 {font-size:var(--type-subtitle);line-height:1.5;}
-.editor-shell .editor-properties h3,.editor-shell .editor-properties label,.editor-shell .editor-bank-heading,.editor-shell .editor-inspector-empty strong {font-size:var(--type-body);}
+.editor-shell .editor-properties h3,.editor-shell .editor-properties label,.editor-shell .editor-properties .vacation-background-color,.editor-shell .editor-bank-heading,.editor-shell .editor-inspector-empty strong {font-size:var(--type-body);}
 .editor-shell .field-hint,.editor-shell .editor-inspector-empty,.editor-shell .editor-selection-tip,.editor-shell .editor-library-heading p,.editor-shell .editor-add-objects p,.editor-shell .editor-empty {font-size:var(--type-help);line-height:1.8;color:hsl(var(--help-foreground));}
 .editor-shell .editor-feedback {font-size:var(--type-help);line-height:1.7;color:hsl(var(--help-foreground));}
 .editor-shell .editor-feedback[role=alert] {color:hsl(var(--destructive));}
@@ -684,7 +684,7 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-properties .editor-object-summary h3{font-size:13px;margin-bottom:7px}
 .editor-properties .editor-object-summary p{margin:6px 0 0;font-size:11px;line-height:1.65;color:hsl(var(--muted-foreground))}
 .editor-properties .editor-tool-card .field-hint{margin:9px 0 0;font-size:10px;line-height:1.65}
-.editor-properties .editor-tool-card label{font-size:11px}
+.editor-properties .editor-tool-card label,.editor-properties .editor-tool-card .vacation-background-color{font-size:11px}
 .editor-properties .editor-tool-card .editor-field-heading label{margin:0}
 .editor-properties .editor-tool-card .button{width:100%;min-height:33px;padding:8px;font-size:11px;line-height:1.5;white-space:normal;border-radius:6px}
 .editor-properties .editor-tool-card > .editor-card-apply{margin:12px 0 0}
@@ -801,8 +801,8 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-properties .schedule-style-card {padding:10px;}
 .schedule-style-card h3 {display:flex;align-items:center;gap:5px;margin:0;font-size:12px;font-weight:650;}
 .schedule-style-card h3 small {margin-left:auto;font-size:9px;font-weight:400;color:hsl(var(--muted-foreground));white-space:nowrap;}
-.schedule-style-card>.schedule-text-option {display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;}
-.schedule-style-card>.schedule-text-option input[type="checkbox"] {width:16px;height:16px;min-width:16px;flex:none;margin:0;padding:0;}
+.schedule-style-card>.schedule-text-option,.vacation-background-options>.schedule-text-option {display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;}
+.schedule-style-card>.schedule-text-option input[type="checkbox"],.vacation-background-options>.schedule-text-option input[type="checkbox"] {width:16px;height:16px;min-width:16px;flex:none;margin:0;padding:0;}
 
 .schedule-style-options {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:10px;}
 .editor-properties .schedule-style-options .button {display:flex;flex-direction:column;gap:6px;padding:5px;font-size:10px;line-height:1.4;}
@@ -1036,7 +1036,10 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 
 .editor-palette {display:inline-flex;justify-self:start;}
 .editor-palette-trigger {display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:29px;padding:3px 6px;border:1px solid hsl(var(--border));border-radius:5px;background:hsl(var(--background));color:hsl(var(--foreground));}
-.editor-shell .editor-properties .vacation-background-color {display:flex;align-items:center;gap:16px;margin:0 0 8px;font-size:var(--type-body);}
+.vacation-background-options {padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid hsl(var(--border));}
+.editor-properties .vacation-background-options>.schedule-text-option {margin-bottom:0;}
+.vacation-background-color {display:flex;align-items:center;gap:16px;margin-top:8px;}
+.editor-properties .vacation-background-options+.schedule-sizing-fields {margin-top:0;padding-top:0;border-top:0;}
 .vacation-background-color .editor-palette-trigger {gap:4px;min-height:20px;padding:2px 4px;}
 .vacation-background-color .editor-palette-current {box-sizing:border-box;width:13px;height:12px;}
 .vacation-background-color .editor-palette-chevron {width:6px;height:6px;}
