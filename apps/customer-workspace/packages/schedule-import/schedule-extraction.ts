@@ -21,16 +21,36 @@ export function zipXml(buffer:Buffer):Map<string,string>{
 const decode=(text:string)=>text.replace(/<[^>]*>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
 export function isScheduleDate(value:string){return /^\d{4}-\d{2}-\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;}
 function iso(y:number,m:number,d:number){return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+export function readVacationTitleRange(title:string,year:number,startMonth:number){
+ const range=/^(?:(?:여름|겨울|봄|가을|학년말)\s*)?방학\s*[(（]\s*((?:\d{2,4}년\s*)?\d{1,2}\s*(?:[/.]|월)\s*\d{1,2}(?:\s*일)?)\s*[-~～–]\s*((?:\d{2,4}년\s*)?(?:\d{1,2}\s*(?:[/.]|월)\s*)?\d{1,2}(?:\s*일)?)\s*[)）]$/.exec(title);
+ if(!range)return null;
+ const readPart=(text:string)=>/^(?:(\d{2}|\d{4})년\s*)?(?:(\d{1,2})\s*(?:[/.]|월)\s*)?(\d{1,2})(?:\s*일)?$/.exec(text);
+ const first=readPart(range[1]),last=readPart(range[2]);
+ if(!first||!last)return null;
+ const month=Number(first[2]),endMonth=Number(last[2]||month);
+ const toYear=(value:string|undefined,fallback:number)=>{
+  if(!value)return fallback;
+  if(value.length===4)return Number(value);
+  return fallback+(Number(value)-fallback%100+150)%100-50;
+ };
+ const startYear=toYear(first[1],year+(month<startMonth?1:0));
+ const endYear=toYear(last[1],startYear+(endMonth<month?1:0));
+ const startDate=iso(startYear,month,Number(first[3]));
+ const endDate=iso(endYear,endMonth,Number(last[3]));
+ return isScheduleDate(startDate)&&isScheduleDate(endDate)&&endDate>=startDate?{startDate,endDate}:null;
+}
 export function parseMonthlyScheduleLine(line:string){
  return /^(?:(\d{1,2})[/.])?(\d{1,2})(?:일)?(?:\s*[-~～–]\s*(?:(\d{1,2})[/.])?(\d{1,2})(?:일)?)?(?:\s*[:：]\s*|\s+)(\S.*)$/.exec(line);
 }
 export function readMonthlyScheduleEvent(line:string,month:number,year:number,startMonth:number,id:string):ScheduleEvent|null{
     const match=parseMonthlyScheduleLine(line);
-    if(!match)return null;
+    if(!match){const range=readVacationTitleRange(line,year,startMonth);return range?{id,title:line,...range}:null;}
     const [,explicitMonth,day,endMonth,endDay,title]=match;
     const m=Number(explicitMonth||month),em=Number(endMonth||m);
-    const startDate=iso(year+(m<startMonth?1:0),m,Number(day));
-    const endDate=endDay?iso(year+(em<startMonth?1:0),em,Number(endDay)):startDate;
+    const startYear=year+(m<startMonth?1:0);
+    const vacation=readVacationTitleRange(title,year,startMonth);
+    const startDate=vacation?.startDate??iso(startYear,m,Number(day));
+    const endDate=vacation?.endDate??(endDay?iso(startYear+(em<m?1:0),em,Number(endDay)):startDate);
     if(!isScheduleDate(startDate)||!isScheduleDate(endDate)||endDate<startDate||title.length>200)return null;
     return {id,startDate,endDate,title};
 }
@@ -82,7 +102,10 @@ export function parseScheduleText(text:string,year:number,startMonth=3):Omit<Sch
    const short=line.match(/^(?:(\d{1,2})\s*월\s*|(\d{1,2})[./])?(\d{1,2})(?:\s*일)?(?:\s*[-~～–]\s*(?:(\d{1,2})\s*월\s*|(\d{1,2})[./])?(\d{1,2})(?:\s*일)?)?\s*(?:[,;\t:|]|\s)\s*(.+)$/);
    if(short){const m=+(short[1]||short[2]||month),em=+(short[4]||short[5]||m),y=short[1]||short[2]?year+(m<startMonth?1:0):contextYear;if(m){start=iso(y,m,+short[3]);end=short[6]?iso(y+(em<m?1:0),em,+short[6]):start;title=short[7];}}
   }
-  title=title.replace(/^[:：\s]+/,'').trim();if(!isScheduleDate(start)||!isScheduleDate(end)||end<start||!title||title.length>200){warnings.push(`${index+1}행: 날짜나 일정명을 확인해 주세요. ${line.slice(0,100)}`);continue;}
+  title=title.replace(/^[:：\s]+/,'').trim();
+  const vacation=readVacationTitleRange(title||line,year,startMonth);
+  if(vacation){start=vacation.startDate;end=vacation.endDate;title=title||line;}
+  if(!isScheduleDate(start)||!isScheduleDate(end)||end<start||!title||title.length>200){warnings.push(`${index+1}행: 날짜나 일정명을 확인해 주세요. ${line.slice(0,100)}`);continue;}
   if(!events.some(e=>e.startDate===start&&e.endDate===end&&e.title===title))events.push({id:`import-${index+1}`,startDate:start,endDate:end,title});
  }
  return {events,warnings,totalLines:lines.length};

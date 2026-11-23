@@ -881,31 +881,39 @@ function renderPage(){
   html+=`<div id="calendarRegion" class="calendar-region calendar-grid-geometry ${project.template.masters.calendar.calendarLayout?.gridAppearance?"calendar-grid-appearance ":""}${calendarClasses} ${calendarEditing?"editing":""}"${presetAttr} data-calendar-composition="${chrome.contract?.schemaVersion||"monthly-calendar-composition.v1"}" style="left:${cr.x}%;top:${cr.y}%;width:${cr.width}%;height:${cr.height}%;--calendar-title-share:${vertical.title}%;--calendar-weekday-track:${chrome.weekdayStage}%;--calendar-weekday-grid-gap:${chrome.gridGapMm/Math.max(.01,chrome.trackMm)*100}%;--calendar-title-responsive:${project.template.masters.calendar.monthTitleSize/8.5}cqw;${presetVars}${Object.entries(window.ACDLSharedGridPresentation.appearanceVariables(project.template.masters.calendar.calendarLayout?.gridAppearance,project.settings.weekStart)).map(([key,value])=>key+":"+value).join(";")}"><div class="month-title ${monthTitleStyle}" style="font-size:${project.template.masters.calendar.monthTitleSize}px;color:var(--month-primary)">${titleFrame?"":titleMarkup}</div><div class="calendar-stage"><div class="calendar" style="--calendar-rows:${rows}">`;
   weekDayHeaders().forEach(h=>html+=`<div class="cell head">${h}</div>`);
   const miniCells=project.settings.showAdjacentMiniCalendars?selectAdjacentMiniCells(grid,p.calendarMonth):[];
+  const vacationRules=window.ACDLSharedSchedule;
+  const vacationStyle=project.template.masters.calendar.rangeEventStyle;
+  const vacations=vacationStyle?.enabled!==false&&vacationStyle?.showVacationBackground===true?(project.book.events||[]).filter(vacationRules.isVacationRange):[];
+  const vacationForDay=day=>day.month===p.calendarMonth?vacationRules.vacationOnDate(vacations,day.date):{active:false,labels:[]};
   const hiddenScheduleByDate=project.template.masters.calendar.rangeEventStyle?.deskDateSchedule?{}:assignRangeLanes(grid).hiddenByDate||{};
   grid.forEach((c,cellIndex)=>{
    const renderDay=(day,extra=false)=>{
+    const vacation=vacationForDay(day);
+    const vacationFill=vacation.active&&(c.extra||extra)?`background-color:${vacationRules.vacationBackground};`:'';
+    const vacationLabel=vacation.labels.length?`<div class="calendar-reference calendar-vacation-label" style="white-space:normal;overflow-wrap:anywhere">${vacation.labels.map(escapeAttr).join('<br>')}</div>`:'';
     const hideAdjacent=day.month!==p.calendarMonth&&project.template.masters.calendar.showAdjacentMonths===false;
     const refs=calendarReferenceForDate(day.date),holiday=refs.holidays.find(item=>item.isHoliday!==false);
     const annotations=window.ACDLSharedCalendarAnnotations,annotationStyle=project.template.masters.calendar.calendarLayout?.annotations;
     if(annotations?.normalize(annotationStyle)){
      if(hideAdjacent)return `<div class="day-block" data-date="${day.date}"></div>`;
      const appearance=project.template.masters.calendar.calendarLayout?.gridAppearance||{},annotationHiddenCount=Number(hiddenScheduleByDate[day.date]||0);
-     return `<div class="day-block ${holiday?"public-holiday":""}" data-date="${day.date}" style="font-family:${escapeAttr(project.template.resources?.fontTheme?.calendar||project.template.resources?.fontTheme?.body||'Arial')}">${annotations.render({day:day.day,weekday:day.dow,isHoliday:Boolean(holiday),refs,style:annotationStyle,referenceColors:project.template.masters.calendar.calendarLayout?.referenceColors,colors:{color:appearance.dateColor,saturdayColor:appearance.saturdayColor,holidayColor:appearance.holidayColor||appearance.sundayColor}})}${annotationHiddenCount>0?`<span class="calendar-overflow-count" title="표시 공간을 넘은 일정">+${annotationHiddenCount}</span>`:""}</div>`;
+     return `<div class="day-block ${holiday?"public-holiday":""}" data-date="${day.date}" style="${vacationFill}font-family:${escapeAttr(project.template.resources?.fontTheme?.calendar||project.template.resources?.fontTheme?.body||'Arial')}">${annotations.render({day:day.day,weekday:day.dow,isHoliday:Boolean(holiday),refs,style:annotationStyle,referenceColors:project.template.masters.calendar.calendarLayout?.referenceColors,colors:{color:appearance.dateColor,saturdayColor:appearance.saturdayColor,holidayColor:appearance.holidayColor||appearance.sundayColor}})}${vacationLabel}${annotationHiddenCount>0?`<span class="calendar-overflow-count" title="표시 공간을 넘은 일정">+${annotationHiddenCount}</span>`:""}</div>`;
     }
     const appearance=project.template.masters.calendar.calendarLayout?.gridAppearance||{},referenceContext={weekday:day.dow,isHoliday:Boolean(holiday),referenceColors:project.template.masters.calendar.calendarLayout?.referenceColors,colors:{color:appearance.dateColor,saturdayColor:appearance.saturdayColor,holidayColor:appearance.holidayColor||appearance.sundayColor}};
     const auxiliary=annotations.renderLegacy(refs,referenceContext,['lunars','solarTerms']);
     const special=annotations.renderLegacy(refs,referenceContext,['holidays','anniversaries']);
-    let part=`<div class="day-block ${extra?"compact-extra":""} ${holiday?"public-holiday":""}" data-date="${day.date}"><div class="day-head-row"><div class="day">${hideAdjacent?"":day.day}</div>`;
+    let part=`<div class="day-block ${extra?"compact-extra":""} ${holiday?"public-holiday":""}" data-date="${day.date}"${vacationFill?` style="${vacationFill}"`:}><div class="day-head-row"><div class="day">${hideAdjacent?"":day.day}</div>`;
     if(!hideAdjacent&&auxiliary)part+=`<span class="calendar-reference auxiliary" style="color:${annotations.context(referenceContext).tone}">${auxiliary}</span>`;
     part+="</div>";
     if(!hideAdjacent&&special)part+=`<span class="calendar-reference special" style="color:${annotations.context(referenceContext).tone}">${special}</span>`;
+    part+=vacationLabel;
     const hiddenCount=Number(hiddenScheduleByDate[day.date]||0);
     if(!hideAdjacent&&hiddenCount>0)part+=`<span class="calendar-overflow-count" title="표시 공간을 넘은 일정">+${hiddenCount}</span>`;
     return part+"</div>"
    };
    const selected=selectedDate===c.date||(c.extra&&selectedDate===c.extra.date);
    if(miniCells.includes(cellIndex)){const rel=cellIndex===miniCells[0]?-1:1,d=new Date(p.calendarYear,p.calendarMonth-1+rel,1);html+=`<div class="cell mini-host">${renderCellMiniCalendar(d.getFullYear(),d.getMonth()+1,miniHolidayDates)}</div>`;return}
-   html+=`<div class="cell ${c.month!==p.calendarMonth?"adj":""} ${c.dow===0?"sun":c.dow===6?"sat":""} ${selected?"selected":""} ${c.extra?"compact-pair":""}"><div class="day-stack">${renderDay(c)}${c.extra?renderDay(c.extra,true):""}</div></div>`
+   html+=`<div class="cell ${c.month!==p.calendarMonth?"adj":""} ${c.dow===0?"sun":c.dow===6?"sat":""} ${selected?"selected":""} ${c.extra?"compact-pair":""}"${!c.extra&&vacationForDay(c).active?` style="background-color:${vacationRules.vacationBackground}"`:}><div class="day-stack">${renderDay(c)}${c.extra?renderDay(c.extra,true):""}</div></div>`
   });
   html+=`</div>${renderRangeEventLayer(grid,rows)}</div></div>`;
  }else if(p.role==="poster-annual"){
@@ -940,7 +948,7 @@ function renderPage(){
  if(deskSchedule?.deskDateSchedule&&deskSchedule.enabled!==false){
   window.ACDLSharedCalendarAnnotations?.fit(page,{avoidEvents:false});
   const shared=window.ACDLSharedSchedule;
-  const events=deskSchedule.displayMode==='text'?window.ACDLCalendarDomain.assignCalendarScheduleColors((project.book.events||[]).filter(event=>!isPublicReferenceEvent(event))):[];
+  const events=deskSchedule.displayMode==='text'?window.ACDLCalendarDomain.assignCalendarScheduleColors((project.book.events||[]).filter(event=>!isPublicReferenceEvent(event)&&!(deskSchedule.showVacationBackground&&shared.isVacationRange(event)))):[];
   const font=shared.physicalFontPx(deskSchedule,page.clientWidth,project.productType.pageSize.width)||7;
   shared.fitDeskCalendar(page,deskSchedule,events,font,project.template.resources?.fontTheme?.calendar||project.template.resources?.fontTheme?.body||'Arial');
  }else requestAnimationFrame(()=>window.ACDLSharedCalendarAnnotations?.fit(page));

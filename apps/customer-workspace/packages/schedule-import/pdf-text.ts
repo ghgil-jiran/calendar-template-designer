@@ -2,7 +2,7 @@ import {existsSync} from 'node:fs';
 import type {TextItem} from 'pdfjs-dist/types/src/display/api';
 import type {ScheduleEvent} from './contracts.ts';
 import {join, sep} from 'node:path';
-import {isScheduleDate, parseScheduleText, readMonthlyScheduleEvent} from './schedule-extraction.ts';
+import {isScheduleDate, parseScheduleText, readMonthlyScheduleEvent, readVacationTitleRange} from './schedule-extraction.ts';
 
 export const PDF_WITHOUT_SCHEDULE_TEXT = Symbol('PDF without readable schedule text');
 
@@ -118,11 +118,11 @@ export async function readPdfDateList(file: File, year: number, startMonth: numb
       }
       if (lines.length === previousLineCount) return null;
     }
-    if (!lines.length || lines.some(line => !/^\d{4}[-./]\d{1,2}[-./]\d{1,2}(?!\d)/.test(line))) return null;
+    if (!lines.length || lines.some(line => !/^\d{4}[-./]\d{1,2}[-./]\d{1,2}(?!\d)/.test(line)&&!readVacationTitleRange(line,year,startMonth))) return null;
     const result = parseScheduleText(lines.join('\n'), year, startMonth);
     if (result.warnings.length || !result.events.length) return null;
     const rebase = (date: string) => String(year + (Number(date.slice(5, 7)) < startMonth ? 1 : 0)) + date.slice(4);
-    const events = result.events.map(event => ({...event,startDate:rebase(event.startDate),endDate:rebase(event.endDate)}));
+    const events = result.events.map(event => readVacationTitleRange(event.title,year,startMonth)?event:{...event,startDate:rebase(event.startDate),endDate:rebase(event.endDate)});
     if (events.some(event => !isScheduleDate(event.startDate) || !isScheduleDate(event.endDate) || event.endDate < event.startDate)) return null;
     return {...result,events,sourceName:file.name,method:'basic' as const};
   } finally {

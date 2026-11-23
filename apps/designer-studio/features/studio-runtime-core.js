@@ -921,7 +921,8 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
   };
   assignRangeLanes=function(grid){
     const p=selectedPage(),weekStart=project.settings.weekStart==="monday"?"monday":"sunday",rows=Math.max(1,Math.ceil(grid.length/7));
-    const displayEvents=window.ACDLCalendarDomain.assignCalendarScheduleColors((project.book.events||[]).filter(event=>!isPublicReferenceEvent(event)));
+    const vacationEnabled=project.template.masters.calendar.rangeEventStyle?.showVacationBackground===true;
+    const displayEvents=window.ACDLCalendarDomain.assignCalendarScheduleColors((project.book.events||[]).filter(event=>!isPublicReferenceEvent(event)&&!(vacationEnabled&&window.ACDLSharedSchedule.isVacationRange(event))));
     const rawLayout=window.ACDLCalendarDomain.buildCalendarScheduleLanes(
       Number(p?.calendarYear),
       Number(p?.calendarMonth),

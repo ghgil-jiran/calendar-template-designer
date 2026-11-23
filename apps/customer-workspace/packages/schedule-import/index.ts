@@ -5,7 +5,13 @@ import {analyzeWithModel} from './model.ts';
 import {PDF_WITHOUT_SCHEDULE_TEXT,readPdfDateList} from './pdf-text.ts';
 import manifest from './package.json' with {type: 'json'};
 export const SCHEDULE_IMPORT_VERSION = manifest.version;
-import {extractMonthlyHwpx,extractSchedule,parseScheduleText} from './schedule-extraction.ts';
+import {extractMonthlyHwpx,extractSchedule,parseScheduleText,readVacationTitleRange} from './schedule-extraction.ts';
+function reviewVacationDates<T extends Pick<ScheduleExtraction, 'events' | 'warnings'>>(result:T,year:number,startMonth:number):T{
+ const first=`${year}-${String(startMonth).padStart(2,'0')}-01`;
+ const after=`${year+1}-${String(startMonth).padStart(2,'0')}-01`;
+ const outside=result.events.filter(event=>readVacationTitleRange(event.title,year,startMonth)&&(event.startDate<first||event.endDate>=after));
+ return outside.length?{...result,warnings:[...result.warnings,'선택한 학사연도 밖의 날짜가 포함된 방학 일정이 있어요. 원본의 연도를 확인해 주세요.']}:result;
+}
 function withoutDefaultHolidays<T extends Pick<ScheduleExtraction, 'events' | 'warnings'>>(result:T):T{
  const events=result.events.filter(event=>!isLegalHoliday(event.title));
  const excluded=result.events.length-events.length;
@@ -20,7 +26,9 @@ export function normalizeSharedSchedules(data:unknown,year:number,startMonth:num
  const rebase=(value:unknown)=>{if(typeof value!=='string'||!isScheduleDate(value))return '';const month=Number(value.slice(5,7));return `${year+(month<startMonth?1:0)}-${value.slice(5)}`;};
  if(source.schedules.length>2000)throw Error('일정은 한 번에 2,000건까지 읽을 수 있습니다.');
  for(const [i,raw] of source.schedules.entries()){
-  const row=raw as {date?:unknown;endDate?:unknown;label?:unknown};const start=rebase(row?.date),end=row?.endDate?rebase(row.endDate):start,title=typeof row?.label==='string'?row.label.trim():'';
+  const row=raw as {date?:unknown;endDate?:unknown;label?:unknown};const title=typeof row?.label==='string'?row.label.trim():'';
+  const vacation=readVacationTitleRange(title,year,startMonth);
+  const start=vacation?.startDate??rebase(row?.date),end=vacation?.endDate??(row?.endDate?rebase(row.endDate):start);
   if(!isScheduleDate(start)||!isScheduleDate(end)||end<start||!title||title.length>200){invalid++;warnings.push(`${i+1}번 분석 항목: 날짜 또는 일정명을 확인하지 못해 추가하지 않았어요. ${title.slice(0,80)}`);continue;}
   const key=JSON.stringify([start,end,title]);if(seen.has(key))continue;seen.add(key);events.push({id:`shared-${i+1}`,startDate:start,endDate:end,title});
  }
@@ -37,7 +45,7 @@ export async function extractWithSharedService(file:File,year:number,startMonth=
  const ext=file.name.split('.').pop()?.toLowerCase();if(!['docx','xlsx','xls','hwpx','pdf','csv','txt'].includes(ext||''))throw Error('DOCX·XLSX·XLS·HWPX·PDF·CSV·TXT 파일을 선택해 주세요. 구형 HWP·DOC는 HWPX·DOCX 또는 PDF로 저장해 주세요.');
  if(ext==='hwpx'){
   const result=await extractMonthlyHwpx(file,year,startMonth).catch(()=>null);
-  if(result)return {...withoutDefaultHolidays(result),engineVersion:SCHEDULE_IMPORT_VERSION};
+  if(result)return {...reviewVacationDates(withoutDefaultHolidays(result),year,startMonth),engineVersion:SCHEDULE_IMPORT_VERSION};
  }
  if(ext==='pdf'){
   const result=await readPdfDateList(file,year,startMonth).catch(error=>{
@@ -47,7 +55,7 @@ export async function extractWithSharedService(file:File,year:number,startMonth=
   if(result===PDF_WITHOUT_SCHEDULE_TEXT){
    throw Error('이 PDF에서 일정명과 날짜를 원문 텍스트로 확인할 수 없어요. HWPX 원본이나 글자를 선택할 수 있는 PDF로 올려 주세요. 기존 일정은 유지됩니다.');
   }
-  if(result)return {...withoutDefaultHolidays(result),engineVersion:SCHEDULE_IMPORT_VERSION};
+  if(result)return {...reviewVacationDates(withoutDefaultHolidays(result),year,startMonth),engineVersion:SCHEDULE_IMPORT_VERSION};
  }
  try{
   const response=await analyzeWithModel(file,year,startMonth,options.apiKey,options.fetcher);
@@ -57,7 +65,7 @@ export async function extractWithSharedService(file:File,year:number,startMonth=
    throw Error(payload.error?.message||'일정 분석에 실패했어요.');
   }
   const result=normalizeSharedSchedules(await response.json(),year,startMonth);
-  return {...result,sourceName:file.name,engineVersion:SCHEDULE_IMPORT_VERSION};
+  return {...reviewVacationDates(result,year,startMonth),sourceName:file.name,engineVersion:SCHEDULE_IMPORT_VERSION};
  }catch(error){
   const reason=error instanceof Error&&error.name==='TimeoutError'
    ?'공통 일정 분석 시간이 초과됐어요.'
@@ -75,14 +83,14 @@ export async function extractWithSharedService(file:File,year:number,startMonth=
   if(!result.events.length){
    throw Error(reason+' 기본 읽기에서도 일정을 찾지 못했어요. 원본의 날짜와 일정명을 확인해 주세요. 기존 일정은 유지됩니다.');
   }
-  result=withoutDefaultHolidays(result);
+  result=reviewVacationDates(withoutDefaultHolidays(result),year,startMonth);
   return {...result,method:'basic',engineVersion:SCHEDULE_IMPORT_VERSION,warnings:[reason+' 기본 읽기로 가져왔어요. 복잡한 표와 여러 일정이 적힌 칸은 원본과 비교해 주세요.',...result.warnings]};
  }
 }
 export async function extractPastedSchedule(text:string,year:number,startMonth=3){
  if(!text.trim())throw Error('읽어올 일정 내용을 입력해 주세요.');
  const simple=parseScheduleText(text,year,startMonth);
- if(simple.events.length&&simple.warnings.length===0)return {...withoutDefaultHolidays(simple),sourceName:'직접 입력',method:'basic' as const,engineVersion:SCHEDULE_IMPORT_VERSION};
+ if(simple.events.length&&simple.warnings.length===0)return {...reviewVacationDates(withoutDefaultHolidays(simple),year,startMonth),sourceName:'직접 입력',method:'basic' as const,engineVersion:SCHEDULE_IMPORT_VERSION};
  return extractWithSharedService(new File([text],'붙여넣은-일정.txt',{type:'text/plain'}),year,startMonth);
 }
 

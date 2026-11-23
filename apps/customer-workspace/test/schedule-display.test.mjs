@@ -45,3 +45,17 @@ test('desk text ranges default to a date label on the first day and can repeat o
  s.undo();
  assert.equal(s.getDocument().template.masters.calendar.rangeEventStyle.rangeEachDay,undefined);
 });
+
+test('vacation rendering marks each covered day and labels the start and next month',()=>{
+ const vacation={title:'겨울 방학(12/20-1/20)',startDate:'2027-12-20',endDate:'2028-01-20'};
+ assert.equal(shared.isVacationRange(vacation),true);
+ assert.equal(shared.isVacationRange({...vacation,title:'방학 중 캠프'}),false);
+ assert.deepEqual(shared.vacationOnDate([vacation],'2027-12-20'),{active:true,labels:['방학(12/20 - 1/20)']});
+ assert.deepEqual(shared.vacationOnDate([vacation],'2028-01-01'),{active:true,labels:['방학(12/20 - 1/20)']});
+ assert.deepEqual(shared.vacationOnDate([vacation],'2028-01-20'),{active:true,labels:[]});
+ assert.deepEqual(shared.vacationOnDate([vacation],'2028-01-21'),{active:false,labels:[]});
+ const p=source(),s=createEditorSession({project:p});
+ s.select(s.targets('march').find(t=>t.rights.scheduleStyle));
+ s.setDeskScheduleSizing({showVacationBackground:true});
+ assert.equal(applyEditor(p,JSON.parse(JSON.stringify(s.getState())),[]).template.masters.calendar.rangeEventStyle.showVacationBackground,true);
+});

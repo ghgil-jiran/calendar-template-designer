@@ -192,6 +192,22 @@
     });
   }
 
+  const vacationBackground = '#e6f0fb';
+  function isVacationRange(event) {
+    return !event.reference && event.category !== 'holiday' &&
+      /^(?:(?:여름|겨울|봄|가을|학년말)\s*)?방학(?:\s*[(（].*[)）])?$/.test(String(event.title || '').trim()) &&
+      /^\d{4}-\d{2}-\d{2}$/.test(event.startDate) && /^\d{4}-\d{2}-\d{2}$/.test(event.endDate) &&
+      event.endDate > event.startDate;
+  }
+
+  function vacationOnDate(events, date) {
+    const active = events.filter(event => event.startDate <= date && event.endDate >= date);
+    const shortDate = value => Number(value.slice(5,7)) + '/' + Number(value.slice(8,10));
+    const labels = active.filter(event => event.startDate === date || date.endsWith('-01'))
+      .map(event => '방학(' + shortDate(event.startDate) + ' - ' + shortDate(event.endDate) + ')');
+    return {active: active.length > 0, labels: [...new Set(labels)]};
+  }
+
   function fitDeskCalendar(page,style,events,fontPx,fontFamily){
     const layer=page.querySelector('.range-event-layer');
     if(!layer||!layer.offsetHeight)return;
@@ -209,10 +225,10 @@
         if(!block.children.length)return;
         const start=block.getBoundingClientRect().top;
         const dateLine=block.querySelector('.ann-heading, .day-head-row');
-        const belowDate=block.querySelector('.ann-bottom, .calendar-reference.special');
+        const belowDate=[...block.querySelectorAll('.ann-bottom, .calendar-reference.special, .calendar-vacation-label')];
         const dateBottom=dateLine?.getBoundingClientRect().bottom??start;
-        const headerBottom=Math.max(dateBottom,belowDate?.getBoundingClientRect().bottom??start);
-        const headerGap=belowDate?1.5:2;
+        const headerBottom=Math.max(dateBottom,...belowDate.map(node=>node.getBoundingClientRect().bottom));
+        const headerGap=belowDate.length?1.5:2;
         const limit=part+1<blocks.length?block.nextElementSibling.getBoundingClientRect().top:box.bottom;
         const row=Math.floor(index/7);
         const area={date:block.dataset.date,x:(box.left-bounds.left)/sx+2,width:box.width/sx-4,
@@ -307,6 +323,6 @@
     }
     for(const area of byDate.values())mark(area,hidden[area.date]||0);
   }
-  root.ACDLSharedSchedule = Object.freeze({ version, deskScheduleDefaults, deskScheduleMetrics, deskTextEventsForDate, fitDeskCalendar, physicalFontPx, fitPhysicalLanes, displayModes, displayStyle, fitDisplayLanes, displaySegment, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
+  root.ACDLSharedSchedule = Object.freeze({ version, isVacationRange, vacationOnDate, vacationBackground, deskScheduleDefaults, deskScheduleMetrics, deskTextEventsForDate, fitDeskCalendar, physicalFontPx, fitPhysicalLanes, displayModes, displayStyle, fitDisplayLanes, displaySegment, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
 })(globalThis);
 

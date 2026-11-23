@@ -56,7 +56,7 @@ test('PDF transcription keeps original row boundaries and flags conflicting cand
  }});
  assert.equal(calls,2);
  assert.equal(r.method,'shared-ai');
- assert.equal(r.engineVersion,'0.1.5');
+ assert.equal(r.engineVersion,'0.1.6');
  assert.deepEqual(r.events.map(item=>[item.startDate,item.endDate,item.title]).sort(),
   rows.map(row=>[row.date,row.endDate??row.date,row.label]).sort());
  assert.ok(r.warnings.some(w=>w.includes('판독 불일치')&&w.includes('우시기준')));
@@ -79,4 +79,19 @@ test('direct schedule import excludes default holidays and keeps school holidays
  const result=await extractPastedSchedule('2027-07-19 : 대체 공휴일\n2027-07-20 : 재량휴업\n2027-07-21 : 학교 재량휴일',2027);
  assert.deepEqual(result.events.map(event=>event.title),['재량휴업','학교 재량휴일']);
  assert.match(result.warnings[0],/공휴일 1건을 학사일정에서 제외/);
+});
+
+test('vacation titles retain their original spelling and parse month and year boundaries',async()=>{
+ const {parseScheduleText}=await import('../packages/schedule-import/schedule-extraction.ts');
+ const titles=['여름방학 (7/20 - 8/15)','방학 (8/1 - 15)','겨울 방학(12/20- 1/20)','방학(12/20-28년 1/20)','방학 (12/20-1/20)','방학 (12월 20일 - 2028년 1월 20일)'];
+ const result=parseScheduleText(titles[0],2027);
+ assert.deepEqual(result.events.map(({title,startDate,endDate})=>[title,startDate,endDate]),[[titles[0],'2027-07-20','2027-08-15']]);
+ for(const [index,title] of titles.entries()){
+  const {events,warnings}=parseScheduleText(title,2027);
+  assert.deepEqual(warnings,[]);
+  assert.equal(events[0].title,title);
+  if(index===1)assert.deepEqual([events[0].startDate,events[0].endDate],['2027-08-01','2027-08-15']);
+  if(index>1)assert.deepEqual([events[0].startDate,events[0].endDate],['2027-12-20','2028-01-20']);
+ }
+ assert.equal(parseScheduleText('방학 (12월 20일 - 2027년 1월 20일)',2026).events[0].endDate,'2027-01-20');
 });
