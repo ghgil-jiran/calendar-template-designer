@@ -883,13 +883,14 @@ function renderPage(){
   const miniCells=project.settings.showAdjacentMiniCalendars?selectAdjacentMiniCells(grid,p.calendarMonth):[];
   const vacationRules=window.ACDLSharedSchedule;
   const vacationStyle=project.template.masters.calendar.rangeEventStyle;
-  const vacations=vacationStyle?.enabled!==false&&vacationStyle?.showVacationBackground===true?(project.book.events||[]).filter(vacationRules.isVacationRange):[];
+  const vacationColor=vacationRules.vacationColor(vacationStyle?.vacationBackgroundColor);
+  const vacations=vacationStyle?.showVacationBackground===true?(project.book.events||[]).filter(vacationRules.isVacationRange):[];
   const vacationForDay=day=>day.month===p.calendarMonth?vacationRules.vacationOnDate(vacations,day.date):{active:false,labels:[]};
   const hiddenScheduleByDate=project.template.masters.calendar.rangeEventStyle?.deskDateSchedule?{}:assignRangeLanes(grid).hiddenByDate||{};
   grid.forEach((c,cellIndex)=>{
    const renderDay=(day,extra=false)=>{
     const vacation=vacationForDay(day);
-    const vacationFill=vacation.active&&(c.extra||extra)?`background-color:${vacationRules.vacationBackground};`:'';
+    const vacationFill=vacation.active&&(c.extra||extra)?`background-color:${vacationColor}!important;`:'';
     const vacationLabel=vacation.labels.length?`<div class="calendar-reference calendar-vacation-label" style="white-space:normal;overflow-wrap:anywhere">${vacation.labels.map(escapeAttr).join('<br>')}</div>`:'';
     const hideAdjacent=day.month!==p.calendarMonth&&project.template.masters.calendar.showAdjacentMonths===false;
     const refs=calendarReferenceForDate(day.date),holiday=refs.holidays.find(item=>item.isHoliday!==false);
@@ -913,7 +914,7 @@ function renderPage(){
    };
    const selected=selectedDate===c.date||(c.extra&&selectedDate===c.extra.date);
    if(miniCells.includes(cellIndex)){const rel=cellIndex===miniCells[0]?-1:1,d=new Date(p.calendarYear,p.calendarMonth-1+rel,1);html+=`<div class="cell mini-host">${renderCellMiniCalendar(d.getFullYear(),d.getMonth()+1,miniHolidayDates)}</div>`;return}
-   html+=`<div class="cell ${c.month!==p.calendarMonth?"adj":""} ${c.dow===0?"sun":c.dow===6?"sat":""} ${selected?"selected":""} ${c.extra?"compact-pair":""}"${!c.extra&&vacationForDay(c).active?` style="background-color:${vacationRules.vacationBackground}"`:""}><div class="day-stack">${renderDay(c)}${c.extra?renderDay(c.extra,true):""}</div></div>`
+   html+=`<div class="cell ${c.month!==p.calendarMonth?"adj":""} ${c.dow===0?"sun":c.dow===6?"sat":""} ${selected?"selected":""} ${c.extra?"compact-pair":""}"${!c.extra&&vacationForDay(c).active?` style="background-color:${vacationColor}!important"`:""}><div class="day-stack">${renderDay(c)}${c.extra?renderDay(c.extra,true):""}</div></div>`
   });
   html+=`</div>${renderRangeEventLayer(grid,rows)}</div></div>`;
  }else if(p.role==="poster-annual"){

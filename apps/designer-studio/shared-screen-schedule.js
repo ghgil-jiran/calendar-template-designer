@@ -193,6 +193,7 @@
   }
 
   const vacationBackground = '#e6f0fb';
+  const vacationColor = value => typeof value === 'string' && /^#[a-f0-9]{6}$/i.test(value) ? value : vacationBackground;
   function isVacationRange(event) {
     return !event.reference && event.category !== 'holiday' &&
       /^(?:(?:여름|겨울|봄|가을|학년말)\s*)?방학(?:\s*[(（].*[)）])?$/.test(String(event.title || '').trim()) &&
@@ -323,6 +324,6 @@
     }
     for(const area of byDate.values())mark(area,hidden[area.date]||0);
   }
-  root.ACDLSharedSchedule = Object.freeze({ version, isVacationRange, vacationOnDate, vacationBackground, deskScheduleDefaults, deskScheduleMetrics, deskTextEventsForDate, fitDeskCalendar, physicalFontPx, fitPhysicalLanes, displayModes, displayStyle, fitDisplayLanes, displaySegment, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
+  root.ACDLSharedSchedule = Object.freeze({ version, isVacationRange, vacationOnDate, vacationBackground, vacationColor, deskScheduleDefaults, deskScheduleMetrics, deskTextEventsForDate, fitDeskCalendar, physicalFontPx, fitPhysicalLanes, displayModes, displayStyle, fitDisplayLanes, displaySegment, monthSchedule, resolveScheduleEvents, resolveYearScheduleEvents, renderYearScheduleMarkup, renderScheduleMarkup, fitEventList });
 })(globalThis);
 
