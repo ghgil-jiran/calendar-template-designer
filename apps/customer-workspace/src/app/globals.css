@@ -1111,3 +1111,20 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-paper-choice:has(input:disabled) {cursor:default;}
 .editor-paper-check {display:grid;place-items:center;flex:none;width:16px;height:16px;border:1px solid hsl(var(--border));border-radius:3px;}
 .editor-paper-choice input:checked + .editor-paper-check {background:hsl(var(--primary));color:hsl(var(--primary-foreground));}
+
+.editor-properties .monthly-schedule-card h3{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.monthly-schedule-card h3 small{font-size:10px;font-weight:600;color:hsl(var(--muted-foreground))}
+.monthly-schedule-list{display:grid;gap:0;list-style:none;padding:0;margin:0}
+.monthly-schedule-list li{min-width:0;padding:8px 0;border-top:1px solid hsl(var(--border)/.75)}
+.monthly-schedule-date{display:block;margin-bottom:4px;font-size:11px;line-height:1.4;color:hsl(var(--muted-foreground));font-variant-numeric:tabular-nums}
+.monthly-schedule-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:4px}
+.monthly-schedule-title{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.editor-properties .monthly-schedule-row .button{width:auto;min-height:30px;padding:4px 6px;white-space:nowrap}
+.editor-properties .monthly-schedule-card .monthly-schedule-add{margin-top:8px}
+.monthly-schedule-form{display:grid;gap:8px;margin-top:8px;padding:8px;border:1px solid hsl(var(--border));border-radius:6px}
+.monthly-schedule-form label{display:grid;gap:3px;min-width:0}
+.monthly-schedule-form input{width:100%;min-width:0;padding:5px;font-size:11px}
+.monthly-schedule-form-dates{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,112px),1fr));gap:6px}
+.monthly-schedule-form-actions{display:flex;justify-content:flex-end;gap:6px}
+.editor-properties .monthly-schedule-form-actions .button{width:auto;min-height:30px;padding:4px 9px}
+.editor-properties .monthly-schedule-delete:not(:disabled):hover{border-color:currentColor;color:hsl(var(--destructive))}
