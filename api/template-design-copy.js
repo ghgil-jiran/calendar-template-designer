@@ -5,6 +5,16 @@ const text = (value, limit) => typeof value === 'string' ? value.trim().slice(0,
 const failure = (message, statusCode, code) => Object.assign(new Error(message), {statusCode, code, details:{message}});
 const formats = ['auto','ko','en'];
 
+const string = {type:'string'};
+const record = properties => ({type:'object',properties,required:Object.keys(properties),additionalProperties:false});
+const copyFormat = {
+  type:'json_schema', name:'calendar_page_copy', strict:true,
+  schema:record({
+    cover:string, backCover:string, coverImagePrompt:string, annual:string, scheduler:string,
+    months:{type:'array',items:record({month:{type:'integer'},front:string,back:string,scheduler:string,imagePrompt:string})}
+  })
+};
+
 export function validateCopy(value) {
   const required = (input, limit) => {
     const result = text(input, limit + 1);
@@ -70,13 +80,16 @@ months는 정확히 12개 객체, 각각 month (1~12 정수), front 최대 32, b
     const upstream = await fetch('https://api.openai.com/v1/responses',{
       method:'POST', headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},
       body:JSON.stringify({model:process.env.OPENAI_DESIGN_COPY_MODEL?.trim() || 'gpt-4.1-mini',
-        input:JSON.stringify(context),instructions,text:{format:{type:'json_object'}},max_output_tokens:5600,store:false}),
+        input:'아래 테마 자료의 달력 문구를 JSON으로 생성하세요.\n' + JSON.stringify(context),
+        instructions,text:{format:copyFormat},max_output_tokens:5600,store:false}),
       signal:AbortSignal.timeout(55000)
     });
     const result = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
       const error = copyProviderError(upstream.status,result.error?.code);
-      console.warn('Template design copy upstream failure',{status:upstream.status,category:error.code});
+      const safeIdentifier = value => typeof value === 'string' && /^[a-zA-Z0-9_.-]{1,80}$/.test(value) ? value : undefined;
+      console.warn('Template design copy upstream failure',{status:upstream.status,category:error.code,
+        providerCode:safeIdentifier(result.error?.code), parameter:safeIdentifier(result.error?.param)});
       throw error;
     }
     const output = result.output?.flatMap(item => item.content || []).find(part => part.type === 'output_text')?.text;
