@@ -185,9 +185,23 @@
 
 <div class="flex gap-2 flex-wrap"><button type="button" id="generateDraft" class="rounded border border-amber-600 px-3 py-2 disabled:opacity-40">JSON 파일 생성 및 보기</button><button type="button" id="createDraft" disabled class="rounded bg-amber-800 px-3 py-2 disabled:opacity-40">생성하기</button></div>
 <div><progress id="draftProgress" max="100" value="0" aria-label="JSON 생성 진행 상태" hidden class="w-full"></progress><p id="draftStatus" role="status" class="text-sm text-amber-200"></p></div>
-<section id="draftJsonPanel" hidden><label class="grid gap-1">생성된 JSON<textarea id="draftJson" readonly rows="8" class="rounded bg-zinc-900 border border-zinc-600 p-2 font-mono text-xs"></textarea></label><button type="button" id="downloadDraftJson" class="mt-2 rounded border border-zinc-600 px-3 py-1">JSON 다운로드</button></section>
+
 </form>
 </dialog>
+<dialog id="draftReview" aria-labelledby="draftReviewHeading" class="w-[min(48rem,94vw)] max-h-[90vh] rounded-xl border border-studioBorder bg-studioCard text-gray-100 p-5 backdrop:bg-black/70">
+  <h2 id="draftReviewHeading" class="font-serif text-xl">시안 구성 검토</h2>
+  <div id="draftReviewSummary" class="grid gap-3 py-4 text-sm"></div>
+  <details class="rounded border border-zinc-600 p-3">
+    <summary class="cursor-pointer">JSON 원문 보기</summary>
+    <label class="mt-2 grid gap-1">생성된 JSON<textarea id="draftJson" readonly rows="8" class="rounded bg-zinc-900 border border-zinc-600 p-2 font-mono text-xs"></textarea></label>
+    <button type="button" id="downloadDraftJson" class="mt-2 rounded border border-zinc-600 px-3 py-1">JSON 다운로드</button>
+  </details>
+  <div class="mt-4 flex flex-wrap justify-end gap-2">
+    <button type="button" id="returnToDraft" class="rounded border border-zinc-600 px-3 py-2">입력으로 돌아가기</button>
+    <button type="button" id="createReviewedDraft" class="rounded bg-amber-800 px-3 py-2">생성하기</button>
+  </div>
+</dialog>
+
 
     <!-- SUB-NAV: DYNAMIC STYLE LOCK BAR & SEASON TABS -->
     <nav class="bg-studioCard/60 border-b border-studioBorder py-2.5 px-4 lg:px-8 text-xs overflow-x-auto">
@@ -594,12 +608,18 @@
                 || !Number.isInteger(imageCount) || imageCount < 1 || imageCount > 4) {
                 throw new Error('제목과 면 구성을 확인해 주세요.');
             }
+            const monthlyDirection = [
+                '새해의 시작과 첫인상', '겨울의 끝과 다음 계절의 기대', '봄의 시작과 새로운 일상',
+                '봄의 변화와 발견', '초록이 짙어지는 계절', '상반기를 돌아보는 여유',
+                '한여름의 활기', '여름의 쉼과 여운', '가을의 시작과 새로운 리듬',
+                '가을의 깊이와 수확', '한 해를 돌아보는 기록', '한 해의 마무리와 다음 해의 기대'
+            ];
             const theme = [title, description].filter(Boolean).join(' — ');
             const cover = { title, concept_text: description, photo_slots: 1, prompt_subject: theme + ' · 표지 대표 이미지' };
             const months = Array.from({ length: 12 }, (_, i) => ({
-                month: i + 1, title: (i + 1) + '월', concept_text: description,
+                month: i + 1, title: (i + 1) + '월', concept_text: title + ' · ' + monthlyDirection[i],
                 accent: ['#45645A','#7D4F62','#355E80','#805C30'][Math.floor(i / 3)],
-                photo_slots: imageCount, memo_title: '메모', prompt_subject: theme + ' · ' + (i + 1) + '월 이미지'
+                photo_slots: imageCount, memo_title: '메모', prompt_subject: theme + ' · ' + (i + 1) + '월 · ' + monthlyDirection[i]
             }));
             const pages = [{ number: 1, role: 'cover' }, { number: 2, role: 'inside-front', layout: insideFront },
                 ...months.flatMap(({ month }) => [
@@ -614,6 +634,7 @@
 
         const draftDialog = document.getElementById('newDraftDialog');
         const draftForm = document.getElementById('newDraftForm');
+        const draftReview = document.getElementById('draftReview');
         const draftOutput = document.getElementById('draftJson');
         const draftCreate = document.getElementById('createDraft');
         const draftStatus = document.getElementById('draftStatus');
@@ -630,7 +651,7 @@
             draftOutput.value = '';
             draftCreate.disabled = true;
             draftStatus.textContent = '';
-            document.getElementById('draftJsonPanel').hidden = true;
+            if (draftReview.open) draftReview.close();
             document.getElementById('draftImageCount').hidden = draftForm.elements.back.value === '1';
         }
         document.getElementById('openNewDraft').onclick = () => draftDialog.showModal();
@@ -664,11 +685,11 @@
                 const json = JSON.stringify(draft, null, 2);
                 generatedDraft = normalizeImportedSet(JSON.parse(json));
                 draftOutput.value = json;
-                document.getElementById('draftJsonPanel').hidden = false;
+
                 draftCreate.disabled = false;
                 draftProgress.value = 100;
                 draftStatus.textContent = 'JSON 생성 완료 · 28면 검증을 통과했습니다.';
-                draftStatus.scrollIntoView({ block: 'nearest' });
+                showDraftReview(generatedDraft);
             } catch (error) {
                 draftProgress.hidden = true;
                 draftStatus.textContent = 'JSON을 생성하지 못했습니다. ' + error.message;
@@ -685,9 +706,45 @@
             link.click();
             setTimeout(() => URL.revokeObjectURL(url), 1000);
         };
+        function showDraftReview(draft) {
+            const layout = draft.draft_layout;
+            const inside = kind => kind === 'annual' ? '연력' : '스케줄러';
+            const front = ['월력', '왼쪽 월력 · 오른쪽 메모', '왼쪽 월력 · 오른쪽 메모와 하단 이미지', '왼쪽 월력 · 오른쪽 메모와 전달·다음 달 미니 월력'][Number(layout.month_front) - 1];
+            const back = ['왼쪽 이미지 1장 · 오른쪽 메모', '상단 이미지 ' + layout.image_count + '장 · 하단 띠 월력', '왼쪽 이미지 ' + layout.image_count + '장 · 오른쪽 메모와 전달·다음 달 미니 월력'][Number(layout.month_back) - 1];
+            document.getElementById('draftReviewSummary').innerHTML = `
+                <section class="rounded border border-zinc-600 p-3">
+                    <h3 class="font-semibold text-amber-200">콘셉트와 디자인 방향</h3>
+                    <p class="mt-1 text-lg font-semibold">${escapeHtml(draft.title)}</p>
+                    ${draft.description ? '<p class="mt-1 whitespace-pre-wrap">' + escapeHtml(draft.description) + '</p>' : ''}
+                    <dl class="mt-2 grid gap-1">
+                        <div><dt class="inline font-semibold">표지</dt> <dd class="inline">‘${escapeHtml(draft.title)}’를 제목으로 쓰고 주제를 대표하는 이미지 한 장을 배치합니다.</dd></div>
+                        <div><dt class="inline font-semibold">월별 이미지</dt> <dd class="inline">‘${escapeHtml(draft.title)}’를 전체 주제로 유지하고, 아래 월별 장면을 이미지 제작 지시에 추가합니다.</dd></div>
+                        <div><dt class="inline font-semibold">색상</dt> <dd class="inline">크림색 바탕에 3개월마다 포인트 색을 바꿉니다.</dd></div>
+                    </dl>
+                    <p class="mt-1 text-gray-300">아래 월별 방향은 규칙을 적용한 초안입니다.</p>
+                </section>
+                <section class="rounded border border-zinc-600 p-3">
+                    <h3 class="font-semibold text-amber-200">28면 구성</h3>
+                    <ul class="mt-2 grid gap-1">
+                        <li>1면 · 표지</li><li>2면 · ${inside(layout.inside_front)}</li>
+                        <li>3~26면 · 월력 앞면 기본 ${layout.month_front} · ${front}</li>
+                        <li>3~26면 · 월력 뒷면 기본 ${layout.month_back} · ${back}</li>
+                        <li>27면 · ${inside(layout.inside_back)}</li><li>28면 · 뒷표지</li>
+                    </ul>
+                </section>
+                <section class="rounded border border-zinc-600 p-3">
+                    <h3 class="font-semibold text-amber-200">월별 연출 방향</h3>
+                    <ul class="mt-2 grid gap-1 sm:grid-cols-2">${draft.months.map(month => '<li>' + month.month + '월 · ' + escapeHtml(month.concept_text.slice(draft.title.length + 3)) + '</li>').join('')}</ul>
+                </section>`;
+            draftReview.querySelector('details').open = false;
+            if (!draftReview.open) draftReview.showModal();
+        }
+        document.getElementById('returnToDraft').onclick = () => draftReview.close();
+        document.getElementById('createReviewedDraft').onclick = () => draftCreate.click();
         draftCreate.onclick = () => {
             if (!generatedDraft) return;
             registerDesign(generatedDraft);
+            if (draftReview.open) draftReview.close();
             draftDialog.close();
             draftForm.reset();
             invalidateDraft();
