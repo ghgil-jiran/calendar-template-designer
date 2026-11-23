@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { read, utils } from "xlsx";
 import mammoth from "mammoth";
-import { zipXml } from "./schedule-extraction.ts";
+import { parseMonthlyScheduleLine, zipXml } from "./schedule-extraction.ts";
 import { parseHwpxCalendarGrid, formatGridHits } from "./hwpx-grid.ts";
 import { isLegalHoliday } from "./legal-holiday-names.ts";
 import {
@@ -29,6 +29,17 @@ const SHEET_EXTENSIONS = new Set(["xlsx", "xls"]); // G4: sheetjs로 시트→�
 // 260803 김예슬님 실학교 원고 3종 검증 반영 — 규칙 추가분(주간·괄호 보존·격자형·연도 매핑·
 // 다건 분리 강화)은 등서초(달력 격자 xlsx)·세현고(주간 격자 xlsx)의 실측 재현 결과에 근거.
 // 특히 세현고에서 교직원연수 전멸·12/29~30 통째 누락·기말고사 기간 축소가 재현됨. 완화 금지.
+const SOURCE_TRANSCRIPTION_PROMPT = [
+  "학사일정 표를 원문 그대로 전사하고 save_schedules로 제출하세요.",
+  "학사연도 2027-03-01 ~ 2028-02-29 틀로 추출합니다. 파일에 적힌 연도와 무관하게 3~12월은 2027년, 1~2월은 2028년으로 매핑하세요(월·일은 문서 그대로).",
+  "페이지의 안내문과 예시는 제외하세요. 일정 표의 월 열과 바로 옆 일정 열이 한 쌍입니다. 좌우에 표가 나란히 있으면 각 쌍을 따로 읽으세요.",
+  "한 줄에 날짜 하나와 일정명이 있으면 한 건입니다. 쉼표, 슬래시, 괄호, 띄어쓰기, 학년 번호 및 오타를 그대로 복사하세요. 맞춤법 교정, 이름 추측, 일정 분리 또는 병합을 하지 마세요.",
+  "날짜가 따로 적힌 줄은 이름이나 날짜가 같아도 별개로 읽으세요. 날짜 범위는 해당 줄에만 적용하고, 종료일이 명시되지 않으면 endDate를 생략하고 endExplicit을 false로 제출하세요.",
+  "월 표기가 있는 셀의 경계를 확인하고 빈 월에는 일정을 넣지 마세요. 일정명이나 날짜를 판독할 수 없으면 임의로 채우지 마세요.",
+  "법정 공휴일을 포함해 원문에서 읽힌 모든 일정을 제출하세요. documentDateCount는 판독 여부와 무관하게 표에 날짜가 적힌 줄 수입니다.",
+  "category는 일정명과 별도로 분류하세요. date와 endDate는 YYYY-MM-DD입니다.",
+].join("\n");
+
 const SYSTEM_PROMPT = [
   "당신은 한국 학교의 학사일정 파일에서 일정을 추출하는 도구입니다.",
   "학사연도 2027-03-01 ~ 2028-02-29 틀로 추출합니다. 파일에 적힌 연도와 무관하게 3~12월은 2027년, 1~2월은 2028년으로 매핑하세요(월·일은 문서 그대로).",
@@ -66,7 +77,7 @@ const SYSTEM_PROMPT = [
 ].join("\n");
 
 // C2 — 일정 수정(revise) 모드: 현재 일정 전체 + 수정 요청 → 수정 반영된 "전체" 목록 재제출
-function extractionSystemPrompt(academicYear: number, startMonth: number): string {
+function extractionSystemPrompt(academicYear: number, startMonth: number, prompt = SYSTEM_PROMPT): string {
   const year = Number.isInteger(academicYear) && academicYear >= 2000 && academicYear <= 2200 ? academicYear : 2027;
   const month = Number.isInteger(startMonth) && startMonth >= 1 && startMonth <= 12 ? startMonth : 3;
   const endYear = month === 1 ? year : year + 1;
@@ -77,7 +88,7 @@ function extractionSystemPrompt(academicYear: number, startMonth: number): strin
   const mapping = month === 1
     ? `1~12월은 ${year}년`
     : `${month}~12월은 ${year}년, 1~${endMonth}월은 ${endYear}년`;
-  return SYSTEM_PROMPT.replace(
+  return prompt.replace(
     "학사연도 2027-03-01 ~ 2028-02-29 틀로 추출합니다. 파일에 적힌 연도와 무관하게 3~12월은 2027년, 1~2월은 2028년으로 매핑하세요(월·일은 문서 그대로).",
     `학사연도 ${startDate} ~ ${endDate} 틀로 추출합니다. 파일에 적힌 연도와 무관하게 ${mapping}으로 매핑하세요(월·일은 문서 그대로).`,
   );
@@ -178,7 +189,7 @@ async function extractDocxText(file: File): Promise<string> {
 }
 
 /** 한글(hwpx=OWPML zip) → Contents/section*.xml 본문 텍스트 추출 (jszip) */
-async function extractHwpxText(file: File): Promise<string> {
+async function extractHwpxText(file: File): Promise<{text: string; sourceLines: string[]}> {
   const buf = Buffer.from(await file.arrayBuffer());
   const zip = zipXml(buf);
   const sections = [...zip.keys()].filter(name => /^Contents\/section\d+\.xml$/.test(name))
@@ -193,17 +204,17 @@ async function extractHwpxText(file: File): Promise<string> {
     const xml = zip.get(name)!;
     const grid = parseHwpxCalendarGrid(xml);
     if (grid.ok) gridBlocks.push(formatGridHits(grid.hits));
-    // 본문 텍스트는 <hp:t> 런에 담김 — 모든 태그를 공백으로 치환 후 텍스트만 남기고 엔티티 복원
-    const text = decodeXmlEntities(xml.replace(/<[^>]+>/g, " "))
-      .replace(/[ \t ]+/g, " ")
-      .replace(/ *\n */g, "\n")
-      .trim();
-    if (text) parts.push(text);
+    for (const [, paragraph] of xml.matchAll(/<hp:p\b[^>]*>([\s\S]*?)<\/hp:p>/g)) {
+      const text = [...paragraph.matchAll(/<hp:t\b[^>]*>([\s\S]*?)<\/hp:t>/g)]
+        .map(([, run]) => decodeXmlEntities(run.replace(/<hp:lineBreak\s*\/>/g, "\n").replace(/<[^>]+>/g, "")))
+        .join("");
+      parts.push(...text.split("\n").filter(line => line.trim()));
+    }
   }
   if (gridBlocks.length > 0) {
     // 날짜가 확정된 목록을 원문보다 **앞**에 두고, 이 날짜를 그대로 쓰라고 명시한다.
     // 일정명·분류 판단은 그대로 AI 몫이다("읽는 일은 AI, 세는 일은 코드" — 2026-08-05 방실장님 확정).
-    return [
+    return {sourceLines: parts, text: [
       "[표에서 날짜가 확정된 학사일정 목록]",
       "아래 목록의 날짜(M/D)는 원본 표의 칸 위치로 확정한 값입니다.",
       "이 목록에 있는 항목은 날짜를 그대로 사용하고, 각 줄의 내용에서 일정명과 분류만 판단하세요.",
@@ -212,9 +223,9 @@ async function extractHwpxText(file: File): Promise<string> {
       "",
       "[원본 문서 전체 텍스트 — 위 목록에 없는 일정을 찾을 때 참고]",
       parts.join("\n"),
-    ].join("\n");
+    ].join("\n")};
   }
-  return parts.join("\n");
+  return {sourceLines: parts, text: parts.join("\n")};
 }
 
 /* ── 공용: 모델 호출(에러 매핑) + tool use 파싱 ─────────────── */
@@ -447,6 +458,7 @@ export async function analyzeWithModel(file: File, requestedAcademicYear: number
   const ext = fileExtension(file.name);
   // 파일 → 콘텐츠 블록: PDF=document(base64), 나머지(csv·txt·xlsx·docx·hwpx)=추출 텍스트
   let fileBlock: Anthropic.ContentBlockParam;
+  let hwpxSourceLines: string[] = [];
   let extractedText: string | null = null; // 안전장치 대조용 (텍스트 형식만)
   if (ext === "pdf") {
     const base64 = Buffer.from(await file.arrayBuffer()).toString("base64");
@@ -460,7 +472,7 @@ export async function analyzeWithModel(file: File, requestedAcademicYear: number
       if (TEXT_EXTENSIONS.has(ext)) text = await file.text();
       else if (SHEET_EXTENSIONS.has(ext)) text = await extractSheetText(file);
       else if (ext === "docx") text = await extractDocxText(file);
-      else if (ext === "hwpx") text = await extractHwpxText(file);
+      else if (ext === "hwpx") ({text, sourceLines: hwpxSourceLines} = await extractHwpxText(file));
       else {
         return errorResponse(
           400,
@@ -490,7 +502,10 @@ export async function analyzeWithModel(file: File, requestedAcademicYear: number
     fileBlock = { type: "text", text: `<학사일정 파일 내용>\n${text}` };
   }
 
-  const extractionPrompt = extractionSystemPrompt(requestedAcademicYear, requestedStartMonth);
+  const preserveSource = ext === "pdf" || ext === "hwpx";
+  const extractionPrompt = extractionSystemPrompt(
+    requestedAcademicYear, requestedStartMonth, preserveSource ? SOURCE_TRANSCRIPTION_PROMPT : SYSTEM_PROMPT,
+  );
 
   const extractContent: Anthropic.ContentBlockParam[] = [
     fileBlock,
@@ -517,12 +532,39 @@ export async function analyzeWithModel(file: File, requestedAcademicYear: number
   const primary = result.ok ? parseToolSchedules(result.response, "schedule-extract") : null;
   const schedules2 = result2.ok ? parseToolSchedules(result2.response, "schedule-extract-2nd") : null;
   let schedules = primary ?? schedules2;
-  if (primary && schedules2) supplement(primary, schedules2);
+  const reviewWarnings: string[] = [];
+  if (ext === "pdf") {
+    reviewWarnings.push("PDF에서 판독한 일정입니다. 원본과 일정명, 날짜, 누락 여부를 비교해 주세요.");
+    if (primary && schedules2) {
+      const primaryKeys = new Set(primary.map(sourceRowKey));
+      const secondKeys = new Set(schedules2.map(sourceRowKey));
+      const disputed = new Map([...primary, ...schedules2].map(row => [sourceRowKey(row), row]));
+      for (const [key, row] of disputed) {
+        if (primaryKeys.has(key) && secondKeys.has(key)) continue;
+        reviewWarnings.push(`PDF 판독 불일치로 보류: ${row.date}${row.endDate ? " ~ " + row.endDate : ""} ${row.label}`);
+      }
+      schedules = primary.filter(row => secondKeys.has(sourceRowKey(row)));
+    } else {
+      return errorResponse(502, "extract_failed", "PDF의 일정명과 날짜를 두 번 대조하지 못했어요.");
+    }
+  } else if (primary && schedules2) {
+    supplement(primary, schedules2, preserveSource ? sourceRowKey : undefined);
+  }
+  if (ext === "hwpx" && schedules) {
+    schedules = schedules.filter(row => {
+      if (hwpxSourceLines.some(line => {
+        const original = line.trim();
+        return original === row.label || parseMonthlyScheduleLine(original)?.[5] === row.label;
+      })) return true;
+      reviewWarnings.push(`HWPX 원문에서 일정명을 확인하지 못해 보류: ${row.date} ${row.label}`);
+      return false;
+    });
+  }
   //   ①서버 실측(estimateDateCount) — 텍스트 형식(hwpx·xlsx·docx·csv)에서만 가능
   //   ②모델 자가 보고(documentDateCount) — **PDF 포함 전 형식**. 260801 방실장님 지시
   //     "어떤 사유로도 오류가 없어야 한다"에 따라 PDF 사각지대를 덮기 위해 추가.
   // 발동 문턱 75%: 시작/종료 병합으로 줄어드는 정상 폭(~11%)보다 훨씬 낮을 때만 재분석한다.
-  if (schedules) {
+  if (schedules && !preserveSource) {
     const serverSide = extractedText ? estimateDateCount(extractedText) : 0;
     const modelSide = reportedDateCount(response);
     const baseline = Math.max(serverSide, modelSide);
@@ -567,11 +609,16 @@ export async function analyzeWithModel(file: File, requestedAcademicYear: number
   // 병합을 먼저 해야 조각난 '주간' 일정도 온전한 기간으로 모인 뒤 아래 금요일 규칙을 받는다.
   // 260806 QA-606 — 법정 공휴일 제외는 여기서 **코드가** 판정한다(AI는 빼지 않고 전부 가져온다).
   //   병합·주간 확장보다 먼저 걸러야 공휴일이 다른 일정과 엮여 기간으로 늘어나지 않는다.
+  if (preserveSource && reportedDateCount(response) > schedules.length) {
+    reviewWarnings.push("원본 일정 줄 수와 판독 결과가 달라요. 가져오지 못한 일정이 있는지 확인해 주세요.");
+  }
   const holidayDropped = schedules.filter((s) => isLegalHoliday(s.label)).length;
   schedules = schedules.filter((s) => !isLegalHoliday(s.label));
 
-  schedules = mergeAdjacentSameLabel(schedules);
-  applyWeekRangeRule(schedules);
+  if (!preserveSource) {
+    schedules = mergeAdjacentSameLabel(schedules);
+    applyWeekRangeRule(schedules);
+  }
 
   // 서버 로그: 토큰 사용량 (비용 추적용 — 키/본문 미출력)
   if (holidayDropped > 0) {
@@ -592,12 +639,20 @@ export async function analyzeWithModel(file: File, requestedAcademicYear: number
     ...summarizeSchedules(cleanSchedules),
     schedules: cleanSchedules,
     holidayExcluded: holidayDropped,
+    ...(preserveSource ? {reviewWarnings} : {}),
   };
   return Response.json(body);
 }
 
-function supplement(current: FlaggedSchedule[], extra: FlaggedSchedule[]) {
-  const key = (entry: FlaggedSchedule) => JSON.stringify([entry.date, entry.label.replace(/\s+/g, "")]);
+function sourceRowKey(row: FlaggedSchedule) {
+  return JSON.stringify([row.date, row.endDate || row.date, row.label]);
+}
+
+function supplement(
+  current: FlaggedSchedule[],
+  extra: FlaggedSchedule[],
+  key = (entry: FlaggedSchedule) => JSON.stringify([entry.date, entry.label.replace(/\s+/g, "")]),
+) {
   const seen = new Set(current.map(key));
   for (const entry of extra) {
     if (seen.has(key(entry))) continue;

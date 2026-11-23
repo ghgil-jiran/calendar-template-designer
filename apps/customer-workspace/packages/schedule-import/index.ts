@@ -6,18 +6,18 @@ import manifest from './package.json' with {type: 'json'};
 export const SCHEDULE_IMPORT_VERSION = manifest.version;
 import {extractMonthlyHwpx,extractSchedule,parseScheduleText} from './schedule-extraction.ts';
 export function normalizeSharedSchedules(data:unknown,year:number,startMonth:number):ScheduleExtraction{
- const source=data as {schedules?:unknown;holidayExcluded?:unknown};if(!Array.isArray(source?.schedules))throw Error('공통 일정 분석 결과를 확인하지 못했습니다.');
- const warnings:string[]=[],events:ScheduleEvent[]=[],seen=new Set<string>();let invalid=0;
+ const source=data as {schedules?:unknown;holidayExcluded?:unknown;reviewWarnings?:unknown};if(!Array.isArray(source?.schedules))throw Error('공통 일정 분석 결과를 확인하지 못했습니다.');
+ const warnings:string[]=Array.isArray(source.reviewWarnings)?source.reviewWarnings.filter((warning):warning is string=>typeof warning==='string'):[],events:ScheduleEvent[]=[],seen=new Set<string>();let invalid=0;
  // The existing service maps to 2027/2028. Rebase month/day to the selected academic period.
  const rebase=(value:unknown)=>{if(typeof value!=='string'||!isScheduleDate(value))return '';const month=Number(value.slice(5,7));return `${year+(month<startMonth?1:0)}-${value.slice(5)}`;};
  if(source.schedules.length>2000)throw Error('일정은 한 번에 2,000건까지 읽을 수 있습니다.');
  for(const [i,raw] of source.schedules.entries()){
   const row=raw as {date?:unknown;endDate?:unknown;label?:unknown};const start=rebase(row?.date),end=row?.endDate?rebase(row.endDate):start,title=typeof row?.label==='string'?row.label.trim():'';
   if(!isScheduleDate(start)||!isScheduleDate(end)||end<start||!title||title.length>200){invalid++;warnings.push(`${i+1}번 분석 항목: 날짜 또는 일정명을 확인하지 못해 추가하지 않았어요. ${title.slice(0,80)}`);continue;}
-  const key=JSON.stringify([start,end,title.replace(/\s+/g,' ')]);if(seen.has(key))continue;seen.add(key);events.push({id:`shared-${i+1}`,startDate:start,endDate:end,title});
+  const key=JSON.stringify([start,end,title]);if(seen.has(key))continue;seen.add(key);events.push({id:`shared-${i+1}`,startDate:start,endDate:end,title});
  }
  if(!events.length)throw Error('파일에서 유효한 일정을 찾지 못했어요. 날짜가 포함된 원본을 확인해 주세요.');
- warnings.push('여러 행의 같은 일정이 기간으로 합쳐지거나 ‘주간’의 종료일이 추정될 수 있어요. 특히 방학·시험·상담주간의 시작일과 종료일을 원본과 비교해 주세요.');
+ if(!Array.isArray(source.reviewWarnings))warnings.push('여러 행의 같은 일정이 기간으로 합쳐지거나 ‘주간’의 종료일이 추정될 수 있어요. 특히 방학·시험·상담주간의 시작일과 종료일을 원본과 비교해 주세요.');
  warnings.unshift(`원본의 월·일을 ${year}년 ${startMonth}월부터 시작하는 학사연도에 맞췄어요. 원본과 날짜·기간·일정명·누락 여부를 최종 확인해 주세요.`);
  if(Number(source.holidayExcluded)>0)warnings.push(`공통 분석에서 법정 공휴일 ${Number(source.holidayExcluded)}건을 제외했어요. ‘달력에 표시할 정보’의 공휴일 설정과 원본을 함께 확인해 주세요.`);
  if(invalid)warnings.push(`날짜가 잘못되었거나 달력 연도에 없는 날짜 등 ${invalid}건을 추가하지 않았어요. 필요한 일정은 직접 입력해 주세요.`);

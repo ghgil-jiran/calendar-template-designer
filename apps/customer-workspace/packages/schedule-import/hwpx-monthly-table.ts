@@ -4,7 +4,8 @@ function decodeEntities(s: string): string {
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&apos;/g, "'")
-    .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(Number(d)))
+    .replace(/&#x([\da-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
     .replace(/&amp;/g, "&");
 }
 
@@ -31,8 +32,8 @@ export function extractTables(sectionXml: string): string[][][] {
       // 셀 안의 문단(<hp:p>)마다 줄바꿈으로 잇는다 — 한 칸에 여러 일정이 들어가는 양식 대응
       const paras = cell.split("<hp:p ").slice(1);
       const lines = (paras.length > 0 ? paras : [cell]).map((p) =>
-        [...p.matchAll(/<hp:t>([\s\S]*?)<\/hp:t>/g)]
-          .map((m) => decodeEntities(m[1]!))
+        [...p.matchAll(/<hp:t\b[^>]*>([\s\S]*?)<\/hp:t>/g)]
+          .map((m) => decodeEntities(m[1]!.replace(/<hp:lineBreak\s*\/>/g, "\n").replace(/<[^>]+>/g, "")))
           .join("")
           .trim(),
       );

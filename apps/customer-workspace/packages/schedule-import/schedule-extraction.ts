@@ -20,6 +20,9 @@ export function zipXml(buffer:Buffer):Map<string,string>{
 const decode=(text:string)=>text.replace(/<[^>]*>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
 export function isScheduleDate(value:string){return /^\d{4}-\d{2}-\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;}
 function iso(y:number,m:number,d:number){return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+export function parseMonthlyScheduleLine(line:string){
+ return /^(?:(\d{1,2})[/.])?(\d{1,2})(?:일)?(?:\s*[-~～–]\s*(?:(\d{1,2})[/.])?(\d{1,2})(?:일)?)?(?:\s*[:：]\s*|\s+)(\S.*)$/.exec(line);
+}
 export async function extractMonthlyHwpx(file:File,year:number,startMonth:number):Promise<ScheduleExtraction|null>{
  const xml=zipXml(Buffer.from(await file.arrayBuffer()));
  const events:ScheduleEvent[]=[];
@@ -29,7 +32,7 @@ export async function extractMonthlyHwpx(file:File,year:number,startMonth:number
   if(!entries?.length)return null;
   for(const {month,lines} of entries){
    for(const line of lines){
-    const match=/^(?:(\d{1,2})[/.])?(\d{1,2})(?:일)?(?:\s*[-~～–]\s*(?:(\d{1,2})[/.])?(\d{1,2})(?:일)?)?(?:\s*[:：]\s*|\s+)(\S.*)$/.exec(line);
+    const match=parseMonthlyScheduleLine(line);
     if(!match)return null;
     const [,explicitMonth,day,endMonth,endDay,title]=match;
     const m=Number(explicitMonth||month),em=Number(endMonth||m);
