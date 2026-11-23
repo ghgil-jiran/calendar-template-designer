@@ -134,6 +134,24 @@
 .number-annual strong{grid-column:1/-1;font:700 7cqw/1 Georgia}
 .number-annual section>b{font-size:4cqw}.number-annual .mini{font-size:1.6cqw}
 </style>
+<style>
+.cover-year-design{display:grid;grid-template-rows:minmax(0,1fr) auto;align-items:center;text-align:center;min-height:0;overflow:hidden}
+.cover-year-glyphs{display:flex;justify-content:center;align-items:center;font:900 32cqw/.88 Arial Black,system-ui,sans-serif;letter-spacing:-.08em}
+.cover-year-glyphs span{display:block}
+.year-layout-split .cover-year-glyphs{flex-direction:column;font-size:34cqw;line-height:.79}
+.year-layout-tiles .cover-year-glyphs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1cqw;letter-spacing:0}
+.year-layout-tiles .cover-year-glyphs span{border:1px solid color-mix(in srgb,currentColor 25%,transparent);padding:.08em 0;font-size:29cqw}
+.cover-year-crop{padding-inline:0!important}
+.year-layout-crop .cover-year-glyphs{font-size:45cqw;letter-spacing:-.105em}
+.year-layout-label{align-self:center;justify-self:center;border:1px solid currentColor;border-radius:.25rem;padding:3cqw;grid-template-rows:auto auto;gap:1cqw}
+.year-layout-label .cover-year-glyphs{font-size:14cqw}
+.cover-year-caption{display:grid;gap:.5cqw;margin-block:1cqw;text-align:center;overflow-wrap:anywhere;font:600 2.2cqw/1.15 system-ui,sans-serif}
+.cover-year-caption span{letter-spacing:.22em}.cover-year-caption strong{font-size:3.5cqw}
+.year-fill-outline .cover-year-glyphs span,.year-fill-mixed .cover-year-glyphs span:first-child{color:transparent;-webkit-text-stroke:.4cqw currentColor;-webkit-text-stroke-color:var(--year-ink)}
+.year-fill-photo .cover-year-glyphs span{color:var(--accent)}
+.year-fill-photo .has-year-image{background-repeat:no-repeat;background-clip:text;-webkit-background-clip:text}
+.year-fill-photo .has-year-image,.year-fill-photo .has-year-image span{color:transparent}
+</style>
 </head>
 <body class="bg-studio text-gray-200 font-sans min-h-screen flex flex-col antialiased selection:bg-amber-800 selection:text-white">
 
@@ -676,6 +694,10 @@
         };
         const coverBackgrounds = { plain:'단색', band:'색 띠·색면', geometry:'기하 도형', pattern:'반복 패턴', theme:'테마 장식', texture:'질감·빛' };
         const coverTitleStyles = { editorial:'제목 중심', year:'연도 강조', stacked:'제목·연도 두 줄' };
+        const yearLayouts = {wide:'초대형 연도', split:'두 줄 연도', tiles:'숫자 네 칸', crop:'가장자리에서 잘리는 연도', label:'중앙 라벨'};
+        const yearFills = {solid:'굵은 채움', outline:'윤곽선', mixed:'채움과 윤곽 혼합', photo:'숫자 안에 사진'};
+        const yearPresets = [['wide','solid'],['split','mixed'],['tiles','solid'],['crop','outline'],
+            ['label','solid'],['wide','photo'],['tiles','photo']];
         function recommendCover(values, variation = 0) {
             const brief = [values.title, values.description, values.direction].filter(Boolean).join(' ');
             const child = /어린이|성장|유아|놀이|키즈|발랄|경쾌/.test(brief);
@@ -723,7 +745,9 @@
                 : /두\s*줄|분리/.test(text) ? 'stacked' : /제목\s*(강조|중심|크게)/.test(text) ? 'editorial' : null;
             const titleStyle = explicitTitleStyle(direction) || explicitTitleStyle(titleBrief) ||
                 pick(type === 'type' ? ['year','stacked','editorial'] : type === 'split' ? ['stacked','editorial','year'] : ['editorial','stacked','year']);
+            const [yearLayout,yearFill] = yearPresets[variation % yearPresets.length];
             return {type,layout,photos,background,paper,ink,accent,serif,titleStyle,
+                ...(type === 'type' ? {yearLayout,yearFill,yearPhotoMode:yearLayout === 'tiles' ? 'digits' : 'single'} : {}),
                 reason: type === 'multi' ? '여러 장면을 한 면에 모아 주제의 흐름을 보여줍니다.'
                     : type === 'full' ? '대표 장면을 표지 전체로 펼쳐 첫인상을 만듭니다.'
                     : type === 'illustration' ? '사진 없이 도형과 장식으로 주제를 표현합니다.'
@@ -751,6 +775,45 @@
             ['annual','scheduler','1','2',4], ['scheduler','annual','2','3',3],
             ['annual','scheduler','4','2',3]
         ];
+
+        function yearPhoto(cover, index) {
+            const photo = cover.yearPhotos?.[index];
+            const clamp = (value,min,max,fallback) => Number.isFinite(value) ? Math.max(min,Math.min(max,value)) : fallback;
+            return {
+                src:illustrationSource(photo?.src),
+                x:clamp(photo?.x,0,100,50), y:clamp(photo?.y,0,100,50), zoom:clamp(photo?.zoom,100,400,100)
+            };
+        }
+
+        function renderYearTypography(cover, design) {
+            const layout = Object.hasOwn(yearLayouts,design.yearLayout) ? design.yearLayout : 'label';
+            const fill = Object.hasOwn(yearFills,design.yearFill) ? design.yearFill : 'solid';
+            const year = '2027';
+            const title = String(cover.title ?? '').trim();
+            const includesYear = title.includes(year);
+            const caption = layout === 'label' ? title : title.replace(/\b2027\b/g,'').trim();
+            const parts = layout === 'tiles' ? [...year] : [year.slice(0,2),year.slice(2)];
+            const digits = fill === 'photo' && layout === 'tiles' && design.yearPhotoMode === 'digits';
+            const imageStyle = index => {
+                const {src,x,y,zoom} = yearPhoto(cover,index);
+                return src ? `background-image:url(${escapeHtml(src)});background-position:${x}% ${y}%;background-size:${zoom === 100 ? 'cover' : zoom+'% auto'}` : '';
+            };
+            const sharedImage = fill === 'photo' && !digits ? imageStyle(0) : '';
+            const yearMarkup = layout === 'label' && includesYear && fill === 'solid' ? '' : `
+                <div class="cover-year-glyphs${sharedImage ? ' has-year-image' : ''}" aria-label="${year}" style="${sharedImage}">
+                    ${parts.map((part,index) => {
+                        const digitImage = digits ? imageStyle(index+1) : '';
+                        return `<span aria-hidden="true" class="${digitImage ? 'has-year-image' : ''}" style="${digitImage}">${part}</span>`;
+                    }).join('')}
+                </div>`;
+            const cleanCaption = yearMarkup && includesYear ? title.replace(/\b2027\b/g,'').trim() : caption;
+            return `<div class="cover-year-design year-layout-${layout} year-fill-${fill}">
+                ${yearMarkup}
+                <div class="cover-year-caption"><span>CALENDAR</span>
+                ${cleanCaption ? `<strong>${escapeHtml(cleanCaption)}</strong>` : ''}
+                ${cover.cover_subtitle ? `<small>${escapeHtml(cover.cover_subtitle)}</small>` : ''}</div>
+            </div>`;
+        }
 
         function renderRecommendedCover(item, theme) {
             if (!theme || !Object.hasOwn(coverLayouts, theme.layout) || !Object.hasOwn(coverBackgrounds, theme.background) ||
@@ -781,7 +844,9 @@
                 case 'row': body = title + grid(theme.photos,frames); break;
                 case 'grid': body = title + grid(2,frames); break;
                 case 'illustration': body = title + (illustrationSource(item.illustration_image) ? frame(1) : '<div aria-hidden="true" class="grid grid-cols-3 items-center gap-2 opacity-80"><span class="aspect-square rounded-full" style="background:var(--accent)"></span><span class="aspect-square rotate-12 rounded-lg bg-current"></span><span class="aspect-square rounded-t-full border-4 border-current"></span></div>'); break;
-                case 'type': body = '<div class="self-center justify-self-center rounded border border-current p-4 text-center">' + title + '</div>'; break;
+                case 'type':
+                    if (theme.yearLayout) { body = renderYearTypography(item,theme); break; }
+                    body = '<div class="self-center justify-self-center rounded border border-current p-4 text-center">' + title + '</div>'; break;
                 case 'center': body = title + '<div class="mx-auto grid w-2/3">' + frames[0] + '</div>'; break;
                 case 'decorated': body = title + '<div class="mx-auto grid w-3/4 border-4 border-white/70">' + frames[0] + '</div>'; break;
                 default: body = title + frames[0];
@@ -793,8 +858,8 @@
                 theme:'radial-gradient(ellipse at 12% 22%,var(--accent) 0 8%,transparent 9%),radial-gradient(ellipse at 88% 80%,var(--accent) 0 9%,transparent 10%)',
                 texture:'linear-gradient(125deg,transparent 28%,#ffffff77 28% 42%,transparent 42% 66%,#ffffff66 66% 79%,transparent 79%)'
             };
-            return '<div class="relative grid h-full w-full min-h-0 gap-2 overflow-hidden p-4 ' + (theme.serif ? 'font-serif' : 'font-sans') +
-                '" style="--accent:' + theme.accent + ';container-type:inline-size;background-color:' + theme.paper + ';color:' + theme.ink + ';background-image:' +
+            return '<div class="relative grid h-full w-full min-h-0 gap-2 overflow-hidden p-4 ' + (theme.serif ? 'font-serif' : 'font-sans') + (theme.type === 'type' && theme.yearLayout === 'crop' ? ' cover-year-crop' : '') +
+                '" style="--year-ink:' + theme.ink + ';--accent:' + theme.accent + ';container-type:inline-size;background-color:' + theme.paper + ';color:' + theme.ink + ';background-image:' +
                 backgrounds[theme.background] + ';background-size:' + (theme.background==='pattern' ? '12px 12px' : 'cover') +
                 ';grid-template-rows:' + (['full','splitSide','graphicSide','surround','type'].includes(theme.layout) ? 'minmax(0,1fr)' : 'auto minmax(0,1fr)') + '">' + body + '</div>';
         }
@@ -1038,11 +1103,65 @@
             link.click();
             setTimeout(() => URL.revokeObjectURL(url), 1000);
         };
+        function coverYearControls(cover) {
+            const design = cover.cover_design;
+            if (design?.type !== 'type') return '';
+            const select = (field,label,options,value) => `<label class="grid gap-1">${label}<select data-year-option="${field}" class="rounded border border-zinc-600 bg-zinc-900 p-2">
+                ${Object.entries(options).map(([key,name]) => `<option value="${key}" ${key===value?'selected':''}>${name}</option>`).join('')}
+            </select></label>`;
+            const photo = design.yearFill === 'photo';
+            const tiles = design.yearLayout === 'tiles';
+            const digits = tiles && design.yearPhotoMode === 'digits';
+            return `<div class="mt-3 grid gap-2 rounded border border-zinc-600 p-3">
+                ${select('yearLayout','연도 배치',yearLayouts,design.yearLayout || 'label')}
+                ${select('yearFill','숫자 표현',yearFills,design.yearFill || 'solid')}
+                ${photo && tiles ? select('yearPhotoMode','사진 배치',{single:'연도 전체에 사진 한 장',digits:'숫자마다 사진 한 장'},digits?'digits':'single') : ''}
+                ${photo ? (digits ? [1,2,3,4] : [0]).map(index => {
+                    const image = yearPhoto(cover,index);
+                    return `<fieldset class="grid gap-1 border-t border-zinc-600 pt-2"><legend>${index ? index+'번째 숫자 사진' : '연도 사진'}</legend>
+                        <input type="file" data-year-upload="${index}" aria-label="${index ? index+'번째 숫자' : '연도'} 사진" accept="image/png,image/jpeg,image/webp">
+                        ${image.src ? [['x','가로 위치',0,100],['y','세로 위치',0,100],['zoom','확대',100,400]].map(([key,label,min,max]) =>
+                            `<label class="grid grid-cols-[5rem_1fr] items-center">${label}<input type="range" data-year-index="${index}" data-year-adjust="${key}" min="${min}" max="${max}" value="${image[key]}"></label>`).join('') : ''}
+                    </fieldset>`;
+                }).join('') : ''}
+            </div>`;
+        }
+
+        async function updateYearCover(event, cover) {
+            const field = event.target;
+            if (!field.matches('[data-year-option],[data-year-upload],[data-year-adjust]')) return false;
+            cover.cover_design = {yearLayout:'label',yearFill:'solid',...cover.cover_design};
+            if (field.dataset.yearOption) {
+                cover.cover_design[field.dataset.yearOption] = field.value;
+                return true;
+            }
+            const index = Number(field.dataset.yearIndex ?? field.dataset.yearUpload);
+            const previous = yearPhoto(cover,index);
+            if (field.dataset.yearAdjust) previous[field.dataset.yearAdjust] = Number(field.value);
+            else if (field.files[0]) previous.src = await prepareIllustration(field.files[0], 55000);
+            else return false;
+            cover.yearPhotos = [...(Array.isArray(cover.yearPhotos) ? cover.yearPhotos : [])];
+            cover.yearPhotos[index] = previous;
+            return true;
+        }
+
+        document.getElementById('draftReviewSummary').addEventListener('change', async event => {
+            if (!generatedDraft) return;
+            const draft = generatedDraft;
+            try {
+                if (await updateYearCover(event,draft.cover) && generatedDraft === draft) {
+                    draftOutput.value = JSON.stringify(draft,null,2);
+                    showDraftReview(draft);
+                }
+            } catch (error) { showToast(error.message); }
+        });
+
         function renderCoverReview(cover) {
             const design = cover.cover_design;
             return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderRecommendedCover(cover,design)}</div>
-                <p class="mt-2 font-semibold">${coverTypes[design.type]} · ${coverLayouts[design.layout][0]} · 사진 ${design.photos}컷</p>
+                <p class="mt-2 font-semibold">${coverTypes[design.type]} · ${coverLayouts[design.layout][0]} · ${design.type === 'type' && design.yearFill === 'photo' ? (design.yearLayout === 'tiles' && design.yearPhotoMode === 'digits' ? '숫자 프레임 4개' : '연도 사진 프레임 1개') : '사진 '+design.photos+'컷'}</p>
                 <p>${coverBackgrounds[design.background]} · ${coverTitleStyles[design.titleStyle] || coverTitleStyles.editorial} · ${design.serif ? '명조 계열' : '고딕 계열'} · ${design.reason}</p>
+                ${coverYearControls(cover)}
                 <p id="coverChange" class="mt-1 text-gray-300" role="status"></p>
                 <label class="mt-2 grid gap-1">다른 추천에 반영할 방향<input id="coverDirection" maxlength="120" class="rounded border border-zinc-600 bg-zinc-900 p-2" placeholder="예: 더 따뜻하게, 명조 서체"></label>
                 <button type="button" data-next-cover class="mt-2 rounded border border-zinc-600 px-3 py-1">다른 추천 받기</button>`;
@@ -1081,6 +1200,8 @@
             showDraftReview(generatedDraft);
             const changed = [
                 previous.layout !== design.layout && coverLayouts[design.layout][0],
+                previous.yearLayout !== design.yearLayout && yearLayouts[design.yearLayout],
+                previous.yearFill !== design.yearFill && yearFills[design.yearFill],
                 previous.background !== design.background && coverBackgrounds[design.background],
                 previous.paper !== design.paper && '새 색상 조합',
                 previous.titleStyle !== design.titleStyle && coverTitleStyles[design.titleStyle],
@@ -1955,6 +2076,7 @@
                         ${designCopyField('back_cover','title','뒷표지 문구',calendarDataset.back_cover?.title ?? calendarDataset.title,52)}
                         <button id="saveBackCoverCopy" type="button" class="rounded bg-amber-400 px-3 py-2 text-sm font-semibold text-zinc-950">변경 저장</button>
                     ` : currentSetIndex >= builtInCount ? `
+                        ${item.month === 0 ? coverYearControls(item) : ''}
                         <label class="block text-sm">샘플 일러스트
                             <input id="designerIllustration" class="block mt-1 w-full text-sm" type="file" accept="image/png,image/jpeg,image/webp">
                         </label>
@@ -1990,6 +2112,21 @@
                 openSpecModal(item.id);
                 requestDesignerStorage('save',updated);
             });
+            bodyEl.onchange = async event => {
+                if (item.month !== 0) return;
+                const current = calendarDataset;
+                const cover = {...item};
+                try {
+                    if (!await updateYearCover(event,cover) || calendarDataset !== current) return;
+                    const updated = {...current,cover};
+                    CALENDAR_SETS_REGISTRY[currentSetIndex] = calendarDataset = updated;
+                    renderGridCards();
+                    renderDeskCard();
+                    renderSpreadView(document.getElementById('spreadMonthSelect').value);
+                    openSpecModal(item.id);
+                    requestDesignerStorage('save',updated);
+                } catch (error) { showToast(error.message); }
+            };
             bodyEl.querySelector('#saveDesignerPageDetails')?.addEventListener('click', async event => {
                 const button = event.currentTarget;
                 const design = calendarDataset;
@@ -2063,7 +2200,7 @@
                 /^data:image\/(?:webp|jpeg|png);base64,[A-Za-z0-9+/]+={0,2}$/.test(value) ? value : '';
         }
 
-        async function prepareIllustration(file) {
+        async function prepareIllustration(file, maxLength = 200000) {
             if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
                 throw new Error('PNG, JPEG, WebP 이미지를 선택해 주세요.');
             }
@@ -2076,7 +2213,7 @@
                     canvas.height = Math.max(1, Math.round(bitmap.height * scale));
                     canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
                     const source = illustrationSource(canvas.toDataURL('image/webp', .82));
-                    if (source) return source;
+                    if (source && source.length <= maxLength) return source;
                 }
                 throw new Error('미리보기 이미지로 변환하지 못했습니다.');
             } finally {
