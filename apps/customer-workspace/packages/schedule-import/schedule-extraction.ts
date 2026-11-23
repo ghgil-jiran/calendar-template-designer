@@ -1,5 +1,6 @@
 import { read, utils } from 'xlsx';
 import {inflateRawSync} from 'node:zlib';
+import {parseHwpxCalendarGrid} from './hwpx-grid.ts';
 import {readMonthlyHwpx} from './hwpx-monthly-table.ts';
 import type {ScheduleEvent, ScheduleExtraction} from './contracts.ts';
 const LIMIT=3*1024*1024,EXPANDED=20*1024*1024;
@@ -39,7 +40,25 @@ export async function extractMonthlyHwpx(file:File,year:number,startMonth:number
  for(const [name,section] of xml){
   if(!/^Contents\/section\d+\.xml$/.test(name))continue;
   const entries=readMonthlyHwpx(section);
-  if(!entries?.length)return null;
+  if(!entries?.length){
+   const grid=parseHwpxCalendarGrid(section,true);
+   if(!grid.ok)return null;
+   for(const {month,day,text} of grid.hits){
+    const titles:string[]=[];
+    for(const line of text.split('\n').map(value=>value.trim()).filter(Boolean)){
+     if(titles.length&&/^[(（]\s*\d+(?:\s*[,，]\s*\d+)*\s*[)）]$/.test(line)){
+      titles[titles.length-1]+=' '+line;
+     }else titles.push(line);
+    }
+    for(const title of titles){
+     const event=readMonthlyScheduleEvent(`${day}: ${title}`,month,year,startMonth,'hwpx-'+(events.length+1));
+     if(!event)return null;
+     events.push(event);
+     if(events.length>2000)throw Error('일정은 한 번에 2,000건까지 읽을 수 있습니다.');
+    }
+   }
+   continue;
+  }
   for(const {month,lines} of entries){
    for(const line of lines){
     const event=readMonthlyScheduleEvent(line,month,year,startMonth,'hwpx-'+(events.length+1));

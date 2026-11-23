@@ -1,21 +1,7 @@
-// hwpx 달력 격자표 → 날짜 확정 (2026-08-05 신설)
-//
-// 왜 필요한가 (조은영 님 8/5 지적):
-//   한국전통문화고 원고는 표 구조가 `월 | 주차 | 월 화 수 목 금 | 수업일수(1)(2)(3)` 이다.
-//   날짜 앞뒤에 월·주차·수업일수 숫자가 붙어 있어, 표를 텍스트로 평탄화하면
-//     "5 10 11 12 13 14 기초학력진단검사 5"  ← 앞 5=주차, 뒤 5=수업일수
-//   처럼 되어 AI가 "몇 번째 숫자가 날짜인가"를 세다가 칸이 밀린다.
-//   실측: 3월 10건 중 6건 오류, 그중 5건이 금요일(수업일수 칸과 인접).
-//
-// 해결 방식 — "읽는 일은 AI, 세는 일은 코드"(2026-08-05 방실장님 확정):
-//   이 모듈은 **날짜만 확정**한다. "이 글자가 일정인지·무슨 분류인지"는 그대로 AI가 판단한다.
-//   hwpx 표는 셀마다 (rowAddr, colAddr) 좌표를 갖고 있어 격자를 정확히 복원할 수 있다.
-//
-// ⚠ 안전 원칙 (방실장님 조건: "다른 학사일정에 영향을 이상하게 하면 안 된다"):
-//   - 확신이 없으면 무조건 실패(ok:false)를 반환하고, 호출부는 **기존 경로 그대로** 간다.
-//   - xlsx·docx·pdf 경로는 이 모듈을 타지 않는다 — 세현고·등서초·지란초는 코드 변경 영향 없음.
+import {extractTables} from './hwpx-monthly-table.ts';
 
-/** 격자에서 확정한 날짜 1건. label 은 셀 원문 그대로이며 해석은 AI가 한다. */
+// HWPX 주간 달력의 셀 좌표를 사용해 월, 일, 일정 원문을 읽는다.
+// 월 열은 주차 및 수업일수 열과 분리되며 요일 열은 헤더에서 찾는다.
 export type GridDateHit = {
   /** 1~12 */
   month: number;
@@ -30,54 +16,6 @@ export type GridParseResult =
   | { ok: false; reason: string };
 
 const WEEKDAYS = ["월", "화", "수", "목", "금"] as const;
-
-/** XML 엔티티 복원 — route.ts 의 decodeXmlEntities 와 동일 규칙 */
-function decodeEntities(s: string): string {
-  return s
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(Number(d)))
-    .replace(/&amp;/g, "&");
-}
-
-/**
- * section XML 에서 표를 (row, col) 격자로 복원한다.
- * hwpx 는 셀마다 <hp:cellAddr colAddr rowAddr/> 를 갖고 있어 병합 셀이 있어도 좌표가 어긋나지 않는다.
- */
-export function extractTables(sectionXml: string): string[][][] {
-  const tables: string[][][] = [];
-  // <hp:tbl ...> ... </hp:tbl> 단위로 자른다 (표 중첩은 이 양식에 없으며, 있으면 뒤 검증에서 걸러진다)
-  const chunks = sectionXml.split("<hp:tbl ").slice(1);
-  for (const chunk of chunks) {
-    const end = chunk.indexOf("</hp:tbl>");
-    const body = end >= 0 ? chunk.slice(0, end) : chunk;
-    const grid: string[][] = [];
-    // 셀 = <hp:tc ...> ... </hp:tc>
-    for (const cellChunk of body.split("<hp:tc ").slice(1)) {
-      const cellEnd = cellChunk.indexOf("</hp:tc>");
-      const cell = cellEnd >= 0 ? cellChunk.slice(0, cellEnd) : cellChunk;
-      const addr = /<hp:cellAddr colAddr="(\d+)" rowAddr="(\d+)"\/>/.exec(cell);
-      if (!addr) continue;
-      const col = Number(addr[1]);
-      const row = Number(addr[2]);
-      // 셀 안의 문단(<hp:p>)마다 줄바꿈으로 잇는다 — 한 칸에 여러 일정이 들어가는 양식 대응
-      const paras = cell.split("<hp:p ").slice(1);
-      const lines = (paras.length > 0 ? paras : [cell]).map((p) =>
-        [...p.matchAll(/<hp:t>([\s\S]*?)<\/hp:t>/g)]
-          .map((m) => decodeEntities(m[1]!))
-          .join("")
-          .replace(/\s+/g, " ")
-          .trim(),
-      );
-      const text = lines.filter(Boolean).join("\n");
-      (grid[row] ??= [])[col] = text;
-    }
-    if (grid.length > 0) tables.push(grid.map((r) => Array.from(r, (c) => c ?? "")));
-  }
-  return tables;
-}
 
 /**
  * 헤더 행에서 월·화·수·목·금 각각의 열 번호를 찾는다.
@@ -117,12 +55,12 @@ function splitLeadingDay(cell: string): { day: number; rest: string } | null {
  * hwpx section XML 에서 달력 격자표를 찾아 날짜를 확정한다.
  *
  * ok:true 조건 (하나라도 미달이면 실패 → 호출부는 기존 AI 경로 유지):
- *   1. 월~금이 연속 열에 놓인 헤더 행이 있다
+ *   1. 월~금 헤더가 순서대로 있다
  *   2. 그 아래에서 요일 열 선두가 날짜인 데이터 행이 3행 이상
  *   3. 각 행 안에서 날짜가 증가한다 (표가 밀리거나 깨지지 않았다는 신호)
  *   4. 날짜를 하나라도 건진 행이 전체 데이터 행의 절반 이상
  */
-export function parseHwpxCalendarGrid(sectionXml: string): GridParseResult {
+export function parseHwpxCalendarGrid(sectionXml: string, strict = false): GridParseResult {
   const tables = extractTables(sectionXml);
   if (tables.length === 0) return { ok: false, reason: "표 없음" };
 
@@ -144,6 +82,7 @@ export function parseHwpxCalendarGrid(sectionXml: string): GridParseResult {
       }
     }
     if (headerRow < 0) continue;
+    if (strict && !/월\s*[/·]\s*주/.test(grid[headerRow]?.[0] ?? "")) continue;
 
     // 2) 월(月) 열은 0번으로 고정한다.
     //    ⚠ "요일 열 왼쪽에서 1~12 정수를 아무거나 찾는" 방식은 쓰면 안 된다 —
@@ -159,7 +98,10 @@ export function parseHwpxCalendarGrid(sectionXml: string): GridParseResult {
 
     for (let r = headerRow + 1; r < grid.length; r++) {
       const row = grid[r]!;
-      const mv = Number((row[monthCol] ?? "").trim());
+      const monthLabel = (row[monthCol] ?? "").trim();
+      if (/^(학년|수업일수)$/.test(monthLabel)) break;
+      const monthMatch = /^(?:\d{2,4}년?\s+)?(1[0-2]|0?[1-9])월?$/.exec(monthLabel);
+      const mv = Number(monthMatch?.[1]);
       if (Number.isInteger(mv) && mv >= 1 && mv <= 12) month = mv;
 
       const cells: { day: number; rest: string }[] = [];
@@ -169,14 +111,20 @@ export function parseHwpxCalendarGrid(sectionXml: string): GridParseResult {
         const cell = (row[c] ?? "").trim();
         if (!cell) continue;
         const split = splitLeadingDay(cell);
-        if (!split) continue;
+        if (!split) {
+          if (strict && month) return {ok:false,reason:"날짜를 읽을 수 없는 요일 칸"};
+          continue;
+        }
         if (split.day <= last) increasing = false;
         last = split.day;
         cells.push(split);
       }
       if (cells.length === 0) continue;
       dataRows++;
-      if (!increasing || month === 0) continue; // 신뢰할 수 없는 행은 버린다(실패로 몰지는 않음)
+      if (!increasing || month === 0) {
+        if(strict) return {ok:false,reason:"월 또는 날짜 순서를 확인할 수 없는 행"};
+        continue;
+      } // 신뢰할 수 없는 행은 버린다(실패로 몰지는 않음)
       goodRows++;
       for (const { day, rest } of cells) {
         if (!rest) continue; // 일정 없는 날짜 칸
