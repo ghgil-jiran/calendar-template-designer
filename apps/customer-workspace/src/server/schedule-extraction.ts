@@ -1,5 +1,6 @@
 import '../../../designer-studio/schedule-file-parser.js';
 import {inflateRawSync} from 'node:zlib';
+import {readMonthlyHwpx} from './hwpx-monthly-table.ts';
 import type {ScheduleEvent, ScheduleExtraction} from '@/lib/api/contracts';
 const LIMIT=3*1024*1024,EXPANDED=20*1024*1024;
 export function zipXml(buffer:Buffer):Map<string,string>{
@@ -9,7 +10,7 @@ export function zipXml(buffer:Buffer):Map<string,string>{
  for(let i=0;i<count;i++){
   if(pos+46>buffer.length||buffer.readUInt32LE(pos)!==0x02014b50)throw Error('파일 목록이 손상되었습니다.');
   const flags=buffer.readUInt16LE(pos+8),method=buffer.readUInt16LE(pos+10),size=buffer.readUInt32LE(pos+20),rawSize=buffer.readUInt32LE(pos+24),n=buffer.readUInt16LE(pos+28),extra=buffer.readUInt16LE(pos+30),comment=buffer.readUInt16LE(pos+32),offset=buffer.readUInt32LE(pos+42),name=buffer.subarray(pos+46,pos+46+n).toString('utf8');pos+=46+n+extra+comment;
-  if(!/^(word\/document\.xml|xl\/(sharedStrings\.xml|worksheets\/sheet\d+\.xml))$/.test(name))continue;
+  if(!/^(word\/document\.xml|xl\/(sharedStrings\.xml|worksheets\/sheet\d+\.xml)|Contents\/section\d+\.xml)$/.test(name))continue;
   if(flags&1||rawSize>EXPANDED||offset+30>buffer.length||buffer.readUInt32LE(offset)!==0x04034b50)throw Error('지원하지 않거나 너무 큰 압축 파일입니다.');
   const start=offset+30+buffer.readUInt16LE(offset+26)+buffer.readUInt16LE(offset+28);if(start+size>buffer.length)throw Error('파일 내용이 손상되었습니다.');
   const bytes=buffer.subarray(start,start+size),expanded=method===0?bytes:method===8?inflateRawSync(bytes,{maxOutputLength:EXPANDED-total}):null;if(!expanded)throw Error('지원하지 않는 압축 방식입니다.');total+=expanded.length;if(total>EXPANDED)throw Error('압축 해제된 파일이 너무 큽니다.');result.set(name,expanded.toString('utf8'));
@@ -19,6 +20,30 @@ export function zipXml(buffer:Buffer):Map<string,string>{
 const decode=(text:string)=>text.replace(/<[^>]*>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
 function validDate(value:string){return /^\d{4}-\d{2}-\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;}
 function iso(y:number,m:number,d:number){return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+export async function extractMonthlyHwpx(file:File,year:number,startMonth:number):Promise<ScheduleExtraction|null>{
+ const xml=zipXml(Buffer.from(await file.arrayBuffer()));
+ const events:ScheduleEvent[]=[];
+ for(const [name,section] of xml){
+  if(!/^Contents\/section\d+\.xml$/.test(name))continue;
+  const entries=readMonthlyHwpx(section);
+  if(!entries?.length)return null;
+  for(const {month,lines} of entries){
+   for(const line of lines){
+    const match=/^(?:(\d{1,2})[/.])?(\d{1,2})(?:일)?(?:\s*[-~～–]\s*(?:(\d{1,2})[/.])?(\d{1,2})(?:일)?)?(?:\s*[:：]\s*|\s+)(\S.*)$/.exec(line);
+    if(!match)return null;
+    const [,explicitMonth,day,endMonth,endDay,title]=match;
+    const m=Number(explicitMonth||month),em=Number(endMonth||m);
+    const startDate=iso(year+(m<startMonth?1:0),m,Number(day));
+    const endDate=endDay?iso(year+(em<startMonth?1:0),em,Number(endDay)):startDate;
+    if(!validDate(startDate)||!validDate(endDate)||endDate<startDate||title.length>200)return null;
+    events.push({id:'hwpx-'+(events.length+1),startDate,endDate,title});
+    if(events.length>2000)throw Error('일정은 한 번에 2,000건까지 읽을 수 있습니다.');
+   }
+  }
+ }
+ if(!events.length)return null;
+ return {events,warnings:[],totalLines:events.length,sourceName:file.name,method:'basic'};
+}
 export function parseScheduleText(text:string,year:number,startMonth=3):Omit<ScheduleExtraction,'sourceName'>{
  const events:ScheduleEvent[]=[],warnings:string[]=[];let contextYear=year,month=0;const lines=text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);if(lines.length>2000)throw Error('일정은 한 번에 2,000행까지 읽을 수 있습니다.');
  for(const [index,line] of lines.entries()){
@@ -66,3 +91,4 @@ export async function extractSchedule(file:File,year:number,startMonth=3):Promis
  }else throw Error('DOCX·XLSX·CSV·TXT 파일을 선택해 주세요. DOC·XLS 파일은 새 형식으로 저장해 주세요.');
  return {...parseScheduleText(text,year,startMonth),sourceName:file.name};
 }
+

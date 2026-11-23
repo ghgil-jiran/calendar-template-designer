@@ -1,6 +1,6 @@
 import type {ScheduleEvent,ScheduleExtraction} from '../lib/api/contracts';
 import {isScheduleDate} from '../lib/materials/schedule-review.ts';
-import {extractSchedule,parseScheduleText} from './schedule-extraction.ts';
+import {extractMonthlyHwpx,extractSchedule,parseScheduleText} from './schedule-extraction.ts';
 const DEFAULT_ORIGIN='https://school-calendar-editor-service.vercel.app';
 export function normalizeSharedSchedules(data:unknown,year:number,startMonth:number):ScheduleExtraction{
  const source=data as {schedules?:unknown;holidayExcluded?:unknown};if(!Array.isArray(source?.schedules))throw Error('공통 일정 분석 결과를 확인하지 못했습니다.');
@@ -24,6 +24,10 @@ export function normalizeSharedSchedules(data:unknown,year:number,startMonth:num
 export async function extractWithSharedService(file:File,year:number,startMonth=3,options:{fetcher?:typeof fetch;origin?:string}={}):Promise<ScheduleExtraction>{
  if(!file.size||file.size>3*1024*1024)throw Error('일정 파일은 3MB 이하로 선택해 주세요.');
  const ext=file.name.split('.').pop()?.toLowerCase();if(!['docx','xlsx','xls','hwpx','pdf','csv','txt'].includes(ext||''))throw Error('DOCX·XLSX·XLS·HWPX·PDF·CSV·TXT 파일을 선택해 주세요. 구형 HWP·DOC는 HWPX·DOCX 또는 PDF로 저장해 주세요.');
+ if(ext==='hwpx'){
+  const result=await extractMonthlyHwpx(file,year,startMonth).catch(()=>null);
+  if(result)return result;
+ }
  const origin=(options.origin||process.env.SCHEDULE_EXTRACTION_ORIGIN||DEFAULT_ORIGIN).trim().replace(/\/$/,'');
  if(!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(origin))throw Error('일정 분석 연결 설정을 확인해 주세요.');
  try{
@@ -59,3 +63,4 @@ export async function extractPastedSchedule(text:string,year:number,startMonth=3
  if(simple.events.length&&simple.warnings.length===0)return {...simple,sourceName:'직접 입력',method:'basic' as const};
  return extractWithSharedService(new File([text],'붙여넣은-일정.txt',{type:'text/plain'}),year,startMonth);
 }
+
