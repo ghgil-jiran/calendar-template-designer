@@ -160,6 +160,7 @@
                 <!-- JSON Spec & Import Actions -->
                 <div class="flex items-center gap-2">
                     <button type="button" id="openNewDraft" class="px-3 py-1.5 rounded-md bg-amber-900 text-amber-100 text-xs font-semibold">새 시안 만들기</button>
+                    <button type="button" id="openEditDraft" class="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-gray-100 text-xs font-semibold">현재 시안 변경하기</button>
                     <button onclick="openImportModal()" class="px-3 py-1.5 rounded-md bg-emerald-950/70 hover:bg-emerald-900 text-emerald-200 border border-emerald-700/60 text-xs font-semibold flex items-center gap-1">
                         <span>➕ 새 JSON 세트 추가</span>
                     </button>
@@ -174,6 +175,7 @@
 <dialog id="newDraftDialog" aria-labelledby="newDraftHeading" class="w-[min(44rem,94vw)] max-h-[90vh] rounded-xl border border-studioBorder bg-studioCard text-gray-100 p-5 backdrop:bg-black/70">
 <form id="newDraftForm" class="grid gap-4">
 <div class="flex justify-between items-center"><h2 id="newDraftHeading" class="font-serif text-xl">새 시안 만들기</h2><button type="button" id="closeNewDraft" class="px-2">닫기</button></div>
+<p id="draftEditHint" hidden class="text-sm text-gray-300"></p>
 <label class="grid gap-1">콘셉트/테마 제목<input name="title" required maxlength="120" class="rounded bg-zinc-900 border border-zinc-600 p-2"></label>
 <label class="grid gap-1">설명<textarea name="description" maxlength="600" rows="3" class="rounded bg-zinc-900 border border-zinc-600 p-2"></textarea></label>
 <label class="grid gap-1">표지 부제 <input name="coverSubtitle" maxlength="60" class="rounded bg-zinc-900 border border-zinc-600 p-2" placeholder="선택 사항"></label>
@@ -571,8 +573,10 @@
                         // An invalid saved design does not prevent restoring the rest.
                     }
                 }
+                currentSetIndex = activeDesignIndex(currentSetIndex);
                 populateTemplateSetSelector();
                 document.getElementById('templateSetSelect').value = currentSetIndex;
+                if (calendarDataset !== CALENDAR_SETS_REGISTRY[currentSetIndex]) loadActiveSet(currentSetIndex);
                 if (data.migrationFailed) showToast('기존 시안은 브라우저에 남아 있습니다.');
             } else if (data.action === 'saved') {
                 showToast(data.ok ? '시안을 Supabase에 저장했습니다.' : '시안을 저장할 수 없습니다. JSON 원본을 보관해 주세요.');
@@ -766,6 +770,8 @@
         const draftStatus = document.getElementById('draftStatus');
         const draftProgress = document.getElementById('draftProgress');
         const generateDraft = document.getElementById('generateDraft');
+        let editedDesign = null;
+        let initialDraftValues = null;
         let generatedDraft = null;
         let coverInput = null;
         let coverVariation = 0;
@@ -782,7 +788,57 @@
             if (draftReview.open) draftReview.close();
             document.getElementById('draftImageCount').hidden = draftForm.elements.back.value === '1';
         }
-        document.getElementById('openNewDraft').onclick = () => draftDialog.showModal();
+        function openDraftForm(source = null) {
+            editedDesign = source;
+            draftForm.reset();
+            const layout = source?.draft_layout;
+            const coverDesign = source?.cover.cover_design;
+            if (source) {
+                const slots = source.cover.photo_slots;
+                const values = {
+                    title: source.title, description: source.description ?? source.subtitle ?? '',
+                    coverSubtitle: source.cover.cover_subtitle ?? '',
+                    coverType: Object.hasOwn(coverTypes, coverDesign?.type) ? coverDesign.type : '',
+                    coverCount: [0,1,2,3,4,8].includes(coverDesign?.photos ?? slots) ? String(coverDesign?.photos ?? slots) : '',
+                    insideFront: layout?.inside_front ?? 'annual', insideBack: layout?.inside_back ?? 'annual',
+                    front: layout?.month_front ?? '1', back: layout?.month_back ?? '1',
+                    imageCount: String(layout?.image_count ?? 1)
+                };
+                for (const [name, value] of Object.entries(values)) draftForm.elements.namedItem(name).value = value;
+            }
+            initialDraftValues = Object.fromEntries(new FormData(draftForm));
+            const action = source ? '변경 사항 적용' : '생성하기';
+            document.getElementById('newDraftHeading').textContent = source ? '현재 시안 변경하기' : '새 시안 만들기';
+            draftCreate.textContent = action;
+            document.getElementById('createReviewedDraft').textContent = action;
+            const hint = document.getElementById('draftEditHint');
+            hint.hidden = !source;
+            hint.textContent = layout ? '현재 설정을 불러왔습니다. 검토 후 같은 시안에 적용합니다.'
+                : '이 시안에는 28면 설정이 없어 기본값을 채웠습니다. 적용하면 28면 시안으로 바뀝니다.';
+            invalidateDraft();
+            draftDialog.showModal();
+        }
+        function rebuildCurrentDesign(source, draft, values) {
+            const originalCover = source.cover;
+            const keepCoverDesign = originalCover.cover_design &&
+                ['title','description','coverType','coverCount'].every(key => values[key] === initialDraftValues[key]);
+            const previousMonths = new Map(source.months.map(month => [month.month, month]));
+            return {
+                ...source, ...draft,
+                global_style_lock: source.global_style_lock ?? draft.global_style_lock,
+                cover: {
+                    ...originalCover, ...draft.cover,
+                    title: values.title === initialDraftValues.title ? originalCover.title : draft.cover.title,
+                    concept_text: values.description === initialDraftValues.description ? originalCover.concept_text : draft.cover.concept_text,
+                    prompt_subject: originalCover.prompt_subject || draft.cover.prompt_subject,
+                    ...(keepCoverDesign ? { cover_design: originalCover.cover_design } : {})
+                },
+                months: draft.months.map(month => ({ ...month, ...previousMonths.get(month.month), photo_slots: month.photo_slots }))
+            };
+        }
+        document.getElementById('openNewDraft').onclick = () => openDraftForm();
+        document.getElementById('openEditDraft').onclick = () => openDraftForm(calendarDataset);
+        draftDialog.addEventListener('close', invalidateDraft);
         document.getElementById('closeNewDraft').onclick = () => draftDialog.close();
         draftForm.addEventListener('input', invalidateDraft);
         draftForm.addEventListener('keydown', event => {
@@ -807,9 +863,13 @@
             if (revision !== draftRevision) return;
             try {
                 const values = Object.fromEntries(new FormData(draftForm));
-                const random = crypto.getRandomValues(new Uint8Array(16));
-                const id = 'draft-' + Array.from(random, byte => byte.toString(16).padStart(2, '0')).join('');
-                const draft = buildDesignerDraft(values, id);
+                let id = editedDesign?.set_id;
+                if (!id) {
+                    const random = crypto.getRandomValues(new Uint8Array(16));
+                    id = 'draft-' + Array.from(random, byte => byte.toString(16).padStart(2, '0')).join('');
+                }
+                const next = buildDesignerDraft(values, id);
+                const draft = editedDesign ? rebuildCurrentDesign(editedDesign, next, values) : next;
                 coverInput = values;
                 coverVariation = 0;
                 const json = JSON.stringify(draft, null, 2);
@@ -893,7 +953,7 @@
                 </section>
                 <section class="rounded border border-zinc-600 p-3">
                     <h3 class="font-semibold text-amber-200">월별 연출 방향</h3>
-                    <ul class="mt-2 grid gap-1 sm:grid-cols-2">${draft.months.map(month => '<li>' + month.month + '월 · ' + escapeHtml(month.concept_text.slice(draft.title.length + 3)) + '</li>').join('')}</ul>
+                    <ul class="mt-2 grid gap-1 sm:grid-cols-2">${draft.months.map(month => '<li>' + month.month + '월 · ' + escapeHtml(month.concept_text?.startsWith(draft.title + ' · ') ? month.concept_text.slice(draft.title.length + 3) : month.concept_text || month.memo_title || month.title) + '</li>').join('')}</ul>
                 </section>`;
             draftReview.querySelector('details').open = false;
             if (!draftReview.open) draftReview.showModal();
@@ -975,10 +1035,18 @@
             })[char]);
         }
 
+        function activeDesignIndex(index) {
+            if (index >= builtInCount) return index;
+            const replacement = CALENDAR_SETS_REGISTRY.findIndex((set, candidate) =>
+                candidate >= builtInCount && set.set_id === CALENDAR_SETS_REGISTRY[index]?.set_id);
+            return replacement === -1 ? index : replacement;
+        }
+
         function populateTemplateSetSelector() {
             const selectEl = document.getElementById('templateSetSelect');
             let html = '';
             CALENDAR_SETS_REGISTRY.forEach((set, idx) => {
+                if (activeDesignIndex(idx) !== idx) return;
                 html += `<option value="${idx}">${escapeHtml(set.title)} (${escapeHtml(set.target_type)})</option>`;
             });
             selectEl.innerHTML = html;
