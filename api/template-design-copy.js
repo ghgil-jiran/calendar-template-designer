@@ -26,6 +26,16 @@ export function validateCopy(value) {
     scheduler:text(value.scheduler,40),months};
 }
 
+export function copyProviderError(status, code) {
+  if (code === 'insufficient_quota' || code === 'billing_hard_limit_reached') {
+    return failure('OpenAI API 프로젝트의 크레딧 또는 결제 한도에 도달했습니다.',429,'DESIGN_COPY_QUOTA');
+  }
+  if (status === 429) return failure('OpenAI API 요청이 일시적으로 제한됐습니다. 잠시 후 다시 시도해 주세요.',429,'DESIGN_COPY_RATE_LIMIT');
+  if (code === 'model_not_found') return failure('등록된 OpenAI 프로젝트에서 문구 생성 모델에 접근할 수 없습니다.',502,'DESIGN_COPY_MODEL');
+  if (status === 401 || status === 403) return failure('등록된 OpenAI API 키 또는 프로젝트 권한을 확인해 주세요.',502,'DESIGN_COPY_ACCESS');
+  return failure('OpenAI API가 문구 생성 요청을 처리하지 못했습니다.',502,'DESIGN_COPY_UPSTREAM');
+}
+
 export default async function handler(request, response) {
   try {
     if (request.method !== 'POST') {
@@ -63,8 +73,12 @@ months는 정확히 12개 객체, 각각 month (1~12 정수), front 최대 32, b
         input:JSON.stringify(context),instructions,text:{format:{type:'json_object'}},max_output_tokens:5600,store:false}),
       signal:AbortSignal.timeout(55000)
     });
-    if (!upstream.ok) throw failure('AI 문구 생성에 실패했습니다. AI 연결과 사용 한도를 확인한 뒤 다시 시도해 주세요.',502,'DESIGN_COPY_UPSTREAM');
-    const result = await upstream.json();
+    const result = await upstream.json().catch(() => ({}));
+    if (!upstream.ok) {
+      const error = copyProviderError(upstream.status,result.error?.code);
+      console.warn('Template design copy upstream failure',{status:upstream.status,category:error.code});
+      throw error;
+    }
     const output = result.output?.flatMap(item => item.content || []).find(part => part.type === 'output_text')?.text;
     let parsed;
     try { parsed = JSON.parse(output); } catch {
