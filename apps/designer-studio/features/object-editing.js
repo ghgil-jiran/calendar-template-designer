@@ -902,7 +902,7 @@ function renderPage(){
     const appearance=project.template.masters.calendar.calendarLayout?.gridAppearance||{},referenceContext={weekday:day.dow,isHoliday:Boolean(holiday),referenceColors:project.template.masters.calendar.calendarLayout?.referenceColors,colors:{color:appearance.dateColor,saturdayColor:appearance.saturdayColor,holidayColor:appearance.holidayColor||appearance.sundayColor}};
     const auxiliary=annotations.renderLegacy(refs,referenceContext,['lunars','solarTerms']);
     const special=annotations.renderLegacy(refs,referenceContext,['holidays','anniversaries']);
-    let part=`<div class="day-block ${extra?"compact-extra":""} ${holiday?"public-holiday":""}" data-date="${day.date}"${vacationFill?` style="${vacationFill}"`:}><div class="day-head-row"><div class="day">${hideAdjacent?"":day.day}</div>`;
+    let part=`<div class="day-block ${extra?"compact-extra":""} ${holiday?"public-holiday":""}" data-date="${day.date}"${vacationFill?` style="${vacationFill}"`:""}><div class="day-head-row"><div class="day">${hideAdjacent?"":day.day}</div>`;
     if(!hideAdjacent&&auxiliary)part+=`<span class="calendar-reference auxiliary" style="color:${annotations.context(referenceContext).tone}">${auxiliary}</span>`;
     part+="</div>";
     if(!hideAdjacent&&special)part+=`<span class="calendar-reference special" style="color:${annotations.context(referenceContext).tone}">${special}</span>`;
@@ -913,7 +913,7 @@ function renderPage(){
    };
    const selected=selectedDate===c.date||(c.extra&&selectedDate===c.extra.date);
    if(miniCells.includes(cellIndex)){const rel=cellIndex===miniCells[0]?-1:1,d=new Date(p.calendarYear,p.calendarMonth-1+rel,1);html+=`<div class="cell mini-host">${renderCellMiniCalendar(d.getFullYear(),d.getMonth()+1,miniHolidayDates)}</div>`;return}
-   html+=`<div class="cell ${c.month!==p.calendarMonth?"adj":""} ${c.dow===0?"sun":c.dow===6?"sat":""} ${selected?"selected":""} ${c.extra?"compact-pair":""}"${!c.extra&&vacationForDay(c).active?` style="background-color:${vacationRules.vacationBackground}"`:}><div class="day-stack">${renderDay(c)}${c.extra?renderDay(c.extra,true):""}</div></div>`
+   html+=`<div class="cell ${c.month!==p.calendarMonth?"adj":""} ${c.dow===0?"sun":c.dow===6?"sat":""} ${selected?"selected":""} ${c.extra?"compact-pair":""}"${!c.extra&&vacationForDay(c).active?` style="background-color:${vacationRules.vacationBackground}"`:""}><div class="day-stack">${renderDay(c)}${c.extra?renderDay(c.extra,true):""}</div></div>`
   });
   html+=`</div>${renderRangeEventLayer(grid,rows)}</div></div>`;
  }else if(p.role==="poster-annual"){

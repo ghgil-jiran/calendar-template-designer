@@ -10,6 +10,7 @@ export async function loadEngine(){
  if(!ready)ready=(async()=>{const r=await fetch('/generated/page-runtime/manifest.json');if(!r.ok)throw Error('달력 표시 기능을 불러오지 못했습니다.');const manifest=await r.json();
   for(const file of manifest.scripts as string[])await new Promise<void>((resolve,reject)=>{const script=document.createElement('script');script.src='/generated/page-runtime/'+file;script.onload=()=>resolve();script.onerror=()=>reject(Error('달력 표시 파일을 불러오지 못했습니다.'));document.head.append(script);});
   await new Promise<void>((resolve,reject)=>{const link=document.createElement('link');link.rel='stylesheet';link.href='/generated/page-runtime/shared-screen-fonts.css';link.onload=()=>resolve();link.onerror=()=>{link.remove();reject(Error('공통 글꼴 설정을 불러오지 못했습니다.'));};document.head.append(link);});
+  if(typeof window.ACDLCustomerPageRuntime?.create!=='function')throw Error('달력 표시 기능을 시작하지 못했어요. 다시 시도해 주세요.');
   return manifest as {styles:string[]};})();
  try{return await ready;}catch(error){ready=undefined;throw error;}
 }
