@@ -622,13 +622,15 @@ function ensureCurrentPageEditTarget(id=selectedElementId,scope=selectedElementS
  return {id:pageItem.id,scope:"page",item:pageItem,created}
 }
 function maxZ(scope){const arr=scope==="master"?masterElements():pageElements();return arr.reduce((m,e)=>Math.max(m,e.zIndex||0),0)}
-function addElement(type){
+function addElement(type, image){
  const scope=el("elementScope").value;const arr=scope==="master"?masterElements():pageElements();
  const elem={id:`element.${type}.${Date.now()}`,type,x:15,y:18,width:type==="text"?32:38,height:type==="text"?13:28,zIndex:maxZ(scope)+1};
  if(type==="text")Object.assign(elem,{content:"새 텍스트",style:{fontSize:18,textAlign:"left",background:false,color:"#17202e"}});
- else Object.assign(elem,{src:"",alt:"추가 이미지",fit:"cover"});
- snapshot();arr.push(elem);selectedElementId=elem.id;selectedElementScope=scope;pendingImageElementId=type==="image"?elem.id:null;pendingImageElementScope=type==="image"?scope:null;render();
- if(type==="image")el("elementImageInput").click()
+ else Object.assign(elem,{src:image?.src||"",alt:image?.name||"추가 이미지",fit:"cover"});
+ snapshot();arr.push(elem);selectedElementId=elem.id;selectedElementScope=scope;pendingImageElementId=type==="image"&&!image?elem.id:null;pendingImageElementScope=pendingImageElementId?scope:null;
+ inspectorActiveTab="content";
+ render();
+ if(pendingImageElementId)el("elementImageInput").click()
 }
 function resolveElementImageSource(view){
  const common=window.ACDLProjectAssetResolver?.elementSource(project,view);if(common)return common;
@@ -1104,7 +1106,7 @@ function renderInspector(){
   const color=fill||(p.role==="monthly-back"?canvas.style.getPropertyValue("--planner-background"):canvas.style.backgroundColor);
   const rgb=color.match(/^rgb\((\d+), *(\d+), *(\d+)\)$/);
   const current=/^#[0-9a-f]{6}$/i.test(color)?color:rgb?"#"+rgb.slice(1).map(channel=>Number(channel).toString(16).padStart(2,"0")).join(""):"#ffffff";
-  design=`<div class="section"><strong>페이지 배경색</strong><label>배경색<input id="monthlyPageBackground" type="color" value="${current}"></label><button id="saveMonthlyPageBackground" class="action">이 페이지 배경색 저장</button><button id="applyMonthlyPageBackground" class="action">전체 월력 ${p.role==="monthly-front"?"앞면":"뒷면"}에 적용</button></div>`+design;
+  design=`<div class="section"><strong>페이지 배경색</strong><label>배경색<input id="monthlyPageBackground" type="color" value="${current}"></label><div class="monthly-background-actions"><button type="button" id="saveMonthlyPageBackground" class="action">이 페이지 배경색 저장</button><button type="button" id="applyMonthlyPageBackground" class="action secondary">전체 월력 ${p.role==="monthly-front"?"앞면":"뒷면"}에 적용</button></div></div>`+design;
  }
 
  if(p.role==="monthly-front"&&(calendarEditing||monthTitleEditing)){

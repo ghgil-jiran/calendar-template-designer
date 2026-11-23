@@ -40,6 +40,65 @@
  $('openSampleSchoolDataBtn')?.addEventListener('click',()=>openResourceModal('school'));
  $('openObjectDrawerBtn')?.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();activate('school')},true);
  document.querySelectorAll('[data-library-tab]').forEach(button=>button.addEventListener('click',()=>activate(button.dataset.libraryTab)));
+ const addToggle=$('quickAddToggle'),addTools=$('quickAddTools'),imageInput=$('quickAddImage'),textTools=$('quickTextTools');
+ const canEditTemplate=()=>Boolean(project&&!project.productionCorrection&&project.mode!=='calendar-workspace'&&!preview);
+ const setAddToolsOpen=(open,focus=false)=>{
+  addTools.hidden=!open;
+  addToggle.setAttribute('aria-expanded',String(open));
+  if(focus)(open?addTools.querySelector('button'):addToggle)?.focus();
+ };
+ addToggle.addEventListener('click',()=>setAddToolsOpen(addTools.hidden,true));
+ addTools.addEventListener('click',event=>{
+  const kind=event.target.closest('[data-quick-add]')?.dataset.quickAdd;
+  if(!kind||!canEditTemplate())return;
+  if(kind==='close'){setAddToolsOpen(false,true);return;}
+  if(!confirmDiscardInspectorChanges())return;
+  setAddToolsOpen(false,true);
+  if(kind==='image'){imageInput.click();return;}
+  if(kind==='text'){addElement('text');$('elemText')?.focus();return;}
+  if(kind==='illustration'){window.ACDLGraphicLibrary.open('pick');return;}
+  activate('graphics');
+  const picker=$(kind==='shape'?'shapeLibraryGrid':'frameLibraryGrid');
+  picker?.closest('section')?.scrollIntoView({block:'nearest'});
+  picker?.querySelector('button')?.focus({preventScroll:true});
+ });
+ imageInput.addEventListener('change',()=>{
+  const file=imageInput.files?.[0];
+  imageInput.value='';
+  if(!file||!canEditTemplate())return;
+  const activeProject=project,activePage=selectedPageId;
+  const reader=new FileReader();
+  reader.onload=()=>{
+   if(!canEditTemplate()||activeProject!==project||activePage!==selectedPageId)return;
+   addElement('image',{src:String(reader.result),name:file.name});
+  };
+  reader.onerror=()=>showEditorToast('이미지를 읽지 못했습니다.');
+  reader.readAsDataURL(file);
+ });
+ document.addEventListener('click',event=>{
+  if(!addTools.hidden&&!addTools.contains(event.target)&&!addToggle.contains(event.target))setAddToolsOpen(false);
+ });
+ document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&!addTools.hidden)setAddToolsOpen(false,true);
+ });
+ const decorations=style=>String(style.textDecoration||'').split(/\s+/).filter(value=>value&&value!=='none');
+ const formatActive=(style,format)=>{
+  if(format==='bold')return style.fontWeight==='bold'||Number(style.fontWeight)>=700;
+  if(format==='italic')return style.fontStyle==='italic';
+  return decorations(style).includes('underline');
+ };
+ textTools.addEventListener('click',event=>{
+  const format=event.target.closest('[data-quick-format]')?.dataset.quickFormat;
+  const selected=sourceElement();
+  if(!format||!canEditTemplate()||selected?.type!=='text'||!confirmDiscardInspectorChanges())return;
+  const active=formatActive(selected.style||{},format);
+  changeElement(item=>{
+   const style=item.style||={};
+   if(format==='bold')style.fontWeight=active?400:700;
+   if(format==='italic')style.fontStyle=active?'normal':'italic';
+   if(format==='underline')style.textDecoration=(active?decorations(style).filter(value=>value!=='underline'):[...decorations(style),'underline']).join(' ')||'none';
+  });
+ });
  const priorNavigator=renderNavigator;
  renderNavigator=function(){
   priorNavigator();
@@ -50,6 +109,13 @@
  render=function(){
   const result=priorRender.apply(this,arguments),item=typeof sourceElement==='function'?sourceElement():null,title=$('inspectorPanelTitle');
   document.querySelectorAll('.toolbar-align-tools [data-menu-action]').forEach(button=>button.disabled=!item);
+  const templateEditing=canEditTemplate();
+  addToggle.hidden=!templateEditing;
+  if(!templateEditing)setAddToolsOpen(false);
+  textTools.hidden=!templateEditing||item?.type!=='text';
+  if(!textTools.hidden)textTools.querySelectorAll('[data-quick-format]').forEach(button=>{
+   button.setAttribute('aria-pressed',String(formatActive(item.style||{},button.dataset.quickFormat)));
+  });
   if(title)title.textContent=item?'선택 개체 속성':'페이지 스타일';
   const summary=$('inspectorSelectionSummary');
   if(summary){

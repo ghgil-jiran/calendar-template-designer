@@ -581,3 +581,32 @@ body:has(.page.poster[data-wall-sample="a"]) #inspector label:has(>input[type="c
 .template-color-palette summary {cursor:pointer}
 .template-custom-color {display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:5px;margin-top:8px}
 .template-custom-color input {width:100%;min-width:0}
+
+.monthly-background-actions{
+  display:grid;
+  gap:6px;
+  margin-top:8px;
+}
+.monthly-background-actions > button{
+  margin:0;
+  white-space:normal;
+}
+.monthly-background-actions > .secondary:hover:not(:disabled){
+  background:var(--acds-surface-subtle);
+  border-color:var(--acds-primary);
+}
+.quick-add-tools{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  border-bottom:1px solid var(--acds-border);
+  background:var(--acds-surface);
+}
+#quickAddToggle[hidden],#quickAddTools[hidden],#quickTextTools[hidden]{display:none}
+#quickAddToggle{white-space:nowrap}
+#quickTextTools button[aria-pressed="true"]{
+  border-color:var(--acds-primary);
+  color:var(--acds-primary);
+}

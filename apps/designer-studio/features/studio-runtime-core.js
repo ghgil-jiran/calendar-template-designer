@@ -1024,7 +1024,7 @@ function createGraphicElement(kind,id){
  if(kind==="shape")Object.assign(item,{shapeType:id,style:{...(id==="rounded"?{cornerRadiusMm:3}:{}),fill:"#4777bd",stroke:"#172033",strokeWidth:1.5}});
  if(kind==="vector")Object.assign(item,{assetId:id,colors:{primary:"#4777bd",secondary:"#f4b740"},flipX:false,flipY:false});
  if(kind==="image-frame")Object.assign(item,{frameType:id,image:{src:"",fit:"cover",scale:1,offsetX:0,offsetY:0,flipX:false,flipY:false,binding:""},style:{stroke:"#ffffff",strokeWidth:3,background:"#eef2f7"}});
- snapshot();arr.push(item);selectedElementId=item.id;selectedElementScope=scope;el("objectDrawer").classList.add("hidden");render();showEditorToast(`${kind==="shape"?"도형":kind==="vector"?"벡터":"사진 프레임"}을 추가했습니다.`)
+ snapshot();arr.push(item);selectedElementId=item.id;selectedElementScope=scope;inspectorActiveTab=kind==="shape"?"design":"content";el("objectDrawer").classList.add("hidden");render();showEditorToast(`${kind==="shape"?"도형":kind==="vector"?"벡터":"사진 프레임"}을 추가했습니다.`)
 }
 function renderGraphicsLibraries(){
  const sg=el("shapeLibraryGrid"),fg=el("frameLibraryGrid"),vg=el("vectorLibraryGrid"),cr=el("vectorCategoryRow");if(!sg)return;
