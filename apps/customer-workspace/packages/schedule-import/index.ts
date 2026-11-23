@@ -1,7 +1,7 @@
 import type {ScheduleEvent,ScheduleExtraction} from './contracts.ts';
 import {isScheduleDate} from './schedule-extraction.ts';
 import {analyzeWithModel} from './model.ts';
-import {readPdfDateList} from './pdf-text.ts';
+import {PDF_WITHOUT_SCHEDULE_TEXT,readPdfDateList} from './pdf-text.ts';
 import manifest from './package.json' with {type: 'json'};
 export const SCHEDULE_IMPORT_VERSION = manifest.version;
 import {extractMonthlyHwpx,extractSchedule,parseScheduleText} from './schedule-extraction.ts';
@@ -34,8 +34,11 @@ export async function extractWithSharedService(file:File,year:number,startMonth=
  if(ext==='pdf'){
   const result=await readPdfDateList(file,year,startMonth).catch(error=>{
    console.warn('[schedule-import] PDF text reader failed:',error instanceof Error?error.name:'unknown error');
-   return null;
+   throw Error('PDF 원문을 읽지 못했어요. 파일을 확인하거나 HWPX 원본으로 올려 주세요. 기존 일정은 유지됩니다.');
   });
+  if(result===PDF_WITHOUT_SCHEDULE_TEXT){
+   throw Error('이 PDF에서 일정명과 날짜를 원문 텍스트로 확인할 수 없어요. HWPX 원본이나 글자를 선택할 수 있는 PDF로 올려 주세요. 기존 일정은 유지됩니다.');
+  }
   if(result)return {...result,engineVersion:SCHEDULE_IMPORT_VERSION};
  }
  try{

@@ -2,7 +2,9 @@ import {existsSync} from 'node:fs';
 import {join, sep} from 'node:path';
 import {isScheduleDate, parseScheduleText} from './schedule-extraction.ts';
 
-/** Accept an unambiguous single-column date list. Tables and scans go to document analysis. */
+export const PDF_WITHOUT_SCHEDULE_TEXT = Symbol('PDF without readable schedule text');
+
+/** Accept an unambiguous single-column date list and detect PDFs with no verifiable text. */
 export async function readPdfDateList(file: File, year: number, startMonth: number) {
   const {getDocument} = await import('pdfjs-dist/legacy/build/pdf.mjs');
   const cMapDirectory = [process.cwd(), join(process.cwd(), 'apps/customer-workspace')]
@@ -19,11 +21,20 @@ export async function readPdfDateList(file: File, year: number, startMonth: numb
   try {
     const document = await task.promise;
     if (document.numPages > 30) return null;
-    const lines: string[] = [];
+    const pages = [];
+    let hasReadableScheduleText = false;
     for (let index = 1; index <= document.numPages; index++) {
-      const previousLineCount = lines.length;
       const page = await document.getPage(index);
       const {items} = await page.getTextContent();
+      const text = items.map(item => 'str' in item ? item.str : '').join(' ');
+      if (/\d/.test(text) && /\p{L}/u.test(text)) hasReadableScheduleText = true;
+      pages.push(items);
+    }
+    if (!hasReadableScheduleText) return PDF_WITHOUT_SCHEDULE_TEXT;
+
+    const lines: string[] = [];
+    for (const items of pages) {
+      const previousLineCount = lines.length;
       let line = '';
       let lineX: number | undefined;
       let firstX: number | undefined;

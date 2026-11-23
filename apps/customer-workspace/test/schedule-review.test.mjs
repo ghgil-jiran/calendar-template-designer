@@ -4,6 +4,32 @@ import {normalizeSharedSchedules,extractWithSharedService} from '../src/server/s
 const event=(startDate,endDate=startDate,title='행사')=>({id:'test',startDate,endDate,title});
 test('academic months roll into next year and spanning events appear in both without cloning',()=>{const months=academicMonths(2027,3);assert.equal(months[0].key,'2027-03');assert.equal(months[11].end,'2028-02-29');const e=event('2027-03-30','2027-04-02');assert.ok(eventInMonth(e,months[0]));assert.ok(eventInMonth(e,months[1]));assert.ok(!eventInMonth(e,months[2]));assert.equal(e.id,'test');assert.ok(!validSchedule([event('2027-02-30')]));assert.ok(!eventInMonth(event('',''),months[0]));});
 test('shared AI dates follow selected academic year; invalid dates and duplicates are visible in diagnostics',()=>{const r=normalizeSharedSchedules({holidayExcluded:2,schedules:[{date:'2027-12-30',endDate:'2028-01-05',label:'겨울방학'},{date:'2027-12-30',endDate:'2028-01-05',label:'겨울방학'},{date:'2028-02-29',label:'윤일 일정'},{date:'2027-03-01',label:''}]},2028,3);assert.equal(r.events.length,1);assert.equal(r.events[0].startDate,'2028-12-30');assert.equal(r.events[0].endDate,'2029-01-05');assert.ok(r.warnings.some(w=>w.includes('공휴일 2건')));assert.ok(r.warnings.some(w=>w.includes('2건을 추가하지')));});
+function pdfFixture(stream){
+ const objects=[
+  '<< /Type /Catalog /Pages 2 0 R >>',
+  '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+  '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
+  `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+  '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+ ];
+ let pdf='%PDF-1.4\n';
+ const offsets=objects.map((object,index)=>{
+  const offset=pdf.length;
+  pdf+=`${index+1} 0 obj\n${object}\nendobj\n`;
+  return offset;
+ });
+ const xref=pdf.length;
+ pdf+=`xref\n0 ${offsets.length+1}\n0000000000 65535 f \n`;
+ pdf+=offsets.map(offset=>`${String(offset).padStart(10,'0')} 00000 n \n`).join('');
+ pdf+=`trailer\n<< /Size ${offsets.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+ return new File([pdf],'school.pdf',{type:'application/pdf'});
+}
+test('PDF without readable text is rejected before model transcription',async()=>{
+ const pdf=pdfFixture('72 700 200 10 re f');
+ await assert.rejects(()=>extractWithSharedService(pdf,2027,3,{apiKey:'test',fetcher:()=>{
+  assert.fail('PDF without readable text must not call the model');
+ }}),/원문 텍스트로 확인할 수 없어요/);
+});
 test('PDF transcription keeps original row boundaries and flags conflicting candidates',async()=>{
  const rows=[
   {date:'2030-10-03',label:'개학식, 입학식',category:'event'},
@@ -17,7 +43,7 @@ test('PDF transcription keeps original row boundaries and flags conflicting cand
   [...rows,{date:'2031-08-31',label:'수시기준 마감일',category:'event'}],
  ];
  let calls=0;
- const r=await extractWithSharedService(new File(['%PDF-1.4'],'school.pdf'),2030,9,{apiKey:'test',fetcher:async(url,init)=>{
+ const r=await extractWithSharedService(pdfFixture('BT /F1 12 Tf 72 700 Td (Schedule 3) Tj ET'),2030,9,{apiKey:'test',fetcher:async(url,init)=>{
   assert.equal(new URL(url).origin,'https://api.anthropic.com');
   const request=JSON.parse(init.body);
   assert.equal(request.messages[0].content[0].type,'document');
@@ -30,7 +56,7 @@ test('PDF transcription keeps original row boundaries and flags conflicting cand
  }});
  assert.equal(calls,2);
  assert.equal(r.method,'shared-ai');
- assert.equal(r.engineVersion,'0.1.1');
+ assert.equal(r.engineVersion,'0.1.2');
  assert.deepEqual(r.events.map(item=>[item.startDate,item.endDate,item.title]).sort(),
   rows.map(row=>[row.date,row.endDate??row.date,row.label]).sort());
  assert.ok(r.warnings.some(w=>w.includes('판독 불일치')&&w.includes('우시기준')));
