@@ -34,12 +34,11 @@ export type CatalogResponse = {
   mode: 'review' | 'published';
   notice: string;
   templates: TemplateCard[];
-  paperPairs?: [TemplateCard, TemplateCard][];
 };
 // Input values and explicit visibility are distinct. Neither is a rendered page.
 export type SchoolInput = {values: Record<string, string>; hidden: string[]; cleared?:string[]; omitEmptyContacts?: boolean; calendarDisplay?: {includeHolidays:boolean;includeAnniversaries:boolean;includeSolarTerms:boolean;includeLunar:boolean}};
 export type ScheduleEvent = {id:string; title:string; startDate:string; endDate:string};
-export type ScheduleExtraction = {events:ScheduleEvent[]; warnings:string[]; sourceName:string; totalLines:number;method?:'shared-ai'|'basic'};
+export type ScheduleExtraction = {events:ScheduleEvent[]; warnings:string[]; sourceName:string; totalLines:number;method?:'shared-ai'|'basic';engineVersion?:string};
 export type PhotoInputMode='collect'|'assign';
 export type PhotoSlot = {id:string;pageId:string;pageIds?:string[];pageLabel:string;elementId:string;scope:'page'|'master'|'school';masterId?:string;label:string;binding?:string;required:boolean;widthMm:number;heightMm:number};
 export type PhotoAssignment = {photoId:string;url:string};

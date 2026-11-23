@@ -16,10 +16,15 @@
     "verify:published": "node --experimental-strip-types scripts/check-published.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.111.0",
     "@fontsource/noto-sans-kr": "5.3.1",
+    "mammoth": "1.12.0",
     "next": "15.5.29",
+    "pdfjs-dist": "5.4.624",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "xlsx": "0.18.5",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@types/node": "22.10.0",

@@ -27,8 +27,15 @@ function storedZip(name,xml){const nameBytes=Buffer.from(name),content=Buffer.fr
 test('DOCX table dates and titles stay on the same input row',async()=>{
  const xml='<w:document><w:body><w:tbl><w:tr><w:tc><w:p><w:r><w:t>2027-03-02</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>입학식</w:t></w:r></w:p></w:tc></w:tr></w:tbl></w:body></w:document>',r=await extractSchedule(new File([storedZip('word/document.xml',xml)],'calendar.docx'),2027);assert.equal(r.events[0]?.title,'입학식');assert.equal(r.events[0]?.startDate,'2027-03-02');
 });
-test('XLSX reuses designer cell decoding and recognizes table date columns',async()=>{
- const xml='<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>시작일</t></is></c><c r="B1" t="inlineStr"><is><t>일정명</t></is></c></row><row r="2"><c r="A2" t="inlineStr"><is><t>2027-03-02</t></is></c><c r="B2" t="inlineStr"><is><t>입학식</t></is></c></row></sheetData></worksheet>',r=await extractSchedule(new File([storedZip('xl/worksheets/sheet1.xml',xml)],'calendar.xlsx'),2027);assert.equal(r.events[0]?.title,'입학식');assert.equal(r.events[0]?.startDate,'2027-03-02');
+test('XLSX applies each worksheet’s own date and title columns',async()=>{
+ const {utils,write}=await import('xlsx');
+ const workbook=utils.book_new();
+ utils.book_append_sheet(workbook,utils.aoa_to_sheet([['시작일','일정명'],['2027-03-02','입학식']]),'첫째');
+ utils.book_append_sheet(workbook,utils.aoa_to_sheet([['일정명','시작일'],['개교기념식','2027-04-15']]),'둘째');
+ const bytes=write(workbook,{bookType:'xlsx',type:'buffer'});
+ const result=await extractSchedule(new File([bytes],'calendar.xlsx'),2027);
+ assert.deepEqual(result.events.map(e=>[e.startDate,e.title]),[['2027-03-02','입학식'],['2027-04-15','개교기념식']]);
+ assert.deepEqual(result.warnings,[]);
 });
 
 test('basic English field remains available and image-only song does not create lyrics input',()=>{const p=source();p.template.publishing.dataRequirements.push({path:'school.profile.song',input:'image',stage:'optional'});const fields=fieldsForProject(p);assert.ok(fields.some(f=>f.key==='englishName'));assert.ok(!fields.some(f=>f.key==='songDescription'));assert.ok(photoSlotsForProject(p).some(s=>s.binding==='school.profile.song'));});
