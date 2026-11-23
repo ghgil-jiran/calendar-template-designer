@@ -56,7 +56,7 @@ test('PDF transcription keeps original row boundaries and flags conflicting cand
  }});
  assert.equal(calls,2);
  assert.equal(r.method,'shared-ai');
- assert.equal(r.engineVersion,'0.1.3');
+ assert.equal(r.engineVersion,'0.1.4');
  assert.deepEqual(r.events.map(item=>[item.startDate,item.endDate,item.title]).sort(),
   rows.map(row=>[row.date,row.endDate??row.date,row.label]).sort());
  assert.ok(r.warnings.some(w=>w.includes('판독 불일치')&&w.includes('우시기준')));
@@ -72,4 +72,11 @@ test('HWPX table preserves original title characters, whitespace, and line bound
   cell(0,1,'<hp:t>상세 일정</hp:t>')+cell(1,0,'<hp:t>3월</hp:t>')+
   cell(1,1,'<hp:t>3 : 개학씩,  입학식<hp:lineBreak/></hp:t><hp:t xml:space="preserve">18 : 글&#xB7;그림  한마당&#9314;</hp:t>')+'</hp:tbl>';
  assert.deepEqual(readMonthlyHwpx(xml),[{month:3,lines:['3 : 개학씩,  입학식','18 : 글·그림  한마당③']}]);
+});
+
+test('direct schedule import excludes default holidays and keeps school holidays',async()=>{
+ const {extractPastedSchedule}=await import('../packages/schedule-import/index.ts');
+ const result=await extractPastedSchedule('2027-07-19 : 대체 공휴일\n2027-07-20 : 재량휴업\n2027-07-21 : 학교 재량휴일',2027);
+ assert.deepEqual(result.events.map(event=>event.title),['재량휴업','학교 재량휴일']);
+ assert.match(result.warnings[0],/공휴일 1건을 학사일정에서 제외/);
 });

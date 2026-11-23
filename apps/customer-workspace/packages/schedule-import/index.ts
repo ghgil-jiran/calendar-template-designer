@@ -1,10 +1,18 @@
 import type {ScheduleEvent,ScheduleExtraction} from './contracts.ts';
+import {isLegalHoliday} from './legal-holiday-names.ts';
 import {isScheduleDate} from './schedule-extraction.ts';
 import {analyzeWithModel} from './model.ts';
 import {PDF_WITHOUT_SCHEDULE_TEXT,readPdfDateList} from './pdf-text.ts';
 import manifest from './package.json' with {type: 'json'};
 export const SCHEDULE_IMPORT_VERSION = manifest.version;
 import {extractMonthlyHwpx,extractSchedule,parseScheduleText} from './schedule-extraction.ts';
+function withoutDefaultHolidays<T extends Pick<ScheduleExtraction, 'events' | 'warnings'>>(result:T):T{
+ const events=result.events.filter(event=>!isLegalHoliday(event.title));
+ const excluded=result.events.length-events.length;
+ if(!excluded)return result;
+ const warning=`기본 달력에서 제공하는 공휴일 ${excluded}건을 학사일정에서 제외했어요.`;
+ return {...result,events,warnings:[...result.warnings,warning]};
+}
 export function normalizeSharedSchedules(data:unknown,year:number,startMonth:number):ScheduleExtraction{
  const source=data as {schedules?:unknown;holidayExcluded?:unknown;reviewWarnings?:unknown};if(!Array.isArray(source?.schedules))throw Error('공통 일정 분석 결과를 확인하지 못했습니다.');
  const warnings:string[]=Array.isArray(source.reviewWarnings)?source.reviewWarnings.filter((warning):warning is string=>typeof warning==='string'):[],events:ScheduleEvent[]=[],seen=new Set<string>();let invalid=0;
@@ -29,7 +37,7 @@ export async function extractWithSharedService(file:File,year:number,startMonth=
  const ext=file.name.split('.').pop()?.toLowerCase();if(!['docx','xlsx','xls','hwpx','pdf','csv','txt'].includes(ext||''))throw Error('DOCX·XLSX·XLS·HWPX·PDF·CSV·TXT 파일을 선택해 주세요. 구형 HWP·DOC는 HWPX·DOCX 또는 PDF로 저장해 주세요.');
  if(ext==='hwpx'){
   const result=await extractMonthlyHwpx(file,year,startMonth).catch(()=>null);
-  if(result)return {...result,engineVersion:SCHEDULE_IMPORT_VERSION};
+  if(result)return {...withoutDefaultHolidays(result),engineVersion:SCHEDULE_IMPORT_VERSION};
  }
  if(ext==='pdf'){
   const result=await readPdfDateList(file,year,startMonth).catch(error=>{
@@ -39,7 +47,7 @@ export async function extractWithSharedService(file:File,year:number,startMonth=
   if(result===PDF_WITHOUT_SCHEDULE_TEXT){
    throw Error('이 PDF에서 일정명과 날짜를 원문 텍스트로 확인할 수 없어요. HWPX 원본이나 글자를 선택할 수 있는 PDF로 올려 주세요. 기존 일정은 유지됩니다.');
   }
-  if(result)return {...result,engineVersion:SCHEDULE_IMPORT_VERSION};
+  if(result)return {...withoutDefaultHolidays(result),engineVersion:SCHEDULE_IMPORT_VERSION};
  }
  try{
   const response=await analyzeWithModel(file,year,startMonth,options.apiKey,options.fetcher);
@@ -67,13 +75,14 @@ export async function extractWithSharedService(file:File,year:number,startMonth=
   if(!result.events.length){
    throw Error(reason+' 기본 읽기에서도 일정을 찾지 못했어요. 원본의 날짜와 일정명을 확인해 주세요. 기존 일정은 유지됩니다.');
   }
+  result=withoutDefaultHolidays(result);
   return {...result,method:'basic',engineVersion:SCHEDULE_IMPORT_VERSION,warnings:[reason+' 기본 읽기로 가져왔어요. 복잡한 표와 여러 일정이 적힌 칸은 원본과 비교해 주세요.',...result.warnings]};
  }
 }
 export async function extractPastedSchedule(text:string,year:number,startMonth=3){
  if(!text.trim())throw Error('읽어올 일정 내용을 입력해 주세요.');
  const simple=parseScheduleText(text,year,startMonth);
- if(simple.events.length&&simple.warnings.length===0)return {...simple,sourceName:'직접 입력',method:'basic' as const,engineVersion:SCHEDULE_IMPORT_VERSION};
+ if(simple.events.length&&simple.warnings.length===0)return {...withoutDefaultHolidays(simple),sourceName:'직접 입력',method:'basic' as const,engineVersion:SCHEDULE_IMPORT_VERSION};
  return extractWithSharedService(new File([text],'붙여넣은-일정.txt',{type:'text/plain'}),year,startMonth);
 }
 
