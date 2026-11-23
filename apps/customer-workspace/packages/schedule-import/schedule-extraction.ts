@@ -23,6 +23,16 @@ function iso(y:number,m:number,d:number){return `${y}-${String(m).padStart(2,'0'
 export function parseMonthlyScheduleLine(line:string){
  return /^(?:(\d{1,2})[/.])?(\d{1,2})(?:일)?(?:\s*[-~～–]\s*(?:(\d{1,2})[/.])?(\d{1,2})(?:일)?)?(?:\s*[:：]\s*|\s+)(\S.*)$/.exec(line);
 }
+export function readMonthlyScheduleEvent(line:string,month:number,year:number,startMonth:number,id:string):ScheduleEvent|null{
+    const match=parseMonthlyScheduleLine(line);
+    if(!match)return null;
+    const [,explicitMonth,day,endMonth,endDay,title]=match;
+    const m=Number(explicitMonth||month),em=Number(endMonth||m);
+    const startDate=iso(year+(m<startMonth?1:0),m,Number(day));
+    const endDate=endDay?iso(year+(em<startMonth?1:0),em,Number(endDay)):startDate;
+    if(!isScheduleDate(startDate)||!isScheduleDate(endDate)||endDate<startDate||title.length>200)return null;
+    return {id,startDate,endDate,title};
+}
 export async function extractMonthlyHwpx(file:File,year:number,startMonth:number):Promise<ScheduleExtraction|null>{
  const xml=zipXml(Buffer.from(await file.arrayBuffer()));
  const events:ScheduleEvent[]=[];
@@ -32,14 +42,9 @@ export async function extractMonthlyHwpx(file:File,year:number,startMonth:number
   if(!entries?.length)return null;
   for(const {month,lines} of entries){
    for(const line of lines){
-    const match=parseMonthlyScheduleLine(line);
-    if(!match)return null;
-    const [,explicitMonth,day,endMonth,endDay,title]=match;
-    const m=Number(explicitMonth||month),em=Number(endMonth||m);
-    const startDate=iso(year+(m<startMonth?1:0),m,Number(day));
-    const endDate=endDay?iso(year+(em<startMonth?1:0),em,Number(endDay)):startDate;
-    if(!isScheduleDate(startDate)||!isScheduleDate(endDate)||endDate<startDate||title.length>200)return null;
-    events.push({id:'hwpx-'+(events.length+1),startDate,endDate,title});
+    const event=readMonthlyScheduleEvent(line,month,year,startMonth,'hwpx-'+(events.length+1));
+    if(!event)return null;
+    events.push(event);
     if(events.length>2000)throw Error('일정은 한 번에 2,000건까지 읽을 수 있습니다.');
    }
   }

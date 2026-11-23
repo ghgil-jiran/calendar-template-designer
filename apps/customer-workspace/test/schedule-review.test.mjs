@@ -56,7 +56,7 @@ test('PDF transcription keeps original row boundaries and flags conflicting cand
  }});
  assert.equal(calls,2);
  assert.equal(r.method,'shared-ai');
- assert.equal(r.engineVersion,'0.1.2');
+ assert.equal(r.engineVersion,'0.1.3');
  assert.deepEqual(r.events.map(item=>[item.startDate,item.endDate,item.title]).sort(),
   rows.map(row=>[row.date,row.endDate??row.date,row.label]).sort());
  assert.ok(r.warnings.some(w=>w.includes('판독 불일치')&&w.includes('우시기준')));
