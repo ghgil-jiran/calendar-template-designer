@@ -142,10 +142,8 @@
 .year-layout-tiles .cover-year-glyphs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1cqw;letter-spacing:0}
 .year-layout-tiles .cover-year-glyphs span{border:1px solid color-mix(in srgb,currentColor 25%,transparent);padding:.08em 0;font-size:29cqw}
 .cover-year-crop{padding-inline:0!important}
-.year-layout-megaTiles .cover-year-glyphs{display:grid;width:100%;height:100%;justify-self:center;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));align-items:stretch;letter-spacing:0;font-size:40cqw;line-height:.83}
-.year-layout-megaTiles .cover-year-glyphs span{display:grid;place-items:center;min-height:0;transform:scaleX(1.82)}
+ .year-layout-megaTiles .cover-year-shapes{display:block;width:100%;height:100%;min-height:0}
 .year-layout-megaTiles .cover-year-caption{margin-block:0 .35cqw;font-size:1.8cqw}
-.year-layout-megaTiles.year-fill-outline .cover-year-glyphs span,.year-layout-megaTiles.year-fill-mixed .cover-year-glyphs span:first-child,.year-layout-megaTiles.year-fill-photo .cover-year-glyphs span{-webkit-text-stroke:1cqw var(--year-ink)}
 .year-layout-crop .cover-year-glyphs{font-size:45cqw;letter-spacing:-.105em}
 .year-layout-label{align-self:center;justify-self:center;border:1px solid currentColor;border-radius:.25rem;padding:3cqw;grid-template-rows:auto auto;gap:1cqw}
 .year-layout-label .cover-year-glyphs{font-size:14cqw}
@@ -790,6 +788,36 @@
             };
         }
 
+        const oversizedDigitPaths = {
+            2:'M8 48Q2 36 8 22Q17 5 51 4L137 4Q176 4 185 27Q195 56 173 71Q158 80 102 89Q70 94 62 101L163 99Q188 99 188 115Q188 127 170 127H23Q6 127 5 111Q2 86 29 74Q45 67 104 57Q128 53 133 47Q123 41 99 43L30 54Q15 57 8 48Z',
+            0:'M10 25Q19 5 54 5L145 4Q174 4 183 29Q194 63 185 100Q180 126 149 127H41Q9 127 6 102Q1 61 10 25Z M78 48Q77 37 94 37Q111 37 113 49L114 81Q114 93 96 94Q77 94 77 81Z',
+            7:'M8 27Q8 5 35 5H161Q187 5 188 28L188 53Q187 65 179 76L135 121Q121 134 102 122L76 107Q65 100 77 89L111 58H26Q7 58 6 43Z'
+        };
+        let yearShapeId = 0;
+        function renderOversizedYear(cover, design, year, fill) {
+            const id = 'year-shape-' + ++yearShapeId;
+            const shapes = [...year].map((digit,index) => {
+                const transform = `translate(${index%2*200} ${Math.floor(index/2)*134})`;
+                return `<path d="${oversizedDigitPaths[digit]}" transform="${transform}" fill-rule="evenodd" clip-rule="evenodd"/>`;
+            });
+            const image = (index,x,y,width,height,clip) => {
+                const {src,x:alignX,y:alignY,zoom} = yearPhoto(cover,index);
+                if (!src) return '';
+                const scale = zoom/100;
+                return `<image href="${escapeHtml(src)}" x="${x-(scale-1)*width*alignX/100}" y="${y-(scale-1)*height*alignY/100}"
+                    width="${width*scale}" height="${height*scale}" preserveAspectRatio="${alignX<34?'xMin':alignX>66?'xMax':'xMid'}${alignY<34?'YMin':alignY>66?'YMax':'YMid'} slice" clip-path="url(#${clip})"/>`;
+            };
+            const photos = fill === 'photo';
+            const separate = photos && design.yearPhotoMode === 'digits';
+            return `<svg class="cover-year-shapes" viewBox="0 0 394 269" preserveAspectRatio="none" role="img" aria-label="${year}">
+                <defs><clipPath id="${id}">${shapes.join('')}</clipPath>
+                ${separate ? shapes.map((shape,index)=>`<clipPath id="${id}-${index}">${shape}</clipPath>`).join('') : ''}</defs>
+                ${shapes.map((shape,index)=>`<g fill="${fill==='outline'||(fill==='mixed'&&index<2)?'none':photos?'var(--accent)':'currentColor'}">${shape}</g>`).join('')}
+                ${separate ? shapes.map((_,index)=>image(index+1,index%2*200,Math.floor(index/2)*134,194,134,id+'-'+index)).join('') : photos ? image(0,0,0,394,269,id) : ''}
+                ${fill==='solid' ? '' : `<g fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round">${(fill==='mixed'?shapes.slice(0,2):shapes).join('')}</g>`}
+            </svg>`;
+        }
+
         function renderYearTypography(cover, design) {
             const layout = Object.hasOwn(yearLayouts,design.yearLayout) ? design.yearLayout : 'label';
             const fill = Object.hasOwn(yearFills,design.yearFill) ? design.yearFill : 'solid';
@@ -804,7 +832,7 @@
                 return src ? `background-image:url(${escapeHtml(src)});background-position:${x}% ${y}%;background-size:${zoom === 100 ? 'cover' : zoom+'% auto'}` : '';
             };
             const sharedImage = fill === 'photo' && !digits ? imageStyle(0) : '';
-            const yearMarkup = layout === 'label' && includesYear && fill === 'solid' ? '' : `
+            const yearMarkup = layout === 'megaTiles' ? renderOversizedYear(cover,design,year,fill) : layout === 'label' && includesYear && fill === 'solid' ? '' : `
                 <div class="cover-year-glyphs${sharedImage ? ' has-year-image' : ''}" aria-label="${year}" style="${sharedImage}">
                     ${parts.map((part,index) => {
                         const digitImage = digits ? imageStyle(index+1) : '';
