@@ -159,6 +159,7 @@
 
                 <!-- JSON Spec & Import Actions -->
                 <div class="flex items-center gap-2">
+                    <button type="button" id="openNewDraft" class="px-3 py-1.5 rounded-md bg-amber-900 text-amber-100 text-xs font-semibold">새 시안 만들기</button>
                     <button onclick="openImportModal()" class="px-3 py-1.5 rounded-md bg-emerald-950/70 hover:bg-emerald-900 text-emerald-200 border border-emerald-700/60 text-xs font-semibold flex items-center gap-1">
                         <span>➕ 새 JSON 세트 추가</span>
                     </button>
@@ -170,6 +171,21 @@
             </div>
         </div>
     </header>
+<dialog id="newDraftDialog" aria-labelledby="newDraftHeading" class="w-[min(44rem,94vw)] max-h-[90vh] rounded-xl border border-studioBorder bg-studioCard text-gray-100 p-5 backdrop:bg-black/70">
+<form id="newDraftForm" class="grid gap-4">
+<div class="flex justify-between items-center"><h2 id="newDraftHeading" class="font-serif text-xl">새 시안 만들기</h2><button type="button" id="closeNewDraft" class="px-2">닫기</button></div>
+<label class="grid gap-1">콘셉트/테마 제목<input name="title" required maxlength="120" class="rounded bg-zinc-900 border border-zinc-600 p-2"></label>
+<label class="grid gap-1">설명<textarea name="description" maxlength="600" rows="3" class="rounded bg-zinc-900 border border-zinc-600 p-2"></textarea></label>
+<label class="grid gap-1">페이지 구성<input value="28면" readonly class="rounded bg-zinc-900 border border-zinc-600 p-2"></label>
+<div class="grid sm:grid-cols-2 gap-3"><label class="grid gap-1">2면 · 표지 뒷면<select name="insideFront" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="annual">연력</option><option value="scheduler">스케줄러</option></select></label><label class="grid gap-1">27면 · 뒷표지 앞면<select name="insideBack" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="annual">연력</option><option value="scheduler">스케줄러</option></select></label></div>
+<label class="grid gap-1">월력 앞면 구성<select name="front" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 월력</option><option value="2">기본 2 · 월력 + 메모</option><option value="3">기본 3 · 월력 + 메모 + 이미지</option><option value="4">기본 4 · 월력 + 메모 + 미니 월력</option></select></label>
+<label class="grid gap-1">월력 뒷면 구성<select name="back" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 왼쪽 이미지 1장 + 메모</option><option value="2">기본 2 · 상단 이미지 + 하단 띠 월력</option><option value="3">기본 3 · 왼쪽 이미지 + 메모 + 미니 월력</option></select></label>
+<label id="draftImageCount" hidden>뒷면 이미지 수 <select name="imageCount" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+<p id="draftStatus" role="status" class="text-sm text-amber-200"></p>
+<section id="draftJsonPanel" hidden><label class="grid gap-1">생성된 JSON<textarea id="draftJson" readonly rows="8" class="rounded bg-zinc-900 border border-zinc-600 p-2 font-mono text-xs"></textarea></label><button type="button" id="downloadDraftJson" class="mt-2 rounded border border-zinc-600 px-3 py-1">JSON 다운로드</button></section>
+<div class="flex gap-2 flex-wrap"><button type="submit" class="rounded border border-amber-600 px-3 py-2">JSON 파일 생성 및 보기</button><button type="button" id="createDraft" disabled class="rounded bg-amber-800 px-3 py-2 disabled:opacity-40">생성하기</button></div>
+</form>
+</dialog>
 
     <!-- SUB-NAV: DYNAMIC STYLE LOCK BAR & SEASON TABS -->
     <nav class="bg-studioCard/60 border-b border-studioBorder py-2.5 px-4 lg:px-8 text-xs overflow-x-auto">
@@ -566,6 +582,127 @@
             }
         });
 
+
+        function buildDesignerDraft(values, id) {
+            const title = values.title.trim(), description = values.description.trim();
+            const { insideFront, insideBack, front, back } = values;
+            const imageCount = back === '1' ? 1 : Number(values.imageCount);
+            if (!title || !['annual','scheduler'].includes(insideFront) || !['annual','scheduler'].includes(insideBack)
+                || !['1','2','3','4'].includes(front) || !['1','2','3'].includes(back)
+                || !Number.isInteger(imageCount) || imageCount < 1 || imageCount > 4) {
+                throw new Error('제목과 면 구성을 확인해 주세요.');
+            }
+            const theme = [title, description].filter(Boolean).join(' — ');
+            const cover = { title, concept_text: description, photo_slots: 1, prompt_subject: theme + ' · 표지 대표 이미지' };
+            const months = Array.from({ length: 12 }, (_, i) => ({
+                month: i + 1, title: (i + 1) + '월', concept_text: description,
+                accent: ['#45645A','#7D4F62','#355E80','#805C30'][Math.floor(i / 3)],
+                photo_slots: imageCount, memo_title: '메모', prompt_subject: theme + ' · ' + (i + 1) + '월 이미지'
+            }));
+            const pages = [{ number: 1, role: 'cover' }, { number: 2, role: 'inside-front', layout: insideFront },
+                ...months.flatMap(({ month }) => [
+                    { number: month * 2 + 1, role: 'month-front', month, layout: front, image_count: front === '3' ? 1 : 0 },
+                    { number: month * 2 + 2, role: 'month-back', month, layout: back, image_count: imageCount }
+                ]),
+                { number: 27, role: 'inside-back', layout: insideBack }, { number: 28, role: 'back-cover' }];
+            return { set_id: id, title, description, subtitle: description, target_type: '탁상달력 · 28면',
+                global_style_lock: { paper_bg: '#F5F1E8', ink_primary: '#23211E' }, cover, months,
+                draft_layout: { page_count: 28, inside_front: insideFront, inside_back: insideBack, month_front: front, month_back: back, image_count: imageCount, pages } };
+        }
+
+        const draftDialog = document.getElementById('newDraftDialog');
+        const draftForm = document.getElementById('newDraftForm');
+        const draftOutput = document.getElementById('draftJson');
+        const draftCreate = document.getElementById('createDraft');
+        const draftStatus = document.getElementById('draftStatus');
+        let generatedDraft = null;
+        function invalidateDraft() {
+            generatedDraft = null;
+            draftOutput.value = '';
+            draftCreate.disabled = true;
+            draftStatus.textContent = '';
+            document.getElementById('draftJsonPanel').hidden = true;
+            document.getElementById('draftImageCount').hidden = draftForm.elements.back.value === '1';
+        }
+        document.getElementById('openNewDraft').onclick = () => draftDialog.showModal();
+        document.getElementById('closeNewDraft').onclick = () => draftDialog.close();
+        draftForm.addEventListener('input', invalidateDraft);
+        draftForm.addEventListener('submit', event => {
+            event.preventDefault();
+            invalidateDraft();
+            try {
+                const values = Object.fromEntries(new FormData(draftForm));
+                const draft = buildDesignerDraft(values, 'draft-' + crypto.randomUUID());
+                const json = JSON.stringify(draft, null, 2);
+                generatedDraft = normalizeImportedSet(JSON.parse(json));
+                draftOutput.value = json;
+                document.getElementById('draftJsonPanel').hidden = false;
+                draftCreate.disabled = false;
+            } catch (error) {
+                draftStatus.textContent = error.message;
+            }
+        });
+        document.getElementById('downloadDraftJson').onclick = () => {
+            if (!generatedDraft) return;
+            const url = URL.createObjectURL(new Blob([draftOutput.value], { type: 'application/json' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = generatedDraft.set_id + '.json';
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        };
+        draftCreate.onclick = () => {
+            if (!generatedDraft) return;
+            registerDesign(generatedDraft);
+            draftDialog.close();
+            draftForm.reset();
+            invalidateDraft();
+        };
+
+        function designPairs() {
+            return [calendarDataset.cover, ...calendarDataset.months, ...(calendarDataset.draft_layout ? [{ ...calendarDataset.cover, id: 'ending', month: 13, label: '뒷표지', title: calendarDataset.title }] : [])];
+        }
+
+        function renderDraftFace(item, backFace) {
+            const month = item.month;
+            const index = month === 0 ? 0 : month === 13 ? 26 : month * 2;
+            const page = calendarDataset.draft_layout.pages[index + Number(backFace)];
+            const year = 2027;
+            const box = 'min-h-0 rounded border border-stone-300 p-1';
+            const memo = `<div class="${box} grid content-start gap-2"><b>메모</b>${Array.from({length: 5}, () => '<div class="border-b border-stone-300"></div>').join('')}</div>`;
+            const grid = (m, tiny = false) => {
+                const offset = new Date(Date.UTC(year, m - 1, 1)).getUTCDay();
+                const count = new Date(Date.UTC(year, m, 0)).getUTCDate();
+                return `<div class="${box}"><b>${((m + 11) % 12) + 1}월</b><div class="grid grid-cols-7 text-center ${tiny ? 'text-[7px]' : 'text-[10px]'}">${[...'일월화수목금토'].map(d => '<b>' + d + '</b>').join('')}${Array.from({length: offset + count}, (_, i) => '<span>' + (i < offset ? '' : i - offset + 1) + '</span>').join('')}</div></div>`;
+            };
+            const imageFrames = (n, useArtwork = true) => `<div class="grid ${n > 1 ? 'grid-cols-2' : ''} gap-1 h-full">${Array.from({length:n},(_,i)=>`<div class="${box} grid place-content-center bg-stone-100">${i === 0 && useArtwork && illustrationSource(item.illustration_image) ? `<img class="w-full h-full object-contain" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">` : `이미지 ${i + 1}`}</div>`).join('')}</div>`;
+            const minis = () => `<div class="grid grid-cols-2 gap-1">${grid(month-1,true)}${grid(month+1,true)}</div>`;
+            let body, label;
+            switch (page.role) {
+                case 'cover':
+                case 'back-cover':
+                    label = page.role === 'cover' ? '표지' : '뒷표지';
+                    body = `<div class="h-full grid grid-rows-[auto_1fr] gap-2"><b class="text-base">${escapeHtml(item.title)}</b>${imageFrames(1)}</div>`;
+                    break;
+                case 'inside-front':
+                case 'inside-back':
+                    label = page.layout === 'annual' ? '연력' : '스케줄러';
+                    body = `<div class="grid grid-cols-4 gap-1">${Array.from({length:12},(_,i)=>page.layout==='annual'?grid(i+1,true):`<div class="${box}"><b>${i+1}월</b><div class="mt-2 border-b border-stone-300"></div><div class="mt-2 border-b border-stone-300"></div></div>`).join('')}</div>`;
+                    break;
+                case 'month-front':
+                    label = month + '월 월력 앞면';
+                    body = page.layout === '1' ? grid(month) : `<div class="grid grid-cols-3 gap-2 h-full"><div class="col-span-2">${grid(month)}</div><div class="grid gap-1 min-h-0">${memo}${page.layout === '3' ? imageFrames(1) : page.layout === '4' ? minis() : ''}</div></div>`;
+                    break;
+                case 'month-back':
+                    label = month + '월 월력 뒷면';
+                    body = page.layout === '2'
+                        ? `<div class="grid grid-rows-[2fr_1fr] gap-2 h-full">${imageFrames(page.image_count)}<div class="${box} flex flex-wrap gap-1 justify-between"><b>${month}월</b>${Array.from({length:new Date(Date.UTC(year,month,0)).getUTCDate()},(_,i)=>'<span>'+(i+1)+'</span>').join('')}</div></div>`
+                        : `<div class="grid grid-cols-3 gap-2 h-full"><div class="col-span-2">${imageFrames(page.image_count)}</div><div class="grid min-h-0 gap-1">${memo}${page.layout==='3'?minis():''}</div></div>`;
+                    break;
+            }
+            return `<div class="h-full bg-[#F5F1E8] text-ink p-3 text-[10px] grid grid-rows-[auto_minmax(0,1fr)] gap-2 overflow-auto"><header><b>${page.number}면 · ${label}</b>${item.concept_text ? '<p class="truncate">' + escapeHtml(item.concept_text) + '</p>' : ''}</header><div class="min-h-0">${body}</div></div>`;
+        }
+
         function escapeHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, char => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -589,6 +726,9 @@
 
         function loadActiveSet(idx) {
             calendarDataset = CALENDAR_SETS_REGISTRY[idx] || CALENDAR_SETS_REGISTRY[0];
+            currentDeskIndex = 0;
+            document.getElementById('btnFaceFront').textContent = calendarDataset.draft_layout ? '앞면' : '앞면 (아트)';
+            document.getElementById('btnFaceBack').textContent = calendarDataset.draft_layout ? '뒷면' : '뒷면 (달력)';
             
             // Header Info update
             document.getElementById('activeSetTitleDisplay').textContent = calendarDataset.title;
@@ -608,14 +748,11 @@
             populateSelectOptions();
             renderGridCards();
             renderDeskCard();
-            renderSpreadView(1);
+            renderSpreadView(calendarDataset.draft_layout ? 0 : 1);
         }
 
         function initCardStates() {
-            cardFlippedStates['cover'] = false;
-            calendarDataset.months.forEach(m => {
-                cardFlippedStates[m.id] = false;
-            });
+            cardFlippedStates = Object.fromEntries(designPairs().map(item => [item.id, currentGlobalFace === 'back']));
         }
 
         function populateSelectOptions() {
@@ -627,8 +764,9 @@
                 optionsHTML += `<option value="${m.month}">${m.month}월 (${escapeHtml(m.label)}) - ${escapeHtml(m.memo_title)}</option>`;
             });
 
+            if (calendarDataset.draft_layout) optionsHTML += '<option value="13">뒷표지</option>';
             deskSelect.innerHTML = optionsHTML;
-            spreadSelect.innerHTML = optionsHTML.replace('<option value="0">표지 (COVER)</option>', '');
+            spreadSelect.innerHTML = calendarDataset.draft_layout ? optionsHTML : optionsHTML.replace('<option value="0">표지 (COVER)</option>', '');
         }
 
         // --- 3. EXTENSIBLE SVG VISUAL GENERATOR ---
@@ -788,6 +926,7 @@
 
         // --- 4. RENDER FRONT CARD FACE ---
         function createFrontCardHTML(item) {
+            if (calendarDataset.draft_layout) return renderDraftFace(item, false);
             const isCover = item.month === 0;
             const paperBg = calendarDataset.global_style_lock.paper_bg || "#F5F1E8";
             const inkColor = calendarDataset.global_style_lock.ink_primary || "#23211E";
@@ -845,6 +984,7 @@
 
         // --- 5. ACCURATE 2027 CALENDAR MATRIX GENERATOR & BACK FACE ---
         function generate2027CalendarHTML(monthNum, accentColor, memoTitle) {
+            if (calendarDataset.draft_layout) return renderDraftFace(designPairs()[monthNum], true);
             const paperBg = calendarDataset.global_style_lock.paper_bg || "#F5F1E8";
             const inkColor = calendarDataset.global_style_lock.ink_primary || "#23211E";
 
@@ -981,7 +1121,7 @@
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '';
 
-            const allItems = [calendarDataset.cover, ...calendarDataset.months];
+            const allItems = designPairs();
             
             const filtered = allItems.filter(item => {
                 if (activeFilter === 'all') return true;
@@ -997,7 +1137,7 @@
 
             filtered.forEach(item => {
                 const cardId = item.id;
-                const isFlipped = cardFlippedStates[cardId] || (currentGlobalFace === 'back');
+                const isFlipped = cardFlippedStates[cardId] ?? (currentGlobalFace === 'back');
 
                 const cardHTML = `
                     <div class="flex flex-col space-y-2">
@@ -1014,7 +1154,7 @@
 
                         <div class="flex items-center justify-between text-xs px-1">
                             <span class="font-serif font-semibold text-amber-200">
-                                ${item.month === 0 ? '표지 (Cover)' : `${item.month}월 ${escapeHtml(item.label)}`}
+                                ${item.month === 13 ? '뒷표지' : item.month === 0 ? '표지 (Cover)' : `${item.month}월 ${escapeHtml(item.label)}`}
                             </span>
                             <div class="flex items-center gap-2">
                                 <button onclick="toggleCardFlip('${cardId}')" class="text-gray-400 hover:text-amber-300 text-[11px] font-mono">
@@ -1046,7 +1186,7 @@
 
         function setGlobalFace(face) {
             currentGlobalFace = face;
-            const allItems = [calendarDataset.cover, ...calendarDataset.months];
+            const allItems = designPairs();
             allItems.forEach(item => {
                 cardFlippedStates[item.id] = (face === 'back');
             });
@@ -1066,7 +1206,7 @@
 
         // --- 7. DESK MOCKUP VIEW LOGIC ---
         function renderDeskCard() {
-            const allItems = [calendarDataset.cover, ...calendarDataset.months];
+            const allItems = designPairs();
             const item = allItems[currentDeskIndex] || allItems[0];
 
             const frontEl = document.getElementById('deskCardFront');
@@ -1089,25 +1229,25 @@
         }
 
         function prevDeskMonth() {
-            currentDeskIndex = (currentDeskIndex - 1 + 13) % 13;
+            currentDeskIndex = (currentDeskIndex - 1 + designPairs().length) % designPairs().length;
             renderDeskCard();
         }
 
         function nextDeskMonth() {
-            currentDeskIndex = (currentDeskIndex + 1) % 13;
+            currentDeskIndex = (currentDeskIndex + 1) % designPairs().length;
             renderDeskCard();
         }
 
         // --- 8. SPREAD VIEW LOGIC ---
         function renderSpreadView(monthNum) {
             const mIndex = parseInt(monthNum, 10);
-            const item = calendarDataset.months[mIndex - 1] || calendarDataset.months[0];
+            const item = calendarDataset.draft_layout ? designPairs()[mIndex] || calendarDataset.months[0] : calendarDataset.months[mIndex - 1] || calendarDataset.months[0];
             const container = document.getElementById('spreadContainer');
 
             container.innerHTML = `
                 <div class="space-y-2">
                     <div class="flex items-center justify-between text-xs text-amber-200">
-                        <span class="font-serif font-bold">앞면 (FRONT VISUAL)</span>
+                        <span class="font-serif font-bold">${calendarDataset.draft_layout ? '앞면' : '앞면 (FRONT VISUAL)'}</span>
                         <span class="font-mono text-[10px] text-gray-400">${escapeHtml(item.label)} / ${escapeHtml(item.accentName)} (${item.accent})</span>
                     </div>
                     <div class="w-full aspect-[4/3] rounded-xl overflow-hidden calendar-shadow border border-stone-300">
@@ -1117,7 +1257,7 @@
 
                 <div class="space-y-2">
                     <div class="flex items-center justify-between text-xs text-amber-200">
-                        <span class="font-serif font-bold">뒷면 (BACK 2027 CALENDAR GRID)</span>
+                        <span class="font-serif font-bold">${calendarDataset.draft_layout ? '뒷면' : '뒷면 (BACK 2027 CALENDAR GRID)'}</span>
                         <span class="font-mono text-[10px] text-gray-400">${escapeHtml(item.memo_title)}</span>
                     </div>
                     <div class="w-full aspect-[4/3] rounded-xl overflow-hidden calendar-shadow border border-stone-300">
@@ -1176,14 +1316,14 @@
 
         // --- 10. SPEC INSPECTOR & NEW JSON IMPORT MODALS ---
         function openSpecModal(cardId = 'cover') {
-            const allItems = [calendarDataset.cover, ...calendarDataset.months];
+            const allItems = designPairs();
             const item = allItems.find(i => i.id === cardId) || calendarDataset.cover;
 
             const modal = document.getElementById('specModal');
             const titleEl = document.getElementById('modalTitle');
             const bodyEl = document.getElementById('modalBody');
 
-            titleEl.textContent = `설계 스펙 & AI 프롬프트 Inspector: ${calendarDataset.title} [${item.month === 0 ? '표지' : `${item.month}월`}]`;
+            titleEl.textContent = `설계 스펙 & AI 프롬프트 Inspector: ${calendarDataset.title} [${item.month === 13 ? '뒷표지' : item.month === 0 ? '표지' : `${item.month}월`}]`;
 
             bodyEl.innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-zinc-950 border border-zinc-800">
@@ -1365,6 +1505,17 @@
                 svgType: typeof page.svgType === "string" ? page.svgType : undefined,
                 photo_slots: Number.isInteger(page.photo_slots) && page.photo_slots >= 0 && page.photo_slots <= 12 ? page.photo_slots : 0
             });
+            if (set.draft_layout !== undefined) {
+                const layout = set.draft_layout;
+                if (!isRecord(layout) || months.length !== 12) throw new Error('28면 시안 구성을 확인해 주세요.');
+                const expected = buildDesignerDraft({ title: set.title, description: '',
+                    insideFront: layout.inside_front, insideBack: layout.inside_back,
+                    front: layout.month_front, back: layout.month_back, imageCount: layout.image_count
+                }, set.set_id).draft_layout;
+                const validPages = Array.isArray(layout.pages) && layout.pages.length === 28 &&
+                    expected.pages.every((page, index) => Object.entries(page).every(([key, value]) => layout.pages[index]?.[key] === value));
+                if (layout.page_count !== 28 || !validPages) throw new Error('28면의 순서와 구성을 확인해 주세요.');
+            }
             const style = isRecord(set.global_style_lock) ? set.global_style_lock : {};
             const monthNames = 'JANUARY FEBRUARY MARCH APRIL MAY JUNE JULY AUGUST SEPTEMBER OCTOBER NOVEMBER DECEMBER'.split(' ');
             return {
@@ -1392,20 +1543,24 @@
             try {
                 const parsed = normalizeImportedSet(JSON.parse(rawText));
 
-                const savedIndex = CALENDAR_SETS_REGISTRY.findIndex((set, index) =>
-                    index >= builtInCount && set.set_id === parsed.set_id
-                );
-                const newIdx = savedIndex === -1 ? CALENDAR_SETS_REGISTRY.length : savedIndex;
-                CALENDAR_SETS_REGISTRY[newIdx] = parsed;
-                populateTemplateSetSelector();
-                document.getElementById('templateSetSelect').value = newIdx;
-                switchTemplateSet(newIdx);
+                registerDesign(parsed);
                 closeImportModal();
-                if (!requestDesignerStorage('save', parsed)) {
-                    showToast('시안을 불러왔습니다. 자동 저장은 템플릿 에디터에서 사용할 수 있습니다.');
-                }
             } catch (err) {
                 alert('JSON 시안을 불러올 수 없습니다. ' + err.message);
+            }
+        }
+
+        function registerDesign(parsed) {
+            const savedIndex = CALENDAR_SETS_REGISTRY.findIndex((set, index) =>
+                index >= builtInCount && set.set_id === parsed.set_id
+            );
+            const newIdx = savedIndex === -1 ? CALENDAR_SETS_REGISTRY.length : savedIndex;
+            CALENDAR_SETS_REGISTRY[newIdx] = parsed;
+            populateTemplateSetSelector();
+            document.getElementById('templateSetSelect').value = newIdx;
+            switchTemplateSet(newIdx);
+            if (!requestDesignerStorage('save', parsed)) {
+                showToast('시안을 불러왔습니다. 자동 저장은 템플릿 에디터에서 사용할 수 있습니다.');
             }
         }
 
