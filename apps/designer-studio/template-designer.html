@@ -142,6 +142,9 @@
 .year-layout-tiles .cover-year-glyphs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1cqw;letter-spacing:0}
 .year-layout-tiles .cover-year-glyphs span{border:1px solid color-mix(in srgb,currentColor 25%,transparent);padding:.08em 0;font-size:29cqw}
 .cover-year-crop{padding-inline:0!important}
+.year-layout-megaTiles .cover-year-glyphs{display:grid;width:min(100%,77cqw);height:100%;justify-self:center;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));align-items:stretch;letter-spacing:0;font-size:40cqw;line-height:.83}
+.year-layout-megaTiles .cover-year-glyphs span{display:grid;place-items:center;min-height:0}
+.year-layout-megaTiles.year-fill-outline .cover-year-glyphs span,.year-layout-megaTiles.year-fill-mixed .cover-year-glyphs span:first-child,.year-layout-megaTiles.year-fill-photo .cover-year-glyphs span{-webkit-text-stroke:1cqw var(--year-ink)}
 .year-layout-crop .cover-year-glyphs{font-size:45cqw;letter-spacing:-.105em}
 .year-layout-label{align-self:center;justify-self:center;border:1px solid currentColor;border-radius:.25rem;padding:3cqw;grid-template-rows:auto auto;gap:1cqw}
 .year-layout-label .cover-year-glyphs{font-size:14cqw}
@@ -694,10 +697,11 @@
         };
         const coverBackgrounds = { plain:'단색', band:'색 띠·색면', geometry:'기하 도형', pattern:'반복 패턴', theme:'테마 장식', texture:'질감·빛' };
         const coverTitleStyles = { editorial:'제목 중심', year:'연도 강조', stacked:'제목·연도 두 줄' };
-        const yearLayouts = {wide:'초대형 연도', split:'두 줄 연도', tiles:'숫자 네 칸', crop:'가장자리에서 잘리는 연도', label:'중앙 라벨'};
+        const yearLayouts = {wide:'초대형 연도', split:'두 줄 연도', tiles:'숫자 네 칸', megaTiles:'초대형 숫자 네 칸', crop:'가장자리에서 잘리는 연도', label:'중앙 라벨'};
         const yearFills = {solid:'굵은 채움', outline:'윤곽선', mixed:'채움과 윤곽 혼합', photo:'숫자 안에 사진'};
         const yearPresets = [['wide','solid'],['split','mixed'],['tiles','solid'],['crop','outline'],
-            ['label','solid'],['wide','photo'],['tiles','photo']];
+            ['label','solid'],['wide','photo'],['tiles','photo'],['megaTiles','outline'],['megaTiles','photo']];
+        const usesDigitTiles = layout => layout === 'tiles' || layout === 'megaTiles';
         function recommendCover(values, variation = 0) {
             const brief = [values.title, values.description, values.direction].filter(Boolean).join(' ');
             const child = /어린이|성장|유아|놀이|키즈|발랄|경쾌/.test(brief);
@@ -747,7 +751,7 @@
                 pick(type === 'type' ? ['year','stacked','editorial'] : type === 'split' ? ['stacked','editorial','year'] : ['editorial','stacked','year']);
             const [yearLayout,yearFill] = yearPresets[variation % yearPresets.length];
             return {type,layout,photos,background,paper,ink,accent,serif,titleStyle,
-                ...(type === 'type' ? {yearLayout,yearFill,yearPhotoMode:yearLayout === 'tiles' ? 'digits' : 'single'} : {}),
+                ...(type === 'type' ? {yearLayout,yearFill,yearPhotoMode:usesDigitTiles(yearLayout) ? 'digits' : 'single'} : {}),
                 reason: type === 'multi' ? '여러 장면을 한 면에 모아 주제의 흐름을 보여줍니다.'
                     : type === 'full' ? '대표 장면을 표지 전체로 펼쳐 첫인상을 만듭니다.'
                     : type === 'illustration' ? '사진 없이 도형과 장식으로 주제를 표현합니다.'
@@ -792,8 +796,8 @@
             const title = String(cover.title ?? '').trim();
             const includesYear = title.includes(year);
             const caption = layout === 'label' ? title : title.replace(/\b2027\b/g,'').trim();
-            const parts = layout === 'tiles' ? [...year] : [year.slice(0,2),year.slice(2)];
-            const digits = fill === 'photo' && layout === 'tiles' && design.yearPhotoMode === 'digits';
+            const parts = usesDigitTiles(layout) ? [...year] : [year.slice(0,2),year.slice(2)];
+            const digits = fill === 'photo' && usesDigitTiles(layout) && design.yearPhotoMode === 'digits';
             const imageStyle = index => {
                 const {src,x,y,zoom} = yearPhoto(cover,index);
                 return src ? `background-image:url(${escapeHtml(src)});background-position:${x}% ${y}%;background-size:${zoom === 100 ? 'cover' : zoom+'% auto'}` : '';
@@ -1110,7 +1114,7 @@
                 ${Object.entries(options).map(([key,name]) => `<option value="${key}" ${key===value?'selected':''}>${name}</option>`).join('')}
             </select></label>`;
             const photo = design.yearFill === 'photo';
-            const tiles = design.yearLayout === 'tiles';
+            const tiles = usesDigitTiles(design.yearLayout);
             const digits = tiles && design.yearPhotoMode === 'digits';
             return `<div class="mt-3 grid gap-2 rounded border border-zinc-600 p-3">
                 ${select('yearLayout','연도 배치',yearLayouts,design.yearLayout || 'label')}
@@ -1133,6 +1137,10 @@
             cover.cover_design = {yearLayout:'label',yearFill:'solid',...cover.cover_design};
             if (field.dataset.yearOption) {
                 cover.cover_design[field.dataset.yearOption] = field.value;
+                if (field.dataset.yearOption === 'yearLayout' && field.value === 'megaTiles') {
+                    cover.cover_design.yearPhotoMode = 'digits';
+                    if (cover.cover_design.yearFill !== 'photo') cover.cover_design.yearFill = 'outline';
+                }
                 return true;
             }
             const index = Number(field.dataset.yearIndex ?? field.dataset.yearUpload);
@@ -1159,7 +1167,7 @@
         function renderCoverReview(cover) {
             const design = cover.cover_design;
             return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderRecommendedCover(cover,design)}</div>
-                <p class="mt-2 font-semibold">${coverTypes[design.type]} · ${coverLayouts[design.layout][0]} · ${design.type === 'type' && design.yearFill === 'photo' ? (design.yearLayout === 'tiles' && design.yearPhotoMode === 'digits' ? '숫자 프레임 4개' : '연도 사진 프레임 1개') : '사진 '+design.photos+'컷'}</p>
+                <p class="mt-2 font-semibold">${coverTypes[design.type]} · ${coverLayouts[design.layout][0]} · ${design.type === 'type' && design.yearFill === 'photo' ? (usesDigitTiles(design.yearLayout) && design.yearPhotoMode === 'digits' ? '숫자 프레임 4개' : '연도 사진 프레임 1개') : '사진 '+design.photos+'컷'}</p>
                 <p>${coverBackgrounds[design.background]} · ${coverTitleStyles[design.titleStyle] || coverTitleStyles.editorial} · ${design.serif ? '명조 계열' : '고딕 계열'} · ${design.reason}</p>
                 ${coverYearControls(cover)}
                 <p id="coverChange" class="mt-1 text-gray-300" role="status"></p>
