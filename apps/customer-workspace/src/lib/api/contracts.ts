@@ -34,6 +34,7 @@ export type CatalogResponse = {
   mode: 'review' | 'published';
   notice: string;
   templates: TemplateCard[];
+  paperPairs?: [TemplateCard, TemplateCard][];
 };
 // Input values and explicit visibility are distinct. Neither is a rendered page.
 export type SchoolInput = {values: Record<string, string>; hidden: string[]; cleared?:string[]; omitEmptyContacts?: boolean; calendarDisplay?: {includeHolidays:boolean;includeAnniversaries:boolean;includeSolarTerms:boolean;includeLunar:boolean}};
