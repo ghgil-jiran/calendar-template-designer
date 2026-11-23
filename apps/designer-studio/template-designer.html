@@ -181,9 +181,11 @@
 <label class="grid gap-1">월력 앞면 구성<select name="front" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 월력</option><option value="2">기본 2 · 월력 + 메모</option><option value="3">기본 3 · 월력 + 메모 + 이미지</option><option value="4">기본 4 · 월력 + 메모 + 미니 월력</option></select></label>
 <label class="grid gap-1">월력 뒷면 구성<select name="back" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 왼쪽 이미지 1장 + 메모</option><option value="2">기본 2 · 상단 이미지 + 하단 띠 월력</option><option value="3">기본 3 · 왼쪽 이미지 + 메모 + 미니 월력</option></select></label>
 <label id="draftImageCount" hidden>뒷면 이미지 수 <select name="imageCount" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
-<p id="draftStatus" role="status" class="text-sm text-amber-200"></p>
+
+
+<div class="flex gap-2 flex-wrap"><button type="button" id="generateDraft" class="rounded border border-amber-600 px-3 py-2 disabled:opacity-40">JSON 파일 생성 및 보기</button><button type="button" id="createDraft" disabled class="rounded bg-amber-800 px-3 py-2 disabled:opacity-40">생성하기</button></div>
+<div><progress id="draftProgress" max="100" value="0" aria-label="JSON 생성 진행 상태" hidden class="w-full"></progress><p id="draftStatus" role="status" class="text-sm text-amber-200"></p></div>
 <section id="draftJsonPanel" hidden><label class="grid gap-1">생성된 JSON<textarea id="draftJson" readonly rows="8" class="rounded bg-zinc-900 border border-zinc-600 p-2 font-mono text-xs"></textarea></label><button type="button" id="downloadDraftJson" class="mt-2 rounded border border-zinc-600 px-3 py-1">JSON 다운로드</button></section>
-<div class="flex gap-2 flex-wrap"><button type="submit" class="rounded border border-amber-600 px-3 py-2">JSON 파일 생성 및 보기</button><button type="button" id="createDraft" disabled class="rounded bg-amber-800 px-3 py-2 disabled:opacity-40">생성하기</button></div>
 </form>
 </dialog>
 
@@ -615,9 +617,16 @@
         const draftOutput = document.getElementById('draftJson');
         const draftCreate = document.getElementById('createDraft');
         const draftStatus = document.getElementById('draftStatus');
+        const draftProgress = document.getElementById('draftProgress');
+        const generateDraft = document.getElementById('generateDraft');
         let generatedDraft = null;
+        let draftRevision = 0;
         function invalidateDraft() {
+            draftRevision++;
             generatedDraft = null;
+            generateDraft.disabled = false;
+            draftProgress.hidden = true;
+            draftProgress.value = 0;
             draftOutput.value = '';
             draftCreate.disabled = true;
             draftStatus.textContent = '';
@@ -627,21 +636,46 @@
         document.getElementById('openNewDraft').onclick = () => draftDialog.showModal();
         document.getElementById('closeNewDraft').onclick = () => draftDialog.close();
         draftForm.addEventListener('input', invalidateDraft);
-        draftForm.addEventListener('submit', event => {
-            event.preventDefault();
+        draftForm.addEventListener('keydown', event => {
+            if (event.key === 'Enter' && !event.isComposing && event.target.name === 'title') {
+                event.preventDefault();
+                generateDraft.click();
+            }
+        });
+        generateDraft.onclick = async () => {
             invalidateDraft();
+            if (!draftForm.reportValidity()) {
+                draftStatus.textContent = '콘셉트/테마 제목을 입력해 주세요.';
+                return;
+            }
+            const revision = draftRevision;
+            generateDraft.disabled = true;
+            draftProgress.hidden = false;
+            draftProgress.value = 25;
+            draftStatus.textContent = '28면 구성으로 JSON을 생성하고 있습니다.';
+            // Allow the sandboxed viewer to paint progress before generating the draft.
+            await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            if (revision !== draftRevision) return;
             try {
                 const values = Object.fromEntries(new FormData(draftForm));
-                const draft = buildDesignerDraft(values, 'draft-' + crypto.randomUUID());
+                const random = crypto.getRandomValues(new Uint8Array(16));
+                const id = 'draft-' + Array.from(random, byte => byte.toString(16).padStart(2, '0')).join('');
+                const draft = buildDesignerDraft(values, id);
                 const json = JSON.stringify(draft, null, 2);
                 generatedDraft = normalizeImportedSet(JSON.parse(json));
                 draftOutput.value = json;
                 document.getElementById('draftJsonPanel').hidden = false;
                 draftCreate.disabled = false;
+                draftProgress.value = 100;
+                draftStatus.textContent = 'JSON 생성 완료 · 28면 검증을 통과했습니다.';
+                draftStatus.scrollIntoView({ block: 'nearest' });
             } catch (error) {
-                draftStatus.textContent = error.message;
+                draftProgress.hidden = true;
+                draftStatus.textContent = 'JSON을 생성하지 못했습니다. ' + error.message;
+            } finally {
+                generateDraft.disabled = false;
             }
-        });
+        };
         document.getElementById('downloadDraftJson').onclick = () => {
             if (!generatedDraft) return;
             const url = URL.createObjectURL(new Blob([draftOutput.value], { type: 'application/json' }));
