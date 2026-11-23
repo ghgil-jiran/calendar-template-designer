@@ -78,7 +78,19 @@ document.querySelectorAll('.production-review-nav').forEach(link=>link.addEventL
       !auth?.isSignedIn() || data?.channel !== 'template-designer-storage') return;
 
   const reply = payload => source.postMessage({ channel: data.channel, ...payload }, '*');
-  if (data.action === 'load') {
+  if (data.action === 'generate-copy') {
+   const {requestId} = data;
+   try {
+    const response = await auth.authorizedFetch('/api/template-design-copy',{
+     method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data.input)
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.details?.message || result.error?.message || 'AI 문구를 생성하지 못했습니다.');
+    reply({action:'copy-result',requestId,copy:result.copy});
+   } catch (error) {
+    reply({action:'copy-result',requestId,error:error.message || 'AI 문구를 생성하지 못했습니다.'});
+   }
+  } else if (data.action === 'load') {
    try {
     let migrationFailed = false;
     try { await migrateBrowserDesigns(); } catch { migrationFailed = true; }

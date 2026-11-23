@@ -86,6 +86,9 @@
     "api/calendar-reference.js": {
       "maxDuration": 60
     },
+    "api/template-design-copy.js": {
+      "maxDuration": 60
+    },
     "api/ai-design-generate.js": {
       "maxDuration": 180
     },
