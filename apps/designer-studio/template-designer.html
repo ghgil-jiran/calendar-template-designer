@@ -830,52 +830,26 @@
         function composeNumericDigits(year) {
             const { width, artworkHeight } = numericCanvas;
             const digits = String(year).split('');
-            const columns = Math.random() < 0.33;
-            const balanced = Math.random() < 0.28;
-            const alignment = balanced ? 0.5 : Math.random();
-            const emphasis = balanced ? -1 : Math.floor(Math.random() * digits.length);
-            const gap = 9 + Math.random() * 13;
-            const slant = balanced ? 0 : (Math.random() - 0.5) * 52;
-            const lines = [[]];
-            for (const [index, digit] of digits.entries()) {
-                if (index && Math.random() < 0.36) lines.push([]);
-                const height = index === emphasis ? 150 + Math.random() * 48
-                    : balanced ? 100 : 69 + Math.random() * 54;
-                const width = height * (balanced ? 0.94 : 0.76 + Math.random() * 0.35);
-                lines.at(-1).push({ digit, width, height, fill: index });
-            }
+            const stacked = Math.random() < 0.4;
+            const columns = stacked ? Math.ceil(digits.length / 2) : digits.length;
+            const rows = Math.ceil(digits.length / columns);
+            const glyphWidth = 84;
+            const glyphHeight = 100;
+            const gap = 12;
+            const rowGap = 8;
+            const blockWidth = columns * glyphWidth + (columns - 1) * gap;
+            const blockHeight = rows * glyphHeight + (rows - 1) * rowGap;
+            const scale = Math.min(width * 0.92 / blockWidth, artworkHeight * 0.98 / blockHeight)
+                * (0.72 + Math.random() * 0.28);
+            const align = [0.12, 0.5, 0.88][Math.floor(Math.random() * 3)];
+            const left = (width - blockWidth * scale) * align;
+            const top = (artworkHeight - blockHeight * scale) * (0.15 + Math.random() * 0.7);
 
-            const main = columns ? 'height' : 'width';
-            const cross = columns ? 'width' : 'height';
-            const lineSizes = lines.map(line => line.reduce((sum, digit) => sum + digit[main], gap * (line.length - 1)));
-            const mainSize = Math.max(...lineSizes);
-            let lineOffset = 0;
-            const placed = lines.flatMap((line, lineIndex) => {
-                const depth = Math.max(...line.map(digit => digit[cross]));
-                let offset = (mainSize - lineSizes[lineIndex]) * alignment;
-                const result = line.map((digit, index) => {
-                    const drift = slant * (index / Math.max(1, line.length - 1) - 0.5);
-                    const crossPosition = lineOffset + (depth - digit[cross]) * alignment + drift;
-                    const positioned = { ...digit, x: columns ? crossPosition : offset, y: columns ? offset : crossPosition };
-                    offset += digit[main] + gap;
-                    return positioned;
-                });
-                lineOffset += depth + gap + Math.abs(slant);
-                return result;
-            });
-
-            const left = Math.min(...placed.map(digit => digit.x));
-            const top = Math.min(...placed.map(digit => digit.y));
-            const spanX = Math.max(...placed.map(digit => digit.x + digit.width)) - left;
-            const spanY = Math.max(...placed.map(digit => digit.y + digit.height)) - top;
-            const coverage = balanced ? 0.8 : 0.67 + Math.random() * 0.28;
-            const scale = Math.min(width * coverage / spanX, artworkHeight * (0.25 + coverage * 0.75) / spanY);
-            const insetX = (width - spanX * scale) * (0.12 + alignment * 0.76);
-            const insetY = (artworkHeight - spanY * scale) * (balanced ? 0.5 : 0.2 + Math.random() * 0.65);
-            return placed.map(digit => ({
-                ...digit, x: Math.round(insetX + (digit.x - left) * scale),
-                y: Math.round(insetY + (digit.y - top) * scale),
-                width: Math.round(digit.width * scale), height: Math.round(digit.height * scale)
+            return digits.map((digit, index) => ({
+                digit, fill: index,
+                x: Math.round(left + (index % columns) * (glyphWidth + gap) * scale),
+                y: Math.round(top + Math.floor(index / columns) * (glyphHeight + rowGap) * scale),
+                width: Math.round(glyphWidth * scale), height: Math.round(glyphHeight * scale)
             }));
         }
 
@@ -896,7 +870,7 @@
                     best = candidate;
                     separation = nearest;
                 }
-                if (nearest >= 42) break;
+                if (nearest >= 14) break;
             }
             const warm = [['#FFF4E4','#512F2C','#A33E2A','#75471B'], ['#FCEBDC','#5B263E','#944233','#4C5033']];
             const cool = [['#F1F4FF','#162B55','#3349A5','#285D54'], ['#EAF4ED','#123F3A','#35549A','#785227']];
@@ -909,8 +883,8 @@
                 : /도형\s*배경/.test(text) ? 'geometry' : null;
             const background = backgroundOf(direction) ?? backgroundOf(brief) ?? pick(['plain','band','geometry','texture']);
             const colorModeOf = text => /단색/.test(text) ? 0 : /숫자별/.test(text) ? 2 : null;
-            const colorMode = colorModeOf(direction) ?? colorModeOf(brief) ?? pick([0,1,2]);
-            const stroke = 12 + Math.floor(Math.random() * 10);
+            const colorMode = colorModeOf(direction) ?? colorModeOf(brief) ?? pick([0,0,1]);
+            const stroke = pick([16, 20]);
             const round = Math.random() < 0.5;
             const digits = best.map(({ fill, ...digit }) => ({
                 ...digit,
