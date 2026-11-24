@@ -154,6 +154,29 @@
 .year-fill-photo .has-year-image{background-repeat:no-repeat;background-clip:text;-webkit-background-clip:text}
 .year-fill-photo .has-year-image,.year-fill-photo .has-year-image span{color:transparent}
 </style>
+<style>
+.habit-page{height:100%;width:100%;container-type:inline-size}
+.habit-face{height:100%;width:100%;background:var(--habit-paper,#f7f5ec);color:var(--habit-ink,#274638);padding:4cqw;font:500 3cqw/1.25 system-ui,sans-serif;overflow:hidden}
+.habit-cover{display:grid;grid-template-rows:auto 1fr auto;gap:3cqw}
+.habit-cover h2{font-size:9cqw;font-weight:800;letter-spacing:-.055em}
+.habit-cover small{justify-self:end}.habit-band{border-left:3cqw solid currentColor}
+.habit-note .habit-marks span:nth-child(3n){border-style:dashed;transform:rotate(-6deg)}
+.habit-marks{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1cqw;align-content:center}
+.habit-cover .habit-marks{grid-template-columns:repeat(8,minmax(0,1fr))}
+.habit-marks span{height:8cqw;border:1px solid #7b8c8055;border-radius:1cqw;display:grid;place-items:center;font-size:5cqw;font-weight:800}
+.habit-front{display:grid;grid-template-columns:1.15fr 1fr;gap:4cqw}
+.habit-front h2,.habit-tracker h2{font-size:7cqw;font-weight:800}
+.habit-front p{font-size:5cqw;font-weight:750;margin-block:2cqw 3cqw}
+.habit-front small{display:block;margin-top:3cqw}.habit-write-line{height:5cqw;border-bottom:1px solid currentColor}
+.habit-calendar{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:2cqw .35cqw;margin-top:4cqw}
+.habit-tracker{padding:3cqw;display:grid;grid-template-rows:auto minmax(0,1fr);gap:3cqw}
+.habit-tracker header{display:flex;justify-content:space-between;align-items:end;gap:2cqw}
+.habit-tracker table{table-layout:fixed;border-collapse:collapse;width:100%;height:100%;font-size:1.8cqw}
+.habit-tracker .habit-label-col{width:17%}
+.habit-tracker th,.habit-tracker td{border:1px solid #46605245;text-align:center;padding:0}
+.habit-tracker th[scope=row]{text-align:left;padding:.3cqw;overflow-wrap:anywhere}
+.habit-tracker td span{display:inline-block;width:58%;aspect-ratio:1;border:1px solid #46605295;border-radius:.2cqw}
+</style>
 </head>
 <body class="bg-studio text-gray-200 font-sans min-h-screen flex flex-col antialiased selection:bg-amber-800 selection:text-white">
 
@@ -235,7 +258,7 @@
 <form id="newDraftForm" class="draft-form">
 <div class="draft-form-heading"><h2 id="newDraftHeading" class="draft-form-title">새 시안 만들기</h2><button type="button" id="closeNewDraft" class="draft-close">닫기</button></div>
 <p id="draftEditHint" hidden class="text-sm text-gray-300"></p>
-<fieldset><legend>테마와 문구</legend><label>테마 프리셋<select name="preset"><option value="">직접 설정</option><option value="numbers">숫자로 표현하는 디자인 달력</option></select></label><label>콘셉트/테마 제목<input name="title" required maxlength="120" class="rounded bg-zinc-900 border border-zinc-600 p-2"></label>
+<fieldset><legend>테마와 문구</legend><label>테마 프리셋<select name="preset"><option value="">직접 설정</option><option value="numbers">숫자로 표현하는 디자인 달력</option><option value="habits">하루하루 체크하기</option></select></label><label>콘셉트/테마 제목<input name="title" required maxlength="120" class="rounded bg-zinc-900 border border-zinc-600 p-2"></label>
 <label class="grid gap-1">설명<textarea name="description" maxlength="600" rows="3" class="rounded bg-zinc-900 border border-zinc-600 p-2"></textarea></label>
 <label class="grid gap-1">문구 언어<select name="language" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="auto">테마에 맞게 선택</option><option value="ko">한국어</option><option value="en">English</option></select></label>
 </fieldset><fieldset class="draft-two"><legend>표지</legend><label class="draft-wide">표지 부제 <input name="coverSubtitle" maxlength="60" class="rounded bg-zinc-900 border border-zinc-600 p-2" placeholder="선택 사항"></label>
@@ -243,7 +266,7 @@
 <label class="grid gap-1">표지 사진 수<select name="coverCount" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="">자동</option><option value="0">0컷</option><option value="1">1컷</option><option value="2">2컷</option><option value="3">3컷</option><option value="4">4컷</option><option value="8">8컷</option></select></label>
 <p id="draftCoverCountHint" class="draft-wide draft-note"></p></fieldset><fieldset class="draft-two"><legend>안쪽 면 <small>28면 구성</small></legend><label class="grid gap-1">2면 · 표지 뒷면<select name="insideFront" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="annual">연력</option><option value="scheduler">스케줄러</option></select></label><label class="grid gap-1">27면 · 뒷표지 앞면<select name="insideBack" disabled class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="annual">연력</option><option value="scheduler">스케줄러</option></select></label><p class="draft-wide draft-note">2면을 선택하면 27면에 나머지 구성이 자동으로 배치됩니다.</p></fieldset>
 <fieldset class="draft-two"><legend>월별 페이지</legend><label>월력 앞면 구성<select name="front" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 월력</option><option value="2">기본 2 · 월력 + 메모</option><option value="3">기본 3 · 월력 + 메모 + 이미지</option><option value="4">기본 4 · 월력 + 메모 + 미니 월력</option><option value="5">숫자 중심</option></select></label>
-<label class="grid gap-1">월력 뒷면 구성<select name="back" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 왼쪽 이미지 1장 + 메모</option><option value="2">기본 2 · 상단 이미지 + 하단 띠 월력</option><option value="3">기본 3 · 왼쪽 이미지 + 메모 + 미니 월력</option><option value="4">숫자 중심 + 일 메모</option></select></label>
+<label class="grid gap-1">월력 뒷면 구성<select name="back" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 왼쪽 이미지 1장 + 메모</option><option value="2">기본 2 · 상단 이미지 + 하단 띠 월력</option><option value="3">기본 3 · 왼쪽 이미지 + 메모 + 미니 월력</option><option value="4">숫자 중심 + 일 메모</option><option value="5">일일 기록표 · 체크와 직접 쓰기</option></select></label>
 <label>뒷면 이미지 수 <select name="imageCount"><option value="0" hidden>이미지 없음</option><option value="1">1장</option><option value="2">2장</option><option value="3">3장</option><option value="4">4장</option></select></label>
 <label>월별 적용 방식<select name="imageCountMode"><option value="fixed">선택한 수로 고정</option><option value="random-plus">선택한 수 이상으로 섞기</option></select></label>
 <p id="draftImageCountHint" class="draft-wide draft-note"></p></fieldset><fieldset><legend>뒷표지</legend><label>뒷표지 구성<select name="backCover"><option value="">기본</option><option value="numbers">숫자 중심 · 연도와 12개월 미니월력</option></select></label></fieldset>
@@ -900,11 +923,11 @@
         function buildDesignerDraft(values, id) {
             const title = values.title.trim(), description = values.description.trim();
             const { insideFront, insideBack, front, back } = values;
-            const imageCount = back === '4' ? 0 : back === '1' ? 1 : Number(values.imageCount);
+            const imageCount = ['4','5'].includes(back) ? 0 : back === '1' ? 1 : Number(values.imageCount);
             const imageCountMode = imageCount > 0 && back !== '1' && imageCount < 4 && values.imageCountMode === 'random-plus' ? 'random-plus' : 'fixed';
             if (!title || !['annual','scheduler'].includes(insideFront) || !['annual','scheduler'].includes(insideBack)
-                || !['1','2','3','4','5'].includes(front) || !['1','2','3','4'].includes(back)
-                || !Number.isInteger(imageCount) || imageCount < (back === '4' ? 0 : 1) || imageCount > 4) {
+                || !['1','2','3','4','5'].includes(front) || !['1','2','3','4','5'].includes(back)
+                || !Number.isInteger(imageCount) || imageCount < (['4','5'].includes(back) ? 0 : 1) || imageCount > 4) {
                 throw new Error('제목과 면 구성을 확인해 주세요.');
             }
             const imageCounts = Array.from({length:12}, (_,index) => imageCountMode === 'random-plus' ? imageCount + index % (5-imageCount) : imageCount);
@@ -938,7 +961,8 @@
                     { number: month * 2 + 2, role: 'month-back', month, layout: back, theme_area: backThemeAreas[Number(back) - 1], image_count: imageCounts[month-1] }
                 ]),
                 { number: 27, role: 'inside-back', layout: insideBack }, { number: 28, role: 'back-cover', ...(values.backCover === 'numbers' ? {layout:'numbers'} : {}) }];
-            return { set_id: id, title, design_preset: values.preset === 'numbers' ? 'numbers' : undefined, back_cover: {title}, description, subtitle: description, target_type: '탁상달력 · 28면',
+            return { set_id: id, title, design_preset: ['numbers','habits'].includes(values.preset) ? values.preset : undefined,
+                ...(back === '5' ? {habit_rows:normalizeHabitRows(values.habitRows)} : {}), back_cover: {title}, description, subtitle: description, target_type: '탁상달력 · 28면',
                 global_style_lock: { paper_bg: '#F5F1E8', ink_primary: '#23211E' }, cover, months,
                 draft_layout: { page_count: 28, inside_front: insideFront, inside_back: insideBack, month_front: front, month_back: back, image_count: imageCount, image_count_mode: imageCountMode, pages } };
         }
@@ -980,13 +1004,13 @@
             else if (coverCount.selectedOptions[0]?.disabled) coverCount.value = '';
             document.getElementById('draftCoverCountHint').textContent = fixedCover ? '표지 구성에 맞춰 사진 수가 자동으로 정해집니다.' : '';
             insideBack.value = insideFront.value === 'annual' ? 'scheduler' : 'annual';
-            imageCount.disabled = ['1','4'].includes(back.value);
-            if (imageCount.disabled) imageCount.value = back.value === '4' ? '0' : '1';
-            imageCount.options[0].hidden = back.value !== '4';
+            imageCount.disabled = ['1','4','5'].includes(back.value);
+            if (imageCount.disabled) imageCount.value = ['4','5'].includes(back.value) ? '0' : '1';
+            imageCount.options[0].hidden = !['4','5'].includes(back.value);
             if (!imageCount.disabled && imageCount.value === '0') imageCount.value = '1';
             imageCountMode.disabled = imageCount.disabled || imageCount.value === '4';
             if (imageCountMode.disabled) imageCountMode.value = 'fixed';
-            document.getElementById('draftImageCountHint').textContent = back.value === '4' ? '날짜 격자와 메모 줄로 면을 구성합니다.' : imageCount.disabled ? '이 구성은 뒷면마다 이미지 1장을 사용합니다.'
+            document.getElementById('draftImageCountHint').textContent = back.value === '5' ? '기록표에는 사진을 배치하지 않습니다.' : back.value === '4' ? '날짜 격자와 메모 줄로 면을 구성합니다.' : imageCount.disabled ? '이 구성은 뒷면마다 이미지 1장을 사용합니다.'
                 : imageCountMode.value === 'random-plus' ? `월별 뒷면에 ${imageCount.value}~4장을 섞어 배치합니다.` : '';
         }
         function collectDraftValues() {
@@ -1059,6 +1083,11 @@
                     fields[name].value = value;
                 }
             }
+            if (event.target.name === 'preset' && event.target.value === 'habits') {
+                const fields = draftForm.elements;
+                if (!fields.title.value.trim()) fields.title.value = '하루하루 체크하기';
+                for (const [name,value] of Object.entries({coverType:'illustration',insideFront:'scheduler',front:'2',back:'5',backCover:''})) fields[name].value = value;
+            }
             invalidateDraft();
         });
         draftForm.addEventListener('keydown', event => {
@@ -1077,7 +1106,7 @@
             generateDraft.disabled = true;
             draftProgress.hidden = false;
             draftProgress.value = 25;
-            draftStatus.textContent = draftForm.elements.preset.value === 'numbers' ? '숫자 중심 시안을 구성하고 있습니다.' : 'AI가 테마에 맞는 페이지별 문구와 이미지 프롬프트를 만들고 있습니다.';
+            draftStatus.textContent = ['numbers','habits'].includes(draftForm.elements.preset.value) ? '테마 시안을 구성하고 있습니다.' : 'AI가 테마에 맞는 페이지별 문구와 이미지 프롬프트를 만들고 있습니다.';
             // Allow the sandboxed viewer to paint progress before generating the draft.
             await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
             if (revision !== draftRevision) return;
@@ -1088,9 +1117,11 @@
                     const random = crypto.getRandomValues(new Uint8Array(16));
                     id = 'draft-' + Array.from(random, byte => byte.toString(16).padStart(2, '0')).join('');
                 }
-                const next = buildDesignerDraft(values, id);
+                const next = buildDesignerDraft({...values,habitRows:editedDesign?.habit_rows}, id);
                 const draft = editedDesign ? rebuildCurrentDesign(editedDesign, next, values) : next;
-                if (values.preset !== 'numbers') {
+                if (values.preset === 'habits') {
+                    applyHabitCopy(draft,editedDesign?.design_preset === 'habits' ? editedDesign : null);
+                } else if (values.preset !== 'numbers') {
                     if (window.parent === window) throw new Error('템플릿 에디터에서 디자이너를 열어 AI 문구를 생성해 주세요.');
                     const copy = await generateDesignCopy({
                         title:values.title,description:values.description,language:values.language,coverLayout:draft.cover.cover_design?.layout,
@@ -1193,9 +1224,9 @@
             } catch (error) { showToast(error.message); }
         });
 
-        function renderCoverReview(cover) {
+        function renderCoverReview(cover,draft) {
             const design = cover.cover_design;
-            return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderRecommendedCover(cover,design)}</div>
+            return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderDraftFace(cover,false,draft,draft.draft_layout.pages[0])}</div>
                 <p class="mt-2 font-semibold">${coverTypes[design.type]} · ${coverLayouts[design.layout][0]} · ${design.type === 'type' && design.yearFill === 'photo' ? (usesDigitTiles(design.yearLayout) && design.yearPhotoMode === 'digits' ? '숫자 프레임 4개' : '연도 사진 프레임 1개') : '사진 '+design.photos+'컷'}</p>
                 <p>${coverBackgrounds[design.background]} · ${coverTitleStyles[design.titleStyle] || coverTitleStyles.editorial} · ${design.serif ? '명조 계열' : '고딕 계열'} · ${design.reason}</p>
                 ${coverYearControls(cover)}
@@ -1217,7 +1248,8 @@
                     layoutVariation = (layoutVariation + 1) % draftRecommendations.length;
                     recommendation = draftRecommendations[layoutVariation];
                 } while (recommendation.join('/') === currentKey);
-                const [insideFront,insideBack,front,back,imageCount] = recommendation;
+                const [insideFront,insideBack,front,recommendedBack,imageCount] = recommendation;
+                const back = current.month_back === '5' ? '5' : recommendedBack;
                 const usesRandom = coverInput.imageCountMode === 'random-plus' && back !== '1';
                 const {draft_layout} = buildDesignerDraft({...coverInput,insideFront,insideBack,front,back,
                     imageCount:usesRandom ? coverInput.imageCount : imageCount},generatedDraft.set_id);
@@ -1291,13 +1323,13 @@
             const inside = kind => kind === 'annual' ? '연력' : '스케줄러';
             const front = ['월력', '왼쪽 월력 · 오른쪽 메모', '왼쪽 월력 · 오른쪽 메모와 하단 이미지', '왼쪽 월력 · 오른쪽 메모와 전달·다음 달 미니 월력', '숫자 중심'][Number(layout.month_front) - 1];
             const imageSummary = layout.image_count_mode === 'random-plus' ? layout.image_count + '~4' : layout.image_count;
-            const back = ['왼쪽 이미지 1장 · 오른쪽 메모', '상단 이미지 ' + imageSummary + '장 · 하단 띠 월력', '왼쪽 이미지 ' + imageSummary + '장 · 오른쪽 메모와 전달·다음 달 미니 월력', '숫자 중심 + 일 메모'][Number(layout.month_back) - 1];
+            const back = ['왼쪽 이미지 1장 · 오른쪽 메모', '상단 이미지 ' + imageSummary + '장 · 하단 띠 월력', '왼쪽 이미지 ' + imageSummary + '장 · 오른쪽 메모와 전달·다음 달 미니 월력', '숫자 중심 + 일 메모', '일일 기록표'][Number(layout.month_back) - 1];
             document.getElementById('draftReviewSummary').innerHTML = `
                 <section class="rounded border border-zinc-600 p-3">
                     <h3 class="font-semibold text-amber-200">콘셉트와 디자인 방향</h3>
                     <p class="mt-1 text-lg font-semibold">${escapeHtml(draft.title)}</p>
                     ${draft.description ? '<p class="mt-1 whitespace-pre-wrap">' + escapeHtml(draft.description) + '</p>' : ''}
-                    ${draft.cover.cover_design ? renderCoverReview(draft.cover) : ''}
+                    ${draft.cover.cover_design ? renderCoverReview(draft.cover,draft) : ''}
                     <dl class="mt-2 grid gap-1">
                         <div><dt class="inline font-semibold">표지</dt> <dd class="inline">‘${escapeHtml(draft.cover.title)}’</dd></div>
                         <div><dt class="inline font-semibold">월별 이미지</dt> <dd class="inline">‘${escapeHtml(draft.title)}’를 전체 주제로 유지하고, 아래 월별 장면을 이미지 제작 지시에 추가합니다.</dd></div>
@@ -1320,6 +1352,7 @@
                         return '<div class="aspect-[4/3] overflow-hidden rounded">' + renderDraftFace(item,false,draft,page) + '</div>';
                     }).join('')}</div>
                 </section>
+                ${draft.draft_layout.month_back === '5' ? renderHabitSettings(draft) : ''}
                 ${renderDesignCopyReview(draft)}`;
             draftReview.querySelector('details').open = false;
             if (!draftReview.open) draftReview.showModal();
@@ -1339,10 +1372,101 @@
             return [calendarDataset.cover, ...calendarDataset.months, ...(calendarDataset.draft_layout ? [{ ...calendarDataset.cover, id: 'ending', month: 13, label: '뒷표지', title: calendarDataset.title }] : [])];
         }
 
+        const habitMonths = [
+            ['내일도 할 수 있을 만큼 작게','오늘 한 만큼만 표시하기'],
+            ['비어 있는 칸 다음에도 오늘이 있다','돌아온 날에 표시하기'],
+            ['언제 할지 정하면 시작이 쉬워진다','정해둔 시간에 했나요?'],
+            ['늘 하는 일 뒤에 새 습관을 붙이기','무엇을 한 뒤에 시작했나요?'],
+            ['시작에 필요한 것을 눈에 보이게','내일 쓸 것을 미리 꺼내두기'],
+            ['어렵다면 목표를 조금 줄여도 좋다','나에게 맞는 양을 찾아보기'],
+            ['바쁜 날에 할 최소한을 정하기','작게라도 했다면 표시하기'],
+            ['쉬는 날도 계획에 넣기','쉬고 돌아온 날에 표시하기'],
+            ['새로운 목표 전에 지난 기록 보기','계속하고 싶은 한 가지 찾기'],
+            ['혼자 하기 어렵다면 같이 약속하기','함께한 날도 한 칸에 담기'],
+            ['결과가 더뎌도 해온 일을 보기','오늘 반복한 행동에 표시하기'],
+            ['한 해 동안, 내가 다시 시작한 날들','내년에도 이어갈 한 가지 남기기']
+        ];
+        function normalizeHabitRows(rows) {
+            const defaults = ['운동','식단 기록','금주','달리기 · km','몸무게 · kg'];
+            return defaults.map((label,i)=>({
+                label:typeof rows?.[i]?.label === 'string' ? rows[i].label.slice(0,24) : label,
+                mode:['check','write'].includes(rows?.[i]?.mode) ? rows[i].mode : i<3?'check':'write'
+            }));
+        }
+        function applyHabitCopy(draft, previous) {
+            draft.cover.title = previous?.cover.title ?? '하루만큼, 꾸준히';
+            draft.cover.cover_subtitle ||= '나에게 맞는 속도로, 하루 한 칸.';
+            draft.back_cover.title = previous?.back_cover?.title ?? '내일도 한 칸부터';
+            draft.inside_copy = previous?.inside_copy ?? {annual:'한 해를 한눈에',scheduler:'이번 달에 지킬 한 가지'};
+            const previousMonths = new Map(previous?.months.map(month=>[month.month,month]));
+            draft.months = draft.months.map((month,i)=>{
+                const saved = previousMonths.get(month.month);
+                return {...month,front_text:saved?.front_text ?? habitMonths[i][0],back_text:saved?.back_text ?? habitMonths[i][1],
+                    scheduler_text:saved?.scheduler_text ?? habitMonths[i][1],prompt_subject:saved?.prompt_subject ?? '체크박스와 빈 칸으로 표현하는 일일 기록 그래픽'};
+            });
+        }
+        function habitMarks(month,cover=false,accent='#416b59') {
+            return `<div class="habit-marks" aria-hidden="true">${Array.from({length:cover?31:12},(_,i)=>{
+                const marked = cover ? [0,1,2,5,6,9,12,13,17,19,20,23,26,28,29].includes(i)
+                    : month===1 ? i===5 : month===2 ? [0,1,2,7,8].includes(i) : month===12 ? [1,2,4,5,6,7,9,10].includes(i) : (i+month)%(month%4+2)===0;
+                return `<span style="color:${accent}">${marked?'✓':''}</span>`;
+            }).join('')}</div>`;
+        }
+        function renderHabitCover(cover) {
+            const {paper,ink,accent,background} = cover.cover_design;
+            const valid = color => /^#[0-9a-f]{6}$/i.test(color);
+            return `<div class="habit-face habit-cover ${background==='texture'?'habit-note':background==='band'?'habit-band':''}" style="--habit-paper:${valid(paper)?paper:'#f8f6ee'};--habit-ink:${valid(ink)?ink:'#243e34'}">
+                <div><h2>${escapeHtml(cover.title)}</h2><p>${escapeHtml(cover.cover_subtitle)}</p></div>
+                ${habitMarks(1,true,valid(accent)?accent:'#416b59')}<small>2027</small>
+            </div>`;
+        }
+        function renderHabitFront(item) {
+            const offset = new Date(2027,item.month-1,1).getDay();
+            const days = new Date(2027,item.month,0).getDate();
+            const slots = Math.ceil((offset+days)/7)*7;
+            const accent = /^#[0-9a-f]{6}$/i.test(item.accent) ? item.accent : '#416b59';
+            return `<div class="habit-face habit-front" style="--habit-ink:${accent}">
+                <div><h2>${item.month}월</h2><div class="habit-calendar">
+                    ${[...'일월화수목금토'].map(day=>'<b>'+day+'</b>').join('')}
+                    ${Array.from({length:slots},(_,i)=>`<span>${i>=offset&&i<offset+days?i-offset+1:''}</span>`).join('')}
+                </div></div>
+                <div><p>${escapeHtml(item.front_text||habitMonths[item.month-1][0])}</p>${habitMarks(item.month,false,accent)}<small>이번 달에 지킬 한 가지</small><div class="habit-write-line"></div></div>
+            </div>`;
+        }
+        function renderHabitTracker(item,rows) {
+            const dates = Array.from({length:new Date(2027,item.month,0).getDate()},(_,i)=>i+1);
+            const cells = dates.map(day=>`<th scope="col">${day}</th>`).join('');
+            return `<div class="habit-face habit-tracker"><header><h2>${item.month}월 기록표</h2><p>${escapeHtml(item.back_text||habitMonths[item.month-1][1])}</p></header>
+                <table aria-label="${item.month}월 일일 기록표"><colgroup><col class="habit-label-col"><col span="${dates.length}"></colgroup>
+                <thead><tr><th scope="col">기록할 항목</th>${cells}</tr></thead><tbody>
+                ${normalizeHabitRows(rows).map(row=>`<tr><th scope="row">${escapeHtml(row.label)}</th>${dates.map(()=>`<td>${row.mode==='check'?'<span aria-hidden="true"></span>':''}</td>`).join('')}</tr>`).join('')}
+                </tbody></table>
+            </div>`;
+        }
+        function renderHabitSettings(draft) {
+            return `<section class="grid gap-2 rounded border border-zinc-600 p-3"><h3 class="font-semibold text-amber-200">일일 기록표 항목 · 12개월 공통</h3>
+                ${normalizeHabitRows(draft.habit_rows).map((row,index)=>`<div class="grid grid-cols-2 gap-2">
+                    <input aria-label="${index+1}번째 기록 제목" data-habit-row="${index}" data-habit-field="label" maxlength="24" class="rounded border border-zinc-600 bg-zinc-900 p-1" value="${escapeHtml(row.label)}">
+                    <select aria-label="${index+1}번째 기록 방식" data-habit-row="${index}" data-habit-field="mode" class="rounded border border-zinc-600 bg-zinc-900 p-1">
+                        <option value="check" ${row.mode==='check'?'selected':''}>체크</option>
+                        <option value="write" ${row.mode==='write'?'selected':''}>직접 쓰기</option></select></div>`).join('')}
+                <button type="button" data-refresh-copy class="justify-self-start rounded border border-zinc-600 px-3 py-1">미리보기 갱신</button></section>`;
+        }
+        document.getElementById('draftReviewSummary').addEventListener('input',event=>{
+            const {habitRow,habitField} = event.target.dataset;
+            if (!generatedDraft||!habitField) return;
+            generatedDraft.habit_rows = normalizeHabitRows(generatedDraft.habit_rows);
+            generatedDraft.habit_rows[Number(habitRow)][habitField] = event.target.value;
+            draftOutput.value = JSON.stringify(generatedDraft,null,2);
+        });
+
         function renderDraftFace(item, backFace, dataset = calendarDataset, selectedPage) {
             const month = item.month;
             const index = month === 0 ? 0 : month === 13 ? 26 : month * 2;
             const page = selectedPage ?? dataset.draft_layout.pages[index + Number(backFace)];
+            if (dataset.design_preset === 'habits' && page.role === 'cover') return '<div class="habit-page">' + renderHabitCover(item) + '</div>';
+            if (page.role === 'month-back' && page.layout === '5') return '<div class="habit-page">' + renderHabitTracker(item,dataset.habit_rows) + '</div>';
+            if (dataset.design_preset === 'habits' && page.role === 'month-front' && page.layout === '2') return '<div class="habit-page">' + renderHabitFront(item) + '</div>';
             if (page.role === 'cover' && dataset.design_preset === 'numbers' && item.cover_design) {
                 const cover = renderRecommendedCover({...item,title:'',cover_subtitle:''},{...item.cover_design,titleStyle:'year'});
                 if (cover) return cover.replace(/>CALENDAR<\/span>/,'></span>');
@@ -2311,6 +2435,7 @@
                     paper_bg: color(style.paper_bg, '#F5F1E8'),
                     ink_primary: color(style.ink_primary, '#23211E')
                 },
+                ...(set.draft_layout?.month_back === '5' ? {habit_rows:normalizeHabitRows(set.habit_rows)} : {}),
                 cover: normalizePage(set.cover, 0, 'COVER', set.title),
                 months: monthNames.map((title, index) => {
                     const month = index + 1;
