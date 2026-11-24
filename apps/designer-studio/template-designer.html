@@ -1039,10 +1039,10 @@
                 <svg class="absolute inset-0 block h-full w-full" viewBox="0 0 ${width} ${height}" role="img" aria-label="${year}" data-year-art>${background}${art}</svg>
                 <div class="absolute inset-x-[5%] bottom-[5%] flex items-end justify-between gap-3">
                     <div class="min-w-0">
-                        <h3 class="truncate font-semibold leading-tight" style="font-size:3.7cqw">${escapeHtml(item.title)}</h3>
-                        <p class="truncate leading-tight" style="font-size:2.6cqw">${escapeHtml(item.cover_subtitle || '')}</p>
+                        <h3 data-draft-text class="truncate font-semibold leading-tight" style="font-size:3.7cqw">${escapeHtml(item.title)}</h3>
+                        <p data-draft-text class="truncate leading-tight" style="font-size:2.6cqw">${escapeHtml(item.cover_subtitle || '')}</p>
                     </div>
-                    <span class="shrink-0 font-mono tracking-widest" style="font-size:2.4cqw">CALENDAR</span>
+                    <span data-draft-text class="shrink-0 font-mono tracking-widest" style="font-size:2.4cqw">CALENDAR</span>
                 </div></div>`;
         }
 
@@ -1139,7 +1139,7 @@
             if (theme?.type === 'numeric') return renderNumericCover(item, theme);
             if (!theme || !Object.hasOwn(coverLayouts, theme.layout) || !Object.hasOwn(coverBackgrounds, theme.background) ||
                 ![0,1,2,3,4,8].includes(theme.photos) || ![theme.paper,theme.ink,theme.accent].every(color => /^#[\da-f]{6}$/i.test(color))) return '';
-            const frame = n => '<div class="relative grid min-h-0 min-w-0 place-items-center overflow-hidden border border-current/20 bg-white/35 text-[9px]">' +
+            const frame = n => '<div data-draft-photo class="relative grid min-h-0 min-w-0 place-items-center overflow-hidden border border-current/20 bg-white/35 text-[9px]">' +
                 (n === 1 && illustrationSource(item.illustration_image) ? '<img class="absolute inset-0 h-full w-full object-cover" src="' + escapeHtml(item.illustration_image) + '" alt="표지 이미지">' : illustrationPlaceholder(n - 1, theme.accent)) + '</div>';
             const titleStyle = Object.hasOwn(coverTitleStyles, theme.titleStyle) ? theme.titleStyle : 'editorial';
             const compactTitle = ['splitSide','graphicSide','surround'].includes(theme.layout);
@@ -1157,7 +1157,7 @@
             const grid = (columns, contents) => '<div class="grid min-h-0 gap-1" style="grid-template-columns:repeat(' + columns + ',minmax(0,1fr))">' + contents.join('') + '</div>';
             let body;
             switch (theme.layout) {
-                case 'full': body = '<div class="absolute inset-0 grid">' + frames[0] + '</div><div class="absolute bottom-4 left-4 max-w-[80%] bg-white/90 p-2">' + title + '</div>'; break;
+                case 'full': body = '<div class="absolute inset-0 grid">' + frames[0] + '</div><div class="absolute bottom-4 left-4 max-w-[80%] bg-white/90 p-2" data-draft-text-panel="">' + title + '</div>'; break;
                 case 'splitSide':
                 case 'graphicSide': body = '<div class="grid min-h-0 grid-cols-[2fr_1fr] items-center gap-3"><div class="grid h-full">' + frames[0] + '</div>' + title + '</div>'; break;
                 case 'surround': body = grid(3,[...frames.slice(0,4),'<div class="grid place-items-center text-center">' + title + '</div>',...frames.slice(4)]); break;
@@ -1167,7 +1167,7 @@
                 case 'illustration': body = title + (illustrationSource(item.illustration_image) ? frame(1) : '<div aria-hidden="true" class="grid grid-cols-3 items-center gap-2 opacity-80"><span class="aspect-square rounded-full" style="background:var(--accent)"></span><span class="aspect-square rotate-12 rounded-lg bg-current"></span><span class="aspect-square rounded-t-full border-4 border-current"></span></div>'); break;
                 case 'type':
                     if (theme.yearLayout) { body = renderYearTypography(item,theme); break; }
-                    body = '<div class="self-center justify-self-center rounded border border-current p-4 text-center">' + title + '</div>'; break;
+                    body = '<div class="self-center justify-self-center rounded border border-current p-4 text-center" data-draft-text-panel="">' + title + '</div>'; break;
                 case 'center': body = title + '<div class="mx-auto grid w-2/3">' + frames[0] + '</div>'; break;
                 case 'decorated': body = title + '<div class="mx-auto grid w-3/4 border-4 border-white/70">' + frames[0] + '</div>'; break;
                 default: body = title + frames[0];
@@ -1217,6 +1217,7 @@
             }).sort((a,b)=>a.date.localeCompare(b.date));
         }
 
+        const timelineColumnRules=[[29,6],[17,5],[9,4],[5,3],[0,2]];
         function renderFamilyTimeline(records) {
             const years=new Map();
             for (const {date,title} of records) {
@@ -1224,7 +1225,7 @@
                 if (!years.has(year)) years.set(year,[]);
                 years.get(year).push({date,title});
             }
-            const columns=years.size>28?6:years.size>16?5:years.size>8?4:years.size>4?3:2;
+            const columns=timelineColumnRules.find(([minimum])=>years.size>=minimum)[1];
             const cards=[...years].map(([year,events])=>`<section class="family-timeline-card"><h3>${year}</h3><ul>${events.map(({date,title})=>`<li><time datetime="${date}">${Number(date.slice(5,7))}/${date.slice(8)}</time> ${escapeHtml(title)}</li>`).join('')}</ul></section>`).join('');
             return `<div class="family-page family-timeline" style="--family-accent:#66523e"><header><h2>우리 가족 연대기</h2></header>
                 <div class="family-timeline-grid" style="--timeline-cols:${columns};--timeline-year:${columns>4?3:4}cqw;--timeline-text:${columns>4?1.9:2.25}cqw">${cards}</div></div>`;
@@ -1552,7 +1553,9 @@
                 coverInput = values;
                 coverVariation = 0;
                 layoutVariation = -1;
-                const json = JSON.stringify(draft, null, 2);
+                await document.fonts?.ready;
+                if (revision !== draftRevision) return;
+                const json = serializeDraft(draft);
                 generatedDraft = normalizeImportedSet(JSON.parse(json));
                 numericCoverHistory = [generatedDraft.cover.cover_design?.yearArt?.digits].filter(Boolean);
                 draftOutput.value = json;
@@ -1629,7 +1632,7 @@
             const draft = generatedDraft;
             try {
                 if (await updateYearCover(event,draft.cover) && generatedDraft === draft) {
-                    draftOutput.value = JSON.stringify(draft,null,2);
+                    draftOutput.value = serializeDraft(draft);
                     showDraftReview(draft);
                 }
             } catch (error) { showToast(error.message); }
@@ -1684,7 +1687,7 @@
                 generatedDraft.draft_layout = draft_layout;
                 generatedDraft.page_rules=selectPageRules({...coverInput,front,back},generatedDraft.page_rules);
                 generatedDraft.months = generatedDraft.months.map(month => ({...month, photo_slots:draft_layout.pages[month.month*2+1].image_count}));
-                draftOutput.value = JSON.stringify(generatedDraft,null,2);
+                draftOutput.value = serializeDraft(generatedDraft);
                 showDraftReview(generatedDraft);
                 document.querySelector('[data-next-layout]').focus();
                 return;
@@ -1694,7 +1697,7 @@
                 const design=generatedDraft.cover.cover_design;
                 const layouts=Object.keys(familyCoverLayouts);
                 design.familyCoverLayout=layouts[(layouts.indexOf(familyCoverLayout(design))+1)%layouts.length];
-                draftOutput.value=JSON.stringify(generatedDraft,null,2);
+                draftOutput.value=serializeDraft(generatedDraft);
                 showDraftReview(generatedDraft);
                 document.querySelector('[data-next-cover]').focus();
                 return;
@@ -1714,7 +1717,7 @@
                 design.habitComposition = requested && requested !== current ? requested : compositions[(compositions.indexOf(current)+1)%compositions.length];
             }
             generatedDraft.cover.cover_design = design;
-            draftOutput.value = JSON.stringify(generatedDraft, null, 2);
+            draftOutput.value = serializeDraft(generatedDraft);
             showDraftReview(generatedDraft);
             const changed = [
                 design.habitComposition && ({grid:'체크 패턴형',check:'큰 체크 분할형',dots:'색점 그래픽형'})[design.habitComposition],
@@ -1768,7 +1771,7 @@
             if (!copyField || !generatedDraft) return;
             const page = Number(copyPage) ? generatedDraft.months[Number(copyPage)-1] : generatedDraft[copyPage];
             page[copyField] = event.target.value;
-            draftOutput.value = JSON.stringify(generatedDraft,null,2);
+            draftOutput.value = serializeDraft(generatedDraft);
         });
 
         function showDraftReview(draft) {
@@ -1924,7 +1927,7 @@
             if (!generatedDraft||!habitField) return;
             generatedDraft.habit_rows = normalizeHabitRows(generatedDraft.habit_rows);
             generatedDraft.habit_rows[Number(habitRow)][habitField] = event.target.value;
-            draftOutput.value = JSON.stringify(generatedDraft,null,2);
+            draftOutput.value = serializeDraft(generatedDraft);
         });
 
 
@@ -2079,14 +2082,14 @@
             const displayText = (area, monthItem) => area === 'scheduler-card' ? monthItem.scheduler_text
                 : page.role === 'month-back' ? monthItem.back_text : monthItem.front_text;
             const topic = (area, monthItem = item) => `<b data-theme-area="${area}" class="block line-clamp-2 break-words leading-tight" style="color:var(--page-accent)">${escapeHtml(displayText(area,monthItem) ?? monthlyTheme(monthItem))}</b>`;
-            const memo = `<div class="${box} grid content-start gap-[2cqw]" style="background:color-mix(in srgb,var(--page-accent) 10%,white)">${topic('memo-heading')}${Array.from({length: 4}, () => '<div class="border-b border-current/20"></div>').join('')}</div>`;
+            const memo = `<div data-draft-memo class="${box} grid content-start gap-[2cqw]" style="background:color-mix(in srgb,var(--page-accent) 10%,white)">${topic('memo-heading')}${Array.from({length: 4}, () => '<div class="border-b border-current/20"></div>').join('')}</div>`;
             const grid = (m, tiny = false) => {
                 const date = new Date(Date.UTC(year, m - 1, 1));
                 const offset = date.getUTCDay();
                 const count = new Date(Date.UTC(year, m, 0)).getUTCDate();
-                return `<div class="${box} h-full grid content-stretch" style="font-size:${tiny ? '1.5' : '2.65'}cqw">${tiny ? '<b style="color:var(--page-accent)">' + (date.getUTCMonth()+1) + '월</b>' : ''}<div class="grid grid-cols-7 text-center items-center tabular-nums">${[...'일월화수목금토'].map((d,i) => '<b style="color:'+(i===0?'#a63d39':i===6?'#355e80':'inherit')+'">' + d + '</b>').join('')}${Array.from({length: 42}, (_, i) => '<span class="border-t border-current/10" style="color:'+(i%7===0?'#a63d39':i%7===6?'#355e80':'inherit')+'">' + (i < offset || i >= offset+count ? '&nbsp;' : i - offset + 1) + '</span>').join('')}</div></div>`;
+                return `<div data-draft-calendar class="${box} h-full grid content-stretch" style="font-size:${tiny ? '1.5' : '2.65'}cqw">${tiny ? '<b style="color:var(--page-accent)">' + (date.getUTCMonth()+1) + '월</b>' : ''}<div class="grid grid-cols-7 text-center items-center tabular-nums">${[...'일월화수목금토'].map((d,i) => '<b style="color:'+(i===0?'#a63d39':i===6?'#355e80':'inherit')+'">' + d + '</b>').join('')}${Array.from({length: 42}, (_, i) => '<span class="border-t border-current/10" style="color:'+(i%7===0?'#a63d39':i%7===6?'#355e80':'inherit')+'">' + (i < offset || i >= offset+count ? '&nbsp;' : i - offset + 1) + '</span>').join('')}</div></div>`;
             };
-            const imageFrames = n => `<div class="grid min-h-0 h-full gap-1 ${n>1?'grid-cols-2':''}">${Array.from({length:n},(_,i)=>`<div class="relative min-h-0 overflow-hidden grid place-items-center border border-dashed border-current/30 rounded ${n===3&&i===0?'row-span-2':''}" style="background:color-mix(in srgb,var(--page-accent) 12%,white)">${i === 0 && illustrationSource(item.illustration_image) ? `<img class="absolute inset-0 w-full h-full object-cover" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">` : i === 0 && item.svgType ? generateSVGVisual({...item,photo_slots:0}) : illustrationPlaceholder(i,accent)}</div>`).join('')}</div>`;
+            const imageFrames = n => `<div class="grid min-h-0 h-full gap-1 ${n>1?'grid-cols-2':''}">${Array.from({length:n},(_,i)=>`<div data-draft-photo class="relative min-h-0 overflow-hidden grid place-items-center border border-dashed border-current/30 rounded ${n===3&&i===0?'row-span-2':''}" style="background:color-mix(in srgb,var(--page-accent) 12%,white)">${i === 0 && illustrationSource(item.illustration_image) ? `<img class="absolute inset-0 w-full h-full object-cover" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">` : i === 0 && item.svgType ? generateSVGVisual({...item,photo_slots:0}) : illustrationPlaceholder(i,accent)}</div>`).join('')}</div>`;
             const minis = () => `<div class="grid grid-cols-2 min-h-0 gap-1">${grid(month-1,true)}${grid(month+1,true)}</div>`;
             let body, label;
             switch (page.role) {
@@ -2101,7 +2104,7 @@
                 case 'inside-front':
                 case 'inside-back':
                     label = page.layout === 'annual' ? '연력' : '스케줄러';
-                    body = `<div class="grid h-full grid-cols-4 grid-rows-3 gap-1">${dataset.months.map((monthItem,i) => {
+                    body = `<div ${page.layout==='annual'?'data-draft-annual':'data-draft-scheduler'} class="grid h-full grid-cols-4 grid-rows-3 gap-1">${dataset.months.map((monthItem,i) => {
                         if (page.layout === 'annual') return grid(i+1,true);
                         const name = new Intl.DateTimeFormat('en',{month:'short',timeZone:'UTC'}).format(new Date(Date.UTC(year,i)));
                         const dates = (Array.isArray(monthItem.events) ? monthItem.events : []).slice(0,3);
@@ -2887,6 +2890,7 @@
                 renderDeskCard();
                 renderSpreadView(document.getElementById('spreadMonthSelect').value);
                 openSpecModal(item.id);
+                if (updated.draft_layout) updated.layout_geometry=measureDraftLayout(updated);
                 requestDesignerStorage('save',updated);
             });
             bodyEl.onchange = async event => {
@@ -2901,6 +2905,7 @@
                     renderDeskCard();
                     renderSpreadView(document.getElementById('spreadMonthSelect').value);
                     openSpecModal(item.id);
+                if (updated.draft_layout) updated.layout_geometry=measureDraftLayout(updated);
                     requestDesignerStorage('save',updated);
                 } catch (error) { showToast(error.message); }
             };
@@ -2925,6 +2930,7 @@
                     renderDeskCard();
                     renderSpreadView(document.getElementById('spreadMonthSelect').value);
                     openSpecModal(item.id);
+                    if (updated.draft_layout) updated.layout_geometry=measureDraftLayout(updated);
                     if (!requestDesignerStorage('save', updated)) showToast('미리보기를 갱신했습니다. 서버 저장은 템플릿 에디터에서 사용할 수 있습니다.');
                 } catch (error) {
                     showToast(error.message || '이미지를 불러오지 못했습니다.');
@@ -3086,7 +3092,83 @@
             }
         }
 
+        // Reference canvas for measuring the same renderer used by the review.
+        const draftObjectQuery = () => draftObjectSelectors.map(([selector])=>selector).join(',');
+        const layoutReference = {width:960,height:720};
+        const draftObjectSelectors = [
+            ['.family-photo-stack > .family-frame','group-photo'], ['.family-member-frames > .family-frame','member-photo'],
+            ['.family-photo-card > .family-frame,[data-draft-photo]','photo-frame'],
+            ['.family-timeline-grid','family-timeline'], ['.family-event-feature','family-event-heading'],
+            ['.family-event-list','monthly-schedule'], ['.family-front .family-calendar,.number-front .number-days,.habit-calendar,[data-draft-calendar]','calendar'],
+            ['.family-story-footer .family-calendar','mini-calendar'],
+            ['.family-story-footer section,[data-draft-memo]','handwriting-area'],
+            ['.family-year,.number-annual,.habit-year-grid,[data-draft-annual]','annual-calendar'], ['.number-days.daily-memo','daily-memo-calendar'], ['[data-draft-scheduler]','monthly-schedule'], ['.habit-tracker','habit-tracker'],
+            ['.family-end-message,.habit-end h2','closing-message'], ['.number-grid-wrap > i','month-watermark'],
+            ['[data-year-art],.cover-year-shapes,.cover-year-glyphs','year-art'],
+            ['[data-cover-title-style],.cover-year-design,.cover-year-caption,[data-draft-text-panel]','text-panel'],
+            ['h2,h3,header p,.cover-year-caption > *,[data-cover-title-style] > *,[data-draft-text],.family-cover > small,.number-month > header','text']
+        ];
+
+        function measureDraftLayout(draft) {
+            if (!draft.draft_layout?.pages) return;
+            const canvas=document.createElement('div');
+            Object.assign(canvas.style,{position:'fixed',left:'-10000px',top:'0',visibility:'hidden',
+                width:layoutReference.width+'px',height:layoutReference.height+'px',overflow:'hidden',pointerEvents:'none'});
+            canvas.setAttribute('aria-hidden','true');
+            document.body.appendChild(canvas);
+            try {
+                const query=draftObjectQuery();
+                const pages=draft.draft_layout.pages.map(page=>{
+                    const item=page.month ? draft.months[page.month-1] : draft.cover;
+                    canvas.innerHTML=renderDraftFace(item,false,draft,page);
+                    const origin=canvas.getBoundingClientRect();
+                    const objects=[];
+                    for (const node of canvas.querySelectorAll(query)) {
+                        if (node.closest('.family-timeline-card,.family-year section,.number-annual section,.habit-annual section')) continue;
+                        const role=draftObjectSelectors.find(([selector])=>node.matches(selector))[1];
+                        const rect=node.getBoundingClientRect();
+                        if (!(rect.width>0&&rect.height>0)) continue;
+                        const round=value=>Number(value.toFixed(5));
+                        const bounds={x:round((rect.left-origin.left)/origin.width),y:round((rect.top-origin.top)/origin.height),
+                            width:round(rect.width/origin.width),height:round(rect.height/origin.height)};
+                        const css=getComputedStyle(node);
+                        const style=resolveDraftObjectStyle(css);
+                        const id=page.number+'-'+role+'-'+(objects.filter(object=>object.role===role).length+1);
+                        objects.push({id,role,bounds,order:objects.length,style,
+                            ...(['text','month-watermark','closing-message'].includes(role)?{text:node.textContent.trim()}:{}),
+                            ...(['family-timeline','calendar','mini-calendar','annual-calendar','monthly-schedule','family-event-heading'].includes(role)
+                                ? {binding:{source:role==='family-timeline'?'family-timeline':role==='annual-calendar'?'calendar-year':'calendar-month',month:page.month??null}}:{}),
+                            ...(role==='family-timeline'?{distribution:{group:'year',order:'date-ascending',columnThresholds:timelineColumnRules,gap:css.gap}}:{})});
+                    }
+                    return {number:page.number,role:page.role,layout:page.layout,month:page.month,
+                        surface:resolveDraftObjectStyle(getComputedStyle(canvas.firstElementChild)),objects};
+                });
+                return {version:1,coordinate_space:'page-fraction',reference_canvas:layoutReference,pages,
+                    monthly_variation:{rules:draft.page_rules??{},front_layout:draft.draft_layout.month_front,
+                        back_layout:draft.draft_layout.month_back,photo_count_mode:draft.draft_layout.image_count_mode}};
+            } finally {
+                canvas.remove();
+            }
+        }
+
+        function resolveDraftObjectStyle(css) {
+            const keys=['color','backgroundColor','backgroundImage','fontFamily','fontSize','fontWeight','fontStyle',
+                'lineHeight','letterSpacing','textAlign','textTransform','borderTop','borderRight','borderBottom',
+                'borderLeft','borderRadius','padding','opacity','zIndex','overflow','transform','objectFit','objectPosition','backgroundSize','backgroundPosition'];
+            return Object.fromEntries(keys.flatMap(key=>{
+                const value=css[key];
+                return value && !/url\(/i.test(value) ? [[key,value]] : [];
+            }));
+        }
+
+        function serializeDraft(draft) {
+            const layout=measureDraftLayout(draft);
+            if (layout) draft.layout_geometry=layout;
+            return JSON.stringify(draft,null,2);
+        }
+
         function registerDesign(parsed) {
+            if (parsed.draft_layout) parsed.layout_geometry=measureDraftLayout(parsed);
             const savedIndex = CALENDAR_SETS_REGISTRY.findIndex((set, index) =>
                 index >= builtInCount && set.set_id === parsed.set_id
             );
