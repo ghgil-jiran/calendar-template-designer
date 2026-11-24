@@ -286,7 +286,7 @@
 <label class="grid gap-1">설명<textarea name="description" maxlength="600" rows="3" class="rounded bg-zinc-900 border border-zinc-600 p-2"></textarea></label>
 <label class="grid gap-1">문구 언어<select name="language" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="auto">테마에 맞게 선택</option><option value="ko">한국어</option><option value="en">English</option></select></label>
 </fieldset><fieldset class="draft-two"><legend>표지</legend><label class="draft-wide">표지 부제 <input name="coverSubtitle" maxlength="60" class="rounded bg-zinc-900 border border-zinc-600 p-2" placeholder="선택 사항"></label>
-<label class="grid gap-1">표지 구성<select name="coverType" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="">테마에 맞게 추천</option><option value="full">전면 사진형</option><option value="split">사진·제목 분할형</option><option value="center">여백 있는 중앙 사진형</option><option value="multi">여러 사진 배열형</option><option value="graphic">사진 + 그래픽형</option><option value="illustration">일러스트·도형 중심형</option><option value="type">타이포그래피·라벨형</option></select></label>
+<label class="grid gap-1">표지 구성<select name="coverType" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="">테마에 맞게 추천</option><option value="full">전면 사진형</option><option value="split">사진·제목 분할형</option><option value="center">여백 있는 중앙 사진형</option><option value="multi">여러 사진 배열형</option><option value="graphic">사진 + 그래픽형</option><option value="illustration">일러스트·도형 중심형</option><option value="type">타이포그래피·라벨형</option><option value="numeric">숫자형 · 연도 그래픽</option></select></label>
 <label class="grid gap-1">표지 사진 수<select name="coverCount" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="">자동</option><option value="0">0컷</option><option value="1">1컷</option><option value="2">2컷</option><option value="3">3컷</option><option value="4">4컷</option><option value="8">8컷</option></select></label>
 <p id="draftCoverCountHint" class="draft-wide draft-note"></p></fieldset><fieldset class="draft-two"><legend>안쪽 면 <small>28면 구성</small></legend><label class="grid gap-1">2면 · 표지 뒷면<select name="insideFront" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="annual">연력</option><option value="scheduler">스케줄러</option></select></label><label class="grid gap-1">27면 · 뒷표지 앞면<select name="insideBack" disabled class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="annual">연력</option><option value="scheduler">스케줄러</option></select></label><p class="draft-wide draft-note">2면을 선택하면 27면에 나머지 구성이 자동으로 배치됩니다.</p></fieldset>
 <fieldset class="draft-two"><legend>월별 페이지</legend><label>월력 앞면 구성<select name="front" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 월력</option><option value="2">기본 2 · 월력 + 메모</option><option value="3">기본 3 · 월력 + 메모 + 이미지</option><option value="4">기본 4 · 월력 + 메모 + 미니 월력</option><option value="5">숫자 중심</option></select></label>
@@ -733,13 +733,13 @@
 
 
 
-        const coverTypes = {"full":"전면 사진형","split":"사진·제목 분할형","center":"여백 있는 중앙 사진형","multi":"여러 사진 배열형","graphic":"사진 + 그래픽형","illustration":"일러스트·도형 중심형","type":"타이포그래피·라벨형"};
+        const coverTypes = {"full":"전면 사진형","split":"사진·제목 분할형","center":"여백 있는 중앙 사진형","multi":"여러 사진 배열형","graphic":"사진 + 그래픽형","illustration":"일러스트·도형 중심형","type":"타이포그래피·라벨형","numeric":"숫자형 · 연도 그래픽"};
         const coverLayouts = {
             full:['전면 사진', 'full'], splitTop:['상하 분할', 'split'], splitSide:['좌우 분할','split'],
             center:['중앙 사진','center'], row:['가로 나열','multi'], grid:['2×2 격자','multi'],
             feature:['대표 사진 + 보조 사진','multi'], surround:['중앙 제목 격자','multi'],
             decorated:['중앙 사진 + 주변 그래픽','graphic'], graphicSide:['사진·그래픽 분할','graphic'],
-            illustration:['도형·일러스트 중심','illustration'], type:['중앙 타이포그래피·라벨','type']
+            illustration:['도형·일러스트 중심','illustration'], type:['중앙 타이포그래피·라벨','type'], numeric:['연도 벡터','numeric']
         };
         const coverBackgrounds = { plain:'단색', band:'색 띠·색면', geometry:'기하 도형', pattern:'반복 패턴', theme:'테마 장식', texture:'질감·빛' };
         const coverTitleStyles = { editorial:'제목 중심', year:'연도 강조', stacked:'제목·연도 두 줄' };
@@ -748,8 +748,14 @@
         const yearPresets = [['wide','solid'],['split','mixed'],['tiles','solid'],['crop','outline'],
             ['label','solid'],['wide','photo'],['tiles','photo'],['megaTiles','outline'],['megaTiles','photo']];
         const usesDigitTiles = layout => layout === 'tiles' || layout === 'megaTiles';
-        function recommendCover(values, variation = 0) {
+        function recommendCover(values, variation = 0, seen = []) {
             const brief = [values.title, values.description, values.direction].filter(Boolean).join(' ');
+            if (values.coverType === 'numeric' || (!values.coverType && /숫자형|숫자로\s*표현|연도\s*(그래픽|조형)/.test(brief))) {
+                if (values.coverCount && Number(values.coverCount) !== 0) {
+                    throw new Error('숫자형 표지는 사진 장수를 자동 또는 0장으로 지정해 주세요.');
+                }
+                return recommendNumericCover(2027, [values.title, values.description].filter(Boolean).join(' '), values.direction, seen);
+            }
             const child = /어린이|성장|유아|놀이|키즈|발랄|경쾌/.test(brief);
             const family = /가족|세대|부모님|손주|추억/.test(brief);
             const quiet = /차분|기록|고급|클래식|전통|기념/.test(brief);
@@ -804,6 +810,147 @@
                     : type === 'type' ? '제목과 연도를 중심에 두고 여백을 살립니다.'
                     : type === 'graphic' ? '사진을 중심에 두고 색과 장식으로 테마를 드러냅니다.'
                     : '사진과 제목이 각각 잘 읽히도록 공간을 배분합니다.'};
+        }
+
+        // The designer currently uses a 4:3 desk-cover canvas and a 2027 calendar.
+        const numericCanvas = { width: 400, height: 300, artworkHeight: 246 };
+        const digitPaths = {
+            0: 'M50 12C25 12 18 30 18 50S25 88 50 88 82 70 82 50 75 12 50 12Z',
+            1: 'M28 29 53 12V88M29 88H77',
+            2: 'M17 31C18 6 81 3 81 31 81 48 55 60 39 69L18 88H83',
+            3: 'M19 18C47 4 79 12 79 32 79 45 64 50 49 49 69 49 83 55 83 69 83 90 40 95 17 81',
+            4: 'M63 12 17 62H83M64 12V88',
+            5: 'M79 12H26L19 50C42 34 83 41 83 65 83 88 46 97 17 80',
+            6: 'M76 17C47 2 18 24 18 61 18 99 82 98 82 65 82 39 38 36 19 58',
+            7: 'M17 12H83L39 88',
+            8: 'M50 12C16 12 14 46 50 49 90 52 96 88 50 88 4 88 10 52 50 49 86 46 84 12 50 12Z',
+            9: 'M24 83C53 98 82 76 82 39 82 1 18 2 18 35 18 61 62 64 81 42'
+        };
+
+        function composeNumericDigits(year) {
+            const { width, artworkHeight } = numericCanvas;
+            const digits = String(year).split('');
+            const columns = Math.random() < 0.33;
+            const balanced = Math.random() < 0.28;
+            const alignment = balanced ? 0.5 : Math.random();
+            const emphasis = balanced ? -1 : Math.floor(Math.random() * digits.length);
+            const gap = 9 + Math.random() * 13;
+            const slant = balanced ? 0 : (Math.random() - 0.5) * 52;
+            const lines = [[]];
+            for (const [index, digit] of digits.entries()) {
+                if (index && Math.random() < 0.36) lines.push([]);
+                const height = index === emphasis ? 150 + Math.random() * 48
+                    : balanced ? 100 : 69 + Math.random() * 54;
+                const width = height * (balanced ? 0.94 : 0.76 + Math.random() * 0.35);
+                lines.at(-1).push({ digit, width, height, fill: index });
+            }
+
+            const main = columns ? 'height' : 'width';
+            const cross = columns ? 'width' : 'height';
+            const lineSizes = lines.map(line => line.reduce((sum, digit) => sum + digit[main], gap * (line.length - 1)));
+            const mainSize = Math.max(...lineSizes);
+            let lineOffset = 0;
+            const placed = lines.flatMap((line, lineIndex) => {
+                const depth = Math.max(...line.map(digit => digit[cross]));
+                let offset = (mainSize - lineSizes[lineIndex]) * alignment;
+                const result = line.map((digit, index) => {
+                    const drift = slant * (index / Math.max(1, line.length - 1) - 0.5);
+                    const crossPosition = lineOffset + (depth - digit[cross]) * alignment + drift;
+                    const positioned = { ...digit, x: columns ? crossPosition : offset, y: columns ? offset : crossPosition };
+                    offset += digit[main] + gap;
+                    return positioned;
+                });
+                lineOffset += depth + gap + Math.abs(slant);
+                return result;
+            });
+
+            const left = Math.min(...placed.map(digit => digit.x));
+            const top = Math.min(...placed.map(digit => digit.y));
+            const spanX = Math.max(...placed.map(digit => digit.x + digit.width)) - left;
+            const spanY = Math.max(...placed.map(digit => digit.y + digit.height)) - top;
+            const coverage = balanced ? 0.8 : 0.67 + Math.random() * 0.28;
+            const scale = Math.min(width * coverage / spanX, artworkHeight * (0.25 + coverage * 0.75) / spanY);
+            const insetX = (width - spanX * scale) * (0.12 + alignment * 0.76);
+            const insetY = (artworkHeight - spanY * scale) * (balanced ? 0.5 : 0.2 + Math.random() * 0.65);
+            return placed.map(digit => ({
+                ...digit, x: Math.round(insetX + (digit.x - left) * scale),
+                y: Math.round(insetY + (digit.y - top) * scale),
+                width: Math.round(digit.width * scale), height: Math.round(digit.height * scale)
+            }));
+        }
+
+        function recommendNumericCover(year, brief, direction = '', seen = []) {
+            const pick = options => options[Math.floor(Math.random() * options.length)];
+            const distance = (a, b) => a.reduce((sum, digit, index) => {
+                const other = b[index];
+                return sum + Math.hypot(digit.x - other.x, digit.y - other.y,
+                    digit.width - other.width, digit.height - other.height);
+            }, 0) / a.length;
+            const history = seen.filter(candidate => candidate?.length === String(year).length);
+            let best = null;
+            let separation = -1;
+            for (let attempt = 0; attempt < 72; attempt++) {
+                const candidate = composeNumericDigits(year);
+                const nearest = history.reduce((minimum, previous) => Math.min(minimum, distance(candidate, previous)), Infinity);
+                if (nearest > separation) {
+                    best = candidate;
+                    separation = nearest;
+                }
+                if (nearest >= 42) break;
+            }
+            const warm = [['#FFF4E4','#512F2C','#A33E2A','#75471B'], ['#FCEBDC','#5B263E','#944233','#4C5033']];
+            const cool = [['#F1F4FF','#162B55','#3349A5','#285D54'], ['#EAF4ED','#123F3A','#35549A','#785227']];
+            const temperatureOf = text => /따뜻|포근|아이보리/.test(text) ? warm
+                : /차분|차갑|시원/.test(text) ? cool : null;
+            const [paper, ink, accent, third] = pick(temperatureOf(direction) ?? temperatureOf(brief)
+                ?? [...warm, ...cool, ['#181F32','#F4F2E0','#FFAA94','#A1DED9']]);
+            const backgroundOf = text => /배경\s*(없|없이)/.test(text) ? 'plain'
+                : /그라데이션|색 변화/.test(text) ? 'texture'
+                : /도형\s*배경/.test(text) ? 'geometry' : null;
+            const background = backgroundOf(direction) ?? backgroundOf(brief) ?? pick(['plain','band','geometry','texture']);
+            const colorModeOf = text => /단색/.test(text) ? 0 : /숫자별/.test(text) ? 2 : null;
+            const colorMode = colorModeOf(direction) ?? colorModeOf(brief) ?? pick([0,1,2]);
+            const stroke = 12 + Math.floor(Math.random() * 10);
+            const round = Math.random() < 0.5;
+            const digits = best.map(({ fill, ...digit }) => ({
+                ...digit,
+                color: colorMode === 0 ? ink : colorMode === 1 ? (fill < best.length / 2 ? ink : accent)
+                    : [ink, accent, third][Number(digit.digit) % 3]
+            }));
+            return { type:'numeric', layout:'numeric', photos:0, background, paper, ink, accent, titleStyle:'year',
+                yearArt: { year, digits, stroke, round, orbit: Math.round(Math.random() * numericCanvas.width) } };
+        }
+
+        function renderNumericCover(item, design) {
+            const { width, height, artworkHeight } = numericCanvas;
+            const { year, digits, stroke, round, orbit } = design.yearArt || {};
+            const hex = value => /^#[\da-f]{6}$/i.test(value);
+            if (!Number.isInteger(year) || !Array.isArray(digits) || digits.map(digit => digit?.digit).join('') !== String(year)
+                || ![design.paper, design.ink, design.accent].every(hex)
+                || ![stroke, orbit].every(Number.isFinite)
+                || !digits.every(digit => Object.hasOwn(digitPaths, digit.digit) && hex(digit.color)
+                    && [digit.x, digit.y, digit.width, digit.height].every(Number.isFinite))) return '';
+            const end = round ? 'round' : 'butt';
+            const art = digits.map(digit => `<svg x="${digit.x}" y="${digit.y}" width="${digit.width}" height="${digit.height}" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="${digitPaths[digit.digit]}" fill="none" stroke="${digit.color}" stroke-width="${stroke}" stroke-linecap="${end}" stroke-linejoin="${round ? 'round' : 'bevel'}"/>
+            </svg>`).join('');
+            const background = design.background === 'geometry'
+                ? `<circle cx="${orbit}" cy="108" r="106" fill="${design.accent}" opacity=".12"/>`
+                : design.background === 'band'
+                    ? `<path d="M0 208L${width} ${Math.round(orbit / 3)}V${artworkHeight}H0Z" fill="${design.accent}" opacity=".1"/>`
+                    : '';
+            const color = design.background === 'texture'
+                ? `background:linear-gradient(135deg,${design.paper},color-mix(in srgb,${design.paper} 88%,${design.accent}));`
+                : `background:${design.paper};`;
+            return `<div class="relative h-full w-full overflow-hidden" style="container-type:inline-size;${color}color:${design.ink}">
+                <svg class="absolute inset-0 block h-full w-full" viewBox="0 0 ${width} ${height}" role="img" aria-label="${year}" data-year-art>${background}${art}</svg>
+                <div class="absolute inset-x-[5%] bottom-[5%] flex items-end justify-between gap-3">
+                    <div class="min-w-0">
+                        <h3 class="truncate font-semibold leading-tight" style="font-size:3.7cqw">${escapeHtml(item.title)}</h3>
+                        <p class="truncate leading-tight" style="font-size:2.6cqw">${escapeHtml(item.cover_subtitle || '')}</p>
+                    </div>
+                    <span class="shrink-0 font-mono tracking-widest" style="font-size:2.4cqw">CALENDAR</span>
+                </div></div>`;
         }
 
         function illustrationPlaceholder(index, accent) {
@@ -896,6 +1043,7 @@
         }
 
         function renderRecommendedCover(item, theme) {
+            if (theme?.type === 'numeric') return renderNumericCover(item, theme);
             if (!theme || !Object.hasOwn(coverLayouts, theme.layout) || !Object.hasOwn(coverBackgrounds, theme.background) ||
                 ![0,1,2,3,4,8].includes(theme.photos) || ![theme.paper,theme.ink,theme.accent].every(color => /^#[\da-f]{6}$/i.test(color))) return '';
             const frame = n => '<div class="relative grid min-h-0 min-w-0 place-items-center overflow-hidden border border-current/20 bg-white/35 text-[9px]">' +
@@ -1005,6 +1153,7 @@
         let coverInput = null;
         let coverVariation = 0;
         let layoutVariation = -1;
+        let numericCoverHistory = [];
         let draftRevision = 0;
         function invalidateDraft() {
             draftRevision++;
@@ -1024,7 +1173,7 @@
             const fixedCover = type && type !== 'multi';
             coverCount.disabled = Boolean(fixedCover);
             for (const option of coverCount.options) option.disabled = type === 'multi' && ['0','1'].includes(option.value);
-            if (fixedCover) coverCount.value = ['illustration','type'].includes(type) ? '0' : '1';
+            if (fixedCover) coverCount.value = ['illustration','type','numeric'].includes(type) ? '0' : '1';
             else if (coverCount.selectedOptions[0]?.disabled) coverCount.value = '';
             document.getElementById('draftCoverCountHint').textContent = fixedCover ? '표지 구성에 맞춰 사진 수가 자동으로 정해집니다.' : '';
             insideBack.value = insideFront.value === 'annual' ? 'scheduler' : 'annual';
@@ -1103,7 +1252,7 @@
             if (event.target.name === 'preset' && event.target.value === 'numbers') {
                 const fields = draftForm.elements;
                 if (!fields.title.value.trim()) fields.title.value = '숫자로 표현하는 디자인 달력';
-                for (const [name,value] of Object.entries({coverType:'illustration',insideFront:'scheduler',front:'5',back:'4',backCover:'numbers'})) {
+                for (const [name,value] of Object.entries({coverType:'numeric',insideFront:'scheduler',front:'5',back:'4',backCover:'numbers'})) {
                     fields[name].value = value;
                 }
             }
@@ -1168,6 +1317,7 @@
                 layoutVariation = -1;
                 const json = JSON.stringify(draft, null, 2);
                 generatedDraft = normalizeImportedSet(JSON.parse(json));
+                numericCoverHistory = [generatedDraft.cover.cover_design?.yearArt?.digits].filter(Boolean);
                 draftOutput.value = json;
 
                 draftCreate.disabled = false;
@@ -1252,10 +1402,10 @@
             const design = cover.cover_design;
             return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderDraftFace(cover,false,draft,draft.draft_layout.pages[0])}</div>
                 <p class="mt-2 font-semibold">${coverTypes[design.type]} · ${coverLayouts[design.layout][0]} · ${design.type === 'type' && design.yearFill === 'photo' ? (usesDigitTiles(design.yearLayout) && design.yearPhotoMode === 'digits' ? '숫자 프레임 4개' : '연도 사진 프레임 1개') : '사진 '+design.photos+'컷'}</p>
-                <p>${coverBackgrounds[design.background]} · ${coverTitleStyles[design.titleStyle] || coverTitleStyles.editorial} · ${design.serif ? '명조 계열' : '고딕 계열'} · ${design.reason}</p>
+                <p>${coverBackgrounds[design.background]}${design.type === 'numeric' ? ' · 클릭할 때마다 새 구도를 생성합니다.' : ` · ${coverTitleStyles[design.titleStyle] || coverTitleStyles.editorial} · ${design.serif ? '명조 계열' : '고딕 계열'} · ${design.reason}`}</p>
                 ${coverYearControls(cover)}
                 <p id="coverChange" class="mt-1 text-gray-300" role="status"></p>
-                <label class="mt-2 grid gap-1">다른 추천에 반영할 방향<input id="coverDirection" maxlength="120" class="rounded border border-zinc-600 bg-zinc-900 p-2" placeholder="예: 더 따뜻하게, 명조 서체"></label>
+                <label class="mt-2 grid gap-1">다른 추천에 반영할 방향<input id="coverDirection" maxlength="120" class="rounded border border-zinc-600 bg-zinc-900 p-2" placeholder="${design.type === 'numeric' ? '예: 따뜻하게, 숫자별 색, 배경 없이' : '예: 더 따뜻하게, 명조 서체'}"></label>
                 <button type="button" data-next-cover class="mt-2 rounded border border-zinc-600 px-3 py-1">다른 추천 받기</button>`;
         }
         document.getElementById('draftReviewSummary').addEventListener('click', event => {
@@ -1287,7 +1437,8 @@
             if (!event.target.closest('[data-next-cover]') || !generatedDraft || !coverInput) return;
             const direction = document.getElementById('coverDirection').value.trim();
             const previous = generatedDraft.cover.cover_design;
-            const design = recommendCover({...coverInput, coverType: previous.type, coverCount: previous.photos, direction}, ++coverVariation);
+            const design = recommendCover({...coverInput, coverType: previous.type, coverCount: previous.photos, direction}, ++coverVariation, numericCoverHistory);
+            if (design.yearArt) numericCoverHistory.push(design.yearArt.digits);
             if (generatedDraft.design_preset === 'habits') {
                 const compositions = ['grid','check','dots'];
                 const requested = /점|원형/.test(direction) ? 'dots' : /격자|그리드/.test(direction) ? 'grid' : /큰 체크|굵은 체크/.test(direction) ? 'check' : '';
@@ -1307,7 +1458,7 @@
                 previous.titleStyle !== design.titleStyle && coverTitleStyles[design.titleStyle],
                 previous.serif !== design.serif && (design.serif ? '명조 계열' : '고딕 계열')
             ].filter(Boolean);
-            document.getElementById('coverChange').textContent = changed.length ? '이번 추천에서 변경 · ' + changed.join(' · ') : '현재 조건에 같은 구성을 추천합니다.';
+            document.getElementById('coverChange').textContent = design.yearArt ? '숫자 배치와 크기를 새로 생성했습니다.' : changed.length ? '이번 추천에서 변경 · ' + changed.join(' · ') : '현재 조건에 같은 구성을 추천합니다.';
             document.getElementById('coverDirection').value = direction;
             document.querySelector('[data-next-cover]').focus();
         });
