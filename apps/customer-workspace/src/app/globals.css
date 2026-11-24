@@ -1063,8 +1063,8 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-add-tools-toggle[aria-expanded=true]{color:hsl(var(--primary));background:hsl(var(--primary)/.12);border-color:hsl(var(--primary)/.45)}
 .editor-command-actions,.editor-command-actions>.editor-preview-menu{border-left:1px solid hsl(var(--border));padding-left:6px}
 .editor-add-popover{position:absolute;inset:6px auto auto 6px;z-index:4;width:max-content;max-width:calc(100% - 12px)}
-.editor-add-tools,.editor-object-picker{border:1px solid hsl(var(--border));border-radius:7px;background:hsl(var(--canvas)/.95);box-shadow:0 3px 10px hsl(var(--shadow)/.12)}
-.editor-add-tools{display:flex;align-items:stretch;gap:2px;padding:3px;flex-wrap:wrap}
+.editor-add-tools,.editor-object-picker{border:1px solid hsl(var(--border));border-radius:7px;background:hsl(var(--canvas));box-shadow:0 3px 10px hsl(var(--shadow)/.12)}
+.editor-add-tools{background:hsl(var(--surface));display:flex;align-items:stretch;gap:2px;padding:3px;flex-wrap:wrap}
 .editor-add-tools .button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:40px;min-height:36px;padding:3px 5px;border-radius:4px;background:transparent;font-size:10px;line-height:1.2;white-space:nowrap}
 .editor-add-tools .button svg{width:14px;height:14px}
 .editor-add-tools .button:hover,.editor-add-tools .button[aria-expanded=true]{background:hsl(var(--primary)/.1)}
@@ -1145,18 +1145,21 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-font-toggles {display:flex;justify-content:space-between;gap:4px;margin:8px 0;}
 .editor-properties .editor-font-style .button {width:auto;min-height:26px;padding:4px 7px;}
 .editor-font-style .button[aria-pressed="true"] {border-color:hsl(var(--primary));color:hsl(var(--primary));}
-.editor-font-background > :first-child {display:flex;align-items:center;justify-content:space-between;}
+.editor-effect-heading{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px}
 .editor-font-style .editor-palette,.editor-font-style .editor-palette-trigger {width:100%;}
 .editor-font-style .editor-palette-current {flex:1;}
 
 .editor-frame-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:end;gap:8px}
-.editor-properties :is(.editor-font-style,.editor-frame-style){--style-control-height:38px}
+.editor-properties{--style-control-height:32px}
 .editor-properties :is(.editor-font-style,.editor-frame-style) :is(label,.editor-font-color,.editor-frame-color-field){display:flex;flex-direction:column;gap:4px;margin:0;min-width:0;font-size:11px;line-height:1.4}
-.editor-properties :is(.editor-font-style,.editor-frame-style) :is(select,input[type=number],.editor-palette-trigger){box-sizing:border-box;width:100%;min-width:0;height:var(--style-control-height);min-height:var(--style-control-height);margin:0;padding:0 7px;border-radius:6px}
+.editor-properties :is(.editor-font-style,.editor-frame-style,.editor-image-content) :is(select,input[type=number],.editor-palette-trigger),
+.editor-properties .editor-content-field input:not([type=checkbox]),
+.editor-properties :is(.editor-card-apply,.editor-image-content > .button){box-sizing:border-box;width:100%;min-width:0;height:var(--style-control-height);min-height:var(--style-control-height);margin:0;padding:0 7px;border-radius:6px}
 .editor-properties :is(.editor-font-style,.editor-frame-style) .editor-palette{width:100%;min-width:0}
 .editor-properties :is(.editor-font-style,.editor-frame-style) .editor-palette-current{flex:1;min-width:0}
 .editor-properties .editor-frame-style .editor-frame-form{margin-bottom:8px}
-.editor-properties .editor-frame-style .editor-style-check{flex-direction:row;align-items:center;justify-content:space-between;min-height:var(--style-control-height);white-space:nowrap}
-.editor-properties .editor-frame-style .editor-style-check input{width:14px;height:14px;min-width:14px;margin:0;padding:0;accent-color:hsl(var(--primary))}
+.editor-properties :is(.editor-font-style,.editor-frame-style) .editor-style-check{flex-direction:row;align-items:center;justify-content:space-between;min-height:var(--style-control-height);white-space:nowrap}
+.editor-properties .editor-effect-heading .editor-style-check{min-height:24px;gap:6px}
+.editor-properties :is(.editor-font-style,.editor-frame-style) .editor-style-check input{width:14px;height:14px;min-width:14px;margin:0;padding:0;accent-color:hsl(var(--primary))}
 .editor-frame-section{border-top:1px solid hsl(var(--border));padding-top:8px;margin-top:8px}
 .editor-properties .editor-frame-section>.editor-frame-grid+label:not(.editor-style-check){margin-top:8px}

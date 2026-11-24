@@ -77,7 +77,7 @@ function TextStyleFields({style,theme,onChange}:{style:Omit<TextStyle,'backgroun
    {numberField('opacity','불투명도',1,0,1,.05)}
   </div>
   <div className="editor-font-background">
-   <div><strong>배경</strong><Button aria-label="배경 표시" aria-pressed={background} onClick={toggleBackground}>표시</Button></div>
+   <div className="editor-effect-heading"><strong>배경</strong><label className="editor-style-check">배경색 없음 <input type="checkbox" checked={!background} onChange={toggleBackground}/></label></div>
    <div className="editor-font-color">배경색<ColorPalette allowAlpha label="텍스트 배경색" value={backgroundColor} theme={theme} onChange={color=>onChange({backgroundColor:color,background})}/></div>
   </div>
   <div className="editor-font-background">
@@ -88,7 +88,7 @@ function TextStyleFields({style,theme,onChange}:{style:Omit<TextStyle,'backgroun
    </div>
   </div>
   <div className="editor-font-background">
-   <div><strong>그림자</strong><Button aria-label="그림자 표시" aria-pressed={!!style.shadow} onClick={()=>onChange({shadow:!style.shadow})}>표시</Button></div>
+   <div className="editor-effect-heading"><strong>그림자</strong><label className="editor-style-check">그림자 없음 <input type="checkbox" checked={!style.shadow} onChange={event=>onChange({shadow:!event.target.checked})}/></label></div>
    <div className="editor-font-grid">
     {numberField('shadowX','X(px)',0,-50,50,.5)}
     {numberField('shadowY','Y(px)',0,-50,50,.5)}

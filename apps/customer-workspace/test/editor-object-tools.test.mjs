@@ -58,3 +58,9 @@ test('photo frames show a separate style card after fitting and use the shared c
  assert.match(html,/그림자 없음 <input type="checkbox" checked/);
  assert.doesNotMatch(render({selection:{type:'image',rights:{replaceImage:true}},onFrameStyle:noop}),/<h3>프레임 스타일/);
 });
+
+test('text effects use the same negative checkbox controls as frame effects',()=>{
+ const html=render({selection:{type:'text',rights:{textStyle:true}},item:{style:{background:true,shadow:false}}});
+ assert.match(html,/배경색 없음 <input type="checkbox"\/>/);
+ assert.match(html,/그림자 없음 <input type="checkbox" checked/);
+});
