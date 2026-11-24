@@ -210,23 +210,33 @@
 .family-page header p,.family-page>small,.family-profile-groups,.family-front-note,.family-story-footer section,.family-frame{font-size:2.2cqw}
 .family-page h2{margin:0;color:var(--family-accent);font:700 5cqw/1.12 "Noto Serif KR",serif}
 .family-page header p{margin:.5cqw 0 0}.family-page small{color:var(--family-accent)}
-.family-cover,.family-profile,.family-schedule{grid-template-rows:auto minmax(0,1fr) auto}
-.family-cover small{letter-spacing:.12em}
-.family-cover-left,.family-cover-right{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;column-gap:4%;align-items:stretch}
-.family-cover-left .family-frame{grid-area:1/1}.family-cover-left header{grid-area:1/2;align-self:center}
-.family-cover-right{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
-.family-cover-right .family-frame{grid-area:1/2}.family-cover-right header{grid-area:1/1;align-self:center}
-.family-cover-left small,.family-cover-right small{grid-column:1/-1}
-.family-cover-centered{padding:5% 12%;text-align:center}.family-cover-centered .family-frame{margin:1.5cqw 0}.family-frame{position:relative;display:grid;min-height:0;place-items:center;overflow:hidden;background:#ebe3d7;border:1px solid #cbbbaa;color:#66584b}
+.family-cover,.family-profile{grid-template-columns:minmax(0,3fr) minmax(0,2fr);grid-template-rows:minmax(0,1fr) auto;column-gap:4%}
+.family-cover header,.family-profile header{align-self:center}
+.family-cover small,.family-profile small{grid-column:1/-1;letter-spacing:.12em}
+.family-photo-stack{display:grid;grid-template-rows:repeat(2,minmax(0,1fr));gap:1cqw;min-height:0}
+.family-member-frames{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:1cqw;min-height:0}
+.family-cover-right{grid-template-columns:minmax(0,2fr) minmax(0,3fr)}
+.family-cover-right .family-photo-stack{grid-area:1/2}.family-cover-right header{grid-area:1/1}
+.family-cover-top,.family-cover-centered{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto}
+.family-cover-top header,.family-cover-centered header{grid-row:1}
+.family-cover-centered{padding-inline:13%;text-align:center}
+.family-frame{position:relative;display:grid;min-height:0;place-items:center;overflow:hidden;background:#ebe3d7;border:1px solid #cbbbaa;color:#66584b}
 .family-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.family-profile-groups{display:grid;align-content:space-evenly}.family-profile-groups section>div{display:flex;gap:1cqw}.family-profile-groups span{flex:1;padding:1.5cqw .5cqw;background:#efe7db;text-align:center}
+.family-schedule{grid-template-rows:auto minmax(0,1fr) auto}
 .family-year{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:1cqw;overflow:hidden}
 .family-year section{min-width:0;padding:.7cqw;border-top:1px solid #bcaa95;overflow:auto;font-size:1.88cqw}
 .family-year section b{color:var(--family-accent);font-size:2.7cqw}.family-year section div{overflow-wrap:anywhere}
-.family-story{grid-template-rows:auto minmax(0,1fr) 32%;background:#f6efe4}.family-front{grid-template-rows:auto minmax(0,1fr) auto}
-.family-front-body,.family-story-footer{display:grid;grid-template-columns:3fr 2fr;gap:2cqw;min-height:0}
+.family-story{grid-template-rows:auto minmax(0,1fr) 32%;background:#f6efe4}.family-front{grid-template-rows:auto minmax(0,1fr)}
+.family-front-body,.family-story-footer{display:grid;grid-template-columns:2fr 3fr;gap:2cqw;min-height:0}
 .family-story-footer{grid-template-columns:1fr 1fr}.family-story-footer section{display:grid;grid-template-rows:auto minmax(0,1fr)}
-.family-front-note{border-bottom:1px solid #ab9b89}.family-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:1fr;text-align:center;align-items:center;line-height:1;font-variant-numeric:tabular-nums}
+.family-front-info{display:grid;grid-template-rows:repeat(2,minmax(0,1fr));gap:1cqw;min-height:0;font-size:2.3cqw}
+.family-event-feature{display:grid;place-content:center;text-align:center;padding:1cqw;background:#efe7db;color:var(--family-accent)}
+.family-event-feature span{font-size:6cqw;line-height:1.1}
+.family-event-list{min-height:0;overflow:auto;padding-top:.8cqw;border-top:1px solid #bcaa95}
+.family-event-list p{margin:.4cqw 0}
+.family-annual .family-calendar{font-size:1.5cqw;height:calc(100% - 3.1cqw)}
+.family-annual .family-year section{overflow:hidden}
+.family-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:1fr;text-align:center;align-items:center;line-height:1;font-variant-numeric:tabular-nums}
 .family-calendar b{color:var(--family-accent)}.family-calendar span{white-space:nowrap}.family-calendar small{font-size:.58em;padding-left:.15em}
 .family-front .family-calendar{font-size:3cqw}.family-story .family-calendar{font-size:1.82cqw}
 .family-photos{display:grid;grid-template-columns:repeat(var(--photo-cols),minmax(0,1fr));grid-template-rows:repeat(var(--photo-rows),minmax(0,1fr));gap:1.3cqw}
@@ -234,7 +244,9 @@
 .family-caption{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#fffaf2;border:1px solid #cbbbaa;border-radius:.4cqw;padding:0 .8cqw;font-size:1.85cqw}
 .family-bubble{border-radius:2cqw}.family-bubble::before{content:"›";margin-right:.5cqw;color:var(--family-accent)}
 .family-note-lines{min-height:0;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(4cqw - 1px),#ae9e8890 calc(4cqw - 1px),#ae9e8890 4cqw)}
-.family-end{grid-template-rows:auto 1fr;padding:9% 10%}
+.family-end{grid-template-rows:repeat(2,minmax(0,1fr));text-align:center;align-items:center}
+.family-end h2{font-size:24cqw;line-height:1}
+.family-end-message{display:grid;align-content:center;align-self:stretch;padding:3cqw;background:#efe7db;font:700 4.2cqw/1.4 "Noto Serif KR",serif}
 </style>
 </head>
 <body class="bg-studio text-gray-200 font-sans min-h-screen flex flex-col antialiased selection:bg-amber-800 selection:text-white">
@@ -1505,7 +1517,7 @@
         function renderCoverReview(cover,draft) {
             const design = cover.cover_design;
             if(draft.family_archive)return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderDraftFace(cover,false,draft,draft.draft_layout.pages[0])}</div>
-                <p class="mt-2 font-semibold" role="status">${familyCoverLayouts[familyCoverLayout(design)]} · 단체 사진 1컷</p>
+                <p class="mt-2 font-semibold" role="status">${familyCoverLayouts[familyCoverLayout(design)]} · 단체 사진과 가족 사진</p>
                 <button type="button" data-next-cover class="mt-2 rounded border border-zinc-600 px-3 py-1">다른 추천 받기</button>`;
             return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderDraftFace(cover,false,draft,draft.draft_layout.pages[0])}</div>
                 <p class="mt-2 font-semibold">${coverTypes[design.type]} · ${coverLayouts[design.layout][0]} · ${design.type === 'type' && design.yearFill === 'photo' ? (usesDigitTiles(design.yearLayout) && design.yearPhotoMode === 'digits' ? '숫자 프레임 4개' : '연도 사진 프레임 1개') : '사진 '+design.photos+'컷'}</p>
@@ -1646,10 +1658,10 @@
                 <section class="rounded border border-zinc-600 p-3">
                     <h3 class="font-semibold text-amber-200">28면 구성</h3>
                     <ul class="mt-2 grid gap-1">
-                        <li>1면 · 표지</li><li>2면 · ${draft.family_archive?"가족 소개":inside(layout.inside_front)}</li>
-                        <li>3~26면 · 월력 앞면 · ${draft.family_archive?"가족 일정과 주인공 사진":front}</li>
-                        <li>3~26면 · 월력 뒷면 · ${draft.family_archive?"사진 2~6컷, 작은 달력과 메모":back}</li>
-                        <li>27면 · ${draft.family_archive?"가족 대소사 스케줄러":inside(layout.inside_back)}</li><li>28면 · 뒷표지</li>
+                        <li>1면 · 표지</li><li>2면 · ${draft.family_archive?"가족 사진과 소개":inside(layout.inside_front)}</li>
+                        <li>3~26면 · 월력 앞면 · ${draft.family_archive?"가족 기념일과 월력":front}</li>
+                        <li>3~26면 · 월력 뒷면 · ${draft.family_archive?"사진 2~4컷, 작은 달력과 메모":back}</li>
+                        <li>27면 · ${draft.family_archive?"2027 가족 연력":inside(layout.inside_back)}</li><li>28면 · 뒷표지</li>
                     </ul>
                     ${draft.family_archive?"":'<button type="button" data-next-layout class="mt-2 rounded border border-zinc-600 px-3 py-1">다른 추천 받기</button>'}
                     <div class="mt-3 grid gap-2 sm:grid-cols-2">${[0,1,2,3,26,27].map(index => {
@@ -1810,38 +1822,57 @@
 
         function familyPhotoCount(item) {
             const count=Number(item.family_photo_count);
-            return Number.isInteger(count)&&count>=2&&count<=6?count:3;
+            return Number.isInteger(count)&&count>=2 ? Math.min(count,4) : 2;
         }
 
         const familyCoverLayouts = {
-            top:'상단 제목 · 아래 단체 사진',
+            top:'상단 제목 · 하단 사진 묶음',
             left:'왼쪽 사진 · 오른쪽 제목',
             right:'왼쪽 제목 · 오른쪽 사진',
-            centered:'여백을 넉넉히 둔 중앙 사진'
+            centered:'여백을 넉넉히 둔 중앙 사진 묶음'
         };
 
         function familyCoverLayout(design) {
-            return Object.hasOwn(familyCoverLayouts,design?.familyCoverLayout) ? design.familyCoverLayout : 'top';
+            return Object.hasOwn(familyCoverLayouts,design?.familyCoverLayout) ? design.familyCoverLayout : 'left';
         }
 
         function renderFamilyFace(item,page,dataset) {
             const month=item.month,ink=FAMILY_ACCENTS[(month-1)%12]||'#66523e';
             const panel=(mode,body)=>`<div class="family-page family-${mode}" style="--family-accent:${ink}">${body}</div>`;
             const legend=Object.keys(FAMILY_MARKS).map(kind=>FAMILY_MARKS[kind]+' '+FAMILY_MARK_NAMES[kind]).join('　');
-            if(page.role==='cover')return panel('cover family-cover-'+familyCoverLayout(item.cover_design),`<header><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.cover_subtitle)}</p></header>${familyFrame(item.illustration_image,'열 명의 가족 단체 사진')}<small>2027 ANNUAL FAMILY CALENDAR</small>`);
-            if(page.role==='inside-front')return panel('profile',`<header><h2>우리 가족 열 사람</h2><p>세대를 이어 함께 쓴 2027년</p></header><div class="family-profile-groups">${[
-                ['조부모',['할머니','할아버지']],['자녀',['첫째','둘째','셋째']],['손자·손녀',Array.from({length:5},(_,i)=>'손자·손녀 '+(i+1))]
-            ].map(([label,people])=>`<section><b>${label}</b><div>${people.map(person=>`<span>${person}</span>`).join('')}</div></section>`).join('')}</div><small>${legend}</small>`);
-            if(page.role==='inside-back')return panel('schedule',`<header><h2>2027 가족 대소사</h2><p>시안 검토용 예시 일정</p></header><div class="family-year">${Array.from({length:12},(_,i)=>{
-                const events=familyEvents(dataset,i+1);
-                return `<section><b>${i+1}월</b>${events.map(e=>`<div>${FAMILY_MARKS[e.kind]} ${e.day}일 ${escapeHtml(e.title)}</div>`).join('')}</section>`;
+            if(page.role==='cover'||page.role==='inside-front') {
+                const front=page.role==='cover', archive=dataset.family_archive;
+                const people=Array.isArray(archive.members)&&archive.members.length ? archive.members : Array.from({length:4},(_,i)=>({name:'가족 '+(i+1)}));
+                const photos=`<div class="family-photo-stack">${familyFrame(archive.group_photo || item.illustration_image,'가족 단체 사진')}
+                    <div class="family-member-frames">${people.map(person=>familyFrame(person?.image,person?.name||'가족 사진')).join('')}</div></div>`;
+                const heading=front
+                    ? `<h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.cover_subtitle)}</p>`
+                    : '<h2>우리 가족 열 사람</h2><p>세대를 이어 함께 쓴 2027년</p>';
+                return panel(front?'cover family-cover-'+familyCoverLayout(item.cover_design):'profile',
+                    `${photos}<header>${heading}</header><small>${front?'2027 ANNUAL FAMILY CALENDAR':legend}</small>`);
+            }
+            if(page.role==='inside-back')return panel('schedule family-annual',`<header><h2>2027 가족 연력</h2></header><div class="family-year">${Array.from({length:12},(_,i)=>{
+                const month=i+1;
+                return `<section><b>${month}월</b>${familyCalendar(month,familyEvents(dataset,month))}</section>`;
             }).join('')}</div><small>${legend}</small>`);
-            if(page.role==='back-cover')return panel('end',`<header><h2>함께여서 든든했습니다</h2><p>2028년에 함께 하고 싶은 일</p></header><div class="family-note-lines"></div>`);
-            if(page.role==='month-front')return panel('front',`<header><h2>${month}월 · ${escapeHtml(item.front_text)}</h2><p>${escapeHtml(item.family_quote)}</p></header><div class="family-front-body">${familyCalendar(month,familyEvents(dataset,month))}${familyFrame(item.illustration_image,'이번 달 사진')}</div><div class="family-front-note">메모</div>`);
+            if(page.role==='back-cover')return panel('end',`<h2>2027</h2><div class="family-end-message">${escapeHtml(dataset.family_archive.closing_message||'함께여서 든든했습니다')}</div>`);
+            if(page.role==='month-front') {
+                const events=familyEvents(dataset,month);
+                const features=[
+                    ['birthday','생일이 있어요.'],
+                    ['anniversary','이달의 기념일'],
+                    ['memorial','이달의 기억할 날']
+                ].filter(([kind])=>events.some(event=>event.kind===kind));
+                return panel('front',`<header><h2>${month}월 · ${escapeHtml(item.front_text)}</h2><p>${escapeHtml(item.family_quote)}</p></header>
+                    <div class="family-front-body"><div class="family-front-info">
+                    <div class="family-event-feature">${features.length?`<span aria-hidden="true">${features.map(([kind])=>FAMILY_MARKS[kind]).join(' ')}</span><b>${features.map(([,label])=>label).join(' · ')}</b>`:'<span aria-hidden="true">◇</span><b>이달의 가족 이야기</b>'}</div>
+                    <div class="family-event-list"><b>이달의 가족 일정</b>${events.map(event=>`<p>${FAMILY_MARKS[event.kind]} ${event.day}일 ${escapeHtml(event.title)}</p>`).join('')}</div>
+                    </div>${familyCalendar(month,events)}</div>`);
+            }
             if(page.role!=='month-back')return '';
             const count=familyPhotoCount(item),photos=Array.isArray(item.family_photos)?item.family_photos:[];
             return panel('story',`<header><h2>${month}월 이야기</h2><p>${escapeHtml(item.back_text)}</p></header>
-                <div class="family-photos" style="--photo-cols:${count>=5||count===3?3:2};--photo-rows:${[2,3].includes(count)?1:2}">
+                <div class="family-photos" style="--photo-cols:${count===3?3:2};--photo-rows:${[2,3].includes(count)?1:2}">
                     ${Array.from({length:count},(_,i)=>`<div class="family-photo-card">${familyFrame(photos[i]?.image,'사진 '+(i+1))}
                     <span class="family-caption ${photos[i]?.shape==='bubble'?'family-bubble':''}">${escapeHtml(photos[i]?.note||'')}</span></div>`).join('')}
                 </div><div class="family-story-footer">${familyCalendar(month,familyEvents(dataset,month))}<section><b>가족 메모</b><div class="family-note-lines"></div></section></div>`);
@@ -1980,7 +2011,7 @@
         familySample.cover = {...familySample.cover,id:'cover',month:0,label:'표지',accent:'#66523e',accentName:'웜 브라운',memo_title:'가족 기록'};
         familySample.months = familySample.months.map((page,i)=>({...page,id:'m'+String(i+1).padStart(2,'0'),label:(i+1)+'월',
             front_text:familyCopy[i][0],family_quote:familyCopy[i][1],back_text:familyCopy[i][2],concept_text:familyCopy[i][3],
-            accent:FAMILY_ACCENTS[i],accentName:'월별 강조색',family_photo_count:[2,2,3,2,2,2,4,3,3,4,2,6][i]}));
+            accent:FAMILY_ACCENTS[i],accentName:'월별 강조색',family_photo_count:[2,2,3,2,2,2,4,3,3,4,2,4][i]}));
         CALENDAR_SETS_REGISTRY.push(familySample);
         const builtInCount = CALENDAR_SETS_REGISTRY.length;
 
@@ -2647,8 +2678,8 @@
                     <h3 class="font-semibold text-amber-200">일러스트와 컨셉</h3>
                     ${calendarDataset.family_archive && item.month >= 1 && item.month <= 12 ? `
                         <details class="space-y-2"><summary>월력 뒷면 사진과 메모 편집</summary>
-                        <label>사진 프레임 수 <select id="familyPhotoCount" class="rounded bg-zinc-900 p-1">${[2,3,4,5,6].map(n=>`<option value="${n}" ${familyPhotoCount(item)===n?'selected':''}>${n}컷</option>`).join('')}</select></label>
-                        <div class="grid gap-2 sm:grid-cols-2">${Array.from({length:6},(_,i)=>`<fieldset data-family-photo class="grid gap-1 rounded border border-zinc-700 p-2"><legend>사진 ${i+1}</legend>
+                        <label>사진 프레임 수 <select id="familyPhotoCount" class="rounded bg-zinc-900 p-1">${[2,3,4].map(n=>`<option value="${n}" ${familyPhotoCount(item)===n?'selected':''}>${n}컷</option>`).join('')}</select></label>
+                        <div class="grid gap-2 sm:grid-cols-2">${Array.from({length:4},(_,i)=>`<fieldset data-family-photo class="grid gap-1 rounded border border-zinc-700 p-2"><legend>사진 ${i+1}</legend>
                             <label>사진 교체<input type="file" accept="image/png,image/jpeg,image/webp"></label>
                             <label>메모<input type="text" maxlength="100" class="w-full bg-zinc-900 p-1" value="${escapeHtml(item.family_photos?.[i]?.note||'')}"></label>
                             <label>메모 도형<select class="bg-zinc-900 p-1"><option value="box">메모 상자</option><option value="bubble" ${item.family_photos?.[i]?.shape==='bubble'?'selected':''}>말풍선</option></select></label>
@@ -2699,7 +2730,7 @@
                     }));
                     if(calendarDataset!==design||!bodyEl.contains(button))return;
                     const count=Number(bodyEl.querySelector('#familyPhotoCount').value);
-                    const updated={...design,months:design.months.map(page=>page.month===item.month?{...page,family_photo_count:count,family_photos:photos}:page)};
+                    const updated={...design,months:design.months.map(page=>page.month===item.month?{...page,family_photo_count:count,family_photos:[...photos,...(page.family_photos||[]).slice(photos.length)]}:page)};
                     registerDesign(updated);
                     openSpecModal(item.id);
                 } catch(error) {showToast(error.message);}
