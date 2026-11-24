@@ -620,6 +620,7 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-properties .editor-visibility-toggle {display:flex;flex-direction:row;align-items:center;gap:7px;margin:0;}
 .editor-properties .editor-visibility-toggle input,.editor-properties .editor-share-option input {width:16px;height:16px;min-height:16px;padding:0;flex:none;margin:2px 0;}
 .editor-content-field + .editor-content-field {margin-top:12px;}
+.editor-text-content .editor-content-field + .editor-card-apply {margin-top:10px;}
 .editor-properties .editor-share-option {display:flex;flex-direction:row;align-items:flex-start;gap:8px;font-size:12px;line-height:1.5;}
 .editor-text-toolbar {display:flex;align-items:center;gap:3px;padding-left:10px;border-left:1px solid hsl(var(--border));}
 .editor-text-toolbar .button {width:32px;min-height:32px;}
