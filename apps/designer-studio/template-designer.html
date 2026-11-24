@@ -6,6 +6,7 @@
     <title>THE YEAR IN OBJECTS 2027 - 탁상달력 템플릿 시안 뷰어</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./shared-screen-mini-calendar.js"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -250,7 +251,8 @@
 .family-photo-card{display:grid;grid-template-rows:minmax(0,1fr) 3.5cqw;gap:.6cqw;min-width:0;min-height:0}
 .family-caption{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#fffaf2;border:1px solid #cbbbaa;border-radius:.4cqw;padding:0 .8cqw;font-size:1.85cqw}
 .family-bubble{border-radius:2cqw}.family-bubble::before{content:"›";margin-right:.5cqw;color:var(--family-accent)}
-.family-note-lines{min-height:0;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(4cqw - 1px),#ae9e8890 calc(4cqw - 1px),#ae9e8890 4cqw)}
+.family-mini-widget{display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0;text-align:center}
+.family-note-lines{min-height:0;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--family-memo-step,4cqw) - 1px),#ae9e8890 calc(var(--family-memo-step,4cqw) - 1px),#ae9e8890 var(--family-memo-step,4cqw))}
 .family-end{grid-template-rows:repeat(2,minmax(0,1fr));text-align:center;align-items:center}
 .family-end h2{font-size:24cqw;line-height:1}
 .family-end-message{display:grid;align-content:center;align-self:stretch;padding:3cqw;background:#efe7db;font:700 4.2cqw/1.4 "Noto Serif KR",serif}
@@ -1954,14 +1956,68 @@
                 }).join('')}</div>`;
         }
 
-        function familyFrame(image,label) {
+        function familyFrame(image,label,element) {
             const source=illustrationSource(image);
-            return `<div class="family-frame">${source?`<img src="${escapeHtml(source)}" alt="${escapeHtml(label)}">`:`<span>${escapeHtml(label)}</span>`}</div>`;
+            return `<div class="family-frame"${element?` data-draft-element="${element.id}"`: ''}>${source?`<img src="${escapeHtml(source)}" alt="${escapeHtml(label)}"${element?` style="object-fit:${element.image.fit}"`: ''}>`:`<span>${escapeHtml(label)}</span>`}</div>`;
         }
 
         function familyPhotoCount(item) {
-            const count=Number(item.family_photo_count);
+            const count=Number(item.family_photo_count??item.photo_slots);
             return Number.isInteger(count)&&count>=2 ? Math.min(count,4) : 2;
+        }
+
+        // These are editor object options, authored before either preview or export.
+        function familyBackElements(item,page,dataset) {
+            const saved=Array.isArray(page.elements)?page.elements:[];
+            const previous=id=>saved.find(element=>element?.id===id);
+            const prefix='surface.'+Math.ceil(page.number/2)+'.back';
+            const accent=(dataset.page_rules?.family?.accents??FAMILY_ACCENTS)[item.month-1];
+            const miniId=prefix+'.mini-calendar', memoId=prefix+'.memo';
+            const mini=previous(miniId),memo=previous(memoId);
+            const size=(value,fallback)=>Number.isFinite(value)&&value>=3&&value<=36?value:fallback;
+            const color=(value,fallback)=>typeof value==='string'&&/^#[\da-f]{6}$/i.test(value)?value:fallback;
+            return [
+                ...Array.from({length:familyPhotoCount(item)},(_,i)=>{
+                    const id=prefix+'.image-frame.'+(i+1),old=previous(id);
+                    const fit=old?.image?.fit==='contain'?'contain':'cover';
+                    return {id,type:'image-frame',role:'monthly-image',frameType:'rect',fit,
+                        image:{fit,scale:1,offsetX:0,offsetY:0}};
+                }),
+                {id:miniId,type:'mini-calendar',calendarRowsMode:'adaptive',monthLabelStyle:mini?.monthLabelStyle==='number-ko'?'number-ko':'number-en',
+                    showWeekdayHeader:mini?.showWeekdayHeader!==false,showAdjacentMonths:mini?.showAdjacentMonths===true,
+                    style:{preset:'standard',dateSize:size(mini?.style?.dateSize,16),titleSize:size(mini?.style?.titleSize,17),
+                        primary:color(mini?.style?.primary,accent),dateColor:color(mini?.style?.dateColor,'#3b302a'),
+                        sunday:color(mini?.style?.sunday,'#a63d39'),saturday:color(mini?.style?.saturday,'#355e80')}},
+                {id:memoId,type:'memo',memoLayout:'lines',title:'가족 메모',
+                    lineCount:Number.isInteger(memo?.lineCount)&&memo.lineCount>=1&&memo.lineCount<=12?memo.lineCount:4}
+            ];
+        }
+
+        function renderFamilyBackMini(element,month,events) {
+            const {resolveMiniCalendar}=window.ACDLSharedMiniCalendar;
+            const model=resolveMiniCalendar(element,{calendarYear:2027,calendarMonth:month},{calendarRowsMode:'adaptive'});
+            const {style}=element;
+            const headers=model.showWeekdayHeader?model.headers.map(day=>`<b>${day}</b>`).join(''):'';
+            const dates=model.cells.map(cell=>{
+                if(cell.month!==month&&!model.showAdjacentMonths)return '<span></span>';
+                const markers=cell.month===month?[...new Set(events.filter(event=>event.day===cell.day).map(event=>event.kind))]:[];
+                const ink=cell.weekday===0?style.sunday:cell.weekday===6?style.saturday:style.dateColor;
+                return `<span style="color:${ink}">${cell.day}${markers.length?`<small aria-label="${markers.map(kind=>FAMILY_MARK_NAMES[kind]).join(', ')}">${markers.map(kind=>FAMILY_MARKS[kind]).join('')}</small>`:''}</span>`;
+            }).join('');
+            return `<div class="family-mini-widget" data-draft-element="${element.id}">
+                <b style="color:${style.primary};font-size:${style.titleSize/9.6}cqw">${model.label}</b>
+                <div class="family-calendar" style="font-size:${style.dateSize/9.6}cqw">${headers}${dates}</div>
+                </div>`;
+        }
+
+        function syncFamilyBackElements(draft) {
+            const layout=draft.draft_layout;
+            if(!layout)return;
+            for(const page of layout.pages) {
+                if(page.role==='month-back'&&usesFamilyLayout(draft,page)) {
+                    page.elements=familyBackElements(draft.months[page.month-1],page,draft);
+                }
+            }
         }
 
         const familyCoverLayouts = {
@@ -2013,12 +2069,15 @@
                     </div>${familyCalendar(month,events)}</div>`);
             }
             if(page.role!=='month-back')return '';
-            const count=familyPhotoCount(item),photos=Array.isArray(item.family_photos)?item.family_photos:[];
+            const elements=familyBackElements(item,page,dataset);
+            const frames=elements.filter(element=>element.type==='image-frame');
+            const mini=elements.find(element=>element.type==='mini-calendar'),memo=elements.find(element=>element.type==='memo');
+            const count=frames.length,photos=Array.isArray(item.family_photos)?item.family_photos:[];
             return panel('story',`<header><h2>${month}월 이야기</h2><p>${escapeHtml(item.back_text)}</p></header>
                 <div class="family-photos" style="--photo-cols:${count===3?3:2};--photo-rows:${[2,3].includes(count)?1:2}">
-                    ${Array.from({length:count},(_,i)=>`<div class="family-photo-card">${familyFrame(photos[i]?.image,'사진 '+(i+1))}
+                    ${frames.map((frame,i)=>`<div class="family-photo-card">${familyFrame(photos[i]?.image,'사진 '+(i+1),frame)}
                     <span class="family-caption ${photos[i]?.shape==='bubble'?'family-bubble':''}">${escapeHtml(photos[i]?.note||'')}</span></div>`).join('')}
-                </div><div class="family-story-footer">${familyCalendar(month,familyEvents(dataset,month))}<section><b>가족 메모</b><div class="family-note-lines"></div></section></div>`);
+                </div><div class="family-story-footer">${renderFamilyBackMini(mini,month,familyEvents(dataset,month))}<section data-draft-element="${memo.id}"><b>${memo.title}</b><div class="family-note-lines" style="--family-memo-step:${100/memo.lineCount}%"></div></section></div>`);
         }
 
         function renderDraftFace(item, backFace, dataset = calendarDataset, selectedPage) {
@@ -3058,7 +3117,7 @@
             }
             const style = isRecord(set.global_style_lock) ? set.global_style_lock : {};
             const monthNames = 'JANUARY FEBRUARY MARCH APRIL MAY JUNE JULY AUGUST SEPTEMBER OCTOBER NOVEMBER DECEMBER'.split(' ');
-            return {
+            const normalized={
                 ...set,
                 ...(set.page_rules !== undefined ? {page_rules:normalizePageRules(set.page_rules)} : {}),
                 global_style_lock: {
@@ -3073,6 +3132,8 @@
                     return normalizePage(months.find(item => item.month === month) ?? {}, month, title.slice(0, 3), title);
                 })
             };
+            syncFamilyBackElements(normalized);
+            return normalized;
         }
 
         function submitImportedJson() {
@@ -3100,7 +3161,7 @@
             ['.family-photo-card > .family-frame,[data-draft-photo]','photo-frame'],
             ['.family-timeline-grid','family-timeline'], ['.family-event-feature','family-event-heading'],
             ['.family-event-list','monthly-schedule'], ['.family-front .family-calendar,.number-front .number-days,.habit-calendar,[data-draft-calendar]','calendar'],
-            ['.family-story-footer .family-calendar','mini-calendar'],
+            ['.family-mini-widget','mini-calendar'],
             ['.family-story-footer section,[data-draft-memo]','handwriting-area'],
             ['.family-year,.number-annual,.habit-year-grid,[data-draft-annual]','annual-calendar'], ['.number-days.daily-memo','daily-memo-calendar'], ['[data-draft-scheduler]','monthly-schedule'], ['.habit-tracker','habit-tracker'],
             ['.family-end-message,.habit-end h2','closing-message'], ['.number-grid-wrap > i','month-watermark'],
@@ -3140,7 +3201,9 @@
         }
 
         function editorDraftElement(object,page) {
-            const {id,role,style,text}=object;
+            const {id,role,style,text,definition}=object;
+            if(definition) return {...definition,...editorBounds(object.bounds),zIndex:object.order+1,
+                ...(definition.type==='image-frame'?{image:{...definition.image,src:object.image?.src??''}}:{})};
             const base={id,...editorBounds(object.bounds),zIndex:object.order+1};
             if (role==='text'||role==='closing-message'||role==='month-watermark') {
                 const year=page.role==='cover'&&text==='2027';
@@ -3213,6 +3276,7 @@
 
         function measureDraftLayout(draft) {
             if (!draft.draft_layout?.pages) return;
+            syncFamilyBackElements(draft);
             const canvas=document.createElement('div');
             Object.assign(canvas.style,{position:'fixed',left:'-10000px',top:'0',visibility:'hidden',
                 width:layoutReference.width+'px',height:layoutReference.height+'px',overflow:'hidden',pointerEvents:'none'});
@@ -3237,7 +3301,8 @@
                         const style=resolveDraftObjectStyle(css);
                         const id=page.number+'-'+role+'-'+(objects.filter(object=>object.role===role).length+1);
                         const photo=['group-photo','member-photo','photo-frame'].includes(role)?node.querySelector('img'):null;
-                        objects.push({id,role,bounds,order:objects.length,style,
+                        const definition=page.elements?.find(element=>element.id===node.getAttribute('data-draft-element'));
+                        objects.push({id,role,bounds,order:objects.length,style,definition,
                             ...(photo?{image:{src:photo.getAttribute('src'),fit:getComputedStyle(photo).objectFit}}:{}),
                             ...(role==='handwriting-area'&&node.matches('.family-story-footer section')?{lineCount:Math.max(1,Math.floor((node.querySelector('.family-note-lines')?.getBoundingClientRect().height||0)/(origin.width*.04)))}:{}),
                             ...(['text','month-watermark','closing-message'].includes(role)?{text:node.textContent.trim()}:{}),
