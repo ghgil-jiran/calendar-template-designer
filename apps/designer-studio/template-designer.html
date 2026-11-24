@@ -205,6 +205,31 @@
 .habit-end{display:grid;place-content:center;text-align:center;gap:3cqw;background:#243c32;color:#f4f4e5}
 .habit-end .habit-marks{width:38cqw;margin:auto}.habit-end h2{font-size:7cqw;font-weight:800}
 </style>
+<style>
+.family-page{box-sizing:border-box;container-type:inline-size;display:grid;width:100%;height:100%;min-height:0;overflow:hidden;padding:3% 4%;gap:1%;background:#fbf7ef;color:#3b302a;font-family:"Plus Jakarta Sans","Noto Serif KR",sans-serif}
+.family-page header p,.family-page>small,.family-profile-groups,.family-front-note,.family-story-footer section,.family-frame{font-size:2.2cqw}
+.family-page h2{margin:0;color:var(--family-accent);font:700 5cqw/1.12 "Noto Serif KR",serif}
+.family-page header p{margin:.5cqw 0 0}.family-page small{color:var(--family-accent)}
+.family-cover,.family-profile,.family-schedule{grid-template-rows:auto minmax(0,1fr) auto}
+.family-cover small{letter-spacing:.12em}.family-frame{position:relative;display:grid;min-height:0;place-items:center;overflow:hidden;background:#ebe3d7;border:1px solid #cbbbaa;color:#66584b}
+.family-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.family-profile-groups{display:grid;align-content:space-evenly}.family-profile-groups section>div{display:flex;gap:1cqw}.family-profile-groups span{flex:1;padding:1.5cqw .5cqw;background:#efe7db;text-align:center}
+.family-year{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:1cqw;overflow:hidden}
+.family-year section{min-width:0;padding:.7cqw;border-top:1px solid #bcaa95;overflow:auto;font-size:1.88cqw}
+.family-year section b{color:var(--family-accent);font-size:2.7cqw}.family-year section div{overflow-wrap:anywhere}
+.family-story{grid-template-rows:auto minmax(0,1fr) 32%;background:#f6efe4}.family-front{grid-template-rows:auto minmax(0,1fr) auto}
+.family-front-body,.family-story-footer{display:grid;grid-template-columns:3fr 2fr;gap:2cqw;min-height:0}
+.family-story-footer{grid-template-columns:1fr 1fr}.family-story-footer section{display:grid;grid-template-rows:auto minmax(0,1fr)}
+.family-front-note{border-bottom:1px solid #ab9b89}.family-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:1fr;text-align:center;align-items:center;line-height:1;font-variant-numeric:tabular-nums}
+.family-calendar b{color:var(--family-accent)}.family-calendar span{white-space:nowrap}.family-calendar small{font-size:.58em;padding-left:.15em}
+.family-front .family-calendar{font-size:3cqw}.family-story .family-calendar{font-size:1.82cqw}
+.family-photos{display:grid;grid-template-columns:repeat(var(--photo-cols),minmax(0,1fr));grid-template-rows:repeat(var(--photo-rows),minmax(0,1fr));gap:1.3cqw}
+.family-photo-card{display:grid;grid-template-rows:minmax(0,1fr) 3.5cqw;gap:.6cqw;min-width:0;min-height:0}
+.family-caption{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#fffaf2;border:1px solid #cbbbaa;border-radius:.4cqw;padding:0 .8cqw;font-size:1.85cqw}
+.family-bubble{border-radius:2cqw}.family-bubble::before{content:"›";margin-right:.5cqw;color:var(--family-accent)}
+.family-note-lines{min-height:0;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(4cqw - 1px),#ae9e8890 calc(4cqw - 1px),#ae9e8890 4cqw)}
+.family-end{grid-template-rows:auto 1fr;padding:9% 10%}
+</style>
 </head>
 <body class="bg-studio text-gray-200 font-sans min-h-screen flex flex-col antialiased selection:bg-amber-800 selection:text-white">
 
@@ -275,7 +300,7 @@
 <form id="newDraftForm" class="draft-form">
 <div class="draft-form-heading"><h2 id="newDraftHeading" class="draft-form-title">새 시안 만들기</h2><button type="button" id="closeNewDraft" class="draft-close">닫기</button></div>
 <p id="draftEditHint" hidden class="text-sm text-gray-300"></p>
-<fieldset><legend>테마와 문구</legend><label>테마 프리셋<select name="preset"><option value="">직접 설정</option><option value="numbers">숫자로 표현하는 디자인 달력</option><option value="habits">하루하루 체크하기</option></select></label><label>콘셉트/테마 제목<input name="title" required maxlength="120" class="rounded bg-zinc-900 border border-zinc-600 p-2"></label>
+<fieldset><legend>테마와 문구</legend><label>테마 프리셋<select name="preset"><option value="">직접 설정</option><option value="numbers">숫자로 표현하는 디자인 달력</option><option value="habits">하루하루 체크하기</option><option value="family">열 명이 함께 쓴 2027 사계절</option></select></label><label>콘셉트/테마 제목<input name="title" required maxlength="120" class="rounded bg-zinc-900 border border-zinc-600 p-2"></label>
 <label class="grid gap-1">설명<textarea name="description" maxlength="600" rows="3" class="rounded bg-zinc-900 border border-zinc-600 p-2"></textarea></label>
 <label class="grid gap-1">문구 언어<select name="language" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="auto">테마에 맞게 선택</option><option value="ko">한국어</option><option value="en">English</option></select></label>
 </fieldset><fieldset class="draft-two"><legend>표지</legend><label class="draft-wide">표지 부제 <input name="coverSubtitle" maxlength="60" class="rounded bg-zinc-900 border border-zinc-600 p-2" placeholder="선택 사항"></label>
@@ -656,7 +681,6 @@
         let cardFlippedStates = {}; // cardId -> boolean
         let activeFilter = 'all';
 
-        const builtInCount = CALENDAR_SETS_REGISTRY.length;
         const storageChannel = 'template-designer-storage';
         const editorOrigin = document.referrer ? new URL(document.referrer).origin : '*';
 
@@ -1210,6 +1234,9 @@
         }
         function syncDraftControls() {
             const {coverType,coverCount,insideFront,insideBack,back,imageCount,imageCountMode} = draftForm.elements;
+            const family = draftForm.elements.preset.value === "family";
+            [coverType,coverCount].forEach(field=>{field.closest("label").hidden=family});
+            [insideFront,back].forEach(field=>{field.closest("fieldset").hidden=family});
             const type = coverType.value;
             const fixedCover = type && type !== 'multi';
             coverCount.disabled = Boolean(fixedCover);
@@ -1239,7 +1266,7 @@
             if (source) {
                 const slots = source.cover.photo_slots;
                 const values = {
-                    preset: source.design_preset || '',
+                    preset: source.family_archive ? 'family' : source.design_preset || '',
                     title: source.title, description: source.description ?? source.subtitle ?? '',
                     coverSubtitle: source.cover.cover_subtitle ?? '',
                     coverType: Object.hasOwn(coverTypes, coverDesign?.type) ? coverDesign.type : '',
@@ -1290,6 +1317,12 @@
         draftDialog.addEventListener('close', invalidateDraft);
         document.getElementById('closeNewDraft').onclick = () => draftDialog.close();
         draftForm.addEventListener('input', event => {
+            if (event.target.name === 'preset' && event.target.value === 'family') {
+                const fields=draftForm.elements;
+                fields.title.value=familySample.title;
+                fields.description.value=familySample.description;
+                fields.coverSubtitle.value=familySample.cover.cover_subtitle;
+            }
             if (event.target.name === 'preset' && event.target.value === 'numbers') {
                 const fields = draftForm.elements;
                 if (!fields.title.value.trim()) fields.title.value = '숫자로 표현하는 디자인 달력';
@@ -1320,7 +1353,7 @@
             generateDraft.disabled = true;
             draftProgress.hidden = false;
             draftProgress.value = 25;
-            draftStatus.textContent = ['numbers','habits'].includes(draftForm.elements.preset.value) ? '테마 시안을 구성하고 있습니다.' : 'AI가 테마에 맞는 페이지별 문구와 이미지 프롬프트를 만들고 있습니다.';
+            draftStatus.textContent = ['numbers','habits','family'].includes(draftForm.elements.preset.value) ? '테마 시안을 구성하고 있습니다.' : 'AI가 테마에 맞는 페이지별 문구와 이미지 프롬프트를 만들고 있습니다.';
             // Allow the sandboxed viewer to paint progress before generating the draft.
             await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
             if (revision !== draftRevision) return;
@@ -1331,11 +1364,22 @@
                     const random = crypto.getRandomValues(new Uint8Array(16));
                     id = 'draft-' + Array.from(random, byte => byte.toString(16).padStart(2, '0')).join('');
                 }
-                const next = buildDesignerDraft({...values,habitRows:editedDesign?.habit_rows}, id);
+                const family=values.preset==='family';
+                const familyDefaults={coverType:'split',coverCount:'1',insideFront:'annual',insideBack:'scheduler',front:'3',back:'1'};
+                const next = buildDesignerDraft({...values,...(family?familyDefaults:{}),habitRows:editedDesign?.habit_rows}, id);
                 const draft = editedDesign ? rebuildCurrentDesign(editedDesign, next, values) : next;
-                if (values.preset === 'habits') {
+                if (family) {
+                    draft.family_archive=structuredClone(editedDesign?.family_archive??familySample.family_archive);
+                    if(!editedDesign?.family_archive)draft.months=draft.months.map((month,i)=>({...familySample.months[i],...month,
+                        front_text:familySample.months[i].front_text,back_text:familySample.months[i].back_text,family_quote:familySample.months[i].family_quote,
+                        concept_text:familySample.months[i].concept_text,accent:familySample.months[i].accent}));
+                } else if (values.preset === 'habits') {
+                    delete draft.family_archive;
                     applyHabitCopy(draft,editedDesign?.design_preset === 'habits' ? editedDesign : null);
-                } else if (values.preset !== 'numbers') {
+                } else {
+                    delete draft.family_archive;
+                }
+                if (!family && !['numbers','habits'].includes(values.preset)) {
                     if (window.parent === window) throw new Error('템플릿 에디터에서 디자이너를 열어 AI 문구를 생성해 주세요.');
                     const copy = await generateDesignCopy({
                         title:values.title,description:values.description,language:values.language,coverLayout:draft.cover.cover_design?.layout,
@@ -1454,6 +1498,7 @@
 
         function renderCoverReview(cover,draft) {
             const design = cover.cover_design;
+            if(draft.family_archive)return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderDraftFace(cover,false,draft,draft.draft_layout.pages[0])}</div>`;
             return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderDraftFace(cover,false,draft,draft.draft_layout.pages[0])}</div>
                 <p class="mt-2 font-semibold">${coverTypes[design.type]} · ${coverLayouts[design.layout][0]} · ${design.type === 'type' && design.yearFill === 'photo' ? (usesDigitTiles(design.yearLayout) && design.yearPhotoMode === 'digits' ? '숫자 프레임 4개' : '연도 사진 프레임 1개') : '사진 '+design.photos+'컷'}</p>
                 <p>${coverBackgrounds[design.background]}${design.type === 'numeric' ? ' · 클릭할 때마다 새 구도를 생성합니다.' : ` · ${coverTitleStyles[design.titleStyle] || coverTitleStyles.editorial} · ${design.serif ? '명조 계열' : '고딕 계열'} · ${design.reason}`}</p>
@@ -1584,12 +1629,12 @@
                 <section class="rounded border border-zinc-600 p-3">
                     <h3 class="font-semibold text-amber-200">28면 구성</h3>
                     <ul class="mt-2 grid gap-1">
-                        <li>1면 · 표지</li><li>2면 · ${inside(layout.inside_front)}</li>
-                        <li>3~26면 · 월력 앞면 기본 ${layout.month_front} · ${front}</li>
-                        <li>3~26면 · 월력 뒷면 기본 ${layout.month_back} · ${back}</li>
-                        <li>27면 · ${inside(layout.inside_back)}</li><li>28면 · 뒷표지</li>
+                        <li>1면 · 표지</li><li>2면 · ${draft.family_archive?"가족 소개":inside(layout.inside_front)}</li>
+                        <li>3~26면 · 월력 앞면 · ${draft.family_archive?"가족 일정과 주인공 사진":front}</li>
+                        <li>3~26면 · 월력 뒷면 · ${draft.family_archive?"사진 2~6컷, 작은 달력과 메모":back}</li>
+                        <li>27면 · ${draft.family_archive?"가족 대소사 스케줄러":inside(layout.inside_back)}</li><li>28면 · 뒷표지</li>
                     </ul>
-                    <button type="button" data-next-layout class="mt-2 rounded border border-zinc-600 px-3 py-1">다른 추천 받기</button>
+                    ${draft.family_archive?"":'<button type="button" data-next-layout class="mt-2 rounded border border-zinc-600 px-3 py-1">다른 추천 받기</button>'}
                     <div class="mt-3 grid gap-2 sm:grid-cols-2">${[0,1,2,3,26,27].map(index => {
                         const page = layout.pages[index];
                         const item = page.month ? draft.months[page.month-1] : draft.cover;
@@ -1717,10 +1762,71 @@
             draftOutput.value = JSON.stringify(generatedDraft,null,2);
         });
 
+
+        const FAMILY_ACCENTS = ['#344d67','#785067','#477264','#9b5749','#80632e','#2b6974','#26557d','#36736b','#9b5b42','#866030','#6c593f','#444c63'];
+        const FAMILY_MARKS = {birthday:'●',anniversary:'◆',memorial:'▲'};
+        const FAMILY_MARK_NAMES = {birthday:'생일',anniversary:'기념일',memorial:'기일'};
+
+        function familyEvents(dataset,month) {
+            const list=dataset.family_archive?.events;
+            if(!Array.isArray(list))return [];
+            const days=new Date(Date.UTC(2027,month,0)).getUTCDate();
+            return list.filter(e=>e?.month===month&&Number.isInteger(e.day)&&e.day>=1&&e.day<=days&&Object.hasOwn(FAMILY_MARKS,e.kind)&&typeof e.title==='string')
+                .sort((a,b)=>a.day-b.day);
+        }
+
+        function familyCalendar(month,events) {
+            const start=new Date(Date.UTC(2027,month-1,1)).getUTCDay(),days=new Date(Date.UTC(2027,month,0)).getUTCDate();
+            return `<div class="family-calendar" aria-label="${month}월 작은 달력">
+                ${[...'일월화수목금토'].map(day=>`<b>${day}</b>`).join('')}
+                ${Array.from({length:start},()=>'<span></span>').join('')}
+                ${Array.from({length:days},(_,i)=>{
+                    const markers=[...new Set(events.filter(e=>e.day===i+1).map(e=>e.kind))];
+                    return `<span>${i+1}${markers.length?`<small aria-label="${markers.map(kind=>FAMILY_MARK_NAMES[kind]).join(', ')}">${markers.map(kind=>FAMILY_MARKS[kind]).join('')}</small>`:''}</span>`;
+                }).join('')}</div>`;
+        }
+
+        function familyFrame(image,label) {
+            const source=illustrationSource(image);
+            return `<div class="family-frame">${source?`<img src="${escapeHtml(source)}" alt="${escapeHtml(label)}">`:`<span>${escapeHtml(label)}</span>`}</div>`;
+        }
+
+        function familyPhotoCount(item) {
+            const count=Number(item.family_photo_count);
+            return Number.isInteger(count)&&count>=2&&count<=6?count:3;
+        }
+
+        function renderFamilyFace(item,page,dataset) {
+            const month=item.month,ink=FAMILY_ACCENTS[(month-1)%12]||'#66523e';
+            const panel=(mode,body)=>`<div class="family-page family-${mode}" style="--family-accent:${ink}">${body}</div>`;
+            const legend=Object.keys(FAMILY_MARKS).map(kind=>FAMILY_MARKS[kind]+' '+FAMILY_MARK_NAMES[kind]).join('　');
+            if(page.role==='cover')return panel('cover',`<header><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.cover_subtitle)}</p></header>${familyFrame(item.illustration_image,'열 명의 가족 단체 사진')}<small>2027 ANNUAL FAMILY CALENDAR</small>`);
+            if(page.role==='inside-front')return panel('profile',`<header><h2>우리 가족 열 사람</h2><p>세대를 이어 함께 쓴 2027년</p></header><div class="family-profile-groups">${[
+                ['조부모',['할머니','할아버지']],['자녀',['첫째','둘째','셋째']],['손자·손녀',Array.from({length:5},(_,i)=>'손자·손녀 '+(i+1))]
+            ].map(([label,people])=>`<section><b>${label}</b><div>${people.map(person=>`<span>${person}</span>`).join('')}</div></section>`).join('')}</div><small>${legend}</small>`);
+            if(page.role==='inside-back')return panel('schedule',`<header><h2>2027 가족 대소사</h2><p>시안 검토용 예시 일정</p></header><div class="family-year">${Array.from({length:12},(_,i)=>{
+                const events=familyEvents(dataset,i+1);
+                return `<section><b>${i+1}월</b>${events.map(e=>`<div>${FAMILY_MARKS[e.kind]} ${e.day}일 ${escapeHtml(e.title)}</div>`).join('')}</section>`;
+            }).join('')}</div><small>${legend}</small>`);
+            if(page.role==='back-cover')return panel('end',`<header><h2>함께여서 든든했습니다</h2><p>2028년에 함께 하고 싶은 일</p></header><div class="family-note-lines"></div>`);
+            if(page.role==='month-front')return panel('front',`<header><h2>${month}월 · ${escapeHtml(item.front_text)}</h2><p>${escapeHtml(item.family_quote)}</p></header><div class="family-front-body">${familyCalendar(month,familyEvents(dataset,month))}${familyFrame(item.illustration_image,'이번 달 사진')}</div><div class="family-front-note">메모</div>`);
+            if(page.role!=='month-back')return '';
+            const count=familyPhotoCount(item),photos=Array.isArray(item.family_photos)?item.family_photos:[];
+            return panel('story',`<header><h2>${month}월 이야기</h2><p>${escapeHtml(item.back_text)}</p></header>
+                <div class="family-photos" style="--photo-cols:${count>=5||count===3?3:2};--photo-rows:${[2,3].includes(count)?1:2}">
+                    ${Array.from({length:count},(_,i)=>`<div class="family-photo-card">${familyFrame(photos[i]?.image,'사진 '+(i+1))}
+                    <span class="family-caption ${photos[i]?.shape==='bubble'?'family-bubble':''}">${escapeHtml(photos[i]?.note||'')}</span></div>`).join('')}
+                </div><div class="family-story-footer">${familyCalendar(month,familyEvents(dataset,month))}<section><b>가족 메모</b><div class="family-note-lines"></div></section></div>`);
+        }
+
         function renderDraftFace(item, backFace, dataset = calendarDataset, selectedPage) {
             const month = item.month;
             const index = month === 0 ? 0 : month === 13 ? 26 : month * 2;
             const page = selectedPage ?? dataset.draft_layout.pages[index + Number(backFace)];
+            if (dataset.family_archive) {
+                const family = renderFamilyFace(item,page,dataset);
+                if (family) return family;
+            }
             if (dataset.design_preset === 'habits' && page.layout === 'annual') return '<div class="habit-page">' + renderHabitAnnual(dataset) + '</div>';
             if (dataset.design_preset === 'habits' && page.role === 'back-cover') return `<div class="habit-page"><div class="habit-face habit-end">${habitMarks(1)}<h2>${escapeHtml(dataset.back_cover?.title)}</h2><small>2027</small></div></div>`;
             if (dataset.design_preset === 'habits' && page.role === 'cover') return '<div class="habit-page">' + renderHabitCover(item) + '</div>';
@@ -1828,6 +1934,27 @@
         },objectSample.set_id).draft_layout;
         objectSample.back_cover = {title:'THE YEAR IN OBJECTS'};
         objectSample.months = objectSample.months.map(month => ({...month,theme_text:month.memo_title}));
+
+
+        const familyCopy = [["새해의 첫 숨을 고르며", "새해 첫 페이지를 여는 소중한 날, 건강과 평안을 기원합니다.", "추운 계절 속에서도 서로의 온기로 시작하는 한 해", "겨울 실내/산책 사진 2컷 + 새해 가족 다짐 필기 공간"], ["설날과 이른 봄의 기별", "함께 모여 웃음꽃을 피우는 날, 고마운 마음을 전합니다.", "명절 밥상 위에 오가는 세대의 이야기", "명절 모임 및 명절 음식 사진 + 덕담 메시지 라인 3단"], ["움트는 마음, 새로운 시작", "봄볕처럼 환하게 웃는 날, 오늘의 주인공을 축하합니다.", "작은 싹처럼 자라나는 아이들의 계절", "손자·손녀 입학/새학기/일상 스냅 3컷 + 성장 메모"], ["꽃그늘 아래 걸음", "따뜻한 봄바람을 닮은 날, 기쁨이 가득하길 바랍니다.", "잠시 걸음을 멈추고 서로의 안부를 묻는 시간", "봄 꽃구경 야외 사진 1~2컷 + 감성 필기 여백"], ["감사의 마음이 피어나는 달", "가정의 달에 빛나는 생일·기념일, 사랑과 감사를 담습니다.", "키워주신 은혜와 자라나는 웃음이 만나는 자리", "할머니·할아버지 포커스 사진 + 어버이날 감사 편지 박스"], ["푸르름이 짙어지는 초여름", "초여름의 맑은 기운처럼, 당신의 하루가 빛나길 바랍니다.", "바쁜 일상 속에서도 잊지 않고 챙기는 마음", "초여름 일상 컷 2컷 + 상반기 회고 가이드라인"], ["한여름의 열기와 쉼표", "무더위 속에서도 시원한 웃음이 함께하는 날을 축하합니다.", "햇살 아래서 더 가까워지는 가족의 여름", "여름 휴가/물놀이 스냅 + 자유 모눈 메모"], ["늦여름의 바람과 기억", "여름의 끝자락에서 맞이하는 특별한 날, 늘 건강하세요.", "떠나는 여름을 배웅하며 남기는 한 줄의 기록", "풍경 및 가족 야외 스냅 + 한 줄 노팅 존"], ["곡식이 익고 마음이 모이는 달", "풍요로운 가을 하늘 아래, 소중한 날을 함께 축하합니다.", "추석 보름달처럼 둥글고 깊어지는 가족의 정", "추석 모임 사진 + 조상님/가족 추모 및 감사 메모"], ["단풍이 물드는 깊어가는 가을", "선선한 가을날, 가장 따뜻한 축하를 건넵니다.", "가장 선명한 색으로 물드는 우리의 가을 날들", "가울 단풍 나들이 컷 + 버킷리스트 박스"], ["차분히 마음을 정리하는 계절", "늦가을의 고요함 속에서 더욱 빛나는 오늘을 축하합니다.", "한 해의 끝자락, 서로에게 고마웠던 일을 적다", "실내/차 마시는 사진 2컷 + 감사 카드 타입 메모"], ["한 해를 품고 다음을 준비하는 달", "올 한 해를 채워준 특별한 날, 따뜻한 연말을 함께합니다.", "다사다난했던 2027년, 함께여서 든든했습니다", "1년 하이라이트 미니 컷 4~6컷 + 연말 메시지 영역"]];
+        const familySample = buildDesignerDraft({
+            title:'열 명이 함께 쓴 2027 사계절',description:'세대를 잇는 가족 사진과 열두 달의 기록',
+            coverSubtitle:'할머니·할아버지부터 다섯 손자·손녀까지, 우리의 한 해 기록',
+            coverType:'split',coverCount:'1',insideFront:'annual',insideBack:'scheduler',front:'3',back:'1',imageCount:1
+        },'family-archive-2027-sample');
+        familySample.family_archive = {events:[
+            {month:2,day:6,kind:'anniversary',title:'가족 모임'},
+            {month:5,day:12,kind:'birthday',title:'할머니 생신'},
+            {month:5,day:24,kind:'anniversary',title:'부모님 결혼기념일'},
+            {month:9,day:18,kind:'memorial',title:'가족 기일'},
+            {month:12,day:20,kind:'birthday',title:'손자 생일'}
+        ]};
+        familySample.cover = {...familySample.cover,id:'cover',month:0,label:'표지',accent:'#66523e',accentName:'웜 브라운',memo_title:'가족 기록'};
+        familySample.months = familySample.months.map((page,i)=>({...page,id:'m'+String(i+1).padStart(2,'0'),label:(i+1)+'월',
+            front_text:familyCopy[i][0],family_quote:familyCopy[i][1],back_text:familyCopy[i][2],concept_text:familyCopy[i][3],
+            accent:FAMILY_ACCENTS[i],accentName:'월별 강조색',family_photo_count:[2,2,3,2,2,2,4,3,3,4,2,6][i]}));
+        CALENDAR_SETS_REGISTRY.push(familySample);
+        const builtInCount = CALENDAR_SETS_REGISTRY.length;
 
         function escapeHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -2490,6 +2617,17 @@
 
                 <div class="space-y-2 p-4 rounded-xl bg-zinc-950 border border-zinc-800">
                     <h3 class="font-semibold text-amber-200">일러스트와 컨셉</h3>
+                    ${calendarDataset.family_archive && item.month >= 1 && item.month <= 12 ? `
+                        <details class="space-y-2"><summary>월력 뒷면 사진과 메모 편집</summary>
+                        <label>사진 프레임 수 <select id="familyPhotoCount" class="rounded bg-zinc-900 p-1">${[2,3,4,5,6].map(n=>`<option value="${n}" ${familyPhotoCount(item)===n?'selected':''}>${n}컷</option>`).join('')}</select></label>
+                        <div class="grid gap-2 sm:grid-cols-2">${Array.from({length:6},(_,i)=>`<fieldset data-family-photo class="grid gap-1 rounded border border-zinc-700 p-2"><legend>사진 ${i+1}</legend>
+                            <label>사진 교체<input type="file" accept="image/png,image/jpeg,image/webp"></label>
+                            <label>메모<input type="text" maxlength="100" class="w-full bg-zinc-900 p-1" value="${escapeHtml(item.family_photos?.[i]?.note||'')}"></label>
+                            <label>메모 도형<select class="bg-zinc-900 p-1"><option value="box">메모 상자</option><option value="bubble" ${item.family_photos?.[i]?.shape==='bubble'?'selected':''}>말풍선</option></select></label>
+                        </fieldset>`).join('')}</div>
+                        <button id="saveFamilyPage" type="button" class="rounded bg-amber-400 px-3 py-2 text-sm font-semibold text-zinc-950">사진·메모 저장</button></details>
+                    ` : ''}
+
                     ${illustrationSource(item.illustration_image) ? `<img class="max-h-48 object-contain" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">` : ''}
                     ${currentSetIndex >= builtInCount && item.month === 13 ? `
                         ${designCopyField('back_cover','title','뒷표지 문구',calendarDataset.back_cover?.title ?? calendarDataset.title,52)}
@@ -2520,6 +2658,24 @@
 
             bodyEl.querySelector('#copyDesignerPromptBtn').addEventListener('click', () => {
                 copyToClipboard(item.prompt_subject, '프롬프트가 복사되었습니다!');
+            });
+            bodyEl.querySelector('#saveFamilyPage')?.addEventListener('click', async event => {
+                const button=event.currentTarget,design=calendarDataset;
+                button.disabled=true;
+                try {
+                    const fields=[...bodyEl.querySelectorAll('[data-family-photo]')];
+                    const photos=await Promise.all(fields.map(async (field,i)=>{
+                        const file=field.querySelector('input[type="file"]').files[0];
+                        return {image:file?await prepareIllustration(file,55000):item.family_photos?.[i]?.image,
+                            note:field.querySelector('input[type="text"]').value.trim(),shape:field.querySelector('select').value};
+                    }));
+                    if(calendarDataset!==design||!bodyEl.contains(button))return;
+                    const count=Number(bodyEl.querySelector('#familyPhotoCount').value);
+                    const updated={...design,months:design.months.map(page=>page.month===item.month?{...page,family_photo_count:count,family_photos:photos}:page)};
+                    registerDesign(updated);
+                    openSpecModal(item.id);
+                } catch(error) {showToast(error.message);}
+                finally {button.disabled=false;}
             });
             bodyEl.querySelector('#saveBackCoverCopy')?.addEventListener('click', () => {
                 const title = bodyEl.querySelector('[data-copy-field="title"]').value.trim();
