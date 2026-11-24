@@ -115,13 +115,17 @@
 <style>
 .number-page{height:100%;width:100%;position:relative;overflow:hidden;container-type:inline-size;background:#f8f6ef;color:#20232b}
 .number-month{display:grid;grid-template-rows:auto minmax(0,1fr);gap:1cqw;padding:2cqw;background:var(--number-paper)}
-.number-month.number-front{padding:3cqw 5cqw;background:#fbfaf7}
-.number-front header{text-align:center;color:color-mix(in srgb,var(--number-accent) 30%,#25242a);font:900 23cqw/.86 var(--number-font);letter-spacing:-.065em}
+.number-month.number-front{padding:1cqw 3.5cqw 2.5cqw;gap:.5cqw;background:#fbfaf7}
+.number-front header{text-align:center;color:color-mix(in srgb,var(--number-accent) 30%,#25242a);font:900 30.5cqw/.78 var(--number-font);letter-spacing:.045em;padding-inline-start:.045em}
+.number-front .number-grid-wrap{container-type:size}
+.number-front .number-grid-wrap i{opacity:.10}
 .number-back header{color:var(--number-accent);font:800 4.2cqw/1.1 system-ui,sans-serif}
 .number-grid-wrap{position:relative;min-height:0}
 .number-grid-wrap i{position:absolute;inset:0;display:grid;place-items:center;font:900 40cqw/.9 system-ui,sans-serif;color:var(--number-accent);opacity:.32;pointer-events:none}
 .number-days{position:relative;height:100%;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:auto repeat(var(--weeks),minmax(0,1fr));text-align:center;font-variant-numeric:tabular-nums}
-.number-days.large{font:900 5.6cqw/1 system-ui,sans-serif;align-items:center}
+.number-front .number-days.large{--weekday-size:2cqw;grid-template-rows:var(--weekday-size) repeat(var(--weeks),minmax(0,1fr));align-items:center}
+.number-front .number-days.large span{font:900 min(18cqw, calc((100cqh - var(--weekday-size)) / var(--weeks) * 1.28))/.8 "Playfair Display",Georgia,serif;font-variant-numeric:lining-nums tabular-nums;letter-spacing:-.05em;transform:scaleX(.88)}
+.number-front .number-days.large b{font-size:1.65cqw;line-height:1}
 .number-days.large b,.number-days.daily-memo b{font:800 2cqw/1.45 system-ui,sans-serif;letter-spacing:.05em}
 .number-days.daily-memo span{border:1px solid #20232b24;text-align:left;padding:.35cqw 1cqw;font:800 5.2cqw/1 system-ui,sans-serif}
 .number-days.daily-memo .memo-day{background:linear-gradient(to bottom,transparent 72%,#20232b2b 72% 74%,transparent 74%)}
