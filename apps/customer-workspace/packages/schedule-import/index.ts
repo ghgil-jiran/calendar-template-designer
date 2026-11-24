@@ -5,12 +5,22 @@ import {analyzeWithModel} from './model.ts';
 import {PDF_WITHOUT_SCHEDULE_TEXT,readPdfDateList} from './pdf-text.ts';
 import manifest from './package.json' with {type: 'json'};
 export const SCHEDULE_IMPORT_VERSION = manifest.version;
-import {extractMonthlyHwpx,extractSchedule,parseScheduleText,readVacationTitleRange} from './schedule-extraction.ts';
+import {applyVacationDuration,extractMonthlyHwpx,extractSchedule,parseScheduleText,readVacationTitleRange} from './schedule-extraction.ts';
 function reviewVacationDates<T extends Pick<ScheduleExtraction, 'events' | 'warnings'>>(result:T,year:number,startMonth:number):T{
  const first=`${year}-${String(startMonth).padStart(2,'0')}-01`;
  const after=`${year+1}-${String(startMonth).padStart(2,'0')}-01`;
- const outside=result.events.filter(event=>readVacationTitleRange(event.title,year,startMonth)&&(event.startDate<first||event.endDate>=after));
- return outside.length?{...result,warnings:[...result.warnings,'선택한 학사연도 밖의 날짜가 포함된 방학 일정이 있어요. 원본의 연도를 확인해 주세요.']}:result;
+ const seen=new Set<string>();
+ const events:ScheduleEvent[]=[];
+ let outside=false;
+ for(const event of result.events){
+  const normalized=applyVacationDuration(event);
+  const key=JSON.stringify([normalized.startDate,normalized.endDate,normalized.title]);
+  if(seen.has(key))continue;
+  seen.add(key);
+  events.push(normalized);
+  if((normalized!==event||readVacationTitleRange(event.title,year,startMonth))&&(normalized.startDate<first||normalized.endDate>=after))outside=true;
+ }
+ return {...result,events,warnings:outside?[...result.warnings,'선택한 학사연도 밖의 날짜가 포함된 방학 일정이 있어요. 원본의 연도를 확인해 주세요.']:result.warnings};
 }
 function withoutDefaultHolidays<T extends Pick<ScheduleExtraction, 'events' | 'warnings'>>(result:T):T{
  const events=result.events.filter(event=>!isLegalHoliday(event.title));

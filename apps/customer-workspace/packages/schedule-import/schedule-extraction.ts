@@ -39,11 +39,29 @@ export function readVacationTitleRange(title:string,year:number,startMonth:numbe
  const endDate=iso(endYear,endMonth,Number(last[3]));
  return isScheduleDate(startDate)&&isScheduleDate(endDate)&&endDate>=startDate?{startDate,endDate}:null;
 }
+const vacationDuration = /^((?:여름\s*|겨울\s*|봄\s*|가을\s*|학년말\s*)?방학)(?:\s*시작)?\s+([1-9]\d{0,2})\s*일$/;
+
+export function applyVacationDuration(event:ScheduleEvent):ScheduleEvent{
+ if(event.startDate!==event.endDate||!isScheduleDate(event.startDate))return event;
+ const match=vacationDuration.exec(event.title);
+ if(!match)return event;
+ const end=new Date(event.startDate+'T00:00:00Z');
+ end.setUTCDate(end.getUTCDate()+Number(match[2])-1);
+ const endDate=end.toISOString().slice(0,10);
+ if(!isScheduleDate(endDate))return event;
+ return {...event,title:match[1].replace(/\s+/g,''),endDate};
+}
+
+function vacationMonthDayLine(line:string){
+ const match=/^(\d{1,2})-(\d{1,2})(\s+(?:[:：]\s*)?)(.+)$/.exec(line);
+ return match&&vacationDuration.test(match[4])?`${match[1]}/${match[2]}${match[3]}${match[4]}`:line;
+}
+
 export function parseMonthlyScheduleLine(line:string){
  return /^(?:(\d{1,2})[/.])?(\d{1,2})(?:일)?(?:\s*[-~～–]\s*(?:(\d{1,2})[/.])?(\d{1,2})(?:일)?)?(?:\s*[:：]\s*|\s+)(\S.*)$/.exec(line);
 }
 export function readMonthlyScheduleEvent(line:string,month:number,year:number,startMonth:number,id:string):ScheduleEvent|null{
-    const match=parseMonthlyScheduleLine(line);
+    const match=parseMonthlyScheduleLine(vacationMonthDayLine(line));
     if(!match){const range=readVacationTitleRange(line,year,startMonth);return range?{id,title:line,...range}:null;}
     const [,explicitMonth,day,endMonth,endDay,title]=match;
     const m=Number(explicitMonth||month),em=Number(endMonth||m);
@@ -93,7 +111,8 @@ export async function extractMonthlyHwpx(file:File,year:number,startMonth:number
 }
 export function parseScheduleText(text:string,year:number,startMonth=3):Omit<ScheduleExtraction,'sourceName'>{
  const events:ScheduleEvent[]=[],warnings:string[]=[];let contextYear=year,month=0;const lines=text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);if(lines.length>2000)throw Error('일정은 한 번에 2,000행까지 읽을 수 있습니다.');
- for(const [index,line] of lines.entries()){
+ for(const [index,sourceLine] of lines.entries()){
+  const line=vacationMonthDayLine(sourceLine);
   const header=line.match(/^(?:(\d{4})\s*년\s*)?(\d{1,2})\s*월\s*$/);if(header){month=Number(header[2]);contextYear=header[1]?Number(header[1]):year+(month<startMonth?1:0);continue;}
   let start='',end='',title='';
   const full=line.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})(?:\s*[~～–]\s*(?:(\d{4})[-./])?(\d{1,2})[-./](\d{1,2}))?\s*(?:[,;\t:|]|\s)\s*(.+)$/);

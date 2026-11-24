@@ -56,7 +56,7 @@ test('PDF transcription keeps original row boundaries and flags conflicting cand
  }});
  assert.equal(calls,2);
  assert.equal(r.method,'shared-ai');
- assert.equal(r.engineVersion,'0.1.6');
+ assert.equal(r.engineVersion,'0.1.7');
  assert.deepEqual(r.events.map(item=>[item.startDate,item.endDate,item.title]).sort(),
   rows.map(row=>[row.date,row.endDate??row.date,row.label]).sort());
  assert.ok(r.warnings.some(w=>w.includes('판독 불일치')&&w.includes('우시기준')));
@@ -94,4 +94,15 @@ test('vacation titles retain their original spelling and parse month and year bo
   if(index>1)assert.deepEqual([events[0].startDate,events[0].endDate],['2027-12-20','2028-01-20']);
  }
  assert.equal(parseScheduleText('방학 (12월 20일 - 2027년 1월 20일)',2026).events[0].endDate,'2027-01-20');
+});
+
+test('vacation duration includes the start date and deduplicates equivalent spellings',async()=>{
+ const {extractPastedSchedule}=await import('../packages/schedule-import/index.ts');
+ const input='7/20 방학 18일\n7/20 방학 시작 18일\n7-20 여름방학 18일\n12/29 겨울방학 5일\n7/20 여름방학식 18일\n7/20~7/22 방학 18일';
+ const {events}=await extractPastedSchedule(input,2027);
+ assert.deepEqual(events.map(({startDate,endDate,title})=>[startDate,endDate,title]),[
+  ['2027-07-20','2027-08-06','방학'],['2027-07-20','2027-08-06','여름방학'],
+  ['2027-12-29','2028-01-02','겨울방학'],['2027-07-20','2027-07-20','여름방학식 18일'],
+  ['2027-07-20','2027-07-22','방학 18일']
+ ]);
 });
