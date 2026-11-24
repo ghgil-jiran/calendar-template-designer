@@ -6,7 +6,7 @@
     <title>THE YEAR IN OBJECTS 2027 - 탁상달력 템플릿 시안 뷰어</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="./shared-screen-mini-calendar.js"></script>
+    <script src="/apps/designer-studio/shared-screen-mini-calendar.js?v=20261124.annual-type"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1994,8 +1994,12 @@
         }
 
         function renderFamilyBackMini(element,month,events) {
-            const {resolveMiniCalendar}=window.ACDLSharedMiniCalendar;
-            const model=resolveMiniCalendar(element,{calendarYear:2027,calendarMonth:month},{calendarRowsMode:'adaptive'});
+            const model=window.ACDLSharedMiniCalendar?.resolveMiniCalendar(element,
+                {calendarYear:2027,calendarMonth:month},{calendarRowsMode:'adaptive'});
+            if(!model) {
+                return `<div class="family-mini-widget" data-draft-element="${element.id}">
+                    <b>${month}월</b>${familyCalendar(month,events)}</div>`;
+            }
             const {style}=element;
             const headers=model.showWeekdayHeader?model.headers.map(day=>`<b>${day}</b>`).join(''):'';
             const dates=model.cells.map(cell=>{
