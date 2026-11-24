@@ -160,7 +160,7 @@ body.review-pdf-printing .frame-shell.empty-frame .frame-outline{display:none!im
 
 .day-stack{display:flex;flex-direction:column;gap:2px;min-height:0}
 .day-block{min-height:0}
-.day-block.public-holiday .day{color:#d92d20}
+.page .day-block.public-holiday .day{color:var(--tpl-holiday,#d92d20)}
 .day-head-row{display:flex;align-items:baseline;justify-content:space-between;gap:2px;min-width:0}
 .calendar-reference{display:block;margin-top:1px;font-size:7px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .calendar-reference.auxiliary{min-width:0;margin-top:0;color:#98a2b3;text-align:right;font-size:6px}

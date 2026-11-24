@@ -57,3 +57,11 @@ test('five-row mini calendars can color only the holiday in a shared date cell',
   assert.match(mini.renderCellMiniCalendarMarkup(model, dates), />24<\/span>\/<span class="mini-holiday-date">31<\/span>/);
   assert.match(mini.renderMiniCalendarMarkup(model, {holidayDates:dates}), />24<\/span> · <span class="mini-holiday-date">31<\/span>/);
 });
+
+test('annual dates use the holiday color for a Saturday holiday, including visible adjacent dates',()=>{
+ const widget={startMonth:12,monthCount:2,style:{sunday:'#aa0000',saturday:'#0000aa'},holidayDates:['2027-12-25','2028-01-01']};
+ const html=mini.renderAnnualCalendarMarkup(mini.resolveAnnualCalendar(widget,{calendarYear:2027}),widget);
+ assert.match(html,/data-date="2027-12-18" style="color:#0000aa"/);
+ assert.match(html,/data-date="2027-12-25" style="color:#aa0000"/);
+ assert.equal((html.match(/data-date="2028-01-01" style="color:#aa0000"/g)||[]).length,2);
+});

@@ -213,7 +213,7 @@
     const months=resolvePosterMonths(annual,element,project),s=element.style||{},unit=n=>(Number(n)/10)+'cqw',dateSize=Number(s.dateSize)||18,titleSize=Number(s.titleSize)||27,eventSize=Number(element.posterEventSize)||7.5,listSize=Number(element.posterListSize)||10.5,columns=annual.columns,colors=element.posterColors||['#e9bccb','#b3d3e5','#b9d6c2','#cfc2df'];
     const text=e=>escapeText(e.title),dateLabel=e=>{const a=e.startDate.slice(5).replace('-','/'),b=e.endDate.slice(5).replace('-','/');return a+(e.endDate>e.startDate?'–'+b:'')};
     return '<div class="academic-poster-grid" data-poster-months="'+months.length+'" style="width:100%;height:100%;display:grid;grid-template-columns:repeat('+columns+',minmax(0,1fr));grid-template-rows:repeat('+Math.ceil(months.length/columns)+',minmax(0,1fr));column-gap:'+unit(s.columnGap??20)+';row-gap:'+unit(s.rowGap??20)+';font-family:inherit">'+months.map((month,index)=>{
-      const accent=hex((element.posterColorMode==='rows'?colors[Math.floor(index/columns)%colors.length]:element.posterMonthColors?.[String(month.month)]||colors[index%colors.length]),'#b3d3e5'),holidayDates=new Set(month.items.filter(e=>e.category==='holiday').map(e=>e.startDate)),tone=cell=>cell.weekday===0||holidayDates.has(cell.date)?hex(s.sunday,'#d92d20'):cell.weekday===6?hex(s.saturday,'#175cd3'):hex(s.dateColor,'#17202e');
+      const accent=hex((element.posterColorMode==='rows'?colors[Math.floor(index/columns)%colors.length]:element.posterMonthColors?.[String(month.month)]||colors[index%colors.length]),'#b3d3e5'),holidayDates=new Set([...(month.holidayDates||[]),...month.items.filter(e=>e.category==='holiday').map(e=>e.startDate)]),tone=cell=>cell.weekday===0||holidayDates.has(cell.date)?hex(s.sunday,'#d92d20'):cell.weekday===6?hex(s.saturday,'#175cd3'):hex(s.dateColor,'#17202e');
       const referenceTone=e=>{
         if(!e.reference&&e.category!=='holiday')return '#344054';
         const weekday=new Date(e.startDate+'T00:00:00Z').getUTCDay(),kind=e.referenceKind||(e.category==='holiday'?'holidays':'anniversaries');
@@ -242,7 +242,7 @@
     const dateColor=hex(style.dateColor,"#293878"),sunday=hex(style.sunday,"#ef3340"),saturday=hex(style.saturday,"#4777bd");
     const day=(cell,mm)=>{
       if(element.showAdjacentMonths===false&&cell.month!==mm.month)return '<span></span>';
-      const adjacent=cell.month!==mm.month,holiday=holidayDates.has(cell.date),color=adjacent?"#aeb5c2":holiday||cell.weekday===0?sunday:cell.weekday===6?saturday:dateColor;
+      const adjacent=cell.month!==mm.month,holiday=holidayDates.has(cell.date),color=holiday?sunday:adjacent?"#aeb5c2":cell.weekday===0?sunday:cell.weekday===6?saturday:dateColor;
       return '<span data-date="'+cell.date+'" style="color:'+color+'">'+cell.day+'</span>';
     };
     const open=annual.layout==='open-grid',renderMonth=mm=>{
