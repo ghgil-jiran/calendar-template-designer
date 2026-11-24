@@ -3109,6 +3109,108 @@
             ['h2,h3,header p,.cover-year-caption > *,[data-cover-title-style] > *,[data-draft-text],.family-cover > small,.number-month > header','text']
         ];
 
+        const editorPageRoles={
+            cover:'cover-front','inside-front':'cover-back','month-front':'monthly-front',
+            'month-back':'monthly-back','inside-back':'back-cover-front','back-cover':'back-cover-back'
+        };
+
+        function editorBounds(bounds) {
+            return Object.fromEntries(Object.entries(bounds).map(([key,value])=>[key,Number((value*100).toFixed(3))]));
+        }
+
+        function editorBorder(style) {
+            const match=style.borderTop?.match(/^([\d.]+)px solid (.+)$/);
+            return match?{strokeWidth:Number(match[1]),stroke:match[2]}:{};
+        }
+
+        function hasEditorFill(color) {
+            return Boolean(color && color!=='transparent' && color!=='rgba(0, 0, 0, 0)');
+        }
+
+        function editorTextStyle(style) {
+            const fontSize=parseFloat(style.fontSize)||18;
+            return {
+                fontFamily:style.fontFamily||'',fontSize,fontReferenceWidthPx:layoutReference.width,
+                fontWeight:style.fontWeight||'normal',fontStyle:style.fontStyle||'normal',
+                color:style.color||'#17202e',textAlign:['center','right'].includes(style.textAlign)?style.textAlign:'left',
+                letterSpacing:parseFloat(style.letterSpacing)||0,lineHeight:(parseFloat(style.lineHeight)||fontSize*1.2)/fontSize,
+                opacity:Number(style.opacity??1),background:hasEditorFill(style.backgroundColor),
+                backgroundColor:style.backgroundColor||'transparent'
+            };
+        }
+
+        function editorDraftElement(object,page) {
+            const {id,role,style,text}=object;
+            const base={id,...editorBounds(object.bounds),zIndex:object.order+1};
+            if (role==='text'||role==='closing-message'||role==='month-watermark') {
+                const year=page.role==='cover'&&text==='2027';
+                return {...base,type:'text',...(year?{role:'year',binding:'calendar.year'}:{}),
+                    content:text??'',autoSize:'none',style:editorTextStyle(style)};
+            }
+            if (['group-photo','member-photo','photo-frame'].includes(role)) {
+                const image=object.image??{};
+                const fit=image.fit==='contain'?'contain':'cover';
+                return {...base,type:'image-frame',frameType:'rect',fit,
+                    ...(page.role==='month-back'?{role:'monthly-image'}:{}),
+                    image:{src:image.src??'',fit,scale:1,offsetX:0,offsetY:0},
+                    style:{background:style.backgroundColor||'transparent',...editorBorder(style),borderRadius:parseFloat(style.borderRadius)||0}};
+            }
+            if (role==='mini-calendar') return {...base,type:'mini-calendar',showWeekdayHeader:true,
+                style:{dateColor:style.color,primary:style.color,fontFamily:style.fontFamily}};
+            if (role==='annual-calendar') return {...base,type:'year-calendar',role:'year-calendar',columns:4,rowsMode:'inherit',startMonth:1,monthCount:12,showWeekdayHeader:true};
+            if (role==='monthly-schedule'&&page.month) return {...base,type:'monthly-schedule',title:'이달의 일정',maxItems:10};
+            if (role==='handwriting-area') return {...base,type:'memo',memoLayout:'lines',title:'가족 메모',lineCount:object.lineCount||4};
+            if (role==='text-panel'&&(hasEditorFill(style.backgroundColor)||editorBorder(style).strokeWidth>0)) {
+                return {...base,type:'shape',shapeType:'rect',style:{fill:style.backgroundColor||'transparent',
+                    ...editorBorder(style),borderRadius:parseFloat(style.borderRadius)||0}};
+            }
+            return null;
+        }
+
+        function editorDraftPage(page) {
+            const sheetNumber=Math.ceil(page.number/2),side=page.number%2?'front':'back',role=editorPageRoles[page.role];
+            return {id:`surface.${sheetNumber}.${side}`,number:page.number,sheetNumber,side,role,
+                masterId:'master.'+role.replace(/-(front|back)$/ ,'.$1'),
+                calendarYear:page.month?2027:null,calendarMonth:page.month??null,sequenceIndex:page.number-1,overrides:{},
+                ...(page.month?{monthKey:'2027-'+String(page.month).padStart(2,'0')}:{}),
+                ...(page.layout==='annual'||(page.role==='inside-back'&&page.layout==='family')?{semanticPageRole:'yearly-calendar'}:{})};
+        }
+
+        function createEditorLayout(pages,draft) {
+            const pageInstances=[],elementsByPage={},unmappedByPage={};
+            for (const page of pages) {
+                const editorPage=editorDraftPage(page),elements=[],unmapped=[];
+                pageInstances.push(editorPage);
+                if (hasEditorFill(page.surface.backgroundColor)) {
+                    elements.push({id:editorPage.id+'.background',type:'shape',role:'background-decoration',shapeType:'rect',
+                        x:0,y:0,width:100,height:100,zIndex:0,style:{fill:page.surface.backgroundColor,strokeWidth:0}});
+                }
+                if (page.surface.backgroundImage&&page.surface.backgroundImage!=='none') {
+                    unmapped.push({role:'page-background',style:{backgroundImage:page.surface.backgroundImage}});
+                }
+                for (const object of page.objects) {
+                    const element=editorDraftElement(object,page);
+                    if (element) elements.push(element);
+                    else if (object.role==='calendar'&&page.role==='month-front') {
+                        unmapped.push({...object,editorTarget:'template.masters.calendar.calendarRegion',...editorBounds(object.bounds)});
+                    } else if (object.role!=='text-panel') unmapped.push(object);
+                }
+                elementsByPage[editorPage.id]=elements;
+                if (unmapped.length) unmappedByPage[editorPage.id]=unmapped;
+            }
+            const regions=pageInstances.filter(page=>page.role==='monthly-front').map(page=>
+                unmappedByPage[page.id]?.find(object=>object.editorTarget));
+            const first=regions[0];
+            const geometryKeys=['x','y','width','height'];
+            const shared=first&&regions.every(region=>region&&geometryKeys.every(key=>region[key]===first[key]));
+            const calendarRegion=shared?Object.fromEntries(geometryKeys.map(key=>[key,first[key]])):null;
+            return {version:2,coordinate_space:'page-percent',reference_canvas:layoutReference,
+                book:{pageInstances,elementsByPage},unmappedByPage,
+                ...(calendarRegion?{template:{masters:{calendar:{calendarRegion}}}}:{}),
+                monthly_variation:{rules:draft.page_rules??{},front_layout:draft.draft_layout.month_front,
+                    back_layout:draft.draft_layout.month_back,photo_count_mode:draft.draft_layout.image_count_mode}};
+        }
+
         function measureDraftLayout(draft) {
             if (!draft.draft_layout?.pages) return;
             const canvas=document.createElement('div');
@@ -3134,7 +3236,10 @@
                         const css=getComputedStyle(node);
                         const style=resolveDraftObjectStyle(css);
                         const id=page.number+'-'+role+'-'+(objects.filter(object=>object.role===role).length+1);
+                        const photo=['group-photo','member-photo','photo-frame'].includes(role)?node.querySelector('img'):null;
                         objects.push({id,role,bounds,order:objects.length,style,
+                            ...(photo?{image:{src:photo.getAttribute('src'),fit:getComputedStyle(photo).objectFit}}:{}),
+                            ...(role==='handwriting-area'&&node.matches('.family-story-footer section')?{lineCount:Math.max(1,Math.floor((node.querySelector('.family-note-lines')?.getBoundingClientRect().height||0)/(origin.width*.04)))}:{}),
                             ...(['text','month-watermark','closing-message'].includes(role)?{text:node.textContent.trim()}:{}),
                             ...(['family-timeline','calendar','mini-calendar','annual-calendar','monthly-schedule','family-event-heading'].includes(role)
                                 ? {binding:{source:role==='family-timeline'?'family-timeline':role==='annual-calendar'?'calendar-year':'calendar-month',month:page.month??null}}:{}),
@@ -3143,9 +3248,7 @@
                     return {number:page.number,role:page.role,layout:page.layout,month:page.month,
                         surface:resolveDraftObjectStyle(getComputedStyle(canvas.firstElementChild)),objects};
                 });
-                return {version:1,coordinate_space:'page-fraction',reference_canvas:layoutReference,pages,
-                    monthly_variation:{rules:draft.page_rules??{},front_layout:draft.draft_layout.month_front,
-                        back_layout:draft.draft_layout.month_back,photo_count_mode:draft.draft_layout.image_count_mode}};
+                return createEditorLayout(pages,draft);
             } finally {
                 canvas.remove();
             }
