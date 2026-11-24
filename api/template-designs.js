@@ -42,7 +42,18 @@ export default async function handler(request, response) {
       });
       return sendJson(response, 200, { ok: true });
     }
-    response.setHeader('Allow', 'GET, POST');
+    if (request.method === 'DELETE') {
+      const { setId } = await readJson(request) ?? {};
+      if (!nonempty(setId) || setId.length > 200) {
+        return sendJson(response, 400, { error: 'INVALID_DESIGN_ID' });
+      }
+      await supabaseRequest(`${table}?set_id=eq.${encodeURIComponent(setId)}`, {
+        method: 'DELETE',
+        headers: { Prefer: 'return=minimal' }
+      });
+      return sendJson(response, 200, { ok: true });
+    }
+    response.setHeader('Allow', 'GET, POST, DELETE');
     return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' });
   } catch (error) {
     return sendError(response, error);
