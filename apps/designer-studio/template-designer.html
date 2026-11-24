@@ -211,7 +211,13 @@
 .family-page h2{margin:0;color:var(--family-accent);font:700 5cqw/1.12 "Noto Serif KR",serif}
 .family-page header p{margin:.5cqw 0 0}.family-page small{color:var(--family-accent)}
 .family-cover,.family-profile,.family-schedule{grid-template-rows:auto minmax(0,1fr) auto}
-.family-cover small{letter-spacing:.12em}.family-frame{position:relative;display:grid;min-height:0;place-items:center;overflow:hidden;background:#ebe3d7;border:1px solid #cbbbaa;color:#66584b}
+.family-cover small{letter-spacing:.12em}
+.family-cover-left,.family-cover-right{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;column-gap:4%;align-items:stretch}
+.family-cover-left .family-frame{grid-area:1/1}.family-cover-left header{grid-area:1/2;align-self:center}
+.family-cover-right{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+.family-cover-right .family-frame{grid-area:1/2}.family-cover-right header{grid-area:1/1;align-self:center}
+.family-cover-left small,.family-cover-right small{grid-column:1/-1}
+.family-cover-centered{padding:5% 12%;text-align:center}.family-cover-centered .family-frame{margin:1.5cqw 0}.family-frame{position:relative;display:grid;min-height:0;place-items:center;overflow:hidden;background:#ebe3d7;border:1px solid #cbbbaa;color:#66584b}
 .family-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .family-profile-groups{display:grid;align-content:space-evenly}.family-profile-groups section>div{display:flex;gap:1cqw}.family-profile-groups span{flex:1;padding:1.5cqw .5cqw;background:#efe7db;text-align:center}
 .family-year{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:1cqw;overflow:hidden}
@@ -1498,7 +1504,9 @@
 
         function renderCoverReview(cover,draft) {
             const design = cover.cover_design;
-            if(draft.family_archive)return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderDraftFace(cover,false,draft,draft.draft_layout.pages[0])}</div>`;
+            if(draft.family_archive)return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderDraftFace(cover,false,draft,draft.draft_layout.pages[0])}</div>
+                <p class="mt-2 font-semibold" role="status">${familyCoverLayouts[familyCoverLayout(design)]} · 단체 사진 1컷</p>
+                <button type="button" data-next-cover class="mt-2 rounded border border-zinc-600 px-3 py-1">다른 추천 받기</button>`;
             return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderDraftFace(cover,false,draft,draft.draft_layout.pages[0])}</div>
                 <p class="mt-2 font-semibold">${coverTypes[design.type]} · ${coverLayouts[design.layout][0]} · ${design.type === 'type' && design.yearFill === 'photo' ? (usesDigitTiles(design.yearLayout) && design.yearPhotoMode === 'digits' ? '숫자 프레임 4개' : '연도 사진 프레임 1개') : '사진 '+design.photos+'컷'}</p>
                 <p>${coverBackgrounds[design.background]}${design.type === 'numeric' ? ' · 클릭할 때마다 새 구도를 생성합니다.' : ` · ${coverTitleStyles[design.titleStyle] || coverTitleStyles.editorial} · ${design.serif ? '명조 계열' : '고딕 계열'} · ${design.reason}`}</p>
@@ -1535,6 +1543,15 @@
                 return;
             }
             if (!event.target.closest('[data-next-cover]') || !generatedDraft || !coverInput) return;
+            if (generatedDraft.family_archive) {
+                const design=generatedDraft.cover.cover_design;
+                const layouts=Object.keys(familyCoverLayouts);
+                design.familyCoverLayout=layouts[(layouts.indexOf(familyCoverLayout(design))+1)%layouts.length];
+                draftOutput.value=JSON.stringify(generatedDraft,null,2);
+                showDraftReview(generatedDraft);
+                document.querySelector('[data-next-cover]').focus();
+                return;
+            }
             const direction = document.getElementById('coverDirection').value.trim();
             const previous = generatedDraft.cover.cover_design;
             const numericOptions = {
@@ -1796,11 +1813,22 @@
             return Number.isInteger(count)&&count>=2&&count<=6?count:3;
         }
 
+        const familyCoverLayouts = {
+            top:'상단 제목 · 아래 단체 사진',
+            left:'왼쪽 사진 · 오른쪽 제목',
+            right:'왼쪽 제목 · 오른쪽 사진',
+            centered:'여백을 넉넉히 둔 중앙 사진'
+        };
+
+        function familyCoverLayout(design) {
+            return Object.hasOwn(familyCoverLayouts,design?.familyCoverLayout) ? design.familyCoverLayout : 'top';
+        }
+
         function renderFamilyFace(item,page,dataset) {
             const month=item.month,ink=FAMILY_ACCENTS[(month-1)%12]||'#66523e';
             const panel=(mode,body)=>`<div class="family-page family-${mode}" style="--family-accent:${ink}">${body}</div>`;
             const legend=Object.keys(FAMILY_MARKS).map(kind=>FAMILY_MARKS[kind]+' '+FAMILY_MARK_NAMES[kind]).join('　');
-            if(page.role==='cover')return panel('cover',`<header><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.cover_subtitle)}</p></header>${familyFrame(item.illustration_image,'열 명의 가족 단체 사진')}<small>2027 ANNUAL FAMILY CALENDAR</small>`);
+            if(page.role==='cover')return panel('cover family-cover-'+familyCoverLayout(item.cover_design),`<header><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.cover_subtitle)}</p></header>${familyFrame(item.illustration_image,'열 명의 가족 단체 사진')}<small>2027 ANNUAL FAMILY CALENDAR</small>`);
             if(page.role==='inside-front')return panel('profile',`<header><h2>우리 가족 열 사람</h2><p>세대를 이어 함께 쓴 2027년</p></header><div class="family-profile-groups">${[
                 ['조부모',['할머니','할아버지']],['자녀',['첫째','둘째','셋째']],['손자·손녀',Array.from({length:5},(_,i)=>'손자·손녀 '+(i+1))]
             ].map(([label,people])=>`<section><b>${label}</b><div>${people.map(person=>`<span>${person}</span>`).join('')}</div></section>`).join('')}</div><small>${legend}</small>`);
