@@ -1,10 +1,10 @@
 'use client';
-import {useEffect,useState,type ReactNode} from 'react';
+import {useEffect,useState,type CSSProperties,type ReactNode} from 'react';
 import {applyFieldDrafts,fieldChanged,type SchoolFieldDraft} from '@/lib/editor/card-state';
 import {ColorPalette,editorThemeColors} from './color-palette';
 import {Button} from '@/components/ui/button';
 import {MonthlyScheduleTools,type MonthlyScheduleToolsProps} from './monthly-schedule-tools';
-import {wallOptions,wallStyleName,type EditorTarget,type PhotoFit,type TextStyle} from '@/lib/editor/session';
+import {photoFrameModel,wallOptions,wallStyleName,type EditorTarget,type PhotoFit,type FrameStyle,type TextStyle} from '@/lib/editor/session';
 import type {SchoolField,SchoolInput} from '@/lib/api/contracts';
 import {fontChoices} from '@/lib/editor/font-catalog';
 import type {NativeProject} from '@/lib/materials/native-project';
@@ -28,8 +28,126 @@ export function TextFormattingToolbar({style,onChange,disabled=false,theme}:{sty
  </div>;
 }
 
-type Props={monthlySchedule?:MonthlyScheduleToolsProps;onFreeText?:(text:string)=>void;onFill?:(fill:string)=>void;themeColors?:string[];wallScheduleOverflow?:boolean;scheduleSizing?:{fontSizePt?:number;barHeight?:number;joinText?:boolean;rangeEachDay?:boolean;bullet?:boolean;showVacationBackground?:boolean;vacationBackgroundColor?:string};onScheduleSizing?:(patch:{fontSizePt?:number;barHeight?:number;joinText?:boolean;rangeEachDay?:boolean;bullet?:boolean;showVacationBackground?:boolean;vacationBackgroundColor?:string})=>void;scheduleStyle?:string;onScheduleStyle?:(mode:'bar'|'text'|'line')=>void;pageName?:string;posterProject?:NativeProject;posterTemplateName?:string;editableTargets?:EditorTarget[];onSelect?:(target:EditorTarget)=>void;selection:EditorTarget|null;item:NativeProject|undefined;fields:SchoolField[];school:SchoolInput;fit:PhotoFit;hasEditableTargets:boolean;schoolImageLinked:boolean;sharing:{layout:boolean;image:boolean;layoutCount:number;imageCount:number;poster:boolean};canReset:boolean;onFieldChange:(key:string,value:string)=>void;onFieldHide:(key:string,hidden:boolean)=>void;onStyle:(patch:TextStyle)=>void;onFit:(fit:PhotoFit)=>void;onShare:(kind:'layout'|'image',checked:boolean)=>void;onReset:()=>void;onSchoolSave:(school:SchoolInput)=>Promise<boolean>;saving:boolean;logoMode?:'split'|'combined';onLogoMode?:(mode:'split'|'combined')=>void;onReplaceImage?:()=>void;onCalendar?:(patch:Record<string,string|boolean|number>,allPages:boolean)=>void;onPendingChange?:(pending:boolean)=>void};
-export function ObjectTools({monthlySchedule,onFreeText,onFill,themeColors,wallScheduleOverflow,scheduleSizing,onScheduleSizing,scheduleStyle,onScheduleStyle,pageName='현재 페이지',posterProject,posterTemplateName,editableTargets=[],onSelect,selection,item,fields,school,fit,hasEditableTargets,schoolImageLinked,sharing,canReset,onStyle,onFit,onShare,onReset,onSchoolSave,saving,logoMode='split',onLogoMode,onReplaceImage,onCalendar,onPendingChange}:Props){
+function TextStyleFields({style,theme,onChange}:{style:Omit<TextStyle,'background'>&{background?:boolean|string};theme?:string[];onChange:(patch:TextStyle)=>void}){
+ const underline=style.textDecoration?.includes('underline');
+ const strike=style.textDecoration?.includes('line-through');
+ const background=style.background===true||typeof style.background==='string'&&style.background!=='transparent';
+ const backgroundColor=(typeof style.background==='string'&&background?style.background:style.backgroundColor)||'#ffffff';
+ const toggleBackground=()=>onChange({background:!background,backgroundColor:backgroundColor==='transparent'?'#ffffff':backgroundColor});
+ const decoration=(nextUnderline:boolean,nextStrike:boolean):TextStyle['textDecoration']=>
+  nextUnderline?(nextStrike?'underline line-through':'underline'):(nextStrike?'line-through':'none');
+ const sampleStyle:CSSProperties={fontFamily:style.fontFamily,fontWeight:style.fontWeight,fontStyle:style.fontStyle,textDecoration:style.textDecoration};
+ const weights=[100,200,300,400,500,600,700,800,900];
+ const weight=Number(style.fontWeight)||400;
+ if(!weights.includes(weight))weights.push(weight);
+ function numberField(key:'fontSize'|'letterSpacing'|'lineHeight'|'opacity'|'strokeWidth'|'shadowX'|'shadowY'|'shadowBlur',label:string,fallback:number,min:number,max:number,step:number|'any'){
+  return <label>{label}<input type="number" min={min} max={max} step={step} key={style[key]??fallback} defaultValue={style[key]??fallback} onBlur={e=>{
+   const value=e.currentTarget.valueAsNumber;
+   if(!Number.isFinite(value)||value<min||value>max)e.currentTarget.value=String(style[key]??fallback);
+   else if(value!==(style[key]??fallback))onChange({[key]:value});
+  }} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur();}}}/></label>;
+ }
+ return <>
+  <label>글꼴<select value={style.fontFamily||''} onChange={e=>onChange({fontFamily:e.target.value})}>
+   <option value="">템플릿 기본 글꼴</option>
+   {fontChoices(style.fontFamily).map(font=><option key={font}>{font}</option>)}
+  </select></label>
+  <div className="editor-font-sample" style={sampleStyle}>2027 CALENDAR · 가나다</div>
+  <div className="editor-font-grid">
+   {numberField('fontSize','글자 크기',18,1,240,'any')}
+   <label>글자 굵기<select value={weight} onChange={e=>onChange({fontWeight:Number(e.target.value)})}>
+    {weights.sort((a,b)=>a-b).map(value=><option key={value} value={value}>{value}{value===400?' · 보통':value===700?' · 굵게':''}</option>)}
+   </select></label>
+  </div>
+  <div className="editor-font-toggles" role="group" aria-label="글자 장식">
+   <Button aria-pressed={style.fontStyle==='italic'} onClick={()=>onChange({fontStyle:style.fontStyle==='italic'?'normal':'italic'})}>기울임</Button>
+   <Button aria-pressed={!!underline} onClick={()=>onChange({textDecoration:decoration(!underline,!!strike)})}>밑줄</Button>
+   <Button aria-pressed={!!strike} onClick={()=>onChange({textDecoration:decoration(!!underline,!strike)})}>취소선</Button>
+  </div>
+  <div className="editor-font-grid">
+   <label>가로 정렬<select value={style.textAlign||'left'} onChange={e=>onChange({textAlign:e.target.value as TextStyle['textAlign']})}>
+    <option value="left">왼쪽</option><option value="center">가운데</option><option value="right">오른쪽</option><option value="justify">양쪽</option>
+   </select></label>
+   <label>세로 정렬<select value={style.verticalAlign||'top'} onChange={e=>onChange({verticalAlign:e.target.value as TextStyle['verticalAlign']})}>
+    <option value="top">위</option><option value="middle">가운데</option><option value="bottom">아래</option>
+   </select></label>
+   {numberField('letterSpacing','자간(px)',0,-20,100,.1)}
+   {numberField('lineHeight','행간',1.2,.5,4,.05)}
+   <div className="editor-font-color">글자색<ColorPalette allowAlpha label="글자색" value={style.color} theme={theme} onChange={color=>onChange({color})}/></div>
+   {numberField('opacity','불투명도',1,0,1,.05)}
+  </div>
+  <div className="editor-font-background">
+   <div><strong>배경</strong><Button aria-label="배경 표시" aria-pressed={background} onClick={toggleBackground}>표시</Button></div>
+   <div className="editor-font-color">배경색<ColorPalette allowAlpha label="텍스트 배경색" value={backgroundColor} theme={theme} onChange={color=>onChange({backgroundColor:color,background})}/></div>
+  </div>
+  <div className="editor-font-background">
+   <strong>외곽선</strong>
+   <div className="editor-font-grid">
+    {numberField('strokeWidth','두께(px)',0,0,10,.1)}
+    <div className="editor-font-color">색상<ColorPalette allowAlpha label="외곽선 색상" value={style.strokeColor||'#ffffff'} theme={theme} onChange={strokeColor=>onChange({strokeColor})}/></div>
+   </div>
+  </div>
+  <div className="editor-font-background">
+   <div><strong>그림자</strong><Button aria-label="그림자 표시" aria-pressed={!!style.shadow} onClick={()=>onChange({shadow:!style.shadow})}>표시</Button></div>
+   <div className="editor-font-grid">
+    {numberField('shadowX','X(px)',0,-50,50,.5)}
+    {numberField('shadowY','Y(px)',0,-50,50,.5)}
+    {numberField('shadowBlur','흐림(px)',0,0,50,.5)}
+    <div className="editor-font-color">색상<ColorPalette allowAlpha label="그림자 색상" value={style.shadowColor||'#000000'} theme={theme} onChange={shadowColor=>onChange({shadowColor})}/></div>
+   </div>
+  </div>
+ </>;
+}
+
+function FrameStyleFields({item,theme,onChange}:{item:NativeProject|undefined;theme?:string[];onChange:(patch:FrameStyle)=>void}){
+ const style=item?.style||{};
+ const background=photoFrameModel.background(style);
+ const shadowColor=style.shadowColor||'#000000';
+ const fields={
+  strokeWidth:{label:'테두리 두께',max:20,defaultValue:item?.role==='school-logo'||item?.image?.binding==='school.profile.logo'||item?.binding==='school.profile.logo'?0:3},
+  softEdgePt:{label:'부드러운 가장자리 크기 (pt)',max:50,defaultValue:0},
+  shadowBlur:{label:'흐림',max:50,defaultValue:0},
+ };
+ function numberField(key:keyof typeof fields){
+  const {label,max,defaultValue}=fields[key];
+  const current=style[key]??defaultValue;
+  return <label>{label}<input type="number" min={0} max={max} step=".1" key={current} defaultValue={current} onBlur={event=>{
+   const input=event.currentTarget,value=input.valueAsNumber;
+   if(!Number.isFinite(value)||value<0||value>max)input.value=String(current);
+   else if(value!==current)onChange({[key]:value});
+  }} onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();event.currentTarget.blur();}}}/></label>;
+ }
+ return <>
+  <label className="editor-frame-form">프레임 형태<select value={photoFrameModel.catalog.some(option=>option.id===item?.frameType)?item?.frameType:'rect'} onChange={event=>onChange({frameType:event.target.value})}>
+   {photoFrameModel.catalog.map(option=><option key={option.id} value={option.id}>{option.name}</option>)}
+  </select></label>
+  <div className="editor-frame-color-row">
+   <div>배경색 <ColorPalette allowAlpha allowNone label="프레임 배경색" value={background} theme={theme} onChange={color=>onChange({background:color==='transparent'?false:color})}/></div>
+   <label>배경색 없음 <input type="checkbox" checked={background==='transparent'} onChange={event=>onChange({background:event.target.checked?false:style.backgroundColor||'#eef2f7'})}/></label>
+  </div>
+  <div className="editor-frame-section">
+   <div className="editor-frame-grid">
+    <div className="editor-frame-color-field">테두리 색<ColorPalette allowAlpha label="테두리 색" value={style.stroke||'#ffffff'} theme={theme} onChange={stroke=>onChange({stroke})}/></div>
+    {numberField('strokeWidth')}
+   </div>
+   {numberField('softEdgePt')}
+   <p className="field-hint">0pt는 효과 없음입니다.</p>
+  </div>
+  <div className="editor-frame-section">
+   <div className="editor-frame-grid">
+    <label>그림자<select value={style.shadow?'true':'false'} onChange={event=>onChange({shadow:event.target.value==='true'})}><option value="false">없음</option><option value="true">표시</option></select></label>
+    {numberField('shadowBlur')}
+   </div>
+   <div className="editor-frame-color-row">
+    <div>그림자 색 <ColorPalette allowAlpha allowNone label="그림자 색" value={shadowColor} theme={theme} onChange={color=>onChange({shadowColor:color})}/></div>
+    <label>그림자 색 없음 <input type="checkbox" checked={shadowColor==='transparent'} onChange={event=>onChange({shadowColor:event.target.checked?'transparent':'#000000'})}/></label>
+   </div>
+  </div>
+ </>;
+}
+
+type Props={onFrameStyle?:(patch:FrameStyle)=>void;monthlySchedule?:MonthlyScheduleToolsProps;onFreeText?:(text:string)=>void;onFill?:(fill:string)=>void;themeColors?:string[];wallScheduleOverflow?:boolean;scheduleSizing?:{fontSizePt?:number;barHeight?:number;joinText?:boolean;rangeEachDay?:boolean;bullet?:boolean;showVacationBackground?:boolean;vacationBackgroundColor?:string};onScheduleSizing?:(patch:{fontSizePt?:number;barHeight?:number;joinText?:boolean;rangeEachDay?:boolean;bullet?:boolean;showVacationBackground?:boolean;vacationBackgroundColor?:string})=>void;scheduleStyle?:string;onScheduleStyle?:(mode:'bar'|'text'|'line')=>void;pageName?:string;posterProject?:NativeProject;posterTemplateName?:string;editableTargets?:EditorTarget[];onSelect?:(target:EditorTarget)=>void;selection:EditorTarget|null;item:NativeProject|undefined;fields:SchoolField[];school:SchoolInput;fit:PhotoFit;hasEditableTargets:boolean;schoolImageLinked:boolean;sharing:{layout:boolean;image:boolean;layoutCount:number;imageCount:number;poster:boolean};canReset:boolean;onFieldChange:(key:string,value:string)=>void;onFieldHide:(key:string,hidden:boolean)=>void;onStyle:(patch:TextStyle)=>void;onFit:(fit:PhotoFit)=>void;onShare:(kind:'layout'|'image',checked:boolean)=>void;onReset:()=>void;onSchoolSave:(school:SchoolInput)=>Promise<boolean>;saving:boolean;logoMode?:'split'|'combined';onLogoMode?:(mode:'split'|'combined')=>void;onReplaceImage?:()=>void;onCalendar?:(patch:Record<string,string|boolean|number>,allPages:boolean)=>void;onPendingChange?:(pending:boolean)=>void};
+export function ObjectTools({onFrameStyle,monthlySchedule,onFreeText,onFill,themeColors,wallScheduleOverflow,scheduleSizing,onScheduleSizing,scheduleStyle,onScheduleStyle,pageName='현재 페이지',posterProject,posterTemplateName,editableTargets=[],onSelect,selection,item,fields,school,fit,hasEditableTargets,schoolImageLinked,sharing,canReset,onStyle,onFit,onShare,onReset,onSchoolSave,saving,logoMode='split',onLogoMode,onReplaceImage,onCalendar,onPendingChange}:Props){
  const [drafts,setDrafts]=useState<Record<string,SchoolFieldDraft>>({}),[applying,setApplying]=useState(false),[saveError,setSaveError]=useState('');
  const style=item?.style||{},editable=selection&&Object.values(selection.rights).some(Boolean),textFields=selection?fields.filter(f=>f.binding===selection.binding||selection.binding==='school.contacts'&&f.binding?.startsWith('school.contacts.')):[];
  const value=(key:string)=>drafts[key]||{value:school.values[key]??'',hidden:school.hidden.includes(key)};
@@ -43,6 +161,7 @@ export function ObjectTools({monthlySchedule,onFreeText,onFill,themeColors,wallS
   selection.rights.content&&textFields.length>0,
   selection.rights.textStyle,
   selection.rights.replaceImage||selection.rights.imageFit,
+  selection.rights.frameStyle,
   sharing.layoutCount>0||sharing.imageCount>0,
  ].filter(Boolean).length>1;
  return <section className="editor-object-tools" aria-label="페이지 편집">
@@ -58,12 +177,15 @@ export function ObjectTools({monthlySchedule,onFreeText,onFill,themeColors,wallS
    {selection.rights.content&&textFields.length>0&&<ToolGroup collapsible={!!collapsible} className="editor-text-content" title="내용 수정" ariaLabel="학교 정보 내용 수정">{textFields.map(field=><div className="editor-content-field" key={field.key}><div className="editor-field-heading">{field.allowHide?<label className="editor-visibility-toggle"><input type="checkbox" aria-label={field.label+' 표시'} disabled={applying} checked={!value(field.key).hidden} onChange={e=>change(field.key,{hidden:!e.target.checked})}/>{field.label}</label>:<label htmlFor={'editor-field-'+field.key}>{field.label}</label>}</div><input id={'editor-field-'+field.key} aria-label={field.label+' 내용'} value={value(field.key).value} placeholder={selection.binding==='school.contacts'?'저장된 연락처':String(item?.content||'')} maxLength={field.maxLength} disabled={applying||value(field.key).hidden} onChange={e=>change(field.key,{value:e.target.value})}/></div>)}<Button className="editor-card-apply" variant={changed?'primary':'secondary'} disabled={!changed||saving||applying} onClick={()=>void save()}>{applying?'저장 중…':'수정된 정보를 학교 정보에 저장'}</Button>{saveError&&<p className="field-error" role="alert">{saveError}</p>}</ToolGroup>}
    {selection.rights.freeText&&<ToolGroup collapsible={false} className="editor-compact-style" title="텍스트 내용"><label>문구<textarea value={String(item?.content??'')} maxLength={2000} onChange={e=>onFreeText?.(e.target.value)}/></label></ToolGroup>}
    {selection.rights.fill&&<ToolGroup collapsible={false} className="editor-compact-style" title="도형 모양"><div className="editor-inline-control">{item?.shapeType==='line'?'선 색':'채우기'}<ColorPalette label={item?.shapeType==='line'?'선 색':'채우기 색'} allowNone value={item?.shapeType==='line'?style.stroke:style.fill} theme={themeColors} onChange={color=>onFill?.(color)}/></div></ToolGroup>}
-   {selection.rights.textStyle&&<ToolGroup collapsible={!!collapsible} className="editor-compact-style" title="글자 모양"><label className="editor-inline-control">글꼴<select value={style.fontFamily||''} onChange={e=>onStyle({fontFamily:e.target.value})}><option value="">템플릿 기본 글꼴</option>{fontChoices(style.fontFamily).map(font=><option key={font}>{font}</option>)}</select></label><label className="editor-inline-control">글자 크기<input aria-label="글자 크기" type="number" min="1" max="240" step=".5" value={style.fontSize||18} onChange={e=>{if(e.target.value)onStyle({fontSize:Number(e.target.value)});}}/></label><div className="editor-inline-control">글자색<ColorPalette allowAlpha label="글자색" value={style.color} theme={themeColors} onChange={color=>onStyle({color})}/></div>{<div className="editor-inline-control">배경색<ColorPalette allowAlpha label="텍스트 배경색" allowNone value={style.background===true?style.backgroundColor:typeof style.background==='string'?style.background:'transparent'} theme={themeColors} onChange={backgroundColor=>onStyle({backgroundColor})}/></div>}</ToolGroup>}
-   {(selection.rights.replaceImage||selection.rights.imageFit)&&<ToolGroup collapsible={!!collapsible} className="editor-image-content" title="이미지 수정">{selection.rights.replaceImage&&<><Button className="editor-image-replace" onClick={onReplaceImage}><ToolIcon name="image"/>이미지 교체</Button></>}{selection.rights.imageFit&&<div className="editor-image-fit"><label>사진 맞춤<select aria-label="사진 맞춤" value={fit.fit} onChange={e=>onFit({...fit,fit:e.target.value as PhotoFit['fit']})}><option value="cover">틀 채우기</option><option value="contain">사진 전체 보기</option></select></label>{(['scale','offsetX','offsetY'] as const).map(key=>{
+   {selection.rights.textStyle&&<ToolGroup collapsible={!!collapsible} className="editor-font-style" title="글꼴과 글자"><TextStyleFields key={JSON.stringify([selection.pageId,selection.scope,selection.elementId])} style={style} theme={themeColors} onChange={onStyle}/></ToolGroup>}
+   {(selection.rights.replaceImage||selection.rights.imageFit)&&<ToolGroup collapsible={!!collapsible} className="editor-image-content" title="사진 맞춤">{selection.rights.replaceImage&&<><Button className="editor-image-replace" onClick={onReplaceImage}><ToolIcon name="image"/>이미지 교체</Button></>}{selection.rights.imageFit&&<div className="editor-image-fit"><label>맞춤 방식<select aria-label="사진 맞춤" value={fit.fit} onChange={e=>onFit({...fit,fit:e.target.value as PhotoFit['fit']})}><option value="cover">틀 채우기</option><option value="contain">사진 전체 보기</option></select></label>{(['scale','offsetX','offsetY'] as const).map(key=>{
     const percent=key==='scale'?Math.round(fit.scale*100):fit[key];
     const display=(key!=='scale'&&percent>0?'+':'')+percent+'%';
     return <label key={key}><span>{{scale:'사진 확대',offsetX:'사진 가로 위치',offsetY:'사진 세로 위치'}[key]} <strong aria-hidden="true">{display}</strong></span><input type="range" aria-valuetext={display} min={key==='scale'?.1:-100} max={key==='scale'?5:100} step={key==='scale'?.05:1} value={fit[key]} onChange={e=>onFit({...fit,[key]:Number(e.target.value)})}/></label>;
    })}</div>}<Button disabled={!canReset} onClick={onReset}>선택 사진 편집 되돌리기</Button></ToolGroup>}
+   {selection.rights.frameStyle&&onFrameStyle&&<ToolGroup collapsible={!!collapsible} className="editor-frame-style" title="프레임 스타일">
+    <FrameStyleFields key={JSON.stringify([selection.pageId,selection.scope,selection.elementId])} item={item} theme={themeColors} onChange={onFrameStyle}/>
+   </ToolGroup>}
    {(sharing.layoutCount>0||sharing.imageCount>0)&&<ToolGroup collapsible={!!collapsible} className="editor-share-options" title={sharing.poster?'다른 페이지에 적용':'월력 앞면에 공통 적용'}>{sharing.layoutCount>0&&<label className="editor-share-option"><input type="checkbox" checked={sharing.layout} onChange={e=>onShare('layout',e.target.checked)}/><span>{sharing.poster?'다른 페이지의 같은 개체에 위치·크기 적용':'해당 개체 위치, 크기 정보를 모든 월력에 적용'}</span></label>}{sharing.imageCount>0&&<label className="editor-share-option"><input type="checkbox" checked={sharing.image} onChange={e=>onShare('image',e.target.checked)}/><span>{sharing.poster?'다른 페이지의 같은 개체에 이미지 적용':'해당 개체 이미지를 모든 월력에 저장'}</span></label>}</ToolGroup>}
   </div>:<div className="editor-inspector-empty"><p>{!hasEditableTargets?'이 페이지에는 편집할 수 있는 개체가 없습니다.':selection?'이 개체는 편집할 수 없습니다.':editableTargets.some(t=>t.rights.replaceImage)&&editableTargets.some(t=>t.rights.content)?'텍스트 개체를 수정하고 이미지를 편집할 수 있습니다.':editableTargets.some(t=>t.rights.replaceImage)?'이미지를 교체할 수 있습니다.':editableTargets.some(t=>t.rights.content)?'텍스트를 변경할 수 있습니다.':'개체의 배치와 표시 설정을 변경할 수 있습니다.'}</p></div>}
  </section>;

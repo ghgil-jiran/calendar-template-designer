@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import ts from 'typescript';
-import {wallStylePatch,wallStyleName,wallOptions} from '../src/lib/editor/session.ts';
+import {photoFrameModel,wallStylePatch,wallStyleName,wallOptions} from '../src/lib/editor/session.ts';
 import {fontChoices} from '../src/lib/editor/font-catalog.ts';
 import {applyFieldDrafts,fieldChanged} from '../src/lib/editor/card-state.ts';
 const require=createRequire(new URL('../src/features/editor/object-tools.tsx',import.meta.url));
 const React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
-function component(url){const js=ts.transpileModule(readFileSync(url,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,module={exports:{}};new Function('require','module','exports',js)(name=>name==='@/lib/editor/session'?{wallStylePatch,wallStyleName,wallOptions}:name==='@/lib/editor/font-catalog'?{fontChoices}:name==='@/lib/editor/card-state'?{applyFieldDrafts,fieldChanged}:name==='@/components/ui/button'?component(new URL('../src/components/ui/button.tsx',import.meta.url)):name==='./color-palette'?component(new URL('../src/features/editor/color-palette.tsx',import.meta.url)):require(name),module,module.exports);return module.exports;}
+function component(url){const js=ts.transpileModule(readFileSync(url,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,module={exports:{}};new Function('require','module','exports',js)(name=>name==='@/lib/editor/session'?{photoFrameModel,wallStylePatch,wallStyleName,wallOptions}:name==='@/lib/editor/font-catalog'?{fontChoices}:name==='@/lib/editor/card-state'?{applyFieldDrafts,fieldChanged}:name==='@/components/ui/button'?component(new URL('../src/components/ui/button.tsx',import.meta.url)):name==='./monthly-schedule-tools'?{MonthlyScheduleTools:()=>null}:name==='./color-palette'?component(new URL('../src/features/editor/color-palette.tsx',import.meta.url)):require(name),module,module.exports);return module.exports;}
 const {ObjectTools,TextFormattingToolbar}=component(new URL('../src/features/editor/object-tools.tsx',import.meta.url));
 const noop=()=>{},props={selection:null,item:undefined,fields:[],school:{values:{},hidden:[]},fit:{fit:'contain',scale:1,offsetX:0,offsetY:0},hasEditableTargets:false,schoolImageLinked:false,sharing:{layout:false,image:false,layoutCount:0,imageCount:0,poster:false},canReset:false,onFieldChange:noop,onFieldHide:noop,onStyle:noop,onFit:noop,onShare:noop,onReset:noop};
 const render=p=>renderToStaticMarkup(React.createElement(ObjectTools,{...props,...p}));
@@ -27,7 +27,7 @@ test('image controls share compact layout with independent poster copy scopes an
 });
 test('inspector summarizes permitted actions and shows page/object identity with summary guidance and no object buttons',()=>{const selection={pageId:'cover',scope:'page',elementId:'school',label:'학교명',type:'text',binding:'school.name',rights:{content:true,move:true}};const empty=render({pageName:'표지',hasEditableTargets:true,editableTargets:[selection]});assert.match(empty,/<h2>표지<\/h2>/);assert.match(empty,/텍스트를 변경할 수 있습니다/);assert.doesNotMatch(empty,/<button/);const selected=render({pageName:'표지',selection});assert.match(selected,/<h3 class="editor-selected-object-name">학교명/);assert.doesNotMatch(selected,/학교 정보와 연결된 글자|개체를 끌어|왼쪽 사진을/);});
 
-test('content inputs and unchanged save action share one card, with a separate style card',()=>{const html=render({selection:{label:'학교 이름',type:'text',binding:'school.name',rights:{content:true,textStyle:true}},fields:[{key:'name',binding:'school.name',label:'학교명',maxLength:200}],school:{values:{name:'학교'},hidden:[]}});assert.match(html,/editor-tool-card editor-text-content/);assert.match(html,/button-secondary editor-card-apply[\s\S]*?disabled/);assert.match(html,/editor-tool-card editor-compact-style/);assert.match(html,/<h3>글자 모양/);});
+test('content inputs and unchanged save action share one card, with a separate style card',()=>{const html=render({selection:{label:'학교 이름',type:'text',binding:'school.name',rights:{content:true,textStyle:true}},fields:[{key:'name',binding:'school.name',label:'학교명',maxLength:200}],school:{values:{name:'학교'},hidden:[]}});assert.match(html,/editor-tool-card editor-text-content/);assert.match(html,/button-secondary editor-card-apply[\s\S]*?disabled/);assert.match(html,/editor-tool-card editor-font-style/);assert.match(html,/<h3>글꼴과 글자/);for(const label of ['글자 굵기','취소선','세로 정렬','자간','행간','불투명도','배경색','외곽선','그림자'])assert.ok(html.includes(label),label);});
 
 test('wall tools expose the template style and schedule options',()=>{
  const html=render({posterProject:{book:{pageInstances:[{}]},template:{}},selection:{label:'전체 월력',type:'year-calendar',rights:{calendarStyle:true}},item:{wallCalendarSettings:{gridStyle:'boxed',schedulePlacement:'cells',referencePlacement:'cells',titleStyle:'band',dateAlign:'left'}}});
@@ -45,4 +45,15 @@ test('wall calendar shows schedule overflow guidance for cell and list layouts',
  assert.match(render({...props,item:{...item,wallCalendarSettings:{...item.wallCalendarSettings,scheduleDisplayMode:'bar'}}}),/‘텍스트만’으로 바꿔 주세요/);
  assert.doesNotMatch(render({...props,item,wallScheduleOverflow:false}),/wall-schedule-warning/);
  assert.match(render({...props,posterTemplateName:'벽보형 샘플 E',item:{monthCount:12,wallCalendarSettings:{schedulePlacement:'list'}}}),/글자 크기나 자간을 줄이거나 목록 단수를 조정해 주세요/);
+});
+
+
+test('photo frames show a separate style card after fitting and use the shared color palette',()=>{
+ const html=render({selection:{label:'프레임',type:'image-frame',rights:{imageFit:true,frameStyle:true}},item:{frameType:'circle',style:{background:false,shadowColor:'transparent'}},onFrameStyle:noop});
+ assert.ok(html.indexOf('<h3>사진 맞춤')<html.indexOf('<h3>프레임 스타일'));
+ for(const label of ['프레임 형태','배경색 없음','테두리 두께','부드러운 가장자리 크기','0pt는 효과 없음입니다.','그림자 색 없음'])assert.ok(html.includes(label),label);
+ assert.match(html,/원형 사진/);
+ assert.match(html,/popover="auto"/);
+ assert.match(html,/배경색 없음 <input type="checkbox" checked/);
+ assert.doesNotMatch(render({selection:{type:'image',rights:{replaceImage:true}},onFrameStyle:noop}),/<h3>프레임 스타일/);
 });

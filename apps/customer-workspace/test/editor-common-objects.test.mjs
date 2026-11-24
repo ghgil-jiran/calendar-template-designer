@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createEditorSession,applyEditor} from '../src/lib/editor/session.ts';
+import {canvasKeyboardCommand,createEditorSession,applyEditor} from '../src/lib/editor/session.ts';
 const photo=(id,extra={})=>({id,type:'image-frame',role:'monthly-image',x:10,y:15,width:30,height:20,image:{src:'template:'+id,fit:'contain',scale:1.2,offsetX:4,offsetY:2},permissions:{replaceImage:true,imageFit:true},...extra});
 const logo=id=>({id,type:'semantic-object',role:'school-logo',binding:'school.profile.logo',x:70,y:5,width:15,height:8,showTitle:false,showCaption:false,sampleContent:{image:'logo'}});
 function project(poster=false){return {format:'acdl-project',settings:{year:2027,startMonth:3},productType:{category:poster?'poster':'desk',pageSize:{width:poster?420:260,height:poster?594:180}},template:{masters:{calendar:{}},masterElements:{}},book:{school:{name:'학교',profile:{logo:{image:'logo'}}},pageInstances:[{id:'a',role:poster?'poster-annual':'monthly-front',masterId:'m',calendarYear:2027,calendarMonth:3},{id:'b',role:poster?'poster-annual':'monthly-front',masterId:'n',calendarYear:2027,calendarMonth:4},{id:'cover',role:'cover-front',masterId:'c'}],elementsByPage:{a:[photo('a-photo'),logo('a-logo'),{id:'slogan',type:'text',binding:'school.slogan',x:10,y:2,width:30,height:5,style:{fontSize:14}},{id:'year',type:'text',binding:'calendar.year',x:30,y:3,width:10,height:5},{id:'background',type:'image',role:'graphic-package-background',src:'bg',x:0,y:0,width:100,height:100,permissions:{replaceImage:true}}],b:[photo('b-photo',{x:25,image:{src:'other',fit:'cover',scale:1.8,offsetX:-12,offsetY:3}}),logo('b-logo')],cover:[photo('cover-photo')]}}};}
@@ -66,4 +66,57 @@ test('authored font and weight survive customer saves, and an explicit font chan
  s.editPhoto({textStyle:{fontFamily:'Jua'}});
  assert.equal(item(reopen(),'a','slogan').style.fontFamily,'Jua');
  assert.equal(original.style.fontFamily,'KoPub Batang');
+});
+
+test('monthly front movement saves corresponding text positions without changing recipient size or content',()=>{
+ const p=project(),recipient={id:'april-slogan',type:'text',binding:'school.slogan',x:20,y:7,width:34,height:6,content:'4월'};
+ p.book.elementsByPage.b.push(recipient);
+ p.book.elementsByPage.cover.push({...recipient,id:'cover-slogan'});
+ const session=createEditorSession({project:p,assets});
+ session.select(session.targets('a').find(target=>target.elementId==='slogan'));
+ session.editPhoto({layout:{x:12,y:4,width:30,height:5}},{monthlyPosition:true});
+ const reopened=applyEditor(p,JSON.parse(JSON.stringify(session.getState())),assets);
+ assert.deepEqual(reopened.book.elementsByPage.b.find(item=>item.id===recipient.id),{...recipient,x:12,y:4});
+ assert.equal(reopened.book.elementsByPage.cover.find(item=>item.id==='cover-slogan').x,20);
+ session.undo();
+ assert.equal(item(session,'a','slogan').x,10);
+ assert.equal(item(session,'b',recipient.id).x,20);
+});
+
+test('expanded text styles survive save and reopen, and background visibility keeps the chosen color',()=>{
+ const p=project(),session=createEditorSession({project:p,assets});
+ session.select(session.targets('a').find(target=>target.elementId==='slogan'));
+ const style={fontWeight:600,verticalAlign:'middle',letterSpacing:1.5,lineHeight:1.4,opacity:.6,background:true,backgroundColor:'#abcdef',strokeWidth:1,strokeColor:'#112233',shadow:true,shadowX:-2,shadowY:3,shadowBlur:1,shadowColor:'#222222'};
+ session.editPhoto({textStyle:style});
+ session.editPhoto({textStyle:{background:false}});
+ const reopened=applyEditor(p,JSON.parse(JSON.stringify(session.getState())),assets);
+ assert.deepEqual(reopened.book.elementsByPage.a.find(item=>item.id==='slogan').style,{fontSize:14,...style,background:false});
+ assert.throws(()=>session.editPhoto({textStyle:{opacity:1.1}}),/스타일/);
+});
+
+
+test('customer movement uses the designer arrow step and excludes text-entry controls',()=>{
+ const size={width:260,height:180};
+ assert.deepEqual(canvasKeyboardCommand({key:'ArrowLeft'},'BUTTON',true,size),{type:'nudge',deltaX:-.2,deltaY:0});
+ const shifted=canvasKeyboardCommand({key:'ArrowDown',shiftKey:true},'DIV',true,size);
+ assert.equal(shifted.deltaY,1);
+ assert.equal(canvasKeyboardCommand({key:'ArrowLeft'},'TEXTAREA',true,size),null);
+ assert.equal(canvasKeyboardCommand({key:'ArrowLeft'},'DIV',false,size),null);
+});
+
+test('frame styling persists with the authored photo frame and remains after resetting photo fit',()=>{
+ const p=project(),session=createEditorSession({project:p,assets});
+ selectPhoto(session);
+ const frameStyle={frameType:'heart',background:false,stroke:'#123456',strokeWidth:2,softEdgePt:4,shadow:true,shadowBlur:3,shadowColor:'transparent'};
+ session.editPhoto({frameStyle,fit:{fit:'contain',scale:1.4,offsetX:5,offsetY:2}});
+ assert.equal(item(session,'a','a-photo').image.scale,1.4);
+ session.resetPhoto();
+ const frame=applyEditor(p,JSON.parse(JSON.stringify(session.getState())),assets).book.elementsByPage.a[0];
+ const {frameType,...style}=frameStyle;
+ assert.equal(frame.frameType,frameType);
+ assert.deepEqual(frame.style,style);
+ assert.deepEqual(frame.image,p.book.elementsByPage.a[0].image);
+ assert.throws(()=>session.editPhoto({frameStyle:{softEdgePt:100}}),/프레임 스타일/);
+ session.select(session.targets('a').find(target=>target.elementId==='slogan'));
+ assert.throws(()=>session.editPhoto({frameStyle:{frameType:'rect'}}),/변경할 수 없어요/);
 });

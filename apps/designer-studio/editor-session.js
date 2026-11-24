@@ -26,6 +26,7 @@
    const limit=item.customerEditingRestrictions||{};
    const allowed=action=>limit[action]!==false;
    return {replaceImage:userPhoto&&(school||original.replaceImage===true||item.role==='user-image')&&allowed('replaceImage'),
+    frameStyle:item.type==='image-frame'&&allowed('color'),
     imageFit:userPhoto&&(school||original.imageFit===true||item.role==='user-image'||!poster&&item.type!=='image-frame')&&allowed('imageFit'),
     content:isText&&allowed('content')&&(!binding||school),freeText:isText&&!binding&&allowed('content'),
     move:allowed('move'),resize:allowed('resize')&&(poster||!back||!userPhoto||item.role==='user-image'),layer:allowed('layer'),duplicate:allowed('duplicate'),
@@ -50,6 +51,7 @@
   }
   return result;
  }
+ const validRange=(value,min,max)=>Number.isFinite(value)&&value>=min&&value<=max;
  function validateState(state){
   if(state?.deskScheduleSizing){const s=state.deskScheduleSizing;if(typeof s!=='object'||Array.isArray(s)||Object.keys(s).some(k=>!['fontSizePt','barHeight','joinText','rangeEachDay','bullet','showVacationBackground','vacationBackgroundColor'].includes(k))||s.fontSizePt!==undefined&&(!Number.isFinite(s.fontSizePt)||s.fontSizePt<3||s.fontSizePt>18)||s.barHeight!==undefined&&(!Number.isFinite(s.barHeight)||s.barHeight<1||s.barHeight>24)||s.joinText!==undefined&&typeof s.joinText!=='boolean'||s.rangeEachDay!==undefined&&typeof s.rangeEachDay!=='boolean'||s.bullet!==undefined&&typeof s.bullet!=='boolean'||s.showVacationBackground!==undefined&&typeof s.showVacationBackground!=='boolean'||s.vacationBackgroundColor!==undefined&&!/^#[a-f0-9]{6}$/i.test(s.vacationBackgroundColor))throw Error('일정 글자 크기와 영역 높이를 확인해 주세요.');}
 
@@ -58,14 +60,39 @@
   if(state?.logoGeometry)for(const [mode,edits] of Object.entries(state.logoGeometry)){if(!['split','combined'].includes(mode))throw Error('로고 배치를 확인해 주세요.');validateState({version:1,pageId:state.pageId,edits});}
   if(!state||state.version!==1||!Array.isArray(state.edits)||state.edits.length>1000||typeof state.pageId!=='string')throw Error('편집 저장 정보를 확인해 주세요.');
   const keys=new Set();for(const edit of state.edits){const key=JSON.stringify([edit.pageId,edit.scope,edit.elementId]);if(keys.has(key)||!['master','page'].includes(edit.scope)||typeof edit.pageId!=='string'||typeof edit.elementId!=='string'||edit.photoId!==undefined&&typeof edit.photoId!=='string')throw Error('사진 편집 영역을 확인해 주세요.');keys.add(key);
-   if(Object.keys(edit).some(k=>!['pageId','elementId','scope','photoId','fit','layout','fontSize','textStyle','hidden','photoCopy','calendarSettings','text','fill'].includes(k)))throw Error('알 수 없는 편집 항목이에요.');
+   if(Object.keys(edit).some(k=>!['pageId','elementId','scope','photoId','fit','layout','fontSize','textStyle','hidden','photoCopy','calendarSettings','text','fill','frameStyle'].includes(k)))throw Error('알 수 없는 편집 항목이에요.');
    if(edit.text!==undefined&&(typeof edit.text!=='string'||edit.text.length>2000))throw Error('텍스트 내용을 확인해 주세요.');
    if(edit.fill!==undefined&&(typeof edit.fill!=='string'||!/^(?:transparent|#[0-9a-f]{6})$/i.test(edit.fill)))throw Error('채우기 색을 확인해 주세요.');
    if(edit.calendarSettings)root.ACDLWallCalendar.validateCustomer(edit.calendarSettings);
    if(edit.layout&&(Object.keys(edit.layout).some(k=>!['x','y','width','height'].includes(k))||['x','y','width','height'].some(k=>!Number.isFinite(edit.layout[k]))||edit.layout.width<.2||edit.layout.width>500||edit.layout.height<.2||edit.layout.height>500||Math.abs(edit.layout.x)>500||Math.abs(edit.layout.y)>500))throw Error('배치 값을 확인해 주세요.');
    if(edit.photoCopy){const c=edit.photoCopy;if(typeof c!=='object'||Object.keys(c).some(k=>!['photoId','source'].includes(k))||Boolean(c.photoId)===Boolean(c.source)||c.photoId!==undefined&&typeof c.photoId!=='string'||edit.photoId!==undefined)throw Error('공통 이미지 정보를 확인해 주세요.');if(c.source){const r=c.source;if(Object.keys(r).some(k=>!['pageId','scope','elementId'].includes(k))||!['master','page'].includes(r.scope)||typeof r.pageId!=='string'||typeof r.elementId!=='string')throw Error('공통 이미지 영역을 확인해 주세요.');}}
    if(edit.hidden!==undefined&&typeof edit.hidden!=='boolean')throw Error('표시 값을 확인해 주세요.');
-   if(edit.textStyle){const v=edit.textStyle;if(v.textAlign!==undefined&&!['left','center','right','justify'].includes(v.textAlign))throw Error('글자 정렬을 확인해 주세요.');if(Object.keys(v).some(k=>!['fontFamily','fontSize','fontWeight','color','backgroundColor','fontStyle','textDecoration','textAlign'].includes(k))||v.fontFamily!==undefined&&(typeof v.fontFamily!=='string'||v.fontFamily.length>100||/[;{}<>\n]/.test(v.fontFamily))||v.fontSize!==undefined&&(!Number.isFinite(v.fontSize)||v.fontSize<1||v.fontSize>240)||v.fontStyle!==undefined&&!['normal','italic'].includes(v.fontStyle)||v.textDecoration!==undefined&&!['none','underline','line-through','underline line-through'].includes(v.textDecoration)||v.fontWeight!==undefined&&![400,700].includes(v.fontWeight)||v.color!==undefined&&!/^#[a-f0-9]{6}(?:[a-f0-9]{2})?$/i.test(v.color))throw Error('글자 스타일을 확인해 주세요.');}
+   if(edit.frameStyle!==undefined){
+    const frame=edit.frameStyle,model=root.ACDLPhotoFrameModel;
+    const color=value=>typeof value==='string'&&/^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(value);
+    if(!frame||typeof frame!=='object'||Array.isArray(frame)
+      ||Object.keys(frame).some(key=>!['frameType','background','stroke','strokeWidth','softEdgePt','shadow','shadowBlur','shadowColor'].includes(key))
+      ||frame.frameType!==undefined&&!model.catalog.some(shape=>shape.id===frame.frameType)
+      ||frame.background!==undefined&&frame.background!==false&&!color(frame.background)
+      ||frame.stroke!==undefined&&!color(frame.stroke)
+      ||frame.strokeWidth!==undefined&&!validRange(frame.strokeWidth,0,20)
+      ||frame.softEdgePt!==undefined&&!validRange(frame.softEdgePt,0,50)
+      ||frame.shadow!==undefined&&typeof frame.shadow!=='boolean'
+      ||frame.shadowBlur!==undefined&&!validRange(frame.shadowBlur,0,50)
+      ||frame.shadowColor!==undefined&&frame.shadowColor!=='transparent'&&!color(frame.shadowColor))throw Error('프레임 스타일을 확인해 주세요.');
+   }
+   if(edit.textStyle){const v=edit.textStyle;if(v.textAlign!==undefined&&!['left','center','right','justify'].includes(v.textAlign))throw Error('글자 정렬을 확인해 주세요.');if(v.verticalAlign!==undefined&&!['top','middle','bottom'].includes(v.verticalAlign)
+    ||v.background!==undefined&&typeof v.background!=='boolean'
+    ||v.letterSpacing!==undefined&&!validRange(v.letterSpacing,-20,100)
+    ||v.lineHeight!==undefined&&!validRange(v.lineHeight,.5,4)
+    ||v.opacity!==undefined&&!validRange(v.opacity,0,1)
+    ||v.strokeWidth!==undefined&&!validRange(v.strokeWidth,0,10)
+    ||v.shadow!==undefined&&typeof v.shadow!=='boolean'
+    ||v.shadowX!==undefined&&!validRange(v.shadowX,-50,50)
+    ||v.shadowY!==undefined&&!validRange(v.shadowY,-50,50)
+    ||v.shadowBlur!==undefined&&!validRange(v.shadowBlur,0,50)
+    ||[v.strokeColor,v.shadowColor].some(color=>color!==undefined&&(typeof color!=='string'||!/^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(color))))throw Error('글자 스타일을 확인해 주세요.');
+    if(Object.keys(v).some(k=>!['fontFamily','fontSize','fontWeight','color','backgroundColor','fontStyle','textDecoration','textAlign','verticalAlign','letterSpacing','lineHeight','opacity','background','strokeWidth','strokeColor','shadow','shadowX','shadowY','shadowBlur','shadowColor'].includes(k))||v.fontFamily!==undefined&&(typeof v.fontFamily!=='string'||v.fontFamily.length>100||/[;{}<>\n]/.test(v.fontFamily))||v.fontSize!==undefined&&(!Number.isFinite(v.fontSize)||v.fontSize<1||v.fontSize>240)||v.fontStyle!==undefined&&!['normal','italic'].includes(v.fontStyle)||v.textDecoration!==undefined&&!['none','underline','line-through','underline line-through'].includes(v.textDecoration)||v.fontWeight!==undefined&&!validRange(v.fontWeight,100,900)||v.color!==undefined&&!/^#[a-f0-9]{6}(?:[a-f0-9]{2})?$/i.test(v.color))throw Error('글자 스타일을 확인해 주세요.');}
    if(edit.fontSize!==undefined&&(!Number.isFinite(edit.fontSize)||edit.fontSize<1||edit.fontSize>240))throw Error('글자 크기를 확인해 주세요.');
    if(edit.fit){if(Object.keys(edit.fit).some(k=>!['fit','scale','offsetX','offsetY'].includes(k)))throw Error('알 수 없는 사진 맞춤 항목이에요.');if(!['cover','contain'].includes(edit.fit.fit)||!Number.isFinite(edit.fit.scale)||edit.fit.scale<.1||edit.fit.scale>10||!Number.isFinite(edit.fit.offsetX)||Math.abs(edit.fit.offsetX)>100||!Number.isFinite(edit.fit.offsetY)||Math.abs(edit.fit.offsetY)>100)throw Error('사진 맞춤 값을 확인해 주세요.');}
   }
@@ -88,6 +115,34 @@
    if(!match.length&&!target.binding&&!target.role&&own.length===1&&candidates.length===1)match=candidates;
    if(match.length===1)result.push(match[0]);
   }return result;
+ }
+ function shareMonthlyPosition(project,state,selection,capabilities,position){
+  if(!selection.rights.move||project.productType?.category!=='desk'||pageById(project,selection.pageId)?.role!=='monthly-front')return;
+  if(/^(user-object|user-copy):/.test(selection.elementId))return;
+  const own=targets(project,selection.pageId,capabilities).filter(target=>target.type===selection.type);
+  for(const page of project.book.pageInstances){
+   if(page.id===selection.pageId||page.role!=='monthly-front')continue;
+   const candidates=targets(project,page.id,capabilities).filter(target=>target.type===selection.type);
+   const predicates=[
+    target=>target.identity===selection.identity,
+    target=>selection.correspondenceKey&&target.correspondenceKey===selection.correspondenceKey,
+    target=>selection.binding&&target.binding===selection.binding,
+    target=>selection.role&&target.role===selection.role,
+   ];
+   let target;
+   for(const matches of predicates){
+    const group=candidates.filter(matches);
+    if(!group.length)continue;
+    if(group.length===1&&own.filter(matches).length===1)target=group[0];
+    break;
+   }
+   if(!target?.rights.move)continue;
+   const existing=state.edits.find(edit=>edit.pageId===page.id&&edit.scope===target.scope&&edit.elementId===target.elementId);
+   const frame=existing?.layout??target;
+   const layout={x:Math.max(0,Math.min(100-frame.width,position.x)),y:Math.max(0,Math.min(100-frame.height,position.y)),width:frame.width,height:frame.height};
+   if(existing)existing.layout=layout;
+   else state.edits.push({pageId:page.id,scope:target.scope,elementId:target.elementId,layout});
+  }
  }
  function shareChanges(project,state,selection,assets,capabilities,options){
   if(!selection)throw Error('이미지 개체를 먼저 선택해 주세요.');const related=correspondingTargets(project,selection,capabilities),base=apply(project,state,assets,{capabilities}),page=base.book.pageInstances.find(p=>p.id===selection.pageId),local=base.book.elementsByPage?.[page.id]||[],item=local.find(e=>e.id===selection.elementId||selection.scope==='master'&&e.shadowOfMasterElementId===selection.elementId)||originalItem(base,selection),own=state.edits.find(e=>e.pageId===selection.pageId&&e.scope===selection.scope&&e.elementId===selection.elementId);
@@ -179,6 +234,7 @@
    if(edit.calendarSettings&&!target.rights.calendarStyle)throw Error('전체 월력 표시를 변경할 수 없습니다.');
    if(edit.text!==undefined&&!target.rights.freeText||edit.fill!==undefined&&!target.rights.fill)throw Error('이 개체에서 허용하지 않은 편집이에요.');
    if(edit.textStyle?.backgroundColor!==undefined&&(!supportsPageObjects(project)||typeof edit.textStyle.backgroundColor!=='string'||!/^(?:transparent|#[0-9a-f]{6}(?:[0-9a-f]{2})?)$/i.test(edit.textStyle.backgroundColor)))throw Error('글자 배경색을 확인해 주세요.');
+   if(edit.frameStyle&&!target.rights.frameStyle)throw Error('이 개체에서는 프레임 스타일을 변경할 수 없어요.');
    if(edit.textStyle&&!target.rights.textStyle||edit.hidden!==undefined&&!target.rights.visibility)throw Error('허용하지 않은 글자 편집이에요.');
    if((edit.photoId!==undefined||edit.photoCopy)&&!target.rights.replaceImage||edit.fit&&!target.rights.imageFit)throw Error('템플릿에서 허용하지 않은 사진 편집이에요.');
    const page=document.book.pageInstances.find(p=>p.id===edit.pageId);document.book.elementsByPage||={};const local=document.book.elementsByPage[page.id]||=[];
@@ -200,7 +256,12 @@
    }
    if(edit.text!==undefined)item.content=edit.text;
    if(edit.fill!==undefined)item.style={...item.style,...(item.shapeType==='line'?{stroke:edit.fill}:{fill:edit.fill})};
-   if(edit.textStyle){item.style={...item.style,...edit.textStyle};if(edit.textStyle.backgroundColor!==undefined)item.style.background=edit.textStyle.backgroundColor!=='transparent';}
+   if(edit.frameStyle){
+    const {frameType,...style}=edit.frameStyle;
+    if(frameType!==undefined)item.frameType=frameType;
+    item.style={...item.style,...style};
+   }
+   if(edit.textStyle){item.style={...item.style,...edit.textStyle};if(edit.textStyle.background===undefined&&edit.textStyle.backgroundColor!==undefined)item.style.background=edit.textStyle.backgroundColor!=='transparent';}
    if(edit.hidden!==undefined)item.visible=!edit.hidden;
    if(edit.fontSize!==undefined)root.ACDLInspectorElement.apply(item,'text-size',{fontSize:edit.fontSize});
    if(edit.fit)root.ACDLPhotoFrameEditing.apply(item,{...item.image,...edit.fit});
@@ -280,7 +341,7 @@
    applyToMonthlyFronts(){if(!selection||selection.binding!=='school.profile.logo')throw Error('월력 앞면 교표를 선택해주세요.');const base=apply(source,current,assets,{capabilities}),page=base.book.pageInstances.find(p=>p.id===selection.pageId);if(page.role!=='monthly-front')throw Error('월력 앞면에서 사용해주세요.');const item=(base.book.elementsByPage[page.id]||[]).find(e=>e.id===selection.elementId||e.shadowOfMasterElementId===selection.elementId)||(base.template.masterElements[page.masterId]||[]).find(e=>e.id===selection.elementId),next=clone(current);for(const p of source.book.pageInstances.filter(p=>p.role==='monthly-front'))for(const t of targets(source,p.id,capabilities).filter(t=>t.binding==='school.profile.logo'&&t.rights.move&&t.rights.resize)){const index=next.edits.findIndex(e=>e.pageId===t.pageId&&e.scope===t.scope&&e.elementId===t.elementId),edit={...(next.edits[index]||{pageId:t.pageId,scope:t.scope,elementId:t.elementId}),layout:{x:item.x,y:item.y,width:item.width,height:item.height}};const own=current.edits.find(e=>e.pageId===selection.pageId&&e.scope===selection.scope&&e.elementId===selection.elementId);if(t.rights.imageFit)edit.fit=own?.fit?clone(own.fit):{fit:item.image?.fit||'cover',scale:Number(item.image?.scale||1),offsetX:Number(item.image?.offsetX||0),offsetY:Number(item.image?.offsetY||0)};if(index<0)next.edits.push(edit);else next.edits[index]=edit;}return commit(next);},
    setAssets(next){apply(source,current,next,{capabilities});assets=next;},
    setPage(pageId){targets(source,pageId,capabilities);current={...current,pageId};selection=null;},
-   editPhoto(patch,sharing={}){if(!selection)throw Error('사진 영역을 먼저 선택해 주세요.');const next=clone(current);if(capabilities==='school-basic-v2')next.capabilityVersion=2;const index=next.edits.findIndex(e=>e.pageId===selection.pageId&&e.elementId===selection.elementId&&e.scope===selection.scope),previous=next.edits[index]||{pageId:selection.pageId,elementId:selection.elementId,scope:selection.scope};const edit={...previous};if(Object.hasOwn(patch,'photoId')){edit.photoId=patch.photoId;delete edit.photoCopy;delete edit.fit;}if(patch.fit)edit.fit=clone(patch.fit);if(patch.layout)edit.layout=clone(patch.layout);if(patch.fontSize!==undefined)edit.fontSize=patch.fontSize;if(patch.calendarSettings){const nextSettings=clone(patch.calendarSettings),preset=root.ACDLWallCalendar.presets[nextSettings.scheduleStylePreset];edit.calendarSettings={...edit.calendarSettings,...preset,...nextSettings};}if(patch.text!==undefined)edit.text=patch.text;if(patch.fill!==undefined)edit.fill=patch.fill;if(patch.textStyle)edit.textStyle={...edit.textStyle,...clone(patch.textStyle)};if(patch.hidden!==undefined)edit.hidden=patch.hidden;if(index<0)next.edits.push(edit);else next.edits[index]=edit;if(patch.calendarSettings&&sharing.calendarAll){for(const page of source.book.pageInstances)if(page.id!==selection.pageId)for(const target of targets(source,page.id,capabilities).filter(t=>t.rights.calendarStyle)){const old=next.edits.find(e=>e.pageId===target.pageId&&e.elementId===target.elementId&&e.scope===target.scope);if(old)old.calendarSettings={...old.calendarSettings,...clone(patch.calendarSettings)};else next.edits.push({pageId:target.pageId,elementId:target.elementId,scope:target.scope,calendarSettings:clone(patch.calendarSettings)});}}if(patch.layout&&sharing.layoutAll||patch.photoId!==undefined&&sharing.imageAll)shareChanges(source,next,selection,assets,capabilities,{layout:!!patch.layout&&sharing.layoutAll,image:patch.photoId!==undefined&&sharing.imageAll});return commit(next);},
+   editPhoto(patch,sharing={}){if(!selection)throw Error('사진 영역을 먼저 선택해 주세요.');const next=clone(current);if(capabilities==='school-basic-v2')next.capabilityVersion=2;const index=next.edits.findIndex(e=>e.pageId===selection.pageId&&e.elementId===selection.elementId&&e.scope===selection.scope),previous=next.edits[index]||{pageId:selection.pageId,elementId:selection.elementId,scope:selection.scope};const edit={...previous};if(Object.hasOwn(patch,'photoId')){edit.photoId=patch.photoId;delete edit.photoCopy;delete edit.fit;}if(patch.fit)edit.fit=clone(patch.fit);if(patch.layout)edit.layout=clone(patch.layout);if(patch.fontSize!==undefined)edit.fontSize=patch.fontSize;if(patch.calendarSettings){const nextSettings=clone(patch.calendarSettings),preset=root.ACDLWallCalendar.presets[nextSettings.scheduleStylePreset];edit.calendarSettings={...edit.calendarSettings,...preset,...nextSettings};}if(patch.text!==undefined)edit.text=patch.text;if(patch.fill!==undefined)edit.fill=patch.fill;if(patch.frameStyle)edit.frameStyle={...edit.frameStyle,...clone(patch.frameStyle)};if(patch.textStyle)edit.textStyle={...edit.textStyle,...clone(patch.textStyle)};if(patch.hidden!==undefined)edit.hidden=patch.hidden;if(index<0)next.edits.push(edit);else next.edits[index]=edit;if(patch.calendarSettings&&sharing.calendarAll){for(const page of source.book.pageInstances)if(page.id!==selection.pageId)for(const target of targets(source,page.id,capabilities).filter(t=>t.rights.calendarStyle)){const old=next.edits.find(e=>e.pageId===target.pageId&&e.elementId===target.elementId&&e.scope===target.scope);if(old)old.calendarSettings={...old.calendarSettings,...clone(patch.calendarSettings)};else next.edits.push({pageId:target.pageId,elementId:target.elementId,scope:target.scope,calendarSettings:clone(patch.calendarSettings)});}}if(patch.layout&&sharing.layoutAll||patch.photoId!==undefined&&sharing.imageAll)shareChanges(source,next,selection,assets,capabilities,{layout:!!patch.layout&&sharing.layoutAll,image:patch.photoId!==undefined&&sharing.imageAll});if(patch.layout&&sharing.monthlyPosition)shareMonthlyPosition(withCopies(source,next,capabilities),next,selection,capabilities,patch.layout);return commit(next);},
    resetPhoto(sharing={}){if(!selection)return false;const next={...clone(current),edits:current.edits.flatMap(e=>{if(!(e.pageId===selection.pageId&&e.elementId===selection.elementId&&e.scope===selection.scope))return [e];const {photoId,photoCopy,fit,...preserved}=e;return Object.keys(preserved).length>3?[preserved]:[];})};if(sharing.imageAll)shareChanges(source,next,selection,assets,capabilities,{image:true});return commit(next);},
    undo(){if(!past.length)return false;future.push(clone(current));current=past.pop();selection=null;return true;},redo(){if(!future.length)return false;past.push(clone(current));current=future.pop();selection=null;return true;}
   });
