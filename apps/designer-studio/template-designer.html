@@ -129,14 +129,12 @@
 .number-days.large b,.number-days.daily-memo b{font:800 2cqw/1.45 system-ui,sans-serif;letter-spacing:.05em}
 .number-days.daily-memo span{border:1px solid #20232b24;text-align:left;padding:.35cqw 1cqw;font:800 5.2cqw/1 system-ui,sans-serif}
 .number-days.daily-memo .memo-day{background:linear-gradient(to bottom,transparent 72%,#20232b2b 72% 74%,transparent 74%)}
-.number-year-page section{border:1px solid currentColor;border-radius:5px;padding:.35cqw;display:grid;grid-template-rows:auto minmax(0,1fr);line-height:1}
-.number-year-page section>b{text-align:center;font-size:2.8cqw}
-.number-year-page .mini{font-size:1.15cqw;align-items:center}
-.number-ring strong{position:absolute;inset:0;display:grid;place-items:center;font:700 21cqw/1 Georgia}
-.number-ring section{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);width:15%;height:18%}
-.number-annual{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:auto repeat(3,minmax(0,1fr));gap:1cqw;padding:2cqw}
-.number-annual strong{grid-column:1/-1;font:700 7cqw/1 Georgia}
-.number-annual section>b{font-size:4cqw}.number-annual .mini{font-size:1.6cqw}
+.number-annual{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:1.4cqw 1.8cqw;padding:3cqw 3.5cqw;background:#fbfaf7}
+.number-annual-year{position:absolute;inset:0;width:100%;height:100%;color:#34526b;opacity:.10;pointer-events:none}
+.number-annual section{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);min-width:0}
+.number-annual section>b{text-align:center;color:var(--month-ink);font:900 5cqw/.95 "Playfair Display",Georgia,serif;letter-spacing:.04em}
+.number-annual .mini{grid-template-rows:2cqw repeat(6,minmax(0,1fr));align-items:center;color:#252a34;font:800 2.35cqw/.95 "Playfair Display",Georgia,serif;font-variant-numeric:lining-nums tabular-nums}
+.number-annual .mini b{color:var(--month-ink);font:700 1.15cqw/1 system-ui,sans-serif}
 </style>
 <style>
 .cover-year-design{display:grid;grid-template-rows:minmax(0,1fr) auto;align-items:center;text-align:center;min-height:0;overflow:hidden}
@@ -297,7 +295,7 @@
 <label class="grid gap-1">월력 뒷면 구성<select name="back" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 왼쪽 이미지 1장 + 메모</option><option value="2">기본 2 · 상단 이미지 + 하단 띠 월력</option><option value="3">기본 3 · 왼쪽 이미지 + 메모 + 미니 월력</option><option value="4">숫자 중심 + 일 메모</option><option value="5">일일 기록표 · 체크와 직접 쓰기</option></select></label>
 <label>뒷면 이미지 수 <select name="imageCount"><option value="0" hidden>이미지 없음</option><option value="1">1장</option><option value="2">2장</option><option value="3">3장</option><option value="4">4장</option></select></label>
 <label>월별 적용 방식<select name="imageCountMode"><option value="fixed">선택한 수로 고정</option><option value="random-plus">선택한 수 이상으로 섞기</option></select></label>
-<p id="draftImageCountHint" class="draft-wide draft-note"></p></fieldset><fieldset><legend>뒷표지</legend><label>뒷표지 구성<select name="backCover"><option value="">기본</option><option value="numbers">숫자 중심 · 연도와 12개월 미니월력</option></select></label></fieldset>
+<p id="draftImageCountHint" class="draft-wide draft-note"></p></fieldset>
 <div class="draft-actions"><button type="button" id="generateDraft" class="rounded border border-amber-600 px-3 py-2 disabled:opacity-40">JSON 파일 생성 및 보기</button><button type="button" id="createDraft" disabled class="rounded bg-amber-800 px-3 py-2 disabled:opacity-40">생성하기</button></div>
 <div><progress id="draftProgress" max="100" value="0" aria-label="JSON 생성 진행 상태" hidden class="w-full"></progress><p id="draftStatus" role="status" class="text-sm text-amber-200"></p></div>
 
@@ -1121,7 +1119,7 @@
                     { number: month * 2 + 1, role: 'month-front', month, layout: front, theme_area: frontThemeAreas[Number(front) - 1], image_count: front === '3' ? 1 : 0 },
                     { number: month * 2 + 2, role: 'month-back', month, layout: back, theme_area: backThemeAreas[Number(back) - 1], image_count: imageCounts[month-1] }
                 ]),
-                { number: 27, role: 'inside-back', layout: insideBack }, { number: 28, role: 'back-cover', ...(values.backCover === 'numbers' ? {layout:'numbers'} : {}) }];
+                { number: 27, role: 'inside-back', layout: insideBack }, { number: 28, role: 'back-cover' }];
             return { set_id: id, title, design_preset: ['numbers','habits'].includes(values.preset) ? values.preset : undefined,
                 ...(back === '5' ? {habit_rows:normalizeHabitRows(values.habitRows)} : {}), back_cover: {title}, description, subtitle: description, target_type: '탁상달력 · 28면',
                 global_style_lock: { paper_bg: '#F5F1E8', ink_primary: '#23211E' }, cover, months,
@@ -1187,7 +1185,7 @@
             if (source) {
                 const slots = source.cover.photo_slots;
                 const values = {
-                    preset: source.design_preset || '', backCover: layout?.pages[27]?.layout || '',
+                    preset: source.design_preset || '',
                     title: source.title, description: source.description ?? source.subtitle ?? '',
                     coverSubtitle: source.cover.cover_subtitle ?? '',
                     coverType: Object.hasOwn(coverTypes, coverDesign?.type) ? coverDesign.type : '',
@@ -1241,14 +1239,14 @@
             if (event.target.name === 'preset' && event.target.value === 'numbers') {
                 const fields = draftForm.elements;
                 if (!fields.title.value.trim()) fields.title.value = '숫자로 표현하는 디자인 달력';
-                for (const [name,value] of Object.entries({coverType:'numeric',insideFront:'scheduler',front:'5',back:'4',backCover:'numbers'})) {
+                for (const [name,value] of Object.entries({coverType:'numeric',insideFront:'scheduler',front:'5',back:'4'})) {
                     fields[name].value = value;
                 }
             }
             if (event.target.name === 'preset' && event.target.value === 'habits') {
                 const fields = draftForm.elements;
                 if (!fields.title.value.trim()) fields.title.value = '하루하루 체크하기';
-                for (const [name,value] of Object.entries({coverType:'illustration',insideFront:'scheduler',front:'2',back:'5',backCover:''})) fields[name].value = value;
+                for (const [name,value] of Object.entries({coverType:'illustration',insideFront:'scheduler',front:'2',back:'5'})) fields[name].value = value;
             }
             invalidateDraft();
         });
@@ -1692,19 +1690,20 @@
             const dayGrid = (m, mode) => {
                 const offset = new Date(Date.UTC(year,m-1,1)).getUTCDay();
                 const count = new Date(Date.UTC(year,m,0)).getUTCDate();
-                const rows = Math.ceil((offset+count)/7);
+                const rows = mode === 'mini' ? 6 : Math.ceil((offset+count)/7);
                 return `<div class="number-days ${mode}" style="--weeks:${rows}">${(mode === 'mini' ? [...'SMTWTFS'] : ['SUN','MON','TUE','WED','THU','FRI','SAT']).map(day=>'<b>'+day+'</b>').join('')}${Array.from({length:rows*7},(_,i)=>{
                     const day = i-offset+1;
                     return day < 1 || day > count ? '<span></span>' : '<span'+(mode === 'daily-memo' ? ' class="memo-day"' : '')+'>'+day+'</span>';
                 }).join('')}</div>`;
             };
-            const monthRing = page.role === 'back-cover' && page.layout === 'numbers';
-            const numberAnnual = page.role === 'inside-back' && page.layout === 'annual' && dataset.design_preset === 'numbers';
-            if (monthRing || numberAnnual) {
-                return `<div class="number-page number-year-page ${monthRing?'number-ring':'number-annual'}"><strong>${year}</strong>${Array.from({length:12},(_,i)=>{
-                    const angle = i*Math.PI/6;
-                    return `<section style="--x:${50+38*Math.sin(angle)}%;--y:${50-39*Math.cos(angle)}%;color:${colors[i]}"><b>${i+1}</b>${dayGrid(i+1,'mini')}</section>`;
-                }).join('')}</div>`;
+            if (['inside-front','inside-back'].includes(page.role) && page.layout === 'annual' && dataset.design_preset === 'numbers') {
+                return `<div class="number-page number-annual" aria-label="${year} 연력">
+                    <svg class="number-annual-year" aria-hidden="true" viewBox="0 0 400 300" preserveAspectRatio="none">
+                        <text x="200" y="211" text-anchor="middle" textLength="372" lengthAdjust="spacingAndGlyphs" fill="currentColor" font-family="Georgia, serif" font-size="178" font-weight="700">${year}</text>
+                    </svg>
+                    ${Array.from({length:12},(_,i)=>`<section aria-label="${i+1}월" style="--month-ink:${colors[i]}">
+                        <b>${String(i+1).padStart(2,'0')}</b>${dayGrid(i+1,'mini')}</section>`).join('')}
+                </div>`;
             }
             const dailyMemo = page.role === 'month-back' && page.layout === '4';
             if (dailyMemo || (page.role === 'month-front' && page.layout === '5')) {
@@ -2627,7 +2626,7 @@
                 if (!isRecord(layout) || months.length !== 12) throw new Error('28면 시안 구성을 확인해 주세요.');
                 const expected = buildDesignerDraft({ title: set.title, description: '',
                     insideFront: layout.inside_front, insideBack: layout.inside_back,
-                    front: layout.month_front, back: layout.month_back, imageCount: layout.image_count, imageCountMode: layout.image_count_mode, backCover:layout.pages?.[27]?.layout
+                    front: layout.month_front, back: layout.month_back, imageCount: layout.image_count, imageCountMode: layout.image_count_mode
                 }, set.set_id).draft_layout;
                 const validPages = Array.isArray(layout.pages) && layout.pages.length === 28 &&
                     expected.pages.every((page, index) => Object.entries(page).every(([key, value]) => (key === 'theme_area' && layout.pages[index]?.[key] === undefined) || layout.pages[index]?.[key] === value));
