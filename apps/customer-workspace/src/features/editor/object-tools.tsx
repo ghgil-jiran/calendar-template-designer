@@ -121,9 +121,9 @@ function FrameStyleFields({item,theme,onChange}:{item:NativeProject|undefined;th
   <label className="editor-frame-form">프레임 형태<select value={photoFrameModel.catalog.some(option=>option.id===item?.frameType)?item?.frameType:'rect'} onChange={event=>onChange({frameType:event.target.value})}>
    {photoFrameModel.catalog.map(option=><option key={option.id} value={option.id}>{option.name}</option>)}
   </select></label>
-  <div className="editor-frame-color-row">
-   <div>배경색 <ColorPalette allowAlpha allowNone label="프레임 배경색" value={background} theme={theme} onChange={color=>onChange({background:color==='transparent'?false:color})}/></div>
-   <label>배경색 없음 <input type="checkbox" checked={background==='transparent'} onChange={event=>onChange({background:event.target.checked?false:style.backgroundColor||'#eef2f7'})}/></label>
+  <div className="editor-frame-grid">
+   <div className="editor-frame-color-field">배경색<ColorPalette allowAlpha allowNone label="프레임 배경색" value={background} theme={theme} onChange={color=>onChange({background:color==='transparent'?false:color})}/></div>
+   <label className="editor-style-check">배경색 없음 <input type="checkbox" checked={background==='transparent'} onChange={event=>onChange({background:event.target.checked?false:style.backgroundColor||'#eef2f7'})}/></label>
   </div>
   <div className="editor-frame-section">
    <div className="editor-frame-grid">
@@ -135,13 +135,10 @@ function FrameStyleFields({item,theme,onChange}:{item:NativeProject|undefined;th
   </div>
   <div className="editor-frame-section">
    <div className="editor-frame-grid">
-    <label>그림자<select value={style.shadow?'true':'false'} onChange={event=>onChange({shadow:event.target.value==='true'})}><option value="false">없음</option><option value="true">표시</option></select></label>
+    <div className="editor-frame-color-field">그림자 색<ColorPalette allowAlpha allowNone label="그림자 색" value={shadowColor} theme={theme} onChange={color=>onChange(color==='transparent'?{shadow:false}:{shadowColor:color,shadow:true})}/></div>
     {numberField('shadowBlur')}
    </div>
-   <div className="editor-frame-color-row">
-    <div>그림자 색 <ColorPalette allowAlpha allowNone label="그림자 색" value={shadowColor} theme={theme} onChange={color=>onChange({shadowColor:color})}/></div>
-    <label>그림자 색 없음 <input type="checkbox" checked={shadowColor==='transparent'} onChange={event=>onChange({shadowColor:event.target.checked?'transparent':'#000000'})}/></label>
-   </div>
+   <label className="editor-style-check">그림자 없음 <input type="checkbox" checked={!style.shadow||shadowColor==='transparent'} onChange={event=>onChange(event.target.checked?{shadow:false}:{shadow:true,shadowColor:shadowColor==='transparent'?'#000000':shadowColor})}/></label>
   </div>
  </>;
 }

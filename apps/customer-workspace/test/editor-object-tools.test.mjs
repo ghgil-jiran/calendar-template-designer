@@ -51,9 +51,10 @@ test('wall calendar shows schedule overflow guidance for cell and list layouts',
 test('photo frames show a separate style card after fitting and use the shared color palette',()=>{
  const html=render({selection:{label:'프레임',type:'image-frame',rights:{imageFit:true,frameStyle:true}},item:{frameType:'circle',style:{background:false,shadowColor:'transparent'}},onFrameStyle:noop});
  assert.ok(html.indexOf('<h3>사진 맞춤')<html.indexOf('<h3>프레임 스타일'));
- for(const label of ['프레임 형태','배경색 없음','테두리 두께','부드러운 가장자리 크기','0pt는 효과 없음입니다.','그림자 색 없음'])assert.ok(html.includes(label),label);
+ for(const label of ['프레임 형태','배경색 없음','테두리 두께','부드러운 가장자리 크기','0pt는 효과 없음입니다.','그림자 없음'])assert.ok(html.includes(label),label);
  assert.match(html,/원형 사진/);
  assert.match(html,/popover="auto"/);
  assert.match(html,/배경색 없음 <input type="checkbox" checked/);
+ assert.match(html,/그림자 없음 <input type="checkbox" checked/);
  assert.doesNotMatch(render({selection:{type:'image',rights:{replaceImage:true}},onFrameStyle:noop}),/<h3>프레임 스타일/);
 });

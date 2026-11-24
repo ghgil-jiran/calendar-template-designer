@@ -1149,12 +1149,14 @@ html:has(.site-header) {scrollbar-gutter: stable;}
 .editor-font-style .editor-palette,.editor-font-style .editor-palette-trigger {width:100%;}
 .editor-font-style .editor-palette-current {flex:1;}
 
-.editor-frame-style .editor-frame-form,.editor-frame-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;gap:8px}
-.editor-frame-style .editor-frame-form{grid-template-columns:max-content minmax(0,1fr)}
-.editor-frame-grid label,.editor-frame-color-field{display:flex;flex-direction:column;gap:4px;margin:0}
-.editor-frame-style input[type=number],.editor-frame-style select{width:100%;min-width:0}
-.editor-frame-style .editor-frame-color-row,.editor-frame-color-row>div,.editor-frame-style .editor-frame-color-row>label{display:flex;align-items:center;gap:4px;margin:0}
-.editor-frame-style .editor-frame-color-row{justify-content:space-between;flex-wrap:wrap;gap:6px;margin-top:6px}
-.editor-frame-style .editor-frame-color-row input[type=checkbox]{width:14px;height:14px;min-width:14px;margin:0}
+.editor-frame-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:end;gap:8px}
+.editor-properties :is(.editor-font-style,.editor-frame-style){--style-control-height:38px}
+.editor-properties :is(.editor-font-style,.editor-frame-style) :is(label,.editor-font-color,.editor-frame-color-field){display:flex;flex-direction:column;gap:4px;margin:0;min-width:0;font-size:11px;line-height:1.4}
+.editor-properties :is(.editor-font-style,.editor-frame-style) :is(select,input[type=number],.editor-palette-trigger){box-sizing:border-box;width:100%;min-width:0;height:var(--style-control-height);min-height:var(--style-control-height);margin:0;padding:0 7px;border-radius:6px}
+.editor-properties :is(.editor-font-style,.editor-frame-style) .editor-palette{width:100%;min-width:0}
+.editor-properties :is(.editor-font-style,.editor-frame-style) .editor-palette-current{flex:1;min-width:0}
+.editor-properties .editor-frame-style .editor-frame-form{margin-bottom:8px}
+.editor-properties .editor-frame-style .editor-style-check{flex-direction:row;align-items:center;justify-content:space-between;min-height:var(--style-control-height);white-space:nowrap}
+.editor-properties .editor-frame-style .editor-style-check input{width:14px;height:14px;min-width:14px;margin:0;padding:0;accent-color:hsl(var(--primary))}
 .editor-frame-section{border-top:1px solid hsl(var(--border));padding-top:8px;margin-top:8px}
-.editor-frame-section>.editor-frame-grid+label{margin-top:7px}
+.editor-properties .editor-frame-section>.editor-frame-grid+label:not(.editor-style-check){margin-top:8px}
