@@ -25,8 +25,9 @@ test('schedule sizing applies across all months, survives restore/style switches
 test('automatic desk sizing counts overlapping range events on each date in displayed months',()=>{
  const events=Array.from({length:4},(_,i)=>({startDate:'2027-03-0'+(i+1),endDate:'2027-03-06'}));
  const pages=[{role:'monthly-front',calendarYear:2027,calendarMonth:3}];
- assert.deepEqual(shared.deskScheduleDefaults(events,pages),{fontSizePt:3.5,barHeight:5});
- assert.deepEqual(shared.deskScheduleDefaults([...events,{startDate:'2027-03-06'}],pages),{fontSizePt:3,barHeight:4});
+ for(const count of [1,2,3])assert.deepEqual(shared.deskScheduleDefaults(events.slice(0,count),pages),{fontSizePt:9,barHeight:13});
+ assert.deepEqual(shared.deskScheduleDefaults(events,pages),{fontSizePt:8,barHeight:11});
+ assert.deepEqual(shared.deskScheduleDefaults([...events,{startDate:'2027-03-06'}],pages),{fontSizePt:7,barHeight:10});
  assert.deepEqual(shared.deskScheduleDefaults([{startDate:'2027-04-02'}],pages),{});
 });
 
