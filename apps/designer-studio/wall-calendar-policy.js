@@ -28,8 +28,7 @@
    peak=Math.max(peak,events.filter(event=>event.startDate<=date&&(event.endDate||event.startDate)>=date).length);
   }
   const [fontPx,height]=peak<=2?[7,10]:peak===3?[6.4,8.6]:peak===4?[4.6,6]:[4.3,5];
-  const scale=1.15;
-  return {autoSchedulePt:fontPx*scale*72/96,autoScheduleHeight:Number((height*scale).toFixed(2))};
+  return {autoSchedulePt:fontPx*72/96,autoScheduleHeight:height};
  }
  function resolve(element,project,month){const flags=Object.fromEntries(['includeSchoolEvents','includeHolidays','includeAnniversaries','includeSolarTerms','includeLunar'].filter(k=>typeof project?.settings?.calendarData?.[k]==='boolean').map(k=>[k,project.settings.calendarData[k]]));const v=normalize({...project?.template?.calendarTypeSnapshot?.definition?.wallCalendarDefaults,...(element?.posterShowList===false?{schedulePlacement:'cells',referencePlacement:'cells'}:{}),...element?.wallCalendarSettings,...monthStyle(element,month),...flags});if(v.scheduleHolidays!==undefined&&project?.mode!=='calendar-workspace')v.includeHolidays=v.scheduleHolidays;
  if(project?.mode==='calendar-workspace'&&Number(element?.monthCount)===6&&project.book?.pageInstances?.length===2&&v.schedulePlacement==='cells'){
