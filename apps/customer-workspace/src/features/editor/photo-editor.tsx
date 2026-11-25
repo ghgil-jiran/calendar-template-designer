@@ -1,4 +1,5 @@
 'use client';
+import {SchoolCalendarBrandMark, SchoolCalendarCaption} from '@/components/school-calendar-brand';
 import {memo,useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {NativePreview} from '@/features/materials/native-preview';
@@ -212,7 +213,7 @@ export function PhotoEditor({onOrder,calendarDefaults,onTemplateChange,paperOpti
     !e.target.closest('input,textarea,select,button:not(.editor-target),[role="slider"],[role="menu"]'))nudge(e);
 
  }}>
- <header className="editor-topbar"><div className="editor-title"><h1><button type="button" className="editor-home-brand" disabled={saving||uploading} onClick={()=>setLeaveOpen('home')} aria-label="우리학교달력 첫 화면으로 이동"><img className="school-calendar-logo" src="/school-calendar-logo.png" alt="우리학교달력" width="120" height="36"/></button></h1></div><div className="editor-top-actions">
+ <header className="editor-topbar"><div className="editor-title"><h1><button type="button" className="editor-home-brand" disabled={saving||uploading} onClick={()=>setLeaveOpen('home')} aria-label="우리학교달력 BETA 첫 화면으로 이동"><SchoolCalendarBrandMark/></button></h1><SchoolCalendarCaption/></div><div className="editor-top-actions">
    <Button variant="primary" disabled={actionsDisabled} onClick={()=>setLeaveOpen('order')}>주문하기</Button>
    <Button disabled={actionsDisabled} onClick={()=>setLeaveOpen('projects')}>내 프로젝트</Button>
  </div></header>
