@@ -170,7 +170,7 @@
     }
     const peak=Math.min(5,Math.max(0,...counts.values()));
     if(!peak)return {};
-    const [fontSizePt,barHeight]=[[6,10],[5.5,9],[5,8],[3.5,5],[3,4]][peak-1];
+    const [fontSizePt,barHeight]=[[9,13],[9,13],[9,13],[8,11],[7,10]][peak-1];
     return {fontSizePt,barHeight};
   }
 
