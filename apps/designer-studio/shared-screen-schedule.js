@@ -139,7 +139,7 @@
     if (style.enabled === false) return {segments: [], hiddenByDate: {}};
     const firstRows = new Map(), singles = new Map();
     const hiddenByDate = {...layout.hiddenByDate};
-    const limit = Math.max(1, Math.min(4, Number(singleLimit) || 4));
+    const limit = singleLimit === Infinity ? Infinity : Math.max(1, Math.min(4, Number(singleLimit) || 4));
     for (const seg of layout.segments || []) firstRows.set(seg.eventId, Math.min(firstRows.get(seg.eventId) ?? Infinity, seg.row));
     const segments = (layout.segments || []).filter(seg => {
       if (seg.startDate !== seg.endDate) return true;
@@ -170,7 +170,7 @@
     }
     const peak=Math.min(5,Math.max(0,...counts.values()));
     if(!peak)return {};
-    const [fontSizePt,barHeight]=[[6,10],[5.5,9],[5,8],[3.5,5],[3,4]][peak-1];
+    const [fontSizePt,barHeight]=[[9,13],[9,13],[9,13],[8,11],[7,10]][peak-1];
     return {fontSizePt,barHeight};
   }
 
@@ -245,13 +245,12 @@
         if(!active.length)continue;
         const node=addBox(area,area.top,'desk-schedule-text');
         const available=Math.max(0,Math.floor(area.bottom-area.top));
-        const lineHeight=style.joinText?height:Math.max(minimum,Math.min(height,Math.floor(available/Math.min(5,active.length))));
+        const lineHeight=style.joinText?height:Math.max(minimum,Math.min(height,Math.floor(available/active.length)));
         Object.assign(node.style,{overflow:'hidden',fontFamily,fontSize:fontPx+'px',lineHeight:lineHeight+'px',maxHeight:available+'px',overflowWrap:'anywhere'});
         const fill=budget=>{
           node.replaceChildren();
           let shown=0;
           for(const event of active){
-            if(!style.joinText&&shown===5)break;
             const label=layer.ownerDocument.createElement('span');
             label.textContent=(style.joinText&&shown?' / ':'')+(style.bullet?'• ':'')+event.title;
             if(!style.joinText)Object.assign(label.style,{display:'block',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'});

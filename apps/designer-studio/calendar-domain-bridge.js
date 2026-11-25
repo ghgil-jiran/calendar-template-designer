@@ -206,7 +206,7 @@
     });
   }
 
-  function buildCalendarScheduleLanes(year, month, input, weekStart = 'sunday', rows = 5) {
+  function buildCalendarScheduleLanes(year, month, input, weekStart = 'sunday', rows = 5, maxLanes = SCHEDULE_MAX_LANES) {
     const grid = buildCalendarGrid(year, month, weekStart, rows);
     const monthFirst = `${year}-${String(month).padStart(2, '0')}-01`;
     const monthLastDay = new Date(year, month, 0).getDate();
@@ -251,7 +251,7 @@
       const lane = eventLane.get(event.id) || 0;
       let cursor = dateFromISO(event.startDate);
       const end = dateFromISO(event.endDate);
-      if (lane >= SCHEDULE_MAX_LANES) {
+      if (lane >= maxLanes) {
         while (cursor <= end) {
           const date = isoDate(cursor);
           hiddenByDate[date] = (hiddenByDate[date] || 0) + 1;
@@ -293,7 +293,7 @@
     return {
       segments,
       hiddenByDate,
-      maxLanes: SCHEDULE_MAX_LANES,
+      maxLanes: Number.isFinite(maxLanes) ? maxLanes : lanes.length,
       contractId: SCHEDULE_DISPLAY_CONTRACT.id,
       contractRevision: SCHEDULE_DISPLAY_CONTRACT.revision
     };
