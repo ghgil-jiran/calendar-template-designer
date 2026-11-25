@@ -224,6 +224,16 @@
 .family-frame{position:relative;display:grid;min-height:0;place-items:center;overflow:hidden;background:#ebe3d7;border:1px solid #cbbbaa;color:#66584b}
 .family-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 #familyTimelineField[hidden]{display:none}
+.family-chronicle{grid-template-rows:auto minmax(0,1fr);gap:2%;--family-accent:#66523e}
+.family-chronicle .family-timeline-grid{grid-template-columns:1fr;grid-template-rows:repeat(var(--timeline-groups),minmax(0,1fr));align-content:stretch;overflow:hidden}
+.family-chronicle-row{display:grid;grid-template-columns:1.26fr repeat(var(--timeline-cards),minmax(0,1fr));gap:.8cqw;min-height:0}
+.family-chronicle-card{display:grid;grid-template-rows:minmax(0,1fr) auto;min-height:0;min-width:0;background:#f5ede2;border:1px solid #cbbbaa}
+.family-chronicle-card .family-frame{border:0;border-bottom:1px solid #dfd0bf;font-size:1.25cqw}
+.family-chronicle-card .chronicle-caption{padding:.35cqw .5cqw;font-size:var(--chronicle-text);line-height:1.15;overflow-wrap:anywhere}
+.family-chronicle-card time{display:block;font-weight:800;color:var(--family-accent)}
+.family-chronicle-card strong{display:block}
+.family-chronicle-card.is-empty{background:#f9f3e9;border-style:dashed}
+.family-chronicle-card.is-empty .family-frame{background:transparent;border:0}
 .family-timeline{grid-template-rows:auto minmax(0,1fr);gap:3%;background:#fbf7ef}
 .family-timeline-grid{display:grid;grid-template-columns:repeat(var(--timeline-cols),minmax(0,1fr));align-content:start;gap:1.1cqw;overflow:auto}
 .family-timeline-card{min-width:0;background:#f3ebe0;border:1px solid #cbbbaa}
@@ -333,9 +343,13 @@
 </fieldset><fieldset class="draft-two"><legend>표지</legend><label class="draft-wide">표지 부제 <input name="coverSubtitle" maxlength="60" class="rounded bg-zinc-900 border border-zinc-600 p-2" placeholder="선택 사항"></label>
 <label class="grid gap-1">표지 구성<select name="coverType" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="">테마에 맞게 추천</option><option value="full">전면 사진형</option><option value="split">사진·제목 분할형</option><option value="center">여백 있는 중앙 사진형</option><option value="multi">여러 사진 배열형</option><option value="graphic">사진 + 그래픽형</option><option value="illustration">일러스트·도형 중심형</option><option value="type">타이포그래피·라벨형</option><option value="numeric">숫자형 · 연도 그래픽</option><option value="family">가족 사진 모음 · 단체 사진 + 구성원 사진</option></select></label>
 <label class="grid gap-1">표지 사진 수<select name="coverCount" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="">자동</option><option value="0">0컷</option><option value="1">1컷</option><option value="2">2컷</option><option value="3">3컷</option><option value="4">4컷</option><option value="8">8컷</option></select></label>
-<p id="draftCoverCountHint" class="draft-wide draft-note"></p></fieldset><fieldset class="draft-two"><legend>안쪽 면 <small>28면 구성</small></legend><label class="grid gap-1">2면 · 표지 뒷면<select name="insideFront" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="annual">연력</option><option value="scheduler">스케줄러</option><option value="family">가족 사진 + 가족 소개</option><option value="family-timeline">우리 가족 연대기</option></select></label><label class="grid gap-1">27면 · 뒷표지 앞면<select name="insideBack" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="annual">연력</option><option value="scheduler" selected>스케줄러</option><option value="family">가족 연력 · 주요 일정 표시</option></select></label><label class="grid gap-1">28면 · 뒷표지<select name="backCover" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="default">기본 · 연도와 제목</option><option value="family">큰 연도 + 가족 응원 문구</option></select></label><label id="familyTimelineField" class="draft-wide grid gap-1" hidden>가족 연대기 기록
+<p id="draftCoverCountHint" class="draft-wide draft-note"></p></fieldset><fieldset class="draft-two"><legend>안쪽 면 <small>28면 구성</small></legend><label class="grid gap-1">2면 · 표지 뒷면<select name="insideFront" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="annual">연력</option><option value="scheduler">스케줄러</option><option value="family">가족 사진 + 가족 소개</option><option value="family-timeline">우리 가족 연대기</option></select></label><label class="grid gap-1">27면 · 뒷표지 앞면<select name="insideBack" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="annual">연력</option><option value="scheduler" selected>스케줄러</option><option value="family">가족 연력 · 주요 일정 표시</option></select></label><label class="grid gap-1">28면 · 뒷표지<select name="backCover" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="default">기본 · 연도와 제목</option><option value="family">큰 연도 + 가족 응원 문구</option></select></label><div id="familyTimelineField" class="draft-wide draft-two" hidden>
+<label class="grid gap-1">가족 그룹 수<select name="familyGroupCount"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label>
+<label class="grid gap-1">그룹당 이벤트 카드 수<select name="familyCardCount"><option>4</option><option selected>5</option><option>6</option><option>7</option></select></label>
+<label class="draft-wide grid gap-1">가족 연대기 기록
 <textarea name="familyTimeline" rows="4" class="rounded bg-zinc-900 border border-zinc-600 p-2" placeholder="1942/08/29 할아버지 탄생"></textarea>
-<small>연·월·일과 사건을 한 줄에 하나씩 입력하거나 붙여넣으세요.</small></label></fieldset>
+<small>한 줄에 한 사건을 입력하세요. 예: 1 | 1942/08/29 할아버지 탄생. 그룹 번호가 없는 기록은 미분류로 표시합니다.</small>
+</label></div></fieldset>
 <fieldset><legend>페이지별 규칙</legend><p><strong>자동 적용</strong></p><p id="draftPageRuleSummary" class="draft-note" aria-live="polite"></p></fieldset>
 <fieldset class="draft-two"><legend>월별 페이지</legend><label>월력 앞면 구성<select name="front" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 월력</option><option value="2">기본 2 · 월력 + 메모</option><option value="3">기본 3 · 월력 + 메모 + 이미지</option><option value="4">기본 4 · 월력 + 메모 + 미니 월력</option><option value="5">숫자 중심</option><option value="family">가족 기념일 + 월력</option></select></label>
 <label class="grid gap-1">월력 뒷면 구성<select name="back" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 왼쪽 이미지 1장 + 메모</option><option value="2">기본 2 · 상단 이미지 + 하단 띠 월력</option><option value="3">기본 3 · 왼쪽 이미지 + 메모 + 미니 월력</option><option value="4">숫자 중심 + 일 메모</option><option value="5">일일 기록표 · 체크와 직접 쓰기</option><option value="family">가족 사진 2~4컷 + 미니 월력 + 메모</option></select></label>
@@ -1189,7 +1203,8 @@
 
         const familyPageDefaults = {
             coverType:'family', insideFront:'family-timeline', insideBack:'family',
-            front:'family', back:'family', backCover:'family', imageCount:'2', imageCountMode:'random-plus'
+            front:'family', back:'family', backCover:'family', imageCount:'2', imageCountMode:'random-plus',
+            familyGroupCount:'4',familyCardCount:'5'
         };
 
         function familyPageSelected(values) {
@@ -1205,15 +1220,24 @@
             {date:'2016-09-09',title:'다섯째 손주 탄생'}, {date:'2025-10-04',title:'온 가족 가을 여행'}
         ];
 
+        const familyGroupNames=['할머니 · 할아버지','첫째 가정','둘째 · 셋째 가정','손자 · 손녀'];
+        const sampleGroupOrder=[1,1,1,2,3,3,4,4,4,4,4,1];
+        sampleTimeline.forEach((record,index)=>{record.group=sampleGroupOrder[index]});
+        const familyTimelineText=records=>records.map(({group,date,title})=>(group?group+' | ':'')+date+' '+title).join('\n');
+        function familyChronicleOptions(groupCount,cardCount) {
+            const count=(value,min,max,fallback)=>Number.isInteger(Number(value))&&Number(value)>=min&&Number(value)<=max?Number(value):fallback;
+            return {groupCount:count(groupCount,2,6,4),cardCount:count(cardCount,4,7,5)};
+        }
+
         function parseFamilyTimeline(text) {
             return text.split(/\r?\n/).flatMap((line,index)=>{
                 if (!line.trim()) return [];
-                const entry=line.trim().match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})\s+(.+)$/);
+                const entry=line.trim().match(/^(?:([1-6])\s*\|\s*)?(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})\s+(.+)$/);
                 if (entry) {
-                    const [,year,month,day,title]=entry;
+                    const [,group,year,month,day,title]=entry;
                     const date=[year,month.padStart(2,'0'),day.padStart(2,'0')].join('-');
                     const parsed=new Date(date+'T00:00:00Z');
-                    if (Number.isFinite(+parsed) && parsed.toISOString().slice(0,10)===date) return [{date,title}];
+                    if (Number.isFinite(+parsed) && parsed.toISOString().slice(0,10)===date) return [{date,title,...(group?{group:Number(group)}:{})}];
                 }
                 throw new Error(`가족 연대기 ${index+1}번째 줄에 연·월·일과 사건을 입력해 주세요.`);
             }).sort((a,b)=>a.date.localeCompare(b.date));
@@ -1231,6 +1255,33 @@
             const cards=[...years].map(([year,events])=>`<section class="family-timeline-card"><h3>${year}</h3><ul>${events.map(({date,title})=>`<li><time datetime="${date}">${Number(date.slice(5,7))}/${date.slice(8)}</time> ${escapeHtml(title)}</li>`).join('')}</ul></section>`).join('');
             return `<div class="family-page family-timeline" style="--family-accent:#66523e"><header><h2>우리 가족 연대기</h2></header>
                 <div class="family-timeline-grid" style="--timeline-cols:${columns};--timeline-year:${columns>4?3:4}cqw;--timeline-text:${columns>4?1.9:2.25}cqw">${cards}</div></div>`;
+        }
+
+        function renderFamilyChronicle(archive,year) {
+            const {groupCount,cardCount}=familyChronicleOptions(archive.chronicle.groupCount,archive.chronicle.cardCount);
+            const records=(archive.timeline??[]).filter(record=>!record.date.startsWith(year+'-'))
+                .sort((a,b)=>a.date.localeCompare(b.date));
+            const visibleGroups=Array.from({length:groupCount},(_,i)=>records.filter(record=>record.group===i+1));
+            const unassigned=records.filter(record=>!record.group);
+            const freeGroup=visibleGroups.findLastIndex(items=>items.length===0);
+            if (unassigned.length&&freeGroup>=0) visibleGroups[freeGroup]=unassigned;
+            const rows=visibleGroups.map((items,i)=>{
+                const unclassified=items===unassigned;
+                const group=archive.groups?.[i];
+                const name=unclassified?'미분류 기록':group?.name||familyGroupNames[i]||'가족 그룹 '+(i+1);
+                const cards=Array.from({length:cardCount},(_,index)=>{
+                    const record=items[index];
+                    if (!record) return '<div class="family-chronicle-card is-empty" aria-hidden="true"></div>';
+                    return `<article class="family-chronicle-card">${illustrationSource(record.image)?familyFrame(record.image,'사건 사진'):'<div></div>'}
+                        <div class="chronicle-caption"><time datetime="${record.date}">${record.date.slice(0,4)}</time><strong>${escapeHtml(record.title)}</strong></div></article>`;
+                }).join('');
+                return `<section class="family-chronicle-row"><div class="family-chronicle-card">${familyFrame(unclassified?null:group?.image,'대표 사진')}
+                    <strong class="chronicle-caption">${escapeHtml(name)}</strong></div>${cards}</section>`;
+            }).join('');
+            const hidden=records.length-visibleGroups.reduce((count,items)=>count+Math.min(cardCount,items.length),0);
+            return `<div class="family-page family-timeline family-chronicle"><header><h2>우리 가족 연대기</h2>
+                <p>세 세대가 걸어온 시간, 우리가 만든 이정표${hidden?` · 미표시 기록 ${hidden}건`:''}</p></header>
+                <div class="family-timeline-grid" style="--timeline-groups:${groupCount};--timeline-cards:${cardCount};--chronicle-text:${cardCount>5?1.5:1.8}cqw">${rows}</div></div>`;
         }
 
         function usesFamilyLayout(dataset,page) {
@@ -1374,7 +1425,7 @@
                 '선택한 페이지 구성의 기본 규칙을 적용합니다.';
             const timeline=draftForm.elements.insideFront.value==='family-timeline';
             document.getElementById('familyTimelineField').hidden=!timeline;
-            draftForm.elements.familyTimeline.disabled=!timeline;
+            for (const name of ['familyTimeline','familyGroupCount','familyCardCount']) fields[name].disabled=!timeline;
             const type = coverType.value;
             const fixedCover = type && type !== 'multi';
             coverCount.disabled = Boolean(fixedCover);
@@ -1410,7 +1461,9 @@
                     coverSubtitle: source.cover.cover_subtitle ?? '',
                     coverType: layout?.cover_layout === 'family' ? 'family' : Object.hasOwn(coverTypes, coverDesign?.type) ? coverDesign.type : '',
                     backCover: layout?.back_cover_layout ?? 'default',
-                    familyTimeline: (source.family_archive?.timeline??[]).map(({date,title})=>date+' '+title).join('\n'),
+                    familyTimeline: familyTimelineText(source.family_archive?.timeline??[]),
+                    familyGroupCount: String(source.family_archive?.chronicle?.groupCount??4),
+                    familyCardCount: String(source.family_archive?.chronicle?.cardCount??5),
                     coverCount: [0,1,2,3,4,8].includes(coverDesign?.photos ?? slots) ? String(coverDesign?.photos ?? slots) : '',
                     language: source.copy_language || 'auto',
                     insideFront: layout?.inside_front ?? 'annual', insideBack: layout?.inside_back ?? 'annual',
@@ -1470,7 +1523,7 @@
                 const fields=draftForm.elements;
                 fields.title.value=familySample.title;
                 fields.coverSubtitle.value=familySample.cover.cover_subtitle;
-                if (!fields.familyTimeline.value.trim()) fields.familyTimeline.value=sampleTimeline.map(({date,title})=>date+' '+title).join('\n');
+                if (!fields.familyTimeline.value.trim()) fields.familyTimeline.value=familyTimelineText(sampleTimeline);
                 for (const [name,value] of Object.entries(familyPageDefaults)) fields[name].value=value;
             }
             if (event.target.name === 'preset' && event.target.value === 'numbers') {
@@ -1521,7 +1574,13 @@
                     draft.family_archive=structuredClone(editedDesign?.family_archive??familySample.family_archive);
                 }
                 if (values.insideFront==='family-timeline') {
-                    draft.family_archive.timeline=parseFamilyTimeline(values.familyTimeline??'');
+                    const archive=draft.family_archive;
+                    const previous=archive.timeline??[];
+                    archive.timeline=parseFamilyTimeline(values.familyTimeline??'').map(record=>{
+                        const saved=previous.find(entry=>entry.date===record.date&&entry.title===record.title&&entry.group===record.group);
+                        return saved?{...saved,...record}:record;
+                    });
+                    archive.chronicle=familyChronicleOptions(values.familyGroupCount,values.familyCardCount);
                 }
                 if (family || familyPageSelected(values)) {
                     draft.months=draft.months.map((month,i)=>{
@@ -1938,8 +1997,14 @@
         const FAMILY_MARK_NAMES = {birthday:'생일',anniversary:'기념일',memorial:'기일'};
 
         function familyEvents(dataset,month) {
-            const list=dataset.family_archive?.events;
-            if(!Array.isArray(list))return [];
+            const archive=dataset.family_archive;
+            const list=Array.isArray(archive?.events)?[...archive.events]:[];
+            if (archive?.chronicle) for (const {date,title} of archive.timeline??[]) {
+                if (!date.startsWith('2027-')) continue;
+                const entry={month:Number(date.slice(5,7)),day:Number(date.slice(8)),title,
+                    kind:/생일|생신|탄생/.test(title)?'birthday':/기일/.test(title)?'memorial':'anniversary'};
+                if (!list.some(item=>item.month===entry.month&&item.day===entry.day&&item.title===entry.title)) list.push(entry);
+            }
             const days=new Date(Date.UTC(2027,month,0)).getUTCDate();
             return list.filter(e=>e?.month===month&&Number.isInteger(e.day)&&e.day>=1&&e.day<=days&&Object.hasOwn(FAMILY_MARKS,e.kind)&&typeof e.title==='string')
                 .sort((a,b)=>a.day-b.day);
@@ -2090,7 +2155,8 @@
             const page = selectedPage ?? dataset.draft_layout.pages[index + Number(backFace)];
             if (page.role==='inside-front' && page.layout==='family-timeline') {
                 const records=dataset.family_archive?.timeline;
-                return renderFamilyTimeline(Array.isArray(records)?records:[]);
+                return dataset.family_archive?.chronicle?renderFamilyChronicle(dataset.family_archive,2027):
+                    renderFamilyTimeline(Array.isArray(records)?records:[]);
             }
             if (usesFamilyLayout(dataset,page)) {
                 const family = renderFamilyFace(item,page,dataset);
@@ -2210,7 +2276,7 @@
             coverSubtitle:'할머니·할아버지부터 다섯 손자·손녀까지, 우리의 한 해 기록',
             ...familyPageDefaults,preset:'family'
         },'family-archive-2027-sample');
-        familySample.family_archive = {timeline:sampleTimeline,events:[
+        familySample.family_archive = {chronicle:familyChronicleOptions(4,5),timeline:sampleTimeline,events:[
             {month:2,day:6,kind:'anniversary',title:'가족 모임'},
             {month:5,day:12,kind:'birthday',title:'할머니 생신'},
             {month:5,day:24,kind:'anniversary',title:'부모님 결혼기념일'},
@@ -3117,7 +3183,11 @@
                 if (!Array.isArray(timeline) || timeline.some(entry=>!entry || typeof entry.date!=='string' || typeof entry.title!=='string' || /[\r\n]/.test(entry.date+entry.title) || !entry.title.trim())) {
                     throw new Error('가족 연대기 기록을 확인해 주세요.');
                 }
-                set={...set,family_archive:{...set.family_archive,timeline:parseFamilyTimeline(timeline.map(({date,title})=>date+' '+title.trim()).join('\n'))}};
+                const sorted=timeline.map(entry=>({...parseFamilyTimeline(familyTimelineText([{...entry,title:entry.title.trim()}]))[0],
+                    ...(illustrationSource(entry.image)?{image:entry.image}:{})})).sort((a,b)=>a.date.localeCompare(b.date));
+                const chronicle=set.family_archive.chronicle;
+                set={...set,family_archive:{...set.family_archive,timeline:sorted,
+                    ...(chronicle?{chronicle:familyChronicleOptions(chronicle.groupCount,chronicle.cardCount)}:{})}};
             }
             const style = isRecord(set.global_style_lock) ? set.global_style_lock : {};
             const monthNames = 'JANUARY FEBRUARY MARCH APRIL MAY JUNE JULY AUGUST SEPTEMBER OCTOBER NOVEMBER DECEMBER'.split(' ');
@@ -3312,7 +3382,9 @@
                             ...(['text','month-watermark','closing-message'].includes(role)?{text:node.textContent.trim()}:{}),
                             ...(['family-timeline','calendar','mini-calendar','annual-calendar','monthly-schedule','family-event-heading'].includes(role)
                                 ? {binding:{source:role==='family-timeline'?'family-timeline':role==='annual-calendar'?'calendar-year':'calendar-month',month:page.month??null}}:{}),
-                            ...(role==='family-timeline'?{distribution:{group:'year',order:'date-ascending',columnThresholds:timelineColumnRules,gap:css.gap}}:{})});
+                            ...(role==='family-timeline'?{distribution:draft.family_archive?.chronicle
+                                ?{group:'family-group',order:'date-ascending',...draft.family_archive.chronicle,gap:css.gap}
+                                :{group:'year',order:'date-ascending',columnThresholds:timelineColumnRules,gap:css.gap}}:{})});
                     }
                     return {number:page.number,role:page.role,layout:page.layout,month:page.month,
                         surface:resolveDraftObjectStyle(getComputedStyle(canvas.firstElementChild)),objects};
