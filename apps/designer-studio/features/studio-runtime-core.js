@@ -923,15 +923,17 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     const p=selectedPage(),weekStart=project.settings.weekStart==="monday"?"monday":"sunday",rows=Math.max(1,Math.ceil(grid.length/7));
     const vacationEnabled=project.template.masters.calendar.rangeEventStyle?.showVacationBackground===true;
     const displayEvents=window.ACDLCalendarDomain.assignCalendarScheduleColors((project.book.events||[]).filter(event=>!isPublicReferenceEvent(event)&&!(vacationEnabled&&window.ACDLSharedSchedule.isVacationRange(event))));
+    const isDesk=project.productType?.category==='desk';
     const rawLayout=window.ACDLCalendarDomain.buildCalendarScheduleLanes(
       Number(p?.calendarYear),
       Number(p?.calendarMonth),
       displayEvents,
       weekStart,
-      rows
+      rows,
+      isDesk ? Infinity : undefined
     );
-    let layout={...rawLayout,...window.ACDLSharedSchedule.monthSchedule(rawLayout,project.template.masters.calendar.rangeEventStyle,project.template.masters.calendar.eventMaxVisiblePerDay)};
-    if(!project.template.masters.calendar.rangeEventStyle?.deskDateSchedule&&Number(project.template.masters.calendar.rangeEventStyle?.fontSizePt)>0){
+    let layout={...rawLayout,...window.ACDLSharedSchedule.monthSchedule(rawLayout,project.template.masters.calendar.rangeEventStyle,isDesk ? Infinity : project.template.masters.calendar.eventMaxVisiblePerDay)};
+    if(!isDesk&&!project.template.masters.calendar.rangeEventStyle?.deskDateSchedule&&Number(project.template.masters.calendar.rangeEventStyle?.fontSizePt)>0){
       const region=calendarRegion(),vertical=calendarVerticalLayout(),presentation=vertical.preset?.presentation||project.template.masters.calendar.design||{},chrome=calendarChromeLayout(presentation,vertical,region),height=(el('page')?.clientHeight||700)*region.height/100,stage=Math.max(1,height-height*vertical.title/100);
       layout=window.ACDLSharedSchedule.fitPhysicalLanes(layout,project.template.masters.calendar.rangeEventStyle,grid,(stage-stage*chrome.weekdayStage/100)/rows,el('page')?.clientWidth||850,project.productType.pageSize.width);
     }
@@ -949,7 +951,8 @@ fillContactEditor(el("userContactEditor"),[{label:"교무실"},{label:"행정실
     }
   };
   renderRangeEventLayer=function(grid,rows){
-    const style=project.template.masters.calendar.rangeEventStyle;
+    const savedStyle=project.template.masters.calendar.rangeEventStyle;
+    const style=savedStyle&&project.productType?.category==='desk'?{...savedStyle,deskDateSchedule:true}:savedStyle;
     if(!style || style.enabled===false)return '';
     if(style.deskDateSchedule&&style.displayMode==='text')return '<div class="range-event-layer"></div>';
     const layout=assignRangeLanes(grid),rowHeight=100/rows,gap=Number(style.laneGap??1);
