@@ -251,6 +251,9 @@
 .family-timeline-card h3{margin:0;padding:.4cqw 1cqw;background:#66523e;color:#fff8ed;font:700 var(--timeline-year)/1.2 "Noto Serif KR",serif}
 .family-timeline-card ul{display:grid;gap:.45cqw;list-style:none;margin:0;padding:.7cqw 1cqw;font-size:var(--timeline-text);line-height:1.25;overflow-wrap:anywhere}
 .family-timeline-card time{color:#66523e;font-weight:700;font-variant-numeric:tabular-nums}
+.draft-annual-month{min-height:0;grid-template-rows:auto minmax(0,1fr);gap:.3cqw;padding:.65cqw;line-height:1}
+.draft-annual-days{min-height:0;grid-template-rows:repeat(7,minmax(0,1fr));line-height:1}
+.draft-annual-days > span{min-height:0}
 .family-schedule{grid-template-rows:auto minmax(0,1fr) auto}
 .family-year{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:1cqw;overflow:hidden}
 .family-year section{min-width:0;padding:.7cqw;border-top:1px solid #bcaa95;overflow:auto;font-size:1.88cqw}
@@ -2233,11 +2236,11 @@
                 : page.role === 'month-back' ? monthItem.back_text : monthItem.front_text;
             const topic = (area, monthItem = item) => `<b data-theme-area="${area}" class="block line-clamp-2 break-words leading-tight" style="color:var(--page-accent)">${escapeHtml(displayText(area,monthItem) ?? monthlyTheme(monthItem))}</b>`;
             const memo = `<div data-draft-memo class="${box} grid content-start gap-[2cqw]" style="background:color-mix(in srgb,var(--page-accent) 10%,white)">${topic('memo-heading')}${Array.from({length: 4}, () => '<div class="border-b border-current/20"></div>').join('')}</div>`;
-            const grid = (m, tiny = false) => {
+            const grid = (m, tiny = false, annual = false) => {
                 const date = new Date(Date.UTC(year, m - 1, 1));
                 const offset = date.getUTCDay();
                 const count = new Date(Date.UTC(year, m, 0)).getUTCDate();
-                return `<div data-draft-calendar class="${box} h-full grid content-stretch" style="font-size:${tiny ? '1.5' : '2.65'}cqw">${tiny ? '<b style="color:var(--page-accent)">' + (date.getUTCMonth()+1) + '월</b>' : ''}<div class="grid grid-cols-7 text-center items-center tabular-nums">${[...'일월화수목금토'].map((d,i) => '<b style="color:'+(i===0?'#a63d39':i===6?'#355e80':'inherit')+'">' + d + '</b>').join('')}${Array.from({length: 42}, (_, i) => '<span class="border-t border-current/10" style="color:'+(i%7===0?'#a63d39':i%7===6?'#355e80':'inherit')+'">' + (i < offset || i >= offset+count ? '&nbsp;' : i - offset + 1) + '</span>').join('')}</div></div>`;
+                return `<div data-draft-calendar class="${box} h-full grid content-stretch${annual?' draft-annual-month':''}" style="font-size:${tiny ? '1.5' : '2.65'}cqw">${tiny ? '<b style="color:var(--page-accent)">' + (date.getUTCMonth()+1) + '월</b>' : ''}<div class="grid grid-cols-7 text-center items-center tabular-nums${annual?' draft-annual-days':''}">${[...'일월화수목금토'].map((d,i) => '<b style="color:'+(i===0?'#a63d39':i===6?'#355e80':'inherit')+'">' + d + '</b>').join('')}${Array.from({length: 42}, (_, i) => '<span class="border-t border-current/10" style="color:'+(i%7===0?'#a63d39':i%7===6?'#355e80':'inherit')+'">' + (i < offset || i >= offset+count ? '&nbsp;' : i - offset + 1) + '</span>').join('')}</div></div>`;
             };
             const imageFrames = n => `<div class="grid min-h-0 h-full gap-1 ${n>1?'grid-cols-2':''}">${Array.from({length:n},(_,i)=>`<div data-draft-photo class="relative min-h-0 overflow-hidden grid place-items-center border border-dashed border-current/30 rounded ${n===3&&i===0?'row-span-2':''}" style="background:color-mix(in srgb,var(--page-accent) 12%,white)">${i === 0 && illustrationSource(item.illustration_image) ? `<img class="absolute inset-0 w-full h-full object-cover" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">` : i === 0 && item.svgType ? generateSVGVisual({...item,photo_slots:0}) : illustrationPlaceholder(i,accent)}</div>`).join('')}</div>`;
             const minis = () => `<div class="grid grid-cols-2 min-h-0 gap-1">${grid(month-1,true)}${grid(month+1,true)}</div>`;
@@ -2255,7 +2258,7 @@
                 case 'inside-back':
                     label = page.layout === 'annual' ? '연력' : '스케줄러';
                     body = `<div ${page.layout==='annual'?'data-draft-annual':'data-draft-scheduler'} class="grid h-full grid-cols-4 grid-rows-3 gap-1">${dataset.months.map((monthItem,i) => {
-                        if (page.layout === 'annual') return grid(i+1,true);
+                        if (page.layout === 'annual') return grid(i+1,true,true);
                         const name = new Intl.DateTimeFormat('en',{month:'short',timeZone:'UTC'}).format(new Date(Date.UTC(year,i)));
                         const dates = (Array.isArray(monthItem.events) ? monthItem.events : []).slice(0,3);
                         return `<div class="${box} grid grid-rows-[auto_auto_repeat(3,minmax(0,1fr))] overflow-hidden" style="font-size:2cqw"><b>${i+1}월 ${name.toUpperCase()}</b>${topic('scheduler-card',monthItem)}${Array.from({length:3},(_,line) => {
