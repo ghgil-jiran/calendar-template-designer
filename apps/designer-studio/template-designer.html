@@ -260,7 +260,10 @@
 .family-year section b{color:var(--family-accent);font-size:2.7cqw}.family-year section div{overflow-wrap:anywhere}
 .family-story{grid-template-rows:auto minmax(0,1fr) 32%;background:#f6efe4}.family-front{grid-template-rows:auto minmax(0,1fr)}
 .family-front-body,.family-story-footer{display:grid;grid-template-columns:2fr 3fr;gap:2cqw;min-height:0}
-.family-story-footer{grid-template-columns:1fr 1fr}.family-story-footer section{display:grid;grid-template-rows:auto minmax(0,1fr)}
+.family-story-footer{grid-template-columns:1fr 1fr}
+.family-back-notes{display:grid;min-height:0;grid-template-rows:1fr 1fr;gap:.65cqw}
+.family-back-schedule{min-height:0;overflow:hidden;font-size:1.65cqw;line-height:1.2}
+.family-back-schedule p{margin:.2cqw 0 0}.family-story-footer section{display:grid;grid-template-rows:auto minmax(0,1fr)}
 .family-front-info{display:grid;grid-template-rows:repeat(2,minmax(0,1fr));gap:1cqw;min-height:0;font-size:2.3cqw}
 .family-event-feature{display:grid;place-content:center;text-align:center;padding:1cqw;background:#efe7db;color:var(--family-accent)}
 .family-event-feature span{font-size:6cqw;line-height:1.1}
@@ -744,6 +747,7 @@
 
         function requestDesignerStorage(action, design) {
             if (window.parent === window) return false;
+            if (action==='save') prepareDesignerDraft(design);
             window.parent.postMessage({ channel: storageChannel, action, design }, editorOrigin);
             return true;
         }
@@ -2061,7 +2065,7 @@
             const previous=id=>saved.find(element=>element?.id===id);
             const prefix='surface.'+Math.ceil(page.number/2)+'.back';
             const accent=(dataset.page_rules?.family?.accents??FAMILY_ACCENTS)[item.month-1];
-            const miniId=prefix+'.mini-calendar', memoId=prefix+'.memo';
+            const miniId=prefix+'.mini-calendar', memoId=prefix+'.memo', scheduleId=prefix+'.monthly-schedule';
             const mini=previous(miniId),memo=previous(memoId);
             const size=(value,fallback)=>Number.isFinite(value)&&value>=3&&value<=36?value:fallback;
             const color=(value,fallback)=>typeof value==='string'&&/^#[\da-f]{6}$/i.test(value)?value:fallback;
@@ -2077,6 +2081,7 @@
                     style:{preset:'standard',dateSize:size(mini?.style?.dateSize,16),titleSize:size(mini?.style?.titleSize,17),
                         primary:color(mini?.style?.primary,accent),dateColor:color(mini?.style?.dateColor,'#3b302a'),
                         sunday:color(mini?.style?.sunday,'#a63d39'),saturday:color(mini?.style?.saturday,'#355e80')}},
+                {id:scheduleId,type:'monthly-schedule',title:'이달의 가족 일정',maxItems:10},
                 {id:memoId,type:'memo',memoLayout:'lines',title:'가족 메모',
                     lineCount:Number.isInteger(memo?.lineCount)&&memo.lineCount>=1&&memo.lineCount<=12?memo.lineCount:4}
             ];
@@ -2165,12 +2170,15 @@
             const elements=familyBackElements(item,page,dataset);
             const frames=elements.filter(element=>element.type==='image-frame');
             const mini=elements.find(element=>element.type==='mini-calendar'),memo=elements.find(element=>element.type==='memo');
+            const schedule=elements.find(element=>element.type==='monthly-schedule'),events=familyEvents(dataset,month);
             const count=frames.length,photos=Array.isArray(item.family_photos)?item.family_photos:[];
             return panel('story',`<header><h2>${month}월 이야기</h2><p>${escapeHtml(item.back_text)}</p></header>
                 <div class="family-photos" style="--photo-cols:${count===3?3:2};--photo-rows:${[2,3].includes(count)?1:2}">
                     ${frames.map((frame,i)=>`<div class="family-photo-card">${familyFrame(photos[i]?.image,'사진 '+(i+1),frame)}
                     <span class="family-caption ${photos[i]?.shape==='bubble'?'family-bubble':''}">${escapeHtml(photos[i]?.note||'')}</span></div>`).join('')}
-                </div><div class="family-story-footer">${renderFamilyBackMini(mini,month,familyEvents(dataset,month))}<section data-draft-element="${memo.id}"><b>${memo.title}</b><div class="family-note-lines" style="--family-memo-step:${100/memo.lineCount}%"></div></section></div>`);
+                </div><div class="family-story-footer">${renderFamilyBackMini(mini,month,events)}
+                <div class="family-back-notes"><div class="family-back-schedule" data-draft-element="${schedule.id}"><b>${schedule.title}</b>${events.slice(0,schedule.maxItems).map(event=>`<p>${event.day}일 ${escapeHtml(event.title)}</p>`).join('')}</div>
+                <section data-draft-element="${memo.id}"><b>${memo.title}</b><div class="family-note-lines" style="--family-memo-step:${100/memo.lineCount}%"></div></section></div></div>`);
         }
 
         function renderDraftFace(item, backFace, dataset = calendarDataset, selectedPage) {
@@ -2281,7 +2289,7 @@
                     break;
                 }
             }
-            const heading = monthName ? `<b style="font-size:7cqw;line-height:1;color:var(--page-accent)">${monthNumber}</b> <span style="font-size:4cqw">${monthName.toUpperCase()}</span>` : `<b style="font-size:4cqw">${escapeHtml(dataset.inside_copy?.[page.layout] || (label + ' · ' + year))}</b>`;
+            const heading = monthName ? `<b style="font-size:7cqw;line-height:1;color:var(--page-accent)">${monthNumber}</b> <span style="font-size:4cqw">${monthName.toUpperCase()}</span>` : `<b class="draft-page-title" style="font-size:4cqw">${escapeHtml(dataset.inside_copy?.[page.layout] || (label + ' · ' + year))}</b>`;
             return `<div class="h-full w-full overflow-hidden" style="container-type:inline-size;--page-accent:${accent};background:${/^#[\da-f]{6}$/i.test(dataset.global_style_lock?.paper_bg) ? dataset.global_style_lock.paper_bg : '#F5F1E8'};color:${/^#[\da-f]{6}$/i.test(dataset.global_style_lock?.ink_primary) ? dataset.global_style_lock.ink_primary : '#23211E'}"><div class="h-full grid grid-rows-[auto_minmax(0,1fr)] gap-[1cqw] p-[3cqw]" style="font-size:2.65cqw"><header class="flex items-baseline justify-between border-b border-current/20 pb-1"><div><span class="whitespace-nowrap">${heading}</span>${themeArea === 'month-heading' ? topic(themeArea) : ''}</div><span>${page.number}면 · ${label}</span></header><div class="min-h-0">${body}</div></div></div>`;
         }
 
@@ -3043,7 +3051,6 @@
                 renderDeskCard();
                 renderSpreadView(document.getElementById('spreadMonthSelect').value);
                 openSpecModal(item.id);
-                if (updated.draft_layout) updated.layout_geometry=measureDraftLayout(updated);
                 requestDesignerStorage('save',updated);
             });
             bodyEl.onchange = async event => {
@@ -3058,7 +3065,6 @@
                     renderDeskCard();
                     renderSpreadView(document.getElementById('spreadMonthSelect').value);
                     openSpecModal(item.id);
-                if (updated.draft_layout) updated.layout_geometry=measureDraftLayout(updated);
                     requestDesignerStorage('save',updated);
                 } catch (error) { showToast(error.message); }
             };
@@ -3083,7 +3089,6 @@
                     renderDeskCard();
                     renderSpreadView(document.getElementById('spreadMonthSelect').value);
                     openSpecModal(item.id);
-                    if (updated.draft_layout) updated.layout_geometry=measureDraftLayout(updated);
                     if (!requestDesignerStorage('save', updated)) showToast('미리보기를 갱신했습니다. 서버 저장은 템플릿 에디터에서 사용할 수 있습니다.');
                 } catch (error) {
                     showToast(error.message || '이미지를 불러오지 못했습니다.');
@@ -3256,16 +3261,19 @@
         const layoutReference = {width:960,height:720};
         const draftObjectSelectors = [
             ['.family-photo-stack > .family-frame','group-photo'], ['.family-member-frames > .family-frame','member-photo'],
+            ['.family-chronicle .family-frame','chronicle-photo'],
+            ['.family-chronicle .chronicle-year,.family-chronicle .chronicle-caption > strong,.family-chronicle .chronicle-caption > small,.family-chronicle strong.chronicle-caption','chronicle-text'],
+            ['.family-chronicle-card','text-panel'],
             ['.family-photo-card > .family-frame,[data-draft-photo]','photo-frame'],
             ['.family-timeline-grid','family-timeline'], ['.family-event-feature','family-event-heading'],
-            ['.family-event-list','monthly-schedule'], ['.family-front .family-calendar,.number-front .number-days,.habit-calendar,[data-draft-calendar]','calendar'],
+            ['.family-event-list,.family-back-schedule','monthly-schedule'], ['.family-front .family-calendar,.number-front .number-days,.habit-calendar,[data-draft-calendar]','calendar'],
             ['.family-mini-widget','mini-calendar'],
             ['.family-story-footer section,[data-draft-memo]','handwriting-area'],
             ['.family-year,.number-annual,.habit-year-grid,[data-draft-annual]','annual-calendar'], ['.number-days.daily-memo','daily-memo-calendar'], ['[data-draft-scheduler]','monthly-schedule'], ['.habit-tracker','habit-tracker'],
             ['.family-end-message,.habit-end h2','closing-message'], ['.number-grid-wrap > i','month-watermark'],
             ['[data-year-art],.cover-year-shapes,.cover-year-glyphs','year-art'],
             ['[data-cover-title-style],.cover-year-design,.cover-year-caption,[data-draft-text-panel]','text-panel'],
-            ['h2,h3,header p,.cover-year-caption > *,[data-cover-title-style] > *,[data-draft-text],.family-cover > small,.number-month > header','text']
+            ['h2,h3,header p,.habit-cover p,.habit-cover > small,.habit-front header > strong,.family-caption,.draft-page-title,.cover-year-caption > *,[data-cover-title-style] > *,[data-draft-text],.family-cover > small,.number-month > header','text']
         ];
 
         const editorPageRoles={
@@ -3303,15 +3311,19 @@
             if(definition) return {...definition,...editorBounds(object.bounds),zIndex:object.order+1,
                 ...(definition.type==='image-frame'?{image:{...definition.image,src:object.image?.src??''}}:{})};
             const base={id,...editorBounds(object.bounds),zIndex:object.order+1};
+            if (role==='chronicle-text') {
+                return {...base,type:'text',label:object.label,content:'',autoSize:'none',style:editorTextStyle(style)};
+            }
             if (role==='text'||role==='closing-message'||role==='month-watermark') {
                 const year=page.role==='cover'&&text==='2027';
                 return {...base,type:'text',...(year?{role:'year',binding:'calendar.year'}:{}),
                     content:text??'',autoSize:'none',style:editorTextStyle(style)};
             }
-            if (['group-photo','member-photo','photo-frame'].includes(role)) {
+            if (['group-photo','member-photo','photo-frame','chronicle-photo'].includes(role)) {
                 const image=object.image??{};
                 const fit=image.fit==='contain'?'contain':'cover';
                 return {...base,type:'image-frame',frameType:'rect',fit,
+                    ...(role==='chronicle-photo'?{label:object.label}:{}),
                     ...(page.role==='month-back'?{role:'monthly-image'}:{}),
                     image:{src:image.src??'',fit,scale:1,offsetX:0,offsetY:0},
                     style:{background:style.backgroundColor||'transparent',...editorBorder(style),borderRadius:parseFloat(style.borderRadius)||0}};
@@ -3367,6 +3379,9 @@
             const calendarRegion=shared?Object.fromEntries(geometryKeys.map(key=>[key,first[key]])):null;
             return {version:2,coordinate_space:'page-percent',reference_canvas:layoutReference,
                 book:{pageInstances,elementsByPage},unmappedByPage,
+                page_layouts:pages.map(({number,role,layout,month})=>({number,role,layout,month})),
+                ...(draft.design_preset?{design_preset:draft.design_preset}:{}),
+                ...(draft.habit_rows?{habit_rows:draft.habit_rows}:{}),
                 ...(calendarRegion?{template:{masters:{calendar:{calendarRegion}}}}:{}),
                 monthly_variation:{rules:draft.page_rules??{},front_layout:draft.draft_layout.month_front,
                     back_layout:draft.draft_layout.month_back,photo_count_mode:draft.draft_layout.image_count_mode}};
@@ -3400,7 +3415,13 @@
                         const id=page.number+'-'+role+'-'+(objects.filter(object=>object.role===role).length+1);
                         const photo=['group-photo','member-photo','photo-frame'].includes(role)?node.querySelector('img'):null;
                         const definition=page.elements?.find(element=>element.id===node.getAttribute('data-draft-element'));
+                        const chronicleLabel=role==='chronicle-photo'
+                            ?(node.closest('article')?'사건 사진':'가족 그룹 대표 사진')
+                            :role==='chronicle-text'
+                                ?(node.matches('.chronicle-year')?'연도':node.closest('article')?'사건 제목':node.matches('small')?'가족 그룹 부제':'가족 그룹 이름')
+                                :null;
                         objects.push({id,role,bounds,order:objects.length,style,definition,
+                            ...(chronicleLabel?{label:chronicleLabel}:{}),
                             ...(photo?{image:{src:photo.getAttribute('src'),fit:getComputedStyle(photo).objectFit}}:{}),
                             ...(role==='handwriting-area'&&node.matches('.family-story-footer section')?{lineCount:Math.max(1,Math.floor((node.querySelector('.family-note-lines')?.getBoundingClientRect().height||0)/(origin.width*.04)))}:{}),
                             ...(['text','month-watermark','closing-message'].includes(role)?{text:node.textContent.trim()}:{}),
@@ -3429,14 +3450,18 @@
             }));
         }
 
-        function serializeDraft(draft) {
+        function prepareDesignerDraft(draft) {
             const layout=measureDraftLayout(draft);
             if (layout) draft.layout_geometry=layout;
-            return JSON.stringify(draft,null,2);
+            return draft;
+        }
+
+        function serializeDraft(draft) {
+            return JSON.stringify(prepareDesignerDraft(draft),null,2);
         }
 
         function registerDesign(parsed) {
-            if (parsed.draft_layout) parsed.layout_geometry=measureDraftLayout(parsed);
+            if (window.parent===window) prepareDesignerDraft(parsed);
             const savedIndex = CALENDAR_SETS_REGISTRY.findIndex((set, index) =>
                 index >= builtInCount && set.set_id === parsed.set_id
             );
