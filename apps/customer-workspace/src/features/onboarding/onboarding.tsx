@@ -347,7 +347,8 @@ export function Onboarding() {
         <ProjectLibrary onDeleted={id=>{if(activeProject?.id===id){setActiveProject(null);setSavedSignature('');setSaveNotice('저장본을 삭제했어요. 열어 둔 입력 내용은 새 프로젝트로 저장할 수 있어요.');}}} onOpen={openWorking} refresh={libraryVersion}/>
       </>}
     </main>
-    <footer className="site-footer"><span>학교 자료만 준비하세요. 디자인은 이미 완성되어 있어요.</span><span>개발 검토용 · 실제 주문 서비스 아님</span></footer>
+    {step==='catalog' ? <SchoolPrintFooter /> :
+      <footer className="site-footer"><span>학교 자료만 준비하세요. 디자인은 이미 완성되어 있어요.</span><span>개발 검토용 · 실제 주문 서비스 아님</span></footer>}
 
     <dialog ref={previewRef} className="preview-dialog" onCancel={()=>setPreviewTemplate(null)} onClose={()=>setPreviewTemplate(null)} aria-labelledby="preview-title" onKeyDown={event=>{
       if(!previewTemplate)return;
@@ -435,3 +436,28 @@ function TemplateCardArtwork({template,onPreview}:{template:TemplateCard;onPrevi
   </div>;
 }
 
+function SchoolPrintFooter() {
+  return (
+    <footer className="border-t border-[hsl(var(--border))] bg-[hsl(var(--canvas))] text-[13px] leading-[22px] text-[hsl(var(--muted-foreground))]">
+      <div className="mx-auto grid max-w-[980px] gap-x-9 gap-y-5 px-6 py-9 [&_p]:mb-0 md:grid-cols-[1fr_1.55fr_1.3fr]">
+        <a className="w-fit self-start" href="https://www.jirantech.com/">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="https://schoolp.co.kr/95866aee35a49cc091fdf38a4f505c33.png" alt="JIRANTECH" width={135} className="h-auto" />
+        </a>
+        <div>
+          <p>상호명 : (주)지란지교테크 | 대표이사 : 길기현</p>
+          <p>사업자등록번호 : 120-87-92843</p>
+          <p>통신판매업신고번호 : 제2016-서울강남-00117호</p>
+          <p>주소 : 경기도 성남시 금토로80번길 37 인피니티타워 WEST 3층</p>
+          <p>문의 : <a className="hover:underline" href="tel:031-608-9735">031-608-9735</a> | <a className="hover:underline" href="mailto:schoolp@jiran.com">schoolp@jiran.com</a></p>
+        </div>
+        <div>
+          <a className="text-[hsl(var(--foreground))] hover:underline" href="https://schoolp.co.kr/contact/privacy">개인정보처리방침</a>
+          <p>JIRANTECH All rights reserved.</p>
+          <p className="mt-5">본 사이트는 Chrome 브라우저에 최적화 되어있습니다.</p>
+          <a className="text-[hsl(var(--foreground))] hover:underline" href="https://www.google.com/intl/ko/chrome/">[Chrome 브라우저 다운로드]</a>
+        </div>
+      </div>
+    </footer>
+  );
+}
