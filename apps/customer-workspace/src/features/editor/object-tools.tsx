@@ -213,7 +213,7 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
  const selectedMode=mode==='legacy'?(settings.rangeMode==='bars'?'bar':'text'):mode;
  const textOnly=selectedMode==='text';
  const minimumSize=cells?3:5;
- const size=Math.max(minimumSize,Number(settings.schedulePt??(cells?settings.eventPt:settings.listPt)));
+ const size=Math.max(minimumSize,Number(settings.schedulePt??(cells?settings.autoSchedulePt??settings.eventPt:settings.listPt)));
  const update=(patch:Record<string,string|boolean|number>)=>onChange?.(patch,isG);
  const color=String(settings.scheduleColor||settings.listColor||settings.dateColor||'#17202e');
  const cellAutoFit=settings.cellAutoFit===true||(settings.cellAutoFit==null&&mode==='text');
@@ -248,11 +248,12 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
    {!cells&&<>
     {checkbox('단 구분선 표시','listColumnColors',settings.listColumnColors===true)}
     {checkbox('날짜에 요일 표시','scheduleWeekday',settings.scheduleWeekday===true||(settings.scheduleWeekday==null&&settings.listDateFormat==='weekday'))}
-    {checkbox('공휴일 표시','scheduleHolidays',settings.includeHolidays!==false)}
    </>}
+   {checkbox('공휴일 표시','includeHolidays',settings.includeHolidays!==false)}
+   {checkbox('음력 표시','includeLunar',settings.includeLunar!==false)}
    <div className="schedule-sizing-fields">
-    <label>일정 글자 크기(pt)<input type="number" min={minimumSize} max="24" step="0.1" value={size} onChange={e=>{const n=e.target.valueAsNumber;if(n>=minimumSize&&n<=24)update({schedulePt:n});}}/></label>
-    {cells?<label>{textOnly?'일정 줄 높이(px)':'일정 영역 높이(px)'}<input type="number" min="1" max="24" placeholder="자동" value={Number(settings.scheduleBarHeight)||''} onChange={e=>{const n=e.target.valueAsNumber;if(n>=1&&n<=24)update({scheduleBarHeight:n});}}/></label>
+    <label>일정 글자 크기(pt)<input type="number" min={minimumSize} max="24" step="0.1" value={Number(size.toFixed(3))} onChange={e=>{const n=e.target.valueAsNumber;if(n>=minimumSize&&n<=24)update({schedulePt:n});}}/></label>
+    {cells?<label>{textOnly?'일정 줄 높이(px)':'일정 영역 높이(px)'}<input type="number" min="1" max="24" step="0.1" placeholder={settings.autoScheduleHeight!=null?`자동 (${settings.autoScheduleHeight})`:"자동"} value={Number(settings.scheduleBarHeight)||''} onChange={e=>{const n=e.target.valueAsNumber;if(n>=1&&n<=24)update({scheduleBarHeight:n});}}/></label>
      :<label>일정 자간(em)<input type="number" min="-0.1" max="0.2" step="0.01" value={Number(settings.scheduleTracking??0)} onChange={e=>{const n=e.target.valueAsNumber;if(n>=-0.1&&n<=0.2)update({scheduleTracking:n});}}/></label>}
    </div>
    <div className="poster-calendar-color"><span>글자색</span><ColorPalette label="일정 글자색" value={color} theme={editorThemeColors(project.template.resources?.colorTheme)} onChange={scheduleColor=>update({scheduleColor})}/></div>
