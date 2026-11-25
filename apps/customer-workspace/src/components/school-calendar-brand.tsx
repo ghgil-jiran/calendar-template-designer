@@ -5,6 +5,9 @@ export function SchoolCalendarBrandMark() {
   </>;
 }
 
-export function SchoolCalendarCaption() {
-  return <p className="header-caption">우리 학교의 일 년을 담아요</p>;
+export function SchoolCalendarCaption({showInvitation = false}: {showInvitation?: boolean}) {
+  return <div className="header-brand-caption">
+    <p className="header-caption">우리 학교 열두 달의 이야기</p>
+    {showInvitation && <p className="header-caption-subtitle">우리학교인쇄에서 직접 만들어 보세요.</p>}
+  </div>;
 }
