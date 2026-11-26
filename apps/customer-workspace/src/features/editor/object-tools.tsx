@@ -255,6 +255,7 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
     {checkbox('날짜에 요일 표시','scheduleWeekday',settings.scheduleWeekday===true||(settings.scheduleWeekday==null&&settings.listDateFormat==='weekday'))}
    </>}
    {checkbox('공휴일 표시','includeHolidays',settings.includeHolidays!==false)}
+   {isG&&<label>공휴일·기념일·음력 표시 위치<select value={settings.referenceLayout==='below'?'below':'beside'} onChange={e=>update({referenceLayout:e.target.value})}><option value="beside">날짜 옆</option><option value="below">날짜 아래</option></select></label>}
    {checkbox('음력 표시','includeLunar',settings.includeLunar!==false)}
    <div className="schedule-sizing-fields">
     <label>일정 글자 크기(pt)<input type="number" min={minimumSize} max="24" step="0.1" value={Number(size.toFixed(3))} onChange={e=>{const n=e.target.valueAsNumber;if(n>=minimumSize&&n<=24)update({schedulePt:n});}}/></label>

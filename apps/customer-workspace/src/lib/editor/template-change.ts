@@ -31,6 +31,6 @@ export function templateChangeDraft(current:ProjectDraft,next:TemplateCard,sourc
   return {...current,template,source,assignments,editorState,photoSelections:{},photoPageId:'',
    paperEdits:{...current.paperEdits,[current.template.id]:{version:current.template.version,state:current.editorState}}};
  }
- return {name:`${current.school.values.name?.trim()||'우리 학교'} · ${next.name}`.slice(0,120),template,source,school:{...structuredClone(current.school),calendarDisplay:resolveCalendarDisplay(templateCalendarDisplay(source,next.name),
-  {...current.school.calendarDisplay,...(/샘플\s*[EF]\b/i.test(next.name)?{includeLunar:false}:{})})},events:structuredClone(current.events),photos:[...current.photos],assignments,step:'editor',photoMode:'collect',photoSelections:{},editorState:state};
+ return {name:`${current.school.values.name?.trim()||'우리 학교'} · ${next.name}`.slice(0,120),template,source,school:{...structuredClone(current.school),calendarDisplay:resolveCalendarDisplay(templateCalendarDisplay(source),
+  current.school.calendarDisplay)},events:structuredClone(current.events),photos:[...current.photos],assignments,step:'editor',photoMode:'collect',photoSelections:{},editorState:state};
 }
