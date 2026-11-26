@@ -210,11 +210,10 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
  const cells=isG||settings.schedulePlacement==='cells';
  const arrangement=cells?'poster-cells':settings.listPosition==='right'?'poster-right':'poster-bottom';
  const mode=settings.scheduleDisplayMode??(isG&&settings.rangeMode!=='bars'?'text':'legacy');
- const selectedMode=mode==='legacy'?(settings.rangeMode==='bars'?'bar':'text'):mode;
- const textOnly=selectedMode==='text';
+ const textOnly=mode==='text';
  const minimumSize=cells?3:5;
  const size=Math.max(minimumSize,Number(settings.schedulePt??(cells?settings.autoSchedulePt??settings.eventPt:settings.listPt)));
- const update=(patch:Record<string,string|boolean|number>)=>onChange?.(patch,isG);
+ const update=(patch:Record<string,string|boolean|number>)=>onChange?.(!cells&&('schedulePt' in patch||'listLayout' in patch||'scheduleTracking' in patch)?{...patch,listAutoFit:false}:patch,isG);
  const color=String(settings.scheduleColor||settings.listColor||settings.dateColor||'#17202e');
  const cellAutoFit=settings.cellAutoFit===true||(settings.cellAutoFit==null&&mode==='text');
  function checkbox(label:string,key:string,checked:boolean,disabled=false){
@@ -235,7 +234,7 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
     일정이 많아 일부 일정이 제대로 표시되지 않았습니다. {!cells?'글자 크기나 자간을 줄이거나 목록 단수를 조정해 주세요.':textOnly?'글자 크기나 줄 높이를 줄여 주세요.':'글자 크기를 줄이거나 ‘텍스트만’으로 바꿔 주세요.'}
    </p>}
    {cells?<div className="schedule-style-options" role="group" aria-label="날짜 칸 일정 표시">
-    {([['bar','색상 막대'],['text','텍스트만'],['line','가는 선']] as const).map(([value,label])=><Button key={value} aria-pressed={selectedMode===value} onClick={()=>update({scheduleDisplayMode:value})}>
+    {([['bar','색상 막대'],['text','텍스트만'],['line','가는 선']] as const).map(([value,label])=><Button key={value} aria-pressed={mode===value} onClick={()=>update({scheduleDisplayMode:value})}>
      <span className={'schedule-style-example '+value} aria-hidden="true"><span>학교 일정</span></span><span>{label}</span>
     </Button>)}
    </div>:<label className="poster-list-columns">목록 단수<select value={String(settings.listLayout)} onChange={e=>update({listLayout:e.target.value})}><option value="auto">자동</option><option value="one">1단</option><option value="two">2단</option><option value="three">3단</option></select></label>}
