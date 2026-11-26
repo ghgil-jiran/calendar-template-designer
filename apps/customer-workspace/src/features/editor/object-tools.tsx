@@ -198,7 +198,6 @@ type PosterToolsProps={project:NativeProject;item?:NativeProject;onChange:Props[
 const posterArrangements=[
  ['poster-bottom','3×4 · 하단 일정형'],
  ['poster-right','2×6 · 오른쪽 일정형'],
- ['poster-cells','3×4 · 날짜 칸 일정형'],
 ] as const;
 
 function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflow}:PosterToolsProps){
@@ -208,7 +207,7 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
  const isG=sample==='G';
  const settings=wallOptions(item,project);
  const cells=isG||settings.schedulePlacement==='cells';
- const arrangement=cells?'poster-cells':settings.listPosition==='right'?'poster-right':'poster-bottom';
+ const arrangement=cells?'':settings.listPosition==='right'?'poster-right':'poster-bottom';
  const mode=settings.scheduleDisplayMode??(isG&&settings.rangeMode!=='bars'?'text':'legacy');
  const textOnly=mode==='text';
  const minimumSize=cells?3:5;
@@ -225,7 +224,7 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
    <summary>공통</summary>
    <label>연력 프레임 구성{isG
     ? <select disabled value="custom"><option value="custom">사용자 설정</option></select>
-    : <select value={arrangement} onChange={e=>update({scheduleStylePreset:e.target.value})}>{posterArrangements.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select>}
+    : <select value={arrangement} onChange={e=>{const preset=posterArrangements.find(([key])=>key===e.target.value);if(preset)update({scheduleStylePreset:preset[0]});}}>{!arrangement&&<option value="" disabled>목록형 선택</option>}{posterArrangements.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select>}
    </label>
   </details>
   <details className="editor-tool-card schedule-style-card" open>
