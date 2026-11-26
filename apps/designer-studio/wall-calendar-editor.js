@@ -77,6 +77,7 @@
  $('wallMonthScope').onchange=()=>{if(!confirmDiscardInspectorChanges()){$('wallMonthScope').value=scope;return;}inspectorDirty=false;window.wallCalendarMonthScope=$('wallMonthScope').value;renderInspector();};
  // Two six-month date grids share presentation; other styles remain page-specific.
  function shareDateSchedule(value,previous){
+  if(sample==='G')return;
   if(project.book.pageInstances.length!==2||Number(item.monthCount)!==6||previous.schedulePlacement!=='cells'||value.schedulePlacement!=='cells')return;
   const keys=['scheduleDisplayMode','rangeMode','rangeLabelMode','scheduleRangeEachDay','scheduleJoinText'];
   const dateScheduleFields=[...keys,'cellAutoFit','eventPt','schedulePt','scheduleBarHeight','scheduleBullet','scheduleTracking'];

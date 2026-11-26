@@ -56,7 +56,24 @@
   return {...v,...cellScheduleDefaults(element,project,v)};
  }
  function geometry(project,element,value=resolve(element,project)){const width=Number(project.productType.pageSize.width)*Number(element.width)/100,height=Number(project.productType.pageSize.height)*Number(element.height)/100,columns=Math.max(1,Number(element.columns)||3),rows=Math.ceil((Number(element.monthCount)||12)/columns),monthWidth=(width-(columns-1)*(value.columnGapMm??value.gapMm))/columns,monthHeight=(height-(rows-1)*(value.rowGapMm??value.gapMm))/rows;return {width,height,columns,rows,monthWidth,monthHeight,dayWidth:(monthWidth-2*value.paddingMm)*(value.listPosition==='right'&&(value.schedulePlacement!=='cells'||value.referencePlacement==='list')?1-value.listWidthPercent/100:1)/7,gridHeight:(monthHeight-2*value.paddingMm)*(value.listPosition==='right'||value.schedulePlacement==='cells'&&value.referencePlacement!=='list'?1:1-value.listPercent/100)-value.titlePt*25.4/72*1.25-(value.showWeekdays?value.weekdayPt*25.4/72*1.5:0)};}
- function apply(project,item,settings,{month=null,allPages=false,columns=null,startMonth=null,resetMonths=false,changedSettings=[]}={}){const value=normalize(settings),targets=allPages?[...Object.values(project.template.masterElements||{}),...Object.values(project.book.elementsByPage||{})].flat().filter(e=>e.academicPoster):[item];for(const target of targets){if(month){const {gapMm,columnGapMm,rowGapMm,columnDividerMm,columnDividerColor,...local}=value;target.wallMonthOverrides||={};target.wallMonthOverrides[String(month)]=structuredClone(local);}else{target.wallCalendarSettings=structuredClone(value);if(resetMonths)delete target.wallMonthOverrides;else for(const override of Object.values(target.wallMonthOverrides||{}))for(const key of changedSettings)delete override[key];if(columns!==null&&Number(target.monthCount)===Number(item.monthCount)&&(Number(item.monthCount)===6?[2,3]:[2,3,4]).includes(Number(columns)))target.columns=Number(columns);if(startMonth===0)delete target.posterStartMonth;else if(Number.isInteger(startMonth)&&startMonth>=1&&startMonth<=12)target.posterStartMonth=startMonth;}target.label=target.label||'전체 월력';}return targets.length;}
+ const sharedDateCellFields=['includeHolidays','referenceLayout','scheduleDisplayMode','rangeMode','rangeLabelMode','scheduleRangeEachDay','scheduleJoinText','cellAutoFit','eventPt','schedulePt','scheduleBarHeight','scheduleBullet','scheduleTracking'];
+ function syncPosterDateCells(project,item,value,changedSettings){
+  if(posterSample(project)!=='G'||project.book.pageInstances.length!==2||!item.academicPoster||Number(item.monthCount)!==6)return;
+  if(!sharedDateCellFields.some(key=>changedSettings.includes(key)))return;
+  project.settings.calendarData||={};
+  project.settings.calendarData.includeHolidays=value.includeHolidays;
+  const peers=[...Object.values(project.template.masterElements||{}),...Object.values(project.book.elementsByPage||{})].flat()
+   .filter(target=>target.academicPoster&&Number(target.monthCount)===6);
+  for(const target of new Set([item,...peers])){
+   target.wallCalendarSettings||={};
+   for(const key of sharedDateCellFields){
+    if(value[key]===undefined)delete target.wallCalendarSettings[key];
+    else target.wallCalendarSettings[key]=value[key];
+    for(const override of Object.values(target.wallMonthOverrides||{}))delete override[key];
+   }
+  }
+ }
+ function apply(project,item,settings,{month=null,allPages=false,columns=null,startMonth=null,resetMonths=false,changedSettings=[]}={}){const value=normalize(settings),targets=allPages?[...Object.values(project.template.masterElements||{}),...Object.values(project.book.elementsByPage||{})].flat().filter(e=>e.academicPoster):[item];for(const target of targets){if(month){const {gapMm,columnGapMm,rowGapMm,columnDividerMm,columnDividerColor,...local}=value;target.wallMonthOverrides||={};target.wallMonthOverrides[String(month)]=structuredClone(local);}else{target.wallCalendarSettings=structuredClone(value);if(resetMonths)delete target.wallMonthOverrides;else for(const override of Object.values(target.wallMonthOverrides||{}))for(const key of changedSettings)delete override[key];if(columns!==null&&Number(target.monthCount)===Number(item.monthCount)&&(Number(item.monthCount)===6?[2,3]:[2,3,4]).includes(Number(columns)))target.columns=Number(columns);if(startMonth===0)delete target.posterStartMonth;else if(Number.isInteger(startMonth)&&startMonth>=1&&startMonth<=12)target.posterStartMonth=startMonth;}target.label=target.label||'전체 월력';}syncPosterDateCells(project,item,value,changedSettings);return targets.length;}
  function validateCustomer(value){if(!value||Object.keys(value).some(k=>!customerKeys.includes(k)))throw Error('허용하지 않은 전체 월력 설정입니다.');const normalized=normalize(value);for(const [k,v] of Object.entries(value))if(normalized[k]!==v)throw Error('전체 월력 설정을 확인해 주세요.');return value;}
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),hex=(v,f)=>/^#[a-f0-9]{6}$/i.test(v||'')?v:f;
  const onePageStyles=Object.freeze({
