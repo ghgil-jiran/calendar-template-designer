@@ -79,7 +79,8 @@
  function shareDateSchedule(value,previous){
   if(project.book.pageInstances.length!==2||Number(item.monthCount)!==6||previous.schedulePlacement!=='cells'||value.schedulePlacement!=='cells')return;
   const keys=['scheduleDisplayMode','rangeMode','rangeLabelMode','scheduleRangeEachDay','scheduleJoinText'];
-  if(!keys.some(key=>value[key]!==previous[key]))return;
+  const dateScheduleFields=[...keys,'cellAutoFit','eventPt','schedulePt','scheduleBarHeight','scheduleBullet','scheduleTracking'];
+  if(!dateScheduleFields.some(key=>value[key]!==previous[key]))return;
   const peers=[...Object.values(project.template.masterElements||{}),...Object.values(project.book.elementsByPage||{})].flat()
    .filter(target=>target.academicPoster&&Number(target.monthCount)===6&&api.resolve(target,project).schedulePlacement==='cells');
   for(const target of new Set([item,...peers])){
