@@ -242,6 +242,11 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
     {checkbox("일정을 '/'로 이어서 표시",'scheduleJoinText',settings.scheduleJoinText===true)}
     {checkbox('구간 일정을 날짜별 표시','scheduleRangeEachDay',settings.scheduleRangeEachDay===true)}
    </>}
+   {!cells&&<>
+    <label>목록 구분<select value={String(settings.listGrouping)} onChange={e=>update({listGrouping:e.target.value})}><option value="merged">날짜순 통합</option><option value="separate">공휴일·기념일 / 학교 일정 구분</option></select></label>
+    <label>목록 줄 높이 (px)<input type="number" min="8" max="48" step="0.1" value={Number(settings.listLineHeight??16)} onChange={e=>{const n=e.target.valueAsNumber;if(n>=8&&n<=48)update({listLineHeight:n,listAutoFit:false});}}/></label>
+    <fieldset><legend>목록 안쪽 여백 (mm)</legend>{([['listPaddingTop','위'],['listPaddingRight','오른쪽'],['listPaddingBottom','아래'],['listPaddingLeft','왼쪽']] as const).map(([key,label])=><label key={key}>{label}<input type="number" min="0" max="15" step="0.1" value={Number(settings[key]??2)} onChange={e=>{const n=e.target.valueAsNumber;if(n>=0&&n<=15)update({[key]:n,listAutoFit:false});}}/></label>)}</fieldset>
+   </>}
    {bullet}
    {project.book.pageInstances.length===2&&Number(item?.monthCount)===6&&<><div className="vacation-background-options"><label className="schedule-text-option"><span>방학 배경색 표시</span><input type="checkbox" checked={settings.showVacationBackground===true} onChange={e=>onChange?.({showVacationBackground:e.target.checked},true)}/></label>{settings.showVacationBackground===true&&<VacationBackgroundColor value={settings.vacationBackgroundColor} theme={editorThemeColors(project.template.resources?.colorTheme)} onChange={vacationBackgroundColor=>onChange?.({vacationBackgroundColor},true)}/>}</div></>}
    {!cells&&<>
@@ -257,7 +262,7 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
    </div>
    <div className="poster-calendar-color"><span>글자색</span><ColorPalette label="일정 글자색" value={color} theme={editorThemeColors(project.template.resources?.colorTheme)} onChange={scheduleColor=>update({scheduleColor})}/></div>
    {checkbox('날짜 칸 일정 자동 맞춤','cellAutoFit',cellAutoFit,!cells)}
-   {!isG&&checkbox('월별 일정 목록 자동 맞춤','listAutoFit',settings.listAutoFit===true,cells)}
+   {!isG&&checkbox('월별 일정 목록 자동 맞춤','listAutoFit',settings.listAutoFit===true,cells||settings.listLayout==='auto')}
    {cells&&<p className="schedule-sizing-help">일정이 잘리면 글자 크기나 {textOnly?'줄 높이':'영역 높이'}를 줄여 보세요.</p>}
   </details>
  </div>;
