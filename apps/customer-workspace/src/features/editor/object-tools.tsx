@@ -212,7 +212,9 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
  const textOnly=mode==='text';
  const minimumSize=cells?3:5;
  const size=Math.max(minimumSize,Number(settings.schedulePt??(cells?settings.autoSchedulePt??settings.eventPt:settings.listPt)));
- const update=(patch:Record<string,string|boolean|number>)=>onChange?.(!cells&&('schedulePt' in patch||'listLayout' in patch||'scheduleTracking' in patch)?{...patch,listAutoFit:false}:patch,isG);
+ const automaticList=settings.listLayout==='auto';
+ const fixedListLayout=['one','two','three'][Number(settings.listColumns)-1]??'two';
+ const update=(patch:Record<string,string|boolean|number>)=>onChange?.(!cells&&('schedulePt' in patch||'listLayout' in patch||'scheduleTracking' in patch)?{...(automaticList?{listLayout:fixedListLayout}:{}),...patch,listAutoFit:patch.listLayout==='auto'}:patch,isG);
  const color=String(settings.scheduleColor||settings.listColor||settings.dateColor||'#17202e');
  const cellAutoFit=settings.cellAutoFit===true||(settings.cellAutoFit==null&&mode==='text');
  function checkbox(label:string,key:string,checked:boolean,disabled=false){
@@ -229,6 +231,7 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
   </details>
   <details className="editor-tool-card schedule-style-card" open>
    <summary>일정 표시 {isG&&<small>두 페이지에 적용</small>}</summary>
+   {!cells&&<label className="schedule-text-option"><span>월별 일정 목록 자동 맞춤</span><input type="checkbox" checked={automaticList} onChange={e=>onChange?.({listLayout:e.target.checked?'auto':fixedListLayout,listAutoFit:e.target.checked},false)}/></label>}
    {scheduleOverflow&&<p className="editor-feedback wall-schedule-warning" role="alert">
     일정이 많아 일부 일정이 제대로 표시되지 않았습니다. {!cells?'글자 크기나 자간을 줄이거나 목록 단수를 조정해 주세요.':textOnly?'글자 크기나 줄 높이를 줄여 주세요.':'글자 크기를 줄이거나 ‘텍스트만’으로 바꿔 주세요.'}
    </p>}
@@ -243,8 +246,7 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
    </>}
    {!cells&&<>
     <label>목록 구분<select value={String(settings.listGrouping)} onChange={e=>update({listGrouping:e.target.value})}><option value="merged">날짜순 통합</option><option value="separate">공휴일·기념일 / 학교 일정 구분</option></select></label>
-    <label>목록 줄 높이 (px)<input type="number" min="8" max="48" step="0.1" value={Number(settings.listLineHeight??16)} onChange={e=>{const n=e.target.valueAsNumber;if(n>=8&&n<=48)update({listLineHeight:n,listAutoFit:false});}}/></label>
-    <fieldset><legend>목록 안쪽 여백 (mm)</legend>{([['listPaddingTop','위'],['listPaddingRight','오른쪽'],['listPaddingBottom','아래'],['listPaddingLeft','왼쪽']] as const).map(([key,label])=><label key={key}>{label}<input type="number" min="0" max="15" step="0.1" value={Number(settings[key]??2)} onChange={e=>{const n=e.target.valueAsNumber;if(n>=0&&n<=15)update({[key]:n,listAutoFit:false});}}/></label>)}</fieldset>
+
    </>}
    {bullet}
    {project.book.pageInstances.length===2&&Number(item?.monthCount)===6&&<><div className="vacation-background-options"><label className="schedule-text-option"><span>방학 배경색 표시</span><input type="checkbox" checked={settings.showVacationBackground===true} onChange={e=>onChange?.({showVacationBackground:e.target.checked},true)}/></label>{settings.showVacationBackground===true&&<VacationBackgroundColor value={settings.vacationBackgroundColor} theme={editorThemeColors(project.template.resources?.colorTheme)} onChange={vacationBackgroundColor=>onChange?.({vacationBackgroundColor},true)}/>}</div></>}
@@ -261,7 +263,7 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
    </div>
    <div className="poster-calendar-color"><span>글자색</span><ColorPalette label="일정 글자색" value={color} theme={editorThemeColors(project.template.resources?.colorTheme)} onChange={scheduleColor=>update({scheduleColor})}/></div>
    {checkbox('날짜 칸 일정 자동 맞춤','cellAutoFit',cellAutoFit,!cells)}
-   {!isG&&checkbox('월별 일정 목록 자동 맞춤','listAutoFit',settings.listAutoFit===true,cells||settings.listLayout==='auto')}
+
    {cells&&<p className="schedule-sizing-help">일정이 잘리면 글자 크기나 {textOnly?'줄 높이':'영역 높이'}를 줄여 보세요.</p>}
   </details>
  </div>;
