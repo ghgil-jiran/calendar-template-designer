@@ -38,6 +38,17 @@
   if(!size||!(widthMm>0)||!(heightMm>0))return '';
   // Apply the fade inside the authored opening, in physical points along both axes.
   const inset=size*25.4/72*100;
+  if(get(id).id==='rect'){
+   const stops=extent=>[[0,0],[.25,.16],[.5,.5],[.75,.84],[1,1]]
+    .map(([position,opacity])=>[position*extent,opacity]);
+   const gradient=(id,extent,direction)=>{
+    const leading=stops(Math.min(49,extent));
+    const points=[...leading,...leading.slice().reverse().map(([offset,opacity])=>[100-offset,opacity])];
+    return `<linearGradient id="${id}" ${direction}>${points.map(([offset,opacity])=>`<stop offset="${offset.toFixed(3)}%" stop-color="white" stop-opacity="${opacity}"/>`).join('')}</linearGradient>`;
+   };
+   const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><defs>${gradient('sides',inset/widthMm,'x2="100%" y2="0%"')}${gradient('ends',inset/heightMm,'x2="0%" y2="100%"')}<mask id="vertical" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100" fill="url(#ends)"/></mask></defs><rect width="100" height="100" fill="url(#sides)" mask="url(#vertical)"/></svg>`;
+   return `url('data:image/svg+xml,${encodeURIComponent(svg)}')`;
+  }
   const x=Math.min(16,inset/widthMm/3).toFixed(3),y=Math.min(16,inset/heightMm/3).toFixed(3);
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><defs><filter id="fade" x="0" y="0" width="100" height="100" filterUnits="userSpaceOnUse"><feMorphology operator="erode" radius="${x} ${y}"/><feGaussianBlur stdDeviation="${x} ${y}"/></filter></defs><path d="${get(id).path}" fill="white" filter="url(#fade)"/></svg>`;
   return `url('data:image/svg+xml,${encodeURIComponent(svg)}')`;
