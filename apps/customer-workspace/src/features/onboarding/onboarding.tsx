@@ -66,6 +66,7 @@ export function Onboarding() {
   const [visiblePreview,setVisiblePreview]=useState<CatalogPreviewPage|null>(null);
   const [previewIndex, setPreviewIndex] = useState(0);
   const [previewSource,setPreviewSource]=useState<NativeProject|null>(null);
+  const [previewSourceFailed,setPreviewSourceFailed]=useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<TemplateCard|null>(null);
   const [kindFilter,setKindFilter]=useState<'all'|'desk'|'poster'>('desk');
   const [editorState,setEditorState]=useState<EditorState|undefined>();
@@ -134,7 +135,7 @@ export function Onboarding() {
   useEffect(()=>{
     if(!previewTemplate?.sourceUrl)return;
     let active=true;
-    void fetchTemplateSource(previewTemplate).then(source=>{if(active)setPreviewSource(source);}).catch(()=>{});
+    void fetchTemplateSource(previewTemplate).then(source=>{if(active)setPreviewSource(source);}).catch(()=>{if(active)setPreviewSourceFailed(true);});
     return ()=>{active=false;};
   },[previewTemplate]);
 
@@ -248,7 +249,7 @@ export function Onboarding() {
       });
     }catch{}
   },[]);
-  function openPreview(template: TemplateCard,index=0) {if(nativeLoading)return;setNativeFailure('');setVisiblePreview(null);setPreviewIndex(Math.max(0,index));setPreviewSource(null);setPreviewTemplate(template);}
+  function openPreview(template: TemplateCard,index=0) {if(nativeLoading)return;setNativeFailure('');setVisiblePreview(null);setPreviewIndex(Math.max(0,index));setPreviewSource(null);setPreviewSourceFailed(false);setPreviewTemplate(template);}
   function continueSchool(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selected) return;
@@ -262,7 +263,9 @@ export function Onboarding() {
 
   const previewPage=previewTemplate?.pages[previewIndex];
   const previewPageId=previewSource?.book.pageInstances[previewIndex]?.id;
-  const requestedPreview=previewTemplate?{
+  // Poster previews wait for the edited page so a stored image cannot flash first.
+  const waitingForPoster=previewTemplate?.calendarKind==='poster'&&previewTemplate.sourceUrl&&!previewSource&&!previewSourceFailed;
+  const requestedPreview=previewTemplate&&!waitingForPoster?{
     key:JSON.stringify([previewTemplate.id,previewIndex,previewPageId]),
     index:previewIndex,
     project:previewSource,
