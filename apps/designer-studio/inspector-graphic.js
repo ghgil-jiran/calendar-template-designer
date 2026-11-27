@@ -24,6 +24,7 @@
           ...(item.style || {}),
           ...(item.shapeType === 'rounded' && item.style?.cornerRadiusMm == null ? {cornerRadiusMm: 3} : {}),
           fill: values.fill || item.style?.fill,
+          ...(values.fillSoftEdgePt !== undefined ? {fillSoftEdgePt: root.ACDLPhotoFrameModel.softEdgeSize(values.fillSoftEdgePt)} : {}),
           stroke: values.stroke || item.style?.stroke,
           strokeWidth: Number(values.strokeWidth ?? item.style?.strokeWidth),
           dash: values.dash || 'solid',
