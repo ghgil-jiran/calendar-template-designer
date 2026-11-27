@@ -52,16 +52,16 @@ test('print preflight request carries the canonical editor renderer origin and i
 test('completed CMYK PDFs use ASCII names for standard and enlarged outputs',()=>{
  const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');
  const filename=vm.runInNewContext('('+library.match(/function artifactFilename[\s\S]*?\n }/)[0]+')');
- const identity={name:'벽보형 샘플 E',templateId:'wall_샘플·E'};
- assert.equal(filename(identity,{id:'abc-123'}),'wall-E-abc-123-CMYK-draft.pdf');
- assert.equal(filename(identity,{id:'def-456',outputProfile:{}}),'wall-E-def-456-297mm-CMYK-draft.pdf');
- assert.equal(filename({templateId:'한글'},{id:'한글'}),'calendar-CMYK-draft.pdf');
- const legacy={templateId:'88453fb2-694c-434e-9f5e-dcc7745e9a29'};
- const artifact={id:'7412eaff-6148-498e-8c09-1e78f908604f'};
- assert.equal(filename(legacy,artifact),'calendar-7412eaff-CMYK-draft.pdf');
- assert.equal(filename(legacy,{...artifact,outputProfile:{}}),'calendar-7412eaff-297mm-CMYK-draft.pdf');
+ const identity={name:'벽보형 샘플 E',templateId:'88453fb2-694c-434e-9f5e-dcc7745e9a29'};
+ const artifact={id:'7412eaff-6148-498e-8c09-1e78f908604f',completedAt:'2026-11-26T15:10:00Z'};
+ assert.equal(filename(identity,artifact),'Sample-E-CMYK-draft-20261127.pdf');
+ assert.equal(filename(identity,{...artifact,outputProfile:{}}),'Sample-E-297mm-CMYK-draft-20261127.pdf');
+ assert.equal(filename({templateId:identity.templateId},artifact,'벽보형 샘플 G'),'Sample-G-CMYK-draft-20261127.pdf');
+ assert.equal(filename({name:'Café Abroad'},artifact),'Cafe-Abroad-CMYK-draft-20261127.pdf');
+ assert.equal(filename({name:'한글',templateId:'wall-special'},artifact),'wall-special-CMYK-draft-20261127.pdf');
+ assert.equal(filename({name:'한글',templateId:identity.templateId},artifact),'calendar-CMYK-draft-20261127.pdf');
 });
-test('the actual CMYK download uses the print filename',()=>{const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');assert.match(library,/link\.download=artifactFilename\(identity,artifact\)/)});
+test('the actual CMYK download uses the print filename',()=>{const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');assert.match(library,/link\.download=artifactFilename\(identity,artifact,preflightRecord\?\.name\)/)});
 test('a completed artifact remains downloadable even when quality verification fails',()=>{const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8'),start=library.indexOf('async function downloadPrintPdf()'),end=library.indexOf('async function captureRenderParity',start),download=library.slice(start,end);assert.match(download,/artifact\.status!==['"]done['"]/);assert.doesNotMatch(download,/artifact\.verified/)});
 test('the artifact summary distinguishes failed, unfinished, and fully passed checks',()=>{const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');assert.match(library,/coreFailed=core\.filter/);assert.match(library,/coreNotRun=core\.filter/);assert.match(library,/followUpOpen=results\.filter/);assert.match(library,/핵심 자동검사 실패/);assert.match(library,/핵심 자동검사 확인 필요/);assert.match(library,/핵심 자동검사 완료/)});
 
