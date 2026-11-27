@@ -13,13 +13,35 @@
     };
     const coverBackgrounds = { plain:'단색', band:'색 띠·색면', geometry:'기하 도형', pattern:'반복 패턴', theme:'테마 장식', texture:'질감·빛' };
     const coverTitleStyles = { editorial:'제목 중심', year:'연도 강조', stacked:'제목·연도 두 줄' };
+    function coverComposition(design) {
+        const {layout, photos} = design;
+        if (layout === 'numeric') return {layout, photoCount:0, areas:['year-art'], rows:[1]};
+        const titleOnly = layout === 'type';
+        const singleRow = ['full','splitSide','graphicSide','surround','type'].includes(layout);
+        return {layout, photoCount:photos,
+            areas:titleOnly ? ['title'] : ['title', layout === 'illustration' ? 'illustration' : 'photos'],
+            rows:singleRow ? [1] : ['auto',1],
+            ...(['splitSide','graphicSide','feature'].includes(layout) ? {columns:[2,1]} : {}),
+            ...(layout === 'surround' ? {gridColumns:3, titleSlot:4} : layout === 'grid' ? {gridColumns:2} : layout === 'row' ? {gridColumns:photos} : {}),
+            ...(layout === 'center' ? {photoWidth:2/3} : layout === 'decorated' ? {photoWidth:3/4} : {})};
+    }
+
+    function withComposition(design) {
+        return {...design, composition:coverComposition(design)};
+    }
+
+    function resolveCoverComposition(design) {
+        const expected = coverComposition(design);
+        return JSON.stringify(design.composition) === JSON.stringify(expected) ? design.composition : expected;
+    }
+
     function recommendCover(values, variation = 0, seen = []) {
         const brief = [values.title, values.description, values.direction].filter(Boolean).join(' ');
         if (values.coverType === 'numeric' || (!values.coverType && /숫자형|숫자로\s*표현|연도\s*(그래픽|조형)/.test(brief))) {
             if (values.coverCount && Number(values.coverCount) !== 0) {
                 throw new Error('숫자형 표지는 사진 장수를 자동 또는 0장으로 지정해 주세요.');
             }
-            return recommendNumericCover(2027, [values.title, values.description].filter(Boolean).join(' '), values.direction, seen, values.numericOptions);
+            return withComposition(recommendNumericCover(2027, [values.title, values.description].filter(Boolean).join(' '), values.direction, seen, values.numericOptions));
         }
         const child = /어린이|성장|유아|놀이|키즈|발랄|경쾌/.test(brief);
         const family = /가족|세대|부모님|손주|추억/.test(brief);
@@ -67,14 +89,14 @@
         const titleStyle = explicitTitleStyle(direction) || explicitTitleStyle(titleBrief) ||
             pick(type === 'type' ? ['year','stacked','editorial'] : type === 'split' ? ['stacked','editorial','year'] : ['editorial','stacked','year']);
         const yearStyle = type === 'type' ? recommendYearStyle(variation) : {};
-        return {type,layout,photos,background,paper,ink,accent,serif,titleStyle,
+        return withComposition({type,layout,photos,background,paper,ink,accent,serif,titleStyle,
             ...yearStyle,
             reason: type === 'multi' ? '여러 장면을 한 면에 모아 주제의 흐름을 보여줍니다.'
                 : type === 'full' ? '대표 장면을 표지 전체로 펼쳐 첫인상을 만듭니다.'
                 : type === 'illustration' ? '사진 없이 도형과 장식으로 주제를 표현합니다.'
                 : type === 'type' ? '제목과 연도를 중심에 두고 여백을 살립니다.'
                 : type === 'graphic' ? '사진을 중심에 두고 색과 장식으로 테마를 드러냅니다.'
-                : '사진과 제목이 각각 잘 읽히도록 공간을 배분합니다.'};
+                : '사진과 제목이 각각 잘 읽히도록 공간을 배분합니다.'});
     }
 
     // The designer currently uses a 4:3 desk-cover canvas and a 2027 calendar.
@@ -154,5 +176,5 @@
             yearArt: { year, digits, stroke, round, form, font, colorMode, preferences: {color:colorPreference, form:formPreference}, orbit: Math.round(Math.random() * numericCanvas.width) } };
     }
 
-    window.ACDLDesignerCoverGenerator = Object.freeze({coverTypes, coverLayouts, coverBackgrounds, coverTitleStyles, numericCanvas, recommendCover});
+    window.ACDLDesignerCoverGenerator = Object.freeze({coverTypes, coverLayouts, coverBackgrounds, coverTitleStyles, numericCanvas, recommendCover, resolveCoverComposition});
 })();

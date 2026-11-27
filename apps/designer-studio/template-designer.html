@@ -528,10 +528,10 @@
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
-    <script src="./template-designer/year-style.js?v=20261127.1"></script>
-    <script src="./template-designer/cover-generator.js?v=20261127.1"></script>
-    <script src="./template-designer/page-layout-generator.js?v=20261127.1"></script>
-    <script src="./template-designer/theme-copy-generator.js?v=20261127.1"></script>
+    <script src="./template-designer/year-style.js?v=20261127.2"></script>
+    <script src="./template-designer/cover-generator.js?v=20261127.2"></script>
+    <script src="./template-designer/page-layout-generator.js?v=20261127.2"></script>
+    <script src="./template-designer/theme-copy-generator.js?v=20261127.2"></script>
     <script>
         // --- 1. MULTI-TEMPLATE SETS REGISTRY ---
         const CALENDAR_SETS_REGISTRY = [
@@ -793,7 +793,7 @@
 
 
 
-        const {coverTypes, coverLayouts, coverBackgrounds, coverTitleStyles, numericCanvas, recommendCover} = window.ACDLDesignerCoverGenerator;
+        const {coverTypes, coverLayouts, coverBackgrounds, coverTitleStyles, numericCanvas, recommendCover, resolveCoverComposition} = window.ACDLDesignerCoverGenerator;
         const {yearLayouts, yearFills, digitPaths, usesDigitTiles, renderYearTypography} = window.ACDLDesignerYearStyle;
 
         function renderNumericCover(item, design) {
@@ -842,7 +842,7 @@
             return '<span role="img" aria-label="이미지 샘플 ' + (index + 1) + '" class="block aspect-[4/3] w-[58%] max-h-full opacity-80" style="--sample-accent:' + color + ';background:' + variants[index % variants.length] + '"></span>';
         }
 
-        const {frontThemeAreas, backThemeAreas, draftRecommendations, generatePageLayout, monthlyComposition} = window.ACDLDesignerPageLayout;
+        const {frontThemeAreas, backThemeAreas, draftRecommendations, generatePageLayout, pageComposition} = window.ACDLDesignerPageLayout;
         const monthlyTheme = item => item.theme_text?.trim() || (item.memo_title !== '메모' && item.memo_title) || item.title;
 
         function yearPhoto(cover, index) {
@@ -872,23 +872,25 @@
                 : titleStyle === 'stacked' ? name + year + label + subtitle
                 : '<span class="font-sans tracking-[0.16em]" style="font-size:2.15cqw">2027 CALENDAR</span>' + name + subtitle;
             const title = '<div class="relative z-10 grid min-w-0 gap-1 break-words" data-cover-title-style="' + titleStyle + '">' + heading + '</div>';
-            const frames = Array.from({length:theme.photos}, (_,i) => frame(i+1));
+            const composition = resolveCoverComposition(theme);
+            const frames = Array.from({length:composition.photoCount}, (_,i) => frame(i+1));
+            const columns = composition.columns?.map(track => track + 'fr').join(' ');
             const grid = (columns, contents) => '<div class="grid min-h-0 gap-1" style="grid-template-columns:repeat(' + columns + ',minmax(0,1fr))">' + contents.join('') + '</div>';
             let body;
-            switch (theme.layout) {
+            switch (composition.layout) {
                 case 'full': body = '<div class="absolute inset-0 grid">' + frames[0] + '</div><div class="absolute bottom-4 left-4 max-w-[80%] bg-white/90 p-2">' + title + '</div>'; break;
                 case 'splitSide':
-                case 'graphicSide': body = '<div class="grid min-h-0 grid-cols-[2fr_1fr] items-center gap-3"><div class="grid h-full">' + frames[0] + '</div>' + title + '</div>'; break;
-                case 'surround': body = grid(3,[...frames.slice(0,4),'<div class="grid place-items-center text-center">' + title + '</div>',...frames.slice(4)]); break;
-                case 'feature': body = title + '<div class="grid min-h-0 grid-cols-[2fr_1fr] gap-1">' + frames[0] + grid(1,frames.slice(1)) + '</div>'; break;
-                case 'row': body = title + grid(theme.photos,frames); break;
-                case 'grid': body = title + grid(2,frames); break;
+                case 'graphicSide': body = '<div class="grid min-h-0 items-center gap-3" style="grid-template-columns:' + columns + '"><div class="grid h-full">' + frames[0] + '</div>' + title + '</div>'; break;
+                case 'surround': body = grid(composition.gridColumns,[...frames.slice(0,composition.titleSlot),'<div class="grid place-items-center text-center">' + title + '</div>',...frames.slice(composition.titleSlot)]); break;
+                case 'feature': body = title + '<div class="grid min-h-0 gap-1" style="grid-template-columns:' + columns + '">' + frames[0] + grid(1,frames.slice(1)) + '</div>'; break;
+                case 'row': body = title + grid(composition.gridColumns,frames); break;
+                case 'grid': body = title + grid(composition.gridColumns,frames); break;
                 case 'illustration': body = title + (illustrationSource(item.illustration_image) ? frame(1) : '<div aria-hidden="true" class="grid grid-cols-3 items-center gap-2 opacity-80"><span class="aspect-square rounded-full" style="background:var(--accent)"></span><span class="aspect-square rotate-12 rounded-lg bg-current"></span><span class="aspect-square rounded-t-full border-4 border-current"></span></div>'); break;
                 case 'type':
                     if (theme.yearLayout) { body = renderYearTypography(item,theme,{yearPhoto,escapeHtml}); break; }
                     body = '<div class="self-center justify-self-center rounded border border-current p-4 text-center">' + title + '</div>'; break;
-                case 'center': body = title + '<div class="mx-auto grid w-2/3">' + frames[0] + '</div>'; break;
-                case 'decorated': body = title + '<div class="mx-auto grid w-3/4 border-4 border-white/70">' + frames[0] + '</div>'; break;
+                case 'center': body = title + '<div class="mx-auto grid" style="width:' + composition.photoWidth * 100 + '%">' + frames[0] + '</div>'; break;
+                case 'decorated': body = title + '<div class="mx-auto grid border-4 border-white/70" style="width:' + composition.photoWidth * 100 + '%">' + frames[0] + '</div>'; break;
                 default: body = title + frames[0];
             }
             const backgrounds = {
@@ -901,7 +903,7 @@
             return '<div class="relative grid h-full w-full min-h-0 gap-2 overflow-hidden p-4 ' + (theme.serif ? 'font-serif' : 'font-sans') + (theme.type === 'type' && theme.yearLayout === 'crop' ? ' cover-year-crop' : '') +
                 '" style="--year-ink:' + theme.ink + ';--accent:' + theme.accent + ';container-type:inline-size;background-color:' + theme.paper + ';color:' + theme.ink + ';background-image:' +
                 backgrounds[theme.background] + ';background-size:' + (theme.background==='pattern' ? '12px 12px' : 'cover') +
-                ';grid-template-rows:' + (['full','splitSide','graphicSide','surround','type'].includes(theme.layout) ? 'minmax(0,1fr)' : 'auto minmax(0,1fr)') + '">' + body + '</div>';
+                ';grid-template-rows:' + composition.rows.map(track => track === 'auto' ? track : 'minmax(0,' + track + 'fr)').join(' ') + '">' + body + '</div>';
         }
 
         function buildDesignerDraft(values, id) {
@@ -1457,12 +1459,12 @@
             const month = item.month;
             const index = month === 0 ? 0 : month === 13 ? 26 : month * 2;
             const page = selectedPage ?? dataset.draft_layout.pages[index + Number(backFace)];
-            const composition = monthlyComposition(page);
-            if (dataset.design_preset === 'habits' && page.layout === 'annual') return '<div class="habit-page">' + renderHabitAnnual(dataset) + '</div>';
-            if (dataset.design_preset === 'habits' && page.role === 'back-cover') return `<div class="habit-page"><div class="habit-face habit-end">${habitMarks(1)}<h2>${escapeHtml(dataset.back_cover?.title)}</h2><small>2027</small></div></div>`;
-            if (dataset.design_preset === 'habits' && page.role === 'cover') return '<div class="habit-page">' + renderHabitCover(item) + '</div>';
+            const composition = pageComposition(page, dataset.design_preset);
+            if (composition?.arrangement === 'habit-annual') return '<div class="habit-page">' + renderHabitAnnual(dataset) + '</div>';
+            if (composition?.arrangement === 'habit-ending') return `<div class="habit-page"><div class="habit-face habit-end">${habitMarks(1)}<h2>${escapeHtml(dataset.back_cover?.title)}</h2><small>2027</small></div></div>`;
+            if (composition?.arrangement === 'habit-cover') return '<div class="habit-page">' + renderHabitCover(item) + '</div>';
             if (composition?.arrangement === 'habit-tracker') return '<div class="habit-page">' + renderHabitTracker(item,dataset.habit_rows) + '</div>';
-            if (dataset.design_preset === 'habits' && page.role === 'month-front' && page.layout === '2') return '<div class="habit-page">' + renderHabitFront(item) + '</div>';
+            if (composition?.arrangement === 'habit-month') return '<div class="habit-page">' + renderHabitFront(item) + '</div>';
             if (page.role === 'cover' && dataset.design_preset === 'numbers' && item.cover_design) {
                 const cover = renderRecommendedCover({...item,title:'',cover_subtitle:''},{...item.cover_design,titleStyle:'year'});
                 if (cover) return cover.replace(/>CALENDAR<\/span>/,'></span>');
@@ -1487,7 +1489,7 @@
                     return day < 1 || day > count ? '<span></span>' : '<span'+(mode === 'daily-memo' ? ' class="memo-day"' : '')+'>'+day+'</span>';
                 }).join('')}</div>`;
             };
-            if (['inside-front','inside-back'].includes(page.role) && page.layout === 'annual' && dataset.design_preset === 'numbers') {
+            if (composition?.arrangement === 'number-annual') {
                 return `<div class="number-page number-annual" aria-label="${year} 연력">
                     <svg class="number-annual-year" aria-hidden="true" viewBox="0 0 400 300" preserveAspectRatio="none">
                         <text x="200" y="211" text-anchor="middle" textLength="372" lengthAdjust="spacingAndGlyphs" fill="currentColor" font-family="Georgia, serif" font-size="178" font-weight="700">${year}</text>
@@ -1529,12 +1531,12 @@
                     break;
                 case 'inside-front':
                 case 'inside-back':
-                    label = page.layout === 'annual' ? '연력' : '스케줄러';
-                    body = `<div class="grid h-full grid-cols-4 grid-rows-3 gap-1">${dataset.months.map((monthItem,i) => {
-                        if (page.layout === 'annual') return grid(i+1,true);
+                    label = composition.arrangement === 'annual' ? '연력' : '스케줄러';
+                    body = `<div class="grid h-full gap-1" style="grid-template-columns:repeat(${composition.columns},minmax(0,1fr));grid-template-rows:repeat(${composition.rows},minmax(0,1fr))">${dataset.months.map((monthItem,i) => {
+                        if (composition.arrangement === 'annual') return grid(i+1,true);
                         const name = new Intl.DateTimeFormat('en',{month:'short',timeZone:'UTC'}).format(new Date(Date.UTC(year,i)));
-                        const dates = (Array.isArray(monthItem.events) ? monthItem.events : []).slice(0,3);
-                        return `<div class="${box} grid grid-rows-[auto_auto_repeat(3,minmax(0,1fr))] overflow-hidden" style="font-size:2cqw"><b>${i+1}월 ${name.toUpperCase()}</b>${topic('scheduler-card',monthItem)}${Array.from({length:3},(_,line) => {
+                        const dates = (Array.isArray(monthItem.events) ? monthItem.events : []).slice(0,composition.entriesPerMonth);
+                        return `<div class="${box} grid overflow-hidden" style="font-size:2cqw;grid-template-rows:auto auto repeat(${composition.entriesPerMonth},minmax(0,1fr))"><b>${i+1}월 ${name.toUpperCase()}</b>${topic('scheduler-card',monthItem)}${Array.from({length:composition.entriesPerMonth},(_,line) => {
                             const event = dates[line];
                             const label = typeof event === 'string' ? event : [event?.date,event?.title].filter(Boolean).join(' ');
                             return '<div class="truncate border-b border-current/20">' + escapeHtml(label) + '</div>';
@@ -2423,7 +2425,7 @@
             if (set.draft_layout !== undefined) {
                 const layout = set.draft_layout;
                 if (!isRecord(layout) || months.length !== 12) throw new Error('28면 시안 구성을 확인해 주세요.');
-                const expected = generatePageLayout({ title: set.title,
+                const expected = generatePageLayout({ title: set.title, preset:set.design_preset,
                     insideFront: layout.inside_front, insideBack: layout.inside_back,
                     front: layout.month_front, back: layout.month_back, imageCount: layout.image_count, imageCountMode: layout.image_count_mode
                 }, set.set_id).draftLayout;

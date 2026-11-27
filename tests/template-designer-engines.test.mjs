@@ -58,9 +58,9 @@ test('monthly compositions are saved and legacy pages resolve to the same elemen
             for (const page of draftLayout.pages.slice(2,26)) {
                 const {composition, ...legacyPage} = page;
                 assert.ok(composition.main.length > 0);
-                assert.deepEqual(layout.monthlyComposition(legacyPage), composition);
+                assert.deepEqual(layout.pageComposition(legacyPage), composition);
                 const saved = JSON.parse(JSON.stringify(page));
-                assert.equal(layout.monthlyComposition(saved), saved.composition);
+                assert.equal(layout.pageComposition(saved), saved.composition);
             }
         }
     }
@@ -69,4 +69,23 @@ test('monthly compositions are saved and legacy pages resolve to the same elemen
     assert.equal(draftLayout.pages[3].composition.tracks.join(','), '1,auto');
     assert.equal(draftLayout.pages[3].composition.main.join(','), 'images,date-strip,caption');
     assert.equal(draftLayout.pages[3].composition.imageCount, 2);
+});
+
+test('cover, annual and scheduler compositions support stored and pre-upgrade drafts', () => {
+    const {ACDLDesignerCoverGenerator: covers, ACDLDesignerPageLayout: layout} = engines();
+    const cover = covers.recommendCover({title:'여행', coverType:'split', coverCount:1}, 0);
+    assert.equal(cover.composition.columns.join(':'), '2:1');
+    const {composition, ...legacyCover} = cover;
+    assert.deepEqual(covers.resolveCoverComposition(legacyCover), composition);
+    assert.equal(covers.recommendCover({title:'숫자형', coverType:'numeric'}).composition.areas[0], 'year-art');
+    const values = {title:'기록 달력', insideFront:'annual', insideBack:'scheduler', front:'2', back:'5'};
+    for (const [preset, annual] of [['','annual'], ['numbers','number-annual'], ['habits','habit-annual']]) {
+        const {draftLayout} = layout.generatePageLayout({...values, preset}, 'layout-test');
+        assert.equal(draftLayout.pages[1].composition.arrangement, annual);
+        assert.equal(draftLayout.pages[26].composition.entriesPerMonth, 3);
+        for (const page of draftLayout.pages) {
+            const {composition, ...legacyPage} = page;
+            assert.deepEqual(layout.pageComposition(legacyPage, preset), composition);
+        }
+    }
 });
