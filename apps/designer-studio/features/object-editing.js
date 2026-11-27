@@ -432,10 +432,11 @@ function userImageFitStyle(item){
 }
 function renderSemanticObject(item){
  const raw=semanticData(item),d={...raw,name:escapeAttr(raw.name||""),description:escapeAttr(raw.description||""),image:escapeAttr(raw.image||"")},titleOverride=escapeAttr(item.titleOverride||""),layout=item.layoutPreset||"image-top",role=item.role;
+ const buildingBackground=role==="school-building"?' style="background:transparent!important"':"";
  const edgeSize=item.style?.softEdgePt;
  const edgeMask=role==="school-building"&&d.image&&Number(edgeSize)>0?photoEdgeMask(item,"rect",edgeSize):"";
- const mediaStyle=edgeMask?` style="mask-image:${edgeMask};mask-size:100% 100%;mask-repeat:no-repeat"`:"";
- if(layout==="image-only"&&(["school-tree","school-flower"].includes(role)||(item.showTitle===false&&item.showCaption===false)))return `<div class="semantic-object semantic-logo"><div class="semantic-media"${mediaStyle}>${d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)}" style="${userImageFitStyle(item)}">`:""}</div></div>`;
+ const mediaStyle=edgeMask?` style="background:transparent!important;mask-image:${edgeMask};mask-size:100% 100%;mask-repeat:no-repeat"`:buildingBackground;
+ if(layout==="image-only"&&(["school-tree","school-flower"].includes(role)||(item.showTitle===false&&item.showCaption===false)))return `<div class="semantic-object semantic-logo"${buildingBackground}><div class="semantic-media"${mediaStyle}>${d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)}" style="${userImageFitStyle(item)}">`:""}</div></div>`;
  const image=d.image?`<img src="${d.image}" alt="${semanticRoleLabel(role)} 이미지" style="${userImageFitStyle(item)}">`:`<span class="semantic-empty-visual non-output editor-only" aria-label="${semanticRoleLabel(role)} 이미지 슬롯"></span>`;
  const align=["left","center","right"].includes(item.style?.textAlign)?item.style.textAlign:"center";
  if(role==="school-motto"&&d.image)return `<div class="semantic-object semantic-motto"><div class="semantic-media"${mediaStyle}>${image}</div></div>`;
@@ -446,11 +447,11 @@ function renderSemanticObject(item){
  }
  if(layout==="desk-six-symbol-card"){
   if(role==="school-motto")return `<div class="semantic-object desk-six-symbol-card semantic-motto"><strong style="font-size:${item.style?.titleSize||15}px">${titleOverride||d.name||"교훈"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
-  return `<div class="semantic-object desk-six-symbol-card ${role==="school-song"?"semantic-song":""}">${title}<div class="semantic-media"${mediaStyle}>${image}</div>${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||8}px">${d.description||""}</p>`}</div>`
+  return `<div class="semantic-object desk-six-symbol-card ${role==="school-song"?"semantic-song":""}"${buildingBackground}>${title}<div class="semantic-media"${mediaStyle}>${image}</div>${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||8}px">${d.description||""}</p>`}</div>`
  }
  if(role==="school-motto")return `<div class="semantic-object semantic-motto"><strong style="font-size:${item.style?.titleSize||18}px">${titleOverride||d.name||"교훈"}</strong><p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p></div>`;
  if(role==="school-song")return `<div class="semantic-object semantic-song"><div class="semantic-media"${mediaStyle}>${image}</div><div class="semantic-copy" style="width:100%;text-align:${align}">${title}${item.showCaption===false?"":`<p style="text-align:${align};font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p>`}</div></div>`;
- return `<div class="semantic-object ${layout==="image-left"?"semantic-layout-row":""}"><div class="semantic-media"${mediaStyle}>${image}</div>${item.showCaption===true||showTitle?`<div class="semantic-copy" style="text-align:${item.style?.textAlign||"center"}">${title}${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p>`}</div>`:""}</div>`
+ return `<div class="semantic-object ${layout==="image-left"?"semantic-layout-row":""}"${buildingBackground}><div class="semantic-media"${mediaStyle}>${image}</div>${item.showCaption===true||showTitle?`<div class="semantic-copy" style="text-align:${item.style?.textAlign||"center"}">${title}${item.showCaption===false?"":`<p style="font-size:${item.style?.descriptionSize||11}px">${d.description||""}</p>`}</div>`:""}</div>`
 }
 function pageRecommendations(p){
  if(p.role==="cover-front")return ["school-building","school-logo"];

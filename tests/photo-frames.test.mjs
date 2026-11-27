@@ -18,3 +18,11 @@ test('soft edges use the authored opening and physical frame dimensions', () => 
   assert.ok(mask.includes(m.get('hexagon').path));
   assert.match(mask, /stdDeviation="0.706 1.411"/);
 });
+
+test('school-building frames let the page show through the image mask', () => {
+  const style = {background: true, backgroundColor: '#ffffff'};
+  assert.equal(m.background(style, {image: {binding: 'school.profile.building'}}), 'transparent');
+  assert.equal(m.background(style, {role: 'school-building'}), 'transparent');
+  assert.equal(m.background(style, {binding: 'school.profile.building'}), 'transparent');
+  assert.equal(m.background(style, {image: {binding: 'school.profile.logo'}}), '#ffffff');
+});

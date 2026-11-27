@@ -31,7 +31,8 @@
  const clips=Object.fromEntries(catalog.map(f=>[f.id,'polygon('+points(f.path).map(([x,y])=>`${x.toFixed(3)}% ${y.toFixed(3)}%`).join(',')+')']));
  const clip=id=>clips[get(id).id];
  function outline(id,color='#ffffff',width=3){color=/^#[0-9a-f]{3,8}$/i.test(color)?color:'transparent';width=Math.max(0,Math.min(20,Number(width)||0));return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" aria-hidden="true"><path d="${get(id).path}" fill="none" stroke="${color}" stroke-width="${width*2}" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;}
- function background(style={}){const value=style.background;return value===false||value==='transparent'?'transparent':value===true?(style.backgroundColor||'#eef2f7'):typeof value==='string'&&/^#[0-9a-f]{3,8}$/i.test(value)?value:'#eef2f7';}
+ function isSchoolBuilding(frame){return frame?.role==='school-building'||frame?.binding==='school.profile.building'||frame?.image?.binding==='school.profile.building';}
+ function background(style={},frame){if(isSchoolBuilding(frame))return 'transparent';const value=style.background;return value===false||value==='transparent'?'transparent':value===true?(style.backgroundColor||'#eef2f7'):typeof value==='string'&&/^#[0-9a-f]{3,8}$/i.test(value)?value:'#eef2f7';}
  function softEdgeSize(value,max=80){return Math.max(0,Math.min(max,Number(value)||0));}
  function edgeMask(id,value,widthMm,heightMm){
   const size=softEdgeSize(value);
@@ -53,7 +54,7 @@
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><defs><filter id="fade" x="0" y="0" width="100" height="100" filterUnits="userSpaceOnUse"><feMorphology operator="erode" radius="${x} ${y}"/><feGaussianBlur stdDeviation="${x} ${y}"/></filter></defs><path d="${get(id).path}" fill="white" filter="url(#fade)"/></svg>`;
   return `url('data:image/svg+xml,${encodeURIComponent(svg)}')`;
  }
- root.ACDLPhotoFrameModel=Object.freeze({catalog,get,clip,outline,background,softEdgeSize,edgeMask});
+ root.ACDLPhotoFrameModel=Object.freeze({catalog,get,clip,outline,background,isSchoolBuilding,softEdgeSize,edgeMask});
 })(globalThis);
 
 
