@@ -76,6 +76,21 @@ const posterArrangements=[
  ['poster-cells','3×4 · 날짜 칸 일정형'],
 ] as const;
 
+function WallColumnDividerTools({settings,onChange,allPages=false}:{settings:Record<string,unknown>;onChange:Props['onCalendar'];allPages?:boolean}){
+ const update=(key:string,value:string|number)=>onChange?.({[key]:value},allPages);
+ return <details className="editor-tool-card">
+  <summary>월 배열 · 전체 월력 공통</summary>
+  <fieldset>
+   <legend>월력 세로 구분선</legend>
+   <label>색상<input type="color" value={String(settings.columnDividerColor)} onChange={e=>update('columnDividerColor',e.target.value)}/></label>
+   <label>두께 (mm)<input type="number" min="0" max="2" step="0.01" value={Number(settings.columnDividerMm)} onChange={e=>{const n=e.target.valueAsNumber;if(n>=0&&n<=2)update('columnDividerMm',n);}}/></label>
+   <label>불투명도 (%)<input type="number" min="0" max="100" step="any" value={Number(settings.columnDividerOpacity)} onChange={e=>{const n=e.target.valueAsNumber;if(n>=0&&n<=100)update('columnDividerOpacity',n);}}/></label>
+   <label>선 종류<select value={String(settings.columnDividerStyle)} onChange={e=>update('columnDividerStyle',e.target.value)}><option value="solid">실선</option><option value="dotted">점선</option><option value="dashed">파선</option></select></label>
+   <p className="field-hint">두께가 0 mm이면 표시하지 않습니다.</p>
+  </fieldset>
+ </details>;
+}
+
 function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflow}:PosterToolsProps){
  const sample=templateName?.match(/샘플\s*([EFG])\b/i)?.[1].toUpperCase();
  if(!sample)return <LegacyPosterCalendarTools project={project} item={item} onChange={onChange}/>;
@@ -134,6 +149,7 @@ function PosterCalendarTools({project,item,onChange,templateName,scheduleOverflo
    {!isG&&checkbox('월별 일정 목록 자동 맞춤','listAutoFit',settings.listAutoFit===true,cells)}
    {cells&&<p className="schedule-sizing-help">일정이 잘리면 글자 크기나 {textOnly?'줄 높이':'영역 높이'}를 줄여 보세요.</p>}
   </details>
+  <WallColumnDividerTools settings={settings} onChange={onChange}/>
  </div>;
 }
 
@@ -176,6 +192,7 @@ function LegacyPosterCalendarTools({project,item,onChange}:{project:NativeProjec
    <label className="poster-calendar-checkbox"><input type="checkbox" checked={settings.includeHolidays!==false} onChange={e=>update({scheduleHolidays:e.target.checked})}/>공휴일 포함</label>
   </details>
   <label className="editor-tool-card poster-calendar-checkbox"><input type="checkbox" disabled={!multiple} checked={multiple&&allPages} onChange={e=>setAllPages(e.target.checked)}/>다른 페이지의 전체 월력에도 적용</label>
+  <WallColumnDividerTools settings={settings} onChange={onChange} allPages={multiple&&allPages}/>
  </div>;
 }
 
