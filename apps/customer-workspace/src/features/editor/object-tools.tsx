@@ -105,7 +105,7 @@ function TextStyleFields({style,theme,onChange}:{style:Omit<TextStyle,'backgroun
 
 function FrameStyleFields({item,theme,onChange}:{item:NativeProject|undefined;theme?:string[];onChange:(patch:FrameStyle)=>void}){
  const style=item?.style||{};
- const background=photoFrameModel.background(style);
+ const background=photoFrameModel.background(style,item);
  const shadowColor=style.shadowColor||'#000000';
  const fields={
   strokeWidth:{label:'테두리 두께',max:20,defaultValue:item?.role==='school-logo'||item?.image?.binding==='school.profile.logo'||item?.binding==='school.profile.logo'?0:3},
@@ -125,10 +125,10 @@ function FrameStyleFields({item,theme,onChange}:{item:NativeProject|undefined;th
   <label className="editor-frame-form">프레임 형태<select value={photoFrameModel.catalog.some(option=>option.id===item?.frameType)?item?.frameType:'rect'} onChange={event=>onChange({frameType:event.target.value})}>
    {photoFrameModel.catalog.map(option=><option key={option.id} value={option.id}>{option.name}</option>)}
   </select></label>
-  <div className="editor-frame-grid">
+  {photoFrameModel.isSchoolBuilding(item)?<p>배경색 없음</p>:<div className="editor-frame-grid">
    <div className="editor-frame-color-field">배경색<ColorPalette allowAlpha allowNone label="프레임 배경색" value={background} theme={theme} onChange={color=>onChange({background:color==='transparent'?false:color})}/></div>
    <label className="editor-style-check">배경색 없음 <input type="checkbox" checked={background==='transparent'} onChange={event=>onChange({background:event.target.checked?false:style.backgroundColor||'#eef2f7'})}/></label>
-  </div>
+  </div>}
   <div className="editor-frame-section">
    <div className="editor-frame-grid">
     <div className="editor-frame-color-field">테두리 색<ColorPalette allowAlpha label="테두리 색" value={style.stroke||'#ffffff'} theme={theme} onChange={stroke=>onChange({stroke})}/></div>
