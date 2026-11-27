@@ -82,6 +82,10 @@ function TextStyleFields({style,theme,onChange}:{style:Omit<TextStyle,'backgroun
   </div>
   <div className="editor-font-background">
    <strong>외곽선</strong>
+   <label>위치<select value={style.strokeAlignment??'center'} onChange={e=>onChange({strokeAlignment:e.target.value==='outside'?'outside':'center'})}>
+    <option value="center">가운데</option>
+    <option value="outside">바깥쪽</option>
+   </select></label>
    <div className="editor-font-grid">
     {numberField('strokeWidth','두께(px)',0,0,10,.1)}
     <div className="editor-font-color">색상<ColorPalette allowAlpha label="외곽선 색상" value={style.strokeColor||'#ffffff'} theme={theme} onChange={strokeColor=>onChange({strokeColor})}/></div>

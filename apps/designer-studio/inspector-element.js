@@ -39,6 +39,9 @@
       item.style.backgroundColor = values.backgroundColor || '#ffffff';
       item.style.strokeWidth = clamp(finite(values.strokeWidth, item.style.strokeWidth || 0), 0, 10);
       item.style.strokeColor = values.strokeColor || '#ffffff';
+      if (values.strokeAlignment !== undefined) {
+        item.style.strokeAlignment = values.strokeAlignment === 'outside' ? 'outside' : 'center';
+      }
       item.style.shadow = Boolean(values.shadow);
       item.style.shadowX = clamp(finite(values.shadowX, item.style.shadowX || 0), -50, 50);
       item.style.shadowY = clamp(finite(values.shadowY, item.style.shadowY || 0), -50, 50);

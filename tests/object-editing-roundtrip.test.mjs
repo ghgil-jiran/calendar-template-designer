@@ -82,11 +82,17 @@ test('final canvas renderer applies saved rotation to text, photos and widgets w
 });
 test('cataloged underline and rounded-corner values reach the authoring renderer after serialization',()=>{
  const c=context();c.project.productType={pageSize:{width:260,height:180}};
- const textSource=read('features/object-editing.js'),ts=textSource.indexOf('function applyTextElementStyles('),te=textSource.indexOf('\nfunction ',ts+1);
+ const textSource=read('features/object-editing.js'),ts=textSource.indexOf('function applyTextOutline('),te=textSource.indexOf('\nfunction ',textSource.indexOf('function applyTextElementStyles(')+1);
  vm.runInContext(textSource.slice(ts,te),c);
- const view={type:'text',style:{fontSize:12,textDecoration:'underline',textDecorationColor:'#c46b62',textDecorationThickness:3,textUnderlineOffset:2}};
+ const view={type:'text',style:{fontSize:12,textDecoration:'underline',textDecorationColor:'#c46b62',textDecorationThickness:3,textUnderlineOffset:2,strokeWidth:3,strokeColor:'#ffffff',strokeAlignment:'outside'}};
  c.project.book.elementsByPage.p=[view];const saved=c.ACDLPersistenceProject.serialize(c.project);c.project=c.ACDLPersistenceProject.deserialize(saved);
  const node={style:{setProperty(){}}};c.applyTextElementStyles(node,c.project.book.elementsByPage.p[0]);
+ assert.equal(node.style.webkitTextStroke,'6px #ffffff');
+ assert.equal(node.style.paintOrder,'stroke fill');
+ delete c.project.book.elementsByPage.p[0].style.strokeAlignment;
+ c.applyTextElementStyles(node,c.project.book.elementsByPage.p[0]);
+ assert.equal(node.style.webkitTextStroke,'3px #ffffff');
+ assert.equal(node.style.paintOrder,'normal');
  assert.equal(node.style.textDecorationColor,'#c46b62');assert.equal(node.style.textDecorationThickness,'3px');assert.equal(node.style.textUnderlineOffset,'2px');
  const src=read('features/studio-runtime-core.js'),ss=src.indexOf('function shapeSVG('),se=src.indexOf('\nfunction ',ss+1);vm.runInContext(src.slice(ss,se),c);
  const svg=c.shapeSVG('rounded','#fff','#000',0,null,{radiusMm:3,widthMm:60,heightMm:20});

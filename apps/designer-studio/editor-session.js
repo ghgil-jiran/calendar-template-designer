@@ -86,13 +86,14 @@
     ||v.letterSpacing!==undefined&&!validRange(v.letterSpacing,-20,100)
     ||v.lineHeight!==undefined&&!validRange(v.lineHeight,.5,4)
     ||v.opacity!==undefined&&!validRange(v.opacity,0,1)
+    ||v.strokeAlignment!==undefined&&!['center','outside'].includes(v.strokeAlignment)
     ||v.strokeWidth!==undefined&&!validRange(v.strokeWidth,0,10)
     ||v.shadow!==undefined&&typeof v.shadow!=='boolean'
     ||v.shadowX!==undefined&&!validRange(v.shadowX,-50,50)
     ||v.shadowY!==undefined&&!validRange(v.shadowY,-50,50)
     ||v.shadowBlur!==undefined&&!validRange(v.shadowBlur,0,50)
     ||[v.strokeColor,v.shadowColor].some(color=>color!==undefined&&(typeof color!=='string'||!/^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(color))))throw Error('글자 스타일을 확인해 주세요.');
-    if(Object.keys(v).some(k=>!['fontFamily','fontSize','fontWeight','color','backgroundColor','fontStyle','textDecoration','textAlign','verticalAlign','letterSpacing','lineHeight','opacity','background','strokeWidth','strokeColor','shadow','shadowX','shadowY','shadowBlur','shadowColor'].includes(k))||v.fontFamily!==undefined&&(typeof v.fontFamily!=='string'||v.fontFamily.length>100||/[;{}<>\n]/.test(v.fontFamily))||v.fontSize!==undefined&&(!Number.isFinite(v.fontSize)||v.fontSize<1||v.fontSize>240)||v.fontStyle!==undefined&&!['normal','italic'].includes(v.fontStyle)||v.textDecoration!==undefined&&!['none','underline','line-through','underline line-through'].includes(v.textDecoration)||v.fontWeight!==undefined&&!validRange(v.fontWeight,100,900)||v.color!==undefined&&!/^#[a-f0-9]{6}(?:[a-f0-9]{2})?$/i.test(v.color))throw Error('글자 스타일을 확인해 주세요.');}
+    if(Object.keys(v).some(k=>!['fontFamily','fontSize','fontWeight','color','backgroundColor','fontStyle','textDecoration','textAlign','verticalAlign','letterSpacing','lineHeight','opacity','background','strokeAlignment','strokeWidth','strokeColor','shadow','shadowX','shadowY','shadowBlur','shadowColor'].includes(k))||v.fontFamily!==undefined&&(typeof v.fontFamily!=='string'||v.fontFamily.length>100||/[;{}<>\n]/.test(v.fontFamily))||v.fontSize!==undefined&&(!Number.isFinite(v.fontSize)||v.fontSize<1||v.fontSize>240)||v.fontStyle!==undefined&&!['normal','italic'].includes(v.fontStyle)||v.textDecoration!==undefined&&!['none','underline','line-through','underline line-through'].includes(v.textDecoration)||v.fontWeight!==undefined&&!validRange(v.fontWeight,100,900)||v.color!==undefined&&!/^#[a-f0-9]{6}(?:[a-f0-9]{2})?$/i.test(v.color))throw Error('글자 스타일을 확인해 주세요.');}
    if(edit.fontSize!==undefined&&(!Number.isFinite(edit.fontSize)||edit.fontSize<1||edit.fontSize>240))throw Error('글자 크기를 확인해 주세요.');
    if(edit.fit){if(Object.keys(edit.fit).some(k=>!['fit','scale','offsetX','offsetY'].includes(k)))throw Error('알 수 없는 사진 맞춤 항목이에요.');if(!['cover','contain'].includes(edit.fit.fit)||!Number.isFinite(edit.fit.scale)||edit.fit.scale<.1||edit.fit.scale>10||!Number.isFinite(edit.fit.offsetX)||Math.abs(edit.fit.offsetX)>100||!Number.isFinite(edit.fit.offsetY)||Math.abs(edit.fit.offsetY)>100)throw Error('사진 맞춤 값을 확인해 주세요.');}
   }
