@@ -11,7 +11,9 @@ test('soft edges use the authored opening and physical frame dimensions', () => 
   assert.equal(m.edgeMask('rect', 0, 100, 50), '');
   assert.equal(m.edgeMask('rect', 6, 0, 50), '');
   assert.equal(m.softEdgeSize(-1), 0);
-  assert.equal(m.softEdgeSize(100), 50);
+  assert.equal(m.softEdgeSize(100), 80);
+  assert.equal(m.softEdgeSize(100, 50), 50);
+  assert.notEqual(m.edgeMask('rect', 50, 100, 100), m.edgeMask('rect', 80, 100, 100));
   const mask = decodeURIComponent(m.edgeMask('hexagon', 6, 100, 50));
   assert.ok(mask.includes(m.get('hexagon').path));
   assert.match(mask, /stdDeviation="0.706 1.411"/);

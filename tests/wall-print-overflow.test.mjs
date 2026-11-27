@@ -25,3 +25,19 @@ test('list overflow names the month; fitting regions pass without hiding content
  assert.throws(()=>wall.assertFits({querySelectorAll:selector=>selector==='[data-wall-region]'?[node('list',{contentWidth:40})]:[]}),/2027-08 일정 목록/);
  const n=node('day');assert.deepEqual(wall.assertFits({querySelectorAll:selector=>selector==='[data-wall-region]'?[n]:[]}),[]);assert.equal(n.dataset.wallOverflow,'false');
 });
+
+test('split date-only cells use the visible numeral bounds even when the line box exceeds the cell',()=>{
+ const n=node('day',{height:13,contentHeight:16,date:'2027-05-31'});
+ let baseline=10;
+ const digit={textContent:'31',getBoundingClientRect:()=>({left:8}),append(){}};
+ const marker={style:{},getBoundingClientRect:()=>({top:baseline}),remove(){}};
+ const ink={actualBoundingBoxAscent:9,actualBoundingBoxDescent:1,actualBoundingBoxLeft:0,actualBoundingBoxRight:14};
+ Object.assign(n,{offsetWidth:30,offsetHeight:13,querySelector:()=>digit,hasAttribute:()=>true,
+  getBoundingClientRect:()=>({left:0,right:30,top:0,bottom:13,width:30,height:13}),
+  ownerDocument:{createElement:tag=>tag==='canvas'?{getContext:()=>({measureText:()=>ink})}:marker,
+   defaultView:{getComputedStyle:()=>({font:'bold 14px sans-serif'})}}});
+ const scope={querySelectorAll:selector=>selector==='[data-wall-region]'?[n]:[]};
+ assert.deepEqual(wall.assertFits(scope),[]);
+ baseline=13;
+ assert.throws(()=>wall.assertFits(scope),/2027-05-31 날짜 칸/);
+});
