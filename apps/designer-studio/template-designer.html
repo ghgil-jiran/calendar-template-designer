@@ -2422,8 +2422,9 @@
                 svgType: typeof page.svgType === "string" ? page.svgType : undefined,
                 photo_slots: Number.isInteger(page.photo_slots) && page.photo_slots >= 0 && page.photo_slots <= 12 ? page.photo_slots : 0
             });
-            if (set.draft_layout !== undefined) {
-                const layout = set.draft_layout;
+            let draftLayout = set.draft_layout;
+            if (draftLayout !== undefined) {
+                const layout = draftLayout;
                 if (!isRecord(layout) || months.length !== 12) throw new Error('28면 시안 구성을 확인해 주세요.');
                 const expected = generatePageLayout({ title: set.title, preset:set.design_preset,
                     insideFront: layout.inside_front, insideBack: layout.inside_back,
@@ -2432,18 +2433,27 @@
                 const validPages = Array.isArray(layout.pages) && layout.pages.length === 28 &&
                     expected.pages.every((page, index) => Object.entries(page).every(([key, value]) => key === 'composition' || (key === 'theme_area' && layout.pages[index]?.[key] === undefined) || layout.pages[index]?.[key] === value));
                 if (layout.page_count !== 28 || !validPages) throw new Error('28면의 순서와 구성을 확인해 주세요.');
+                draftLayout = {
+                    ...layout,
+                    pages: layout.pages.map(page => ({...page, composition:pageComposition(page, set.design_preset)}))
+                };
             }
             const style = isRecord(set.global_style_lock) ? set.global_style_lock : {};
             const monthNames = 'JANUARY FEBRUARY MARCH APRIL MAY JUNE JULY AUGUST SEPTEMBER OCTOBER NOVEMBER DECEMBER'.split(' ');
+            const cover = normalizePage(set.cover, 0, 'COVER', set.title);
+            if (isRecord(cover.cover_design) && Object.hasOwn(coverLayouts, cover.cover_design.layout)) {
+                cover.cover_design = {...cover.cover_design, composition:resolveCoverComposition(cover.cover_design)};
+            }
             return {
                 ...set,
+                ...(draftLayout ? {draft_layout:draftLayout} : {}),
                 global_style_lock: {
                     ...style,
                     paper_bg: color(style.paper_bg, '#F5F1E8'),
                     ink_primary: color(style.ink_primary, '#23211E')
                 },
                 ...(set.draft_layout?.month_back === '5' ? {habit_rows:normalizeHabitRows(set.habit_rows)} : {}),
-                cover: normalizePage(set.cover, 0, 'COVER', set.title),
+                cover,
                 months: monthNames.map((title, index) => {
                     const month = index + 1;
                     return normalizePage(months.find(item => item.month === month) ?? {}, month, title.slice(0, 3), title);
