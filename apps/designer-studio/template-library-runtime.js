@@ -430,9 +430,11 @@
  function artifactValue(artifact,...keys){for(const key of keys){const value=key.split('.').reduce((current,part)=>current?.[part],artifact);if(value!==undefined&&value!==null&&value!=='')return value}return null}
   function artifactCheck(artifact,key){const checks=artifact?.checks||artifact?.preflight?.checks||artifact?.details||{},aliases={pdfx4:['pdfx4','pdfX4','pdfStandard'],outputIntent:['outputIntent','icc','colorProfile'],cmyk:['cmyk','colorMode'],k100:['k100','black'],trimBox:['trimBox','trimbox'],bleedBox:['bleedBox','bleedbox'],fontOutline:['fontOutline','fontOutlined','fontsOutlined','outline']}[key]||[key];let value=null;for(const name of aliases){value=checks[name]??artifact?.[name];if(value!==undefined&&value!==null)break}if(value&&typeof value==='object'){const status=String(value.status||'').toLowerCase();return {status:status||((value.passed===true||value.valid===true)?'passed':(value.passed===false||value.valid===false)?'failed':'not_run'),message:value.message||value.reason||'',evidence:value.evidence||value.metrics||null,reviewedAt:value.reviewedAt||null,reviewType:value.reviewType||null,approvalLevel:value.approvalLevel||null}}if(value===undefined||value===null)return {status:'not_run',message:'검사 기록 없음',evidence:null,reviewedAt:null,reviewType:null,approvalLevel:null};const passed=value===true||value==='passed'||value==='valid'||value==='PDF/X-4'||value==='CMYK'||value==='K100'||value==='outline';return {status:passed?'passed':'failed',message:'',evidence:null,reviewedAt:null,reviewType:null,approvalLevel:null}}
  function artifactFilename(identity,artifact){
-  const safePart=value=>String(value||'').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,64).replace(/-+$/,'');
-  const template=safePart(identity?.templateId)||'calendar';
-  const job=safePart(artifact?.id||artifact?.jobId);
+  const safePart=(value,limit)=>String(value||'').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,limit).replace(/-+$/,'');
+  const templateId=String(identity?.templateId||'');
+  const uuid=/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+  const template=(!uuid.test(templateId)&&safePart(templateId,24))||'calendar';
+  const job=safePart(artifact?.id||artifact?.jobId,8);
   const size=artifact?.outputProfile?'297mm':'';
   return [template,job,size,'CMYK','draft'].filter(Boolean).join('-')+'.pdf';
  }

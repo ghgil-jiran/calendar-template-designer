@@ -56,6 +56,10 @@ test('completed CMYK PDFs use ASCII names for standard and enlarged outputs',()=
  assert.equal(filename(identity,{id:'abc-123'}),'wall-E-abc-123-CMYK-draft.pdf');
  assert.equal(filename(identity,{id:'def-456',outputProfile:{}}),'wall-E-def-456-297mm-CMYK-draft.pdf');
  assert.equal(filename({templateId:'한글'},{id:'한글'}),'calendar-CMYK-draft.pdf');
+ const legacy={templateId:'88453fb2-694c-434e-9f5e-dcc7745e9a29'};
+ const artifact={id:'7412eaff-6148-498e-8c09-1e78f908604f'};
+ assert.equal(filename(legacy,artifact),'calendar-7412eaff-CMYK-draft.pdf');
+ assert.equal(filename(legacy,{...artifact,outputProfile:{}}),'calendar-7412eaff-297mm-CMYK-draft.pdf');
 });
 test('the actual CMYK download uses the print filename',()=>{const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8');assert.match(library,/link\.download=artifactFilename\(identity,artifact\)/)});
 test('a completed artifact remains downloadable even when quality verification fails',()=>{const library=readFileSync(new URL('../apps/designer-studio/template-library-runtime.js',import.meta.url),'utf8'),start=library.indexOf('async function downloadPrintPdf()'),end=library.indexOf('async function captureRenderParity',start),download=library.slice(start,end);assert.match(download,/artifact\.status!==['"]done['"]/);assert.doesNotMatch(download,/artifact\.verified/)});
