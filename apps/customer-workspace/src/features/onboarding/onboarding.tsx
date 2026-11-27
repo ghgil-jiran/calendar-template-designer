@@ -290,7 +290,7 @@ export function Onboarding() {
         </section>
         <section aria-labelledby="catalog-title"><div className="catalog-heading"><div><h2 id="catalog-title">마음에 드는 디자인을 골라보세요</h2><p className="muted">탁상형·벽보형 달력의 전체 구성을 먼저 살펴볼 수 있어요.</p></div><span className="badge">{catalog.templates.length}종 {catalog.mode==='review'?'선택 구성 검토':'템플릿'}</span></div>
           {!catalog.templates.length ? <Panel><h3>공개된 디자인을 준비 중이에요</h3><p className="muted">준비가 끝나면 이곳에서 고를 수 있어요.</p></Panel> : <><div className="catalog-filters" role="group" aria-label="달력 유형">{([["desk","탁상형 달력"],["poster","벽보형 달력"],["all","전체 달력"]] as const).map(([key,label])=><Button key={key} aria-pressed={kindFilter===key} onClick={()=>setKindFilter(key)}>{label}</Button>)}</div>{!catalog.templates.some(t=>kindFilter==='all'||(t.calendarKind||'desk')===kindFilter)&&<Panel>선택한 유형의 디자인을 준비 중이에요.</Panel>}<div className="catalog-grid">{catalog.templates.filter(t=>kindFilter==='all'||(t.calendarKind||'desk')===kindFilter).map(template => <article className="template-card" key={template.id}>
-            <TemplateCardArtwork template={template} onPreview={number=>openPreview(template,template.pages.findIndex(page=>page.number===number))}/>
+            <TemplateCardArtwork key={template.version} template={template} onPreview={number=>openPreview(template,template.pages.findIndex(page=>page.number===number))}/>
             <div className="template-copy">
               <h3>{template.name}</h3>
               <p className="muted">{template.calendarKind==='poster'?'벽보형':'탁상형'} · {template.widthMm} × {template.heightMm} mm · {template.pageCount}면{template.period&&` · ${template.period}`}</p>
@@ -396,24 +396,40 @@ function PreviewImage({url, label, className = '', decorative = false, eager = f
 
 function MaterialStage({active}:{active:1|2|3}){return <div className="input-stage">{["학교 정보","학사일정","사진"].map((label,index)=><span className={index+1===active?"input-stage-current":""} key={label} aria-current={index+1===active?"step":undefined}>{label}</span>)}</div>;}
 
-function CardPreviewPage({template,number,decorative=false}:{template:TemplateCard;number:number;decorative?:boolean}) {
+function CardPreviewPage({template,number,decorative=false,project,loading=false}:{template:TemplateCard;number:number;decorative?:boolean;project?:NativeProject|null;loading?:boolean}) {
   const frame=useRef<HTMLDivElement>(null);
   useEffect(()=>{frame.current?.style.setProperty('--preview-ratio',String(template.widthMm/template.heightMm));},[template.widthMm,template.heightMm]);
   const page=template.pages.find(page=>page.number===number);
   const url=page?.imageUrl||(number===1?template.coverUrl:null);
-  return <div ref={frame} className="card-preview-page" aria-hidden={decorative||undefined}><div className="card-preview-content">{url?<PreviewImage url={url} label={page?.label||`${number}면`} decorative={decorative}/>:<div className="preview-placeholder" role="img" aria-label="저장된 미리보기 준비 중"><strong>미리보기 준비 중</strong><span>미리 보기에서 확인해 주세요.</span></div>}</div></div>;
+  const pageId=project?.book.pageInstances[number-1]?.id;
+  return <div ref={frame} className="card-preview-page" aria-hidden={decorative||undefined}><div className="card-preview-content">{project&&pageId?<NativePreview project={project} pageId={pageId} compact showAssetWarning={false}/>:loading?<div className="preview-placeholder" role="status">미리보기를 준비하고 있어요.</div>:url?<PreviewImage url={url} label={page?.label||`${number}면`} decorative={decorative}/>:<div className="preview-placeholder" role="img" aria-label="저장된 미리보기 준비 중"><strong>미리보기 준비 중</strong><span>미리 보기에서 확인해 주세요.</span></div>}</div></div>;
 }
 
 function TemplateCardArtwork({template,onPreview}:{template:TemplateCard;onPreview:(number:number)=>void}) {
   const poster=template.calendarKind==='poster';
+  const artwork=useRef<HTMLDivElement>(null);
+  const [source,setSource]=useState<NativeProject|null>(null);
+  const [sourceFailed,setSourceFailed]=useState(false);
+  const livePoster=poster&&Boolean(template.sourceUrl);
+  const loading=livePoster&&!source&&!sourceFailed;
+  useEffect(()=>{
+    if(!livePoster||!artwork.current)return;
+    let active=true;
+    const load=()=>void fetchTemplateSource(template).then(project=>{if(active)setSource(project);}).catch(()=>{if(active)setSourceFailed(true);});
+    const observer=new IntersectionObserver(entries=>{
+      if(entries.some(entry=>entry.isIntersecting)){observer.disconnect();load();}
+    });
+    observer.observe(artwork.current);
+    return ()=>{active=false;observer.disconnect();};
+  },[livePoster,template]);
   const topPages=poster&&template.pageCount===2?[1,2]:[1];
   const smallPages=poster?template.pages.map(page=>page.number):template.representativePages;
-  return <div className="template-art">
+  return <div className="template-art" ref={artwork}>
     <div className={`card-main-preview${topPages.length===2?' card-main-pair':''}`}>
-      {topPages.map(number=><button type="button" className="card-preview-trigger" key={number} onClick={()=>onPreview(number)} disabled={!template.pages.some(page=>page.number===number)}><CardPreviewPage template={template} number={number}/></button>)}
+      {topPages.map(number=><button type="button" className="card-preview-trigger" key={number} onClick={()=>onPreview(number)} disabled={!template.pages.some(page=>page.number===number)}><CardPreviewPage template={template} number={number} project={source} loading={loading}/></button>)}
     </div>
     {poster?<div className="poster-mini-previews" aria-label={`${template.name} 전체 ${template.pageCount}면`}>
-      {smallPages.map(number=><button type="button" className="card-preview-trigger" key={number} onClick={()=>onPreview(number)} disabled={!template.pages.some(page=>page.number===number)}><CardPreviewPage template={template} number={number}/></button>)}
+      {smallPages.map(number=><button type="button" className="card-preview-trigger" key={number} onClick={()=>onPreview(number)} disabled={!template.pages.some(page=>page.number===number)}><CardPreviewPage template={template} number={number} project={source} loading={loading}/></button>)}
     </div>:<div className="mini-previews" tabIndex={0} aria-label={`${template.name} 대표 ${smallPages.length}면 · 마우스를 올리거나 초점을 두면 멈춥니다`}><div className="mini-track">
       {[...smallPages,...smallPages].map((number,index)=><div className="card-mini-slot" key={index}>{index<smallPages.length?<button type="button" className="card-preview-trigger" onClick={()=>onPreview(number)} disabled={!template.pages.some(page=>page.number===number)}><CardPreviewPage template={template} number={number}/></button>:<CardPreviewPage template={template} number={number} decorative/>}</div>)}
     </div></div>}
