@@ -41,3 +41,13 @@ assert.equal(globalThis.ACDLInspectorGraphic.shapeCornerPercent(footer,posterSiz
 apply(footer,'shape-form',{shapeType:'rect',pageSize:posterSize});
 assert.equal(footer.shapeType,'rect');
 assert.equal(footer.style.cornerRadiusMm,7.425);
+
+const translucentShape = {type:'shape',shapeType:'rect',opacity:.5,style:{fill:'#ffffff',strokeWidth:0}};
+apply(translucentShape,'style',{shapeOpacityPercent:'35'});
+assert.equal(translucentShape.opacity,.35);
+apply(translucentShape,'layout',{x:10,y:20,width:30,height:40});
+assert.equal(translucentShape.opacity,.35);
+apply(translucentShape,'style',{shapeOpacityPercent:''});
+assert.equal(translucentShape.opacity,.35);
+apply(translucentShape,'style',{shapeOpacityPercent:'0'});
+assert.equal(translucentShape.opacity,0);

@@ -20,6 +20,10 @@
     if (action === 'style') {
       if (item.type === 'shape') {
         item.shapeType = values.shapeType || item.shapeType;
+        const opacityPercent = values.shapeOpacityPercent;
+        if (opacityPercent != null && String(opacityPercent).trim() && Number.isFinite(Number(opacityPercent))) {
+          item.opacity = Math.max(0, Math.min(100, Number(opacityPercent))) / 100;
+        }
         item.style = {
           ...(item.style || {}),
           ...(item.shapeType === 'rounded' && item.style?.cornerRadiusMm == null ? {cornerRadiusMm: 3} : {}),
@@ -75,7 +79,7 @@
       item.width = Number(values.width);
       item.height = Number(values.height);
       item.rotation = Number(values.rotation || 0);
-      item.opacity = Number(values.opacity ?? 1);
+      if (values.opacity != null) item.opacity = Number(values.opacity);
       Object.assign(item, root.ACDLCanvasGeometry?.keepPartiallyVisible(item, values.pageSize) || item);
     }
     if (action === 'frame') {
