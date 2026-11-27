@@ -8,7 +8,7 @@ apply(text, 'text-content', { content: '새 문구', binding: '' });
 apply(text, 'text-style', {
   fontFamily: 'Noto Serif KR', fontSize: '24', fontWeight: '800', fontStyle: 'italic', underline: true, strike: true,
   textAlign: 'justify', verticalAlign: 'bottom', color: '#123456', letterSpacing: '-1.5', lineHeight: '1.65', opacity: '.75',
-  background: true, backgroundColor: '#fff8dc', strokeWidth: '1.5', strokeColor: '#ffffff', shadow: true,
+  background: true, backgroundColor: '#fff8dc', strokeWidth: '1.5', strokeColor: '#ffffff', strokeAlignment: 'outside', shadow: true,
   shadowX: '2', shadowY: '3', shadowBlur: '4', shadowColor: '#334455'
 });
 assert.deepEqual(text, {
@@ -16,7 +16,7 @@ assert.deepEqual(text, {
   style: {
     fontFamily: 'Noto Serif KR', fontSize: 24, fontWeight: 800, fontStyle: 'italic', textDecoration: 'underline line-through',
     textAlign: 'justify', verticalAlign: 'bottom', color: '#123456', letterSpacing: -1.5, lineHeight: 1.65, opacity: .75,
-    background: true, backgroundColor: '#fff8dc', strokeWidth: 1.5, strokeColor: '#ffffff', shadow: true,
+    background: true, backgroundColor: '#fff8dc', strokeWidth: 1.5, strokeColor: '#ffffff', strokeAlignment: 'outside', shadow: true,
     shadowX: 2, shadowY: 3, shadowBlur: 4, shadowColor: '#334455'
   }
 });

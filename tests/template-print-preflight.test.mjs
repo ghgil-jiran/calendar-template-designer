@@ -20,6 +20,18 @@ function project(overrides={}){
  };
 }
 
+test('the print catalog accepts centered and outside text outlines',()=>{
+ const p=project();
+ const style={strokeAlignment:'outside',strokeWidth:3,strokeColor:'#ffffff'};
+ p.book.elementsByPage.cover=[{id:'title',type:'text',style}];
+ const warnings=()=>analyze(p).issues.filter(i=>i.code==='STYLE_NOT_CATALOGED');
+ assert.equal(warnings().length,0);
+ style.strokeAlignment='center';
+ assert.equal(warnings().length,0);
+ style.strokeAlignment='inner';
+ assert.equal(warnings().length,1);
+});
+
 test('physical rounded shapes and text underline styles are cataloged only where rendered',()=>{
  const p=project();p.book.elementsByPage.cover=[
   {id:'slogan',type:'shape',shapeType:'rounded',style:{cornerRadiusMm:4.95}},

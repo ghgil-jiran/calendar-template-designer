@@ -28,6 +28,7 @@
   if(key==='edgeFeather')return element.type==='semantic-object'&&element.role==='school-building'&&Number.isFinite(value)&&value>=0&&supportedAuthoredStyle(element,'softEdgePt',element.style?.softEdgePt);
   if(key==='softEdgePt')return (element.type==='image-frame'||element.type==='semantic-object'&&element.role==='school-building')&&Number.isFinite(value)&&value>=0&&value<=50;
   if(element.type!=='text')return false;
+  if(key==='strokeAlignment')return ['center','outside'].includes(value);
   if(key==='textStrokeColor')return typeof value==='string'&&/^(?:#[0-9a-f]{3,4}|#[0-9a-f]{6}|#[0-9a-f]{8}|transparent|currentColor)$/i.test(value);
   if(key==='textStrokeWidth')return Number.isFinite(value)&&value>=0;
   if(key==='textDecorationColor')return typeof value==='string'&&/^(#[0-9a-f]{3,4}|#[0-9a-f]{6}|#[0-9a-f]{8}|currentColor)$/i.test(value);

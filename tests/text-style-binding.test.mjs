@@ -15,7 +15,7 @@ test('cover text renders its element font size before the cover master default',
 
 test('every text object exposes the complete designer style set through one shared renderer', () => {
   ['elemFontFamily', 'elemFontWeight', 'elemItalic', 'elemUnderline', 'elemStrike', 'elemAlign', 'elemVerticalAlign', 'elemLetterSpacing', 'elemLineHeight', 'elemOpacity', 'elemBackgroundColor', 'elemStrokeWidth', 'elemStrokeColor', 'elemShadow', 'elemShadowX', 'elemShadowY', 'elemShadowBlur', 'elemShadowColor'].forEach(id => assert.match(html, new RegExp(`id="${id}"`)));
-  assert.match(html, /node\.style\.webkitTextStroke/);
+  assert.match(html, /applyTextOutline\(node\.style,style\)/);
   assert.match(html, /node\.style\.textShadow/);
   assert.match(html, /node\.style\.alignItems/);
 });
