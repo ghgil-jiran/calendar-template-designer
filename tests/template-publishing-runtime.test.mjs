@@ -127,6 +127,24 @@ test('first-page capture keeps styles aligned and loads thumbnails within each g
  }finally{for(const [key,value] of Object.entries(saved)){if(value===undefined)delete process.env[key];else process.env[key]=value}}
  });
 
+test('preview print requests reach the v6 service with the template editor origin intact',async()=>{
+ const keys=['VERCEL_ENV','USER_SERVICE_REVIEW_API_URL','USER_SERVICE_PRINT_PREFLIGHT_API_URL'];
+ const saved=Object.fromEntries(keys.map(key=>[key,process.env[key]]));
+ try{
+  process.env.VERCEL_ENV='preview';
+  delete process.env.USER_SERVICE_REVIEW_API_URL;
+  delete process.env.USER_SERVICE_PRINT_PREFLIGHT_API_URL;
+  const body={mode:'ensure-print-preflight', editorPrintOrigin:'https://editor-preview.example', force:true};
+  await forwardReviewPackage({authorization:'Bearer test',body,fetcher:async(url,options)=>{
+   assert.equal(url,'https://school-calendar-editor-service-f06mk1xe6-gil-gighyun-s-projects.vercel.app/api/template-print-preflight');
+   assert.deepEqual(JSON.parse(options.body),body);
+   return {ok:true,json:async()=>({})};
+  }});
+ }finally{
+  for(const [key,value] of Object.entries(saved)){if(value===undefined)delete process.env[key];else process.env[key]=value}
+ }
+});
+
 test('publication freezes the configurable image policy without changing the PDF output DPI',()=>{const api=runtime(),project={productType:{pageSize:{width:260,height:180}},template:{resources:{exportSettings:{dpi:300,imageQualityPolicy:{recommendedDpi:300,orderMinimumDpi:180,upscaleTargetDpi:250}}}},book:{pageInstances:[]}},bundle=api.buildBundle(project,{id:'quality-test',version:'1.0.0',name:'품질',productType:'desk'});assert.equal(bundle.print.imageQualityPolicy.orderMinimumDpi,180);assert.equal(bundle.print.imageQualityPolicy.recommendedDpi,300);assert.equal(bundle.print.imageQualityPolicy.upscaleTargetDpi,250);assert.equal(bundle.print.dpi,300);project.template.resources.exportSettings.imageQualityPolicy.orderMinimumDpi=190;assert.equal(bundle.print.imageQualityPolicy.orderMinimumDpi,180);});
 
 
