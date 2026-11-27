@@ -260,7 +260,8 @@
     const patch=arrangement?{...wall.presets[scheduleStylePreset],...settings}:settings;
     if(arrangement)item.columns=arrangement.columns;
     item.wallCalendarSettings={...item.wallCalendarSettings,...patch};
-    for(const value of Object.values(item.wallMonthOverrides||{}))Object.assign(value,patch);
+    const monthPatch=Object.fromEntries(Object.entries(patch).filter(([key])=>!key.startsWith('columnDivider')));
+    for(const value of Object.values(item.wallMonthOverrides||{}))Object.assign(value,monthPatch);
    }
    if(edit.text!==undefined)item.content=edit.text;
    if(edit.fill!==undefined)item.style={...item.style,...(item.shapeType==='line'?{stroke:edit.fill}:{fill:edit.fill})};
