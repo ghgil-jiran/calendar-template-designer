@@ -21,6 +21,7 @@
  // editor, customer pages and worker DOM printing. Keep these scoped: a text
  // decoration on an image or a physical radius on another shape is unsupported.
  function supportedAuthoredStyle(element,key,value){
+  if(key==='softEdgePt')return (element.type==='image-frame'||element.type==='semantic-object'&&element.role==='school-building')&&Number.isFinite(value)&&value>=0&&value<=80;
   if(key==='strokeAlignment')return element.type==='text'&&['center','outside'].includes(value);
   if(key==='fillSoftEdgePt')return element.type==='shape'&&Number.isFinite(value)&&value>=0&&value<=50;
   if(key==='cornerRadiusMm')return element.type==='shape'&&element.shapeType==='rounded'&&Number.isFinite(value)&&value>0;

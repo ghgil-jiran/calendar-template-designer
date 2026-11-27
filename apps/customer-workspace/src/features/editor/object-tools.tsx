@@ -109,7 +109,7 @@ function FrameStyleFields({item,theme,onChange}:{item:NativeProject|undefined;th
  const shadowColor=style.shadowColor||'#000000';
  const fields={
   strokeWidth:{label:'테두리 두께',max:20,defaultValue:item?.role==='school-logo'||item?.image?.binding==='school.profile.logo'||item?.binding==='school.profile.logo'?0:3},
-  softEdgePt:{label:'부드러운 가장자리 크기 (pt)',max:50,defaultValue:0},
+  softEdgePt:{label:'부드러운 가장자리 크기 (pt)',max:80,defaultValue:0},
   shadowBlur:{label:'흐림',max:50,defaultValue:0},
  };
  function numberField(key:keyof typeof fields){

@@ -1018,7 +1018,7 @@ function shapeSVG(id,fill="#4777bd",stroke="#172033",strokeWidth=1.5,dash="solid
   geometry=`<path d="${shapePath(id)}" stroke-linejoin="round"`;
  }
  const outline=`stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr} vector-effect="non-scaling-stroke"`;
- const edge=physical?.fillSoftEdgePt ? window.ACDLPhotoFrameModel.softEdgeSize(physical.fillSoftEdgePt) : 0;
+ const edge=physical?.fillSoftEdgePt ? window.ACDLPhotoFrameModel.softEdgeSize(physical.fillSoftEdgePt,50) : 0;
  if(!edge)return `${open}${geometry} fill="${fill}" ${outline}/></svg>`;
  const deviationMm=Math.min(edge*25.4/72/2,Math.min(width,height)/4);
  const blurX=(deviationMm/width*100).toFixed(4),blurY=(deviationMm/height*100).toFixed(4);
@@ -1052,7 +1052,7 @@ function switchObjectLibrary(tab="all"){
  document.querySelectorAll("[data-library-tab]").forEach(b=>b.classList.toggle("active",b.dataset.libraryTab===tab));document.querySelectorAll("[data-library-section]").forEach(sec=>sec.classList.toggle("library-filter-hidden",tab!=="all"&&sec.dataset.librarySection!==tab&&(tab!=="basic"||sec.dataset.librarySection!=="basic")));el("objectDrawer").classList.remove("hidden");
 }
 function softEdgeFields(value){
- return `<label>부드러운 가장자리 크기 (pt)<input id="photoSoftEdgePt" type="number" min="0" max="50" step=".5" value="${window.ACDLPhotoFrameModel.softEdgeSize(value)}"></label><p class="hint">0pt는 효과 없음입니다.</p>`;
+ return `<label>부드러운 가장자리 크기 (pt)<input id="photoSoftEdgePt" type="number" min="0" max="80" step=".5" value="${window.ACDLPhotoFrameModel.softEdgeSize(value)}"></label><p class="hint">0pt는 효과 없음입니다.</p>`;
 }
 function photoEdgeMask(view, frameType, size){
  const pageSize=project.productType.pageSize;

@@ -76,7 +76,7 @@
       ||frame.background!==undefined&&frame.background!==false&&!color(frame.background)
       ||frame.stroke!==undefined&&!color(frame.stroke)
       ||frame.strokeWidth!==undefined&&!validRange(frame.strokeWidth,0,20)
-      ||frame.softEdgePt!==undefined&&!validRange(frame.softEdgePt,0,50)
+      ||frame.softEdgePt!==undefined&&!validRange(frame.softEdgePt,0,80)
       ||frame.shadow!==undefined&&typeof frame.shadow!=='boolean'
       ||frame.shadowBlur!==undefined&&!validRange(frame.shadowBlur,0,50)
       ||frame.shadowColor!==undefined&&frame.shadowColor!=='transparent'&&!color(frame.shadowColor))throw Error('프레임 스타일을 확인해 주세요.');
