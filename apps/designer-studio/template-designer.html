@@ -528,10 +528,10 @@
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
-    <script src="./template-designer/year-style.js?v=20261127.2"></script>
-    <script src="./template-designer/cover-generator.js?v=20261127.2"></script>
-    <script src="./template-designer/page-layout-generator.js?v=20261127.2"></script>
-    <script src="./template-designer/theme-copy-generator.js?v=20261127.2"></script>
+    <script src="./template-designer/year-style.js?v=20261128.engines4"></script>
+    <script src="./template-designer/cover-generator.js?v=20261128.engines4"></script>
+    <script src="./template-designer/page-layout-generator.js?v=20261128.engines4"></script>
+    <script src="./template-designer/theme-copy-generator.js?v=20261128.engines4"></script>
     <script>
         // --- 1. MULTI-TEMPLATE SETS REGISTRY ---
         const CALENDAR_SETS_REGISTRY = [
@@ -793,44 +793,11 @@
 
 
 
-        const {coverTypes, coverLayouts, coverBackgrounds, coverTitleStyles, numericCanvas, recommendCover, resolveCoverComposition} = window.ACDLDesignerCoverGenerator;
-        const {yearLayouts, yearFills, digitPaths, usesDigitTiles, renderYearTypography} = window.ACDLDesignerYearStyle;
+        const {coverTypes, coverLayouts, coverBackgrounds, coverTitleStyles, recommendCover, resolveCoverComposition} = window.ACDLDesignerCoverGenerator;
+        const {yearLayouts, yearFills, usesDigitTiles} = window.ACDLDesignerYearStyle;
 
-        function renderNumericCover(item, design) {
-            const { width, height, artworkHeight } = numericCanvas;
-            const { year, digits, stroke, round, orbit, form, font } = design.yearArt || {};
-            const hex = value => /^#[\da-f]{6}$/i.test(value);
-            if (!Number.isInteger(year) || !Array.isArray(digits) || digits.map(digit => digit?.digit).join('') !== String(year)
-                || ![design.paper, design.ink, design.accent].every(hex)
-                || ![stroke, orbit].every(Number.isFinite)
-                || !digits.every(digit => Object.hasOwn(digitPaths, digit.digit) && hex(digit.color)
-                    && [digit.x, digit.y, digit.width, digit.height].every(Number.isFinite))) return '';
-            const end = round ? 'round' : 'butt';
-            const fontFamily = font === 'serif' ? 'Georgia, serif' : 'Arial, sans-serif';
-            const art = digits.map(digit => {
-                const glyph = form === 'font'
-                    ? `<text x="50" y="87" text-anchor="middle" font-family="${fontFamily}" font-size="101" font-weight="700" textLength="72" lengthAdjust="spacingAndGlyphs" fill="${digit.color}">${digit.digit}</text>`
-                    : `<path d="${digitPaths[digit.digit]}" fill="none" stroke="${digit.color}" stroke-width="${stroke}" stroke-linecap="${end}" stroke-linejoin="${round ? 'round' : 'bevel'}"/>`;
-                return `<g transform="translate(${digit.x} ${digit.y}) scale(${digit.width / 100} ${digit.height / 100})">${glyph}</g>`;
-            }).join('');
-            const background = design.background === 'geometry'
-                ? `<circle cx="${orbit}" cy="108" r="106" fill="${design.accent}" opacity=".12"/>`
-                : design.background === 'band'
-                    ? `<path d="M0 208L${width} ${Math.round(orbit / 3)}V${artworkHeight}H0Z" fill="${design.accent}" opacity=".1"/>`
-                    : '';
-            const color = design.background === 'texture'
-                ? `background:linear-gradient(135deg,${design.paper},color-mix(in srgb,${design.paper} 88%,${design.accent}));`
-                : `background:${design.paper};`;
-            return `<div class="relative h-full w-full overflow-hidden" style="container-type:inline-size;${color}color:${design.ink}">
-                <svg class="absolute inset-0 block h-full w-full" viewBox="0 0 ${width} ${height}" role="img" aria-label="${year}" data-year-art>${background}${art}</svg>
-                <div class="absolute inset-x-[5%] bottom-[5%] flex items-end justify-between gap-3">
-                    <div class="min-w-0">
-                        <h3 class="truncate font-semibold leading-tight" style="font-size:3.7cqw">${escapeHtml(item.title)}</h3>
-                        <p class="truncate leading-tight" style="font-size:2.6cqw">${escapeHtml(item.cover_subtitle || '')}</p>
-                    </div>
-                    <span class="shrink-0 font-mono tracking-widest" style="font-size:2.4cqw">CALENDAR</span>
-                </div></div>`;
-        }
+        const {applyHabitCopy, habitMonths} = window.ACDLDesignerThemeCopy;
+        const renderRecommendedCover = (item, theme) => window.ACDLDesignerCoverGenerator.renderRecommendedCover(item, theme, {escapeHtml, illustrationSource, illustrationPlaceholder, yearPhoto});
 
         function illustrationPlaceholder(index, accent) {
             const color = /^#[\da-f]{6}$/i.test(accent) ? accent : '#769285';
@@ -852,58 +819,6 @@
                 src:illustrationSource(photo?.src),
                 x:clamp(photo?.x,0,100,50), y:clamp(photo?.y,0,100,50), zoom:clamp(photo?.zoom,100,400,100)
             };
-        }
-
-        function renderRecommendedCover(item, theme) {
-            if (theme?.type === 'numeric') return renderNumericCover(item, theme);
-            if (!theme || !Object.hasOwn(coverLayouts, theme.layout) || !Object.hasOwn(coverBackgrounds, theme.background) ||
-                ![0,1,2,3,4,8].includes(theme.photos) || ![theme.paper,theme.ink,theme.accent].every(color => /^#[\da-f]{6}$/i.test(color))) return '';
-            const frame = n => '<div class="relative grid min-h-0 min-w-0 place-items-center overflow-hidden border border-current/20 bg-white/35 text-[9px]">' +
-                (n === 1 && illustrationSource(item.illustration_image) ? '<img class="absolute inset-0 h-full w-full object-cover" src="' + escapeHtml(item.illustration_image) + '" alt="표지 이미지">' : illustrationPlaceholder(n - 1, theme.accent)) + '</div>';
-            const titleStyle = Object.hasOwn(coverTitleStyles, theme.titleStyle) ? theme.titleStyle : 'editorial';
-            const compactTitle = ['splitSide','graphicSide','surround'].includes(theme.layout);
-            const titleSize = compactTitle ? '5cqw' : String(item.title ?? '').length > 22 ? '5cqw' : '7cqw';
-            const name = '<h3 class="font-semibold leading-tight" style="font-size:' + (titleStyle === 'year' ? '4cqw' : titleSize) + '">' + escapeHtml(item.title) + '</h3>';
-            const subtitle = typeof item.cover_subtitle === 'string' && item.cover_subtitle.trim()
-                ? '<p class="leading-tight" style="font-size:2.5cqw">' + escapeHtml(item.cover_subtitle) + '</p>' : '';
-            const year = '<span class="leading-none" style="font-size:' + (titleStyle === 'year' ? (compactTitle ? '9cqw' : '14cqw') : '4.5cqw') + '">2027</span>';
-            const label = '<span class="font-sans tracking-[0.16em]" style="font-size:2.15cqw">CALENDAR</span>';
-            const heading = titleStyle === 'year' ? year + label + name + subtitle
-                : titleStyle === 'stacked' ? name + year + label + subtitle
-                : '<span class="font-sans tracking-[0.16em]" style="font-size:2.15cqw">2027 CALENDAR</span>' + name + subtitle;
-            const title = '<div class="relative z-10 grid min-w-0 gap-1 break-words" data-cover-title-style="' + titleStyle + '">' + heading + '</div>';
-            const composition = resolveCoverComposition(theme);
-            const frames = Array.from({length:composition.photoCount}, (_,i) => frame(i+1));
-            const columns = composition.columns?.map(track => track + 'fr').join(' ');
-            const grid = (columns, contents) => '<div class="grid min-h-0 gap-1" style="grid-template-columns:repeat(' + columns + ',minmax(0,1fr))">' + contents.join('') + '</div>';
-            let body;
-            switch (composition.layout) {
-                case 'full': body = '<div class="absolute inset-0 grid">' + frames[0] + '</div><div class="absolute bottom-4 left-4 max-w-[80%] bg-white/90 p-2">' + title + '</div>'; break;
-                case 'splitSide':
-                case 'graphicSide': body = '<div class="grid min-h-0 items-center gap-3" style="grid-template-columns:' + columns + '"><div class="grid h-full">' + frames[0] + '</div>' + title + '</div>'; break;
-                case 'surround': body = grid(composition.gridColumns,[...frames.slice(0,composition.titleSlot),'<div class="grid place-items-center text-center">' + title + '</div>',...frames.slice(composition.titleSlot)]); break;
-                case 'feature': body = title + '<div class="grid min-h-0 gap-1" style="grid-template-columns:' + columns + '">' + frames[0] + grid(1,frames.slice(1)) + '</div>'; break;
-                case 'row': body = title + grid(composition.gridColumns,frames); break;
-                case 'grid': body = title + grid(composition.gridColumns,frames); break;
-                case 'illustration': body = title + (illustrationSource(item.illustration_image) ? frame(1) : '<div aria-hidden="true" class="grid grid-cols-3 items-center gap-2 opacity-80"><span class="aspect-square rounded-full" style="background:var(--accent)"></span><span class="aspect-square rotate-12 rounded-lg bg-current"></span><span class="aspect-square rounded-t-full border-4 border-current"></span></div>'); break;
-                case 'type':
-                    if (theme.yearLayout) { body = renderYearTypography(item,theme,{yearPhoto,escapeHtml}); break; }
-                    body = '<div class="self-center justify-self-center rounded border border-current p-4 text-center">' + title + '</div>'; break;
-                case 'center': body = title + '<div class="mx-auto grid" style="width:' + composition.photoWidth * 100 + '%">' + frames[0] + '</div>'; break;
-                case 'decorated': body = title + '<div class="mx-auto grid border-4 border-white/70" style="width:' + composition.photoWidth * 100 + '%">' + frames[0] + '</div>'; break;
-                default: body = title + frames[0];
-            }
-            const backgrounds = {
-                plain:'none', band:'linear-gradient(0deg,var(--accent) 22%,transparent 22%)',
-                geometry:'linear-gradient(140deg,var(--accent) 21%,transparent 21%)',
-                pattern:'radial-gradient(var(--accent) 1px,transparent 1px)',
-                theme:'radial-gradient(ellipse at 12% 22%,var(--accent) 0 8%,transparent 9%),radial-gradient(ellipse at 88% 80%,var(--accent) 0 9%,transparent 10%)',
-                texture:'linear-gradient(125deg,transparent 28%,#ffffff77 28% 42%,transparent 42% 66%,#ffffff66 66% 79%,transparent 79%)'
-            };
-            return '<div class="relative grid h-full w-full min-h-0 gap-2 overflow-hidden p-4 ' + (theme.serif ? 'font-serif' : 'font-sans') + (theme.type === 'type' && theme.yearLayout === 'crop' ? ' cover-year-crop' : '') +
-                '" style="--year-ink:' + theme.ink + ';--accent:' + theme.accent + ';container-type:inline-size;background-color:' + theme.paper + ';color:' + theme.ink + ';background-image:' +
-                backgrounds[theme.background] + ';background-size:' + (theme.background==='pattern' ? '12px 12px' : 'cover') +
-                ';grid-template-rows:' + composition.rows.map(track => track === 'auto' ? track : 'minmax(0,' + track + 'fr)').join(' ') + '">' + body + '</div>';
         }
 
         function buildDesignerDraft(values, id) {
@@ -1028,17 +943,13 @@
         draftDialog.addEventListener('close', invalidateDraft);
         document.getElementById('closeNewDraft').onclick = () => draftDialog.close();
         draftForm.addEventListener('input', event => {
-            if (event.target.name === 'preset' && event.target.value === 'numbers') {
-                const fields = draftForm.elements;
-                if (!fields.title.value.trim()) fields.title.value = '숫자로 표현하는 디자인 달력';
-                for (const [name,value] of Object.entries({coverType:'numeric',insideFront:'scheduler',front:'5',back:'4'})) {
-                    fields[name].value = value;
+            if (event.target.name === 'preset') {
+                const preset = window.ACDLDesignerPageLayout.designerPresets[event.target.value];
+                if (preset) {
+                    const fields = draftForm.elements;
+                    if (!fields.title.value.trim()) fields.title.value = preset.title;
+                    for (const [name,value] of Object.entries(preset.layout)) fields[name].value = value;
                 }
-            }
-            if (event.target.name === 'preset' && event.target.value === 'habits') {
-                const fields = draftForm.elements;
-                if (!fields.title.value.trim()) fields.title.value = '하루하루 체크하기';
-                for (const [name,value] of Object.entries({coverType:'illustration',insideFront:'scheduler',front:'2',back:'5'})) fields[name].value = value;
             }
             invalidateDraft();
         });
@@ -1354,38 +1265,12 @@
             return [calendarDataset.cover, ...calendarDataset.months, ...(calendarDataset.draft_layout ? [{ ...calendarDataset.cover, id: 'ending', month: 13, label: '뒷표지', title: calendarDataset.title }] : [])];
         }
 
-        const habitMonths = [
-            ['내일도 할 수 있을 만큼 작게','오늘 한 만큼만 표시하기'],
-            ['비어 있는 칸 다음에도 오늘이 있다','돌아온 날에 표시하기'],
-            ['언제 할지 정하면 시작이 쉬워진다','정해둔 시간에 했나요?'],
-            ['늘 하는 일 뒤에 새 습관을 붙이기','무엇을 한 뒤에 시작했나요?'],
-            ['시작에 필요한 것을 눈에 보이게','내일 쓸 것을 미리 꺼내두기'],
-            ['어렵다면 목표를 조금 줄여도 좋다','나에게 맞는 양을 찾아보기'],
-            ['바쁜 날에 할 최소한을 정하기','작게라도 했다면 표시하기'],
-            ['쉬는 날도 계획에 넣기','쉬고 돌아온 날에 표시하기'],
-            ['새로운 목표 전에 지난 기록 보기','계속하고 싶은 한 가지 찾기'],
-            ['혼자 하기 어렵다면 같이 약속하기','함께한 날도 한 칸에 담기'],
-            ['결과가 더뎌도 해온 일을 보기','오늘 반복한 행동에 표시하기'],
-            ['한 해 동안, 내가 다시 시작한 날들','내년에도 이어갈 한 가지 남기기']
-        ];
         function normalizeHabitRows(rows) {
             const defaults = ['운동','식단 기록','금주','달리기 · km','몸무게 · kg'];
             return defaults.map((label,i)=>({
                 label:typeof rows?.[i]?.label === 'string' ? rows[i].label.slice(0,24) : label,
                 mode:['check','write'].includes(rows?.[i]?.mode) ? rows[i].mode : i<3?'check':'write'
             }));
-        }
-        function applyHabitCopy(draft, previous) {
-            draft.cover.title = previous?.cover.title ?? '하루만큼, 꾸준히';
-            draft.cover.cover_subtitle ||= '나에게 맞는 속도로, 하루 한 칸.';
-            draft.back_cover.title = previous?.back_cover?.title ?? '내일도 한 칸부터';
-            draft.inside_copy = previous?.inside_copy ?? {annual:'한 해를 한눈에',scheduler:'이번 달에 지킬 한 가지'};
-            const previousMonths = new Map(previous?.months.map(month=>[month.month,month]));
-            draft.months = draft.months.map((month,i)=>{
-                const saved = previousMonths.get(month.month);
-                return {...month,front_text:saved?.front_text ?? habitMonths[i][0],back_text:saved?.back_text ?? habitMonths[i][1],
-                    scheduler_text:saved?.scheduler_text ?? habitMonths[i][1],prompt_subject:saved?.prompt_subject ?? '체크박스와 빈 칸으로 표현하는 일일 기록 그래픽'};
-            });
         }
         function habitMarks(month,cover=false,accent='#416b59') {
             return `<div class="habit-marks" aria-hidden="true">${Array.from({length:cover?31:12},(_,i)=>{

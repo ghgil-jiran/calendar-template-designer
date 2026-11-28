@@ -87,5 +87,42 @@
         return {yearLayout, yearFill, yearPhotoMode: usesDigitTiles(yearLayout) ? 'digits' : 'single'};
     }
 
-    window.ACDLDesignerYearStyle = Object.freeze({yearLayouts, yearFills, digitPaths, usesDigitTiles, recommendYearStyle, renderYearTypography});
+    function renderNumericCover(item, design, {numericCanvas, escapeHtml}) {
+        const { width, height, artworkHeight } = numericCanvas;
+        const { year, digits, stroke, round, orbit, form, font } = design.yearArt || {};
+        const hex = value => /^#[\da-f]{6}$/i.test(value);
+        if (!Number.isInteger(year) || !Array.isArray(digits) || digits.map(digit => digit?.digit).join('') !== String(year)
+            || ![design.paper, design.ink, design.accent].every(hex)
+            || ![stroke, orbit].every(Number.isFinite)
+            || !digits.every(digit => Object.hasOwn(digitPaths, digit.digit) && hex(digit.color)
+                && [digit.x, digit.y, digit.width, digit.height].every(Number.isFinite))) return '';
+        const end = round ? 'round' : 'butt';
+        const fontFamily = font === 'serif' ? 'Georgia, serif' : 'Arial, sans-serif';
+        const art = digits.map(digit => {
+            const glyph = form === 'font'
+                ? `<text x="50" y="87" text-anchor="middle" font-family="${fontFamily}" font-size="101" font-weight="700" textLength="72" lengthAdjust="spacingAndGlyphs" fill="${digit.color}">${digit.digit}</text>`
+                : `<path d="${digitPaths[digit.digit]}" fill="none" stroke="${digit.color}" stroke-width="${stroke}" stroke-linecap="${end}" stroke-linejoin="${round ? 'round' : 'bevel'}"/>`;
+            return `<g transform="translate(${digit.x} ${digit.y}) scale(${digit.width / 100} ${digit.height / 100})">${glyph}</g>`;
+        }).join('');
+        const background = design.background === 'geometry'
+            ? `<circle cx="${orbit}" cy="108" r="106" fill="${design.accent}" opacity=".12"/>`
+            : design.background === 'band'
+                ? `<path d="M0 208L${width} ${Math.round(orbit / 3)}V${artworkHeight}H0Z" fill="${design.accent}" opacity=".1"/>`
+                : '';
+        const color = design.background === 'texture'
+            ? `background:linear-gradient(135deg,${design.paper},color-mix(in srgb,${design.paper} 88%,${design.accent}));`
+            : `background:${design.paper};`;
+        return `<div class="relative h-full w-full overflow-hidden" style="container-type:inline-size;${color}color:${design.ink}">
+            <svg class="absolute inset-0 block h-full w-full" viewBox="0 0 ${width} ${height}" role="img" aria-label="${year}" data-year-art>${background}${art}</svg>
+            <div class="absolute inset-x-[5%] bottom-[5%] flex items-end justify-between gap-3">
+                <div class="min-w-0">
+                    <h3 class="truncate font-semibold leading-tight" style="font-size:3.7cqw">${escapeHtml(item.title)}</h3>
+                    <p class="truncate leading-tight" style="font-size:2.6cqw">${escapeHtml(item.cover_subtitle || '')}</p>
+                </div>
+                <span class="shrink-0 font-mono tracking-widest" style="font-size:2.4cqw">CALENDAR</span>
+            </div></div>`;
+    }
+
+
+    window.ACDLDesignerYearStyle = Object.freeze({yearLayouts, yearFills, digitPaths, usesDigitTiles, recommendYearStyle, renderYearTypography, renderNumericCover});
 })();

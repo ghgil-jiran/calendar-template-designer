@@ -89,3 +89,17 @@ test('cover, annual and scheduler compositions support stored and pre-upgrade dr
         }
     }
 });
+
+test('separated engines render recommended covers and preserve edited habit copy', () => {
+    const {ACDLDesignerCoverGenerator: cover, ACDLDesignerPageLayout: layout, ACDLDesignerThemeCopy: copy} = engines();
+    const hooks = {escapeHtml: String, illustrationSource: () => '', illustrationPlaceholder: () => '<span>sample</span>'};
+    for (const preset of Object.values(layout.designerPresets)) {
+        const design = cover.recommendCover({title: preset.title, ...preset.layout});
+        assert.match(cover.renderRecommendedCover({title: preset.title}, design, hooks), /<svg|data-cover-title-style/);
+    }
+    const draft = {cover: {}, back_cover: {}, months: [{month: 1}, {month: 2}]};
+    copy.applyHabitCopy(draft, {cover: {title:'저장한 표지'}, months:[{month:1,front_text:'기존 문구'}]});
+    assert.equal(draft.cover.title, '저장한 표지');
+    assert.equal(draft.months[0].front_text, '기존 문구');
+    assert.equal(draft.months[1].front_text, copy.habitMonths[1][0]);
+});

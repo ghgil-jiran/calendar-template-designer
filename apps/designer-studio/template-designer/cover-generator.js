@@ -176,5 +176,58 @@
             yearArt: { year, digits, stroke, round, form, font, colorMode, preferences: {color:colorPreference, form:formPreference}, orbit: Math.round(Math.random() * numericCanvas.width) } };
     }
 
-    window.ACDLDesignerCoverGenerator = Object.freeze({coverTypes, coverLayouts, coverBackgrounds, coverTitleStyles, numericCanvas, recommendCover, resolveCoverComposition});
+    function renderRecommendedCover(item, theme, {escapeHtml, illustrationSource, illustrationPlaceholder, yearPhoto}) {
+        if (theme?.type === 'numeric') return window.ACDLDesignerYearStyle.renderNumericCover(item, theme, {numericCanvas, escapeHtml});
+        if (!theme || !Object.hasOwn(coverLayouts, theme.layout) || !Object.hasOwn(coverBackgrounds, theme.background) ||
+            ![0,1,2,3,4,8].includes(theme.photos) || ![theme.paper,theme.ink,theme.accent].every(color => /^#[\da-f]{6}$/i.test(color))) return '';
+        const frame = n => '<div class="relative grid min-h-0 min-w-0 place-items-center overflow-hidden border border-current/20 bg-white/35 text-[9px]">' +
+            (n === 1 && illustrationSource(item.illustration_image) ? '<img class="absolute inset-0 h-full w-full object-cover" src="' + escapeHtml(item.illustration_image) + '" alt="표지 이미지">' : illustrationPlaceholder(n - 1, theme.accent)) + '</div>';
+        const titleStyle = Object.hasOwn(coverTitleStyles, theme.titleStyle) ? theme.titleStyle : 'editorial';
+        const compactTitle = ['splitSide','graphicSide','surround'].includes(theme.layout);
+        const titleSize = compactTitle ? '5cqw' : String(item.title ?? '').length > 22 ? '5cqw' : '7cqw';
+        const name = '<h3 class="font-semibold leading-tight" style="font-size:' + (titleStyle === 'year' ? '4cqw' : titleSize) + '">' + escapeHtml(item.title) + '</h3>';
+        const subtitle = typeof item.cover_subtitle === 'string' && item.cover_subtitle.trim()
+            ? '<p class="leading-tight" style="font-size:2.5cqw">' + escapeHtml(item.cover_subtitle) + '</p>' : '';
+        const year = '<span class="leading-none" style="font-size:' + (titleStyle === 'year' ? (compactTitle ? '9cqw' : '14cqw') : '4.5cqw') + '">2027</span>';
+        const label = '<span class="font-sans tracking-[0.16em]" style="font-size:2.15cqw">CALENDAR</span>';
+        const heading = titleStyle === 'year' ? year + label + name + subtitle
+            : titleStyle === 'stacked' ? name + year + label + subtitle
+            : '<span class="font-sans tracking-[0.16em]" style="font-size:2.15cqw">2027 CALENDAR</span>' + name + subtitle;
+        const title = '<div class="relative z-10 grid min-w-0 gap-1 break-words" data-cover-title-style="' + titleStyle + '">' + heading + '</div>';
+        const composition = resolveCoverComposition(theme);
+        const frames = Array.from({length:composition.photoCount}, (_,i) => frame(i+1));
+        const columns = composition.columns?.map(track => track + 'fr').join(' ');
+        const grid = (columns, contents) => '<div class="grid min-h-0 gap-1" style="grid-template-columns:repeat(' + columns + ',minmax(0,1fr))">' + contents.join('') + '</div>';
+        let body;
+        switch (composition.layout) {
+            case 'full': body = '<div class="absolute inset-0 grid">' + frames[0] + '</div><div class="absolute bottom-4 left-4 max-w-[80%] bg-white/90 p-2">' + title + '</div>'; break;
+            case 'splitSide':
+            case 'graphicSide': body = '<div class="grid min-h-0 items-center gap-3" style="grid-template-columns:' + columns + '"><div class="grid h-full">' + frames[0] + '</div>' + title + '</div>'; break;
+            case 'surround': body = grid(composition.gridColumns,[...frames.slice(0,composition.titleSlot),'<div class="grid place-items-center text-center">' + title + '</div>',...frames.slice(composition.titleSlot)]); break;
+            case 'feature': body = title + '<div class="grid min-h-0 gap-1" style="grid-template-columns:' + columns + '">' + frames[0] + grid(1,frames.slice(1)) + '</div>'; break;
+            case 'row': body = title + grid(composition.gridColumns,frames); break;
+            case 'grid': body = title + grid(composition.gridColumns,frames); break;
+            case 'illustration': body = title + (illustrationSource(item.illustration_image) ? frame(1) : '<div aria-hidden="true" class="grid grid-cols-3 items-center gap-2 opacity-80"><span class="aspect-square rounded-full" style="background:var(--accent)"></span><span class="aspect-square rotate-12 rounded-lg bg-current"></span><span class="aspect-square rounded-t-full border-4 border-current"></span></div>'); break;
+            case 'type':
+                if (theme.yearLayout) { body = window.ACDLDesignerYearStyle.renderYearTypography(item,theme,{yearPhoto,escapeHtml}); break; }
+                body = '<div class="self-center justify-self-center rounded border border-current p-4 text-center">' + title + '</div>'; break;
+            case 'center': body = title + '<div class="mx-auto grid" style="width:' + composition.photoWidth * 100 + '%">' + frames[0] + '</div>'; break;
+            case 'decorated': body = title + '<div class="mx-auto grid border-4 border-white/70" style="width:' + composition.photoWidth * 100 + '%">' + frames[0] + '</div>'; break;
+            default: body = title + frames[0];
+        }
+        const backgrounds = {
+            plain:'none', band:'linear-gradient(0deg,var(--accent) 22%,transparent 22%)',
+            geometry:'linear-gradient(140deg,var(--accent) 21%,transparent 21%)',
+            pattern:'radial-gradient(var(--accent) 1px,transparent 1px)',
+            theme:'radial-gradient(ellipse at 12% 22%,var(--accent) 0 8%,transparent 9%),radial-gradient(ellipse at 88% 80%,var(--accent) 0 9%,transparent 10%)',
+            texture:'linear-gradient(125deg,transparent 28%,#ffffff77 28% 42%,transparent 42% 66%,#ffffff66 66% 79%,transparent 79%)'
+        };
+        return '<div class="relative grid h-full w-full min-h-0 gap-2 overflow-hidden p-4 ' + (theme.serif ? 'font-serif' : 'font-sans') + (theme.type === 'type' && theme.yearLayout === 'crop' ? ' cover-year-crop' : '') +
+            '" style="--year-ink:' + theme.ink + ';--accent:' + theme.accent + ';container-type:inline-size;background-color:' + theme.paper + ';color:' + theme.ink + ';background-image:' +
+            backgrounds[theme.background] + ';background-size:' + (theme.background==='pattern' ? '12px 12px' : 'cover') +
+            ';grid-template-rows:' + composition.rows.map(track => track === 'auto' ? track : 'minmax(0,' + track + 'fr)').join(' ') + '">' + body + '</div>';
+    }
+
+
+    window.ACDLDesignerCoverGenerator = Object.freeze({coverTypes, coverLayouts, coverBackgrounds, coverTitleStyles, numericCanvas, recommendCover, resolveCoverComposition, renderRecommendedCover});
 })();

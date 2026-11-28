@@ -79,5 +79,10 @@
         return {draftLayout, imageCounts};
     }
 
-    window.ACDLDesignerPageLayout = Object.freeze({frontThemeAreas, backThemeAreas, draftRecommendations, generatePageLayout, pageComposition});
+    const designerPresets = Object.freeze({
+        numbers:{title:'숫자로 표현하는 디자인 달력',layout:{coverType:'numeric',insideFront:'scheduler',front:'5',back:'4'}},
+        habits:{title:'하루하루 체크하기',layout:{coverType:'illustration',insideFront:'scheduler',front:'2',back:'5'}}
+    });
+
+    window.ACDLDesignerPageLayout = Object.freeze({frontThemeAreas, backThemeAreas, draftRecommendations, generatePageLayout, pageComposition, designerPresets});
 })();
