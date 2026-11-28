@@ -229,8 +229,8 @@
     function renderObjectHint(type) {
         const labels = {photo:'사진', illustration:'일러스트', shape:'도형'};
         const icons = {
-            photo:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-4 3 2 4-5 4 6"/>',
-            illustration:'<path d="m5 15 10-10 4 4-10 10H5zM12 8l4 4M4 5h4M6 3v4"/>',
+            photo:'<path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="3.5"/>',
+            illustration:'<path d="m10 13 8-9 2 2-8 9zM11 14c-3-1-5 0-5 3 0 2-1 3-3 3 4 2 9 0 9-4z"/>',
             shape:'<rect x="3" y="3" width="10" height="10" rx="1"/><circle cx="15" cy="15" r="6"/>'
         };
         const label = labels[type];
