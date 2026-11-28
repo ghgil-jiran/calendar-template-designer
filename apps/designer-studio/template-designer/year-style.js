@@ -7,6 +7,24 @@
         ['label','solid'],['wide','photo'],['tiles','photo'],['megaTiles','outline'],['megaTiles','photo']];
     const usesDigitTiles = layout => layout === 'tiles' || layout === 'megaTiles';
 
+    const vectorYearLibrary = Object.freeze([
+        {id:'rounded', label:'둥근 선', keywords:/따뜻|부드럽|포근|가족|기록/, stroke:16, round:true},
+        {id:'angular', label:'각진 선', keywords:/단정|기하|현대|모던/, stroke:16, round:false},
+        {id:'bold', label:'굵은 선', keywords:/강조|굵|역동|강렬/, stroke:22, round:true},
+        {id:'split-flap', label:'스플릿 플랩', keywords:/스플릿\s*플랩|플립|아날로그|기계식|넘기는/, priority:true, stroke:10, round:false}
+    ]);
+
+    function recommendVectorYearStyle(brief, previous) {
+        const excluded = Array.isArray(previous) ? previous : [previous];
+        const available = vectorYearLibrary.filter(asset => !excluded.includes(asset.id));
+        const start = (vectorYearLibrary.findIndex(asset => asset.id === excluded.at(-1)) + 1) % vectorYearLibrary.length;
+        const ordered = [...vectorYearLibrary.slice(start), ...vectorYearLibrary.slice(0, start)];
+        const asset = available.find(asset => asset.priority && asset.keywords.test(brief)) ??
+            available.find(asset => asset.keywords.test(brief)) ??
+            ordered.find(candidate => available.includes(candidate)) ?? vectorYearLibrary[0];
+        return {assetId:asset.id, stroke:asset.stroke, round:asset.round};
+    }
+
     const digitPaths = {
         0: 'M50 12C25 12 18 30 18 50S25 88 50 88 82 70 82 50 75 12 50 12Z',
         1: 'M28 29 53 12V88M29 88H77',
@@ -87,6 +105,18 @@
         return {yearLayout, yearFill, yearPhotoMode: usesDigitTiles(yearLayout) ? 'digits' : 'single'};
     }
 
+    function renderSplitFlapDigit(digit, paper, previous) {
+        const glyph = value => `<path d="${digitPaths[value]}" fill="none" stroke="${paper}" stroke-width="10"
+            transform="translate(16 12) scale(.68 .76)" stroke-linejoin="bevel"/>`;
+        const transition = previous !== undefined && previous !== String(digit.digit);
+        return `<rect x="8" y="3" width="84" height="94" rx="6" fill="${digit.color}"/>
+            ${transition ? `<svg x="0" y="0" width="100" height="50" viewBox="0 0 100 50" overflow="hidden">${glyph(digit.digit)}</svg>
+                <svg x="0" y="50" width="100" height="50" viewBox="0 50 100 50" overflow="hidden">${glyph(previous)}</svg>`
+                : glyph(digit.digit)}
+            <path d="M8 50H92" stroke="${paper}" stroke-width="2"/>
+            <path d="M8 44V56M92 44V56" stroke="${digit.color}" stroke-width="5"/>`;
+    }
+
     function renderNumericCover(item, design, {numericCanvas, escapeHtml}) {
         const { width, height, artworkHeight } = numericCanvas;
         const { year, digits, stroke, round, orbit, form, font } = design.yearArt || {};
@@ -98,8 +128,11 @@
                 && [digit.x, digit.y, digit.width, digit.height].every(Number.isFinite))) return '';
         const end = round ? 'round' : 'butt';
         const fontFamily = font === 'serif' ? 'Georgia, serif' : 'Arial, sans-serif';
-        const art = digits.map(digit => {
-            const glyph = form === 'font'
+        const previousYear = String(year - 1).padStart(digits.length, '0');
+        const art = digits.map((digit, index) => {
+            const glyph = form === 'vector' && design.yearArt.assetId === 'split-flap'
+                ? renderSplitFlapDigit(digit, design.paper, previousYear[index])
+                : form === 'font'
                 ? `<text x="50" y="87" text-anchor="middle" font-family="${fontFamily}" font-size="101" font-weight="700" textLength="72" lengthAdjust="spacingAndGlyphs" fill="${digit.color}">${digit.digit}</text>`
                 : `<path d="${digitPaths[digit.digit]}" fill="none" stroke="${digit.color}" stroke-width="${stroke}" stroke-linecap="${end}" stroke-linejoin="${round ? 'round' : 'bevel'}"/>`;
             return `<g transform="translate(${digit.x} ${digit.y}) scale(${digit.width / 100} ${digit.height / 100})">${glyph}</g>`;
@@ -124,5 +157,5 @@
     }
 
 
-    window.ACDLDesignerYearStyle = Object.freeze({yearLayouts, yearFills, digitPaths, usesDigitTiles, recommendYearStyle, renderYearTypography, renderNumericCover});
+    window.ACDLDesignerYearStyle = Object.freeze({yearLayouts, yearFills, digitPaths, usesDigitTiles, recommendYearStyle, recommendVectorYearStyle, vectorYearLibrary, renderYearTypography, renderNumericCover});
 })();
