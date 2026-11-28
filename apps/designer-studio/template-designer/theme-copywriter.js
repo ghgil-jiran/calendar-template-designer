@@ -47,6 +47,10 @@
         return alternatives[(alternatives.indexOf(draft.cover.title) + 1) % alternatives.length] ?? draft.cover.title;
     }
 
+    function uploadGuideText(type) {
+        return type === 'photo' ? '대표 사진을 넣어 주세요' : '테마 일러스트를 넣어 주세요';
+    }
+
     function describeDraftCopy(draft) {
         return {
             cover:{title:draft.cover?.title, subtitle:draft.cover?.cover_subtitle},
@@ -59,5 +63,5 @@
         };
     }
 
-    window.ThemeCopywriter = Object.freeze({generateThemeCopy, recommendCoverTitle, describeDraftCopy, habitMonths, applyHabitCopy});
+    window.ThemeCopywriter = Object.freeze({generateThemeCopy, recommendCoverTitle, describeDraftCopy, uploadGuideText, habitMonths, applyHabitCopy});
 })();

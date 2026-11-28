@@ -29,6 +29,30 @@
         };
     }
 
+    const backgrounds = {
+        frame_margin_split:['split','grid','band'], full_bleed_overlay:['none'],
+        year_only_focus:['paper','band'], symbol_year_merge:['solid','split'],
+        typo_poster:['ruled','paper'], pattern_scatter_center:['solid','paper'],
+        art_canvas_footnote:['paper','solid'], editorial_ticket_split:['grid','band'],
+        index_grid_12:['solid','paper'], diy_blank_prompt:['grid','solid']
+    };
+
+    function coverStyle(archetype, design, direction, variation) {
+        const pool = backgrounds[archetype];
+        const paper = /따뜻|아이보리/.test(direction) ? '#F8F1E4' : design.paper;
+        const linear = channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4;
+        const luminance = hex => [.2126,.7152,.0722].reduce((sum, weight, i) =>
+            sum + weight * linear(Number.parseInt(hex.slice(i*2+1,i*2+3),16) / 255), 0);
+        const contrast = (a,b) => (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+        const paperLight = luminance(paper);
+        const ink = contrast(luminance(design.ink),paperLight) >= 4.5 ? design.ink
+            : contrast(0,paperLight) >= 4.5 ? '#000000' : '#FFFFFF';
+        const backgroundType = /단색|배경 없이/.test(direction) && pool.includes('solid') ? 'solid' : pool[variation % pool.length];
+        return {backgroundType,paper,ink,accent:design.accent,
+            frameEffects:{radius:archetype === 'full_bleed_overlay' ? 0 : 8, borderStyle:'dashed'},
+            ...(backgroundType === 'paper' ? {assetSpec:{assetType:'texture', intent:'색을 방해하지 않는 매트 종이의 미세한 결'}} : {})};
+    }
+
     function describePageStyle(draft, page) {
         const cover = page.role === 'cover' ? draft.cover?.cover_design : null;
         const month = page.month ? draft.months?.find(entry => entry.month === page.month) : null;
@@ -43,6 +67,6 @@
         };
     }
 
-    window.VisualStylist = Object.freeze({defaultPaperStyle, monthAccent, monthPrimary, describeBookStyle, describePageStyle,
+    window.VisualStylist = Object.freeze({defaultPaperStyle, monthAccent, monthPrimary, coverStyle, describeBookStyle, describePageStyle,
         recommendYearVector:window.ACDLDesignerYearStyle.recommendVectorYearStyle});
 })();

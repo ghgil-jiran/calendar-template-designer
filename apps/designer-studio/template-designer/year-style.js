@@ -118,7 +118,7 @@
             <path d="M8 44V56M92 44V56" stroke="${digit.color}" stroke-width="5"/>`;
     }
 
-    function renderNumericCover(item, design, {numericCanvas, escapeHtml, monthlyPalette}) {
+    function renderNumericCover(item, design, {numericCanvas, escapeHtml, monthlyPalette, artworkOnly = false}) {
         const { width, height, artworkHeight } = numericCanvas;
         const { year, digits, stroke, round, orbit, form, font } = design.yearArt || {};
         const hex = value => /^#[\da-f]{6}$/i.test(value);
@@ -144,6 +144,7 @@
                 : `<path d="${digitPaths[digit.digit]}" fill="none" stroke="${mosaic ? `url(#${patternId})` : digit.color}" stroke-width="${stroke}" stroke-linecap="${end}" stroke-linejoin="${round ? 'round' : 'bevel'}"/>`;
             return `<g transform="translate(${digit.x} ${digit.y}) scale(${digit.width / 100} ${digit.height / 100})">${glyph}</g>`;
         }).join('');
+        if (artworkOnly) return `<svg class="block h-full w-full" viewBox="0 0 ${width} ${artworkHeight}" role="img" aria-label="${year}" data-year-art>${pattern}${art}</svg>`;
         const background = design.background === 'geometry'
             ? `<circle cx="${orbit}" cy="108" r="106" fill="${design.accent}" opacity=".12"/>`
             : design.background === 'band'

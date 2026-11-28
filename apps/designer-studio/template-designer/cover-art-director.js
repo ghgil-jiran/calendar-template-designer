@@ -99,6 +99,27 @@
                 : '사진과 제목이 각각 잘 읽히도록 공간을 배분합니다.'});
     }
 
+    function composeCover(values, design, variation = 0, excluded = []) {
+        const brief = [values.direction, values.title, values.description].filter(Boolean).join(' · ');
+        const architect = window.LayoutArchitect;
+        const choices = architect.recommendCoverArchetypes(brief,design.photos,design.type);
+        const eligible = choices.filter(choice => !excluded.includes(choice));
+        const archetype = eligible[0] ?? choices[0];
+        const layout = architect.coverLayoutFor(archetype,design.photos);
+        const style = window.VisualStylist.coverStyle(archetype,design,values.direction ?? '',variation);
+        const slots = layout.slots.map(slot => {
+            if (!slot.displayLabel && slot.role !== 'year') return slot;
+            const assetType = slot.role === 'year' ? 'year_graphic' : slot.role === 'art' && design.photos ? 'photo' : 'illustration';
+            const intent = assetType === 'year_graphic'
+                ? (window.ACDLDesignerYearStyle.vectorYearLibrary.find(asset => asset.id === design.yearArt?.assetId)?.label ?? '연도 타이포그래피') + ' · 2027'
+                : window.ThemeCurator.describeCoverDirection(brief, assetType === 'photo');
+            return {...slot, assetSpec:{assetType,intent,promptSeed:intent},
+                ...(slot.displayLabel ? {frameEffects:style.frameEffects, uploadGuideText:window.ThemeCopywriter.uploadGuideText(assetType)} : {})};
+        });
+        return {...design, archetype, coverStyleTokens:style,
+            conceptNote:`${layout.label} · ${style.backgroundType} 배경으로 ‘${values.title}’ 표현`, wireframe:{...layout,slots}};
+    }
+
     function recommendCoverAlternatives(values, selected, variation = 0, seen = []) {
         const history = [...seen, selected.yearArt?.digits].filter(Boolean);
         const habitCompositions = ['grid','check','dots'];
@@ -112,6 +133,7 @@
             alternatives.unshift(requestedHabit);
         }
         const previousYearAssets = [selected.yearArt?.assetId].filter(Boolean);
+        const usedArchetypes = [selected.archetype].filter(Boolean);
         return [1,2].map((offset, index) => {
             const design = recommendCover({...values, coverType:selected.type, coverCount:selected.photos, previousYearAsset:previousYearAssets},
                 variation + offset, history);
@@ -120,7 +142,10 @@
                 if (design.yearArt.assetId) previousYearAssets.push(design.yearArt.assetId);
             }
             if (values.preset === 'habits') design.habitComposition = alternatives[index];
-            return design;
+            if (values.preset === 'habits') return design;
+            const candidate = composeCover(values,design,variation+offset,usedArchetypes);
+            usedArchetypes.push(candidate.archetype);
+            return candidate;
         });
     }
 
@@ -201,7 +226,46 @@
             yearArt: { year, digits, ...pathStyle, form, font, colorMode, preferences: {color:colorPreference, form:formPreference}, orbit: Math.round(Math.random() * numericCanvas.width) } };
     }
 
+    function renderCoverWireframe(item, design, {escapeHtml, monthlyPalette}) {
+        const layout = window.LayoutArchitect.coverLayoutFor(design.archetype,design.photos);
+        const style = design.coverStyleTokens;
+        const hex = value => /^#[\da-f]{6}$/i.test(value);
+        if (!layout || !style || ![style.paper,style.ink,style.accent].every(hex)) return '';
+        const {paper,ink,accent,backgroundType} = style;
+        const background = {
+            split:`linear-gradient(135deg,${paper} 62%,color-mix(in srgb,${paper} 85%,${accent}) 62%)`,
+            band:`linear-gradient(0deg,${accent}33 15%,transparent 15%),${paper}`,
+            ruled:`repeating-linear-gradient(0deg,transparent 0 10px,${ink}19 10px 11px),${paper}`,
+            grid:`repeating-linear-gradient(0deg,transparent 0 9px,${ink}19 9px 10px),repeating-linear-gradient(90deg,transparent 0 9px,${ink}19 9px 10px),${paper}`
+        };
+        const palette = monthlyPalette?.length === 12 && monthlyPalette.every(hex) ? monthlyPalette : Array(12).fill(accent);
+        const tiles = (dots = false) => palette.map((color,i) =>
+            `<span class="grid place-items-center ${dots ? 'rounded-full aspect-square' : 'rounded'}" style="background:${color}33">${dots ? '' : i+1}</span>`).join('');
+        const graphic = design.yearArt ? window.ACDLDesignerYearStyle.renderNumericCover(item,design,
+            {numericCanvas,escapeHtml,monthlyPalette,artworkOnly:true}) : '';
+        const label = slot => `<div class="grid h-full gap-1" style="grid-template-columns:repeat(${Math.ceil(Math.sqrt(Math.max(1,design.photos)))},minmax(0,1fr))">
+            ${Array.from({length:slot.role === 'art' ? Math.max(1,design.photos) : 1}, () =>
+                `<div class="grid place-items-center min-h-0 rounded border border-dashed" style="background:${paper};border-color:${accent}">${slot.displayLabel}</div>`).join('')}</div>`;
+        const content = {
+            art:label, symbol:label,
+            title:() => `<div class="grid h-full content-center overflow-hidden" style="background:${design.archetype === 'full_bleed_overlay' ? paper : 'transparent'}">
+                <strong class="line-clamp-3 leading-tight break-words" style="font-size:${design.archetype === 'typo_poster' ? 8 : 4}cqw">${escapeHtml(item.title)}</strong>
+                <small class="truncate" style="font-size:2cqw">${escapeHtml(item.cover_subtitle)}</small></div>`,
+            year:() => graphic || '<b style="font-size:8cqw">2027</b>',
+            line:() => '<div class="border-t border-current"></div>',
+            blank:() => '<div class="h-full rounded border border-dashed border-current"></div>',
+            index:() => `<div class="grid h-full grid-cols-4 grid-rows-3 gap-1">${tiles()}</div>`,
+            scatter:() => `<div class="grid grid-cols-12 gap-1">${tiles(true)}</div>`
+        };
+        return `<div data-cover-archetype="${layout.archetype}" class="relative h-full overflow-hidden" style="container-type:inline-size;background:${background[backgroundType] ?? paper};color:${ink};font-size:3cqw">${layout.slots.map(slot =>
+            `<div class="absolute overflow-hidden" style="left:${slot.xPct}%;top:${slot.yPct}%;width:${slot.wPct}%;height:${slot.hPct}%;z-index:${slot.zIndex}">${content[slot.role](slot)}</div>`).join('')}</div>`;
+    }
+
     function renderRecommendedCover(item, theme, {escapeHtml, illustrationSource, illustrationPlaceholder, yearPhoto, monthlyPalette}) {
+        if (theme?.wireframe) {
+            const preview = renderCoverWireframe(item,theme,{escapeHtml,monthlyPalette});
+            if (preview) return preview;
+        }
         if (theme?.type === 'numeric') return window.ACDLDesignerYearStyle.renderNumericCover(item, theme, {numericCanvas, escapeHtml, monthlyPalette});
         if (!theme || !Object.hasOwn(coverLayouts, theme.layout) || !Object.hasOwn(coverBackgrounds, theme.background) ||
             ![0,1,2,3,4,8].includes(theme.photos) || ![theme.paper,theme.ink,theme.accent].every(color => /^#[\da-f]{6}$/i.test(color))) return '';
@@ -254,5 +318,5 @@
     }
 
 
-    window.CoverArtDirector = Object.freeze({coverTypes, coverLayouts, coverBackgrounds, coverTitleStyles, numericCanvas, recommendCover, recommendCoverAlternatives, resolveCoverComposition, renderRecommendedCover});
+    window.CoverArtDirector = Object.freeze({coverTypes, coverLayouts, coverBackgrounds, coverTitleStyles, numericCanvas, recommendCover, composeCover, recommendCoverAlternatives, resolveCoverComposition, renderRecommendedCover});
 })();

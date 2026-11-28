@@ -529,13 +529,13 @@
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
-    <script src="./template-designer/year-style.js?v=20261128.review-copy1"></script>
-    <script src="./template-designer/cover-art-director.js?v=20261128.review-copy1"></script>
-    <script src="./template-designer/theme-curator.js?v=20261128.review-copy1"></script>
-    <script src="./template-designer/layout-architect.js?v=20261128.review-copy1"></script>
-    <script src="./template-designer/theme-copywriter.js?v=20261128.review-copy1"></script>
-    <script src="./template-designer/visual-stylist.js?v=20261128.review-copy1"></script>
-    <script src="./template-designer/template-orchestrator.js?v=20261128.review-copy1"></script>
+    <script src="./template-designer/year-style.js?v=20261128.wireframe-review1"></script>
+    <script src="./template-designer/cover-art-director.js?v=20261128.wireframe-review1"></script>
+    <script src="./template-designer/theme-curator.js?v=20261128.wireframe-review1"></script>
+    <script src="./template-designer/layout-architect.js?v=20261128.wireframe-review1"></script>
+    <script src="./template-designer/theme-copywriter.js?v=20261128.wireframe-review1"></script>
+    <script src="./template-designer/visual-stylist.js?v=20261128.wireframe-review1"></script>
+    <script src="./template-designer/template-orchestrator.js?v=20261128.wireframe-review1"></script>
     <script>
         // --- 1. MULTI-TEMPLATE SETS REGISTRY ---
         const CALENDAR_SETS_REGISTRY = [
@@ -1117,7 +1117,7 @@
                     return `<button type="button" data-cover-candidate="${index}" aria-pressed="${selected}"
                         class="rounded border p-2 ${selected ? 'border-amber-400' : 'border-zinc-600'}">
                         <div class="aspect-[4/3] overflow-hidden rounded" aria-hidden="true">${renderDraftFace(cover,false,draft,draft.draft_layout.pages[0])}</div>
-                        <span>표지 ${index+1}${selected ? ' · 선택됨' : ''}</span>
+                        <span>${escapeHtml(candidate.wireframe?.label ?? '표지 ' + (index+1))}${selected ? ' · 선택됨' : ''}</span>
                     </button>`;
                 }).join('')}</div>
             </fieldset>`;
@@ -1129,6 +1129,10 @@
             return `<div class="mt-3 mx-auto aspect-[4/3] max-w-lg overflow-hidden rounded">${renderDraftFace(cover,false,draft,draft.draft_layout.pages[0])}</div>
                 <p class="mt-2 font-semibold">${coverTypes[design.type]} · ${coverLayouts[design.layout][0]} · ${design.type === 'type' && design.yearFill === 'photo' ? (usesDigitTiles(design.yearLayout) && design.yearPhotoMode === 'digits' ? '숫자 프레임 4개' : '연도 사진 프레임 1개') : '사진 '+design.photos+'컷'}</p>
                 <p>${coverBackgrounds[design.background]}${design.type === 'numeric' ? (yearAsset ? ' · 연도 벡터 ' + yearAsset.label : '') : ` · ${coverTitleStyles[design.titleStyle] || coverTitleStyles.editorial} · ${design.serif ? '명조 계열' : '고딕 계열'} · ${design.reason}`}</p>
+                ${design.conceptNote ? `<details class="mt-2"><summary>연출 의도와 에셋 설명</summary>
+                    <p>${escapeHtml(design.conceptNote)}</p>
+                    ${design.wireframe.slots.filter(slot => slot.assetSpec).map(slot => `<p>${escapeHtml(slot.displayLabel ?? '연도 그래픽')} · ${escapeHtml(slot.assetSpec.intent)}${slot.uploadGuideText ? ' · ' + escapeHtml(slot.uploadGuideText) : ''}</p>`).join('')}
+                </details>` : ''}
                 ${coverYearControls(cover)}
                 ${numericCoverControls(design)}
                 <div class="mt-2 flex flex-wrap gap-2">
@@ -1503,7 +1507,7 @@
                 const count = new Date(Date.UTC(year, m, 0)).getUTCDate();
                 return `<div class="${box} h-full grid content-stretch" style="font-size:${tiny ? '1.5' : '2.65'}cqw">${tiny ? '<b style="color:var(--page-accent)">' + (date.getUTCMonth()+1) + '월</b>' : ''}<div class="grid grid-cols-7 text-center items-center tabular-nums">${[...'일월화수목금토'].map((d,i) => '<b style="color:'+(i===0?'#a63d39':i===6?'#355e80':'inherit')+'">' + d + '</b>').join('')}${Array.from({length: 42}, (_, i) => '<span class="border-t border-current/10" style="color:'+(i%7===0?'#a63d39':i%7===6?'#355e80':'inherit')+'">' + (i < offset || i >= offset+count ? '&nbsp;' : i - offset + 1) + '</span>').join('')}</div></div>`;
             };
-            const imageFrames = n => `<div class="grid min-h-0 h-full gap-1 ${n>6?'grid-cols-4':n>4?'grid-cols-3':n>1?'grid-cols-2':''}">${Array.from({length:n},(_,i)=>`<div class="relative min-h-0 overflow-hidden grid place-items-center border border-dashed border-current/30 rounded ${n===3&&i===0?'row-span-2':''}" style="background:color-mix(in srgb,var(--page-accent) 12%,white)">${i === 0 && illustrationSource(item.illustration_image) ? `<img class="absolute inset-0 w-full h-full object-cover" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">` : i === 0 && item.svgType ? generateSVGVisual({...item,photo_slots:0}) : illustrationPlaceholder(i,accent)}</div>`).join('')}</div>`;
+            const imageFrames = n => `<div class="grid min-h-0 h-full gap-1 ${n>6?'grid-cols-4':n>4?'grid-cols-3':n>1?'grid-cols-2':''}">${Array.from({length:n},(_,i)=>`<div class="relative min-h-0 overflow-hidden grid place-items-center border border-dashed border-current/30 rounded ${n===3&&i===0?'row-span-2':''}" style="background:color-mix(in srgb,var(--page-accent) 12%,white)">${dataset.cover?.cover_design?.wireframe ? '사진 이미지' : i === 0 && illustrationSource(item.illustration_image) ? `<img class="absolute inset-0 w-full h-full object-cover" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">` : i === 0 && item.svgType ? generateSVGVisual({...item,photo_slots:0}) : illustrationPlaceholder(i,accent)}</div>`).join('')}</div>`;
             const minis = () => `<div class="grid grid-cols-2 min-h-0 gap-1">${grid(month-1,true)}${grid(month+1,true)}</div>`;
             let body, label;
             switch (page.role) {

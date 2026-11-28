@@ -65,10 +65,16 @@
         };
     }
 
+    function describeCoverDirection(brief, photos) {
+        return photos ? `${brief} · 제목을 놓을 여백이 있는 대표 장면`
+            : `${brief} · 테마의 색과 상징을 단순한 형태로 표현한 그래픽`;
+    }
+
     function describeParticipation(draft) {
         const layout = draft.draft_layout;
         const pagePlan = layout.pages;
         return {
+            coverDirection:{coverPhotoSlots:draft.cover?.photo_slots ?? 0, assetDirectionNote:describeCoverDirection(draft.title, draft.cover?.photo_slots)},
             pageChoices:{
                 insideFront:layout.inside_front, insideBack:layout.inside_back,
                 monthlyFront:layout.month_front, monthlyBack:layout.month_back,
@@ -78,9 +84,9 @@
             },
             hasUserPhoto: Boolean(draft.cover?.photo_slots || pagePlan.some(page => page.image_count > 0)),
             backPagePurpose: draft.draft_layout.month_back === '5' ? 'habit_tracker' : 'free_memo',
-            monthlyPlan: monthlyDirections.map((crossKeyword, index) => ({month:index + 1, crossKeyword}))
+            monthlyPlan: monthlyDirections.map((crossKeyword, index) => ({month:index + 1, crossKeyword, assetHint:`${draft.title} · ${crossKeyword}를 보여주는 장면`}))
         };
     }
 
-    window.ThemeCurator = Object.freeze({createBrief, describeParticipation, planPages, designerPresets, monthlyDirections:Object.freeze(monthlyDirections)});
+    window.ThemeCurator = Object.freeze({createBrief, describeCoverDirection, describeParticipation, planPages, designerPresets, monthlyDirections:Object.freeze(monthlyDirections)});
 })();

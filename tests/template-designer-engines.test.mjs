@@ -320,3 +320,21 @@ test('applying reviewed copy updates titles and monthly text without modifying l
     assert.equal(draft.months[0].photo_slots, 3);
     assert.equal(draft.draft_layout.page_count, 28);
 });
+
+test('photo recommendations render labelled frames and keep asset descriptions in the exported specification', () => {
+    const {ACDLDesignerOrchestrator: designer, CoverArtDirector: director} = engines();
+    const values = {title:'가족 여행', description:'추억', coverType:'multi', coverCount:4,
+        insideFront:'annual',insideBack:'scheduler',front:'1',back:'1',imageCount:1};
+    const draft = designer.generateDraft(designer.createContext(values), 'wireframe', [], () => []);
+    const cover = draft.cover.cover_design;
+    const candidates = [cover, ...director.recommendCoverAlternatives(values, cover)];
+    assert.equal(new Set(candidates.map(candidate => candidate.archetype)).size, 3);
+    const markup = director.renderRecommendedCover({...draft.cover, illustration_image:'example.png'},cover,{escapeHtml:String});
+    assert.equal([...markup.matchAll(/사진 이미지/g)].length,4);
+    assert.doesNotMatch(markup, /example\.png/);
+    const spec = designer.withDesignSpec(draft).design_spec;
+    const slot = spec.pages[0].slots.find(slot => slot.role === 'art');
+    assert.equal(slot.frameCount,4);
+    assert.equal(slot.assetSpec.assetType,'photo');
+    assert.ok(slot.uploadGuideText);
+});

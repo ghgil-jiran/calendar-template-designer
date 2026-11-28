@@ -15,7 +15,8 @@
         const plan = curator.planPages(input, id);
         const {draftLayout} = layout.generatePageLayout(input, id, plan);
         const {theme, months} = copy.generateThemeCopy(title, description, referenceMonths, context.monthlyDirections);
-        const coverDesign = cover.recommendCover(input);
+        const design = cover.recommendCover(input);
+        const coverDesign = preset === 'habits' ? design : cover.composeCover(input,design);
         return {
             set_id:id, title, description, subtitle:description, target_type:`탁상달력 · ${context.canvas.totalPages}면`,
             design_preset:Object.hasOwn(layout.designerPresets, preset) ? preset : undefined,
@@ -41,6 +42,13 @@
     function pageSlots(draft, page, composition) {
         const month = draft.months?.find(entry => entry.month === page.month);
         const coverPage = page.role === 'cover';
+        if (coverPage && draft.cover?.cover_design?.wireframe) {
+            return draft.cover.cover_design.wireframe.slots.map(slot => ({
+                ...slot, slotId:`p1.${slot.role}`, type:slot.role === 'title' ? 'text' : 'graphic',
+                ...(slot.role === 'title' ? {defaultText:draft.cover.title, subtitle:draft.cover.cover_subtitle} : {}),
+                ...(slot.role === 'art' ? {frameCount:draft.cover.photo_slots} : {})
+            }));
+        }
         const areas = coverPage && draft.cover?.cover_design && composition.arrangement !== 'habit-cover'
             ? cover.resolveCoverComposition(draft.cover.cover_design).areas : composition.main;
         const roles = coverPage
@@ -57,7 +65,9 @@
             .flatMap(({role, zone})=>{
                 if (role === 'images' || role === 'photos') {
                     return Array.from({length:photoCount}, (_,index)=>({
-                        slotId:`p${page.number}.${role}.${index+1}`, role, zone, type:'image'
+                        slotId:`p${page.number}.${role}.${index+1}`, role, zone, type:'image',
+                        displayLabel:'사진 이미지', uploadGuideText:copy.uploadGuideText('photo'),
+                        assetSpec:{assetType:'photo',intent:month?.prompt_subject ?? draft.cover?.prompt_subject ?? draft.title}
                     }));
                 }
                 return [{slotId:`p${page.number}.${role}`, role, zone, type:slotTypes[role],
@@ -77,7 +87,13 @@
             const nextArt = art.form === 'font'
                 ? {...art, font:art.font === 'serif' ? 'sans' : 'serif'}
                 : {...art, ...style.recommendYearVector(brief, art.assetId)};
-            return selectCoverCandidate(draft, {...design, yearArt:nextArt});
+            const updated = {...design, yearArt:nextArt};
+            if (design.wireframe) {
+                const intent = (yearStyle.vectorYearLibrary.find(asset => asset.id === nextArt.assetId)?.label ?? '연도 타이포그래피') + ' · 2027';
+                updated.wireframe = {...design.wireframe,slots:design.wireframe.slots.map(slot =>
+                    slot.role === 'year' ? {...slot,assetSpec:{assetType:'year_graphic',intent,promptSeed:intent}} : slot)};
+            }
+            return selectCoverCandidate(draft, updated);
         }
         if (design.type !== 'type') return draft;
         let next = yearStyle.recommendYearStyle(variation);
@@ -92,6 +108,9 @@
             return {
                 pageIndex:page.number, pageRole:page.role, ...(page.month ? {month:page.month} : {}),
                 arrangement:composition.arrangement, composition,
+                ...(page.role === 'cover' && draft.cover?.cover_design?.wireframe
+                    ? {coverArchetype:draft.cover.cover_design.archetype, coverStyleTokens:draft.cover.cover_design.coverStyleTokens,
+                        conceptNote:draft.cover.cover_design.conceptNote} : {}),
                 ...(['number-month','number-memo'].includes(composition.arrangement)
                     ? {calendarSpec:layout.monthGrid(2027, page.month)} : {}),
                 slots:pageSlots(draft, page, composition), style:style.describePageStyle(draft, page)

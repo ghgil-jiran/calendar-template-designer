@@ -80,6 +80,39 @@
         return null;
     }
 
+    const coverArchetypes = {
+        frame_margin_split:['여백과 프레임', ['art',8,15,58,70], ['year',69,33,23,16], ['title',69,53,23,26]],
+        full_bleed_overlay:['전면 오버레이', ['art',0,0,100,100], ['year',8,63,36,12], ['title',8,77,84,14]],
+        year_only_focus:['연도 단독', ['year',10,22,80,49], ['title',18,77,64,13]],
+        symbol_year_merge:['심볼과 연도', ['symbol',20,17,60,55], ['year',12,27,76,43], ['title',17,76,66,14]],
+        typo_poster:['타이포 포스터', ['year',10,16,35,11], ['title',10,33,80,50]],
+        pattern_scatter_center:['패턴과 중앙 여백', ['scatter',7,14,86,76], ['year',22,34,56,28], ['title',22,65,56,13]],
+        art_canvas_footnote:['아트 캔버스와 각주', ['art',10,14,80,65], ['year',11,82,22,9], ['title',36,82,54,9]],
+        editorial_ticket_split:['에디토리얼 티켓', ['title',10,19,80,23], ['line',10,47,80,1], ['year',10,54,80,31]],
+        index_grid_12:['12칸 인덱스', ['year',12,14,76,12], ['index',12,31,76,45], ['title',12,80,76,12]],
+        diy_blank_prompt:['참여형 빈칸', ['year',12,14,34,12], ['blank',12,31,76,43], ['title',12,78,76,14]]
+    };
+
+    function coverLayoutFor(archetype, photos) {
+        if (!Object.hasOwn(coverArchetypes, archetype)) return null;
+        const [label,...parts] = coverArchetypes[archetype];
+        const slots = parts.map(([role,xPct,yPct,wPct,hPct], zIndex) => ({
+            role,xPct,yPct,wPct,hPct,zIndex,
+            ...(['art','symbol'].includes(role) ? {displayLabel:role === 'art' && photos ? '사진 이미지' : '일러스트 이미지'} : {})
+        }));
+        return {archetype,label,slots};
+    }
+
+    function recommendCoverArchetypes(text, photos, type) {
+        if (photos) return type === 'full'
+            ? ['full_bleed_overlay','frame_margin_split','art_canvas_footnote']
+            : ['frame_margin_split','art_canvas_footnote','full_bleed_overlay'];
+        if (/열두 달의 색|12색|팔레트|컬러|색상/.test(text)) return ['index_grid_12','year_only_focus','symbol_year_merge','pattern_scatter_center'];
+        if (/활동|체크|습관|기록표/.test(text)) return ['diy_blank_prompt','editorial_ticket_split','typo_poster'];
+        if (/일러스트|그림|오브제/.test(text)) return ['art_canvas_footnote','symbol_year_merge','pattern_scatter_center','year_only_focus'];
+        return ['year_only_focus','typo_poster','editorial_ticket_split','symbol_year_merge','pattern_scatter_center'];
+    }
+
     function monthGrid(year, month, firstDayOfWeek = 'SUN') {
         const offset = (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + (firstDayOfWeek === 'MON' ? 6 : 0)) % 7;
         const days = new Date(Date.UTC(year, month, 0)).getUTCDate();
@@ -87,5 +120,5 @@
         return {firstDayOfWeek, offset, days, weekRows};
     }
 
-    window.LayoutArchitect = Object.freeze({monthGrid, recommendPageLayout, frontThemeAreas, backThemeAreas, draftRecommendations, generatePageLayout, pageComposition, designerPresets:curator.designerPresets});
+    window.LayoutArchitect = Object.freeze({monthGrid, coverLayoutFor, recommendCoverArchetypes, recommendPageLayout, frontThemeAreas, backThemeAreas, draftRecommendations, generatePageLayout, pageComposition, designerPresets:curator.designerPresets});
 })();
