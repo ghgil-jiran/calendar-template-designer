@@ -62,13 +62,13 @@ test('desk annual month headings retain independent typography and render their 
   const widget={monthLabelStyle:'number-en',layoutType:'open-grid',style:{
     monthLabelSize:18,monthFontFamily:'Arial',monthNumberFontFamily:'Georgia',
     monthNumberSize:22.93,monthEnglishSize:10.89,dayGridStyle:'none',
-    monthTitleRule:{mode:'accent',color:'#7f91b5',width:.3,accentColor:'#ef85a6',accentWidth:.65,accentLength:15}
+    monthTitleRule:{mode:'accent',color:'#7f91b5',width:.3,accentColor:'#ef85a6',accentWidth:.65,accentLength:15,offset:-1.5}
   }};
   const model=mini.resolveAnnualCalendar(widget,{calendarYear:2027},{startMonth:3});
   const html=mini.renderAnnualCalendarMarkup(model,widget);
   assert.match(html,/font-family:Georgia;font-size:22\.93px">3/);
   assert.match(html,/font-family:Arial;font-size:10\.89px">JAN · 2028/);
-  assert.equal((html.match(/height:0\.3mm;background:#7f91b5/g)||[]).length,12);
+  assert.equal((html.match(/top:-1\.5mm;height:0\.3mm;background:#7f91b5/g)||[]).length,12);
   assert.equal((html.match(/width:15%;height:0\.65mm;background:#ef85a6/g)||[]).length,12);
   assert.match(html,/class="annual-day"[^>]+border:none;border-bottom:none/);
   assert.equal(mini.resolveAnnualCalendar({...widget,startMonth:1},{calendarYear:2027},{startMonth:3}).months[0].month,1);
