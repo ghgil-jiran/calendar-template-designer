@@ -10,15 +10,24 @@
     ];
 
     function planPages(values, id) {
-        const { insideFront, insideBack, front, back } = values;
-        const imageCount = ['4','5'].includes(back) ? 0 : back === '1' ? 1 : Number(values.imageCount);
-        const imageCountMode = imageCount > 0 && back !== '1' && imageCount < 4 && values.imageCountMode === 'random-plus' ? 'random-plus' : 'fixed';
-        if (!values.title.trim() || !['annual','scheduler'].includes(insideFront) || !['annual','scheduler'].includes(insideBack)
-            || !['1','2','3','4','5'].includes(front) || !['1','2','3','4','5'].includes(back)
-            || !Number.isInteger(imageCount) || imageCount < (['4','5'].includes(back) ? 0 : 1) || imageCount > 4) {
+        const preset = designerPresets[values.preset]?.layout ?? {};
+        const insideFront = values.insideFront === 'auto'
+            ? (values.insideBack === 'annual' ? 'scheduler' : values.insideBack === 'scheduler' ? 'annual' : preset.insideFront ?? 'annual')
+            : values.insideFront;
+        const insideBack = values.insideBack === 'auto' ? (insideFront === 'annual' ? 'scheduler' : 'annual') : values.insideBack;
+        const front = values.front === 'auto' ? preset.front ?? '1' : values.front;
+        const back = values.back === 'auto' ? preset.back ?? '1' : values.back;
+        const imageCountMax = values.imageCountMax === 10 ? 10 : 4;
+        const noImages = ['4','5'].includes(back);
+        const imageCount = noImages ? 0 : (back === '1' && imageCountMax === 4) || values.imageCount === 'auto' ? 1 : Number(values.imageCount);
+        const imageCountMode = imageCount > 0 && !(back === '1' && imageCountMax === 4) && imageCount < imageCountMax && values.imageCountMode === 'random-plus' ? 'random-plus' : 'fixed';
+        if (!values.title.trim() || !['annual','scheduler','photo'].includes(insideFront) || !['annual','scheduler','photo'].includes(insideBack)
+            || !['1','2','3','4','5'].includes(front) || !['1','2','3','4','5','6','7'].includes(back)
+            || !Number.isInteger(imageCount) || imageCount < (noImages ? 0 : 1) || imageCount > imageCountMax) {
             throw new Error('제목과 면 구성을 확인해 주세요.');
         }
-        const imageCounts = Array.from({length:12}, (_,index) => imageCountMode === 'random-plus' ? imageCount + index % (5-imageCount) : imageCount);
+        const imageCounts = Array.from({length:12}, (_,index) =>
+            imageCountMode === 'random-plus' ? imageCount + index % (imageCountMax + 1 - imageCount) : imageCount);
         if (imageCountMode === 'random-plus') {
             // Shuffle deterministically so editing, reopening, and exporting retain the same counts.
             let seed = Array.from(id).reduce((hash, char) => Math.imul(hash ^ char.codePointAt(0),16777619),2166136261);
@@ -28,7 +37,7 @@
                 [imageCounts[i],imageCounts[j]] = [imageCounts[j],imageCounts[i]];
             }
         }
-        const pages = [{ number: 1, role: 'cover' }, { number: 2, role: 'inside-front', layout: insideFront },
+        const pages = [{ number: 1, role: 'cover' }, { number: 2, role: 'inside-front', layout: insideFront, ...(insideFront === 'photo' ? {image_count:1} : {}) },
             ...imageCounts.flatMap((count, index) => {
                 const month = index + 1;
                 return [
@@ -36,8 +45,8 @@
                     { number: month * 2 + 2, role: 'month-back', month, layout: back, image_count: count }
                 ];
             }),
-            { number: totalPages - 1, role: 'inside-back', layout: insideBack }, { number: totalPages, role: 'back-cover' }];
-        return {pages, imageCounts, imageCount, imageCountMode};
+            { number: totalPages - 1, role: 'inside-back', layout: insideBack, ...(insideBack === 'photo' ? {image_count:1} : {}) }, { number: totalPages, role: 'back-cover' }];
+        return {pages, imageCounts, imageCount, imageCountMode, imageCountMax, insideFront, insideBack, front, back};
     }
 
     const designerPresets = Object.freeze({
@@ -56,5 +65,22 @@
         };
     }
 
-    window.ThemeCurator = Object.freeze({createBrief, planPages, designerPresets, monthlyDirections:Object.freeze(monthlyDirections)});
+    function describeParticipation(draft) {
+        const layout = draft.draft_layout;
+        const pagePlan = layout.pages;
+        return {
+            pageChoices:{
+                insideFront:layout.inside_front, insideBack:layout.inside_back,
+                monthlyFront:layout.month_front, monthlyBack:layout.month_back,
+                backImageCount:layout.image_count, backImageCountMode:layout.image_count_mode,
+                backImageCountMax:layout.image_count_max ?? 4,
+                monthlyBackImageCounts:pagePlan.filter(page => page.role === 'month-back').map(page => page.image_count)
+            },
+            hasUserPhoto: Boolean(draft.cover?.photo_slots || pagePlan.some(page => page.image_count > 0)),
+            backPagePurpose: draft.draft_layout.month_back === '5' ? 'habit_tracker' : 'free_memo',
+            monthlyPlan: monthlyDirections.map((crossKeyword, index) => ({month:index + 1, crossKeyword}))
+        };
+    }
+
+    window.ThemeCurator = Object.freeze({createBrief, describeParticipation, planPages, designerPresets, monthlyDirections:Object.freeze(monthlyDirections)});
 })();

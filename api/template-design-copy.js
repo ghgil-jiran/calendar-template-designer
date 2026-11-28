@@ -62,8 +62,11 @@ export default async function handler(request, response) {
       coverLayout:text(body.coverLayout,32),
       frontArea:body.front === '1' ? '월 제목 아래 한 줄' : '좁은 메모 영역 제목 한 줄',
       backArea:body.back === '2' ? '이미지 아래 짧은 캡션' : '좁은 메모 영역 제목 한 줄',
-      insideFront:body.insideFront === 'scheduler' ? 'scheduler' : 'annual',
-      insideBack:body.insideBack === 'scheduler' ? 'scheduler' : 'annual'
+      insideFront:['scheduler','photo'].includes(body.insideFront) ? body.insideFront : 'annual',
+      insideBack:['scheduler','photo'].includes(body.insideBack) ? body.insideBack : 'annual',
+      backImageCounts:Array.isArray(body.backImageCounts) && body.backImageCounts.length === 12
+        && body.backImageCounts.every(count => Number.isInteger(count) && count >= 0 && count <= 10)
+        ? body.backImageCounts : undefined
     };
     const key = await readOpenAIKey();
     if (!key) throw failure('템플릿 에디터의 AI 연결 설정에서 OpenAI 키를 등록해 주세요.',503,'DESIGN_COPY_NOT_CONFIGURED');
@@ -74,7 +77,7 @@ export default async function handler(request, response) {
 language ko는 한국어, en은 영어, auto는 테마에 어울리는 언어 하나를 일관되게 사용한다.
 이미지 프롬프트는 월별 소재·구도·색·빛을 구체적으로 쓰고 이미지에 글자를 넣지 않도록 지시한다. 한 줄씩 작성한다.
 JSON 객체만 반환한다. 키와 최대 글자 수: cover 48, backCover 52, coverImagePrompt 400, annual 40, scheduler 40.
-annual과 scheduler는 페이지 제목과 별도의 메시지가 어울릴 때만 쓰고 아니면 빈 문자열로 둔다.
+annual과 scheduler는 페이지 제목과 별도의 메시지가 어울릴 때만 쓰고 아니면 빈 문자열로 둔다. 안쪽 면이 photo이면 사진이 중심이므로 해당 면의 연력·스케줄러 제목을 만들지 않는다.
 months는 정확히 12개 객체, 각각 month (1~12 정수), front 최대 32, back 최대 52 (좁은 메모이면 30), scheduler 최대 24, imagePrompt 최대 400.
 스케줄러가 없는 시안에도 월별 scheduler 문구를 만들어 레이아웃을 바꾸면 사용할 수 있게 한다. 모든 글자 수는 공백 포함이다.`;
     const upstream = await fetch('https://api.openai.com/v1/responses',{

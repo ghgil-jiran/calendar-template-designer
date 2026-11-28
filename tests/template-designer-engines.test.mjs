@@ -181,7 +181,7 @@ test('cover candidate selection only replaces the cover and keeps both presets i
     }
 });
 
-test('review renders the chosen cover and all 28 numbered faces, including both monthly sides', () => {
+test('review renders the six representative faces, including both January sides', () => {
     const window = engines();
     const designer = window.ACDLDesignerOrchestrator;
     const values = {title:'검토 시안', description:'', insideFront:'scheduler', insideBack:'annual', front:'1', back:'1'};
@@ -198,9 +198,9 @@ test('review renders the chosen cover and all 28 numbered faces, including both 
     vm.runInContext(render + '\nshowDraftReview(draft);', context);
     assert.equal(review.open, true);
     assert.deepEqual([...summary.innerHTML.matchAll(/data-rendered-face="(\d+)"/g)].map(match => Number(match[1])),
-        Array.from({length:28}, (_, index) => index + 1));
+        [1,2,3,4,27,28]);
     assert.match(summary.innerHTML, /3면 · 1월 앞면/);
-    assert.match(summary.innerHTML, /26면 · 12월 뒷면/);
+    assert.match(summary.innerHTML, /4면 · 1월 뒷면/);
 });
 
 test('title and vector year recommendations preserve the other cover fields and all inner faces', () => {
@@ -238,4 +238,85 @@ test('an analog theme recommends a split-flap vector and retains its identity on
     assert.equal(stored.design_spec.pages[0].style.yearVectorAssetId, 'split-flap');
     assert.match(director.renderRecommendedCover(stored.cover, stored.cover.cover_design, {escapeHtml:String}),
         /aria-label="2027" data-year-art>.*rx="6".*viewBox="0 50 100 50"/s);
+});
+
+test('the number preset exports its 12 monthly colors and renders the same palette on the mosaic cover', () => {
+    const window = engines();
+    const {ACDLDesignerOrchestrator: designer, CoverArtDirector: director, LayoutArchitect: layout} = window;
+    const values = {title:'열두 달의 색', description:'12색 도트 모자이크', preset:'numbers',
+        ...layout.designerPresets.numbers.layout, insideBack:'annual'};
+    const draft = designer.generateDraft(designer.createContext(values), 'monthly-color-sync', [], () => []);
+    const spec = designer.withDesignSpec(draft).design_spec;
+    const monthlyPalette = spec.monthlyStyleTokens.map(token => token.primary);
+    assert.equal(new Set(monthlyPalette).size, 12);
+    assert.equal(spec.roleOutputs.themeBrief.hasUserPhoto, false);
+    assert.equal(new Set(spec.roleOutputs.themeBrief.monthlyPlan.map(month => month.crossKeyword)).size, 12);
+    assert.equal(draft.cover.cover_design.yearArt.assetId, 'dot-mosaic');
+    const svg = director.renderRecommendedCover(draft.cover, draft.cover.cover_design, {escapeHtml:String, monthlyPalette});
+    const pattern = svg.match(/<pattern[^>]*>([\s\S]*?)<\/pattern>/)[1];
+    assert.deepEqual([...pattern.matchAll(/fill="(#[\da-f]+)"/gi)].map(match => match[1]), [...monthlyPalette]);
+    assert.equal(layout.monthGrid(2027, 2, 'MON').weekRows, 5);
+    assert.equal(layout.monthGrid(2027, 1).weekRows, 6);
+    assert.equal(spec.pages[2].calendarSpec.weekRows, 6);
+});
+
+test('automatic choices resolve preset layouts and explicit photo pages support up to ten images', () => {
+    const {LayoutArchitect: layout, ACDLDesignerOrchestrator: designer} = engines();
+    const auto = {title:'새 시안', description:'', preset:'numbers', insideFront:'auto', insideBack:'auto',
+        front:'auto', back:'auto', imageCount:'auto', imageCountMode:'auto', imageCountMax:10};
+    const {draftLayout: preset} = layout.generatePageLayout(auto, 'auto');
+    assert.deepEqual([preset.inside_front, preset.inside_back, preset.month_front, preset.month_back, preset.image_count],
+        ['scheduler','annual','5','4',0]);
+
+    const values = {...auto, preset:'', insideFront:'photo', insideBack:'photo', back:'7', imageCount:'8', imageCountMode:'random-plus'};
+    const draft = designer.generateDraft(designer.createContext(values), 'photo-focus', [], () => []);
+    const {design_spec: spec} = designer.withDesignSpec(draft);
+    assert.equal(spec.pages.length, 28);
+    assert.equal(spec.pages[1].arrangement, 'photo-focus');
+    assert.equal(spec.pages[26].slots[0].type, 'image');
+    assert.equal(spec.pages[3].composition.imageSide, 'right');
+    assert.equal(spec.pages[3].composition.side.join(','), 'memo,adjacent-months');
+    assert.equal(Math.max(...draft.months.map(month => month.photo_slots)), 10);
+    assert.equal(Math.min(...draft.months.map(month => month.photo_slots)), 8);
+    assert.equal(spec.roleOutputs.themeBrief.pageChoices.backImageCountMax, 10);
+    const legacy = layout.generatePageLayout({...values, back:'2', imageCount:'2', imageCountMax:undefined}, 'legacy');
+    assert.equal(Math.max(...legacy.imageCounts), 4);
+    assert.equal(legacy.draftLayout.image_count_max, undefined);
+
+    const fixed = layout.generatePageLayout({...values, back:'1', imageCount:'10', imageCountMode:'fixed'}, 'ten');
+    assert.ok(fixed.imageCounts.every(count => count === 10));
+});
+
+test('layout recommendations change only automatic fields and preserve explicit image settings', () => {
+    const {LayoutArchitect: layout} = engines();
+    const values = {title:'선택 구성', insideFront:'photo', insideBack:'auto', front:'3', back:'7',
+        imageCount:'8', imageCountMode:'random-plus', imageCountMax:10};
+    const {draftLayout: current} = layout.generatePageLayout(values, 'locked-layout');
+    const {draftLayout: next} = layout.recommendPageLayout(values, current, 'locked-layout', -1);
+    assert.notEqual(next.inside_back, current.inside_back);
+    assert.equal(next.inside_front, 'photo');
+    assert.equal(next.month_front, '3');
+    assert.equal(next.month_back, '7');
+    assert.equal(next.image_count, 8);
+    assert.equal(next.image_count_mode, 'random-plus');
+    assert.deepEqual(next.pages.filter(page => page.role === 'month-back'),
+        current.pages.filter(page => page.role === 'month-back'));
+    assert.equal(layout.recommendPageLayout({...values, insideBack:current.inside_back},
+        current, 'locked-layout', -1), null);
+});
+
+test('applying reviewed copy updates titles and monthly text without modifying layout or image data', () => {
+    const source = html.slice(html.indexOf('        function applyReviewCopy('), html.indexOf('        function designCopyField('));
+    const draft = {cover:{title:'이전', cover_design:{type:'numeric'}}, back_cover:{}, draft_layout:{page_count:28},
+        months:[{month:1, photo_slots:3, illustration_image:'saved-image'}]};
+    const copy = {cover:'표지 수정', backCover:'뒷표지 수정', coverImagePrompt:'표지 이미지',
+        annual:'연력', scheduler:'스케줄러', months:[{front:'새 앞면', back:'새 뒷면', scheduler:'카드', imagePrompt:'월 이미지'}]};
+    vm.runInNewContext(source + '\napplyReviewCopy(draft, copy);', {draft, copy});
+    assert.equal(draft.cover.title, '표지 수정');
+    assert.equal(draft.back_cover.title, '뒷표지 수정');
+    assert.equal(draft.months[0].theme_text, '새 앞면');
+    assert.equal(draft.months[0].back_text, '새 뒷면');
+    assert.equal(draft.months[0].illustration_image, 'saved-image');
+    assert.equal(draft.months[0].photo_slots, 3);
+    assert.equal(draft.draft_layout.page_count, 28);
 });

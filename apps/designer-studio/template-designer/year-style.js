@@ -11,7 +11,8 @@
         {id:'rounded', label:'둥근 선', keywords:/따뜻|부드럽|포근|가족|기록/, stroke:16, round:true},
         {id:'angular', label:'각진 선', keywords:/단정|기하|현대|모던/, stroke:16, round:false},
         {id:'bold', label:'굵은 선', keywords:/강조|굵|역동|강렬/, stroke:22, round:true},
-        {id:'split-flap', label:'스플릿 플랩', keywords:/스플릿\s*플랩|플립|아날로그|기계식|넘기는/, priority:true, stroke:10, round:false}
+        {id:'split-flap', label:'스플릿 플랩', keywords:/스플릿\s*플랩|플립|아날로그|기계식|넘기는/, priority:true, stroke:10, round:false},
+        {id:'dot-mosaic', label:'월별 컬러 도트', keywords:/도트\s*모자이크|열두 달의 색|12색/, priority:true, stroke:23, round:true}
     ]);
 
     function recommendVectorYearStyle(brief, previous) {
@@ -117,7 +118,7 @@
             <path d="M8 44V56M92 44V56" stroke="${digit.color}" stroke-width="5"/>`;
     }
 
-    function renderNumericCover(item, design, {numericCanvas, escapeHtml}) {
+    function renderNumericCover(item, design, {numericCanvas, escapeHtml, monthlyPalette}) {
         const { width, height, artworkHeight } = numericCanvas;
         const { year, digits, stroke, round, orbit, form, font } = design.yearArt || {};
         const hex = value => /^#[\da-f]{6}$/i.test(value);
@@ -128,13 +129,19 @@
                 && [digit.x, digit.y, digit.width, digit.height].every(Number.isFinite))) return '';
         const end = round ? 'round' : 'butt';
         const fontFamily = font === 'serif' ? 'Georgia, serif' : 'Arial, sans-serif';
+        const mosaic = form === 'vector' && design.yearArt.assetId === 'dot-mosaic'
+            && monthlyPalette?.length === 12 && monthlyPalette.every(hex);
+        const patternId = mosaic ? 'year-dots-' + ++yearShapeId : '';
+        const pattern = mosaic ? `<defs><pattern id="${patternId}" width="24" height="18" patternUnits="userSpaceOnUse">
+            ${monthlyPalette.map((color,index) => `<circle cx="${3 + index % 4 * 6}" cy="${3 + Math.floor(index / 4) * 6}" r="2.5" fill="${color}"/>`).join('')}
+            </pattern></defs>` : '';
         const previousYear = String(year - 1).padStart(digits.length, '0');
         const art = digits.map((digit, index) => {
             const glyph = form === 'vector' && design.yearArt.assetId === 'split-flap'
                 ? renderSplitFlapDigit(digit, design.paper, previousYear[index])
                 : form === 'font'
                 ? `<text x="50" y="87" text-anchor="middle" font-family="${fontFamily}" font-size="101" font-weight="700" textLength="72" lengthAdjust="spacingAndGlyphs" fill="${digit.color}">${digit.digit}</text>`
-                : `<path d="${digitPaths[digit.digit]}" fill="none" stroke="${digit.color}" stroke-width="${stroke}" stroke-linecap="${end}" stroke-linejoin="${round ? 'round' : 'bevel'}"/>`;
+                : `<path d="${digitPaths[digit.digit]}" fill="none" stroke="${mosaic ? `url(#${patternId})` : digit.color}" stroke-width="${stroke}" stroke-linecap="${end}" stroke-linejoin="${round ? 'round' : 'bevel'}"/>`;
             return `<g transform="translate(${digit.x} ${digit.y}) scale(${digit.width / 100} ${digit.height / 100})">${glyph}</g>`;
         }).join('');
         const background = design.background === 'geometry'
@@ -146,7 +153,7 @@
             ? `background:linear-gradient(135deg,${design.paper},color-mix(in srgb,${design.paper} 88%,${design.accent}));`
             : `background:${design.paper};`;
         return `<div class="relative h-full w-full overflow-hidden" style="container-type:inline-size;${color}color:${design.ink}">
-            <svg class="absolute inset-0 block h-full w-full" viewBox="0 0 ${width} ${height}" role="img" aria-label="${year}" data-year-art>${background}${art}</svg>
+            <svg class="absolute inset-0 block h-full w-full" viewBox="0 0 ${width} ${height}" role="img" aria-label="${year}" data-year-art>${pattern}${background}${art}</svg>
             <div class="absolute inset-x-[5%] bottom-[5%] flex items-end justify-between gap-3">
                 <div class="min-w-0">
                     <h3 class="truncate font-semibold leading-tight" style="font-size:3.7cqw">${escapeHtml(item.title)}</h3>

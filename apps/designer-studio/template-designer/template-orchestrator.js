@@ -92,6 +92,8 @@
             return {
                 pageIndex:page.number, pageRole:page.role, ...(page.month ? {month:page.month} : {}),
                 arrangement:composition.arrangement, composition,
+                ...(['number-month','number-memo'].includes(composition.arrangement)
+                    ? {calendarSpec:layout.monthGrid(2027, page.month)} : {}),
                 slots:pageSlots(draft, page, composition), style:style.describePageStyle(draft, page)
             };
         });
@@ -102,8 +104,10 @@
             schemaVersion:'designer-slots.v1',
             theme:{title:draft.title, preset:draft.design_preset ?? null},
             canvas:{...brief.canvas, totalPages:pages.length},
+            ...style.describeBookStyle(draft),
             roleOutputs:{
                 themeBrief:{
+                    ...curator.describeParticipation(draft),
                     theme:brief.theme, language:brief.language, monthlyDirections:brief.monthlyDirections,
                     pagePlan:draft.draft_layout.pages.map(({composition, ...page}) => page)
                 },

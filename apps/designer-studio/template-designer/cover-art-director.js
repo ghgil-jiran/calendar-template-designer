@@ -188,7 +188,7 @@
             ? colorModeOf(direction) ?? colorModeOf(brief) ?? pick(['mono','mono','pair','digit'])
             : colorPreference;
         const preferredPath = window.VisualStylist.recommendYearVector(direction || brief, previousYearAsset);
-        const form = formPreference === 'auto' ? (preferredPath.assetId === 'split-flap' ? 'vector' : pick(['vector','font'])) : formPreference;
+        const form = formPreference === 'auto' ? (['split-flap','dot-mosaic'].includes(preferredPath.assetId) ? 'vector' : pick(['vector','font'])) : formPreference;
         const font = /명조|세리프/.test(direction) ? 'serif' : pick(['sans','serif']);
         const palette = [ink, accent, third, fourth];
         const pathStyle = form === 'vector' ? preferredPath : {stroke:16, round:false};
@@ -201,8 +201,8 @@
             yearArt: { year, digits, ...pathStyle, form, font, colorMode, preferences: {color:colorPreference, form:formPreference}, orbit: Math.round(Math.random() * numericCanvas.width) } };
     }
 
-    function renderRecommendedCover(item, theme, {escapeHtml, illustrationSource, illustrationPlaceholder, yearPhoto}) {
-        if (theme?.type === 'numeric') return window.ACDLDesignerYearStyle.renderNumericCover(item, theme, {numericCanvas, escapeHtml});
+    function renderRecommendedCover(item, theme, {escapeHtml, illustrationSource, illustrationPlaceholder, yearPhoto, monthlyPalette}) {
+        if (theme?.type === 'numeric') return window.ACDLDesignerYearStyle.renderNumericCover(item, theme, {numericCanvas, escapeHtml, monthlyPalette});
         if (!theme || !Object.hasOwn(coverLayouts, theme.layout) || !Object.hasOwn(coverBackgrounds, theme.background) ||
             ![0,1,2,3,4,8].includes(theme.photos) || ![theme.paper,theme.ink,theme.accent].every(color => /^#[\da-f]{6}$/i.test(color))) return '';
         const frame = n => '<div class="relative grid min-h-0 min-w-0 place-items-center overflow-hidden border border-current/20 bg-white/35 text-[9px]">' +

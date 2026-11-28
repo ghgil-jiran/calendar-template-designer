@@ -282,11 +282,11 @@
 </fieldset><fieldset class="draft-two"><legend>표지</legend><label class="draft-wide">표지 부제 <input name="coverSubtitle" maxlength="60" class="rounded bg-zinc-900 border border-zinc-600 p-2" placeholder="선택 사항"></label>
 <label class="grid gap-1">표지 구성<select name="coverType" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="">테마에 맞게 추천</option><option value="full">전면 사진형</option><option value="split">사진·제목 분할형</option><option value="center">여백 있는 중앙 사진형</option><option value="multi">여러 사진 배열형</option><option value="graphic">사진 + 그래픽형</option><option value="illustration">일러스트·도형 중심형</option><option value="type">타이포그래피·라벨형</option><option value="numeric">숫자형 · 연도 그래픽</option></select></label>
 <label class="grid gap-1">표지 사진 수<select name="coverCount" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="">자동</option><option value="0">0컷</option><option value="1">1컷</option><option value="2">2컷</option><option value="3">3컷</option><option value="4">4컷</option><option value="8">8컷</option></select></label>
-<p id="draftCoverCountHint" class="draft-wide draft-note"></p></fieldset><fieldset class="draft-two"><legend>안쪽 면 <small>28면 구성</small></legend><label class="grid gap-1">2면 · 표지 뒷면<select name="insideFront" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="annual">연력</option><option value="scheduler">스케줄러</option></select></label><label class="grid gap-1">27면 · 뒷표지 앞면<select name="insideBack" disabled class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="annual">연력</option><option value="scheduler">스케줄러</option></select></label><p class="draft-wide draft-note">2면을 선택하면 27면에 나머지 구성이 자동으로 배치됩니다.</p></fieldset>
-<fieldset class="draft-two"><legend>월별 페이지</legend><label>월력 앞면 구성<select name="front" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 월력</option><option value="2">기본 2 · 월력 + 메모</option><option value="3">기본 3 · 월력 + 메모 + 이미지</option><option value="4">기본 4 · 월력 + 메모 + 미니 월력</option><option value="5">숫자 중심</option></select></label>
-<label class="grid gap-1">월력 뒷면 구성<select name="back" class="rounded bg-zinc-900 border border-zinc-600 p-2"><option value="1">기본 1 · 왼쪽 이미지 1장 + 메모</option><option value="2">기본 2 · 상단 이미지 + 하단 띠 월력</option><option value="3">기본 3 · 왼쪽 이미지 + 메모 + 미니 월력</option><option value="4">숫자 중심 + 일 메모</option><option value="5">일일 기록표 · 체크와 직접 쓰기</option></select></label>
-<label>뒷면 이미지 수 <select name="imageCount"><option value="0" hidden>이미지 없음</option><option value="1">1장</option><option value="2">2장</option><option value="3">3장</option><option value="4">4장</option></select></label>
-<label>월별 적용 방식<select name="imageCountMode"><option value="fixed">선택한 수로 고정</option><option value="random-plus">선택한 수 이상으로 섞기</option></select></label>
+<p id="draftCoverCountHint" class="draft-wide draft-note"></p></fieldset><fieldset class="draft-two"><legend>안쪽 면 <small>28면 구성</small></legend><label>2면 · 표지 뒷면<select name="insideFront"><option value="auto">자동</option><option value="annual">연력</option><option value="scheduler">스케줄러</option><option value="photo">사진 중심</option></select></label><label>27면 · 뒷표지 앞면<select name="insideBack"><option value="auto">자동</option><option value="annual">연력</option><option value="scheduler">스케줄러</option><option value="photo">사진 중심</option></select></label></fieldset>
+<fieldset class="draft-two"><legend>월별 페이지</legend><label>월력 앞면 구성<select name="front"><option value="auto">자동</option><option value="1">월력</option><option value="2">월력 + 메모</option><option value="3">월력 + 메모 + 이미지</option><option value="4">월력 + 메모 + 미니 월력</option><option value="5">프리셋 구성 1 · 숫자 중심</option></select></label>
+<label>월력 뒷면 구성<select name="back"><option value="auto">자동</option><option value="1">왼쪽 이미지 + 메모</option><option value="6">오른쪽 이미지 + 메모</option><option value="3">왼쪽 이미지 + 메모 + 미니 월력</option><option value="7">오른쪽 이미지 + 메모 + 미니 월력</option><option value="2">상단 이미지 + 하단 띠 월력</option><option value="4">프리셋 구성 1 · 숫자 중심 + 일 메모</option><option value="5">프리셋 구성 2 · 일일 기록표</option></select></label>
+<label>뒷면 이미지 수<select name="imageCount"><option value="auto">자동</option><option value="1">1장</option><option value="2">2장</option><option value="3">3장</option><option value="4">4장</option><option value="5">5장</option><option value="6">6장</option><option value="7">7장</option><option value="8">8장</option><option value="9">9장</option><option value="10">10장</option></select></label>
+<label>월별 적용 방식<select name="imageCountMode"><option value="auto">자동</option><option value="fixed">선택한 수로 고정</option><option value="random-plus">선택한 수 이상으로 섞기</option></select></label>
 <p id="draftImageCountHint" class="draft-wide draft-note"></p></fieldset>
 <div class="draft-actions"><button type="button" id="generateDraft" class="rounded border border-amber-600 px-3 py-2 disabled:opacity-40">JSON 파일 생성 및 보기</button><button type="button" id="createDraft" disabled class="rounded bg-amber-800 px-3 py-2 disabled:opacity-40">생성하기</button></div>
 <div><progress id="draftProgress" max="100" value="0" aria-label="JSON 생성 진행 상태" hidden class="w-full"></progress><p id="draftStatus" role="status" class="text-sm text-amber-200"></p></div>
@@ -529,13 +529,13 @@
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
-    <script src="./template-designer/year-style.js?v=20261128.year-library1"></script>
-    <script src="./template-designer/cover-art-director.js?v=20261128.year-library1"></script>
-    <script src="./template-designer/theme-curator.js?v=20261128.year-library1"></script>
-    <script src="./template-designer/layout-architect.js?v=20261128.year-library1"></script>
-    <script src="./template-designer/theme-copywriter.js?v=20261128.year-library1"></script>
-    <script src="./template-designer/visual-stylist.js?v=20261128.year-library1"></script>
-    <script src="./template-designer/template-orchestrator.js?v=20261128.year-library1"></script>
+    <script src="./template-designer/year-style.js?v=20261128.review-copy1"></script>
+    <script src="./template-designer/cover-art-director.js?v=20261128.review-copy1"></script>
+    <script src="./template-designer/theme-curator.js?v=20261128.review-copy1"></script>
+    <script src="./template-designer/layout-architect.js?v=20261128.review-copy1"></script>
+    <script src="./template-designer/theme-copywriter.js?v=20261128.review-copy1"></script>
+    <script src="./template-designer/visual-stylist.js?v=20261128.review-copy1"></script>
+    <script src="./template-designer/template-orchestrator.js?v=20261128.review-copy1"></script>
     <script>
         // --- 1. MULTI-TEMPLATE SETS REGISTRY ---
         const CALENDAR_SETS_REGISTRY = [
@@ -801,7 +801,7 @@
         const {yearLayouts, yearFills, usesDigitTiles} = window.ACDLDesignerYearStyle;
 
         const {applyHabitCopy, habitMonths} = window.ThemeCopywriter;
-        const renderRecommendedCover = (item, theme) => window.CoverArtDirector.renderRecommendedCover(item, theme, {escapeHtml, illustrationSource, illustrationPlaceholder, yearPhoto});
+        const renderRecommendedCover = (item, theme, options) => window.CoverArtDirector.renderRecommendedCover(item, theme, {escapeHtml, illustrationSource, illustrationPlaceholder, yearPhoto, ...options});
 
         function illustrationPlaceholder(index, accent) {
             const color = /^#[\da-f]{6}$/i.test(accent) ? accent : '#769285';
@@ -813,7 +813,7 @@
             return '<span role="img" aria-label="이미지 샘플 ' + (index + 1) + '" class="block aspect-[4/3] w-[58%] max-h-full opacity-80" style="--sample-accent:' + color + ';background:' + variants[index % variants.length] + '"></span>';
         }
 
-        const {frontThemeAreas, backThemeAreas, draftRecommendations, generatePageLayout, pageComposition} = window.LayoutArchitect;
+        const {frontThemeAreas, backThemeAreas, generatePageLayout, pageComposition} = window.LayoutArchitect;
         const monthlyTheme = item => item.theme_text?.trim() || (item.memo_title !== '메모' && item.memo_title) || item.title;
 
         function yearPhoto(cover, index) {
@@ -842,6 +842,7 @@
         let initialDraftValues = null;
         let generatedDraft = null;
         let coverInput = null;
+        let pendingReviewCopy = null;
         let coverVariation = 0;
         let layoutVariation = -1;
         let coverCandidates = [];
@@ -852,6 +853,7 @@
         function invalidateDraft() {
             draftRevision++;
             generatedDraft = null;
+            pendingReviewCopy = null;
             generateDraft.disabled = false;
             draftProgress.hidden = true;
             draftProgress.value = 0;
@@ -862,7 +864,7 @@
             syncDraftControls();
         }
         function syncDraftControls() {
-            const {coverType,coverCount,insideFront,insideBack,back,imageCount,imageCountMode} = draftForm.elements;
+            const {coverType,coverCount,back,imageCount,imageCountMode} = draftForm.elements;
             const type = coverType.value;
             const fixedCover = type && type !== 'multi';
             coverCount.disabled = Boolean(fixedCover);
@@ -870,19 +872,19 @@
             if (fixedCover) coverCount.value = ['illustration','type','numeric'].includes(type) ? '0' : '1';
             else if (coverCount.selectedOptions[0]?.disabled) coverCount.value = '';
             document.getElementById('draftCoverCountHint').textContent = fixedCover ? '표지 구성에 맞춰 사진 수가 자동으로 정해집니다.' : '';
-            insideBack.value = insideFront.value === 'annual' ? 'scheduler' : 'annual';
-            imageCount.disabled = ['1','4','5'].includes(back.value);
-            if (imageCount.disabled) imageCount.value = ['4','5'].includes(back.value) ? '0' : '1';
-            imageCount.options[0].hidden = !['4','5'].includes(back.value);
-            if (!imageCount.disabled && imageCount.value === '0') imageCount.value = '1';
-            imageCountMode.disabled = imageCount.disabled || imageCount.value === '4';
-            if (imageCountMode.disabled) imageCountMode.value = 'fixed';
-            document.getElementById('draftImageCountHint').textContent = back.value === '5' ? '기록표에는 사진을 배치하지 않습니다.' : back.value === '4' ? '날짜 격자와 메모 줄로 면을 구성합니다.' : imageCount.disabled ? '이 구성은 뒷면마다 이미지 1장을 사용합니다.'
-                : imageCountMode.value === 'random-plus' ? `월별 뒷면에 ${imageCount.value}~4장을 섞어 배치합니다.` : '';
+            const resolvedBack = back.value === 'auto'
+                ? window.ThemeCurator.designerPresets[draftForm.elements.preset.value]?.layout.back ?? '1' : back.value;
+            imageCount.disabled = imageCountMode.disabled = ['4','5'].includes(resolvedBack);
+            const saved = editedDesign?.draft_layout;
+            const imageMax = saved && !saved.image_count_max && saved.month_back === back.value &&
+                String(saved.image_count) === imageCount.value && saved.image_count_mode === imageCountMode.value ? 4 : 10;
+            document.getElementById('draftImageCountHint').textContent = imageCount.disabled
+                ? '이 뒷면 구성은 이미지 슬롯을 사용하지 않습니다.'
+                : imageCountMode.value === 'random-plus' ? `월별 뒷면에 ${imageCount.value === 'auto' ? 1 : imageCount.value}~${imageMax}장을 섞어 배치합니다.` : '';
         }
         function collectDraftValues() {
             return {...Object.fromEntries(new FormData(draftForm)),
-                ...Object.fromEntries(['coverCount','insideBack','imageCount','imageCountMode'].map(name => [name,draftForm.elements[name].value]))};
+                ...Object.fromEntries(['coverCount','imageCount','imageCountMode'].map(name => [name,draftForm.elements[name].value]))};
         }
         function openDraftForm(source = null) {
             editedDesign = source;
@@ -898,9 +900,9 @@
                     coverType: Object.hasOwn(coverTypes, coverDesign?.type) ? coverDesign.type : '',
                     coverCount: [0,1,2,3,4,8].includes(coverDesign?.photos ?? slots) ? String(coverDesign?.photos ?? slots) : '',
                     language: source.copy_language || 'auto',
-                    insideFront: layout?.inside_front ?? 'annual', insideBack: layout?.inside_back ?? 'annual',
-                    front: layout?.month_front ?? '1', back: layout?.month_back ?? '1',
-                    imageCount: String(layout?.image_count || 1), imageCountMode: layout?.image_count_mode ?? 'fixed'
+                    insideFront: layout?.inside_front ?? 'auto', insideBack: layout?.inside_back ?? 'auto',
+                    front: layout?.month_front ?? 'auto', back: layout?.month_back ?? 'auto',
+                    imageCount: layout?.image_count ? String(layout.image_count) : 'auto', imageCountMode: layout?.image_count_mode ?? 'auto'
                 };
                 for (const [name, value] of Object.entries(values)) draftForm.elements.namedItem(name).value = value;
             }
@@ -949,7 +951,7 @@
                 if (preset) {
                     const fields = draftForm.elements;
                     if (!fields.title.value.trim()) fields.title.value = preset.title;
-                    for (const [name,value] of Object.entries(preset.layout)) fields[name].value = value;
+                    fields.coverType.value = preset.layout.coverType;
                 }
             }
             invalidateDraft();
@@ -981,27 +983,19 @@
                     const random = crypto.getRandomValues(new Uint8Array(16));
                     id = 'draft-' + Array.from(random, byte => byte.toString(16).padStart(2, '0')).join('');
                 }
-                const next = buildDesignerDraft({...values,habitRows:editedDesign?.habit_rows}, id);
+                const savedLayout = editedDesign?.draft_layout;
+                const keepLegacyCap = savedLayout && !savedLayout.image_count_max &&
+                    ['back','imageCount','imageCountMode'].every(name => values[name] === initialDraftValues[name]);
+                const next = buildDesignerDraft({...values,imageCountMax:keepLegacyCap ? 4 : 10,habitRows:editedDesign?.habit_rows}, id);
                 const draft = editedDesign ? rebuildCurrentDesign(editedDesign, next, values) : next;
                 if (values.preset === 'habits') {
                     applyHabitCopy(draft,editedDesign?.design_preset === 'habits' ? editedDesign : null);
                 } else if (values.preset !== 'numbers') {
                     if (window.parent === window) throw new Error('템플릿 에디터에서 디자이너를 열어 AI 문구를 생성해 주세요.');
-                    const copy = await generateDesignCopy({
-                        title:values.title,description:values.description,language:values.language,coverLayout:draft.cover.cover_design?.layout,
-                        front:values.front,back:values.back,insideFront:values.insideFront,insideBack:values.insideBack
-                    });
+                    const copy = await requestReviewCopy(draft, values);
                     if (revision !== draftRevision) return;
                     draft.copy_language = values.language;
-                    draft.cover.title = copy.cover;
-                    draft.cover.prompt_subject = copy.coverImagePrompt;
-                    draft.back_cover = {...draft.back_cover,title:copy.backCover};
-                    draft.inside_copy = {annual:copy.annual,scheduler:copy.scheduler};
-                    draft.months = draft.months.map((month,index) => {
-                        const entry = copy.months[index];
-                        return {...month, theme_text:entry.front, front_text:entry.front, back_text:entry.back,
-                            scheduler_text:entry.scheduler, prompt_subject:entry.imagePrompt};
-                    });
+                    applyReviewCopy(draft, copy);
                 }
                 coverInput = values;
                 coverVariation = 0;
@@ -1145,25 +1139,48 @@
                 <label class="mt-2 grid gap-1">다른 추천에 반영할 방향<input id="coverDirection" maxlength="120" class="rounded border border-zinc-600 bg-zinc-900 p-2" placeholder="${design.type === 'numeric' ? '예: 따뜻하게, 배경 없이' : '예: 더 따뜻하게, 명조 서체'}"></label>
                 <button type="button" data-next-cover class="mt-2 rounded border border-zinc-600 px-3 py-1">다른 추천 받기</button>`;
         }
-        document.getElementById('draftReviewSummary').addEventListener('click', event => {
+        document.getElementById('draftReviewSummary').addEventListener('click', async event => {
+            const retryCopy = event.target.closest('[data-next-copy]');
+            if (retryCopy && generatedDraft) {
+                const draft = generatedDraft;
+                const status = document.getElementById('reviewCopyStatus');
+                retryCopy.disabled = true;
+                status.textContent = '문구를 다시 추천하고 있습니다.';
+                try {
+                    if (window.parent === window) throw new Error('템플릿 에디터에서 디자이너를 열어 주세요.');
+                    const copy = await requestReviewCopy(draft, coverInput);
+                    if (generatedDraft !== draft || !retryCopy.isConnected) return;
+                    pendingReviewCopy = copy;
+                    showDraftReview(draft);
+                    document.getElementById('reviewCopyStatus').textContent = '새 문구를 받았습니다. 미리보기 갱신으로 적용할 수 있습니다.';
+                    document.querySelector('[data-refresh-copy]').focus();
+                } catch (error) {
+                    if (retryCopy.isConnected) status.textContent = error.message;
+                } finally {
+                    retryCopy.disabled = false;
+                }
+                return;
+            }
             if (event.target.closest('[data-refresh-copy]') && generatedDraft) {
+                if (pendingReviewCopy) {
+                    applyReviewCopy(generatedDraft, pendingReviewCopy);
+                    generatedDraft.cover.show_numeric_title = true;
+                    pendingReviewCopy = null;
+                    draftOutput.value = JSON.stringify(designer.withDesignSpec(generatedDraft), null, 2);
+                }
                 showDraftReview(generatedDraft);
                 document.querySelector('[data-refresh-copy]').focus();
                 return;
             }
             if (event.target.closest('[data-next-layout]') && generatedDraft && coverInput) {
-                const current = generatedDraft.draft_layout;
-                const currentKey = [current.inside_front,current.inside_back,current.month_front,current.month_back,current.image_count].join('/');
-                let recommendation;
-                do {
-                    layoutVariation = (layoutVariation + 1) % draftRecommendations.length;
-                    recommendation = draftRecommendations[layoutVariation];
-                } while (recommendation.join('/') === currentKey);
-                const [insideFront,insideBack,front,recommendedBack,imageCount] = recommendation;
-                const back = current.month_back === '5' ? '5' : recommendedBack;
-                const usesRandom = coverInput.imageCountMode === 'random-plus' && back !== '1';
-                const {draftLayout: draft_layout} = generatePageLayout({...coverInput,insideFront,insideBack,front,back,
-                    imageCount:usesRandom ? coverInput.imageCount : imageCount},generatedDraft.set_id);
+                const recommendation = window.LayoutArchitect.recommendPageLayout(coverInput,
+                    generatedDraft.draft_layout, generatedDraft.set_id, layoutVariation);
+                if (!recommendation) {
+                    document.getElementById('reviewLayoutStatus').textContent = '현재 자동 항목에 적용할 다른 구성이 없습니다.';
+                    return;
+                }
+                const {draftLayout: draft_layout, index} = recommendation;
+                layoutVariation = index;
                 generatedDraft.draft_layout = draft_layout;
                 generatedDraft.months = generatedDraft.months.map(month => ({...month, photo_slots:draft_layout.pages[month.month*2+1].image_count}));
                 draftOutput.value = JSON.stringify(designer.withDesignSpec(generatedDraft), null, 2);
@@ -1175,7 +1192,9 @@
             const yearButton = event.target.closest('[data-refresh-cover-year]');
             if (generatedDraft && coverInput && (titleButton || yearButton)) {
                 if (titleButton) {
+                    const previousTitle = generatedDraft.cover.title;
                     generatedDraft.cover.title = window.ThemeCopywriter.recommendCoverTitle(generatedDraft, coverInput.language);
+                    if (pendingReviewCopy?.cover === previousTitle) pendingReviewCopy.cover = generatedDraft.cover.title;
                     generatedDraft.cover.show_numeric_title = true;
                 } else {
                     generatedDraft = designer.recommendCoverYear(generatedDraft,
@@ -1209,51 +1228,95 @@
             document.getElementById('coverDirection').value = direction;
             document.querySelector('[data-next-cover]').focus();
         });
+        function requestReviewCopy(draft, values) {
+            const layout = draft.draft_layout;
+            return generateDesignCopy({
+                title:values.title, description:values.description, language:values.language,
+                coverLayout:draft.cover.cover_design?.layout, front:layout.month_front, back:layout.month_back,
+                insideFront:layout.inside_front, insideBack:layout.inside_back,
+                backImageCounts:draft.months.map(month => month.photo_slots)
+            });
+        }
+
+        function reviewCopyFromDraft(draft) {
+            return {
+                cover:draft.cover.title, backCover:draft.back_cover?.title, coverImagePrompt:draft.cover.prompt_subject,
+                annual:draft.inside_copy?.annual, scheduler:draft.inside_copy?.scheduler,
+                months:draft.months.map(month => ({front:month.front_text ?? month.theme_text,
+                    back:month.back_text, scheduler:month.scheduler_text, imagePrompt:month.prompt_subject}))
+            };
+        }
+
+        function applyReviewCopy(draft, copy) {
+            draft.cover.title = copy.cover;
+            draft.cover.prompt_subject = copy.coverImagePrompt;
+            draft.back_cover = {...draft.back_cover, title:copy.backCover};
+            draft.inside_copy = {annual:copy.annual, scheduler:copy.scheduler};
+            draft.months = draft.months.map((month, index) => {
+                const entry = copy.months[index];
+                return {...month, theme_text:entry.front, front_text:entry.front, back_text:entry.back,
+                    scheduler_text:entry.scheduler, prompt_subject:entry.imagePrompt};
+            });
+        }
+
         function designCopyField(page, field, label, value, limit) {
             return `<label class="grid gap-1">${label}<input data-copy-page="${page}" data-copy-field="${field}" maxlength="${limit}"
                 class="rounded border border-zinc-600 bg-zinc-900 p-2" value="${escapeHtml(value)}"></label>`;
         }
 
         function renderDesignCopyReview(draft) {
-            if (draft.design_preset === 'numbers') return '';
+            const copy = pendingReviewCopy ?? reviewCopyFromDraft(draft);
             const field = designCopyField;
             return `<section class="grid gap-3 rounded border border-zinc-600 p-3">
                 <h3 class="font-semibold text-amber-200">테마 카피라이터 · 페이지별 문구와 이미지 프롬프트</h3>
                 <div class="grid gap-2 sm:grid-cols-2">
-                    ${field('cover','title','표지 제목',draft.cover.title,48)}
-                    ${field('back_cover','title','뒷표지 문구',draft.back_cover?.title,52)}
-                    ${field('cover','prompt_subject','표지 이미지 프롬프트',draft.cover.prompt_subject,400)}
+                    ${field('cover','title','표지 제목',copy.cover,48)}
+                    ${field('back_cover','title','뒷표지 문구',copy.backCover,52)}
+                    ${field('cover','prompt_subject','표지 이미지 프롬프트',copy.coverImagePrompt,400)}
                     ${['annual','scheduler'].filter(kind => [draft.draft_layout.inside_front,draft.draft_layout.inside_back].includes(kind))
-                        .map(kind => field('inside_copy',kind,kind === 'annual' ? '연력 메시지' : '스케줄러 메시지',draft.inside_copy?.[kind],40)).join('')}
+                        .map(kind => field('inside_copy',kind,kind === 'annual' ? '연력 메시지' : '스케줄러 메시지',copy[kind],40)).join('')}
                 </div>
-                ${draft.months.map(month => `<details class="rounded border border-zinc-700 p-2">
-                    <summary class="cursor-pointer">${month.month}월 · ${escapeHtml(month.front_text)}</summary>
-                    <div class="mt-2 grid gap-2">
-                        ${field(month.month,'front_text','월력 앞면 문구',month.front_text,32)}
-                        ${field(month.month,'back_text','월력 뒷면 문구',month.back_text,52)}
-                        ${field(month.month,'scheduler_text','스케줄러 카드 문구',month.scheduler_text,24)}
-                        ${field(month.month,'prompt_subject','이미지 제작 프롬프트',month.prompt_subject,400)}
-                    </div>
-                </details>`).join('')}
-                <button type="button" data-refresh-copy class="justify-self-start rounded border border-zinc-600 px-3 py-1">미리보기 갱신</button>
+                ${copy.months.map((entry,index) => {
+                    const month = index + 1;
+                    return `<details class="rounded border border-zinc-700 p-2">
+                        <summary class="cursor-pointer">${month}월</summary>
+                        <div class="mt-2 grid gap-2">
+                            ${field(month,'front','월력 앞면 문구',entry.front,32)}
+                            ${field(month,'back','월력 뒷면 문구',entry.back,52)}
+                            ${field(month,'scheduler','스케줄러 카드 문구',entry.scheduler,24)}
+                            ${field(month,'imagePrompt','이미지 제작 프롬프트',entry.imagePrompt,400)}
+                        </div>
+                    </details>`;
+                }).join('')}
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" data-refresh-copy class="rounded border border-zinc-600 px-3 py-1">미리보기 갱신</button>
+                    <button type="button" data-next-copy class="rounded border border-zinc-600 px-3 py-1">다시 추천 받기</button>
+                </div>
+                <p id="reviewCopyStatus" role="status">${pendingReviewCopy ? '미리보기 갱신으로 문구를 적용할 수 있습니다.' : ''}</p>
             </section>`;
         }
 
         document.getElementById('draftReviewSummary').addEventListener('input', event => {
             const {copyPage,copyField} = event.target.dataset;
             if (!copyField || !generatedDraft) return;
-            if (copyPage === 'inside_copy') generatedDraft.inside_copy ??= {};
-            const page = Number(copyPage) ? generatedDraft.months[Number(copyPage)-1] : generatedDraft[copyPage];
-            page[copyField] = event.target.value;
-            draftOutput.value = JSON.stringify(designer.withDesignSpec(generatedDraft), null, 2);
+            pendingReviewCopy ??= reviewCopyFromDraft(generatedDraft);
+            if (Number(copyPage)) {
+                pendingReviewCopy.months[Number(copyPage)-1][copyField] = event.target.value;
+            } else {
+                const key = copyPage === 'inside_copy' ? copyField : copyPage === 'back_cover' ? 'backCover'
+                    : copyField === 'title' ? 'cover' : 'coverImagePrompt';
+                pendingReviewCopy[key] = event.target.value;
+            }
+            document.getElementById('reviewCopyStatus').textContent = '미리보기 갱신으로 문구를 적용할 수 있습니다.';
+
         });
 
         function showDraftReview(draft) {
             const layout = draft.draft_layout;
-            const inside = kind => kind === 'annual' ? '연력' : '스케줄러';
+            const inside = kind => ({annual:'연력', scheduler:'스케줄러', photo:'사진 중심'})[kind];
             const front = ['월력', '왼쪽 월력 · 오른쪽 메모', '왼쪽 월력 · 오른쪽 메모와 하단 이미지', '왼쪽 월력 · 오른쪽 메모와 전달·다음 달 미니 월력', '숫자 중심'][Number(layout.month_front) - 1];
-            const imageSummary = layout.image_count_mode === 'random-plus' ? layout.image_count + '~4' : layout.image_count;
-            const back = ['왼쪽 이미지 1장 · 오른쪽 메모', '상단 이미지 ' + imageSummary + '장 · 하단 띠 월력', '왼쪽 이미지 ' + imageSummary + '장 · 오른쪽 메모와 전달·다음 달 미니 월력', '숫자 중심 + 일 메모', '일일 기록표'][Number(layout.month_back) - 1];
+            const imageSummary = layout.image_count_mode === 'random-plus' ? layout.image_count + '~' + (layout.image_count_max ?? 4) : layout.image_count;
+            const back = ['왼쪽 이미지 ' + imageSummary + '장 · 오른쪽 메모', '상단 이미지 ' + imageSummary + '장 · 하단 띠 월력', '왼쪽 이미지 ' + imageSummary + '장 · 오른쪽 메모와 전달·다음 달 미니 월력', '숫자 중심 + 일 메모', '일일 기록표', '오른쪽 이미지 + 메모', '오른쪽 이미지 + 메모 + 미니 월력'][Number(layout.month_back) - 1];
             document.getElementById('draftReviewSummary').innerHTML = `
                 <section class="rounded border border-zinc-600 p-3">
                     <h3 class="font-semibold text-amber-200">테마 큐레이터 · 콘셉트와 디자인 방향</h3>
@@ -1276,9 +1339,10 @@
                         <li>27면 · ${inside(layout.inside_back)}</li><li>28면 · 뒷표지</li>
                     </ul>
                     <button type="button" data-next-layout class="mt-2 rounded border border-zinc-600 px-3 py-1">다른 추천 받기</button>
-                    <div class="mt-3 grid gap-2 sm:grid-cols-2">${layout.pages.map(page => {
+                    <p id="reviewLayoutStatus" role="status"></p>
+                    <div class="mt-3 grid gap-2 sm:grid-cols-2">${layout.pages.filter(page => [1,2,3,4,27,28].includes(page.number)).map(page => {
                         const item = page.month ? draft.months[page.month-1] : draft.cover;
-                        return `<figure><figcaption>${page.number}면${page.month ? ' · ' + page.month + '월 ' + (page.role === 'month-front' ? '앞면' : '뒷면') : ''}</figcaption><div class="aspect-[4/3] overflow-hidden rounded">${renderDraftFace(item,false,draft,page)}</div></figure>`;
+                        return `<figure><figcaption>${page.number}면 · ${({1:'표지',2:'표지 뒷면',3:'1월 앞면',4:'1월 뒷면',27:'뒷표지 앞면',28:'뒷표지'})[page.number]}</figcaption><div class="aspect-[4/3] overflow-hidden rounded">${renderDraftFace(item,false,draft,page)}</div></figure>`;
                     }).join('')}</div>
                 </section>
                 ${draft.draft_layout.month_back === '5' ? renderHabitSettings(draft) : ''}
@@ -1385,12 +1449,15 @@
             if (composition?.arrangement === 'habit-cover') return '<div class="habit-page">' + renderHabitCover(item) + '</div>';
             if (composition?.arrangement === 'habit-tracker') return '<div class="habit-page">' + renderHabitTracker(item,dataset.habit_rows) + '</div>';
             if (composition?.arrangement === 'habit-month') return '<div class="habit-page">' + renderHabitFront(item) + '</div>';
+            const coverOptions = () => ({
+                monthlyPalette:window.VisualStylist.describeBookStyle(dataset).monthlyStyleTokens.map(token => token.primary)
+            });
             if (page.role === 'cover' && dataset.design_preset === 'numbers' && item.cover_design) {
-                const cover = renderRecommendedCover({...item,title:item.show_numeric_title ? item.title : '',cover_subtitle:''},{...item.cover_design,titleStyle:'year'});
+                const cover = renderRecommendedCover({...item,title:item.show_numeric_title ? item.title : '',cover_subtitle:''},{...item.cover_design,titleStyle:'year'}, coverOptions());
                 if (cover) return cover.replace(/>CALENDAR<\/span>/,'></span>');
             }
             if (page.role === 'cover' && item.cover_design) {
-                const cover = renderRecommendedCover(item, item.cover_design);
+                const cover = renderRecommendedCover(item, item.cover_design, coverOptions());
                 if (cover) return cover;
             }
             const year = 2027;
@@ -1398,12 +1465,11 @@
             const box = 'min-h-0 min-w-0 rounded border border-current/15 p-[1cqw]';
             const monthNumber = String(month).padStart(2, '0');
             const monthName = month > 0 && month <= 12 ? new Intl.DateTimeFormat('en', { month:'long', timeZone:'UTC' }).format(new Date(Date.UTC(year,month-1))) : '';
-            const colors = ['#34526b','#803d53','#376548','#664882','#89501e','#216366','#8a422d','#425685','#675628','#834639','#4b5267','#60413c'];
+            const colors = Array.from({length:12}, (_, index) => window.VisualStylist.monthPrimary(dataset,index));
             const palette = ['#edf3f8','#f9ecf1','#eef5ed','#f2edf8','#fff3df','#eaf6f3','#f9ede6','#edf0fa','#f5f1de','#f8ece8','#eef0f5','#f5eeea'];
             const dayGrid = (m, mode) => {
-                const offset = new Date(Date.UTC(year,m-1,1)).getUTCDay();
-                const count = new Date(Date.UTC(year,m,0)).getUTCDate();
-                const rows = mode === 'mini' ? 6 : Math.ceil((offset+count)/7);
+                const {offset, days:count, weekRows} = window.LayoutArchitect.monthGrid(year,m);
+                const rows = mode === 'mini' ? 6 : weekRows;
                 return `<div class="number-days ${mode}" style="--weeks:${rows}">${(mode === 'mini' ? [...'SMTWTFS'] : ['SUN','MON','TUE','WED','THU','FRI','SAT']).map(day=>'<b>'+day+'</b>').join('')}${Array.from({length:rows*7},(_,i)=>{
                     const day = i-offset+1;
                     return day < 1 || day > count ? '<span></span>' : '<span'+(mode === 'daily-memo' ? ' class="memo-day"' : '')+'>'+day+'</span>';
@@ -1422,7 +1488,7 @@
             if (dailyMemo || composition?.arrangement === 'number-month') {
                 const fonts = ['Arial Black,system-ui,sans-serif','Cooper Black,Georgia,serif','Arial Rounded MT Bold,system-ui,sans-serif','Impact,system-ui,sans-serif'];
                 return `<div class="number-page number-month ${dailyMemo?'number-back':'number-front'}" style="--number-accent:${colors[month-1]};--number-paper:${palette[month-1]};--number-font:${fonts[(month-1)%fonts.length]}">
-                    <header>${dailyMemo?monthName.toUpperCase():monthName.slice(0,3).toUpperCase()}</header>
+                    <header>${dailyMemo?monthName.toUpperCase():monthName.slice(0,3).toUpperCase()}${(dailyMemo ? item.back_text : item.front_text) ? ` <small>${escapeHtml(dailyMemo ? item.back_text : item.front_text)}</small>` : ''}</header>
                     <div class="number-grid-wrap">${dailyMemo?'':'<i aria-hidden="true">'+month+'</i>'}${dayGrid(month,dailyMemo?'daily-memo':'large')}</div>
                 </div>`;
             }
@@ -1437,7 +1503,7 @@
                 const count = new Date(Date.UTC(year, m, 0)).getUTCDate();
                 return `<div class="${box} h-full grid content-stretch" style="font-size:${tiny ? '1.5' : '2.65'}cqw">${tiny ? '<b style="color:var(--page-accent)">' + (date.getUTCMonth()+1) + '월</b>' : ''}<div class="grid grid-cols-7 text-center items-center tabular-nums">${[...'일월화수목금토'].map((d,i) => '<b style="color:'+(i===0?'#a63d39':i===6?'#355e80':'inherit')+'">' + d + '</b>').join('')}${Array.from({length: 42}, (_, i) => '<span class="border-t border-current/10" style="color:'+(i%7===0?'#a63d39':i%7===6?'#355e80':'inherit')+'">' + (i < offset || i >= offset+count ? '&nbsp;' : i - offset + 1) + '</span>').join('')}</div></div>`;
             };
-            const imageFrames = n => `<div class="grid min-h-0 h-full gap-1 ${n>1?'grid-cols-2':''}">${Array.from({length:n},(_,i)=>`<div class="relative min-h-0 overflow-hidden grid place-items-center border border-dashed border-current/30 rounded ${n===3&&i===0?'row-span-2':''}" style="background:color-mix(in srgb,var(--page-accent) 12%,white)">${i === 0 && illustrationSource(item.illustration_image) ? `<img class="absolute inset-0 w-full h-full object-cover" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">` : i === 0 && item.svgType ? generateSVGVisual({...item,photo_slots:0}) : illustrationPlaceholder(i,accent)}</div>`).join('')}</div>`;
+            const imageFrames = n => `<div class="grid min-h-0 h-full gap-1 ${n>6?'grid-cols-4':n>4?'grid-cols-3':n>1?'grid-cols-2':''}">${Array.from({length:n},(_,i)=>`<div class="relative min-h-0 overflow-hidden grid place-items-center border border-dashed border-current/30 rounded ${n===3&&i===0?'row-span-2':''}" style="background:color-mix(in srgb,var(--page-accent) 12%,white)">${i === 0 && illustrationSource(item.illustration_image) ? `<img class="absolute inset-0 w-full h-full object-cover" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">` : i === 0 && item.svgType ? generateSVGVisual({...item,photo_slots:0}) : illustrationPlaceholder(i,accent)}</div>`).join('')}</div>`;
             const minis = () => `<div class="grid grid-cols-2 min-h-0 gap-1">${grid(month-1,true)}${grid(month+1,true)}</div>`;
             let body, label;
             switch (page.role) {
@@ -1451,6 +1517,11 @@
                     break;
                 case 'inside-front':
                 case 'inside-back':
+                    if (composition.arrangement === 'photo-focus') {
+                        label = '사진 중심';
+                        body = imageFrames(1);
+                        break;
+                    }
                     label = composition.arrangement === 'annual' ? '연력' : '스케줄러';
                     body = `<div class="grid h-full gap-1" style="grid-template-columns:repeat(${composition.columns},minmax(0,1fr));grid-template-rows:repeat(${composition.rows},minmax(0,1fr))">${dataset.months.map((monthItem,i) => {
                         if (composition.arrangement === 'annual') return grid(i+1,true);
@@ -1480,8 +1551,11 @@
                         body = `<div class="grid gap-2 h-full" style="grid-template-rows:${rows}">${renderElement(composition.main[0])}<div class="border-t border-current/30 pt-1"><div class="flex justify-between tabular-nums" style="font-size:2.1cqw">${days.join('')}</div>${topic('image-caption')}</div></div>`;
                     } else {
                         const sideRows = composition.side.length > 1 ? 'grid-rows-[1fr_1fr]' : '';
-                        const columns = composition.tracks.map(track => track + 'fr').join(' ');
-                        body = `<div class="grid gap-2 h-full" style="grid-template-columns:${columns}">${composition.main.map(renderElement).join('')}<div class="grid min-h-0 gap-1 ${sideRows}">${composition.side.map(renderElement).join('')}</div></div>`;
+                        const main = composition.main.map(renderElement).join('');
+                        const side = `<div class="grid min-h-0 gap-1 ${sideRows}">${composition.side.map(renderElement).join('')}</div>`;
+                        const right = composition.imageSide === 'right';
+                        const columns = (right ? [...composition.tracks].reverse() : composition.tracks).map(track => track + 'fr').join(' ');
+                        body = `<div class="grid gap-2 h-full" style="grid-template-columns:${columns}">${right ? side + main : main + side}</div>`;
                     }
                     break;
                 }
@@ -2348,7 +2422,7 @@
                 if (!isRecord(layout) || months.length !== 12) throw new Error('28면 시안 구성을 확인해 주세요.');
                 const expected = generatePageLayout({ title: set.title, preset:set.design_preset,
                     insideFront: layout.inside_front, insideBack: layout.inside_back,
-                    front: layout.month_front, back: layout.month_back, imageCount: layout.image_count, imageCountMode: layout.image_count_mode
+                    front: layout.month_front, back: layout.month_back, imageCount: layout.image_count, imageCountMode: layout.image_count_mode, imageCountMax:layout.image_count_max
                 }, set.set_id).draftLayout;
                 const validPages = Array.isArray(layout.pages) && layout.pages.length === 28 &&
                     expected.pages.every((page, index) => Object.entries(page).every(([key, value]) => key === 'composition' || (key === 'theme_area' && layout.pages[index]?.[key] === undefined) || layout.pages[index]?.[key] === value));
