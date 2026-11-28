@@ -94,7 +94,15 @@
         .desk-shadow {
             box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.7), 0 10px 20px -5px rgba(0, 0, 0, 0.4);
         }
-    </style>
+    
+        .design-object-frame { container: object-frame / size; }
+        .design-object-hint { display:flex; flex-direction:column; align-items:center; gap:2px; max-width:100%;
+            color:inherit; opacity:.68; font:500 clamp(7px, 9cqmin, 11px)/1.15 system-ui,sans-serif; white-space:nowrap; }
+        .design-object-hint svg { width:clamp(9px, 16cqmin, 19px); height:clamp(9px, 16cqmin, 19px); }
+        @container object-frame (max-height: 32px) or (max-width: 48px) {
+            .design-object-hint > span { display:none; }
+        }
+</style>
 <style>
 .draft-form {display:grid;gap:14px;padding:18px 20px;font-size:14px}
 .draft-form-heading {display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -529,13 +537,13 @@
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
-    <script src="./template-designer/year-style.js?v=20261128.wireframe-review1"></script>
-    <script src="./template-designer/cover-art-director.js?v=20261128.wireframe-review1"></script>
-    <script src="./template-designer/theme-curator.js?v=20261128.wireframe-review1"></script>
-    <script src="./template-designer/layout-architect.js?v=20261128.wireframe-review1"></script>
-    <script src="./template-designer/theme-copywriter.js?v=20261128.wireframe-review1"></script>
-    <script src="./template-designer/visual-stylist.js?v=20261128.wireframe-review1"></script>
-    <script src="./template-designer/template-orchestrator.js?v=20261128.wireframe-review1"></script>
+    <script src="./template-designer/year-style.js?v=20261128.object-hints1"></script>
+    <script src="./template-designer/cover-art-director.js?v=20261128.object-hints1"></script>
+    <script src="./template-designer/theme-curator.js?v=20261128.object-hints1"></script>
+    <script src="./template-designer/layout-architect.js?v=20261128.object-hints1"></script>
+    <script src="./template-designer/theme-copywriter.js?v=20261128.object-hints1"></script>
+    <script src="./template-designer/visual-stylist.js?v=20261128.object-hints1"></script>
+    <script src="./template-designer/template-orchestrator.js?v=20261128.object-hints1"></script>
     <script>
         // --- 1. MULTI-TEMPLATE SETS REGISTRY ---
         const CALENDAR_SETS_REGISTRY = [
@@ -1507,7 +1515,7 @@
                 const count = new Date(Date.UTC(year, m, 0)).getUTCDate();
                 return `<div class="${box} h-full grid content-stretch" style="font-size:${tiny ? '1.5' : '2.65'}cqw">${tiny ? '<b style="color:var(--page-accent)">' + (date.getUTCMonth()+1) + '월</b>' : ''}<div class="grid grid-cols-7 text-center items-center tabular-nums">${[...'일월화수목금토'].map((d,i) => '<b style="color:'+(i===0?'#a63d39':i===6?'#355e80':'inherit')+'">' + d + '</b>').join('')}${Array.from({length: 42}, (_, i) => '<span class="border-t border-current/10" style="color:'+(i%7===0?'#a63d39':i%7===6?'#355e80':'inherit')+'">' + (i < offset || i >= offset+count ? '&nbsp;' : i - offset + 1) + '</span>').join('')}</div></div>`;
             };
-            const imageFrames = n => `<div class="grid min-h-0 h-full gap-1 ${n>6?'grid-cols-4':n>4?'grid-cols-3':n>1?'grid-cols-2':''}">${Array.from({length:n},(_,i)=>`<div class="relative min-h-0 overflow-hidden grid place-items-center border border-dashed border-current/30 rounded ${n===3&&i===0?'row-span-2':''}" style="background:color-mix(in srgb,var(--page-accent) 12%,white)">${dataset.cover?.cover_design?.wireframe ? '사진 이미지' : i === 0 && illustrationSource(item.illustration_image) ? `<img class="absolute inset-0 w-full h-full object-cover" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">` : i === 0 && item.svgType ? generateSVGVisual({...item,photo_slots:0}) : illustrationPlaceholder(i,accent)}</div>`).join('')}</div>`;
+            const imageFrames = n => `<div class="grid min-h-0 h-full gap-1 ${n>6?'grid-cols-4':n>4?'grid-cols-3':n>1?'grid-cols-2':''}">${Array.from({length:n},(_,i)=>`<div class="design-object-frame relative min-h-0 overflow-hidden grid place-items-center border border-dashed border-current/30 rounded ${n===3&&i===0?'row-span-2':''}" style="background:color-mix(in srgb,var(--page-accent) 12%,white)">${dataset.cover?.cover_design?.wireframe ? window.CoverArtDirector.renderObjectHint('photo') : i === 0 && illustrationSource(item.illustration_image) ? `<img class="absolute inset-0 w-full h-full object-cover" src="${escapeHtml(item.illustration_image)}" alt="${escapeHtml(item.title)} 일러스트">` : i === 0 && item.svgType ? generateSVGVisual({...item,photo_slots:0}) : illustrationPlaceholder(i,accent)}</div>`).join('')}</div>`;
             const minis = () => `<div class="grid grid-cols-2 min-h-0 gap-1">${grid(month-1,true)}${grid(month+1,true)}</div>`;
             let body, label;
             switch (page.role) {

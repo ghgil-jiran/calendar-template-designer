@@ -226,6 +226,19 @@
             yearArt: { year, digits, ...pathStyle, form, font, colorMode, preferences: {color:colorPreference, form:formPreference}, orbit: Math.round(Math.random() * numericCanvas.width) } };
     }
 
+    function renderObjectHint(type) {
+        const labels = {photo:'사진', illustration:'일러스트', shape:'도형'};
+        const icons = {
+            photo:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-4 3 2 4-5 4 6"/>',
+            illustration:'<path d="m5 15 10-10 4 4-10 10H5zM12 8l4 4M4 5h4M6 3v4"/>',
+            shape:'<rect x="3" y="3" width="10" height="10" rx="1"/><circle cx="15" cy="15" r="6"/>'
+        };
+        const label = labels[type];
+        return `<span class="design-object-hint" aria-label="${label}" role="img"><svg viewBox="0 0 24 24" aria-hidden="true"
+            fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${icons[type]}</svg>
+            <span aria-hidden="true">${label}</span></span>`;
+    }
+
     function renderCoverWireframe(item, design, {escapeHtml, monthlyPalette}) {
         const layout = window.LayoutArchitect.coverLayoutFor(design.archetype,design.photos);
         const style = design.coverStyleTokens;
@@ -243,9 +256,9 @@
             `<span class="grid place-items-center ${dots ? 'rounded-full aspect-square' : 'rounded'}" style="background:${color}33">${dots ? '' : i+1}</span>`).join('');
         const graphic = design.yearArt ? window.ACDLDesignerYearStyle.renderNumericCover(item,design,
             {numericCanvas,escapeHtml,monthlyPalette,artworkOnly:true}) : '';
-        const label = slot => `<div class="grid h-full gap-1" style="grid-template-columns:repeat(${Math.ceil(Math.sqrt(Math.max(1,design.photos)))},minmax(0,1fr))">
+        const label = slot => `<div class="grid h-full auto-rows-fr gap-1" style="grid-template-columns:repeat(${Math.ceil(Math.sqrt(Math.max(1,design.photos)))},minmax(0,1fr))">
             ${Array.from({length:slot.role === 'art' ? Math.max(1,design.photos) : 1}, () =>
-                `<div class="grid place-items-center min-h-0 rounded border border-dashed" style="background:${paper};border-color:${accent}">${slot.displayLabel}</div>`).join('')}</div>`;
+                `<div class="design-object-frame grid place-items-center min-h-0 min-w-0 overflow-hidden rounded border border-dashed" style="background:${paper};border-color:${accent}">${renderObjectHint(slot.role === 'art' && design.photos ? 'photo' : 'illustration')}</div>`).join('')}</div>`;
         const content = {
             art:label, symbol:label,
             title:() => `<div class="grid h-full content-center overflow-hidden" style="background:${design.archetype === 'full_bleed_overlay' ? paper : 'transparent'}">
@@ -253,7 +266,7 @@
                 <small class="truncate" style="font-size:2cqw">${escapeHtml(item.cover_subtitle)}</small></div>`,
             year:() => graphic || '<b style="font-size:8cqw">2027</b>',
             line:() => '<div class="border-t border-current"></div>',
-            blank:() => '<div class="h-full rounded border border-dashed border-current"></div>',
+            blank:() => `<div class="design-object-frame grid h-full place-items-center rounded border border-dashed border-current">${renderObjectHint('shape')}</div>`,
             index:() => `<div class="grid h-full grid-cols-4 grid-rows-3 gap-1">${tiles()}</div>`,
             scatter:() => `<div class="grid grid-cols-12 gap-1">${tiles(true)}</div>`
         };
@@ -318,5 +331,5 @@
     }
 
 
-    window.CoverArtDirector = Object.freeze({coverTypes, coverLayouts, coverBackgrounds, coverTitleStyles, numericCanvas, recommendCover, composeCover, recommendCoverAlternatives, resolveCoverComposition, renderRecommendedCover});
+    window.CoverArtDirector = Object.freeze({coverTypes, coverLayouts, coverBackgrounds, coverTitleStyles, numericCanvas, renderObjectHint, recommendCover, composeCover, recommendCoverAlternatives, resolveCoverComposition, renderRecommendedCover});
 })();

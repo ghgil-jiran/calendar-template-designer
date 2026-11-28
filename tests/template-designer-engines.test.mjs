@@ -330,7 +330,7 @@ test('photo recommendations render labelled frames and keep asset descriptions i
     const candidates = [cover, ...director.recommendCoverAlternatives(values, cover)];
     assert.equal(new Set(candidates.map(candidate => candidate.archetype)).size, 3);
     const markup = director.renderRecommendedCover({...draft.cover, illustration_image:'example.png'},cover,{escapeHtml:String});
-    assert.equal([...markup.matchAll(/사진 이미지/g)].length,4);
+    assert.equal([...markup.matchAll(/aria-label="사진"/g)].length,4);
     assert.doesNotMatch(markup, /example\.png/);
     const spec = designer.withDesignSpec(draft).design_spec;
     const slot = spec.pages[0].slots.find(slot => slot.role === 'art');
