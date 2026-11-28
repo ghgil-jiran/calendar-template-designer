@@ -17,6 +17,7 @@
   const s=item.style||{},annual=item.type==='year-calendar',yearly=item.type==='event-list'&&item.displayMode==='year-by-month';limits.titleSize=annual?[5,40,.5]:[3,72,.5];
   panel.querySelector('.inspector-tab-empty')?.remove();
   const poster=annual&&item.academicPoster;
+  if(annual&&!poster)return result;
   const section=document.createElement(poster?'details':'div');section.className='section element-inspector';section.id='pageWidgetStyles';if(poster)section.classList.add('poster-inspector-section');
   let html=`<strong>${daily?'자기주도계획표 · 글자와 표 스타일':annual?(poster?'벽보형 글꼴과 날짜색':'연력 · 월 영역 스타일'):'학사일정 · 글자와 월 영역 스타일'}</strong><p class="hint">${annual?'요일·날짜 색과 날짜 격자를 이 연력 개체에 저장합니다.':'저장한 글꼴·색·크기는 사용자 서비스와 출력에도 동일하게 전달됩니다.'}</p>`;
   if(!sourceElement())html+=`<p class="hint">선택 전 설정 대상: 이 페이지의 연력 개체 · ${escape(item.id)}</p>`;
@@ -24,8 +25,6 @@
   if(daily){
    html+=input('dateScale','날짜·요일 크기 (%)','number',s.dateScale??100)+input('titleScale','제목 크기 (%)','number',s.titleScale??100)+input('titleColor','제목 색','color',s.titleColor||'#719da4')+input('color','평일 날짜색','color',s.color||'#20282b')+input('sundayColor','일요일·공휴일색','color',s.sundayColor||'#b53443')+input('saturdayColor','토요일색','color',s.saturdayColor||'#35659b')+input('stripeColor','교차 행 배경색','color',s.stripeColor||'#edf0e9')+input('lineColor','표 선색','color',s.lineColor||'#d5dbd7');
   }else if(annual){
-   if(!poster)html+=input('dateSize','날짜 글자 크기 (px)','number',s.dateSize??7)+input('titleSize','월 제목 크기 (px)','number',s.titleSize??10);
-   if(!poster)html+=select('dayGridStyle','날짜 격자',s.dayGridStyle||'none',[['boxes','독립 박스'],['underline','독립 밑줄'],['none','무선']]);
    html+=input('dateColor','평일 날짜색','color',s.dateColor||'#293878')+input('sunday','일요일·공휴일색','color',s.sunday||'#ef3340')+input('saturday','토요일색','color',s.saturday||'#4777bd')+(poster?'':input('lineColor','격자 선색','color',s.lineColor||'#d8dbe2'));
   }else{
    html+=input('fontSize','일정 글자 크기 (px)','number',s.fontSize??item.fontSize??8)+select('fontWeight','글자 굵기',s.fontWeight||400,[[400,'보통'],[500,'중간'],[700,'굵게']])+input('color','일정 글자색','color',s.color||'#17202e')+input('lineHeight','행간','number',s.lineHeight??1.3);
@@ -45,12 +44,6 @@
    const values=Object.fromEntries(controls.map(e=>[e.dataset.pageStyle,e.type==='number'||e.dataset.pageStyle==='fontWeight'?Number(e.value):e.value]));
    modes.forEach(mode=>{if(!mode.checked)values[mode.dataset.pageBackground]='transparent';});
    for(const key of ['titleBackground','contentBackground','monthBackground','containerBackground'])if(values[key]&&!/^(#[0-9a-f]{3,8}|transparent)$/i.test(values[key])){showEditorToast('배경색은 #RRGGBB 또는 transparent로 입력해 주세요.');return;}
-   if(annual&&!poster&&item.monthLabelStyle==='number-en'&&Number(s.monthNumberSize)>0&&values.titleSize>=5&&values.titleSize<=40){
-    const previousSize=Number(s.titleSize)||10;
-    const scale=values.titleSize/previousSize;
-    values.monthNumberSize=Number(s.monthNumberSize)*scale;
-    if(Number(s.monthEnglishSize)>0)values.monthEnglishSize=Number(s.monthEnglishSize)*scale;
-   }
    const apply=item=>{item.style={...item.style,...values};if(values.fontSize!==undefined){item.fontSize=values.fontSize;item.minFontSize=Math.min(item.minFontSize||values.fontSize,values.fontSize);}};
    if(sourceElement())changeElement(apply);else change(()=>apply(item));
   };

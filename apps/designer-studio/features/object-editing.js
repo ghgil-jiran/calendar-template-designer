@@ -592,6 +592,10 @@ function normalizeAIDesignBackgrounds(){
   item.zIndex=0;item.locked=true;item.selectable=false;
  });
 }
+function annualLegacyRules(item){
+ if(item.id!=="page.sample-3.yearly.calendar")return [];
+ return pageElements().filter(element=>element.type==="image"&&element.role==="background-decoration"&&/^d\.annual\.(rule|accent)\.[0-2]\.[0-3]$/.test(element.id));
+}
 function monthlySurfaceBackground(page){
  return (project.book.elementsByPage[page.id]||[]).find(item=>item.visible!==false&&item.type==="shape"&&item.role==="background-decoration"&&item.width>=95&&item.height>=90);
 }
@@ -867,12 +871,25 @@ function elementInspectorPanels(){
  else if(item.type==="monthly-schedule")panels.content=head+`<label>일정 제목<input id="widgetTitle" value="${item.title||"이달의 일정"}"></label><label>최대 표시 일정<input id="scheduleMaxItems" type="number" min="1" max="30" value="${item.maxItems||10}"></label><button id="applyScheduleWidget" class="action">일정 설정 적용</button></div>`;
  else if(item.type==="year-calendar"){
   const annualStyle=item.style||{};
-  const annualTypography=[
-   ["월 표시","yearMonth","monthFontFamily","monthLabelSize","primary",10,"#293878"],
-   ["일 표시","yearDay","dateFontFamily","dateSize","dateColor",7,"#293878"]
-  ].map(([label,id,family,size,color,defaultSize,defaultColor])=>`<fieldset class="inspector-group"><legend>${label}</legend><label>글꼴<select id="${id}Font"><option value="">기존 글꼴 유지</option>${window.ACDLFontCatalog.choices(annualStyle[family]).map(font=>`<option value="${escapeAttr(font)}" ${annualStyle[family]===font?"selected":""}>${escapeAttr(font)}</option>`).join("")}</select></label><div class="grid2"><label>글자 크기<input id="${id}Size" type="number" min="${id==="yearMonth"?5:3}" max="${id==="yearMonth"?40:36}" step=".5" placeholder="${id==="yearMonth"?"기존 크기 유지":defaultSize}" value="${annualStyle[size]??(id==="yearMonth"?"":defaultSize)}"></label><label>${id==="yearDay"?"평일 글자색":"글자색"}<input id="${id}Color" type="color" value="${escapeAttr(annualStyle[color]||(id==="yearMonth"?annualStyle.dateColor:null)||defaultColor)}"></label></div></fieldset>`).join("");
-  panels.content=head+`<label>시작월<input id="yearCalendarStartMonth" type="number" min="1" max="12" value="${item.startMonth||1}"></label><button id="applyYearCalendarContent" class="action">연간 월력 콘텐츠 저장</button></div>`;
-  panels.design=head+`<label>배열<select id="yearCalendarColumns"><option value="3" ${item.columns===3?"selected":""}>3열 × 4행</option><option value="4" ${![3,6].includes(item.columns)?"selected":""}>4열 × 3행</option><option value="6" ${item.columns===6?"selected":""}>6열 × 2행</option></select></label><label>월 표시 행 수<select id="yearCalendarRowsMode"><option value="inherit" ${(item.rowsMode||"inherit")==="inherit"?"selected":""}>월력 설정 따름</option><option value="adaptive" ${item.rowsMode==="adaptive"?"selected":""}>월별 자동 · 5/6주</option><option value="5" ${item.rowsMode==="5"?"selected":""}>항상 5주</option><option value="6" ${item.rowsMode==="6"?"selected":""}>항상 6주</option></select></label><label>월 사이 가로 간격<input id="yearCalendarColumnGap" type="number" min="0" max="100" value="${item.style?.columnGap??8}"></label><label>월 사이 세로 간격<input id="yearCalendarRowGap" type="number" min="0" max="100" value="${item.style?.rowGap??8}"></label>${annualTypography}<button id="applyYearCalendarLayout" class="action">연력 배치·글꼴 저장</button></div>`;
+  const split=item.monthLabelStyle==="number-en";
+  const titleSize=annualStyle.monthLabelSize??annualStyle.titleSize??10;
+  const titleFont=annualStyle.monthFontFamily||annualStyle.fontFamily;
+  const number=(id,label,value,min,max,step=".5")=>`<label>${label}<input id="${id}" type="number" min="${min}" max="${max}" step="${step}" value="${value}"></label>`;
+  const color=(id,label,value)=>`<label>${label}<input id="${id}" type="color" value="${escapeAttr(value)}"></label>`;
+  const select=(id,label,value,options)=>`<label>${label}<select id="${id}">${options.map(([key,label])=>`<option value="${escapeAttr(key)}" ${String(key)===String(value)?"selected":""}>${escapeAttr(label)}</option>`).join("")}</select></label>`;
+  const typography=(id,label,font,size,min,max)=>select(id+"Font",label+" 글꼴",font||"",[["","기본 글꼴"],...window.ACDLFontCatalog.choices(font).map(name=>[name,name])])+number(id+"Size",label+" 크기",size,min,max,".01");
+  const group=(label,fields)=>`<fieldset class="inspector-group"><legend>${label}</legend>${fields}</fieldset>`;
+  const legacyRules=annualLegacyRules(item);
+  const rule=annualStyle.monthTitleRule|| (legacyRules.length?{mode:"accent",color:"#7f91b5",width:.3,accentColor:"#ef85a6",accentWidth:.65,accentLength:15}:{});
+  const start=Number(item.startMonth||project.settings.startMonth||1);
+  const year=Number(project.settings.year);
+  const last=start+Math.max(1,Math.min(12,Number(item.monthCount)||12))-2;
+  panels.content=head+`<fieldset class="inspector-group"><legend>표시 기간</legend>${select("yearCalendarStartMonth","시작월",item.startMonth||"",[["","학사연도 시작월 따르기"],...Array.from({length:12},(_,i)=>[i+1,(i+1)+"월"])])}<p class="hint">현재 적용 기간 · ${year}년 ${start}월 ~ ${year+Math.floor(last/12)}년 ${last%12+1}월</p></fieldset><button id="applyYearCalendarContent" class="action">표시 기간 저장</button></div>`;
+  const layout=group("연력 배치",(!["vertical-three-month-groups","horizontal-four-month-groups"].includes(item.layoutType)?select("yearCalendarColumns","배열",item.columns||4,Array.from({length:6},(_,index)=>[index+1,`${index+1}열 × ${Math.ceil((Number(item.monthCount)||12)/(index+1))}행`])):"")+select("yearCalendarRowsMode","월별 주 수",item.rowsMode||"inherit",[["inherit","월력 설정 따름"],["adaptive","월별 자동 · 5/6주"],["5","항상 5주"],["6","항상 6주"]])+`<div class="grid2">${number("yearCalendarColumnGap","월 사이 가로 간격",annualStyle.columnGap??8,0,100)}${number("yearCalendarRowGap","월 사이 세로 간격",annualStyle.rowGap??8,0,100)}</div><button id="applyYearCalendarLayout" class="action">연력 배치 저장</button>`);
+  const heading=group("월 제목",(split?typography("yearNumber","숫자 월",annualStyle.monthNumberFontFamily||titleFont,annualStyle.monthNumberSize??titleSize,3,100)+typography("yearEnglish","영문 월",annualStyle.monthEnglishFontFamily||titleFont,annualStyle.monthEnglishSize??titleSize,3,100):typography("yearMonth","월 제목",titleFont,titleSize,5,40))+color("yearMonthColor","월 제목 글자색",annualStyle.primary||annualStyle.dateColor||"#293878")+`<button id="applyYearCalendarTitle" class="action">월 제목 저장</button>`);
+  const divider=group("월 제목 구분선",(legacyRules.length?'<label class="inline-check"><input id="yearReplaceLegacyRules" type="checkbox"> 기존 장식선을 연력 구분선으로 전환</label>':"")+select("yearRuleMode","표시",rule.mode||"none",[["none","없음"],["line","기본선"],["accent","기본선 + 강조선"]])+`<div class="grid2">${color("yearRuleColor","기본선 색",rule.color||"#7f91b5")}${number("yearRuleWidth","기본선 두께 (mm)",rule.width??.3,.05,3,".05")}${color("yearAccentColor","강조선 색",rule.accentColor||"#ef85a6")}${number("yearAccentWidth","강조선 두께 (mm)",rule.accentWidth??.65,.05,3,".05")}</div>`+number("yearAccentLength","강조선 길이 (%)",rule.accentLength??15,1,100,1)+`<button id="applyYearCalendarRule" class="action">구분선 저장</button>`);
+  const days=group("날짜와 격자",typography("yearDay","날짜",annualStyle.dateFontFamily||annualStyle.fontFamily,annualStyle.dateSize??7,3,36)+`<div class="grid2">${color("yearDayColor","평일 글자색",annualStyle.dateColor||"#293878")}${color("yearSaturdayColor","토요일 색",annualStyle.saturday||"#4777bd")}${color("yearSundayColor","일요일·공휴일 색",annualStyle.sunday||"#ef3340")}${color("yearGridColor","격자 선색",annualStyle.lineColor||"#d8dbe2")}</div>`+select("yearGridStyle","날짜 격자",annualStyle.dayGridStyle||"none",[["none","격자선 없음"],["boxes","독립 박스"],["underline","독립 밑줄"]])+`<button id="applyYearCalendarDays" class="action">날짜와 격자 저장</button>`);
+  panels.design=head+layout+heading+divider+days+"</div>";
   if(item.academicPoster){
    const count=Number(item.monthCount)||12,offset=Number(item.posterMonthOffset)||0;
    panels.content=head+`<div class="hint">벽보형 월력 · 학교 일정 자동 연결</div><label>표시 범위<input disabled value="${count}개월 · 시작월부터 ${offset+1}~${offset+count}번째 월"></label><p class="hint">연도·시작 월은 템플릿 기본 설정에 연결됩니다. 일정은 일정 등록에서 입력합니다.</p></div>`;
@@ -1012,6 +1029,9 @@ const INSPECTOR_SAVE_MESSAGES={
  applyElementStyle:"텍스트 디자인을 저장했습니다.",
  applyYearCalendarContent:"연간 월력 콘텐츠를 저장했습니다.",
  applyYearCalendarLayout:"연간 월력 배열을 저장했습니다.",
+ applyYearCalendarTitle:"월 제목을 저장했습니다.",
+ applyYearCalendarRule:"월 제목 구분선을 저장했습니다.",
+ applyYearCalendarDays:"날짜와 격자를 저장했습니다.",
  applyImageStyle:"이미지 설정을 저장했습니다.",
  applyImageEffects:"이미지 효과를 저장했습니다.",
  applyElementGeometry:"개체 위치와 크기를 저장했습니다.",
@@ -1297,17 +1317,28 @@ function bindInspector(){
  bind("applyMonthlyQuoteContent",()=>change(()=>{const key=monthlyQuoteKey(selectedPage());if(!key)return;ensureMonthlyQuotes();const current=project.book.monthlyQuotes[key]||{};project.book.monthlyQuotes[key]={...current,title:el("quoteTitle").value.trim()||"이 달의 명언",quoteKo:el("quoteKo").value.trim(),quoteEn:el("quoteEn").value.trim(),source:el("quoteSource").value.trim(),sourceStatus:"edited",translationType:current.translationType||"editorial"}}));
  bind("applyMonthlyQuoteStyle",()=>changeElement(i=>{i.style||={};i.style.titleSize=Number(el("quoteTitleSize").value);i.style.quoteKoSize=Number(el("quoteKoSize").value);i.style.quoteEnSize=Number(el("quoteEnSize").value);i.style.sourceSize=Number(el("quoteSourceSize").value);i.style.textAlign=el("quoteAlign").value;i.style.color=el("quoteColor").value;i.style.accentColor=el("quoteAccentColor").value;i.style.secondaryColor=el("quoteSecondaryColor").value;i.style.itemGap=Number(el("quoteItemGap").value);}));
  bind("applyPosterCalendarDesign",()=>change(()=>{const i=sourceElement();i.columns=Number(el('yearCalendarColumns').value);i.rowsMode=el('yearCalendarRowsMode').value;i.posterShowList=el('posterShowList').value==='true';i.posterGridStyle=el('posterGridStyle').value;i.posterEventSize=Number(el('posterEventSize').value);i.posterListSize=Number(el('posterListSize').value);i.posterReferenceSize=Number(el('posterReferenceSize').value);i.posterReferenceLayout=el('posterReferenceLayout').value;i.posterColorMode=el('posterColorMode').value;i.posterMonthColors||={};for(const input of document.querySelectorAll('[id^="posterMonthColor-"]'))i.posterMonthColors[input.id.split('-').at(-1)]=input.value;i.posterPolicyVersion=2;i.style||={};for(const [id,key] of [['yearCalendarColumnGap','columnGap'],['yearCalendarRowGap','rowGap'],['posterTitleSize','titleSize'],['posterDateSize','dateSize']])i.style[key]=Number(el(id).value);const cal=project.template.masters.calendar;cal.calendarLayout||={};cal.calendarLayout.referenceColors||={};for(const key of ['anniversaries','solarTerms','lunars'])cal.calendarLayout.referenceColors[key]={mode:el('posterRefMode-'+key).value,color:el('posterRefColor-'+key).value};}));
- bind("applyYearCalendarContent",()=>change(()=>{const i=sourceElement();i.startMonth=Number(el("yearCalendarStartMonth").value)}));
- bind("applyYearCalendarLayout",()=>change(()=>{const i=sourceElement();if(el("yearCalendarColumns"))i.columns=Number(el("yearCalendarColumns").value);i.rowsMode=el("yearCalendarRowsMode")?.value||"inherit";i.style||={};i.style.columnGap=Number(el("yearCalendarColumnGap")?.value??8);i.style.rowGap=Number(el("yearCalendarRowGap")?.value??8);
-  for(const [id,family,size,color,min,max] of [["yearMonth","monthFontFamily","monthLabelSize","primary",5,40],["yearDay","dateFontFamily","dateSize","dateColor",3,36]]){
-   const font=el(id+"Font");
-   if(!font)continue;
-   if(font.value)i.style[family]=font.value;else delete i.style[family];
-   const value=el(id+"Size").valueAsNumber;
-   if(Number.isFinite(value))i.style[size]=Math.min(max,Math.max(min,value));
-   else if(id==="yearMonth")delete i.style[size];
-   i.style[color]=el(id+"Color").value;
-  }
+ bind("applyYearCalendarContent",()=>changeElement(i=>{const value=el("yearCalendarStartMonth").value;if(value)i.startMonth=Number(value);else delete i.startMonth}));
+ bind("applyYearCalendarLayout",()=>changeElement(i=>{if(el("yearCalendarColumns"))i.columns=Number(el("yearCalendarColumns").value);i.rowsMode=el("yearCalendarRowsMode").value;i.style||={};i.style.columnGap=Number(el("yearCalendarColumnGap").value);i.style.rowGap=Number(el("yearCalendarRowGap").value)}));
+ bind("applyYearCalendarTitle",()=>changeElement(i=>{
+  i.style||={};
+  const fields=i.monthLabelStyle==="number-en"?[["yearNumber","monthNumberFontFamily","monthNumberSize"],["yearEnglish","monthEnglishFontFamily","monthEnglishSize"]]:[["yearMonth","monthFontFamily","monthLabelSize"]];
+  for(const [id,font,size] of fields){i.style[font]=el(id+"Font").value;const value=el(id+"Size").valueAsNumber;if(Number.isFinite(value))i.style[size]=value}
+  if(i.monthLabelStyle==="number-en")delete i.style.monthFontFamily;
+  i.style.primary=el("yearMonthColor").value;
+ }));
+ bind("applyYearCalendarRule",()=>change(()=>{
+  const item=sourceElement(),legacy=annualLegacyRules(item);
+  if(legacy.length&&!el("yearReplaceLegacyRules")?.checked){showEditorToast("기존 장식선 전환을 선택해 주세요.");return}
+  const target=ensureCurrentPageEditTarget().item;
+  if(!target)return;
+  target.style||={};
+  target.style.monthTitleRule={mode:el("yearRuleMode").value,color:el("yearRuleColor").value,width:Number(el("yearRuleWidth").value),accentColor:el("yearAccentColor").value,accentWidth:Number(el("yearAccentWidth").value),accentLength:Number(el("yearAccentLength").value)};
+  if(legacy.length){const page=selectedPage();project.book.elementsByPage[page.id]=pageElements(page).filter(element=>!legacy.includes(element));}
+ }));
+ bind("applyYearCalendarDays",()=>changeElement(i=>{
+  i.style||={};i.style.dateFontFamily=el("yearDayFont").value;
+  const size=el("yearDaySize").valueAsNumber;if(Number.isFinite(size))i.style.dateSize=size;
+  for(const [id,key] of [["yearDayColor","dateColor"],["yearSaturdayColor","saturday"],["yearSundayColor","sunday"],["yearGridColor","lineColor"],["yearGridStyle","dayGridStyle"]])i.style[key]=el(id).value;
  }));
  bind("applyMiniCalendarContent",()=>changeElement(i=>{i.monthLabelStyle=el("miniMonthLabelStyle").value;i.showWeekdayHeader=el("miniShowWeekday").checked;}));
  const savePageBackground=all=>{
